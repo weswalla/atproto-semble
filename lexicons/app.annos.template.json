@@ -21,7 +21,7 @@
           "description": "List of annotation fields in this template",
           "items": {
             "type": "ref",
-            "ref": "app.annos.defs#fieldRef"
+            "ref": "com.atproto.repo.strongRef"
           }
         },
         "createdAt": {
@@ -57,7 +57,7 @@
             "description": "List of annotation fields in this template",
             "items": {
               "type": "ref",
-              "ref": "app.annos.defs#fieldRef"
+              "ref": "com.atproto.repo.strongRef"
             }
           },
           "createdAt": {

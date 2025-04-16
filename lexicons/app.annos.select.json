@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "annos.app.select",
+  "id": "app.annos.select",
   "description": "Selection annotation types for single and multi-select options",
   "defs": {
     "singleSelectAnnotationField": {
@@ -37,7 +37,7 @@
       "properties": {
         "field": {
           "type": "ref",
-          "ref": "annos.app.select#singleSelectFieldRef"
+          "ref": "app.annos.select#singleSelectFieldRef"
         },
         "value": {
           "type": "object",
@@ -58,7 +58,7 @@
         },
         "fromTemplate": {
           "type": "ref",
-          "ref": "annos.app.defs#templateRef"
+          "ref": "app.annos.defs#templateRef"
         },
         "createdAt": {
           "type": "string",
@@ -83,7 +83,7 @@
         },
         "definition": {
           "type": "ref",
-          "ref": "annos.app.select#singleSelectAnnotationField"
+          "ref": "app.annos.select#singleSelectAnnotationField"
         }
       }
     },
@@ -121,7 +121,7 @@
       "properties": {
         "field": {
           "type": "ref",
-          "ref": "annos.app.select#multiSelectFieldRef"
+          "ref": "app.annos.select#multiSelectFieldRef"
         },
         "value": {
           "type": "object",
@@ -145,7 +145,7 @@
         },
         "fromTemplate": {
           "type": "ref",
-          "ref": "annos.app.defs#templateRef"
+          "ref": "app.annos.defs#templateRef"
         },
         "createdAt": {
           "type": "string",
@@ -170,7 +170,7 @@
         },
         "definition": {
           "type": "ref",
-          "ref": "annos.app.select#multiSelectAnnotationField"
+          "ref": "app.annos.select#multiSelectAnnotationField"
         }
       }
     },
@@ -181,8 +181,8 @@
       "record": {
         "type": "union",
         "refs": [
-          "annos.app.select#singleSelectAnnotation",
-          "annos.app.select#multiSelectAnnotation"
+          "app.annos.select#singleSelectAnnotation",
+          "app.annos.select#multiSelectAnnotation"
         ]
       }
     }

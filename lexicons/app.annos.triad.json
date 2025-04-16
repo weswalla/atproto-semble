@@ -1,12 +1,12 @@
 {
   "lexicon": 1,
-  "id": "annos.app.dyad",
-  "description": "Dyad annotation types for representing relationships between two sides",
+  "id": "app.annos.triad",
+  "description": "Triad annotation types for representing relationships between three vertices",
   "defs": {
-    "dyadAnnotationField": {
+    "triadAnnotationField": {
       "type": "object",
-      "description": "Field definition for dyad annotations",
-      "required": ["name", "description", "sideA", "sideB"],
+      "description": "Field definition for triad annotations",
+      "required": ["name", "description", "vertexA", "vertexB", "vertexC"],
       "properties": {
         "name": {
           "type": "string",
@@ -16,13 +16,17 @@
           "type": "string",
           "description": "Description of the annotation field"
         },
-        "sideA": {
+        "vertexA": {
           "type": "string",
-          "description": "Label for side A of the dyad"
+          "description": "Label for vertex A of the triad"
         },
-        "sideB": {
+        "vertexB": {
           "type": "string",
-          "description": "Label for side B of the dyad"
+          "description": "Label for vertex B of the triad"
+        },
+        "vertexC": {
+          "type": "string",
+          "description": "Label for vertex C of the triad"
         },
         "createdAt": {
           "type": "string",
@@ -31,38 +35,41 @@
         }
       }
     },
-    "dyadAnnotation": {
+    "triadAnnotation": {
       "type": "object",
-      "description": "An annotation representing a relationship between two sides",
+      "description": "An annotation representing a relationship between three vertices",
       "required": ["field", "value"],
       "properties": {
         "field": {
           "type": "ref",
-          "ref": "annos.app.dyad#dyadFieldRef"
+          "ref": "app.annos.triad#triadFieldRef"
         },
         "value": {
           "type": "object",
-          "required": ["value"],
+          "required": ["vertexA", "vertexB", "vertexC"],
           "properties": {
-            "value": {
+            "vertexA": {
               "type": "integer",
-              "description": "Value representing the relationship between sides"
+              "description": "Value for vertex A"
             },
-            "minValue": {
+            "vertexB": {
               "type": "integer",
-              "const": 0,
-              "description": "Minimum possible value"
+              "description": "Value for vertex B"
             },
-            "maxValue": {
+            "vertexC": {
+              "type": "integer",
+              "description": "Value for vertex C"
+            },
+            "sumsTo": {
               "type": "integer",
               "const": 1,
-              "description": "Maximum possible value"
+              "description": "The sum of all vertex values"
             }
           }
         },
         "fromTemplate": {
           "type": "ref",
-          "ref": "annos.app.defs#templateRef"
+          "ref": "app.annos.defs#templateRef"
         },
         "createdAt": {
           "type": "string",
@@ -76,24 +83,24 @@
         }
       }
     },
-    "dyadFieldRef": {
+    "triadFieldRef": {
       "type": "object",
-      "description": "Reference to a dyad annotation field",
+      "description": "Reference to a triad annotation field",
       "required": ["id", "definition"],
       "properties": {
         "id": {
           "type": "string",
-          "description": "Identifier for the dyad annotation field"
+          "description": "Identifier for the triad annotation field"
         },
         "definition": {
           "type": "ref",
-          "ref": "annos.app.dyad#dyadAnnotationField"
+          "ref": "app.annos.triad#triadAnnotationField"
         }
       }
     },
     "main": {
       "type": "record",
-      "description": "A record of a dyad annotation",
+      "description": "A record of a triad annotation",
       "key": "tid",
       "record": {
         "type": "object",
@@ -101,31 +108,34 @@
         "properties": {
           "field": {
             "type": "ref",
-            "ref": "annos.app.dyad#dyadFieldRef"
+            "ref": "app.annos.triad#triadFieldRef"
           },
           "value": {
             "type": "object",
-            "required": ["value"],
+            "required": ["vertexA", "vertexB", "vertexC"],
             "properties": {
-              "value": {
+              "vertexA": {
                 "type": "integer",
-                "description": "Value representing the relationship between sides"
+                "description": "Value for vertex A"
               },
-              "minValue": {
+              "vertexB": {
                 "type": "integer",
-                "const": 0,
-                "description": "Minimum possible value"
+                "description": "Value for vertex B"
               },
-              "maxValue": {
+              "vertexC": {
+                "type": "integer",
+                "description": "Value for vertex C"
+              },
+              "sumsTo": {
                 "type": "integer",
                 "const": 1,
-                "description": "Maximum possible value"
+                "description": "The sum of all vertex values"
               }
             }
           },
           "fromTemplate": {
             "type": "ref",
-            "ref": "annos.app.defs#templateRef"
+            "ref": "app.annos.defs#templateRef"
           },
           "createdAt": {
             "type": "string",

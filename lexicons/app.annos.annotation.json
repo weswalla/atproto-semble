@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "annos.app.annotation",
+  "id": "app.annos.annotation",
   "description": "Main annotation record types",
   "defs": {
     "main": {
@@ -10,11 +10,11 @@
       "record": {
         "type": "union",
         "refs": [
-          "annos.app.dyad#dyadAnnotation",
-          "annos.app.triad#triadAnnotation",
-          "annos.app.select#singleSelectAnnotation",
-          "annos.app.select#multiSelectAnnotation",
-          "annos.app.rating#starRatingAnnotation"
+          "app.annos.dyad#dyadAnnotation",
+          "app.annos.triad#triadAnnotation",
+          "app.annos.select#singleSelectAnnotation",
+          "app.annos.select#multiSelectAnnotation",
+          "app.annos.rating#starRatingAnnotation"
         ]
       }
     },
@@ -26,11 +26,11 @@
         "schema": {
           "type": "union",
           "refs": [
-            "annos.app.dyad#dyadAnnotation",
-            "annos.app.triad#triadAnnotation",
-            "annos.app.select#singleSelectAnnotation",
-            "annos.app.select#multiSelectAnnotation",
-            "annos.app.rating#starRatingAnnotation"
+            "app.annos.dyad#dyadAnnotation",
+            "app.annos.triad#triadAnnotation",
+            "app.annos.select#singleSelectAnnotation",
+            "app.annos.select#multiSelectAnnotation",
+            "app.annos.rating#starRatingAnnotation"
           ]
         }
       },
@@ -68,11 +68,11 @@
         "schema": {
           "type": "union",
           "refs": [
-            "annos.app.dyad#dyadAnnotation",
-            "annos.app.triad#triadAnnotation",
-            "annos.app.select#singleSelectAnnotation",
-            "annos.app.select#multiSelectAnnotation",
-            "annos.app.rating#starRatingAnnotation"
+            "app.annos.dyad#dyadAnnotation",
+            "app.annos.triad#triadAnnotation",
+            "app.annos.select#singleSelectAnnotation",
+            "app.annos.select#multiSelectAnnotation",
+            "app.annos.rating#starRatingAnnotation"
           ]
         }
       }

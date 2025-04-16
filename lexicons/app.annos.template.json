@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "annos.app.template",
+  "id": "app.annos.template",
   "description": "Annotation templates for grouping annotation fields",
   "defs": {
     "annotationTemplate": {
@@ -21,7 +21,7 @@
           "description": "List of annotation fields in this template",
           "items": {
             "type": "ref",
-            "ref": "annos.app.defs#fieldRef"
+            "ref": "app.annos.defs#fieldRef"
           }
         },
         "createdAt": {
@@ -57,7 +57,7 @@
             "description": "List of annotation fields in this template",
             "items": {
               "type": "ref",
-              "ref": "annos.app.defs#fieldRef"
+              "ref": "app.annos.defs#fieldRef"
             }
           },
           "createdAt": {

@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "annos.app.defs",
+  "id": "app.annos.defs",
   "description": "Common definitions for annotation fields and types",
   "defs": {
     "annotationField": {
@@ -30,7 +30,7 @@
       "properties": {
         "field": {
           "type": "ref",
-          "ref": "annos.app.defs#fieldRef"
+          "ref": "app.annos.defs#fieldRef"
         },
         "value": {
           "type": "unknown",
@@ -38,7 +38,7 @@
         },
         "fromTemplate": {
           "type": "ref",
-          "ref": "annos.app.defs#templateRef"
+          "ref": "app.annos.defs#templateRef"
         },
         "createdAt": {
           "type": "string",

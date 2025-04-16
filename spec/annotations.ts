@@ -4,9 +4,11 @@ interface AnnotationField {
 }
 
 interface Annotation {
+  url: string;
   field: Ref<AnnotationField>;
   value: any;
   fromTemplate?: Ref<AnnotationTemplate>;
+  note?: string;
 }
 
 interface Ref<T> {
@@ -15,8 +17,6 @@ interface Ref<T> {
 }
 
 interface DyadAnnotationField extends AnnotationField {
-  name: string;
-  description: string;
   sideA: string;
   sideB: string;
 }
@@ -31,8 +31,6 @@ interface DyadAnnotation extends Annotation {
 }
 
 interface TriadAnnotationField extends AnnotationField {
-  name: string;
-  description: string;
   vertexA: string;
   vertexB: string;
   vertexC: string;
@@ -49,8 +47,6 @@ interface TriadAnnotation extends Annotation {
 }
 
 interface SingleSelectAnnotationField extends AnnotationField {
-  name: string;
-  description: string;
   options: string[];
 }
 
@@ -63,8 +59,6 @@ interface SingleSelectAnnotation extends Annotation {
 }
 
 interface MultiSelectAnnotationField extends AnnotationField {
-  name: string;
-  description: string;
   options: string[];
 }
 interface MultiSelectAnnotation extends Annotation {
@@ -76,8 +70,6 @@ interface MultiSelectAnnotation extends Annotation {
 }
 
 interface StarRatingAnnotationField extends AnnotationField {
-  name: string;
-  description: string;
   numberOfStars: number;
 }
 
@@ -90,7 +82,5 @@ interface StarRatingAnnotation extends Annotation {
 }
 
 interface AnnotationTemplate {
-  name: string;
-  description: string;
   annotationFields: Ref<AnnotationField>[];
 }

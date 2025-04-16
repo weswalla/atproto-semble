@@ -18,7 +18,7 @@ npm install @atproto/api
 
 This example involves three main steps:
 
-1.  Creating individual `app.annos.annotationField` records for each type of annotation (dyad, rating, multi-select).
+1.  Creating individual `app.annos.annotationField` records for each type of annotation (dyad, rating, multi-select, single-select, triad).
 2.  Creating an `app.annos.annotationTemplate` record that groups strong references to the field records created in step 1.
 3.  Creating `app.annos.annotation` records for a specific podcast episode, referencing the template and the appropriate field record, and providing the specific annotation value.
 
@@ -105,11 +105,38 @@ async function runPodcastAnnotationExample() {
     }
   );
 
+  // d) Single-Select Field (Primary Language)
+  const languageOptions = ["English", "Spanish", "French", "German", "Other"];
+  const languageFieldRef = await createFieldRecord(
+    agent,
+    "Primary Language",
+    "The main language spoken in the episode",
+    {
+      $type: "app.annos.annotationField#singleSelectFieldDef",
+      options: languageOptions,
+    }
+  );
+
+  // e) Triad Field (Content Focus)
+  const focusFieldRef = await createFieldRecord(
+    agent,
+    "Content Focus",
+    "Relative focus on Host vs Guest vs Topic (sums to 1000)",
+    {
+      $type: "app.annos.annotationField#triadFieldDef",
+      vertexA: "Host Focus",
+      vertexB: "Guest Focus",
+      vertexC: "Topic Focus",
+    }
+  );
+
   // Store refs for later use
   const fieldRefs = {
     audience: audienceFieldRef,
     quality: qualityFieldRef,
     use: useFieldRef,
+    language: languageFieldRef,
+    focus: focusFieldRef,
   };
 
   // 2. Create the Template Record
@@ -145,9 +172,11 @@ async function createPodcastTemplate(agent, fieldRefs) {
     description: "Standard annotations for podcast episodes",
     annotationFields: [
       // Array of annotationFieldRef objects
-      { ref: fieldRefs.audience, required: true }, // Mark audience as required
-      { ref: fieldRefs.quality, required: true }, // Mark quality as required
-      { ref: fieldRefs.use, required: false }, // Mark use as optional
+      { ref: fieldRefs.audience, required: true },
+      { ref: fieldRefs.quality, required: true },
+      { ref: fieldRefs.use, required: false },
+      { ref: fieldRefs.language, required: true }, // Mark language as required
+      { ref: fieldRefs.focus, required: false }, // Mark focus as optional
     ],
     createdAt: new Date().toISOString(),
   };
@@ -184,7 +213,7 @@ async function createPodcastAnnotations(
     $type: "app.annos.annotation", // All annotations use this $type
     url: podcastUrl,
     additionalIdentifiers: [{ type: "doi", value: podcastDoi }],
-    fromTemplate: templateRef, // Strong ref to the template record
+    fromTemplates: [templateRef], // Array of strong refs to template records
     createdAt: now,
   };
 
@@ -243,6 +272,45 @@ async function createPodcastAnnotations(
     record: useAnnotation,
   });
   console.log("Intended use annotation created:", useResponse.uri);
+
+  // d) Create Single-Select Annotation (Primary Language)
+  const languageAnnotation = {
+    ...baseAnnotation,
+    field: fieldRefs.language, // Strong ref to the Language field record
+    value: {
+      // Structure matches #singleSelectValue in annotation.json
+      option: "English", // Selected option
+    },
+  };
+  console.log("Creating language annotation...");
+  const languageResponse = await agent.api.com.atproto.repo.createRecord({
+    repo: agent.session.did,
+    collection: "app.annos.annotation",
+    record: languageAnnotation,
+  });
+  console.log("Language annotation created:", languageResponse.uri);
+
+  // e) Create Triad Annotation (Content Focus)
+  // Values must sum to 1000 as per lexicon
+  const focusAnnotation = {
+    ...baseAnnotation,
+    field: fieldRefs.focus, // Strong ref to the Focus field record
+    value: {
+      // Structure matches #triadValue in annotation.json
+      vertexA: 300, // Host Focus
+      vertexB: 200, // Guest Focus
+      vertexC: 500, // Topic Focus
+      // 'sum' is implicitly 1000 due to constraints, not explicitly set here
+    },
+    note: "Mostly topic-driven, with moderate host presence and less guest focus.",
+  };
+  console.log("Creating focus annotation...");
+  const focusResponse = await agent.api.com.atproto.repo.createRecord({
+    repo: agent.session.did,
+    collection: "app.annos.annotation",
+    record: focusAnnotation,
+  });
+  console.log("Focus annotation created:", focusResponse.uri);
 }
 ```
 
@@ -271,7 +339,7 @@ Below are conceptual JSON structures for the requests and responses involved in 
 }
 ```
 
-_(Similar requests are made for the Rating and Multi-Select fields)_
+_(Similar requests are made for the Rating, Multi-Select, Single-Select, and Triad fields)_
 
 **2. Create Template Record Request:**
 
@@ -304,6 +372,20 @@ _(Similar requests are made for the Rating and Multi-Select fields)_
           "cid": "bafyreic..."
         },
         "required": false
+      },
+      {
+        "ref": {
+          "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotationField/3kfieldLang...",
+          "cid": "bafyreid..."
+        },
+        "required": true
+      },
+      {
+        "ref": {
+          "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotationField/3kfieldFocus...",
+          "cid": "bafyreie..."
+        },
+        "required": false
       }
     ],
     "createdAt": "2025-04-16T17:01:00.000Z"
@@ -323,12 +405,14 @@ _(Similar requests are made for the Rating and Multi-Select fields)_
     "additionalIdentifiers": [
       { "type": "doi", "value": "10.9876/podcast.ep123" }
     ],
-    "fromTemplate": {
-      "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotationTemplate/3ktemplate...",
-      "cid": "bafyreid..."
-    },
+    "fromTemplates": [ // Now an array
+      {
+        "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotationTemplate/3ktemplate...",
+        "cid": "bafyreif..." // Assuming template CID might change if fields added
+      }
+    ],
     "field": {
-      // Strong ref to the specific FIELD record
+      // Strong ref to the specific FIELD record (Dyad example)
       "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotationField/3kfieldDyad...",
       "cid": "bafyreia..."
     },
@@ -342,7 +426,7 @@ _(Similar requests are made for the Rating and Multi-Select fields)_
 }
 ```
 
-_(Similar requests are made for the Rating and Multi-Select annotations, changing the `field` ref and `value` structure accordingly)_
+_(Similar requests are made for the Rating, Multi-Select, Single-Select, and Triad annotations, changing the `field` ref and `value` structure accordingly)_
 
 ### Response JSONs (Conceptual)
 
@@ -360,7 +444,7 @@ _(Similar requests are made for the Rating and Multi-Select annotations, changin
 ```json
 {
   "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotationTemplate/3ktemplate...",
-  "cid": "bafyreid..."
+  "cid": "bafyreif..." // Assuming template CID might change
 }
 ```
 
@@ -369,7 +453,7 @@ _(Similar requests are made for the Rating and Multi-Select annotations, changin
 ```json
 {
   "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotation/3kannoDyad...",
-  "cid": "bafyreie..."
+  "cid": "bafyreig..." // Assuming annotation CID changes
 }
 ```
 

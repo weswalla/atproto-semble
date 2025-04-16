@@ -17,7 +17,8 @@ npm install @atproto/api
 ## Example: Annotating a Podcast Episode using a Template
 
 This example involves three main steps:
-1.  Creating individual `app.annos.field` records for each type of annotation (dyad, rating, multi-select).
+
+1.  Creating individual `app.annos.annotationField` records for each type of annotation (dyad, rating, multi-select).
 2.  Creating an `app.annos.annotationTemplate` record that groups strong references to the field records created in step 1.
 3.  Creating `app.annos.annotation` records for a specific podcast episode, referencing the template and the appropriate field record, and providing the specific annotation value.
 
@@ -31,7 +32,7 @@ import { BskyAgent } from "@atproto/api";
 // Helper function to create a field record
 async function createFieldRecord(agent, name, description, definition) {
   const record = {
-    $type: "app.annos.field",
+    $type: "app.annos.annotationField",
     name: name,
     description: description,
     definition: definition,
@@ -41,7 +42,7 @@ async function createFieldRecord(agent, name, description, definition) {
   console.log(`Creating field record: ${name}...`);
   const response = await agent.api.com.atproto.repo.createRecord({
     repo: agent.session.did,
-    collection: "app.annos.field",
+    collection: "app.annos.annotationField",
     record: record,
   });
   console.log(`Field record '${name}' created:`, response.uri);
@@ -67,8 +68,7 @@ async function runPodcastAnnotationExample() {
     "Audience Accessibility",
     "How accessible is the content to different audiences?",
     {
-      // $type is implicit for the union member here, but could be added for clarity client-side
-      // $type: 'app.annos.field#dyadFieldDef',
+      $type: "app.annos.annotationField#dyadFieldDef",
       sideA: "Technical",
       sideB: "General",
     }
@@ -80,22 +80,27 @@ async function runPodcastAnnotationExample() {
     "Audio Quality",
     "Rate the audio production quality (1-5 stars)",
     {
-      // $type: 'app.annos.field#ratingFieldDef',
+      $type: "app.annos.annotationField#ratingFieldDef",
       numberOfStars: 5, // Lexicon defines this must be 5
     }
   );
 
   // c) Multi-Select Field (Intended Use)
   const useOptions = [
-    "learn something new", "be entertained", "relax or unwind",
-    "stay informed", "laugh", "get inspired", "background listening",
+    "learn something new",
+    "be entertained",
+    "relax or unwind",
+    "stay informed",
+    "laugh",
+    "get inspired",
+    "background listening",
   ];
   const useFieldRef = await createFieldRecord(
     agent,
     "Intended Use",
     "Why would someone listen?",
     {
-      // $type: 'app.annos.field#multiSelectFieldDef',
+      $type: "app.annos.annotationField#multiSelectFieldDef",
       options: useOptions,
     }
   );
@@ -115,7 +120,13 @@ async function runPodcastAnnotationExample() {
   const podcastDoi = "10.9876/podcast.ep123";
 
   // 4. Create annotations using the template and field refs
-  await createPodcastAnnotations(agent, templateRef, fieldRefs, podcastUrl, podcastDoi);
+  await createPodcastAnnotations(
+    agent,
+    templateRef,
+    fieldRefs,
+    podcastUrl,
+    podcastDoi
+  );
 }
 
 runPodcastAnnotationExample().catch(console.error);
@@ -159,7 +170,13 @@ async function createPodcastTemplate(agent, fieldRefs) {
 Finally, create the actual `app.annos.annotation` records for the podcast episode. Each annotation record references both the template and the specific field record it corresponds to, and includes the annotation value conforming to the structure defined in `lexicons/annotation.json`.
 
 ```javascript
-async function createPodcastAnnotations(agent, templateRef, fieldRefs, podcastUrl, podcastDoi) {
+async function createPodcastAnnotations(
+  agent,
+  templateRef,
+  fieldRefs,
+  podcastUrl,
+  podcastDoi
+) {
   const now = new Date().toISOString();
 
   // Common properties for all annotations created from this template for this URL
@@ -229,7 +246,6 @@ async function createPodcastAnnotations(agent, templateRef, fieldRefs, podcastUr
 }
 ```
 
-
 ## Request and Response Examples (Conceptual)
 
 Below are conceptual JSON structures for the requests and responses involved in the podcast template scenario. Replace placeholders like DIDs, CIDs, and timestamps with actual values.
@@ -237,12 +253,13 @@ Below are conceptual JSON structures for the requests and responses involved in 
 ### Request JSONs
 
 **1. Create Field Record Request (Example: Dyad Field)**
+
 ```json
 {
   "repo": "did:plc:abcdefghijklmnopqrstuvwxyz",
-  "collection": "app.annos.field",
+  "collection": "app.annos.annotationField",
   "record": {
-    "$type": "app.annos.field",
+    "$type": "app.annos.annotationField",
     "name": "Audience Accessibility",
     "description": "How accessible is the content to different audiences?",
     "definition": {
@@ -253,9 +270,11 @@ Below are conceptual JSON structures for the requests and responses involved in 
   }
 }
 ```
-*(Similar requests are made for the Rating and Multi-Select fields)*
+
+_(Similar requests are made for the Rating and Multi-Select fields)_
 
 **2. Create Template Record Request:**
+
 ```json
 {
   "repo": "did:plc:abcdefghijklmnopqrstuvwxyz",
@@ -267,21 +286,21 @@ Below are conceptual JSON structures for the requests and responses involved in 
     "annotationFields": [
       {
         "ref": {
-          "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.field/3kfieldDyad...",
+          "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotationField/3kfieldDyad...",
           "cid": "bafyreia..."
         },
         "required": true
       },
       {
         "ref": {
-          "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.field/3kfieldRating...",
+          "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotationField/3kfieldRating...",
           "cid": "bafyreib..."
         },
         "required": true
       },
       {
         "ref": {
-          "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.field/3kfieldSelect...",
+          "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotationField/3kfieldSelect...",
           "cid": "bafyreic..."
         },
         "required": false
@@ -293,6 +312,7 @@ Below are conceptual JSON structures for the requests and responses involved in 
 ```
 
 **3. Create Annotation Record Request (Example: Dyad Annotation)**
+
 ```json
 {
   "repo": "did:plc:abcdefghijklmnopqrstuvwxyz",
@@ -300,16 +320,20 @@ Below are conceptual JSON structures for the requests and responses involved in 
   "record": {
     "$type": "app.annos.annotation", // Note: $type is always app.annos.annotation
     "url": "https://example.com/podcast/episode/123",
-    "additionalIdentifiers": [{"type": "doi", "value": "10.9876/podcast.ep123"}],
+    "additionalIdentifiers": [
+      { "type": "doi", "value": "10.9876/podcast.ep123" }
+    ],
     "fromTemplate": {
       "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotationTemplate/3ktemplate...",
       "cid": "bafyreid..."
     },
-    "field": { // Strong ref to the specific FIELD record
-      "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.field/3kfieldDyad...",
+    "field": {
+      // Strong ref to the specific FIELD record
+      "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotationField/3kfieldDyad...",
       "cid": "bafyreia..."
     },
-    "value": { // Value structure matches #dyadValue in annotation.json
+    "value": {
+      // Value structure matches #dyadValue in annotation.json
       "value": 70
     },
     "note": "Leans towards a general audience but has some technical jargon.",
@@ -317,19 +341,22 @@ Below are conceptual JSON structures for the requests and responses involved in 
   }
 }
 ```
-*(Similar requests are made for the Rating and Multi-Select annotations, changing the `field` ref and `value` structure accordingly)*
+
+_(Similar requests are made for the Rating and Multi-Select annotations, changing the `field` ref and `value` structure accordingly)_
 
 ### Response JSONs (Conceptual)
 
 **1. Create Field Record Response (Example: Dyad Field)**
+
 ```json
 {
-  "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.field/3kfieldDyad...",
+  "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotationField/3kfieldDyad...",
   "cid": "bafyreia..."
 }
 ```
 
 **2. Create Template Record Response:**
+
 ```json
 {
   "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotationTemplate/3ktemplate...",
@@ -338,6 +365,7 @@ Below are conceptual JSON structures for the requests and responses involved in 
 ```
 
 **3. Create Annotation Record Response (Example: Dyad Annotation)**
+
 ```json
 {
   "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotation/3kannoDyad...",
@@ -349,16 +377,16 @@ Below are conceptual JSON structures for the requests and responses involved in 
 
 With the `app.annos.*` lexicons version 1:
 
--   **`app.annos.field`**: Defines the *structure* of an annotation type (e.g., a 5-star rating, a dyad with specific labels). Records are created in the `app.annos.field` collection.
--   **`app.annos.annotationTemplate`**: Groups strong references to `app.annos.field` records to create a reusable template. Records are created in the `app.annos.annotationTemplate` collection.
--   **`app.annos.annotation`**: Represents an *actual annotation* on a resource.
-    -   All annotation records, regardless of their specific type (rating, dyad, etc.), are created in the **`app.annos.annotation` collection**.
-    -   The `$type` of these records is always **`app.annos.annotation`**.
-    -   The specific type of the annotation is determined by:
-        1.  The `field` property, which is a strong reference to an `app.annos.field` record. The definition within that field record dictates the expected structure and constraints.
-        2.  The `value` property within the annotation record, which must conform to one of the union types defined in `lexicons/annotation.json` (e.g., `dyadValue`, `ratingValue`). The structure of the `value` object corresponds to the type defined by the referenced `field`.
+- **`app.annos.annotationField`**: Defines the _structure_ of an annotation type (e.g., a 5-star rating, a dyad with specific labels). Records are created in the `app.annos.annotationField` collection.
+- **`app.annos.annotationTemplate`**: Groups strong references to `app.annos.annotationField` records to create a reusable template. Records are created in the `app.annos.annotationTemplate` collection.
+- **`app.annos.annotation`**: Represents an _actual annotation_ on a resource.
+  - All annotation records, regardless of their specific type (rating, dyad, etc.), are created in the **`app.annos.annotation` collection**.
+  - The `$type` of these records is always **`app.annos.annotation`**.
+  - The specific type of the annotation is determined by:
+    1.  The `field` property, which is a strong reference to an `app.annos.annotationField` record. The definition within that field record dictates the expected structure and constraints.
+    2.  The `value` property within the annotation record, which must conform to one of the union types defined in `lexicons/annotation.json` (e.g., `dyadValue`, `ratingValue`). The structure of the `value` object corresponds to the type defined by the referenced `field`.
 
-**In summary:** Define fields (`app.annos.field`), optionally group them in templates (`app.annos.annotationTemplate`), and create actual annotations (`app.annos.annotation`) in the single `app.annos.annotation` collection, referencing the appropriate field and providing the corresponding value structure.
+**In summary:** Define fields (`app.annos.annotationField`), optionally group them in templates (`app.annos.annotationTemplate`), and create actual annotations (`app.annos.annotation`) in the single `app.annos.annotation` collection, referencing the appropriate field and providing the corresponding value structure.
 
 ## Using the Records
 

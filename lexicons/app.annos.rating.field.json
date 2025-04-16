@@ -13,7 +13,7 @@
         "properties": {
           "base": {
             "type": "ref",
-            "ref": "app.annos.defs#fieldBase"
+            "ref": "app.annos.defs#annotationFieldBase"
           },
           "numberOfStars": {
             "type": "integer",

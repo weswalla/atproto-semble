@@ -46,25 +46,25 @@
         }
       }
     },
-    "fieldBase": {
-        "type": "object",
-        "description": "Common properties for all annotation field records.",
-        "required": ["name", "description"],
-        "properties": {
-            "name": {
-                "type": "string",
-                "description": "Name of the annotation field"
-            },
-            "description": {
-                "type": "string",
-                "description": "Description of the annotation field"
-            },
-            "createdAt": {
-                "type": "string",
-                "format": "datetime",
-                "description": "Timestamp when this field was created"
-            }
+    "annotationFieldBase": {
+      "type": "object",
+      "description": "Common properties for all annotation field records.",
+      "required": ["name", "description"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the annotation field"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the annotation field"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this field was created"
         }
+      }
     },
     "identifier": {
       "type": "object",

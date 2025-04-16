@@ -6,7 +6,7 @@
     "main": {
       "type": "record",
       "description": "A record defining a dyad annotation field",
-      "key": "tid", // Or consider rkey if a user typically defines many fields
+      "key": "tid",
       "record": {
         "type": "object",
         "required": ["name", "description", "sideA", "sideB"],

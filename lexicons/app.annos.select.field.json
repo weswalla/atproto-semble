@@ -65,19 +65,14 @@
         }
       }
     },
-    // Optional: Define a 'main' union if needed, but maybe not necessary
-    // as annotations will reference specific field types directly.
     "main": {
-        "type": "record",
-        "description": "A record defining a selection annotation field (union placeholder)",
-        "key": "tid",
-        "record": {
-            "type": "union",
-            "refs": [
-                "#singleSelect",
-                "#multiSelect"
-            ]
-        }
+      "type": "record",
+      "description": "A record defining a selection annotation field (union placeholder)",
+      "key": "tid",
+      "record": {
+        "type": "union",
+        "refs": ["#singleSelect", "#multiSelect"]
+      }
     }
   }
 }

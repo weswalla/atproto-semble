@@ -68,6 +68,100 @@
         }
       }
     },
+    "dyadValue": {
+        "type": "object",
+        "description": "Value structure for a dyad annotation.",
+        "required": ["value"],
+        "properties": {
+            "value": { "type": "integer", "description": "Value representing the relationship between sides" },
+            "minValue": { "type": "integer", "const": 0, "description": "Minimum possible value" },
+            "maxValue": { "type": "integer", "const": 1, "description": "Maximum possible value" }
+        }
+    },
+    "triadValue": {
+        "type": "object",
+        "description": "Value structure for a triad annotation.",
+        "required": ["vertexA", "vertexB", "vertexC"],
+        "properties": {
+            "vertexA": { "type": "integer", "description": "Value for vertex A" },
+            "vertexB": { "type": "integer", "description": "Value for vertex B" },
+            "vertexC": { "type": "integer", "description": "Value for vertex C" },
+            "sumsTo": { "type": "integer", "const": 1, "description": "The sum of all vertex values" }
+        }
+    },
+    "ratingValue": {
+        "type": "object",
+        "description": "Value structure for a rating annotation.",
+        "required": ["rating", "mustbeBetween"],
+        "properties": {
+            "rating": { "type": "integer", "description": "The star rating value" },
+            "mustbeBetween": {
+                "type": "array", "description": "Valid range for the rating",
+                "items": { "type": "integer" }, "minLength": 2, "maxLength": 2
+            }
+        }
+    },
+    "singleSelectValue": {
+        "type": "object",
+        "description": "Value structure for a single-select annotation.",
+        "required": ["option", "mustbeOneOf"],
+        "properties": {
+            "option": { "type": "string", "description": "The selected option" },
+            "mustbeOneOf": { "type": "array", "description": "List of valid options", "items": { "type": "string" } }
+        }
+    },
+    "multiSelectValue": {
+        "type": "object",
+        "description": "Value structure for a multi-select annotation.",
+        "required": ["option", "mustbeSomeOf"],
+        "properties": {
+            "option": { "type": "array", "description": "The selected options", "items": { "type": "string" } },
+            "mustbeSomeOf": { "type": "array", "description": "List of valid options", "items": { "type": "string" } }
+        }
+    },
+    "dyadFieldDef": {
+        "type": "object",
+        "description": "Definition structure for a dyad field.",
+        "required": ["sideA", "sideB"],
+        "properties": {
+            "sideA": { "type": "string", "description": "Label for side A of the dyad" },
+            "sideB": { "type": "string", "description": "Label for side B of the dyad" }
+        }
+    },
+    "triadFieldDef": {
+        "type": "object",
+        "description": "Definition structure for a triad field.",
+        "required": ["vertexA", "vertexB", "vertexC"],
+        "properties": {
+            "vertexA": { "type": "string", "description": "Label for vertex A of the triad" },
+            "vertexB": { "type": "string", "description": "Label for vertex B of the triad" },
+            "vertexC": { "type": "string", "description": "Label for vertex C of the triad" }
+        }
+    },
+    "ratingFieldDef": {
+        "type": "object",
+        "description": "Definition structure for a rating field.",
+        "required": ["numberOfStars"],
+        "properties": {
+            "numberOfStars": { "type": "integer", "description": "Maximum number of stars for the rating" }
+        }
+    },
+    "singleSelectFieldDef": {
+        "type": "object",
+        "description": "Definition structure for a single-select field.",
+        "required": ["options"],
+        "properties": {
+            "options": { "type": "array", "description": "Available options for selection", "items": { "type": "string" } }
+        }
+    },
+    "multiSelectFieldDef": {
+        "type": "object",
+        "description": "Definition structure for a multi-select field.",
+        "required": ["options"],
+        "properties": {
+            "options": { "type": "array", "description": "Available options for selection", "items": { "type": "string" } }
+        }
+    },
     "identifier": {
       "type": "object",
       "description": "Represents an identifier with a type and value.",

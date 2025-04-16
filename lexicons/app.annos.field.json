@@ -1,0 +1,33 @@
+{
+  "lexicon": 1,
+  "id": "app.annos.field",
+  "description": "A single record type for all annotation fields.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A record defining an annotation field.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["base", "definition"],
+        "properties": {
+          "base": {
+            "type": "ref",
+            "ref": "app.annos.defs#annotationFieldBase"
+          },
+          "definition": {
+            "type": "union",
+            "description": "The specific definition of the field, determining its type and constraints.",
+            "refs": [
+              "app.annos.defs#dyadFieldDef",
+              "app.annos.defs#triadFieldDef",
+              "app.annos.defs#ratingFieldDef",
+              "app.annos.defs#singleSelectFieldDef",
+              "app.annos.defs#multiSelectFieldDef"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

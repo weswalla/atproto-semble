@@ -1,21 +1,32 @@
 {
   "lexicon": 1,
   "id": "app.annos.annotation",
-  "description": "Main annotation record types",
+  "description": "A single record type for all annotations.",
   "defs": {
     "main": {
       "type": "record",
-      "description": "A record of an annotation of any type",
+      "description": "A record representing an annotation on a resource.",
       "key": "tid",
       "record": {
-        "type": "union",
-        "refs": [
-          "app.annos.dyad#dyadAnnotation",
-          "app.annos.triad#triadAnnotation",
-          "app.annos.select#singleSelectAnnotation",
-          "app.annos.select#multiSelectAnnotation",
-          "app.annos.rating#starRatingAnnotation"
-        ]
+        "type": "object",
+        "required": ["base", "value"],
+        "properties": {
+            "base": {
+                "type": "ref",
+                "ref": "app.annos.defs#annotationBase"
+            },
+            "value": {
+                "type": "union",
+                "description": "The specific value of the annotation, determined by the field type.",
+                "refs": [
+                    "app.annos.defs#dyadValue",
+                    "app.annos.defs#triadValue",
+                    "app.annos.defs#ratingValue",
+                    "app.annos.defs#singleSelectValue",
+                    "app.annos.defs#multiSelectValue"
+                ]
+            }
+        }
       }
     },
     "createAnnotation": {
@@ -24,14 +35,8 @@
       "input": {
         "encoding": "application/json",
         "schema": {
-          "type": "union",
-          "refs": [
-            "app.annos.dyad#dyadAnnotation",
-            "app.annos.triad#triadAnnotation",
-            "app.annos.select#singleSelectAnnotation",
-            "app.annos.select#multiSelectAnnotation",
-            "app.annos.rating#starRatingAnnotation"
-          ]
+            "type": "ref",
+            "ref": "#main" // Input is the annotation record itself
         }
       },
       "output": {
@@ -66,14 +71,8 @@
       "output": {
         "encoding": "application/json",
         "schema": {
-          "type": "union",
-          "refs": [
-            "app.annos.dyad#dyadAnnotation",
-            "app.annos.triad#triadAnnotation",
-            "app.annos.select#singleSelectAnnotation",
-            "app.annos.select#multiSelectAnnotation",
-            "app.annos.rating#starRatingAnnotation"
-          ]
+            "type": "ref",
+            "ref": "#main" // Output is the annotation record itself
         }
       }
     }

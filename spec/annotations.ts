@@ -10,6 +10,12 @@ interface Identifier {
   value: string;
 }
 
+// Represents app.annos.defs#identifier
+interface Identifier {
+  type: string;
+  value: string;
+}
+
 // Represents app.annos.defs#annotationFieldBase
 interface AnnotationFieldBase {
   name: string;
@@ -28,120 +34,109 @@ interface AnnotationBase {
   updatedAt?: string; // Optional as it's often set by PDS
 }
 
-// --- Field Record Interfaces ---
 
-// Represents app.annos.dyad.field#main record
-interface DyadFieldRecord {
-  $type: 'app.annos.dyad.field';
-  base: AnnotationFieldBase;
+// --- Specific Field Definition Interfaces (from app.annos.defs) ---
+interface DyadFieldDef {
+  $type: 'app.annos.defs#dyadFieldDef'; // For type discrimination
   sideA: string;
   sideB: string;
 }
 
-// Represents app.annos.triad.field#main record
-interface TriadFieldRecord {
-  $type: 'app.annos.triad.field';
-  base: AnnotationFieldBase;
+interface TriadFieldDef {
+  $type: 'app.annos.defs#triadFieldDef';
   vertexA: string;
   vertexB: string;
   vertexC: string;
 }
 
-// Represents app.annos.rating.field#main record
-interface RatingFieldRecord {
-  $type: 'app.annos.rating.field';
-  base: AnnotationFieldBase;
+interface RatingFieldDef {
+  $type: 'app.annos.defs#ratingFieldDef';
   numberOfStars: number;
 }
 
-// Represents app.annos.select.field#singleSelect record
-interface SingleSelectFieldRecord {
-  $type: 'app.annos.select.field#singleSelect'; // Assuming specific $type if needed
-  base: AnnotationFieldBase;
+interface SingleSelectFieldDef {
+  $type: 'app.annos.defs#singleSelectFieldDef';
   options: string[];
 }
 
-// Represents app.annos.select.field#multiSelect record
-interface MultiSelectFieldRecord {
-  $type: 'app.annos.select.field#multiSelect'; // Assuming specific $type if needed
-  base: AnnotationFieldBase;
+interface MultiSelectFieldDef {
+  $type: 'app.annos.defs#multiSelectFieldDef';
   options: string[];
 }
 
-// Union type for any field record
-type AnyAnnotationFieldRecord =
-  | DyadFieldRecord
-  | TriadFieldRecord
-  | RatingFieldRecord
-  | SingleSelectFieldRecord
-  | MultiSelectFieldRecord;
+// Union for field definitions
+type FieldDefinition =
+  | DyadFieldDef
+  | TriadFieldDef
+  | RatingFieldDef
+  | SingleSelectFieldDef
+  | MultiSelectFieldDef;
 
 
-// --- Annotation Record Interfaces ---
+// --- Consolidated Field Record Interface ---
 
-// Represents app.annos.dyad#main record
-interface DyadAnnotationRecord {
-  $type: 'app.annos.dyad';
-  base: AnnotationBase;
-  value: {
-    value: number; // Note: Lexicon uses integer, adjust if float is intended
-    minValue: 0;
-    maxValue: 1;
-  };
+// Represents app.annos.field#main record
+interface FieldRecord {
+  $type: 'app.annos.field';
+  base: AnnotationFieldBase;
+  definition: FieldDefinition; // Union of specific field definitions
 }
 
-// Represents app.annos.triad#main record
-interface TriadAnnotationRecord {
-  $type: 'app.annos.triad';
-  base: AnnotationBase;
-  value: {
-    vertexA: number; // Note: Lexicon uses integer
-    vertexB: number;
-    vertexC: number;
-    sumsTo: 1;
-  };
+
+// --- Specific Annotation Value Interfaces (from app.annos.defs) ---
+interface DyadValue {
+  $type: 'app.annos.defs#dyadValue'; // For type discrimination
+  value: number; // Lexicon uses integer
+  minValue: 0;
+  maxValue: 1;
 }
 
-// Represents app.annos.rating#main record
-interface RatingAnnotationRecord {
-  $type: 'app.annos.rating';
-  base: AnnotationBase;
-  value: {
-    rating: number;
-    mustbeBetween: [number, number]; // e.g., [0, 5]
-  };
+interface TriadValue {
+  $type: 'app.annos.defs#triadValue';
+  vertexA: number; // Lexicon uses integer
+  vertexB: number;
+  vertexC: number;
+  sumsTo: 1;
 }
 
-// Represents app.annos.select#singleSelectAnnotation object within the union record
-interface SingleSelectAnnotationRecord {
-  $type: 'app.annos.select'; // Collection type
-  base: AnnotationBase;
-  value: {
-    option: string;
-    mustbeOneOf: string[];
-  };
+interface RatingValue {
+  $type: 'app.annos.defs#ratingValue';
+  rating: number;
+  mustbeBetween: [number, number];
 }
 
-// Represents app.annos.select#multiSelectAnnotation object within the union record
-interface MultiSelectAnnotationRecord {
-  $type: 'app.annos.select'; // Collection type
-  base: AnnotationBase;
-  value: {
-    option: string[];
-    mustbeSomeOf: string[];
-  };
+interface SingleSelectValue {
+  $type: 'app.annos.defs#singleSelectValue';
+  option: string;
+  mustbeOneOf: string[];
 }
 
-// Union type for any annotation record
-type AnyAnnotationRecord =
-  | DyadAnnotationRecord
-  | TriadAnnotationRecord
-  | RatingAnnotationRecord
-  | SingleSelectAnnotationRecord
-  | MultiSelectAnnotationRecord;
+interface MultiSelectValue {
+  $type: 'app.annos.defs#multiSelectValue';
+  option: string[];
+  mustbeSomeOf: string[];
+}
+
+// Union for annotation values
+type AnnotationValue =
+  | DyadValue
+  | TriadValue
+  | RatingValue
+  | SingleSelectValue
+  | MultiSelectValue;
 
 
-// --- Template Record Interface ---
+// --- Consolidated Annotation Record Interface ---
+
+// Represents app.annos.annotation#main record
+interface AnnotationRecord {
+  $type: 'app.annos.annotation';
+  base: AnnotationBase;
+  value: AnnotationValue; // Union of specific annotation values
+}
+
+
+// --- Template Record Interface (Remains the same conceptually) ---
 
 // Represents app.annos.template#main record
 interface AnnotationTemplateRecord {

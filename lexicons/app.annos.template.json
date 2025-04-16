@@ -18,10 +18,10 @@
         },
         "annotationFields": {
           "type": "array",
-          "description": "List of strong references to annotation field records included in this template (e.g., app.annos.dyad.field, app.annos.rating.field).",
+          "description": "List of strong references to app.annos.field records included in this template.",
           "items": {
             "type": "ref",
-            "ref": "com.atproto.repo.strongRef"
+            "ref": "com.atproto.repo.strongRef" // Should point to app.annos.field records
           }
         },
         "createdAt": {
@@ -54,10 +54,10 @@
           },
           "annotationFields": {
             "type": "array",
-            "description": "List of strong references to annotation field records included in this template.",
+            "description": "List of strong references to app.annos.field records included in this template.",
             "items": {
               "type": "ref",
-              "ref": "com.atproto.repo.strongRef"
+              "ref": "com.atproto.repo.strongRef" // Should point to app.annos.field records
             }
           },
           "createdAt": {

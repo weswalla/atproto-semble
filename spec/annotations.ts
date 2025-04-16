@@ -3,8 +3,16 @@ interface AnnotationField {
   description: string;
 }
 
+// Represents the target of an annotation using various identifier schemes.
+interface TargetIdentifier {
+  // The type of identifier (e.g., 'url', 'doi', 'at-uri').
+  type: string;
+  // The identifier value.
+  value: string;
+}
+
 interface Annotation {
-  url: string;
+  target: TargetIdentifier;
   field: Ref<AnnotationField>;
   value: any;
   fromTemplate?: Ref<AnnotationTemplate>;

@@ -3,18 +3,13 @@ interface AnnotationField {
   description: string;
 }
 
-// Represents an identifier with a type and value.
 interface Identifier {
-  // The type of identifier (e.g., 'doi', 'at-uri', 'isbn').
   type: string;
-  // The identifier value.
   value: string;
 }
 
 interface Annotation {
-  // The primary URL identifying the annotated resource.
   url: string;
-  // Optional additional identifiers for the resource.
   additionalIdentifiers?: Identifier[];
   field: Ref<AnnotationField>;
   value: any;
@@ -93,5 +88,8 @@ interface StarRatingAnnotation extends Annotation {
 }
 
 interface AnnotationTemplate {
-  annotationFields: Ref<AnnotationField>[];
+  annotationFields: {
+    field: Ref<AnnotationField>;
+    required?: boolean;
+  }[];
 }

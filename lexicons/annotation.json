@@ -29,10 +29,13 @@
             "description": "A strong reference to the specific annotation field record being used.",
             "ref": "com.atproto.repo.strongRef"
           },
-          "fromTemplate": {
-            "type": "ref",
-            "description": "Optional strong reference to the template record used.",
-            "ref": "com.atproto.repo.strongRef"
+          "fromTemplates": {
+            "type": "array",
+            "items": {
+              "type": "ref",
+              "description": "Optional strong reference to the template record used.",
+              "ref": "com.atproto.repo.strongRef"
+            }
           },
           "note": {
             "type": "string",

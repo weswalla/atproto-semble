@@ -1,428 +1,369 @@
-# Creating Annotations on a PDS
+# Creating Annotations using Templates
 
-This guide demonstrates how to create an annotation record on a Personal Data Server (PDS) using the AT Protocol and the `app.annos.annotation` lexicons.
-
-## Overview
-
-Annotations in the `annos.app` system allow users to add structured metadata to content. This example shows how to create a star rating annotation.
+This guide demonstrates how to create annotation field records, group them into a template, and then use that template to create annotations on a Personal Data Server (PDS) using the AT Protocol and the `app.annos.*` lexicons.
 
 ## Prerequisites
 
 - An AT Protocol account with a DID and handle
-- Access to a PDS that supports the `annos.app` lexicons
+- Access to a PDS that supports the `app.annos.*` lexicons
 - A client library for AT Protocol (we'll use JavaScript with the `@atproto/api` package)
 
-## Example: Creating a Star Rating Annotation
-
-### Installation
+## Installation
 
 ```bash
 npm install @atproto/api
 ```
 
-### Code Example
+## Example: Annotating a Podcast Episode using a Template
+
+This example involves three main steps:
+1.  Creating individual `app.annos.field` records for each type of annotation (dyad, rating, multi-select).
+2.  Creating an `app.annos.annotationTemplate` record that groups strong references to the field records created in step 1.
+3.  Creating `app.annos.annotation` records for a specific podcast episode, referencing the template and the appropriate field record, and providing the specific annotation value.
+
+### 1. Create Annotation Field Records
+
+First, we define and create the individual field records. Each field record defines the structure and constraints for a specific type of annotation.
 
 ```javascript
 import { BskyAgent } from "@atproto/api";
 
-async function createStarRatingAnnotation() {
-  // Initialize the agent
-  const agent = new BskyAgent({
-    service: "https://your-pds.example.com",
-  });
-
-  // Log in to the PDS
-  await agent.login({
-    identifier: "your-handle.bsky.social",
-    password: "your-password",
-  });
-
-  // Define the star rating annotation field
-  const starRatingField = {
-    id: "movie-rating",
-    definition: {
-      name: "Movie Rating",
-      description: "Rate a movie from 1 to 5 stars",
-      numberOfStars: 5,
-    },
-  };
-
-  // Create the annotation record
-  const annotation = {
-    $type: "app.annos.rating", // Note: Use the specific type for the $type field
-    url: "https://example.com/movie/interstellar", // The URL of the resource being annotated
-    additionalIdentifiers: [
-      // Optional: Other ways to identify the resource
-      { type: "doi", value: "10.1234/example-doi" },
-    ],
-    field: starRatingField,
-    value: {
-      rating: 4, // The actual rating value
-      mustbeBetween: [0, 5],
-    },
+// Helper function to create a field record
+async function createFieldRecord(agent, name, description, definition) {
+  const record = {
+    $type: "app.annos.field",
+    name: name,
+    description: description,
+    definition: definition,
     createdAt: new Date().toISOString(),
   };
 
-  // Send the record to the PDS
-  // Note: The collection MUST match the specific annotation type being created
+  console.log(`Creating field record: ${name}...`);
   const response = await agent.api.com.atproto.repo.createRecord({
     repo: agent.session.did,
-    collection: "app.annos.rating", // Use the specific collection NSID
-    record: annotation,
+    collection: "app.annos.field",
+    record: record,
   });
-
-  console.log("Annotation created:", response);
-  return response;
-}
-
-createStarRatingAnnotation().catch(console.error);
-```
-
-## Example: Annotating a Podcast Episode using a Template
-
-This example demonstrates creating a reusable template for podcast annotations and then applying it to a specific episode.
-
-### 1. Define and Create the Template
-
-First, we define the structure of our "Podcast Template" and create it as a record in the `app.annos.template` collection.
-
-```javascript
-import { BskyAgent, RichText } from "@atproto/api";
-
-async function createPodcastTemplate(agent) {
-  // Define the fields for the podcast template
-  const audienceField = {
-    id: "podcast-audience", // Unique ID for this field within the template context
-    definition: {
-      $type: "app.annos.dyad#dyadAnnotationField", // Lexicon type for the field definition
-      name: "Audience Accessibility",
-      description: "How accessible is the content to different audiences?",
-      sideA: "Technical",
-      sideB: "General",
-    },
-  };
-
-  const qualityField = {
-    id: "podcast-quality",
-    definition: {
-      $type: "app.annos.rating#starRatingAnnotationField",
-      name: "Audio Quality",
-      description: "Rate the audio production quality",
-      numberOfStars: 5,
-    },
-  };
-
-  const useField = {
-    id: "podcast-use",
-    definition: {
-      $type: "app.annos.select#multiSelectAnnotationField",
-      name: "Intended Use",
-      description: "Why would someone listen?",
-      options: [
-        "learn something new",
-        "be entertained",
-        "relax or unwind",
-        "stay informed",
-        "laugh",
-        "get inspired",
-        "background listening",
-      ],
-    },
-  };
-
-  // Create the template record
-  const templateRecord = {
-    $type: "app.annos.template",
-    name: "Podcast Template",
-    description: "Standard annotations for podcast episodes",
-    annotationFields: [
-      // References to the fields defined above
-      { id: audienceField.id, definition: audienceField.definition },
-      { id: qualityField.id, definition: qualityField.definition },
-      { id: useField.id, definition: useField.definition },
-    ],
-    createdAt: new Date().toISOString(),
-  };
-
-  console.log("Creating template...");
-  const templateResponse = await agent.api.com.atproto.repo.createRecord({
-    repo: agent.session.did,
-    collection: "app.annos.template",
-    record: templateRecord,
-  });
-
-  console.log("Template created:", templateResponse);
-  return { templateUri: templateResponse.uri, fields: { audienceField, qualityField, useField } };
+  console.log(`Field record '${name}' created:`, response.uri);
+  // Return a strong ref object
+  return { uri: response.uri, cid: response.cid };
 }
 
 // --- Main Execution ---
 async function runPodcastAnnotationExample() {
   const agent = new BskyAgent({
-    service: "https://your-pds.example.com",
+    service: "https://your-pds.example.com", // Replace with your PDS URL
   });
   await agent.login({
-    identifier: "your-handle.bsky.social",
-    password: "your-password",
+    identifier: "your-handle.bsky.social", // Replace with your handle
+    password: "your-password", // Replace with your app password
   });
 
-  // 1. Create the template
-  const { templateUri, fields } = await createPodcastTemplate(agent);
+  // --- Define and Create Fields ---
 
-  // 2. Define the target resource (podcast episode)
+  // a) Dyad Field (Audience Accessibility)
+  const audienceFieldRef = await createFieldRecord(
+    agent,
+    "Audience Accessibility",
+    "How accessible is the content to different audiences?",
+    {
+      // $type is implicit for the union member here, but could be added for clarity client-side
+      // $type: 'app.annos.field#dyadFieldDef',
+      sideA: "Technical",
+      sideB: "General",
+    }
+  );
+
+  // b) Rating Field (Audio Quality)
+  const qualityFieldRef = await createFieldRecord(
+    agent,
+    "Audio Quality",
+    "Rate the audio production quality (1-5 stars)",
+    {
+      // $type: 'app.annos.field#ratingFieldDef',
+      numberOfStars: 5, // Lexicon defines this must be 5
+    }
+  );
+
+  // c) Multi-Select Field (Intended Use)
+  const useOptions = [
+    "learn something new", "be entertained", "relax or unwind",
+    "stay informed", "laugh", "get inspired", "background listening",
+  ];
+  const useFieldRef = await createFieldRecord(
+    agent,
+    "Intended Use",
+    "Why would someone listen?",
+    {
+      // $type: 'app.annos.field#multiSelectFieldDef',
+      options: useOptions,
+    }
+  );
+
+  // Store refs for later use
+  const fieldRefs = {
+    audience: audienceFieldRef,
+    quality: qualityFieldRef,
+    use: useFieldRef,
+  };
+
+  // 2. Create the Template Record
+  const templateRef = await createPodcastTemplate(agent, fieldRefs);
+
+  // 3. Define the target resource (podcast episode)
   const podcastUrl = "https://example.com/podcast/episode/123";
   const podcastDoi = "10.9876/podcast.ep123";
 
-  // 3. Create annotations using the template
-  await createPodcastAnnotations(agent, templateUri, fields, podcastUrl, podcastDoi);
+  // 4. Create annotations using the template and field refs
+  await createPodcastAnnotations(agent, templateRef, fieldRefs, podcastUrl, podcastDoi);
 }
 
 runPodcastAnnotationExample().catch(console.error);
-
 ```
 
-### 2. Create Annotations Referencing the Template
+### 2. Create the Template Record
 
-Now, use the `templateUri` and field IDs obtained from the template creation to create specific annotations for a podcast episode.
+Now, create the `app.annos.annotationTemplate` record, including strong references (`ref`) to the field records created above. We can also mark fields as required within the template context.
 
 ```javascript
-async function createPodcastAnnotations(agent, templateUri, fields, podcastUrl, podcastDoi) {
+async function createPodcastTemplate(agent, fieldRefs) {
+  // Create the template record, referencing the field records
+  const templateRecord = {
+    $type: "app.annos.annotationTemplate",
+    name: "Podcast Template",
+    description: "Standard annotations for podcast episodes",
+    annotationFields: [
+      // Array of annotationFieldRef objects
+      { ref: fieldRefs.audience, required: true }, // Mark audience as required
+      { ref: fieldRefs.quality, required: true }, // Mark quality as required
+      { ref: fieldRefs.use, required: false }, // Mark use as optional
+    ],
+    createdAt: new Date().toISOString(),
+  };
+
+  console.log("Creating template record...");
+  const templateResponse = await agent.api.com.atproto.repo.createRecord({
+    repo: agent.session.did,
+    collection: "app.annos.annotationTemplate", // Use the correct collection
+    record: templateRecord,
+  });
+
+  console.log("Template record created:", templateResponse.uri);
+  // Return a strong ref to the template
+  return { uri: templateResponse.uri, cid: templateResponse.cid };
+}
+```
+
+### 3. Create Annotations Referencing the Template and Fields
+
+Finally, create the actual `app.annos.annotation` records for the podcast episode. Each annotation record references both the template and the specific field record it corresponds to, and includes the annotation value conforming to the structure defined in `lexicons/annotation.json`.
+
+```javascript
+async function createPodcastAnnotations(agent, templateRef, fieldRefs, podcastUrl, podcastDoi) {
   const now = new Date().toISOString();
-  const commonAnnotationProps = {
+
+  // Common properties for all annotations created from this template for this URL
+  const baseAnnotation = {
+    $type: "app.annos.annotation", // All annotations use this $type
     url: podcastUrl,
     additionalIdentifiers: [{ type: "doi", value: podcastDoi }],
-    fromTemplate: { id: templateUri }, // Reference the template record URI
+    fromTemplate: templateRef, // Strong ref to the template record
     createdAt: now,
   };
 
   // a) Create Dyad Annotation (Audience Accessibility)
+  // Value should be integer 0-100 as per lexicon
   const audienceAnnotation = {
-    $type: "app.annos.dyad",
-    ...commonAnnotationProps,
-    field: { id: fields.audienceField.id }, // Reference the field ID from the template
+    ...baseAnnotation,
+    field: fieldRefs.audience, // Strong ref to the Audience field record
     value: {
-      value: 0.7, // Example value (leaning towards 'General')
-      minValue: 0,
-      maxValue: 1,
+      // Structure matches #dyadValue in annotation.json
+      value: 70, // Example value (0=Technical, 100=General)
     },
+    note: "Leans towards a general audience but has some technical jargon.", // Optional note
   };
   console.log("Creating audience annotation...");
   const audienceResponse = await agent.api.com.atproto.repo.createRecord({
     repo: agent.session.did,
-    collection: "app.annos.dyad",
+    collection: "app.annos.annotation", // ALL annotations go in this collection
     record: audienceAnnotation,
   });
-  console.log("Audience annotation created:", audienceResponse);
+  console.log("Audience annotation created:", audienceResponse.uri);
 
   // b) Create Rating Annotation (Audio Quality)
+  // Value should be integer 1-5 as per lexicon (via field def)
   const qualityAnnotation = {
-    $type: "app.annos.rating",
-    ...commonAnnotationProps,
-    field: { id: fields.qualityField.id }, // Reference the field ID
+    ...baseAnnotation,
+    field: fieldRefs.quality, // Strong ref to the Quality field record
     value: {
+      // Structure matches #ratingValue in annotation.json
       rating: 5,
-      mustbeBetween: [0, fields.qualityField.definition.numberOfStars],
+      // 'mustbeBetween' is not part of the value record itself, it's a constraint defined by the field
     },
   };
   console.log("Creating quality annotation...");
   const qualityResponse = await agent.api.com.atproto.repo.createRecord({
     repo: agent.session.did,
-    collection: "app.annos.rating",
+    collection: "app.annos.annotation",
     record: qualityAnnotation,
   });
-  console.log("Quality annotation created:", qualityResponse);
+  console.log("Quality annotation created:", qualityResponse.uri);
 
   // c) Create Multi-Select Annotation (Intended Use)
   const useAnnotation = {
-    $type: "app.annos.select", // Note: $type is specific, but collection is app.annos.select
-    ...commonAnnotationProps,
-    field: { id: fields.useField.id }, // Reference the field ID
+    ...baseAnnotation,
+    field: fieldRefs.use, // Strong ref to the Use field record
     value: {
+      // Structure matches #multiSelectValue in annotation.json
       option: ["learn something new", "be entertained"], // Selected options
-      mustbeSomeOf: fields.useField.definition.options,
+      // 'mustbeSomeOf' is not part of the value record, it's a constraint defined by the field
     },
   };
   console.log("Creating intended use annotation...");
   const useResponse = await agent.api.com.atproto.repo.createRecord({
     repo: agent.session.did,
-    collection: "app.annos.select", // Collection for both single/multi select
+    collection: "app.annos.annotation",
     record: useAnnotation,
   });
-  console.log("Intended use annotation created:", useResponse);
+  console.log("Intended use annotation created:", useResponse.uri);
 }
 ```
 
 
-## Request and Response Examples
+## Request and Response Examples (Conceptual)
 
-*(Combined examples for the Podcast Template scenario)*
+Below are conceptual JSON structures for the requests and responses involved in the podcast template scenario. Replace placeholders like DIDs, CIDs, and timestamps with actual values.
 
 ### Request JSONs
 
-**1. Create Template Request:**
+**1. Create Field Record Request (Example: Dyad Field)**
 ```json
 {
   "repo": "did:plc:abcdefghijklmnopqrstuvwxyz",
-  "collection": "app.annos.template",
+  "collection": "app.annos.field",
   "record": {
-    "$type": "app.annos.template",
+    "$type": "app.annos.field",
+    "name": "Audience Accessibility",
+    "description": "How accessible is the content to different audiences?",
+    "definition": {
+      "sideA": "Technical",
+      "sideB": "General"
+    },
+    "createdAt": "2025-04-16T17:00:00.000Z"
+  }
+}
+```
+*(Similar requests are made for the Rating and Multi-Select fields)*
+
+**2. Create Template Record Request:**
+```json
+{
+  "repo": "did:plc:abcdefghijklmnopqrstuvwxyz",
+  "collection": "app.annos.annotationTemplate",
+  "record": {
+    "$type": "app.annos.annotationTemplate",
     "name": "Podcast Template",
     "description": "Standard annotations for podcast episodes",
     "annotationFields": [
       {
-        "id": "podcast-audience",
-        "definition": {
-          "$type": "app.annos.dyad#dyadAnnotationField",
-          "name": "Audience Accessibility",
-          "description": "How accessible is the content to different audiences?",
-          "sideA": "Technical",
-          "sideB": "General"
-        }
+        "ref": {
+          "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.field/3kfieldDyad...",
+          "cid": "bafyreia..."
+        },
+        "required": true
       },
       {
-        "id": "podcast-quality",
-        "definition": {
-          "$type": "app.annos.rating#starRatingAnnotationField",
-          "name": "Audio Quality",
-          "description": "Rate the audio production quality",
-          "numberOfStars": 5
-        }
+        "ref": {
+          "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.field/3kfieldRating...",
+          "cid": "bafyreib..."
+        },
+        "required": true
       },
       {
-        "id": "podcast-use",
-        "definition": {
-          "$type": "app.annos.select#multiSelectAnnotationField",
-          "name": "Intended Use",
-          "description": "Why would someone listen?",
-          "options": [
-            "learn something new", "be entertained", "relax or unwind",
-            "stay informed", "laugh", "get inspired", "background listening"
-          ]
-        }
+        "ref": {
+          "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.field/3kfieldSelect...",
+          "cid": "bafyreic..."
+        },
+        "required": false
       }
     ],
-    "createdAt": "2025-04-16T16:00:00.000Z"
+    "createdAt": "2025-04-16T17:01:00.000Z"
   }
 }
 ```
 
-**2. Create Dyad Annotation Request (using Template):**
+**3. Create Annotation Record Request (Example: Dyad Annotation)**
 ```json
 {
   "repo": "did:plc:abcdefghijklmnopqrstuvwxyz",
-  "collection": "app.annos.dyad",
+  "collection": "app.annos.annotation", // Note: Collection is always app.annos.annotation
   "record": {
-    "$type": "app.annos.dyad",
+    "$type": "app.annos.annotation", // Note: $type is always app.annos.annotation
     "url": "https://example.com/podcast/episode/123",
     "additionalIdentifiers": [{"type": "doi", "value": "10.9876/podcast.ep123"}],
-    "fromTemplate": { "id": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.template/3kabcde..." },
-    "field": { "id": "podcast-audience" },
-    "value": { "value": 0.7, "minValue": 0, "maxValue": 1 },
-    "createdAt": "2025-04-16T16:01:00.000Z"
-  }
-}
-```
-
-**3. Create Rating Annotation Request (using Template):**
-```json
-{
-  "repo": "did:plc:abcdefghijklmnopqrstuvwxyz",
-  "collection": "app.annos.rating",
-  "record": {
-    "$type": "app.annos.rating",
-    "url": "https://example.com/podcast/episode/123",
-    "additionalIdentifiers": [{"type": "doi", "value": "10.9876/podcast.ep123"}],
-    "fromTemplate": { "id": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.template/3kabcde..." },
-    "field": { "id": "podcast-quality" },
-    "value": { "rating": 5, "mustbeBetween": [0, 5] },
-    "createdAt": "2025-04-16T16:01:01.000Z"
-  }
-}
-```
-
-**4. Create Multi-Select Annotation Request (using Template):**
-```json
-{
-  "repo": "did:plc:abcdefghijklmnopqrstuvwxyz",
-  "collection": "app.annos.select",
-  "record": {
-    "$type": "app.annos.select", // Specific type within the record
-    "url": "https://example.com/podcast/episode/123",
-    "additionalIdentifiers": [{"type": "doi", "value": "10.9876/podcast.ep123"}],
-    "fromTemplate": { "id": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.template/3kabcde..." },
-    "field": { "id": "podcast-use" },
-    "value": {
-      "option": ["learn something new", "be entertained"],
-      "mustbeSomeOf": [
-         "learn something new", "be entertained", "relax or unwind",
-         "stay informed", "laugh", "get inspired", "background listening"
-      ]
+    "fromTemplate": {
+      "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotationTemplate/3ktemplate...",
+      "cid": "bafyreid..."
     },
-    "createdAt": "2025-04-16T16:01:02.000Z"
+    "field": { // Strong ref to the specific FIELD record
+      "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.field/3kfieldDyad...",
+      "cid": "bafyreia..."
+    },
+    "value": { // Value structure matches #dyadValue in annotation.json
+      "value": 70
+    },
+    "note": "Leans towards a general audience but has some technical jargon.",
+    "createdAt": "2025-04-16T17:02:00.000Z"
   }
 }
 ```
+*(Similar requests are made for the Rating and Multi-Select annotations, changing the `field` ref and `value` structure accordingly)*
 
-### Response JSONs
+### Response JSONs (Conceptual)
 
-*(Example responses for each creation)*
-
-**1. Create Template Response:**
+**1. Create Field Record Response (Example: Dyad Field)**
 ```json
 {
-  "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.template/3kabcdefg...",
+  "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.field/3kfieldDyad...",
   "cid": "bafyreia..."
 }
 ```
 
-**2. Create Dyad Annotation Response:**
+**2. Create Template Record Response:**
 ```json
 {
-  "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.dyad/3khijklmn...",
-  "cid": "bafyreib..."
-}
-```
-
-**3. Create Rating Annotation Response:**
-```json
-{
-  "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.rating/3kopqrstu...",
-  "cid": "bafyreic..."
-}
-```
-
-**4. Create Multi-Select Annotation Response:**
-```json
-{
-  "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.select/3kvwxyzab...",
+  "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotationTemplate/3ktemplate...",
   "cid": "bafyreid..."
 }
 ```
 
-## Understanding Collections and Lexicon Types
+**3. Create Annotation Record Response (Example: Dyad Annotation)**
+```json
+{
+  "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotation/3kannoDyad...",
+  "cid": "bafyreie..."
+}
+```
 
-You might notice that we created the record in the `app.annos.rating` collection, even though there's a more general `app.annos.annotation` lexicon. Here's why:
+## Understanding Collections and Record Types
 
-- **Specific Collections:** Each distinct annotation _type_ (like `dyad`, `triad`, `rating`, `select`) has its own lexicon (e.g., `app.annos.rating`) and corresponds to a specific collection NSID in the repository. When you create an annotation record using `com.atproto.repo.createRecord`, you **must** specify the collection that matches the _specific type_ of annotation you are creating. The `$type` field within the record should also match this specific type.
-- **Generic Union Lexicon (`app.annos.annotation`):** This lexicon primarily serves two purposes:
-  1.  **Defining Procedures/Queries:** It defines XRPC methods like `createAnnotation` and `getAnnotation`. The `input` and `output` schemas for these methods use a `union` referencing all the specific annotation types. This allows these generic endpoints to accept or return _any_ valid annotation type.
-  2.  **Defining a Generic Record Type (Conceptual):** The `main` record definition in `app.annos.annotation` is also a `union`. While you don't _create_ records directly in the `app.annos.annotation` collection, this union definition signifies that any record whose type is one of the referenced specific types (e.g., `app.annos.rating#main`) can be considered conceptually as an "annotation". This is useful for generic querying or processing systems that might want to operate on all annotations regardless of their specific subtype.
+With the `app.annos.*` lexicons version 1:
 
-**In summary:** Create records in the collection corresponding to their specific type (e.g., `app.annos.rating`). Use the generic `app.annos.annotation` lexicon when interacting with XRPC methods designed to handle multiple annotation types or when conceptually referring to any annotation.
+-   **`app.annos.field`**: Defines the *structure* of an annotation type (e.g., a 5-star rating, a dyad with specific labels). Records are created in the `app.annos.field` collection.
+-   **`app.annos.annotationTemplate`**: Groups strong references to `app.annos.field` records to create a reusable template. Records are created in the `app.annos.annotationTemplate` collection.
+-   **`app.annos.annotation`**: Represents an *actual annotation* on a resource.
+    -   All annotation records, regardless of their specific type (rating, dyad, etc.), are created in the **`app.annos.annotation` collection**.
+    -   The `$type` of these records is always **`app.annos.annotation`**.
+    -   The specific type of the annotation is determined by:
+        1.  The `field` property, which is a strong reference to an `app.annos.field` record. The definition within that field record dictates the expected structure and constraints.
+        2.  The `value` property within the annotation record, which must conform to one of the union types defined in `lexicons/annotation.json` (e.g., `dyadValue`, `ratingValue`). The structure of the `value` object corresponds to the type defined by the referenced `field`.
 
-## Using the Annotation
+**In summary:** Define fields (`app.annos.field`), optionally group them in templates (`app.annos.annotationTemplate`), and create actual annotations (`app.annos.annotation`) in the single `app.annos.annotation` collection, referencing the appropriate field and providing the corresponding value structure.
 
-Once created, the annotation can be referenced by its URI. This URI can be used to:
+## Using the Records
 
-1. Retrieve the annotation
-2. Associate the annotation with other content
-3. Update or delete the annotation (by the owner)
+Once created, the URIs for field, template, and annotation records can be used to:
 
-## Additional Annotation Types
-
-The `app.annos.*` lexicons support several other annotation types, each stored in its own collection:
-
-- `app.annos.dyad` - For representing relationships between two sides
-- `app.annos.triad` - For representing relationships between three vertices
-- `app.annos.select` - For single and multi-select options (both stored in the `app.annos.select` collection, distinguished by their internal `$type`)
-
-Each type has its own specific structure as defined in its respective lexicon. Remember to use the correct collection NSID when creating records for these types.
+1.  Retrieve the records.
+2.  Reference them in other records (e.g., linking annotations to posts, using templates).
+3.  Update or delete the records (by the owner).

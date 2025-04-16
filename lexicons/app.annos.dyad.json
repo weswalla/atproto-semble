@@ -6,25 +6,11 @@
     "dyadAnnotation": {
       "type": "object",
       "description": "An annotation representing a relationship between two sides",
-      "required": ["url", "field", "value"],
+      "required": ["base", "value"],
       "properties": {
-        "url": {
-          "type": "string",
-          "format": "uri",
-          "description": "The primary URL identifying the annotated resource."
-        },
-        "additionalIdentifiers": {
-          "type": "array",
-          "items": {
+        "base": {
             "type": "ref",
-            "ref": "app.annos.defs#identifier"
-          },
-          "description": "Optional additional identifiers for the resource."
-        },
-        "field": {
-          "type": "ref",
-          "description": "A strong reference to the dyad field record being used.",
-          "ref": "com.atproto.repo.strongRef"
+            "ref": "app.annos.defs#annotationBase"
         },
         "value": {
           "type": "object",
@@ -45,20 +31,6 @@
               "description": "Maximum possible value"
             }
           }
-        },
-        "fromTemplate": {
-          "type": "ref",
-          "ref": "com.atproto.repo.strongRef"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "datetime",
-          "description": "Timestamp when this annotation was created"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "datetime",
-          "description": "Timestamp when this annotation was last updated"
         }
       }
     },
@@ -68,25 +40,11 @@
       "key": "tid",
       "record": {
         "type": "object",
-        "required": ["url", "field", "value"],
+        "required": ["base", "value"],
         "properties": {
-          "url": {
-            "type": "string",
-            "format": "uri",
-            "description": "The primary URL identifying the annotated resource."
-          },
-          "additionalIdentifiers": {
-            "type": "array",
-            "items": {
-              "type": "ref",
-              "ref": "app.annos.defs#identifier"
-            },
-            "description": "Optional additional identifiers for the resource."
-          },
-          "field": {
+          "base": {
             "type": "ref",
-            "description": "A strong reference to the dyad field record being used.",
-            "ref": "com.atproto.repo.strongRef"
+            "ref": "app.annos.defs#annotationBase"
           },
           "value": {
             "type": "object",
@@ -107,20 +65,6 @@
                 "description": "Maximum possible value"
               }
             }
-          },
-          "fromTemplate": {
-            "type": "ref",
-            "ref": "com.atproto.repo.strongRef"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "datetime",
-            "description": "Timestamp when this annotation was created"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "datetime",
-            "description": "Timestamp when this annotation was last updated"
           }
         }
       }

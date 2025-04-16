@@ -3,48 +3,50 @@
   "id": "app.annos.defs",
   "description": "Common definitions for annotation types and references",
   "defs": {
-    "annotation": {
-      "type": "object",
-      "description": "Base definition for an annotation",
-      "required": ["url", "field", "value"],
-      "properties": {
-        "url": {
-          "type": "string",
-          "format": "uri",
-          "description": "The primary URL identifying the annotated resource."
-        },
-        "additionalIdentifiers": {
-          "type": "array",
-          "items": {
-            "type": "ref",
-            "ref": "#identifier"
-          },
-          "description": "Optional additional identifiers for the resource."
-        },
-        "field": {
-          "type": "ref",
-          "description": "A strong reference to the specific annotation field record being used (e.g., app.annos.dyad.field).",
-          "ref": "com.atproto.repo.strongRef"
-        },
-        "value": {
-          "type": "unknown",
-          "description": "The value of the annotation, type depends on the field type"
-        },
-        "fromTemplate": {
-          "type": "ref",
-          "ref": "com.atproto.repo.strongRef"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "datetime",
-          "description": "Timestamp when this annotation was created"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "datetime",
-          "description": "Timestamp when this annotation was last updated"
+    "annotationBase": {
+        "type": "object",
+        "description": "Common properties for all annotation records.",
+        "required": ["url", "field"],
+        "properties": {
+            "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "The primary URL identifying the annotated resource."
+            },
+            "additionalIdentifiers": {
+                "type": "array",
+                "items": {
+                    "type": "ref",
+                    "ref": "#identifier"
+                },
+                "description": "Optional additional identifiers for the resource."
+            },
+            "field": {
+                "type": "ref",
+                "description": "A strong reference to the specific annotation field record being used.",
+                "ref": "com.atproto.repo.strongRef"
+            },
+            "fromTemplate": {
+                "type": "ref",
+                "description": "Optional strong reference to the template record used.",
+                "ref": "com.atproto.repo.strongRef"
+            },
+            "note": {
+                "type": "string",
+                "description": "An optional user-provided note about the annotation.",
+                "maxLength": 3000 // Example length limit
+            },
+            "createdAt": {
+                "type": "string",
+                "format": "datetime",
+                "description": "Timestamp when this annotation was created (usually set by PDS)."
+            },
+            "updatedAt": {
+                "type": "string",
+                "format": "datetime",
+                "description": "Timestamp when this annotation was last updated (usually set by PDS)."
+            }
         }
-      }
     },
     "annotationFieldBase": {
       "type": "object",

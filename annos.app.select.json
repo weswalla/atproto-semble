@@ -1,0 +1,190 @@
+{
+  "lexicon": 1,
+  "id": "annos.app.select",
+  "description": "Selection annotation types for single and multi-select options",
+  "defs": {
+    "singleSelectAnnotationField": {
+      "type": "object",
+      "description": "Field definition for single-select annotations",
+      "required": ["name", "description", "options"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the annotation field"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the annotation field"
+        },
+        "options": {
+          "type": "array",
+          "description": "Available options for selection",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this field was created"
+        }
+      }
+    },
+    "singleSelectAnnotation": {
+      "type": "object",
+      "description": "An annotation representing a single selection from options",
+      "required": ["field", "value"],
+      "properties": {
+        "field": {
+          "type": "ref",
+          "ref": "annos.app.select#singleSelectFieldRef"
+        },
+        "value": {
+          "type": "object",
+          "required": ["option", "mustbeOneOf"],
+          "properties": {
+            "option": {
+              "type": "string",
+              "description": "The selected option"
+            },
+            "mustbeOneOf": {
+              "type": "array",
+              "description": "List of valid options",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "fromTemplate": {
+          "type": "ref",
+          "ref": "annos.app.defs#templateRef"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this annotation was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this annotation was last updated"
+        }
+      }
+    },
+    "singleSelectFieldRef": {
+      "type": "object",
+      "description": "Reference to a single-select annotation field",
+      "required": ["id", "definition"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier for the single-select annotation field"
+        },
+        "definition": {
+          "type": "ref",
+          "ref": "annos.app.select#singleSelectAnnotationField"
+        }
+      }
+    },
+    "multiSelectAnnotationField": {
+      "type": "object",
+      "description": "Field definition for multi-select annotations",
+      "required": ["name", "description", "options"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the annotation field"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the annotation field"
+        },
+        "options": {
+          "type": "array",
+          "description": "Available options for selection",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this field was created"
+        }
+      }
+    },
+    "multiSelectAnnotation": {
+      "type": "object",
+      "description": "An annotation representing multiple selections from options",
+      "required": ["field", "value"],
+      "properties": {
+        "field": {
+          "type": "ref",
+          "ref": "annos.app.select#multiSelectFieldRef"
+        },
+        "value": {
+          "type": "object",
+          "required": ["option", "mustbeSomeOf"],
+          "properties": {
+            "option": {
+              "type": "array",
+              "description": "The selected options",
+              "items": {
+                "type": "string"
+              }
+            },
+            "mustbeSomeOf": {
+              "type": "array",
+              "description": "List of valid options",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "fromTemplate": {
+          "type": "ref",
+          "ref": "annos.app.defs#templateRef"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this annotation was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this annotation was last updated"
+        }
+      }
+    },
+    "multiSelectFieldRef": {
+      "type": "object",
+      "description": "Reference to a multi-select annotation field",
+      "required": ["id", "definition"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier for the multi-select annotation field"
+        },
+        "definition": {
+          "type": "ref",
+          "ref": "annos.app.select#multiSelectAnnotationField"
+        }
+      }
+    },
+    "main": {
+      "type": "record",
+      "description": "A record of a selection annotation (either single or multi)",
+      "key": "tid",
+      "record": {
+        "type": "union",
+        "refs": [
+          "annos.app.select#singleSelectAnnotation",
+          "annos.app.select#multiSelectAnnotation"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "lexicon": 1,
+  "id": "annos.app.template",
+  "description": "Annotation templates for grouping annotation fields",
+  "defs": {
+    "annotationTemplate": {
+      "type": "object",
+      "description": "A template for grouping annotation fields",
+      "required": ["name", "description", "annotationFields"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the template"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the template"
+        },
+        "annotationFields": {
+          "type": "array",
+          "description": "List of annotation fields in this template",
+          "items": {
+            "type": "ref",
+            "ref": "annos.app.defs#fieldRef"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this template was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this template was last updated"
+        }
+      }
+    },
+    "main": {
+      "type": "record",
+      "description": "A record of an annotation template",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["name", "description", "annotationFields"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the template"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the template"
+          },
+          "annotationFields": {
+            "type": "array",
+            "description": "List of annotation fields in this template",
+            "items": {
+              "type": "ref",
+              "ref": "annos.app.defs#fieldRef"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when this template was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when this template was last updated"
+          }
+        }
+      }
+    }
+  }
+}

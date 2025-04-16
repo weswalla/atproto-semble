@@ -1,0 +1,144 @@
+{
+  "lexicon": 1,
+  "id": "annos.app.dyad",
+  "description": "Dyad annotation types for representing relationships between two sides",
+  "defs": {
+    "dyadAnnotationField": {
+      "type": "object",
+      "description": "Field definition for dyad annotations",
+      "required": ["name", "description", "sideA", "sideB"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the annotation field"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the annotation field"
+        },
+        "sideA": {
+          "type": "string",
+          "description": "Label for side A of the dyad"
+        },
+        "sideB": {
+          "type": "string",
+          "description": "Label for side B of the dyad"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this field was created"
+        }
+      }
+    },
+    "dyadAnnotation": {
+      "type": "object",
+      "description": "An annotation representing a relationship between two sides",
+      "required": ["field", "value"],
+      "properties": {
+        "field": {
+          "type": "ref",
+          "ref": "annos.app.dyad#dyadFieldRef"
+        },
+        "value": {
+          "type": "object",
+          "required": ["value"],
+          "properties": {
+            "value": {
+              "type": "integer",
+              "description": "Value representing the relationship between sides"
+            },
+            "minValue": {
+              "type": "integer",
+              "const": 0,
+              "description": "Minimum possible value"
+            },
+            "maxValue": {
+              "type": "integer",
+              "const": 1,
+              "description": "Maximum possible value"
+            }
+          }
+        },
+        "fromTemplate": {
+          "type": "ref",
+          "ref": "annos.app.defs#templateRef"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this annotation was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this annotation was last updated"
+        }
+      }
+    },
+    "dyadFieldRef": {
+      "type": "object",
+      "description": "Reference to a dyad annotation field",
+      "required": ["id", "definition"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier for the dyad annotation field"
+        },
+        "definition": {
+          "type": "ref",
+          "ref": "annos.app.dyad#dyadAnnotationField"
+        }
+      }
+    },
+    "main": {
+      "type": "record",
+      "description": "A record of a dyad annotation",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["field", "value"],
+        "properties": {
+          "field": {
+            "type": "ref",
+            "ref": "annos.app.dyad#dyadFieldRef"
+          },
+          "value": {
+            "type": "object",
+            "required": ["value"],
+            "properties": {
+              "value": {
+                "type": "integer",
+                "description": "Value representing the relationship between sides"
+              },
+              "minValue": {
+                "type": "integer",
+                "const": 0,
+                "description": "Minimum possible value"
+              },
+              "maxValue": {
+                "type": "integer",
+                "const": 1,
+                "description": "Maximum possible value"
+              }
+            }
+          },
+          "fromTemplate": {
+            "type": "ref",
+            "ref": "annos.app.defs#templateRef"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when this annotation was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when this annotation was last updated"
+          }
+        }
+      }
+    }
+  }
+}

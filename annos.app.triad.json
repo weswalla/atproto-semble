@@ -1,0 +1,154 @@
+{
+  "lexicon": 1,
+  "id": "annos.app.triad",
+  "description": "Triad annotation types for representing relationships between three vertices",
+  "defs": {
+    "triadAnnotationField": {
+      "type": "object",
+      "description": "Field definition for triad annotations",
+      "required": ["name", "description", "vertexA", "vertexB", "vertexC"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the annotation field"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the annotation field"
+        },
+        "vertexA": {
+          "type": "string",
+          "description": "Label for vertex A of the triad"
+        },
+        "vertexB": {
+          "type": "string",
+          "description": "Label for vertex B of the triad"
+        },
+        "vertexC": {
+          "type": "string",
+          "description": "Label for vertex C of the triad"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this field was created"
+        }
+      }
+    },
+    "triadAnnotation": {
+      "type": "object",
+      "description": "An annotation representing a relationship between three vertices",
+      "required": ["field", "value"],
+      "properties": {
+        "field": {
+          "type": "ref",
+          "ref": "annos.app.triad#triadFieldRef"
+        },
+        "value": {
+          "type": "object",
+          "required": ["vertexA", "vertexB", "vertexC"],
+          "properties": {
+            "vertexA": {
+              "type": "integer",
+              "description": "Value for vertex A"
+            },
+            "vertexB": {
+              "type": "integer",
+              "description": "Value for vertex B"
+            },
+            "vertexC": {
+              "type": "integer",
+              "description": "Value for vertex C"
+            },
+            "sumsTo": {
+              "type": "integer",
+              "const": 1,
+              "description": "The sum of all vertex values"
+            }
+          }
+        },
+        "fromTemplate": {
+          "type": "ref",
+          "ref": "annos.app.defs#templateRef"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this annotation was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this annotation was last updated"
+        }
+      }
+    },
+    "triadFieldRef": {
+      "type": "object",
+      "description": "Reference to a triad annotation field",
+      "required": ["id", "definition"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier for the triad annotation field"
+        },
+        "definition": {
+          "type": "ref",
+          "ref": "annos.app.triad#triadAnnotationField"
+        }
+      }
+    },
+    "main": {
+      "type": "record",
+      "description": "A record of a triad annotation",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["field", "value"],
+        "properties": {
+          "field": {
+            "type": "ref",
+            "ref": "annos.app.triad#triadFieldRef"
+          },
+          "value": {
+            "type": "object",
+            "required": ["vertexA", "vertexB", "vertexC"],
+            "properties": {
+              "vertexA": {
+                "type": "integer",
+                "description": "Value for vertex A"
+              },
+              "vertexB": {
+                "type": "integer",
+                "description": "Value for vertex B"
+              },
+              "vertexC": {
+                "type": "integer",
+                "description": "Value for vertex C"
+              },
+              "sumsTo": {
+                "type": "integer",
+                "const": 1,
+                "description": "The sum of all vertex values"
+              }
+            }
+          },
+          "fromTemplate": {
+            "type": "ref",
+            "ref": "annos.app.defs#templateRef"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when this annotation was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when this annotation was last updated"
+          }
+        }
+      }
+    }
+  }
+}

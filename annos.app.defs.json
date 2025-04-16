@@ -1,0 +1,78 @@
+{
+  "lexicon": 1,
+  "id": "annos.app.defs",
+  "description": "Common definitions for annotation fields and types",
+  "defs": {
+    "annotationField": {
+      "type": "object",
+      "description": "Base definition for an annotation field",
+      "required": ["name", "description"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the annotation field"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the annotation field"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this field was created"
+        }
+      }
+    },
+    "annotation": {
+      "type": "object",
+      "description": "Base definition for an annotation",
+      "required": ["field", "value"],
+      "properties": {
+        "field": {
+          "type": "ref",
+          "ref": "annos.app.defs#fieldRef"
+        },
+        "value": {
+          "type": "unknown",
+          "description": "The value of the annotation, type depends on the field type"
+        },
+        "fromTemplate": {
+          "type": "ref",
+          "ref": "annos.app.defs#templateRef"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this annotation was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this annotation was last updated"
+        }
+      }
+    },
+    "fieldRef": {
+      "type": "object",
+      "description": "Reference to an annotation field",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier for the annotation field"
+        }
+      }
+    },
+    "templateRef": {
+      "type": "object",
+      "description": "Reference to an annotation template",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier for the annotation template"
+        }
+      }
+    }
+  }
+}

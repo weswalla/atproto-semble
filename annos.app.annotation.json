@@ -1,0 +1,81 @@
+{
+  "lexicon": 1,
+  "id": "annos.app.annotation",
+  "description": "Main annotation record types",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A record of an annotation of any type",
+      "key": "tid",
+      "record": {
+        "type": "union",
+        "refs": [
+          "annos.app.dyad#dyadAnnotation",
+          "annos.app.triad#triadAnnotation",
+          "annos.app.select#singleSelectAnnotation",
+          "annos.app.select#multiSelectAnnotation",
+          "annos.app.rating#starRatingAnnotation"
+        ]
+      }
+    },
+    "createAnnotation": {
+      "type": "procedure",
+      "description": "Create a new annotation",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "union",
+          "refs": [
+            "annos.app.dyad#dyadAnnotation",
+            "annos.app.triad#triadAnnotation",
+            "annos.app.select#singleSelectAnnotation",
+            "annos.app.select#multiSelectAnnotation",
+            "annos.app.rating#starRatingAnnotation"
+          ]
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["uri"],
+          "properties": {
+            "uri": {
+              "type": "string",
+              "format": "at-uri",
+              "description": "AT-URI of the created annotation"
+            }
+          }
+        }
+      }
+    },
+    "getAnnotation": {
+      "type": "query",
+      "description": "Get an annotation by URI",
+      "parameters": {
+        "type": "params",
+        "required": ["uri"],
+        "properties": {
+          "uri": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "AT-URI of the annotation"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "union",
+          "refs": [
+            "annos.app.dyad#dyadAnnotation",
+            "annos.app.triad#triadAnnotation",
+            "annos.app.select#singleSelectAnnotation",
+            "annos.app.select#multiSelectAnnotation",
+            "annos.app.rating#starRatingAnnotation"
+          ]
+        }
+      }
+    }
+  }
+}

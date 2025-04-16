@@ -1,0 +1,138 @@
+{
+  "lexicon": 1,
+  "id": "annos.app.rating",
+  "description": "Star rating annotation types",
+  "defs": {
+    "starRatingAnnotationField": {
+      "type": "object",
+      "description": "Field definition for star rating annotations",
+      "required": ["name", "description", "numberOfStars"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the annotation field"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the annotation field"
+        },
+        "numberOfStars": {
+          "type": "integer",
+          "description": "Maximum number of stars for the rating"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this field was created"
+        }
+      }
+    },
+    "starRatingAnnotation": {
+      "type": "object",
+      "description": "An annotation representing a star rating",
+      "required": ["field", "value"],
+      "properties": {
+        "field": {
+          "type": "ref",
+          "ref": "annos.app.rating#starRatingFieldRef"
+        },
+        "value": {
+          "type": "object",
+          "required": ["rating", "mustbeBetween"],
+          "properties": {
+            "rating": {
+              "type": "integer",
+              "description": "The star rating value"
+            },
+            "mustbeBetween": {
+              "type": "array",
+              "description": "Valid range for the rating",
+              "items": {
+                "type": "integer"
+              },
+              "minLength": 2,
+              "maxLength": 2
+            }
+          }
+        },
+        "fromTemplate": {
+          "type": "ref",
+          "ref": "annos.app.defs#templateRef"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this annotation was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this annotation was last updated"
+        }
+      }
+    },
+    "starRatingFieldRef": {
+      "type": "object",
+      "description": "Reference to a star rating annotation field",
+      "required": ["id", "definition"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier for the star rating annotation field"
+        },
+        "definition": {
+          "type": "ref",
+          "ref": "annos.app.rating#starRatingAnnotationField"
+        }
+      }
+    },
+    "main": {
+      "type": "record",
+      "description": "A record of a star rating annotation",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["field", "value"],
+        "properties": {
+          "field": {
+            "type": "ref",
+            "ref": "annos.app.rating#starRatingFieldRef"
+          },
+          "value": {
+            "type": "object",
+            "required": ["rating", "mustbeBetween"],
+            "properties": {
+              "rating": {
+                "type": "integer",
+                "description": "The star rating value"
+              },
+              "mustbeBetween": {
+                "type": "array",
+                "description": "Valid range for the rating",
+                "items": {
+                  "type": "integer"
+                },
+                "minLength": 2,
+                "maxLength": 2
+              }
+            }
+          },
+          "fromTemplate": {
+            "type": "ref",
+            "ref": "annos.app.defs#templateRef"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when this annotation was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when this annotation was last updated"
+          }
+        }
+      }
+    }
+  }
+}

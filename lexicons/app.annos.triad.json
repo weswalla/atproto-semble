@@ -38,8 +38,21 @@
     "triadAnnotation": {
       "type": "object",
       "description": "An annotation representing a relationship between three vertices",
-      "required": ["field", "value"],
+      "required": ["url", "field", "value"],
       "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "The primary URL identifying the annotated resource."
+        },
+        "additionalIdentifiers": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "app.annos.defs#identifier"
+          },
+          "description": "Optional additional identifiers for the resource."
+        },
         "field": {
           "type": "ref",
           "ref": "app.annos.triad#triadFieldRef"
@@ -104,8 +117,21 @@
       "key": "tid",
       "record": {
         "type": "object",
-        "required": ["field", "value"],
+        "required": ["url", "field", "value"],
         "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The primary URL identifying the annotated resource."
+          },
+          "additionalIdentifiers": {
+            "type": "array",
+            "items": {
+              "type": "ref",
+              "ref": "app.annos.defs#identifier"
+            },
+            "description": "Optional additional identifiers for the resource."
+          },
           "field": {
             "type": "ref",
             "ref": "app.annos.triad#triadFieldRef"

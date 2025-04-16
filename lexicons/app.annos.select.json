@@ -33,8 +33,21 @@
     "singleSelectAnnotation": {
       "type": "object",
       "description": "An annotation representing a single selection from options",
-      "required": ["field", "value"],
+      "required": ["url", "field", "value"],
       "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "The primary URL identifying the annotated resource."
+        },
+        "additionalIdentifiers": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "app.annos.defs#identifier"
+          },
+          "description": "Optional additional identifiers for the resource."
+        },
         "field": {
           "type": "ref",
           "ref": "app.annos.select#singleSelectFieldRef"
@@ -117,8 +130,21 @@
     "multiSelectAnnotation": {
       "type": "object",
       "description": "An annotation representing multiple selections from options",
-      "required": ["field", "value"],
+      "required": ["url", "field", "value"],
       "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "The primary URL identifying the annotated resource."
+        },
+        "additionalIdentifiers": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "app.annos.defs#identifier"
+          },
+          "description": "Optional additional identifiers for the resource."
+        },
         "field": {
           "type": "ref",
           "ref": "app.annos.select#multiSelectFieldRef"

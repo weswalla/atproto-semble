@@ -26,8 +26,21 @@
     "annotation": {
       "type": "object",
       "description": "Base definition for an annotation",
-      "required": ["field", "value"],
+      "required": ["url", "field", "value"],
       "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "The primary URL identifying the annotated resource."
+        },
+        "additionalIdentifiers": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "#identifier"
+          },
+          "description": "Optional additional identifiers for the resource."
+        },
         "field": {
           "type": "ref",
           "ref": "app.annos.defs#fieldRef"
@@ -49,6 +62,21 @@
           "type": "string",
           "format": "datetime",
           "description": "Timestamp when this annotation was last updated"
+        }
+      }
+    },
+    "identifier": {
+      "type": "object",
+      "description": "Represents an identifier with a type and value.",
+      "required": ["type", "value"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The type of identifier (e.g., 'doi', 'at-uri', 'isbn')."
+        },
+        "value": {
+          "type": "string",
+          "description": "The identifier value."
         }
       }
     },

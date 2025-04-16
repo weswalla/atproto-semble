@@ -79,7 +79,8 @@
       "properties": {
         "numberOfStars": {
           "type": "integer",
-          "description": "Maximum number of stars for the rating"
+          "description": "Maximum number of stars for the rating",
+          "const": 5
         }
       }
     },

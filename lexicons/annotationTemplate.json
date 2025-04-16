@@ -24,7 +24,7 @@
             "description": "List of strong references to app.annos.annotationField records included in this template.",
             "items": {
               "type": "ref",
-              "ref": "com.atproto.repo.strongRef"
+              "ref": "#annotationFieldRef"
             }
           },
           "createdAt": {
@@ -37,7 +37,7 @@
     },
     "annotationFieldRef": {
       "type": "object",
-      "description": "A reference to an annotation field.",
+      "description": "A reference to an annotation field. Defines if the field is required in the template.",
       "required": ["ref"],
       "properties": {
         "ref": {

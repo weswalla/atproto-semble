@@ -20,7 +20,7 @@
             "type": "array",
             "items": {
               "type": "ref",
-              "ref": "#identifier"
+              "ref": "app.annnos.defs#identifier"
             },
             "description": "Optional additional identifiers for the resource."
           },
@@ -65,17 +65,9 @@
       "properties": {
         "value": {
           "type": "integer",
-          "description": "Value representing the relationship between sides"
-        },
-        "minValue": {
-          "type": "integer",
-          "const": 0,
-          "description": "Minimum possible value"
-        },
-        "maxValue": {
-          "type": "integer",
-          "const": 1,
-          "description": "Maximum possible value"
+          "description": "Value representing the relationship between sides",
+          "minimum": 0,
+          "maximum": 100
         }
       }
     },
@@ -84,13 +76,28 @@
       "description": "Value structure for a triad annotation.",
       "required": ["vertexA", "vertexB", "vertexC"],
       "properties": {
-        "vertexA": { "type": "integer", "description": "Value for vertex A" },
-        "vertexB": { "type": "integer", "description": "Value for vertex B" },
-        "vertexC": { "type": "integer", "description": "Value for vertex C" },
-        "sumsTo": {
+        "vertexA": {
           "type": "integer",
-          "const": 1,
-          "description": "The sum of all vertex values"
+          "description": "Value for vertex A",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "vertexB": {
+          "type": "integer",
+          "description": "Value for vertex B",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "vertexC": {
+          "type": "integer",
+          "description": "Value for vertex C",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "sum": {
+          "type": "integer",
+          "description": "Sum of the values for the vertices",
+          "const": 1000
         }
       }
     },
@@ -99,42 +106,30 @@
       "description": "Value structure for a rating annotation.",
       "required": ["rating", "mustbeBetween"],
       "properties": {
-        "rating": { "type": "integer", "description": "The star rating value" },
-        "mustbeBetween": {
-          "type": "array",
-          "description": "Valid range for the rating",
-          "items": { "type": "integer" },
-          "minLength": 2,
-          "maxLength": 2
+        "rating": {
+          "type": "integer",
+          "description": "The star rating value",
+          "minimum": 1,
+          "maximum": 10
         }
       }
     },
     "singleSelectValue": {
       "type": "object",
       "description": "Value structure for a single-select annotation.",
-      "required": ["option", "mustbeOneOf"],
+      "required": ["option"],
       "properties": {
-        "option": { "type": "string", "description": "The selected option" },
-        "mustbeOneOf": {
-          "type": "array",
-          "description": "List of valid options",
-          "items": { "type": "string" }
-        }
+        "option": { "type": "string", "description": "The selected option" }
       }
     },
     "multiSelectValue": {
       "type": "object",
       "description": "Value structure for a multi-select annotation.",
-      "required": ["option", "mustbeSomeOf"],
+      "required": ["option"],
       "properties": {
         "option": {
           "type": "array",
           "description": "The selected options",
-          "items": { "type": "string" }
-        },
-        "mustbeSomeOf": {
-          "type": "array",
-          "description": "List of valid options",
           "items": { "type": "string" }
         }
       }

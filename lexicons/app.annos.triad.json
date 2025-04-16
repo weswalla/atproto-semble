@@ -3,38 +3,6 @@
   "id": "app.annos.triad",
   "description": "Triad annotation types for representing relationships between three vertices",
   "defs": {
-    "triadAnnotationField": {
-      "type": "object",
-      "description": "Field definition for triad annotations",
-      "required": ["name", "description", "vertexA", "vertexB", "vertexC"],
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name of the annotation field"
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the annotation field"
-        },
-        "vertexA": {
-          "type": "string",
-          "description": "Label for vertex A of the triad"
-        },
-        "vertexB": {
-          "type": "string",
-          "description": "Label for vertex B of the triad"
-        },
-        "vertexC": {
-          "type": "string",
-          "description": "Label for vertex C of the triad"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "datetime",
-          "description": "Timestamp when this field was created"
-        }
-      }
-    },
     "triadAnnotation": {
       "type": "object",
       "description": "An annotation representing a relationship between three vertices",
@@ -55,7 +23,8 @@
         },
         "field": {
           "type": "ref",
-          "ref": "app.annos.triad#triadFieldRef"
+          "description": "A strong reference to the triad field record being used.",
+          "ref": "com.atproto.repo.strongRef" // Reference the triad field record
         },
         "value": {
           "type": "object",
@@ -96,21 +65,6 @@
         }
       }
     },
-    "triadFieldRef": {
-      "type": "object",
-      "description": "Reference to a triad annotation field",
-      "required": ["id", "definition"],
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Identifier for the triad annotation field"
-        },
-        "definition": {
-          "type": "ref",
-          "ref": "app.annos.triad#triadAnnotationField"
-        }
-      }
-    },
     "main": {
       "type": "record",
       "description": "A record of a triad annotation",
@@ -134,7 +88,8 @@
           },
           "field": {
             "type": "ref",
-            "ref": "app.annos.triad#triadFieldRef"
+            "description": "A strong reference to the triad field record being used.",
+            "ref": "com.atproto.repo.strongRef" // Reference the triad field record
           },
           "value": {
             "type": "object",

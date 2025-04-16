@@ -1,0 +1,35 @@
+{
+  "lexicon": 1,
+  "id": "app.annos.rating.field",
+  "description": "Record definition for star rating annotation fields",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A record defining a star rating annotation field",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["name", "description", "numberOfStars"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the annotation field"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the annotation field"
+          },
+          "numberOfStars": {
+            "type": "integer",
+            "description": "Maximum number of stars for the rating"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when this field was created"
+          }
+        }
+      }
+    }
+  }
+}

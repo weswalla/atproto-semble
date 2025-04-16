@@ -1,28 +1,8 @@
 {
   "lexicon": 1,
   "id": "app.annos.defs",
-  "description": "Common definitions for annotation fields and types",
+  "description": "Common definitions for annotation types and references",
   "defs": {
-    "annotationField": {
-      "type": "object",
-      "description": "Base definition for an annotation field",
-      "required": ["name", "description"],
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name of the annotation field"
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the annotation field"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "datetime",
-          "description": "Timestamp when this field was created"
-        }
-      }
-    },
     "annotation": {
       "type": "object",
       "description": "Base definition for an annotation",
@@ -43,7 +23,8 @@
         },
         "field": {
           "type": "ref",
-          "ref": "app.annos.defs#fieldRef"
+          "description": "A strong reference to the specific annotation field record being used (e.g., app.annos.dyad.field).",
+          "ref": "com.atproto.repo.strongRef"
         },
         "value": {
           "type": "unknown",
@@ -77,17 +58,6 @@
         "value": {
           "type": "string",
           "description": "The identifier value."
-        }
-      }
-    },
-    "fieldRef": {
-      "type": "object",
-      "description": "Reference to an annotation field",
-      "required": ["id"],
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Identifier for the annotation field"
         }
       }
     },

@@ -3,34 +3,6 @@
   "id": "app.annos.dyad",
   "description": "Dyad annotation types for representing relationships between two sides",
   "defs": {
-    "dyadAnnotationField": {
-      "type": "object",
-      "description": "Field definition for dyad annotations",
-      "required": ["name", "description", "sideA", "sideB"],
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name of the annotation field"
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the annotation field"
-        },
-        "sideA": {
-          "type": "string",
-          "description": "Label for side A of the dyad"
-        },
-        "sideB": {
-          "type": "string",
-          "description": "Label for side B of the dyad"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "datetime",
-          "description": "Timestamp when this field was created"
-        }
-      }
-    },
     "dyadAnnotation": {
       "type": "object",
       "description": "An annotation representing a relationship between two sides",
@@ -51,7 +23,9 @@
         },
         "field": {
           "type": "ref",
-          "ref": "app.annos.dyad#dyadFieldRef"
+          "description": "A strong reference to the dyad field record being used.",
+          "ref": "com.atproto.repo.strongRef" // Reference the dyad field record
+          // Consider adding validation: "ref": "com.atproto.repo.strongRef#app.annos.dyad.field" if lexicon tooling supports it
         },
         "value": {
           "type": "object",
@@ -89,21 +63,6 @@
         }
       }
     },
-    "dyadFieldRef": {
-      "type": "object",
-      "description": "Reference to a dyad annotation field",
-      "required": ["id", "definition"],
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Identifier for the dyad annotation field"
-        },
-        "definition": {
-          "type": "ref",
-          "ref": "app.annos.dyad#dyadAnnotationField"
-        }
-      }
-    },
     "main": {
       "type": "record",
       "description": "A record of a dyad annotation",
@@ -127,7 +86,8 @@
           },
           "field": {
             "type": "ref",
-            "ref": "app.annos.dyad#dyadFieldRef"
+            "description": "A strong reference to the dyad field record being used.",
+            "ref": "com.atproto.repo.strongRef" // Reference the dyad field record
           },
           "value": {
             "type": "object",

@@ -1,0 +1,39 @@
+{
+  "lexicon": 1,
+  "id": "app.annos.dyad.field",
+  "description": "Record definition for dyad annotation fields",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A record defining a dyad annotation field",
+      "key": "tid", // Or consider rkey if a user typically defines many fields
+      "record": {
+        "type": "object",
+        "required": ["name", "description", "sideA", "sideB"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the annotation field"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the annotation field"
+          },
+          "sideA": {
+            "type": "string",
+            "description": "Label for side A of the dyad"
+          },
+          "sideB": {
+            "type": "string",
+            "description": "Label for side B of the dyad"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when this field was created"
+          }
+        }
+      }
+    }
+  }
+}

@@ -3,30 +3,6 @@
   "id": "app.annos.rating",
   "description": "Star rating annotation types",
   "defs": {
-    "starRatingAnnotationField": {
-      "type": "object",
-      "description": "Field definition for star rating annotations",
-      "required": ["name", "description", "numberOfStars"],
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name of the annotation field"
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the annotation field"
-        },
-        "numberOfStars": {
-          "type": "integer",
-          "description": "Maximum number of stars for the rating"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "datetime",
-          "description": "Timestamp when this field was created"
-        }
-      }
-    },
     "starRatingAnnotation": {
       "type": "object",
       "description": "An annotation representing a star rating",
@@ -47,7 +23,8 @@
         },
         "field": {
           "type": "ref",
-          "ref": "app.annos.rating#starRatingFieldRef"
+          "description": "A strong reference to the rating field record being used.",
+          "ref": "com.atproto.repo.strongRef" // Reference the rating field record
         },
         "value": {
           "type": "object",
@@ -84,21 +61,6 @@
         }
       }
     },
-    "starRatingFieldRef": {
-      "type": "object",
-      "description": "Reference to a star rating annotation field",
-      "required": ["id", "definition"],
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Identifier for the star rating annotation field"
-        },
-        "definition": {
-          "type": "ref",
-          "ref": "app.annos.rating#starRatingAnnotationField"
-        }
-      }
-    },
     "main": {
       "type": "record",
       "description": "A record of a star rating annotation",
@@ -122,7 +84,8 @@
           },
           "field": {
             "type": "ref",
-            "ref": "app.annos.rating#starRatingFieldRef"
+            "description": "A strong reference to the rating field record being used.",
+            "ref": "com.atproto.repo.strongRef" // Reference the rating field record
           },
           "value": {
             "type": "object",

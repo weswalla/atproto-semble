@@ -1,0 +1,43 @@
+{
+  "lexicon": 1,
+  "id": "app.annos.triad.field",
+  "description": "Record definition for triad annotation fields",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A record defining a triad annotation field",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["name", "description", "vertexA", "vertexB", "vertexC"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the annotation field"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the annotation field"
+          },
+          "vertexA": {
+            "type": "string",
+            "description": "Label for vertex A of the triad"
+          },
+          "vertexB": {
+            "type": "string",
+            "description": "Label for vertex B of the triad"
+          },
+          "vertexC": {
+            "type": "string",
+            "description": "Label for vertex C of the triad"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when this field was created"
+          }
+        }
+      }
+    }
+  }
+}

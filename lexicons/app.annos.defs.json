@@ -32,7 +32,7 @@
         },
         "fromTemplate": {
           "type": "ref",
-          "ref": "app.annos.defs#templateRef"
+          "ref": "com.atproto.repo.strongRef"
         },
         "createdAt": {
           "type": "string",
@@ -78,17 +78,6 @@
         "value": {
           "type": "string",
           "description": "The identifier value."
-        }
-      }
-    },
-    "templateRef": {
-      "type": "object",
-      "description": "Reference to an annotation template",
-      "required": ["id"],
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Identifier for the annotation template"
         }
       }
     }

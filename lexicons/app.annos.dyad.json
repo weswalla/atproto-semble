@@ -48,7 +48,7 @@
         },
         "fromTemplate": {
           "type": "ref",
-          "ref": "app.annos.defs#templateRef"
+          "ref": "com.atproto.repo.strongRef"
         },
         "createdAt": {
           "type": "string",
@@ -110,7 +110,7 @@
           },
           "fromTemplate": {
             "type": "ref",
-            "ref": "app.annos.defs#templateRef"
+            "ref": "com.atproto.repo.strongRef"
           },
           "createdAt": {
             "type": "string",

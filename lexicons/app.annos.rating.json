@@ -24,7 +24,7 @@
         "field": {
           "type": "ref",
           "description": "A strong reference to the rating field record being used.",
-          "ref": "com.atproto.repo.strongRef" // Reference the rating field record
+          "ref": "com.atproto.repo.strongRef"
         },
         "value": {
           "type": "object",
@@ -85,7 +85,7 @@
           "field": {
             "type": "ref",
             "description": "A strong reference to the rating field record being used.",
-            "ref": "com.atproto.repo.strongRef" // Reference the rating field record
+            "ref": "com.atproto.repo.strongRef"
           },
           "value": {
             "type": "object",

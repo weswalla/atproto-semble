@@ -24,8 +24,7 @@
         "field": {
           "type": "ref",
           "description": "A strong reference to the dyad field record being used.",
-          "ref": "com.atproto.repo.strongRef" // Reference the dyad field record
-          // Consider adding validation: "ref": "com.atproto.repo.strongRef#app.annos.dyad.field" if lexicon tooling supports it
+          "ref": "com.atproto.repo.strongRef"
         },
         "value": {
           "type": "object",
@@ -87,7 +86,7 @@
           "field": {
             "type": "ref",
             "description": "A strong reference to the dyad field record being used.",
-            "ref": "com.atproto.repo.strongRef" // Reference the dyad field record
+            "ref": "com.atproto.repo.strongRef"
           },
           "value": {
             "type": "object",

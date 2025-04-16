@@ -24,7 +24,7 @@
         "field": {
           "type": "ref",
           "description": "A strong reference to the triad field record being used.",
-          "ref": "com.atproto.repo.strongRef" // Reference the triad field record
+          "ref": "com.atproto.repo.strongRef"
         },
         "value": {
           "type": "object",
@@ -89,7 +89,7 @@
           "field": {
             "type": "ref",
             "description": "A strong reference to the triad field record being used.",
-            "ref": "com.atproto.repo.strongRef" // Reference the triad field record
+            "ref": "com.atproto.repo.strongRef"
           },
           "value": {
             "type": "object",

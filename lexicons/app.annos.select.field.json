@@ -9,15 +9,11 @@
       "key": "tid",
       "record": {
         "type": "object",
-        "required": ["name", "description", "options"],
+        "required": ["base", "options"],
         "properties": {
-          "name": {
-            "type": "string",
-            "description": "Name of the annotation field"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the annotation field"
+          "base": {
+            "type": "ref",
+            "ref": "app.annos.defs#fieldBase"
           },
           "options": {
             "type": "array",
@@ -25,11 +21,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "datetime",
-            "description": "Timestamp when this field was created"
           }
         }
       }
@@ -40,15 +31,11 @@
       "key": "tid",
       "record": {
         "type": "object",
-        "required": ["name", "description", "options"],
+        "required": ["base", "options"],
         "properties": {
-          "name": {
-            "type": "string",
-            "description": "Name of the annotation field"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the annotation field"
+          "base": {
+            "type": "ref",
+            "ref": "app.annos.defs#fieldBase"
           },
           "options": {
             "type": "array",
@@ -56,11 +43,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "datetime",
-            "description": "Timestamp when this field was created"
           }
         }
       }

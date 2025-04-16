@@ -9,15 +9,11 @@
       "key": "tid",
       "record": {
         "type": "object",
-        "required": ["name", "description", "vertexA", "vertexB", "vertexC"],
+        "required": ["base", "vertexA", "vertexB", "vertexC"],
         "properties": {
-          "name": {
-            "type": "string",
-            "description": "Name of the annotation field"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the annotation field"
+          "base": {
+            "type": "ref",
+            "ref": "app.annos.defs#fieldBase"
           },
           "vertexA": {
             "type": "string",
@@ -30,11 +26,6 @@
           "vertexC": {
             "type": "string",
             "description": "Label for vertex C of the triad"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "datetime",
-            "description": "Timestamp when this field was created"
           }
         }
       }

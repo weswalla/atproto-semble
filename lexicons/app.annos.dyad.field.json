@@ -9,15 +9,11 @@
       "key": "tid",
       "record": {
         "type": "object",
-        "required": ["name", "description", "sideA", "sideB"],
+        "required": ["base", "sideA", "sideB"],
         "properties": {
-          "name": {
-            "type": "string",
-            "description": "Name of the annotation field"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the annotation field"
+          "base": {
+            "type": "ref",
+            "ref": "app.annos.defs#fieldBase"
           },
           "sideA": {
             "type": "string",
@@ -26,11 +22,6 @@
           "sideB": {
             "type": "string",
             "description": "Label for side B of the dyad"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "datetime",
-            "description": "Timestamp when this field was created"
           }
         }
       }

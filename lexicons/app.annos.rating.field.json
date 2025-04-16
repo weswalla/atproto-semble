@@ -9,24 +9,15 @@
       "key": "tid",
       "record": {
         "type": "object",
-        "required": ["name", "description", "numberOfStars"],
+        "required": ["base", "numberOfStars"],
         "properties": {
-          "name": {
-            "type": "string",
-            "description": "Name of the annotation field"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the annotation field"
+          "base": {
+            "type": "ref",
+            "ref": "app.annos.defs#fieldBase"
           },
           "numberOfStars": {
             "type": "integer",
             "description": "Maximum number of stars for the rating"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "datetime",
-            "description": "Timestamp when this field was created"
           }
         }
       }

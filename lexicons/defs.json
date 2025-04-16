@@ -1,0 +1,22 @@
+{
+  "lexicon": 1,
+  "id": "app.annos.defs",
+  "description": "Common definitions for annotation types and references",
+  "defs": {
+    "identifier": {
+      "type": "object",
+      "description": "Represents an identifier with a type and value.",
+      "required": ["type", "value"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The type of identifier (e.g., 'doi', 'at-uri', 'isbn')."
+        },
+        "value": {
+          "type": "string",
+          "description": "The identifier value."
+        }
+      }
+    }
+  }
+}

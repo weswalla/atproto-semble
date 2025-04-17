@@ -106,7 +106,7 @@
     "ratingValue": {
       "type": "object",
       "description": "Value structure for a rating annotation.",
-      "required": ["rating", "mustbeBetween"],
+      "required": ["rating"],
       "properties": {
         "rating": {
           "type": "integer",

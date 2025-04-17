@@ -405,7 +405,8 @@ _(Similar requests are made for the Rating, Multi-Select, Single-Select, and Tri
     "additionalIdentifiers": [
       { "type": "doi", "value": "10.9876/podcast.ep123" }
     ],
-    "fromTemplates": [ // Now an array
+    "fromTemplates": [
+      // Now an array
       {
         "uri": "at://did:plc:abcdefghijklmnopqrstuvwxyz/app.annos.annotationTemplate/3ktemplate...",
         "cid": "bafyreif..." // Assuming template CID might change if fields added
@@ -456,26 +457,3 @@ _(Similar requests are made for the Rating, Multi-Select, Single-Select, and Tri
   "cid": "bafyreig..." // Assuming annotation CID changes
 }
 ```
-
-## Understanding Collections and Record Types
-
-With the `app.annos.*` lexicons version 1:
-
-- **`app.annos.annotationField`**: Defines the _structure_ of an annotation type (e.g., a 5-star rating, a dyad with specific labels). Records are created in the `app.annos.annotationField` collection.
-- **`app.annos.annotationTemplate`**: Groups strong references to `app.annos.annotationField` records to create a reusable template. Records are created in the `app.annos.annotationTemplate` collection.
-- **`app.annos.annotation`**: Represents an _actual annotation_ on a resource.
-  - All annotation records, regardless of their specific type (rating, dyad, etc.), are created in the **`app.annos.annotation` collection**.
-  - The `$type` of these records is always **`app.annos.annotation`**.
-  - The specific type of the annotation is determined by:
-    1.  The `field` property, which is a strong reference to an `app.annos.annotationField` record. The definition within that field record dictates the expected structure and constraints.
-    2.  The `value` property within the annotation record, which must conform to one of the union types defined in `lexicons/annotation.json` (e.g., `dyadValue`, `ratingValue`). The structure of the `value` object corresponds to the type defined by the referenced `field`.
-
-**In summary:** Define fields (`app.annos.annotationField`), optionally group them in templates (`app.annos.annotationTemplate`), and create actual annotations (`app.annos.annotation`) in the single `app.annos.annotation` collection, referencing the appropriate field and providing the corresponding value structure.
-
-## Using the Records
-
-Once created, the URIs for field, template, and annotation records can be used to:
-
-1.  Retrieve the records.
-2.  Reference them in other records (e.g., linking annotations to posts, using templates).
-3.  Update or delete the records (by the owner).

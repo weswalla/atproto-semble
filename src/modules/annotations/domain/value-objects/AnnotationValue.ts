@@ -1,8 +1,30 @@
-// Base interface or type for all annotation values
+import { ValueObject } from '../../../../shared/domain/ValueObject'; // Assuming ValueObject is suitable base or for inspiration
+
+// Abstract base class for all annotation values
+export abstract class AnnotationValueBase {
+  abstract readonly $type: string;
+
+  /**
+   * Checks if the other AnnotationValue is of the same type and has the same value.
+   * @param other The other AnnotationValue to compare against.
+   * @returns True if both type and value are equal, false otherwise.
+   */
+  abstract equals(other?: AnnotationValueBase): boolean;
+
+  /**
+   * Checks if the other AnnotationValue is of the same specific type.
+   * @param other The other AnnotationValue to compare against.
+   * @returns True if the types match, false otherwise.
+   */
+  public isSameType(other?: AnnotationValueBase): boolean {
+    return !!other && this.$type === other.$type;
+  }
+}
+
 // Using specific classes for each type allows for type checking and specific logic
 
-export class DyadValue {
-  readonly $type = "app.annos.annotation#dyadValue";
+export class DyadValue extends AnnotationValueBase {
+  readonly $type = 'app.annos.annotation#dyadValue';
   readonly value: number; // 0-100
 
   constructor(value: number) {
@@ -11,10 +33,18 @@ export class DyadValue {
     }
     this.value = value;
   }
+
+  equals(other?: AnnotationValueBase): boolean {
+    if (!this.isSameType(other) || !other) {
+      return false;
+    }
+    // Now we know other is DyadValue due to isSameType check
+    return this.value === (other as DyadValue).value;
+  }
 }
 
-export class TriadValue {
-  readonly $type = "app.annos.annotation#triadValue";
+export class TriadValue extends AnnotationValueBase {
+  readonly $type = 'app.annos.annotation#triadValue';
   readonly vertexA: number; // 0-1000
   readonly vertexB: number; // 0-1000
   readonly vertexC: number; // 0-1000
@@ -31,10 +61,22 @@ export class TriadValue {
     this.vertexB = vertexB;
     this.vertexC = vertexC;
   }
+
+  equals(other?: AnnotationValueBase): boolean {
+    if (!this.isSameType(other) || !other) {
+      return false;
+    }
+    const otherTriad = other as TriadValue;
+    return (
+      this.vertexA === otherTriad.vertexA &&
+      this.vertexB === otherTriad.vertexB &&
+      this.vertexC === otherTriad.vertexC
+    );
+  }
 }
 
-export class RatingValue {
-  readonly $type = "app.annos.annotation#ratingValue";
+export class RatingValue extends AnnotationValueBase {
+  readonly $type = 'app.annos.annotation#ratingValue';
   readonly rating: number; // 1-10 (or based on field definition?) Lexicon says 1-10
 
   constructor(rating: number) {
@@ -45,10 +87,17 @@ export class RatingValue {
     }
     this.rating = rating;
   }
+
+  equals(other?: AnnotationValueBase): boolean {
+    if (!this.isSameType(other) || !other) {
+      return false;
+    }
+    return this.rating === (other as RatingValue).rating;
+  }
 }
 
-export class SingleSelectValue {
-  readonly $type = "app.annos.annotation#singleSelectValue";
+export class SingleSelectValue extends AnnotationValueBase {
+  readonly $type = 'app.annos.annotation#singleSelectValue';
   readonly option: string;
 
   constructor(option: string) {
@@ -59,10 +108,17 @@ export class SingleSelectValue {
     }
     this.option = option;
   }
+
+  equals(other?: AnnotationValueBase): boolean {
+    if (!this.isSameType(other) || !other) {
+      return false;
+    }
+    return this.option === (other as SingleSelectValue).option;
+  }
 }
 
-export class MultiSelectValue {
-  readonly $type = "app.annos.annotation#multiSelectValue";
+export class MultiSelectValue extends AnnotationValueBase {
+  readonly $type = 'app.annos.annotation#multiSelectValue';
   readonly options: string[];
 
   constructor(options: string[]) {
@@ -74,12 +130,29 @@ export class MultiSelectValue {
     if (options.some((opt) => !opt || opt.trim().length === 0)) {
       throw new Error("MultiSelect options cannot be empty.");
     }
-    // Ensure unique options
-    this.options = [...new Set(options)];
+    // Ensure unique options and sort for consistent comparison
+    this.options = [...new Set(options)].sort();
+  }
+
+  equals(other?: AnnotationValueBase): boolean {
+    if (!this.isSameType(other) || !other) {
+      return false;
+    }
+    const otherMulti = other as MultiSelectValue;
+    if (this.options.length !== otherMulti.options.length) {
+      return false;
+    }
+    // Assumes options are sorted in constructor
+    for (let i = 0; i < this.options.length; i++) {
+      if (this.options[i] !== otherMulti.options[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 }
 
-// Union type
+// Union type of all concrete AnnotationValue implementations
 export type AnnotationValue =
   | DyadValue
   | TriadValue

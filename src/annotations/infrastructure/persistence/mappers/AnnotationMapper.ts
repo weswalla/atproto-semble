@@ -1,14 +1,14 @@
 // Placeholder for mapping between Annotation domain object and persistence layer structure
 
-import { Annotation } from '../../../domain/aggregates/Annotation'
+import { Annotation } from "../../../domain/aggregates/Annotation";
 // Import DB schema types if needed
 
 export class AnnotationMapper {
   public static toDomain(raw: any): Annotation {
     // TODO: Implement mapping from raw DB result (including joined relations)
     // to the Annotation aggregate root, including creating Value Objects.
-    console.log('Mapping DB result to Annotation domain object:', raw)
-    throw new Error('toDomain mapping not implemented')
+    console.log("Mapping DB result to Annotation domain object:", raw);
+    throw new Error("toDomain mapping not implemented");
     // Example structure:
     // const valueObject = createAnnotationValue(raw.value); // Helper to create correct VO type
     // const identifiers = raw.additionalIdentifiers?.map(id => new Identifier(id.type, id.value)) || [];
@@ -29,8 +29,11 @@ export class AnnotationMapper {
   public static toPersistence(annotation: Annotation): any {
     // TODO: Implement mapping from Annotation aggregate root to the structure
     // needed for DB insertion/update (e.g., main table data, related table data).
-    console.log('Mapping Annotation domain object to persistence structure:', annotation)
-    throw new Error('toPersistence mapping not implemented')
+    console.log(
+      "Mapping Annotation domain object to persistence structure:",
+      annotation
+    );
+    throw new Error("toPersistence mapping not implemented");
     // Example structure:
     // return {
     //   main: {

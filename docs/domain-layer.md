@@ -71,11 +71,17 @@ Contains application-specific logic, orchestrates use cases, and coordinates dom
     *   `GetAnnotationFieldUseCase`: Retrieves an `AnnotationField`.
     *   `CreateAnnotationTemplateUseCase`: Handles creating a new `AnnotationTemplate`. Validates input, resolves `AnnotationField` references, creates the aggregate, persists.
     *   `GetAnnotationTemplateUseCase`: Retrieves an `AnnotationTemplate`.
+    *   **`FillAnnotationTemplateUseCase`**: Handles creating a set of `Annotation` records based on a provided `AnnotationTemplate` and input values for a specific target URL. Fetches the template and fields, validates input, creates multiple `Annotation` aggregates (populating `fieldRef` and `templateRefs` appropriately), and persists them.
     *   `AddAnnotationFieldToTemplateUseCase`: Adds a field reference to an existing template.
     *   `ListAnnotationsForResourceUseCase`: Finds annotations associated with a specific URL or identifier.
     *   *(Other CRUD operations and specific query use cases)*
 
 *   **Data Transfer Objects (DTOs):** Used for input and output of Application Services to decouple from the internal domain model and external interfaces (e.g., API requests/responses).
+    *   `AnnotationInputDTO`, `AnnotationOutputDTO`
+    *   `AnnotationFieldInputDTO`, `AnnotationFieldOutputDTO`
+    *   `AnnotationTemplateInputDTO`, `AnnotationTemplateOutputDTO`
+    *   **`FillAnnotationTemplateInputDTO`**: Input for `FillAnnotationTemplateUseCase`, containing template URI, target URL, and a map of field URIs to their values.
+    *   **`FillAnnotationTemplateOutputDTO`**: Output for `FillAnnotationTemplateUseCase`, containing a list of the created `AnnotationOutputDTO`s.
 
 *   **Repository Interfaces:** (Defined here or in Domain, implemented in Infrastructure)
     *   `IAnnotationRepository`

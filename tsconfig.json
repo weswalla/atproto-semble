@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    /* Base Options: */
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "target": "ES2022", // Or a newer version like ESNext if preferred
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "isolatedModules": true, // Recommended for build tools like esbuild/swc
+
+    /* Strictness */
+    "strict": true,
+    "noUncheckedIndexedAccess": true, // Recommended for stricter array/object access
+    // "noImplicitOverride": true, // Consider enabling later if needed
+
+    /* If NOT transpiling with ESM bundler: */
+    "module": "CommonJS", // Output module format
+    "outDir": "./dist",
+    "sourceMap": true, // Generate source maps for debugging
+
+    /* If your code runs in the DOM:
+    "lib": ["es2022", "dom", "dom.iterable"], */
+    /* If your code doesn't run in the DOM: */
+    "lib": ["es2022"],
+
+    /* Module Resolution Options */
+    "moduleResolution": "node", // Or "NodeNext" if using newer Node.js features/ESM imports extensively
+    "baseUrl": ".", // Base directory for path aliases (if any)
+    // "paths": {}, // Path mapping configuration (if needed)
+
+    /* Emit Options */
+    "declaration": false, // Don't emit .d.ts files for an application
+    "noEmit": false, // Ensure JS files are emitted (set to true if using a bundler like esbuild/swc for emit)
+
+    /* Project Structure */
+    "rootDir": "./src" // Specify the root directory of your source files
+  },
+  "include": ["src/**/*", "tests/**/*"], // Include source and test files
+  "exclude": ["node_modules", "dist"] // Exclude build output and dependencies
+}

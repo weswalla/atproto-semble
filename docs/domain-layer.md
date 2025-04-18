@@ -61,6 +61,12 @@ Contains the core business logic, entities, value objects, and aggregates. It is
     *   `StrongRef`: (`cid`, `uri`) - Represents `com.atproto.repo.strongRef`. Used for linking between aggregates/records.
     *   `TID`: Represents a unique record identifier within the ATProto context. (Used as `key` in lexicons).
 
+#### User Management Context (See `docs/user-domain.md` for details)
+
+*   **Aggregates & Entities:** `User`
+*   **Value Objects:** `DID`, `Handle`
+*   **Domain Events:** `UserAccountLinked`, `UserLoggedIn`
+
 ### 2. Application Layer
 
 Contains application-specific logic, orchestrates use cases, and coordinates domain objects. It depends on the Domain Layer but not the Infrastructure Layer (uses interfaces defined in the domain/application layer).

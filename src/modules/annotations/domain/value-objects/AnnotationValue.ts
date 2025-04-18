@@ -1,17 +1,18 @@
-import { ValueObject } from "../../../../shared/domain/ValueObject"; // Assuming ValueObject is suitable base or for inspiration
+import { ValueObject } from "../../../../shared/domain/ValueObject";
 
-// Abstract base class for all annotation values
-export abstract class AnnotationValueBase extends ValueObject {
+// Define interfaces for the props of each value object type
+interface IDyadValueProps { value: number; }
+interface ITriadValueProps { vertexA: number; vertexB: number; vertexC: number; }
+interface IRatingValueProps { rating: number; }
+interface ISingleSelectValueProps { option: string; }
+interface IMultiSelectValueProps { options: string[]; }
+
+// Abstract base class for all annotation values, extending the shared ValueObject
+export abstract class AnnotationValueBase<T extends object> extends ValueObject<T> {
   abstract readonly $type: string;
 
   /**
    * Checks if the other AnnotationValue is of the same type and has the same value.
-   * @param other The other AnnotationValue to compare against.
-   * @returns True if both type and value are equal, false otherwise.
-   */
-  abstract equals(other?: AnnotationValueBase): boolean;
-
-  /**
    * Checks if the other AnnotationValue is of the same specific type.
    * @param other The other AnnotationValue to compare against.
    * @returns True if the types match, false otherwise.
@@ -23,105 +24,111 @@ export abstract class AnnotationValueBase extends ValueObject {
 
 // Using specific classes for each type allows for type checking and specific logic
 
-export class DyadValue extends AnnotationValueBase {
+export class DyadValue extends AnnotationValueBase<IDyadValueProps> {
   readonly $type = "app.annos.annotation#dyadValue";
-  readonly value: number; // 0-100
 
-  constructor(value: number) {
+  get value(): number {
+    return this.props.value;
+  }
+
+  private constructor(props: IDyadValueProps) {
+    super(props);
+  }
+
+  public static create(value: number): DyadValue {
     if (value < 0 || value > 100) {
       throw new Error("Dyad value must be between 0 and 100.");
     }
-    this.value = value;
+    return new DyadValue({ value });
   }
 
-  equals(other?: AnnotationValueBase): boolean {
-    if (!this.isSameType(other) || !other) {
-      return false;
-    }
-    // Now we know other is DyadValue due to isSameType check
-    return this.value === (other as DyadValue).value;
-  }
+  // Base ValueObject.equals should suffice as it compares props
 }
 
-export class TriadValue extends AnnotationValueBase {
+export class TriadValue extends AnnotationValueBase<ITriadValueProps> {
   readonly $type = "app.annos.annotation#triadValue";
-  readonly vertexA: number; // 0-1000
-  readonly vertexB: number; // 0-1000
-  readonly vertexC: number; // 0-1000
-  readonly sum: 1000 = 1000;
 
-  constructor(vertexA: number, vertexB: number, vertexC: number) {
+  get vertexA(): number { return this.props.vertexA; }
+  get vertexB(): number { return this.props.vertexB; }
+  get vertexC(): number { return this.props.vertexC; }
+  // sum is an invariant checked at creation, not stored state
+
+  private constructor(props: ITriadValueProps) {
+    super(props);
+  }
+
+  public static create(vertexA: number, vertexB: number, vertexC: number): TriadValue {
     if ([vertexA, vertexB, vertexC].some((v) => v < 0 || v > 1000)) {
       throw new Error("Triad vertex values must be between 0 and 1000.");
     }
     if (vertexA + vertexB + vertexC !== 1000) {
       throw new Error("Triad vertex values must sum to 1000.");
     }
-    this.vertexA = vertexA;
-    this.vertexB = vertexB;
-    this.vertexC = vertexC;
+    return new TriadValue({ vertexA, vertexB, vertexC });
   }
 
-  equals(other?: AnnotationValueBase): boolean {
-    if (!this.isSameType(other) || !other) {
-      return false;
-    }
-    const otherTriad = other as TriadValue;
-    return (
-      this.vertexA === otherTriad.vertexA &&
-      this.vertexB === otherTriad.vertexB &&
-      this.vertexC === otherTriad.vertexC
-    );
-  }
+  // Base ValueObject.equals should suffice
 }
 
-export class RatingValue extends AnnotationValueBase {
+export class RatingValue extends AnnotationValueBase<IRatingValueProps> {
   readonly $type = "app.annos.annotation#ratingValue";
-  readonly rating: number; // 1-10 (or based on field definition?) Lexicon says 1-10
 
-  constructor(rating: number) {
+  get rating(): number {
+    return this.props.rating;
+  }
+
+  private constructor(props: IRatingValueProps) {
+    super(props);
+  }
+
+  public static create(rating: number): RatingValue {
     // TODO: Potentially link validation to RatingFieldDef.numberOfStars?
     // Lexicon currently defines 1-10 range directly on value.
     if (rating < 1 || rating > 10) {
       throw new Error("Rating value must be between 1 and 10.");
     }
-    this.rating = rating;
+    return new RatingValue({ rating });
   }
 
-  equals(other?: AnnotationValueBase): boolean {
-    if (!this.isSameType(other) || !other) {
-      return false;
-    }
-    return this.rating === (other as RatingValue).rating;
-  }
+  // Base ValueObject.equals should suffice
 }
 
-export class SingleSelectValue extends AnnotationValueBase {
+export class SingleSelectValue extends AnnotationValueBase<ISingleSelectValueProps> {
   readonly $type = "app.annos.annotation#singleSelectValue";
-  readonly option: string;
 
-  constructor(option: string) {
+  get option(): string {
+    return this.props.option;
+  }
+
+  private constructor(props: ISingleSelectValueProps) {
+    super(props);
+  }
+
+  public static create(option: string): SingleSelectValue {
     // TODO: Validation against options in SingleSelectFieldDef might happen
     // at the Aggregate (Annotation) or Application Service level.
     if (!option || option.trim().length === 0) {
       throw new Error("SingleSelect option cannot be empty.");
     }
-    this.option = option;
+    return new SingleSelectValue({ option });
   }
 
-  equals(other?: AnnotationValueBase): boolean {
-    if (!this.isSameType(other) || !other) {
-      return false;
-    }
-    return this.option === (other as SingleSelectValue).option;
-  }
+  // Base ValueObject.equals should suffice
 }
 
-export class MultiSelectValue extends AnnotationValueBase {
+export class MultiSelectValue extends AnnotationValueBase<IMultiSelectValueProps> {
   readonly $type = "app.annos.annotation#multiSelectValue";
-  readonly options: string[];
 
-  constructor(options: string[]) {
+  // Return a copy to prevent external modification
+  get options(): string[] {
+    return [...this.props.options];
+  }
+
+  private constructor(props: IMultiSelectValueProps) {
+    super(props);
+  }
+
+  public static create(options: string[]): MultiSelectValue {
     // TODO: Validation against options in MultiSelectFieldDef might happen
     // at the Aggregate (Annotation) or Application Service level.
     if (!options || options.length === 0) {
@@ -130,26 +137,12 @@ export class MultiSelectValue extends AnnotationValueBase {
     if (options.some((opt) => !opt || opt.trim().length === 0)) {
       throw new Error("MultiSelect options cannot be empty.");
     }
-    // Ensure unique options and sort for consistent comparison
-    this.options = [...new Set(options)].sort();
+    // Ensure unique options and sort for consistent comparison via props
+    const uniqueSortedOptions = [...new Set(options)].sort();
+    return new MultiSelectValue({ options: uniqueSortedOptions });
   }
 
-  equals(other?: AnnotationValueBase): boolean {
-    if (!this.isSameType(other) || !other) {
-      return false;
-    }
-    const otherMulti = other as MultiSelectValue;
-    if (this.options.length !== otherMulti.options.length) {
-      return false;
-    }
-    // Assumes options are sorted in constructor
-    for (let i = 0; i < this.options.length; i++) {
-      if (this.options[i] !== otherMulti.options[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
+  // Base ValueObject.equals should suffice because options in props are sorted
 }
 
 // Union type of all concrete AnnotationValue implementations

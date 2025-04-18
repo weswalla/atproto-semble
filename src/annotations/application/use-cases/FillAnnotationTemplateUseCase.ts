@@ -134,7 +134,6 @@ export class FillAnnotationTemplateUseCase {
     }
 
     // 6. Map to output DTOs
-    // TODO: Implement or verify AnnotationMapper exists and works
     const outputAnnotations = createdAnnotations.map((anno) =>
       AnnotationMapper.toDTO(anno)
     );

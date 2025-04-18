@@ -1,9 +1,32 @@
-// Placeholder for mapping between Annotation domain object and persistence layer structure
+import { Annotation, AnnotationProps } from '../../../domain/aggregates/Annotation'
+import { AnnotationOutputDTO } from '../../../application/dtos/AnnotationDTO'
+import { TID } from '../../../../atproto/domain/value-objects/TID'
+import { URI } from '../../../domain/value-objects/URI'
+import { StrongRef } from '../../../../atproto/domain/value-objects/StrongRef'
+import { Identifier } from '../../../domain/value-objects/Identifier'
+import {
+  AnnotationValue,
+  DyadValue,
+  MultiSelectValue,
+  RatingValue,
+  SingleSelectValue,
+  TriadValue,
+} from '../../../domain/value-objects/AnnotationValue'
 
-import { Annotation } from "../../../domain/aggregates/Annotation";
+// Placeholder for mapping between Annotation domain object and persistence layer structure
 // Import DB schema types if needed
 
 export class AnnotationMapper {
+  // TODO: Implement hydrate method if needed for toDomain
+  // public static hydrate(props: AnnotationProps): Annotation {
+  //   // This assumes a way to bypass the private constructor,
+  //   // often by making the constructor public within the module/package
+  //   // or using a dedicated static hydrate method on the Aggregate itself.
+  //   // For now, we focus on toDTO and toPersistence.
+  //   // return new Annotation(props); // Needs adjustment based on Aggregate design
+  //   throw new Error('Hydrate method not implemented or accessible');
+  // }
+
   public static toDomain(raw: any): Annotation {
     // TODO: Implement mapping from raw DB result (including joined relations)
     // to the Annotation aggregate root, including creating Value Objects.
@@ -56,9 +79,35 @@ export class AnnotationMapper {
     //   })) || [],
     // };
   }
+
+  public static toDTO(annotation: Annotation): AnnotationOutputDTO {
+    return {
+      id: annotation.id.toString(),
+      url: annotation.url.value,
+      fieldRef: {
+        cid: annotation.fieldRef.cid,
+        uri: annotation.fieldRef.uri,
+      },
+      // Value objects in the domain model might have methods or be classes.
+      // DTOs usually expect plain JS objects. Ensure the value object
+      // serializes correctly or perform manual mapping here if needed.
+      // Assuming value objects are structured correctly for direct use:
+      value: annotation.value,
+      additionalIdentifiers: annotation.additionalIdentifiers?.map((id) => ({
+        type: id.type,
+        value: id.value,
+      })),
+      templateRefs: annotation.templateRefs?.map((ref) => ({
+        cid: ref.cid,
+        uri: ref.uri,
+      })),
+      note: annotation.note,
+      createdAt: annotation.createdAt.toISOString(),
+    }
+  }
 }
 
-// Helper function example (could be more sophisticated)
+// Helper function example for toDomain (could be more sophisticated)
 // function createAnnotationValue(rawValue: any): AnnotationValue {
 //    if (!rawValue || !rawValue.$type) throw new Error('Invalid raw value for AnnotationValue');
 //    switch(rawValue.$type) {

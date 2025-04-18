@@ -66,8 +66,6 @@ export class CreateAnnotationFieldUseCase {
     await this.fieldRepo.save(field);
 
     // 5. Return result (map to Output DTO)
-    // Assuming a mapper exists. If not, manual mapping is needed.
-    // TODO: Implement or verify AnnotationFieldMapper exists and works
     return AnnotationFieldMapper.toDTO(field);
   }
 }

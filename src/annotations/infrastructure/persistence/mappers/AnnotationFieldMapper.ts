@@ -1,9 +1,28 @@
-// Placeholder for mapping between AnnotationField domain object and persistence layer structure
+import {
+  AnnotationField,
+  AnnotationFieldProps,
+} from '../../../domain/aggregates/AnnotationField'
+import { AnnotationFieldOutputDTO } from '../../../application/dtos/AnnotationFieldDTO'
+import { TID } from '../../../../atproto/domain/value-objects/TID'
+import {
+  FieldDefinition,
+  DyadFieldDef,
+  MultiSelectFieldDef,
+  RatingFieldDef,
+  SingleSelectFieldDef,
+  TriadFieldDef,
+} from '../../../domain/value-objects/FieldDefinition'
 
-import { AnnotationField } from '../../../domain/aggregates/AnnotationField'
+// Placeholder for mapping between AnnotationField domain object and persistence layer structure
 // Import DB schema types if needed
 
 export class AnnotationFieldMapper {
+  // TODO: Implement hydrate method if needed for toDomain
+  // public static hydrate(props: AnnotationFieldProps): AnnotationField {
+  //   // return new AnnotationField(props); // Needs adjustment based on Aggregate design
+  //   throw new Error('Hydrate method not implemented or accessible');
+  // }
+
   public static toDomain(raw: any): AnnotationField {
     // TODO: Implement mapping from raw DB result to AnnotationField aggregate root
     console.log('Mapping DB result to AnnotationField domain object:', raw)
@@ -23,5 +42,16 @@ export class AnnotationFieldMapper {
     //   definition: field.definition, // Assumes definition VO can be JSON serialized
     //   createdAt: field.createdAt,
     // };
+  }
+
+  public static toDTO(field: AnnotationField): AnnotationFieldOutputDTO {
+    return {
+      id: field.id.toString(),
+      name: field.name,
+      description: field.description,
+      // Assuming definition value object is structured correctly for direct use in DTO:
+      definition: field.definition,
+      createdAt: field.createdAt.toISOString(),
+    }
   }
 }

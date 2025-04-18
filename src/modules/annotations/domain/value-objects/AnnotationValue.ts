@@ -1,7 +1,7 @@
-import { ValueObject } from '../../../../shared/domain/ValueObject'; // Assuming ValueObject is suitable base or for inspiration
+import { ValueObject } from "../../../../shared/domain/ValueObject"; // Assuming ValueObject is suitable base or for inspiration
 
 // Abstract base class for all annotation values
-export abstract class AnnotationValueBase {
+export abstract class AnnotationValueBase extends ValueObject {
   abstract readonly $type: string;
 
   /**
@@ -24,7 +24,7 @@ export abstract class AnnotationValueBase {
 // Using specific classes for each type allows for type checking and specific logic
 
 export class DyadValue extends AnnotationValueBase {
-  readonly $type = 'app.annos.annotation#dyadValue';
+  readonly $type = "app.annos.annotation#dyadValue";
   readonly value: number; // 0-100
 
   constructor(value: number) {
@@ -44,7 +44,7 @@ export class DyadValue extends AnnotationValueBase {
 }
 
 export class TriadValue extends AnnotationValueBase {
-  readonly $type = 'app.annos.annotation#triadValue';
+  readonly $type = "app.annos.annotation#triadValue";
   readonly vertexA: number; // 0-1000
   readonly vertexB: number; // 0-1000
   readonly vertexC: number; // 0-1000
@@ -76,7 +76,7 @@ export class TriadValue extends AnnotationValueBase {
 }
 
 export class RatingValue extends AnnotationValueBase {
-  readonly $type = 'app.annos.annotation#ratingValue';
+  readonly $type = "app.annos.annotation#ratingValue";
   readonly rating: number; // 1-10 (or based on field definition?) Lexicon says 1-10
 
   constructor(rating: number) {
@@ -97,7 +97,7 @@ export class RatingValue extends AnnotationValueBase {
 }
 
 export class SingleSelectValue extends AnnotationValueBase {
-  readonly $type = 'app.annos.annotation#singleSelectValue';
+  readonly $type = "app.annos.annotation#singleSelectValue";
   readonly option: string;
 
   constructor(option: string) {
@@ -118,7 +118,7 @@ export class SingleSelectValue extends AnnotationValueBase {
 }
 
 export class MultiSelectValue extends AnnotationValueBase {
-  readonly $type = 'app.annos.annotation#multiSelectValue';
+  readonly $type = "app.annos.annotation#multiSelectValue";
   readonly options: string[];
 
   constructor(options: string[]) {

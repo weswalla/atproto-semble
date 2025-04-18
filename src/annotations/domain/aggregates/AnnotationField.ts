@@ -1,6 +1,23 @@
 import { FieldDefinition } from '../value-objects/FieldDefinition'
 import { TID } from '../../../atproto/domain/value-objects/TID'
 
+// Properties required to construct an AnnotationField
+export interface AnnotationFieldProps {
+  id: TID
+  name: string
+  description: string
+  definition: FieldDefinition
+  createdAt: Date
+}
+
+// Properties required to create a new AnnotationField
+export type AnnotationFieldCreateProps = Omit<
+  AnnotationFieldProps,
+  'id' | 'createdAt'
+> & {
+  id?: TID // Allow providing an ID optionally
+}
+
 // Placeholder for AnnotationField Aggregate Root
 export class AnnotationField {
   readonly id: TID
@@ -9,27 +26,17 @@ export class AnnotationField {
   readonly definition: FieldDefinition
   readonly createdAt: Date
 
-  private constructor(props: {
-    id: TID
-    name: string
-    description: string
-    definition: FieldDefinition
-    createdAt: Date
-  }) {
+  private constructor(props: AnnotationFieldProps) {
     this.id = props.id
     this.name = props.name
     this.description = props.description
     this.definition = props.definition
     this.createdAt = props.createdAt
 
-    // TODO: Add validation logic (e.g., name length, definition validity)
+    // TODO: Add more validation logic here if needed
   }
 
-  public static create(
-    props: Omit<ConstructorParameters<typeof AnnotationField>[0], 'id' | 'createdAt'> & {
-      id?: TID
-    },
-  ): AnnotationField {
+  public static create(props: AnnotationFieldCreateProps): AnnotationField {
     const id = props.id ?? TID.create()
     const createdAt = new Date()
 
@@ -37,9 +44,15 @@ export class AnnotationField {
     if (!props.name || props.name.trim().length === 0) {
       throw new Error('AnnotationField name cannot be empty.')
     }
-    // Add more validation as needed
+    // Add more validation as needed (e.g., description length, definition checks)
 
-    return new AnnotationField({ ...props, id, createdAt })
+    const constructorProps: AnnotationFieldProps = {
+      ...props,
+      id,
+      createdAt,
+    }
+
+    return new AnnotationField(constructorProps)
   }
 
   // Methods for business logic related to AnnotationField

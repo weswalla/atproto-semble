@@ -1,6 +1,23 @@
 import { TemplateField } from '../value-objects/TemplateField'
 import { TID } from '../../../atproto/domain/value-objects/TID'
 
+// Properties required to construct an AnnotationTemplate
+export interface AnnotationTemplateProps {
+  id: TID
+  name: string
+  description: string
+  annotationFields: TemplateField[]
+  createdAt: Date
+}
+
+// Properties required to create a new AnnotationTemplate
+export type AnnotationTemplateCreateProps = Omit<
+  AnnotationTemplateProps,
+  'id' | 'createdAt'
+> & {
+  id?: TID // Allow providing an ID optionally
+}
+
 // Placeholder for AnnotationTemplate Aggregate Root
 export class AnnotationTemplate {
   readonly id: TID
@@ -9,27 +26,17 @@ export class AnnotationTemplate {
   readonly annotationFields: TemplateField[]
   readonly createdAt: Date
 
-  private constructor(props: {
-    id: TID
-    name: string
-    description: string
-    annotationFields: TemplateField[]
-    createdAt: Date
-  }) {
+  private constructor(props: AnnotationTemplateProps) {
     this.id = props.id
     this.name = props.name
     this.description = props.description
     this.annotationFields = props.annotationFields
     this.createdAt = props.createdAt
 
-    // TODO: Add validation logic (e.g., non-empty fields list, name length)
+    // TODO: Add more validation logic here if needed
   }
 
-  public static create(
-    props: Omit<ConstructorParameters<typeof AnnotationTemplate>[0], 'id' | 'createdAt'> & {
-      id?: TID
-    },
-  ): AnnotationTemplate {
+  public static create(props: AnnotationTemplateCreateProps): AnnotationTemplate {
     const id = props.id ?? TID.create()
     const createdAt = new Date()
 
@@ -40,8 +47,15 @@ export class AnnotationTemplate {
     if (!props.annotationFields || props.annotationFields.length === 0) {
       throw new Error('AnnotationTemplate must include at least one field.')
     }
+    // Add more validation as needed (e.g., description length)
 
-    return new AnnotationTemplate({ ...props, id, createdAt })
+    const constructorProps: AnnotationTemplateProps = {
+      ...props,
+      id,
+      createdAt,
+    }
+
+    return new AnnotationTemplate(constructorProps)
   }
 
   // Method to add a field (example of behavior)

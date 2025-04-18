@@ -4,10 +4,11 @@ This document outlines a potential domain model based on the lexicon definitions
 
 ## Bounded Contexts
 
-We identify two primary bounded contexts:
+We identify three primary bounded contexts:
 
 1.  **Annotations Context:** Manages the creation, definition, and querying of annotations, annotation fields, and templates.
-2.  **ATProto Context:** Deals with the underlying AT Protocol concepts like repositories, records, and strong references. This context primarily provides foundational types and potentially services for resolving references used by the Annotations context.
+2.  **User Management Context:** Responsible for representing users within this application, linking them to their external Bluesky identity via OAuth, and managing their session state. Users from this context act as actors within the Annotations context.
+3.  **ATProto Context:** Deals with the underlying AT Protocol concepts like repositories, records, and strong references. This context primarily provides foundational types and potentially infrastructure adapters (like OAuth clients) used by other contexts.
 
 ## Layered Architecture
 
@@ -87,6 +88,12 @@ Contains application-specific logic, orchestrates use cases, and coordinates dom
     *   `IAnnotationRepository`
     *   `IAnnotationFieldRepository`
     *   `IAnnotationTemplateRepository`
+    *   `IUserRepository`
+
+*   **Infrastructure Service Interfaces:** (Defined here, implemented in Infrastructure)
+    *   `IOAuthProcessor`
+    *   `IOAuthSessionStore`
+    *   `IOAuthStateStore`
 
 ### 3. Infrastructure Layer
 

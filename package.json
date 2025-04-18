@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "jest",
+    "build:watch": "tsc --watch",
     "lexgen": "lex gen-server ./src/lexicon ./lexicons/*"
   },
   "keywords": [],

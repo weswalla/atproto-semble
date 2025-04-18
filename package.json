@@ -9,22 +9,23 @@
   "scripts": {
     "test": "jest",
     "build:watch": "tsc --watch",
-    "lexgen": "lex gen-server ./src/lexicon ./lexicons/*"
+    "lexgen": "lex gen-server ./src/modules/atproto/infrastructure/lexicon ./lexicons/*"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@atproto/api": "^0.15.2",
+    "@atproto/common": "^0.4.10",
     "@atproto/identity": "^0.4.7",
     "@atproto/lexicon": "^0.4.10",
     "@atproto/oauth-client-node": "^0.2.15",
     "@atproto/sync": "^0.1.20",
     "@atproto/syntax": "^0.4.0",
     "@atproto/xrpc-server": "^0.7.15",
-    "@atproto/common": "^0.4.10",
     "dotenv": "^16.5.0",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@atproto/lex-cli": "^0.8.0",

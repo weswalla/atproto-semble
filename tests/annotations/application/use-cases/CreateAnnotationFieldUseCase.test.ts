@@ -1,10 +1,10 @@
-import { CreateAnnotationFieldUseCase } from "../../../../src/annotations/application/use-cases/CreateAnnotationFieldUseCase";
-import { IAnnotationFieldRepository } from "../../../../src/annotations/application/repositories/IAnnotationFieldRepository";
-import { AnnotationField } from "../../../../src/annotations/domain/aggregates/AnnotationField";
-import { AnnotationFieldInputDTO } from "../../../../src/annotations/application/dtos/AnnotationFieldDTO";
-import { DyadFieldDef } from "../../../../src/annotations/domain/value-objects/FieldDefinition";
+import { CreateAnnotationFieldUseCase } from "../../../../src/modules/annotations/application/use-cases/CreateAnnotationFieldUseCase";
+import { IAnnotationFieldRepository } from "../../../../src/modules/annotations/application/repositories/IAnnotationFieldRepository";
+import { AnnotationField } from "../../../../src/modules/annotations/domain/aggregates/AnnotationField";
+import { AnnotationFieldInputDTO } from "../../../../src/modules/annotations/application/dtos/AnnotationFieldDTO";
+import { DyadFieldDef } from "../../../../src/modules/annotations/domain/value-objects/FieldDefinition";
 import { TID } from "../../../../src/atproto/domain/value-objects/TID";
-import { InMemoryAnnotationFieldRepository } from "../../../infrastructure/persistence/InMemoryAnnotationFieldRepository"; // Import the in-memory repo
+import { InMemoryAnnotationFieldRepository } from "tests/annotations/infrastructure/persistence/InMemoryAnnotationFieldRepository";
 
 // Mock the mapper (static methods) - Still needed as the use case uses it
 // Adjust path if needed

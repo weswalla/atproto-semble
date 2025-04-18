@@ -1,14 +1,28 @@
 import { ValueObject } from "../../../../shared/domain/ValueObject";
 
 // Define interfaces for the props of each value object type
-interface IDyadValueProps { value: number; }
-interface ITriadValueProps { vertexA: number; vertexB: number; vertexC: number; }
-interface IRatingValueProps { rating: number; }
-interface ISingleSelectValueProps { option: string; }
-interface IMultiSelectValueProps { options: string[]; }
+interface IDyadValueProps {
+  value: number;
+}
+interface ITriadValueProps {
+  vertexA: number;
+  vertexB: number;
+  vertexC: number;
+}
+interface IRatingValueProps {
+  rating: number;
+}
+interface ISingleSelectValueProps {
+  option: string;
+}
+interface IMultiSelectValueProps {
+  options: string[];
+}
 
 // Abstract base class for all annotation values, extending the shared ValueObject
-export abstract class AnnotationValueBase<T extends object> extends ValueObject<T> {
+export abstract class AnnotationValueBase<
+  T extends object,
+> extends ValueObject<T> {
   abstract readonly $type: string;
 
   /**
@@ -17,7 +31,7 @@ export abstract class AnnotationValueBase<T extends object> extends ValueObject<
    * @param other The other AnnotationValue to compare against.
    * @returns True if the types match, false otherwise.
    */
-  public isSameType(other?: AnnotationValueBase): boolean {
+  public isSameType(other?: AnnotationValueBase<T>): boolean {
     return !!other && this.$type === other.$type;
   }
 }
@@ -48,16 +62,26 @@ export class DyadValue extends AnnotationValueBase<IDyadValueProps> {
 export class TriadValue extends AnnotationValueBase<ITriadValueProps> {
   readonly $type = "app.annos.annotation#triadValue";
 
-  get vertexA(): number { return this.props.vertexA; }
-  get vertexB(): number { return this.props.vertexB; }
-  get vertexC(): number { return this.props.vertexC; }
+  get vertexA(): number {
+    return this.props.vertexA;
+  }
+  get vertexB(): number {
+    return this.props.vertexB;
+  }
+  get vertexC(): number {
+    return this.props.vertexC;
+  }
   // sum is an invariant checked at creation, not stored state
 
   private constructor(props: ITriadValueProps) {
     super(props);
   }
 
-  public static create(vertexA: number, vertexB: number, vertexC: number): TriadValue {
+  public static create(
+    vertexA: number,
+    vertexB: number,
+    vertexC: number
+  ): TriadValue {
     if ([vertexA, vertexB, vertexC].some((v) => v < 0 || v > 1000)) {
       throw new Error("Triad vertex values must be between 0 and 1000.");
     }

@@ -34,7 +34,7 @@
     "noEmit": false, // Ensure JS files are emitted (set to true if using a bundler like esbuild/swc for emit)
 
     /* Project Structure */
-    "rootDir": "./src" // Specify the root directory of your source files
+    // "rootDir": "./src" // Removed: Let TS infer the root from 'include' paths
   },
   "include": ["src/**/*", "tests/**/*"], // Include source and test files
   "exclude": ["node_modules", "dist"] // Exclude build output and dependencies

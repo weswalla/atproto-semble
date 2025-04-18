@@ -4,17 +4,9 @@ import { AnnotationField } from "../../../../src/annotations/domain/aggregates/A
 import { AnnotationFieldInputDTO } from "../../../../src/annotations/application/dtos/AnnotationFieldDTO";
 import { DyadFieldDef } from "../../../../src/annotations/domain/value-objects/FieldDefinition";
 import { TID } from "../../../../src/atproto/domain/value-objects/TID";
+import { InMemoryAnnotationFieldRepository } from "../../../infrastructure/persistence/InMemoryAnnotationFieldRepository"; // Import the in-memory repo
 
-// Mock the repository
-const mockFieldRepo: jest.Mocked<IAnnotationFieldRepository> = {
-  findById: jest.fn(),
-  findByUri: jest.fn(),
-  findByName: jest.fn(),
-  save: jest.fn(),
-  delete: jest.fn(),
-};
-
-// Mock the mapper (static methods)
+// Mock the mapper (static methods) - Still needed as the use case uses it
 // Adjust path if needed
 jest.mock(
   "../../../../src/annotations/infrastructure/persistence/drizzle/mappers/AnnotationFieldMapper",
@@ -42,16 +34,18 @@ jest.mock(
 
 describe("CreateAnnotationFieldUseCase", () => {
   let createAnnotationFieldUseCase: CreateAnnotationFieldUseCase;
+  let inMemoryRepo: InMemoryAnnotationFieldRepository;
 
   beforeEach(() => {
-    // Reset mocks before each test
-    jest.clearAllMocks();
+    // Reset mocks and repo before each test
+    jest.clearAllMocks(); // Clear mapper mock
+    inMemoryRepo = new InMemoryAnnotationFieldRepository(); // Create fresh repo
     createAnnotationFieldUseCase = new CreateAnnotationFieldUseCase(
-      mockFieldRepo
+      inMemoryRepo // Use the in-memory repo instance
     );
   });
 
-  it("should create and save an annotation field", async () => {
+  it("should create and save an annotation field in the repository", async () => {
     const input: AnnotationFieldInputDTO = {
       name: "Test Dyad Field",
       description: "A field for testing dyads",
@@ -62,29 +56,28 @@ describe("CreateAnnotationFieldUseCase", () => {
       },
     };
 
-    // Mock the save operation to simulate successful persistence
-    mockFieldRepo.save.mockResolvedValue(undefined);
+    // No need to mock repo.save anymore
 
     const result = await createAnnotationFieldUseCase.execute(input);
 
-    // 1. Verify repository's save method was called correctly
-    expect(mockFieldRepo.save).toHaveBeenCalledTimes(1);
-    const savedField = mockFieldRepo.save.mock.calls[0][0] as AnnotationField;
-    expect(savedField).toBeInstanceOf(AnnotationField);
-    expect(savedField.name).toBe(input.name);
-    expect(savedField.description).toBe(input.description);
-    expect(savedField.definition).toBeInstanceOf(DyadFieldDef);
-    expect((savedField.definition as DyadFieldDef).sideA).toBe(
+    // 1. Verify the field was saved in the in-memory repository
+    const savedField = await inMemoryRepo.findById(TID.fromString(result.id)); // Fetch by ID from result DTO
+    expect(savedField).not.toBeNull();
+    expect(savedField).toBeInstanceOf(AnnotationField); // Check instance type
+    expect(savedField!.name).toBe(input.name);
+    expect(savedField!.description).toBe(input.description);
+    expect(savedField!.definition).toBeInstanceOf(DyadFieldDef);
+    expect((savedField!.definition as DyadFieldDef).sideA).toBe(
       input.definition.sideA
     );
-    expect((savedField.definition as DyadFieldDef).sideB).toBe(
+    expect((savedField!.definition as DyadFieldDef).sideB).toBe(
       input.definition.sideB
     );
-    expect(savedField.id).toBeInstanceOf(TID); // Check if an ID was generated
+    expect(savedField!.id).toBeInstanceOf(TID); // Check if an ID was generated
 
     // 2. Verify the returned DTO matches the input and generated data
     expect(result).toBeDefined();
-    expect(result.id).toEqual(savedField.id.toString());
+    expect(result.id).toEqual(savedField!.id.toString()); // Compare with the ID of the saved field
     expect(result.name).toBe(input.name);
     expect(result.description).toBe(input.description);
     expect(result.definition.$type).toBe(input.definition.$type);
@@ -107,7 +100,9 @@ describe("CreateAnnotationFieldUseCase", () => {
       "Invalid or unknown field definition type: app.annos.annotationField#unknownDef"
     );
 
-    expect(mockFieldRepo.save).not.toHaveBeenCalled();
+    // Verify nothing was saved
+    const fields = (inMemoryRepo as any).fields as Map<string, AnnotationField>; // Access private member for test
+    expect(fields.size).toBe(0);
   });
 
   // Add more tests for:

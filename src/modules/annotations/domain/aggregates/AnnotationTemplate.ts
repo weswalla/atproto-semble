@@ -69,11 +69,5 @@ export class AnnotationTemplate {
   // Method to remove a field
   public removeField(fieldRefUri: string): void {
     // TODO: Implement removal logic
-    const index = this.annotationFields.findIndex(
-      (f) => f.fieldRef.uri === fieldRefUri
-    );
-    if (index > -1) {
-      this.annotationFields.splice(index, 1);
-    }
   }
 }

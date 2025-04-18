@@ -87,25 +87,11 @@ export class AnnotationMapper {
     return {
       id: annotation.id.toString(),
       url: annotation.url.value,
-      fieldRef: {
-        cid: annotation.fieldRef.cid,
-        uri: annotation.fieldRef.uri,
-      },
       // Value objects in the domain model might have methods or be classes.
       // DTOs usually expect plain JS objects. Ensure the value object
       // serializes correctly or perform manual mapping here if needed.
       // Assuming value objects are structured correctly for direct use:
       value: annotation.value,
-      additionalIdentifiers: annotation.additionalIdentifiers?.map((id) => ({
-        type: id.type,
-        value: id.value,
-      })),
-      templateRefs: annotation.templateRefs?.map((ref) => ({
-        cid: ref.cid,
-        uri: ref.uri,
-      })),
-      note: annotation.note,
-      createdAt: annotation.createdAt.toISOString(),
     };
   }
 }

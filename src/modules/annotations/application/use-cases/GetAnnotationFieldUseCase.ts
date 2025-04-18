@@ -1,8 +1,8 @@
 import { IAnnotationFieldRepository } from "../repositories/IAnnotationFieldRepository";
 import { TID } from "../../../../atproto/domain/value-objects/TID";
 import { AnnotationFieldOutputDTO } from "../dtos/AnnotationFieldDTO";
-import { AnnotationFieldMapper } from "../../infrastructure/persistence/drizzle/mappers/AnnotationFieldMapper"; // Adjust path if needed
 import { AnnotationField } from "../../domain/aggregates/AnnotationField"; // Import Aggregate
+import { AnnotationFieldMapper } from "../../infrastructure/persistence/mappers";
 
 export class GetAnnotationFieldUseCase {
   constructor(private fieldRepo: IAnnotationFieldRepository) {}

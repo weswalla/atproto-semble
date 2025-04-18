@@ -24,4 +24,8 @@ export class TID {
   public equals(other: TID): boolean {
     return this.tid.toString() === other.tid.toString();
   }
+
+  public static create(): TID {
+    return new TID(LexTID.fromStr(Date.now().toString()));
+  }
 }

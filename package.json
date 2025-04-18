@@ -15,7 +15,6 @@
   "license": "ISC",
   "dependencies": {
     "@atproto/api": "^0.15.2",
-    "@atproto/common": "^0.4.10",
     "@atproto/identity": "^0.4.7",
     "@atproto/lexicon": "^0.4.10",
     "@atproto/oauth-client-node": "^0.2.15",

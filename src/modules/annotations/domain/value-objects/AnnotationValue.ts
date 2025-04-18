@@ -1,4 +1,5 @@
 import { ValueObject } from "../../../../shared/domain/ValueObject";
+import { AnnotationType } from "./AnnotationType";
 
 // Define interfaces for the props of each value object type
 interface IDyadValueProps {
@@ -21,25 +22,26 @@ interface IMultiSelectValueProps {
 
 // Abstract base class for all annotation values, extending the shared ValueObject
 export abstract class AnnotationValueBase<
-  T extends object,
+  T extends object
 > extends ValueObject<T> {
-  abstract readonly $type: string;
+  abstract readonly type: AnnotationType;
 
   /**
-   * Checks if the other AnnotationValue is of the same type and has the same value.
+   * Checks if the other AnnotationValue is of the same type.
    * Checks if the other AnnotationValue is of the same specific type.
    * @param other The other AnnotationValue to compare against.
    * @returns True if the types match, false otherwise.
    */
-  public isSameType(other?: AnnotationValueBase<T>): boolean {
-    return !!other && this.$type === other.$type;
+  public isSameType(other?: AnnotationValueBase<any>): boolean {
+    // Use the equals method of the AnnotationType value object
+    return !!other && this.type.equals(other.type);
   }
 }
 
 // Using specific classes for each type allows for type checking and specific logic
 
 export class DyadValue extends AnnotationValueBase<IDyadValueProps> {
-  readonly $type = "app.annos.annotation#dyadValue";
+  readonly type = AnnotationType.DYAD;
 
   get value(): number {
     return this.props.value;
@@ -60,7 +62,7 @@ export class DyadValue extends AnnotationValueBase<IDyadValueProps> {
 }
 
 export class TriadValue extends AnnotationValueBase<ITriadValueProps> {
-  readonly $type = "app.annos.annotation#triadValue";
+  readonly type = AnnotationType.TRIAD;
 
   get vertexA(): number {
     return this.props.vertexA;
@@ -95,7 +97,7 @@ export class TriadValue extends AnnotationValueBase<ITriadValueProps> {
 }
 
 export class RatingValue extends AnnotationValueBase<IRatingValueProps> {
-  readonly $type = "app.annos.annotation#ratingValue";
+  readonly type = AnnotationType.RATING;
 
   get rating(): number {
     return this.props.rating;
@@ -118,7 +120,7 @@ export class RatingValue extends AnnotationValueBase<IRatingValueProps> {
 }
 
 export class SingleSelectValue extends AnnotationValueBase<ISingleSelectValueProps> {
-  readonly $type = "app.annos.annotation#singleSelectValue";
+  readonly type = AnnotationType.SINGLE_SELECT;
 
   get option(): string {
     return this.props.option;
@@ -141,7 +143,7 @@ export class SingleSelectValue extends AnnotationValueBase<ISingleSelectValuePro
 }
 
 export class MultiSelectValue extends AnnotationValueBase<IMultiSelectValueProps> {
-  readonly $type = "app.annos.annotation#multiSelectValue";
+  readonly type = AnnotationType.MULTI_SELECT;
 
   // Return a copy to prevent external modification
   get options(): string[] {

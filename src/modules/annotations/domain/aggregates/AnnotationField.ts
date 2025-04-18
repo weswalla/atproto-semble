@@ -3,20 +3,11 @@ import { TID } from "../../../../atproto/domain/value-objects/TID";
 
 // Properties required to construct an AnnotationField
 export interface AnnotationFieldProps {
-  id: TID;
-  name: string;
-  description: string;
-  definition: FieldDefinition;
+  name: AnnotationFieldName;
+  description: AnnotationFieldDescription;
+  definition: AnnotationFieldDefinition;
   createdAt: Date;
 }
-
-// Properties required to create a new AnnotationField
-export type AnnotationFieldCreateProps = Omit<
-  AnnotationFieldProps,
-  "id" | "createdAt"
-> & {
-  id?: TID; // Allow providing an ID optionally
-};
 
 // Placeholder for AnnotationField Aggregate Root
 export class AnnotationField {

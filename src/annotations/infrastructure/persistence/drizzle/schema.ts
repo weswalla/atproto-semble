@@ -9,21 +9,11 @@ import {
   text,
   boolean,
   primaryKey,
-  boolean,
-  primaryKey,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
 // --- ATProto Shared ---
 // (Could live in src/atproto/infrastructure/persistence/drizzle/schema.ts)
-// Assuming TID is stored as text for simplicity here
-export const strongRefs = pgTable('strong_refs', {
-  uri: text('uri').primaryKey(), // AT URI is the primary key
-  cid: varchar('cid', { length: 256 }).notNull(),
-  // Add createdAt/updatedAt if needed
-})
-
-// --- Annotations Context ---
 // Assuming TID is stored as text for simplicity here
 export const strongRefs = pgTable('strong_refs', {
   uri: text('uri').primaryKey(), // AT URI is the primary key

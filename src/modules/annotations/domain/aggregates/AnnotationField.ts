@@ -1,50 +1,81 @@
-import { FieldDefinition } from "../value-objects/FieldDefinition";
-import { TID } from "../../../../atproto/domain/value-objects/TID";
+import { AggregateRoot } from "../../../../shared/domain/AggregateRoot";
+import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
+import { Result } from "../../../../shared/core/Result";
+import { Guard, IGuardArgument } from "../../../../shared/core/Guard";
+import { AnnotationFieldId } from "../value-objects/AnnotationFieldId"; // Assuming this exists and wraps UniqueEntityID
+import { AnnotationFieldName } from "../value-objects/AnnotationFieldName";
+import { AnnotationFieldDescription } from "../value-objects/AnnotationFieldDescription";
+import { AnnotationFieldDefinition } from "../value-objects/AnnotationFieldDefinition"; // Renamed and refactored
 
 // Properties required to construct an AnnotationField
 export interface AnnotationFieldProps {
   name: AnnotationFieldName;
   description: AnnotationFieldDescription;
   definition: AnnotationFieldDefinition;
-  createdAt: Date;
+  createdAt?: Date; // Optional on creation, will default
+  // Add other properties like owner DID, etc. if needed
 }
 
-// Placeholder for AnnotationField Aggregate Root
-export class AnnotationField {
-  readonly id: TID;
-  readonly name: string;
-  readonly description: string;
-  readonly definition: FieldDefinition;
-  readonly createdAt: Date;
+export class AnnotationField extends AggregateRoot<AnnotationFieldProps> {
 
-  private constructor(props: AnnotationFieldProps) {
-    this.id = props.id;
-    this.name = props.name;
-    this.description = props.description;
-    this.definition = props.definition;
-    this.createdAt = props.createdAt;
-
-    // TODO: Add more validation logic here if needed
+  get fieldId(): AnnotationFieldId {
+    // Assuming AnnotationFieldId.create takes UniqueEntityID
+    return AnnotationFieldId.create(this._id).getValue();
   }
 
-  public static create(props: AnnotationFieldCreateProps): AnnotationField {
-    const id = props.id ?? TID.create();
-    const createdAt = new Date();
+  get name(): AnnotationFieldName {
+    return this.props.name;
+  }
 
-    // TODO: Add validation for definition, name, description
-    if (!props.name || props.name.trim().length === 0) {
-      throw new Error("AnnotationField name cannot be empty.");
+  get description(): AnnotationFieldDescription {
+    return this.props.description;
+  }
+
+  get definition(): AnnotationFieldDefinition {
+    return this.props.definition;
+  }
+
+  get createdAt(): Date {
+    // createdAt is guaranteed by the create method's default
+    return this.props.createdAt!;
+  }
+
+  private constructor(props: AnnotationFieldProps, id?: UniqueEntityID) {
+    super(props, id);
+  }
+
+  public static create(
+    props: AnnotationFieldProps,
+    id?: UniqueEntityID
+  ): Result<AnnotationField> {
+    const guardArgs: IGuardArgument[] = [
+      { argument: props.name, argumentName: "name" },
+      { argument: props.description, argumentName: "description" },
+      { argument: props.definition, argumentName: "definition" },
+    ];
+
+    const guardResult = Guard.againstNullOrUndefinedBulk(guardArgs);
+
+    if (guardResult.isFailure) {
+      return Result.fail<AnnotationField>(guardResult.getErrorValue());
     }
-    // Add more validation as needed (e.g., description length, definition checks)
 
-    const constructorProps: AnnotationFieldProps = {
+    // Additional validation can be done here on the value objects themselves if needed,
+    // although their own `create` methods should handle internal consistency.
+
+    const defaultValues: AnnotationFieldProps = {
       ...props,
-      id,
-      createdAt,
+      createdAt: props.createdAt || new Date(),
     };
 
-    return new AnnotationField(constructorProps);
+    const annotationField = new AnnotationField(defaultValues, id);
+
+    // Optionally: Add domain event for AnnotationFieldCreated
+
+    return Result.ok<AnnotationField>(annotationField);
   }
 
   // Methods for business logic related to AnnotationField
+  // e.g., updateDescription(newDescription: AnnotationFieldDescription): Result<void>
+  // e.g., updateDefinition(newDefinition: AnnotationFieldDefinition): Result<void> - careful with type changes!
 }

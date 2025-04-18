@@ -359,6 +359,27 @@ export const schemaDict = {
       },
     },
   },
+  ComAtprotoRepoStrongRef: {
+    lexicon: 1,
+    id: 'com.atproto.repo.strongRef',
+    description: 'A URI with a content-hash fingerprint.',
+    defs: {
+      main: {
+        type: 'object',
+        required: ['uri', 'cid'],
+        properties: {
+          cid: {
+            type: 'string',
+            format: 'cid',
+          },
+          uri: {
+            type: 'string',
+            format: 'at-uri',
+          },
+        },
+      },
+    },
+  },
 } as const satisfies Record<string, LexiconDoc>
 export const schemas = Object.values(schemaDict) satisfies LexiconDoc[]
 export const lexicons: Lexicons = new Lexicons(schemas)
@@ -396,4 +417,5 @@ export const ids = {
   AppAnnosAnnotationField: 'app.annos.annotationField',
   AppAnnosAnnotationTemplate: 'app.annos.annotationTemplate',
   AppAnnosDefs: 'app.annos.defs',
+  ComAtprotoRepoStrongRef: 'com.atproto.repo.strongRef',
 } as const

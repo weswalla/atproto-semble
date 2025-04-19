@@ -7,8 +7,8 @@ import {
   AnnotationTemplateName,
   AnnotationTemplateDescription,
   CuratorId,
-  TemplateField,
   PublishedRecordId,
+  AnnotationTemplateField,
 } from "../value-objects"; // Import necessary value objects
 
 // Properties required to construct an AnnotationTemplate
@@ -16,7 +16,7 @@ export interface AnnotationTemplateProps {
   curatorId: CuratorId;
   name: AnnotationTemplateName;
   description: AnnotationTemplateDescription;
-  annotationFields: TemplateField[]; // Assuming TemplateField is already a ValueObject
+  annotationFields: AnnotationTemplateField[]; // Assuming TemplateField is already a ValueObject
   createdAt?: Date;
   publishedRecordId?: PublishedRecordId;
 }
@@ -39,7 +39,7 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
     return this.props.description;
   }
 
-  get annotationFields(): TemplateField[] {
+  get annotationFields(): AnnotationTemplateField[] {
     // Return a copy to prevent external modification if TemplateField is mutable
     // If TemplateField is an immutable ValueObject, direct return is fine.
     return [...this.props.annotationFields];
@@ -103,10 +103,10 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
   // --- Methods for business logic ---
 
   // Method to add a field (example of behavior)
-  public addField(field: TemplateField): Result<void> {
+  public addField(field: AnnotationTemplateField): Result<void> {
     // Check if field already exists (assuming TemplateField has an equals method or unique ID)
-    const fieldExists = this.props.annotationFields.some((existingField) =>
-      existingField.equals(field) // Adjust based on TemplateField's comparison logic
+    const fieldExists = this.props.annotationFields.some(
+      (existingField) => existingField.equals(field) // Adjust based on TemplateField's comparison logic
     );
 
     if (fieldExists) {
@@ -130,7 +130,9 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
     }
 
     if (this.props.annotationFields.length === 0) {
-       return Result.fail<void>("Cannot remove the last field from the template.");
+      return Result.fail<void>(
+        "Cannot remove the last field from the template."
+      );
     }
 
     // Optionally add domain event: TemplateFieldRemoved
@@ -139,17 +141,19 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
 
   // Method to update name
   public updateName(newName: AnnotationTemplateName): Result<void> {
-      this.props.name = newName;
-      // Optionally add domain event: TemplateNameUpdated
-      return Result.ok<void>();
+    this.props.name = newName;
+    // Optionally add domain event: TemplateNameUpdated
+    return Result.ok<void>();
   }
 
-   // Method to update description
-   public updateDescription(newDescription: AnnotationTemplateDescription): Result<void> {
-       this.props.description = newDescription;
-       // Optionally add domain event: TemplateDescriptionUpdated
-       return Result.ok<void>();
-   }
+  // Method to update description
+  public updateDescription(
+    newDescription: AnnotationTemplateDescription
+  ): Result<void> {
+    this.props.description = newDescription;
+    // Optionally add domain event: TemplateDescriptionUpdated
+    return Result.ok<void>();
+  }
 
-   // Potentially methods to reorder fields, update 'required' status on a field, etc.
+  // Potentially methods to reorder fields, update 'required' status on a field, etc.
 }

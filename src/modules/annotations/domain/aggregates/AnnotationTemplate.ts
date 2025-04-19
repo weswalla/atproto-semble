@@ -1,73 +1,155 @@
-import { TemplateField } from "../value-objects/TemplateField";
-import { TID } from "../../../../atproto/domain/value-objects/TID";
+import { AggregateRoot } from "../../../../shared/domain/AggregateRoot";
+import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
+import { Result } from "../../../../shared/core/Result";
+import { Guard, IGuardArgument } from "../../../../shared/core/Guard";
+import {
+  AnnotationTemplateId,
+  AnnotationTemplateName,
+  AnnotationTemplateDescription,
+  CuratorId,
+  TemplateField,
+  PublishedRecordId,
+} from "../value-objects"; // Import necessary value objects
 
 // Properties required to construct an AnnotationTemplate
 export interface AnnotationTemplateProps {
-  id: TID;
-  name: string;
-  description: string;
-  annotationFields: TemplateField[];
-  createdAt: Date;
+  curatorId: CuratorId;
+  name: AnnotationTemplateName;
+  description: AnnotationTemplateDescription;
+  annotationFields: TemplateField[]; // Assuming TemplateField is already a ValueObject
+  createdAt?: Date;
+  publishedRecordId?: PublishedRecordId;
 }
 
-// Properties required to create a new AnnotationTemplate
-export type AnnotationTemplateCreateProps = Omit<
-  AnnotationTemplateProps,
-  "id" | "createdAt"
-> & {
-  id?: TID; // Allow providing an ID optionally
-};
+export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
+  get templateId(): AnnotationTemplateId {
+    // Assuming AnnotationTemplateId.create takes UniqueEntityID
+    return AnnotationTemplateId.create(this._id).getValue();
+  }
 
-// Placeholder for AnnotationTemplate Aggregate Root
-export class AnnotationTemplate {
-  readonly id: TID;
-  readonly name: string;
-  readonly description: string;
-  readonly annotationFields: TemplateField[];
-  readonly createdAt: Date;
+  get curatorId(): CuratorId {
+    return this.props.curatorId;
+  }
 
-  private constructor(props: AnnotationTemplateProps) {
-    this.id = props.id;
-    this.name = props.name;
-    this.description = props.description;
-    this.annotationFields = props.annotationFields;
-    this.createdAt = props.createdAt;
+  get name(): AnnotationTemplateName {
+    return this.props.name;
+  }
 
-    // TODO: Add more validation logic here if needed
+  get description(): AnnotationTemplateDescription {
+    return this.props.description;
+  }
+
+  get annotationFields(): TemplateField[] {
+    // Return a copy to prevent external modification if TemplateField is mutable
+    // If TemplateField is an immutable ValueObject, direct return is fine.
+    return [...this.props.annotationFields];
+  }
+
+  get createdAt(): Date {
+    // Guaranteed by the create method's default
+    return this.props.createdAt!;
+  }
+
+  get publishedRecordId(): PublishedRecordId | undefined {
+    return this.props.publishedRecordId;
+  }
+
+  public updatePublishedRecordId(publishedRecordId: PublishedRecordId): void {
+    this.props.publishedRecordId = publishedRecordId;
+  }
+
+  private constructor(props: AnnotationTemplateProps, id?: UniqueEntityID) {
+    super(props, id);
   }
 
   public static create(
-    props: AnnotationTemplateCreateProps
-  ): AnnotationTemplate {
-    const id = props.id ?? TID.create();
-    const createdAt = new Date();
+    props: AnnotationTemplateProps,
+    id?: UniqueEntityID
+  ): Result<AnnotationTemplate> {
+    const guardArgs: IGuardArgument[] = [
+      { argument: props.curatorId, argumentName: "curatorId" },
+      { argument: props.name, argumentName: "name" },
+      { argument: props.description, argumentName: "description" },
+      { argument: props.annotationFields, argumentName: "annotationFields" },
+    ];
 
-    // TODO: Add validation
-    if (!props.name || props.name.trim().length === 0) {
-      throw new Error("AnnotationTemplate name cannot be empty.");
+    const guardResult = Guard.againstNullOrUndefinedBulk(guardArgs);
+
+    if (guardResult.isFailure) {
+      return Result.fail<AnnotationTemplate>(guardResult.getErrorValue());
     }
+
+    // Additional validation specific to AnnotationTemplate
     if (!props.annotationFields || props.annotationFields.length === 0) {
-      throw new Error("AnnotationTemplate must include at least one field.");
+      return Result.fail<AnnotationTemplate>(
+        "AnnotationTemplate must include at least one field."
+      );
     }
-    // Add more validation as needed (e.g., description length)
+    // Could add validation for duplicate fields here if needed
 
-    const constructorProps: AnnotationTemplateProps = {
+    const defaultValues: AnnotationTemplateProps = {
       ...props,
-      id,
-      createdAt,
+      createdAt: props.createdAt || new Date(),
+      publishedRecordId: props.publishedRecordId,
     };
 
-    return new AnnotationTemplate(constructorProps);
+    const annotationTemplate = new AnnotationTemplate(defaultValues, id);
+
+    // Optionally: Add domain event for AnnotationTemplateCreated
+
+    return Result.ok<AnnotationTemplate>(annotationTemplate);
   }
+
+  // --- Methods for business logic ---
 
   // Method to add a field (example of behavior)
-  public addField(field: TemplateField): void {
-    // TODO: Add logic to prevent duplicates, etc.
-    this.annotationFields.push(field);
+  public addField(field: TemplateField): Result<void> {
+    // Check if field already exists (assuming TemplateField has an equals method or unique ID)
+    const fieldExists = this.props.annotationFields.some((existingField) =>
+      existingField.equals(field) // Adjust based on TemplateField's comparison logic
+    );
+
+    if (fieldExists) {
+      return Result.fail<void>("Field already exists in the template.");
+    }
+
+    this.props.annotationFields.push(field);
+    // Optionally add domain event: TemplateFieldAdded
+    return Result.ok<void>();
   }
 
-  // Method to remove a field
-  public removeField(fieldRefUri: string): void {
-    // TODO: Implement removal logic
+  // Method to remove a field by its AnnotationFieldId
+  public removeField(fieldIdToRemove: UniqueEntityID): Result<void> {
+    const initialLength = this.props.annotationFields.length;
+    this.props.annotationFields = this.props.annotationFields.filter(
+      (field) => !field.annotationFieldId.getValue().equals(fieldIdToRemove) // Compare UniqueEntityIDs
+    );
+
+    if (this.props.annotationFields.length === initialLength) {
+      return Result.fail<void>("Field not found in the template.");
+    }
+
+    if (this.props.annotationFields.length === 0) {
+       return Result.fail<void>("Cannot remove the last field from the template.");
+    }
+
+    // Optionally add domain event: TemplateFieldRemoved
+    return Result.ok<void>();
   }
+
+  // Method to update name
+  public updateName(newName: AnnotationTemplateName): Result<void> {
+      this.props.name = newName;
+      // Optionally add domain event: TemplateNameUpdated
+      return Result.ok<void>();
+  }
+
+   // Method to update description
+   public updateDescription(newDescription: AnnotationTemplateDescription): Result<void> {
+       this.props.description = newDescription;
+       // Optionally add domain event: TemplateDescriptionUpdated
+       return Result.ok<void>();
+   }
+
+   // Potentially methods to reorder fields, update 'required' status on a field, etc.
 }

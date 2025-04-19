@@ -1,12 +1,13 @@
 import { AnnotationField } from "../../domain/aggregates/AnnotationField";
-import { TID } from "../../../../atproto/domain/value-objects/TID";
+import { AnnotationFieldId } from "../../domain/value-objects/AnnotationFieldId";
+import { PublishedRecordId } from "../../domain/value-objects"; // Import PublishedRecordId
 
-// Placeholder Interface for AnnotationField Repository
+// Interface for AnnotationField Repository
 export interface IAnnotationFieldRepository {
-  findById(id: TID): Promise<AnnotationField | null>;
-  findByUri(uri: string): Promise<AnnotationField | null>; // Find by AT URI
+  findById(id: AnnotationFieldId): Promise<AnnotationField | null>;
+  findByPublishedRecordId(recordId: PublishedRecordId): Promise<AnnotationField | null>; // Find by AT URI (PublishedRecordId)
   findByName(name: string): Promise<AnnotationField | null>; // Example query
   save(field: AnnotationField): Promise<void>;
-  delete(id: TID): Promise<void>;
+  delete(id: AnnotationFieldId): Promise<void>;
   // Add other query methods as needed
 }

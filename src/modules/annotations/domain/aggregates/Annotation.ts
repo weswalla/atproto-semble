@@ -7,9 +7,11 @@ import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
 import { Guard, IGuardArgument } from "src/shared/core/Guard";
 import {
   AnnotationFieldId,
+  AnnotationFieldId,
   AnnotationId,
   AnnotationNote,
   AnnotationTemplateId,
+  CuratorId, // Import the new value object
   PublishedRecordId,
 } from "../value-objects";
 
@@ -19,6 +21,7 @@ export type UpdateAnnotationValueResult = Either<
 >;
 
 export interface AnnotationProps {
+  curatorId: CuratorId; // Add the curator ID
   url: URI;
   annotationFieldId: AnnotationFieldId;
   value: AnnotationValue;
@@ -31,6 +34,9 @@ export interface AnnotationProps {
 export class Annotation extends AggregateRoot<AnnotationProps> {
   get annotationId(): AnnotationId {
     return AnnotationId.create(this._id).getValue();
+  }
+  get curatorId(): CuratorId {
+    return this.props.curatorId;
   }
   get url(): URI {
     return this.props.url;
@@ -75,6 +81,7 @@ export class Annotation extends AggregateRoot<AnnotationProps> {
     id?: UniqueEntityID
   ): Result<Annotation> {
     const guardArgs: IGuardArgument[] = [
+      { argument: props.curatorId, argumentName: "curatorId" }, // Add curatorId to guard
       { argument: props.url, argumentName: "url" },
       { argument: props.annotationFieldId, argumentName: "annotationFieldId" },
       { argument: props.value, argumentName: "value" },

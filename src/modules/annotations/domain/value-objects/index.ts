@@ -8,3 +8,6 @@ export * from "./AnnotationNote";
 export * from "./AnnotationId";
 export * from "./PublishedRecordId";
 export * from "./CuratorId";
+export * from "./AnnotationTemplateName";
+export * from "./AnnotationTemplateDescription";
+export * from "./AnnotationTemplateField";

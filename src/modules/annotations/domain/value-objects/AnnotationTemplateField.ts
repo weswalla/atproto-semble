@@ -3,11 +3,11 @@ import { AnnotationFieldId } from "./AnnotationFieldId";
 import { Result } from "src/shared/core/Result";
 import { Guard } from "src/shared/core/Guard";
 
-interface TemplateFieldProps {
+interface AnnotationTemplateFieldProps {
   annotationFieldId: AnnotationFieldId;
   required?: boolean;
 }
-export class TemplateField extends ValueObject<{
+export class AnnotationTemplateField extends ValueObject<{
   annotationFieldId: AnnotationFieldId;
   required?: boolean;
 }> {
@@ -18,17 +18,21 @@ export class TemplateField extends ValueObject<{
     return this.props.required ?? false;
   }
 
-  private constructor(props: TemplateFieldProps) {
+  private constructor(props: AnnotationTemplateFieldProps) {
     super(props);
   }
-  public static create(props: TemplateFieldProps): Result<TemplateField> {
+  public static create(
+    props: AnnotationTemplateFieldProps
+  ): Result<AnnotationTemplateField> {
     const nullGuard = Guard.againstNullOrUndefined(
       props.annotationFieldId,
       "annotationFieldId"
     );
     if (nullGuard.isFailure) {
-      return Result.fail<TemplateField>(nullGuard.getErrorValue());
+      return Result.fail<AnnotationTemplateField>(nullGuard.getErrorValue());
     }
-    return Result.ok<TemplateField>(new TemplateField(props));
+    return Result.ok<AnnotationTemplateField>(
+      new AnnotationTemplateField(props)
+    );
   }
 }

@@ -1,10 +1,10 @@
 export class Result<T> {
   public isSuccess: boolean;
   public isFailure: boolean;
-  private error?: T | string;
+  private error?: string;
   private _value?: T;
 
-  public constructor(isSuccess: boolean, error?: T | string, value?: T) {
+  public constructor(isSuccess: boolean, error?: string, value?: T) {
     if (isSuccess && error) {
       throw new Error(
         "InvalidOperation: A result cannot be successful and contain an error"
@@ -35,8 +35,8 @@ export class Result<T> {
     return this._value;
   }
 
-  public getErrorValue(): T {
-    return this.error as T;
+  public getErrorValue(): string {
+    return this.error as string;
   }
 
   public static ok<U>(value?: U): Result<U> {

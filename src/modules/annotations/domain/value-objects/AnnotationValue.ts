@@ -1,4 +1,6 @@
+import e from "express";
 import { ValueObject } from "../../../../shared/domain/ValueObject";
+import { Annotation } from "../aggregates";
 import { AnnotationType } from "./AnnotationType";
 
 // Define interfaces for the props of each value object type
@@ -22,7 +24,7 @@ interface IMultiSelectValueProps {
 
 // Abstract base class for all annotation values, extending the shared ValueObject
 export abstract class AnnotationValueBase<
-  T extends object
+  T extends object,
 > extends ValueObject<T> {
   abstract readonly type: AnnotationType;
 
@@ -33,7 +35,6 @@ export abstract class AnnotationValueBase<
    * @returns True if the types match, false otherwise.
    */
   public isSameType(other?: AnnotationValueBase<any>): boolean {
-    // Use the equals method of the AnnotationType value object
     return !!other && this.type.equals(other.type);
   }
 }
@@ -57,8 +58,6 @@ export class DyadValue extends AnnotationValueBase<IDyadValueProps> {
     }
     return new DyadValue({ value });
   }
-
-  // Base ValueObject.equals should suffice as it compares props
 }
 
 export class TriadValue extends AnnotationValueBase<ITriadValueProps> {
@@ -73,7 +72,6 @@ export class TriadValue extends AnnotationValueBase<ITriadValueProps> {
   get vertexC(): number {
     return this.props.vertexC;
   }
-  // sum is an invariant checked at creation, not stored state
 
   private constructor(props: ITriadValueProps) {
     super(props);
@@ -92,8 +90,6 @@ export class TriadValue extends AnnotationValueBase<ITriadValueProps> {
     }
     return new TriadValue({ vertexA, vertexB, vertexC });
   }
-
-  // Base ValueObject.equals should suffice
 }
 
 export class RatingValue extends AnnotationValueBase<IRatingValueProps> {
@@ -115,8 +111,6 @@ export class RatingValue extends AnnotationValueBase<IRatingValueProps> {
     }
     return new RatingValue({ rating });
   }
-
-  // Base ValueObject.equals should suffice
 }
 
 export class SingleSelectValue extends AnnotationValueBase<ISingleSelectValueProps> {
@@ -138,8 +132,6 @@ export class SingleSelectValue extends AnnotationValueBase<ISingleSelectValuePro
     }
     return new SingleSelectValue({ option });
   }
-
-  // Base ValueObject.equals should suffice
 }
 
 export class MultiSelectValue extends AnnotationValueBase<IMultiSelectValueProps> {
@@ -167,14 +159,6 @@ export class MultiSelectValue extends AnnotationValueBase<IMultiSelectValueProps
     const uniqueSortedOptions = [...new Set(options)].sort();
     return new MultiSelectValue({ options: uniqueSortedOptions });
   }
-
-  // Base ValueObject.equals should suffice because options in props are sorted
 }
 
-// Union type of all concrete AnnotationValue implementations
-export type AnnotationValue =
-  | DyadValue
-  | TriadValue
-  | RatingValue
-  | SingleSelectValue
-  | MultiSelectValue;
+export type AnnotationValue = AnnotationValueBase<object>;

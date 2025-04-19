@@ -31,11 +31,13 @@ export class CuratorId extends ValueObject<CuratorIdProps> {
 
     const didTrimmed = did.trim();
     if (didTrimmed.length === 0) {
-        return Result.fail<CuratorId>("CuratorId cannot be empty.");
+      return Result.fail<CuratorId>("CuratorId cannot be empty.");
     }
 
     if (!DID_REGEX.test(didTrimmed)) {
-      return Result.fail<CuratorId>(`Invalid CuratorId format (must be a valid DID): ${didTrimmed}`);
+      return Result.fail<CuratorId>(
+        `Invalid CuratorId format (must be a valid DID): ${didTrimmed}`
+      );
     }
 
     return Result.ok<CuratorId>(new CuratorId({ value: didTrimmed }));

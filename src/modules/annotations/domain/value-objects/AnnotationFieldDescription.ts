@@ -17,16 +17,23 @@ export class AnnotationFieldDescription extends ValueObject<AnnotationFieldDescr
     super(props);
   }
 
-  public static create(description: string): Result<AnnotationFieldDescription> {
+  public static create(
+    description: string
+  ): Result<AnnotationFieldDescription> {
     // Description can potentially be empty, so only check length if provided
     const descriptionTrimmed = description?.trim();
 
-    const guardResult = Guard.againstNullOrUndefined(descriptionTrimmed, "description");
-     if (guardResult.isFailure) {
-       // Allow null/undefined to pass through, representing an empty description
-       // If description MUST exist, change this logic
-       return Result.ok<AnnotationFieldDescription>(new AnnotationFieldDescription({ value: "" }));
-     }
+    const guardResult = Guard.againstNullOrUndefined(
+      descriptionTrimmed,
+      "description"
+    );
+    if (guardResult.isFailure) {
+      // Allow null/undefined to pass through, representing an empty description
+      // If description MUST exist, change this logic
+      return Result.ok<AnnotationFieldDescription>(
+        new AnnotationFieldDescription({ value: "" })
+      );
+    }
 
     if (descriptionTrimmed.length > this.MAX_LENGTH) {
       return Result.fail<AnnotationFieldDescription>(
@@ -34,6 +41,8 @@ export class AnnotationFieldDescription extends ValueObject<AnnotationFieldDescr
       );
     }
 
-    return Result.ok<AnnotationFieldDescription>(new AnnotationFieldDescription({ value: descriptionTrimmed }));
+    return Result.ok<AnnotationFieldDescription>(
+      new AnnotationFieldDescription({ value: descriptionTrimmed })
+    );
   }
 }

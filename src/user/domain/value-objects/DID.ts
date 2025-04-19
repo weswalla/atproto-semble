@@ -30,7 +30,7 @@ export class DID extends ValueObject<DIDProps> {
 
     const didTrimmed = did.trim();
     if (didTrimmed.length === 0) {
-        return Result.fail<DID>("DID cannot be empty.");
+      return Result.fail<DID>("DID cannot be empty.");
     }
 
     if (!DID_REGEX.test(didTrimmed)) {

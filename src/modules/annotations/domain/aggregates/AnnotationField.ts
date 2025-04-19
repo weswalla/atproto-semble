@@ -6,21 +6,25 @@ import { AnnotationFieldId } from "../value-objects/AnnotationFieldId"; // Assum
 import { AnnotationFieldName } from "../value-objects/AnnotationFieldName";
 import { AnnotationFieldDescription } from "../value-objects/AnnotationFieldDescription";
 import { AnnotationFieldDefinition } from "../value-objects/AnnotationFieldDefinition"; // Renamed and refactored
+import { CuratorId, PublishedRecordId } from "../value-objects";
 
 // Properties required to construct an AnnotationField
 export interface AnnotationFieldProps {
+  curatorId: CuratorId;
   name: AnnotationFieldName;
   description: AnnotationFieldDescription;
   definition: AnnotationFieldDefinition;
-  createdAt?: Date; // Optional on creation, will default
-  // Add other properties like owner DID, etc. if needed
+  createdAt?: Date;
+  publishedRecordId?: PublishedRecordId;
 }
 
 export class AnnotationField extends AggregateRoot<AnnotationFieldProps> {
-
   get fieldId(): AnnotationFieldId {
-    // Assuming AnnotationFieldId.create takes UniqueEntityID
     return AnnotationFieldId.create(this._id).getValue();
+  }
+
+  get curatorId(): CuratorId {
+    return this.props.curatorId;
   }
 
   get name(): AnnotationFieldName {
@@ -36,8 +40,11 @@ export class AnnotationField extends AggregateRoot<AnnotationFieldProps> {
   }
 
   get createdAt(): Date {
-    // createdAt is guaranteed by the create method's default
     return this.props.createdAt!;
+  }
+
+  public updatePublishedRecordId(publishedRecordId: PublishedRecordId): void {
+    this.props.publishedRecordId = publishedRecordId;
   }
 
   private constructor(props: AnnotationFieldProps, id?: UniqueEntityID) {
@@ -59,9 +66,6 @@ export class AnnotationField extends AggregateRoot<AnnotationFieldProps> {
     if (guardResult.isFailure) {
       return Result.fail<AnnotationField>(guardResult.getErrorValue());
     }
-
-    // Additional validation can be done here on the value objects themselves if needed,
-    // although their own `create` methods should handle internal consistency.
 
     const defaultValues: AnnotationFieldProps = {
       ...props,

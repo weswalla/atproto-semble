@@ -1,5 +1,5 @@
 export * from "./AnnotationValue";
-export * from "./FieldDefinition";
+export * from "./AnnotationFieldDefinition";
 export * from "./Identifier";
 export * from "./URI";
 export * from "./AnnotationFieldId";
@@ -7,3 +7,4 @@ export * from "./AnnotationTemplateId";
 export * from "./AnnotationNote";
 export * from "./AnnotationId";
 export * from "./PublishedRecordId";
+export * from "./CuratorId";

@@ -8,96 +8,186 @@ import {
   AnnotationTemplateName,
   CuratorId,
   PublishedRecordId,
-} from "../value-objects"; // Adjust imports as needed
+} from "../value-objects";
+import { AnnotationTemplateProps } from "./AnnotationTemplate";
 
-// Mock Value Objects
-const mockCuratorId = CuratorId.create("did:example:curator").getValue();
-const mockName = AnnotationTemplateName.create("Test Template Name").getValue();
-const mockDescription = AnnotationTemplateDescription.create(
-  "Test Template Description"
-).getValue();
-const mockPublishedRecordId = PublishedRecordId.create(
-  "at://did:example:repo/app.annos.annotationTemplate/template123"
-);
+// --- Builder ---
+interface BuilderField {
+  id: string;
+  required: boolean;
+}
 
-// Mock AnnotationTemplateFields
-const fieldId1 = AnnotationFieldId.create(
-  new UniqueEntityID("field-1")
-).getValue();
-const mockField1 = AnnotationTemplateField.create({
-  annotationFieldId: fieldId1,
-  required: true,
-}).getValue();
+class AnnotationTemplateBuilder {
+  private props: Partial<AnnotationTemplateProps> = {};
+  private rawFields: BuilderField[] = [];
+  private id?: UniqueEntityID;
+  private curatorIdStr: string = "did:example:builder-curator";
+  private nameStr: string = "Builder Template Name";
+  private descriptionStr: string = "Builder Template Description";
+  private publishedRecordIdStr?: string;
+  private createdAtDate?: Date;
 
-const fieldId2 = AnnotationFieldId.create(
-  new UniqueEntityID("field-2")
-).getValue();
-const mockField2 = AnnotationTemplateField.create({
-  annotationFieldId: fieldId2,
-  required: false,
-}).getValue();
+  withId(id: UniqueEntityID): this {
+    this.id = id;
+    return this;
+  }
+
+  withCuratorId(did: string): this {
+    this.curatorIdStr = did;
+    return this;
+  }
+
+  withName(name: string): this {
+    this.nameStr = name;
+    return this;
+  }
+
+  withDescription(description: string): this {
+    this.descriptionStr = description;
+    return this;
+  }
+
+  withPublishedRecordId(atUri: string): this {
+    this.publishedRecordIdStr = atUri;
+    return this;
+  }
+
+  withCreatedAt(date: Date): this {
+    this.createdAtDate = date;
+    return this;
+  }
+
+  addField(id: string, required: boolean): this {
+    this.rawFields.push({ id, required });
+    return this;
+  }
+
+  // Default setup for a valid template
+  withValidDefaults(): this {
+    return this.addField("field-1", true).addField("field-2", false);
+  }
+
+  build(): Result<AnnotationTemplate> {
+    const curatorIdResult = CuratorId.create(this.curatorIdStr);
+    const nameResult = AnnotationTemplateName.create(this.nameStr);
+    const descriptionResult = AnnotationTemplateDescription.create(
+      this.descriptionStr
+    );
+
+    let publishedRecordId: PublishedRecordId | undefined;
+    if (this.publishedRecordIdStr) {
+      try {
+        publishedRecordId = PublishedRecordId.create(this.publishedRecordIdStr);
+      } catch (e: any) {
+        return Result.fail<AnnotationTemplate>(
+          `Builder failed: Invalid PublishedRecordId: ${e.message}`
+        );
+      }
+    }
+
+    const fieldResults: Result<AnnotationTemplateField>[] = this.rawFields.map(
+      (f) => {
+        const fieldIdResult = AnnotationFieldId.create(new UniqueEntityID(f.id));
+        if (fieldIdResult.isFailure) {
+          // This shouldn't typically fail if UniqueEntityID constructor is used directly
+          return Result.fail<AnnotationTemplateField>(
+            `Builder failed: Could not create AnnotationFieldId for ${f.id}: ${fieldIdResult.getErrorValue()}`
+          );
+        }
+        return AnnotationTemplateField.create({
+          annotationFieldId: fieldIdResult.getValue(),
+          required: f.required,
+        });
+      }
+    );
+
+    const combinedResult = Result.combine([
+      curatorIdResult,
+      nameResult,
+      descriptionResult,
+      ...fieldResults,
+    ]);
+
+    if (combinedResult.isFailure) {
+      return Result.fail<AnnotationTemplate>(
+        `Builder failed: ${combinedResult.getErrorValue()}`
+      );
+    }
+
+    const annotationFields = fieldResults.map((r) => r.getValue());
+
+    const props: AnnotationTemplateProps = {
+      curatorId: curatorIdResult.getValue(),
+      name: nameResult.getValue(),
+      description: descriptionResult.getValue(),
+      annotationFields: annotationFields,
+      publishedRecordId: publishedRecordId, // Use the potentially created PublishedRecordId
+      createdAt: this.createdAtDate, // Pass through if set
+    };
+
+    // Pass the specific ID if it was set on the builder
+    return AnnotationTemplate.create(props, this.id);
+  }
+}
 
 // --- Test Suite ---
 describe("AnnotationTemplate Aggregate", () => {
-  // --- Base Props for successful creation ---
-  const baseProps = {
-    curatorId: mockCuratorId,
-    name: mockName,
-    description: mockDescription,
-    annotationFields: [mockField1, mockField2],
-  };
-
   // --- Create Method Tests ---
-  describe("create", () => {
+  describe("create (via Builder)", () => {
     it("should create a new AnnotationTemplate successfully with valid props", () => {
-      const props = {
-        curatorId: mockCuratorId,
-        name: mockName,
-        description: mockDescription,
-        annotationFields: [mockField1, mockField2],
-      };
-      const result = AnnotationTemplate.create(props);
+      const builder = new AnnotationTemplateBuilder()
+        .withCuratorId("did:example:curator1")
+        .withName("Valid Template")
+        .withDescription("This is a valid description.")
+        .addField("f1", true)
+        .addField("f2", false);
+
+      const result = builder.build();
 
       expect(result.isSuccess).toBe(true);
       const template = result.getValue();
       expect(template).toBeInstanceOf(AnnotationTemplate);
       expect(template.id).toBeInstanceOf(UniqueEntityID);
-      expect(template.curatorId).toEqual(mockCuratorId);
-      expect(template.name).toEqual(mockName);
-      expect(template.description).toEqual(mockDescription);
-      expect(template.annotationFields).toEqual([mockField1, mockField2]);
+      expect(template.curatorId.value).toBe("did:example:curator1");
+      expect(template.name.value).toBe("Valid Template");
+      expect(template.description.value).toBe("This is a valid description.");
+      expect(template.annotationFields).toHaveLength(2);
+      expect(
+        template.annotationFields[0].annotationFieldId.getStringValue()
+      ).toBe("f1");
+      expect(template.annotationFields[0].required).toBe(true);
+      expect(
+        template.annotationFields[1].annotationFieldId.getStringValue()
+      ).toBe("f2");
+      expect(template.annotationFields[1].required).toBe(false);
       expect(template.createdAt).toBeInstanceOf(Date);
-      expect(template.publishedRecordId).toBeUndefined(); // Default
+      expect(template.publishedRecordId).toBeUndefined();
     });
 
-    it("should fail if a required prop is missing (e.g., name)", () => {
-      // Create props object missing the 'name' property
-      const propsWithoutName = {
-        curatorId: mockCuratorId,
-        description: mockDescription,
-        annotationFields: [mockField1],
-      };
-      // We need to cast to 'any' here because TS knows 'name' is missing,
-      // but we are testing the runtime validation within AnnotationTemplate.create
-      const result = AnnotationTemplate.create(
-        propsWithoutName as AnnotationTemplateProps
-      );
+    it("should fail build if a required Value Object creation fails (e.g., empty name)", () => {
+      const builder = new AnnotationTemplateBuilder()
+        .withName("") // Invalid name
+        .withValidDefaults();
+
+      const result = builder.build();
 
       expect(result.isFailure).toBe(true);
-      // Check that the error message mentions the missing property
-      expect(result.getErrorValue()).toContain("name");
+      // Check that the error message comes from the builder/VO failure
+      expect(result.getErrorValue()).toContain("Builder failed:");
+      expect(result.getErrorValue()).toContain("cannot be empty"); // From AnnotationTemplateName.create
     });
 
-    it("should fail if annotationFields array is empty", () => {
-      const props = {
-        curatorId: mockCuratorId,
-        name: mockName,
-        description: mockDescription,
-        annotationFields: [], // Empty array
-      };
-      const result = AnnotationTemplate.create(props);
+    it("should fail creation if annotationFields array is empty", () => {
+      const builder = new AnnotationTemplateBuilder()
+        .withCuratorId("did:example:curator2")
+        .withName("No Fields Template")
+        .withDescription("This template has no fields.");
+      // No calls to .addField()
+
+      const result = builder.build();
 
       expect(result.isFailure).toBe(true);
+      // This error comes from AnnotationTemplate.create's validation
       expect(result.getErrorValue()).toContain(
         "AnnotationTemplate must include at least one field"
       );
@@ -107,10 +197,11 @@ describe("AnnotationTemplate Aggregate", () => {
   // --- Instance Method Tests ---
   // Helper to create a valid template instance for method testing
   const createValidTemplate = (): AnnotationTemplate => {
-    const result = AnnotationTemplate.create(baseProps);
+    const builder = new AnnotationTemplateBuilder().withValidDefaults();
+    const result = builder.build();
     if (result.isFailure) {
       throw new Error(
-        `Failed to create valid template for testing: ${result.getErrorValue()}`
+        `Failed to create valid template for testing using builder: ${result.getErrorValue()}`
       );
     }
     return result.getValue();
@@ -121,13 +212,19 @@ describe("AnnotationTemplate Aggregate", () => {
       const template = createValidTemplate();
       expect(template.publishedRecordId).toBeUndefined(); // Check initial state
 
-      const newRecordId = PublishedRecordId.create(
-        "at://did:example:repo/app.annos.annotationTemplate/newTemplate456"
-      );
-      // updatePublishedRecordId doesn't return a Result, it's a void method
+      const newRecordIdStr =
+        "at://did:example:repo/app.annos.annotationTemplate/newTemplate456";
+      let newRecordId: PublishedRecordId;
+      try {
+        newRecordId = PublishedRecordId.create(newRecordIdStr);
+      } catch (e) {
+        throw new Error("Test setup failed: Could not create PublishedRecordId");
+      }
+
       template.updatePublishedRecordId(newRecordId);
 
       expect(template.publishedRecordId).toEqual(newRecordId);
+      expect(template.publishedRecordId?.getValue()).toEqual(newRecordIdStr);
     });
   });
 
@@ -135,13 +232,18 @@ describe("AnnotationTemplate Aggregate", () => {
     it("should add a new field successfully", () => {
       const template = createValidTemplate();
       const initialLength = template.annotationFields.length;
-      const newFieldId = AnnotationFieldId.create(
+
+      // Create the new field VO
+      const newFieldIdResult = AnnotationFieldId.create(
         new UniqueEntityID("new-field")
-      ).getValue();
-      const newField = AnnotationTemplateField.create({
-        annotationFieldId: newFieldId,
+      );
+      expect(newFieldIdResult.isSuccess).toBe(true); // Check VO creation
+      const newFieldResult = AnnotationTemplateField.create({
+        annotationFieldId: newFieldIdResult.getValue(),
         required: false,
-      }).getValue();
+      });
+      expect(newFieldResult.isSuccess).toBe(true); // Check VO creation
+      const newField = newFieldResult.getValue();
 
       const result = template.addField(newField);
 
@@ -165,27 +267,32 @@ describe("AnnotationTemplate Aggregate", () => {
 
   describe("removeField", () => {
     it("should remove an existing field successfully", () => {
-      const template = createValidTemplate(); // Has mockField1 and mockField2
+      const template = createValidTemplate(); // Has field-1 and field-2
       expect(template.annotationFields).toHaveLength(2);
+      const fieldIdToRemove = new UniqueEntityID("field-1"); // ID of the field to remove
 
-      const result = template.removeField(fieldId1.getValue()); // Remove mockField1 by its ID
+      const result = template.removeField(fieldIdToRemove);
 
       expect(result.isSuccess).toBe(true);
       expect(template.annotationFields).toHaveLength(1);
-      expect(template.annotationFields).not.toContain(mockField1);
-      expect(template.annotationFields).toContain(mockField2); // Ensure the other field is still there
+      // Check that the remaining field is field-2
+      expect(
+        template.annotationFields[0].annotationFieldId
+          .getValue()
+          .equals(new UniqueEntityID("field-2"))
+      ).toBe(true);
     });
 
     it("should fail to remove the last field", () => {
-      // Create a template with only one field first
-      const singleFieldProps = { ...baseProps, annotationFields: [mockField1] };
-      const singleFieldTemplateResult =
-        AnnotationTemplate.create(singleFieldProps);
-      expect(singleFieldTemplateResult.isSuccess).toBe(true); // Ensure creation succeeded
-      const singleFieldTemplate = singleFieldTemplateResult.getValue();
+      // Use builder to create a template with only one field
+      const builder = new AnnotationTemplateBuilder().addField("only-field", true);
+      const buildResult = builder.build();
+      expect(buildResult.isSuccess).toBe(true); // Ensure creation succeeded
+      const singleFieldTemplate = buildResult.getValue();
 
       expect(singleFieldTemplate.annotationFields).toHaveLength(1);
-      const result = singleFieldTemplate.removeField(fieldId1.getValue()); // Try to remove the only field
+      const fieldIdToRemove = new UniqueEntityID("only-field");
+      const result = singleFieldTemplate.removeField(fieldIdToRemove); // Try to remove the only field
 
       expect(result.isFailure).toBe(true);
       expect(singleFieldTemplate.annotationFields).toHaveLength(1); // Length should not change

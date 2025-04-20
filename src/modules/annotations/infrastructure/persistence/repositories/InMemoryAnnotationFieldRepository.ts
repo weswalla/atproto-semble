@@ -1,7 +1,9 @@
-import { AnnotationField } from "../../../../src/modules/annotations/domain/aggregates/AnnotationField";
-import { IAnnotationFieldRepository } from "../../../../src/modules/annotations/application/repositories/IAnnotationFieldRepository";
-import { AnnotationFieldId } from "../../../../src/modules/annotations/domain/value-objects/AnnotationFieldId";
-import { PublishedRecordId } from "../../../../src/modules/annotations/domain/value-objects"; // Added for findByPublishedRecordId
+import { IAnnotationFieldRepository } from "src/modules/annotations/application/repositories";
+import { AnnotationField } from "src/modules/annotations/domain/aggregates";
+import {
+  AnnotationFieldId,
+  PublishedRecordId,
+} from "src/modules/annotations/domain/value-objects";
 
 export class InMemoryAnnotationFieldRepository
   implements IAnnotationFieldRepository

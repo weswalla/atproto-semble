@@ -3,17 +3,19 @@ import { AnnotationTemplateField } from "./AnnotationTemplateField";
 import { Result } from "src/shared/core/Result";
 import { Guard } from "src/shared/core/Guard";
 import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
+import { AnnotationFieldId } from "./AnnotationFieldId";
 
 interface AnnotationTemplateFieldsProps {
   fields: AnnotationTemplateField[];
 }
 
-// Using ValueObject might be overkill if deep comparison isn't strictly needed,
-// but it provides a standard structure and equals method.
 export class AnnotationTemplateFields extends ValueObject<AnnotationTemplateFieldsProps> {
   get fields(): AnnotationTemplateField[] {
-    // Return a copy to maintain immutability of the internal array
     return [...this.props.fields];
+  }
+
+  getFieldIds(): AnnotationFieldId[] {
+    return this.props.fields.map((field) => field.annotationFieldId);
   }
 
   private constructor(props: AnnotationTemplateFieldsProps) {

@@ -43,6 +43,10 @@ export class AnnotationField extends AggregateRoot<AnnotationFieldProps> {
     return this.props.createdAt!;
   }
 
+  get publishedRecordId(): PublishedRecordId | undefined {
+    return this.props.publishedRecordId;
+  }
+
   public updatePublishedRecordId(publishedRecordId: PublishedRecordId): void {
     this.props.publishedRecordId = publishedRecordId;
   }

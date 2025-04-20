@@ -11,4 +11,8 @@ module.exports = {
   ],
   // Optional: Module file extensions for importing
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  // Map 'src/*' paths to '<rootDir>/src/*'
+  moduleNameMapper: {
+    '^src/(.*)$': '<rootDir>/src/$1',
+  },
 };

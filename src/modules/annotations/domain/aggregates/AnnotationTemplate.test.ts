@@ -21,7 +21,7 @@ class AnnotationTemplateBuilder {
   private props: Partial<AnnotationTemplateProps> = {};
   private rawFields: BuilderField[] = [];
   private id?: UniqueEntityID;
-  private curatorIdStr: string = "did:example:builder-curator";
+  private curatorIdStr: string = "did:plc:builderCurator";
   private nameStr: string = "Builder Template Name";
   private descriptionStr: string = "Builder Template Description";
   private publishedRecordIdStr?: string;
@@ -87,7 +87,9 @@ class AnnotationTemplateBuilder {
 
     const fieldResults: Result<AnnotationTemplateField>[] = this.rawFields.map(
       (f) => {
-        const fieldIdResult = AnnotationFieldId.create(new UniqueEntityID(f.id));
+        const fieldIdResult = AnnotationFieldId.create(
+          new UniqueEntityID(f.id)
+        );
         if (fieldIdResult.isFailure) {
           // This shouldn't typically fail if UniqueEntityID constructor is used directly
           return Result.fail<AnnotationTemplateField>(
@@ -136,7 +138,7 @@ describe("AnnotationTemplate Aggregate", () => {
   describe("create (via Builder)", () => {
     it("should create a new AnnotationTemplate successfully with valid props", () => {
       const builder = new AnnotationTemplateBuilder()
-        .withCuratorId("did:example:curator1")
+        .withCuratorId("did:plc:curator1")
         .withName("Valid Template")
         .withDescription("This is a valid description.")
         .addField("f1", true)
@@ -148,7 +150,7 @@ describe("AnnotationTemplate Aggregate", () => {
       const template = result.getValue();
       expect(template).toBeInstanceOf(AnnotationTemplate);
       expect(template.id).toBeInstanceOf(UniqueEntityID);
-      expect(template.curatorId.value).toBe("did:example:curator1");
+      expect(template.curatorId.value).toBe("did:plc:curator1");
       expect(template.name.value).toBe("Valid Template");
       expect(template.description.value).toBe("This is a valid description.");
       expect(template.annotationFields).toHaveLength(2);
@@ -179,7 +181,7 @@ describe("AnnotationTemplate Aggregate", () => {
 
     it("should fail creation if annotationFields array is empty", () => {
       const builder = new AnnotationTemplateBuilder()
-        .withCuratorId("did:example:curator2")
+        .withCuratorId("did:plc:curator2")
         .withName("No Fields Template")
         .withDescription("This template has no fields.");
       // No calls to .addField()
@@ -213,12 +215,14 @@ describe("AnnotationTemplate Aggregate", () => {
       expect(template.publishedRecordId).toBeUndefined(); // Check initial state
 
       const newRecordIdStr =
-        "at://did:example:repo/app.annos.annotationTemplate/newTemplate456";
+        "at://did:plc:repo/app.annos.annotationTemplate/newTemplate456";
       let newRecordId: PublishedRecordId;
       try {
         newRecordId = PublishedRecordId.create(newRecordIdStr);
       } catch (e) {
-        throw new Error("Test setup failed: Could not create PublishedRecordId");
+        throw new Error(
+          "Test setup failed: Could not create PublishedRecordId"
+        );
       }
 
       template.updatePublishedRecordId(newRecordId);
@@ -285,7 +289,10 @@ describe("AnnotationTemplate Aggregate", () => {
 
     it("should fail to remove the last field", () => {
       // Use builder to create a template with only one field
-      const builder = new AnnotationTemplateBuilder().addField("only-field", true);
+      const builder = new AnnotationTemplateBuilder().addField(
+        "only-field",
+        true
+      );
       const buildResult = builder.build();
       expect(buildResult.isSuccess).toBe(true); // Ensure creation succeeded
       const singleFieldTemplate = buildResult.getValue();

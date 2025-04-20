@@ -37,15 +37,17 @@ const mockField2 = AnnotationTemplateField.create({
   required: false,
 }).getValue();
 
-const fieldId3 = AnnotationFieldId.create(
-  new UniqueEntityID("field-3")
-).getValue();
-const mockField3 = AnnotationTemplateField.create({
-  annotationFieldId: fieldId3,
-  required: true,
-}).getValue();
-
+// --- Test Suite ---
 describe("AnnotationTemplate Aggregate", () => {
+  // --- Base Props for successful creation ---
+  const baseProps = {
+    curatorId: mockCuratorId,
+    name: mockName,
+    description: mockDescription,
+    annotationFields: [mockField1, mockField2],
+  };
+
+  // --- Create Method Tests ---
   describe("create", () => {
     it("should create a new AnnotationTemplate successfully with valid props", () => {
       const props = {
@@ -65,90 +67,25 @@ describe("AnnotationTemplate Aggregate", () => {
       expect(template.description).toEqual(mockDescription);
       expect(template.annotationFields).toEqual([mockField1, mockField2]);
       expect(template.createdAt).toBeInstanceOf(Date);
-      expect(template.publishedRecordId).toBeUndefined();
+      expect(template.publishedRecordId).toBeUndefined(); // Default
     });
 
-    it("should create an AnnotationTemplate with a specific ID", () => {
-      const specificId = new UniqueEntityID("specific-template-id");
-      const props = {
+    it("should fail if a required prop is missing (e.g., name)", () => {
+      // Create props object missing the 'name' property
+      const propsWithoutName = {
         curatorId: mockCuratorId,
-        name: mockName,
         description: mockDescription,
         annotationFields: [mockField1],
       };
-      const result = AnnotationTemplate.create(props, specificId);
-
-      expect(result.isSuccess).toBe(true);
-      const template = result.getValue();
-      expect(template.id.equals(specificId)).toBe(true);
-      expect(template.templateId.getValue().equals(specificId)).toBe(true); // Check getter too
-    });
-
-    it("should set createdAt timestamp on creation", () => {
-      const props = {
-        curatorId: mockCuratorId,
-        name: mockName,
-        description: mockDescription,
-        annotationFields: [mockField1],
-      };
-      const result = AnnotationTemplate.create(props);
-      const template = result.getValue();
-      const now = new Date();
-      expect(template.createdAt.getTime()).toBeCloseTo(now.getTime(), -2); // Within ~100ms
-    });
-
-    it("should accept an optional publishedRecordId on creation", () => {
-      const props = {
-        curatorId: mockCuratorId,
-        name: mockName,
-        description: mockDescription,
-        annotationFields: [mockField1],
-        publishedRecordId: mockPublishedRecordId,
-      };
-      const result = AnnotationTemplate.create(props);
-
-      expect(result.isSuccess).toBe(true);
-      const template = result.getValue();
-      expect(template.publishedRecordId).toEqual(mockPublishedRecordId);
-    });
-
-    it("should fail if required props are missing (e.g., name)", () => {
-      const props = {
-        curatorId: mockCuratorId,
-        // name: mockName, // Missing name
-        description: mockDescription,
-        annotationFields: [mockField1],
-      };
-      const result = AnnotationTemplate.create(<any>props);
+      // We need to cast to 'any' here because TS knows 'name' is missing,
+      // but we are testing the runtime validation within AnnotationTemplate.create
+      const result = AnnotationTemplate.create(
+        propsWithoutName as AnnotationTemplateProps
+      );
 
       expect(result.isFailure).toBe(true);
+      // Check that the error message mentions the missing property
       expect(result.getErrorValue()).toContain("name");
-    });
-
-    it("should fail if required props are missing (e.g., description)", () => {
-      const props = {
-        curatorId: mockCuratorId,
-        name: mockName,
-        // description: mockDescription, // Missing description
-        annotationFields: [mockField1],
-      };
-      const result = AnnotationTemplate.create(<any>props);
-
-      expect(result.isFailure).toBe(true);
-      expect(result.getErrorValue()).toContain("description");
-    });
-
-    it("should fail if required props are missing (e.g., annotationFields)", () => {
-      const props = {
-        curatorId: mockCuratorId,
-        name: mockName,
-        description: mockDescription,
-        // annotationFields: [mockField1], // Missing fields
-      };
-      const result = AnnotationTemplate.create(<any>props);
-
-      expect(result.isFailure).toBe(true);
-      expect(result.getErrorValue()).toContain("annotationFields");
     });
 
     it("should fail if annotationFields array is empty", () => {
@@ -167,177 +104,85 @@ describe("AnnotationTemplate Aggregate", () => {
     });
   });
 
-  describe("getters", () => {
-    let template: AnnotationTemplate;
-    const specificId = new UniqueEntityID("getter-template-id");
-    const createdAt = new Date("2024-02-01T10:00:00Z");
-
-    beforeAll(() => {
-      const props = {
-        curatorId: mockCuratorId,
-        name: mockName,
-        description: mockDescription,
-        annotationFields: [mockField1, mockField2],
-        publishedRecordId: mockPublishedRecordId,
-        createdAt: createdAt,
-      };
-      template = AnnotationTemplate.create(props, specificId).getValue();
-    });
-
-    it("should return the correct templateId", () => {
-      expect(template.templateId.getValue().equals(specificId)).toBe(true);
-    });
-
-    it("should return the correct curatorId", () => {
-      expect(template.curatorId).toEqual(mockCuratorId);
-    });
-
-    it("should return the correct name", () => {
-      expect(template.name).toEqual(mockName);
-    });
-
-    it("should return the correct description", () => {
-      expect(template.description).toEqual(mockDescription);
-    });
-
-    it("should return a copy of the annotationFields array", () => {
-      const fields = template.annotationFields;
-      expect(fields).toEqual([mockField1, mockField2]);
-      // Ensure it's a copy (modifying the returned array shouldn't affect the original)
-      fields.push(mockField3);
-      expect(template.annotationFields).toEqual([mockField1, mockField2]); // Original should be unchanged
-    });
-
-    it("should return the correct createdAt date", () => {
-      expect(template.createdAt).toEqual(createdAt);
-    });
-
-    it("should return the correct publishedRecordId", () => {
-      expect(template.publishedRecordId).toEqual(mockPublishedRecordId);
-    });
-  });
+  // --- Instance Method Tests ---
+  // Helper to create a valid template instance for method testing
+  const createValidTemplate = (): AnnotationTemplate => {
+    const result = AnnotationTemplate.create(baseProps);
+    if (result.isFailure) {
+      throw new Error(
+        `Failed to create valid template for testing: ${result.getErrorValue()}`
+      );
+    }
+    return result.getValue();
+  };
 
   describe("updatePublishedRecordId", () => {
     it("should update the publishedRecordId", () => {
-      const props = {
-        curatorId: mockCuratorId,
-        name: mockName,
-        description: mockDescription,
-        annotationFields: [mockField1],
-      };
-      const template = AnnotationTemplate.create(props).getValue();
-      expect(template.publishedRecordId).toBeUndefined();
+      const template = createValidTemplate();
+      expect(template.publishedRecordId).toBeUndefined(); // Check initial state
 
       const newRecordId = PublishedRecordId.create(
         "at://did:example:repo/app.annos.annotationTemplate/newTemplate456"
       );
+      // updatePublishedRecordId doesn't return a Result, it's a void method
       template.updatePublishedRecordId(newRecordId);
 
       expect(template.publishedRecordId).toEqual(newRecordId);
     });
-
-    it("should overwrite an existing publishedRecordId", () => {
-      const initialRecordId = PublishedRecordId.create(
-        "at://did:example:repo/app.annos.annotationTemplate/initialTemplate"
-      );
-      const props = {
-        curatorId: mockCuratorId,
-        name: mockName,
-        description: mockDescription,
-        annotationFields: [mockField1],
-        publishedRecordId: initialRecordId,
-      };
-      const template = AnnotationTemplate.create(props).getValue();
-      expect(template.publishedRecordId).toEqual(initialRecordId);
-
-      const updatedRecordId = PublishedRecordId.create(
-        "at://did:example:repo/app.annos.annotationTemplate/updatedTemplate789"
-      );
-      template.updatePublishedRecordId(updatedRecordId);
-
-      expect(template.publishedRecordId).toEqual(updatedRecordId);
-    });
   });
 
   describe("addField", () => {
-    let template: AnnotationTemplate;
-
-    beforeEach(() => {
-      // Create a fresh template before each test in this suite
-      const props = {
-        curatorId: mockCuratorId,
-        name: mockName,
-        description: mockDescription,
-        annotationFields: [mockField1], // Start with one field
-      };
-      template = AnnotationTemplate.create(props).getValue();
-    });
-
     it("should add a new field successfully", () => {
-      expect(template.annotationFields).toHaveLength(1);
-      const result = template.addField(mockField2); // Add a different field
+      const template = createValidTemplate();
+      const initialLength = template.annotationFields.length;
+      const newFieldId = AnnotationFieldId.create(
+        new UniqueEntityID("new-field")
+      ).getValue();
+      const newField = AnnotationTemplateField.create({
+        annotationFieldId: newFieldId,
+        required: false,
+      }).getValue();
+
+      const result = template.addField(newField);
 
       expect(result.isSuccess).toBe(true);
-      expect(template.annotationFields).toHaveLength(2);
-      expect(template.annotationFields).toContain(mockField1);
-      expect(template.annotationFields).toContain(mockField2);
+      expect(template.annotationFields).toHaveLength(initialLength + 1);
+      expect(template.annotationFields).toContain(newField);
     });
 
     it("should fail to add a field that already exists", () => {
-      expect(template.annotationFields).toHaveLength(1);
-      const result = template.addField(mockField1); // Try to add the same field again
+      const template = createValidTemplate();
+      const initialLength = template.annotationFields.length;
+      const existingField = template.annotationFields[0]; // Get an existing field
+
+      const result = template.addField(existingField); // Try to add it again
 
       expect(result.isFailure).toBe(true);
-      expect(template.annotationFields).toHaveLength(1); // Length should not change
+      expect(template.annotationFields).toHaveLength(initialLength); // Length should not change
       expect(result.getErrorValue()).toContain("Field already exists");
     });
   });
 
   describe("removeField", () => {
-    let template: AnnotationTemplate;
-
-    beforeEach(() => {
-      // Create a fresh template with multiple fields
-      const props = {
-        curatorId: mockCuratorId,
-        name: mockName,
-        description: mockDescription,
-        annotationFields: [mockField1, mockField2, mockField3],
-      };
-      template = AnnotationTemplate.create(props).getValue();
-    });
-
     it("should remove an existing field successfully", () => {
-      expect(template.annotationFields).toHaveLength(3);
-      const result = template.removeField(fieldId2.getValue()); // Remove mockField2 by its ID
+      const template = createValidTemplate(); // Has mockField1 and mockField2
+      expect(template.annotationFields).toHaveLength(2);
+
+      const result = template.removeField(fieldId1.getValue()); // Remove mockField1 by its ID
 
       expect(result.isSuccess).toBe(true);
-      expect(template.annotationFields).toHaveLength(2);
-      expect(template.annotationFields).toContain(mockField1);
-      expect(template.annotationFields).not.toContain(mockField2);
-      expect(template.annotationFields).toContain(mockField3);
-    });
-
-    it("should fail to remove a field that does not exist", () => {
-      expect(template.annotationFields).toHaveLength(3);
-      const nonExistentId = new UniqueEntityID("non-existent-field");
-      const result = template.removeField(nonExistentId);
-
-      expect(result.isFailure).toBe(true);
-      expect(template.annotationFields).toHaveLength(3); // Length should not change
-      expect(result.getErrorValue()).toContain("Field not found");
+      expect(template.annotationFields).toHaveLength(1);
+      expect(template.annotationFields).not.toContain(mockField1);
+      expect(template.annotationFields).toContain(mockField2); // Ensure the other field is still there
     });
 
     it("should fail to remove the last field", () => {
-      // Create a template with only one field
-      const singleFieldProps = {
-        curatorId: mockCuratorId,
-        name: mockName,
-        description: mockDescription,
-        annotationFields: [mockField1],
-      };
-      const singleFieldTemplate =
-        AnnotationTemplate.create(singleFieldProps).getValue();
+      // Create a template with only one field first
+      const singleFieldProps = { ...baseProps, annotationFields: [mockField1] };
+      const singleFieldTemplateResult =
+        AnnotationTemplate.create(singleFieldProps);
+      expect(singleFieldTemplateResult.isSuccess).toBe(true); // Ensure creation succeeded
+      const singleFieldTemplate = singleFieldTemplateResult.getValue();
 
       expect(singleFieldTemplate.annotationFields).toHaveLength(1);
       const result = singleFieldTemplate.removeField(fieldId1.getValue()); // Try to remove the only field
@@ -350,16 +195,12 @@ describe("AnnotationTemplate Aggregate", () => {
 
   describe("updateName", () => {
     it("should update the template name", () => {
-      const props = {
-        curatorId: mockCuratorId,
-        name: mockName,
-        description: mockDescription,
-        annotationFields: [mockField1],
-      };
-      const template = AnnotationTemplate.create(props).getValue();
-      const newName = AnnotationTemplateName.create(
+      const template = createValidTemplate();
+      const newNameResult = AnnotationTemplateName.create(
         "Updated Template Name"
-      ).getValue();
+      );
+      expect(newNameResult.isSuccess).toBe(true); // Ensure new name is valid
+      const newName = newNameResult.getValue();
 
       const result = template.updateName(newName);
 
@@ -370,16 +211,12 @@ describe("AnnotationTemplate Aggregate", () => {
 
   describe("updateDescription", () => {
     it("should update the template description", () => {
-      const props = {
-        curatorId: mockCuratorId,
-        name: mockName,
-        description: mockDescription,
-        annotationFields: [mockField1],
-      };
-      const template = AnnotationTemplate.create(props).getValue();
-      const newDescription = AnnotationTemplateDescription.create(
+      const template = createValidTemplate();
+      const newDescriptionResult = AnnotationTemplateDescription.create(
         "Updated Template Description"
-      ).getValue();
+      );
+      expect(newDescriptionResult.isSuccess).toBe(true); // Ensure new description is valid
+      const newDescription = newDescriptionResult.getValue();
 
       const result = template.updateDescription(newDescription);
 

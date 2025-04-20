@@ -4,12 +4,21 @@ import { AnnotationTemplate } from "./AnnotationTemplate";
 import {
   AnnotationFieldId,
   AnnotationTemplateDescription,
+  AnnotationFieldId,
+  AnnotationTemplateDescription,
   AnnotationTemplateField,
+  AnnotationTemplateFields, // <-- Import the collection class
   AnnotationTemplateName,
   CuratorId,
   PublishedRecordId,
 } from "../value-objects";
+// Import the interface defining the aggregate's props
 import { AnnotationTemplateProps } from "./AnnotationTemplate";
+// Define a type for the builder's internal props, which might differ slightly
+// especially during construction before the collection is created.
+type BuilderProps = Omit<AnnotationTemplateProps, 'annotationFields'> & {
+  annotationFields?: AnnotationTemplateField[]; // Builder initially holds an array
+};
 
 // --- Builder ---
 interface BuilderField {
@@ -18,7 +27,8 @@ interface BuilderField {
 }
 
 class AnnotationTemplateBuilder {
-  private props: Partial<AnnotationTemplateProps> = {};
+  // Use the builder-specific props type internally
+  private props: Partial<BuilderProps> = {};
   private rawFields: BuilderField[] = [];
   private id?: UniqueEntityID;
   private curatorIdStr: string = "did:plc:builderCurator";
@@ -116,19 +126,33 @@ class AnnotationTemplateBuilder {
       );
     }
 
-    const annotationFields = fieldResults.map((r) => r.getValue());
+    // Create the raw array of field value objects
+    const annotationFieldVOs = fieldResults.map((r) => r.getValue());
 
-    const props: AnnotationTemplateProps = {
+    // Create the AnnotationTemplateFields collection from the array
+    const annotationFieldsResult = AnnotationTemplateFields.create(annotationFieldVOs);
+    if (annotationFieldsResult.isFailure) {
+      // Propagate the failure from the collection creation
+      return Result.fail<AnnotationTemplate>(
+        `Builder failed: ${annotationFieldsResult.getErrorValue()}`
+      );
+    }
+    const annotationFieldsCollection = annotationFieldsResult.getValue();
+
+
+    // Construct the final props for the AnnotationTemplate aggregate
+    const aggregateProps: AnnotationTemplateProps = {
       curatorId: curatorIdResult.getValue(),
       name: nameResult.getValue(),
       description: descriptionResult.getValue(),
-      annotationFields: annotationFields,
-      publishedRecordId: publishedRecordId, // Use the potentially created PublishedRecordId
-      createdAt: this.createdAtDate, // Pass through if set
+      annotationFields: annotationFieldsCollection, // Use the collection object
+      publishedRecordId: publishedRecordId,
+      createdAt: this.createdAtDate,
     };
 
     // Pass the specific ID if it was set on the builder
-    return AnnotationTemplate.create(props, this.id);
+    // Note: AnnotationTemplate.create now expects AnnotationTemplateProps directly
+    return AnnotationTemplate.create(aggregateProps, this.id);
   }
 }
 
@@ -153,15 +177,14 @@ describe("AnnotationTemplate Aggregate", () => {
       expect(template.curatorId.value).toBe("did:plc:curator1");
       expect(template.name.value).toBe("Valid Template");
       expect(template.description.value).toBe("This is a valid description.");
-      expect(template.annotationFields).toHaveLength(2);
-      expect(
-        template.annotationFields[0].annotationFieldId.getStringValue()
-      ).toBe("f1");
-      expect(template.annotationFields[0].required).toBe(true);
-      expect(
-        template.annotationFields[1].annotationFieldId.getStringValue()
-      ).toBe("f2");
-      expect(template.annotationFields[1].required).toBe(false);
+      // Access the count or fields property of the collection
+      expect(template.annotationFields.count()).toBe(2);
+      expect(template.annotationFields.fields).toHaveLength(2);
+      const fields = template.annotationFields.fields; // Get the underlying array for easier access if needed
+      expect(fields[0].annotationFieldId.getStringValue()).toBe("f1");
+      expect(fields[0].required).toBe(true);
+      expect(fields[1].annotationFieldId.getStringValue()).toBe("f2");
+      expect(fields[1].required).toBe(false);
       expect(template.createdAt).toBeInstanceOf(Date);
       expect(template.publishedRecordId).toBeUndefined();
     });
@@ -186,14 +209,35 @@ describe("AnnotationTemplate Aggregate", () => {
         .withDescription("This template has no fields.");
       // No calls to .addField()
 
+      // No calls to .addField()
+
       const result = builder.build();
 
       expect(result.isFailure).toBe(true);
-      // This error comes from AnnotationTemplate.create's validation
+      // This error now comes from AnnotationTemplateFields.create via the builder
+      expect(result.getErrorValue()).toContain("Builder failed:");
       expect(result.getErrorValue()).toContain(
         "AnnotationTemplate must include at least one field"
       );
     });
+
+    it("should fail creation if annotationFields array contains duplicates", () => {
+        const builder = new AnnotationTemplateBuilder()
+          .withCuratorId("did:plc:curator3")
+          .withName("Duplicate Fields Template")
+          .withDescription("This template has duplicate fields.")
+          .addField("f1", true)
+          .addField("f1", false); // Duplicate field ID
+
+        const result = builder.build();
+
+        expect(result.isFailure).toBe(true);
+        // This error now comes from AnnotationTemplateFields.create via the builder
+        expect(result.getErrorValue()).toContain("Builder failed:");
+        expect(result.getErrorValue()).toContain(
+          "AnnotationTemplate cannot contain duplicate fields"
+        );
+      });
   });
 
   // --- Instance Method Tests ---
@@ -235,7 +279,7 @@ describe("AnnotationTemplate Aggregate", () => {
   describe("addField", () => {
     it("should add a new field successfully", () => {
       const template = createValidTemplate();
-      const initialLength = template.annotationFields.length;
+      const initialCount = template.annotationFields.count();
 
       // Create the new field VO
       const newFieldIdResult = AnnotationFieldId.create(
@@ -252,19 +296,23 @@ describe("AnnotationTemplate Aggregate", () => {
       const result = template.addField(newField);
 
       expect(result.isSuccess).toBe(true);
-      expect(template.annotationFields).toHaveLength(initialLength + 1);
-      expect(template.annotationFields).toContain(newField);
+      expect(template.annotationFields.count()).toBe(initialCount + 1);
+      // Check if the field exists using the collection's findById or by checking the fields array
+      expect(template.annotationFields.findById(newField.annotationFieldId.getValue())).toEqual(newField);
+      // Or check the raw array
+      expect(template.annotationFields.fields).toContainEqual(newField);
     });
 
     it("should fail to add a field that already exists", () => {
       const template = createValidTemplate();
-      const initialLength = template.annotationFields.length;
-      const existingField = template.annotationFields[0]; // Get an existing field
+      const initialCount = template.annotationFields.count();
+      const existingField = template.annotationFields.fields[0]; // Get an existing field from the collection
 
       const result = template.addField(existingField); // Try to add it again
 
       expect(result.isFailure).toBe(true);
-      expect(template.annotationFields).toHaveLength(initialLength); // Length should not change
+      expect(template.annotationFields.count()).toBe(initialCount); // Count should not change
+      // Error comes from AnnotationTemplateFields.add
       expect(result.getErrorValue()).toContain("Field already exists");
     });
   });
@@ -272,20 +320,38 @@ describe("AnnotationTemplate Aggregate", () => {
   describe("removeField", () => {
     it("should remove an existing field successfully", () => {
       const template = createValidTemplate(); // Has field-1 and field-2
-      expect(template.annotationFields).toHaveLength(2);
+      expect(template.annotationFields.count()).toBe(2);
       const fieldIdToRemove = new UniqueEntityID("field-1"); // ID of the field to remove
 
       const result = template.removeField(fieldIdToRemove);
 
       expect(result.isSuccess).toBe(true);
-      expect(template.annotationFields).toHaveLength(1);
-      // Check that the remaining field is field-2
+      expect(template.annotationFields.count()).toBe(1);
+      // Check that the remaining field is field-2 using findById or accessing the fields array
+      expect(template.annotationFields.findById(fieldIdToRemove)).toBeUndefined();
+      expect(template.annotationFields.findById(new UniqueEntityID("field-2"))).toBeDefined();
+      // Or check the raw array
+      expect(template.annotationFields.fields).toHaveLength(1);
       expect(
-        template.annotationFields[0].annotationFieldId
+        template.annotationFields.fields[0].annotationFieldId
           .getValue()
           .equals(new UniqueEntityID("field-2"))
       ).toBe(true);
     });
+
+    it("should fail to remove a non-existent field", () => {
+        const template = createValidTemplate(); // Has field-1 and field-2
+        const initialCount = template.annotationFields.count();
+        const nonExistentFieldId = new UniqueEntityID("non-existent-field");
+
+        const result = template.removeField(nonExistentFieldId);
+
+        expect(result.isFailure).toBe(true);
+        expect(template.annotationFields.count()).toBe(initialCount); // Count should not change
+        // Error comes from AnnotationTemplateFields.remove
+        expect(result.getErrorValue()).toContain("Field not found");
+      });
+
 
     it("should fail to remove the last field", () => {
       // Use builder to create a template with only one field
@@ -297,13 +363,16 @@ describe("AnnotationTemplate Aggregate", () => {
       expect(buildResult.isSuccess).toBe(true); // Ensure creation succeeded
       const singleFieldTemplate = buildResult.getValue();
 
-      expect(singleFieldTemplate.annotationFields).toHaveLength(1);
+      expect(singleFieldTemplate.annotationFields.count()).toBe(1);
       const fieldIdToRemove = new UniqueEntityID("only-field");
       const result = singleFieldTemplate.removeField(fieldIdToRemove); // Try to remove the only field
 
       expect(result.isFailure).toBe(true);
-      expect(singleFieldTemplate.annotationFields).toHaveLength(1); // Length should not change
-      expect(result.getErrorValue()).toContain("Cannot remove the last field");
+      expect(singleFieldTemplate.annotationFields.count()).toBe(1); // Count should not change
+      // Error comes from AnnotationTemplateFields.create called within remove
+      expect(result.getErrorValue()).toContain(
+        "AnnotationTemplate must include at least one field"
+      );
     });
   });
 

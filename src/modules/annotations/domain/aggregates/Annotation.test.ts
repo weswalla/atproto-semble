@@ -33,8 +33,8 @@ const mockPublishedRecordId = PublishedRecordId.create(
 );
 
 // Mock Annotation Values of different types
-const mockDyadValue = DyadValue.create({ value: 75 }).getValue();
-const mockRatingValue = RatingValue.create({ rating: 4 }).getValue(); // Different type
+const mockDyadValue = DyadValue.create({ value: 75 });
+const mockRatingValue = RatingValue.create({ rating: 4 });
 
 describe("Annotation Aggregate", () => {
   describe("create", () => {
@@ -116,30 +116,30 @@ describe("Annotation Aggregate", () => {
     });
 
     it("should fail if required props are missing (e.g., value)", () => {
-        const props = {
-          curatorId: mockCuratorId,
-          url: mockUrl,
-          annotationFieldId: mockFieldId,
-          // value: mockDyadValue, // Missing value
-        };
-        const result = Annotation.create(props as any);
+      const props = {
+        curatorId: mockCuratorId,
+        url: mockUrl,
+        annotationFieldId: mockFieldId,
+        // value: mockDyadValue, // Missing value
+      };
+      const result = Annotation.create(props as any);
 
-        expect(result.isFailure).toBe(true);
-        expect(result.getErrorValue()).toContain("value");
-      });
+      expect(result.isFailure).toBe(true);
+      expect(result.getErrorValue()).toContain("value");
+    });
 
-      it("should fail if required props are missing (e.g., annotationFieldId)", () => {
-        const props = {
-          curatorId: mockCuratorId,
-          url: mockUrl,
-          // annotationFieldId: mockFieldId, // Missing field ID
-          value: mockDyadValue,
-        };
-        const result = Annotation.create(props as any);
+    it("should fail if required props are missing (e.g., annotationFieldId)", () => {
+      const props = {
+        curatorId: mockCuratorId,
+        url: mockUrl,
+        // annotationFieldId: mockFieldId, // Missing field ID
+        value: mockDyadValue,
+      };
+      const result = Annotation.create(props as any);
 
-        expect(result.isFailure).toBe(true);
-        expect(result.getErrorValue()).toContain("annotationFieldId");
-      });
+      expect(result.isFailure).toBe(true);
+      expect(result.getErrorValue()).toContain("annotationFieldId");
+    });
   });
 
   describe("getters", () => {
@@ -218,26 +218,26 @@ describe("Annotation Aggregate", () => {
     });
 
     it("should overwrite an existing publishedRecordId", () => {
-        const initialRecordId = PublishedRecordId.create(
-            "at://did:example:repo/app.annos.annotation/initialAnno"
-          );
-        const props = {
-          curatorId: mockCuratorId,
-          url: mockUrl,
-          annotationFieldId: mockFieldId,
-          value: mockDyadValue,
-          publishedRecordId: initialRecordId,
-        };
-        const annotation = Annotation.create(props).getValue();
-        expect(annotation.publishedRecordId).toEqual(initialRecordId);
+      const initialRecordId = PublishedRecordId.create(
+        "at://did:example:repo/app.annos.annotation/initialAnno"
+      );
+      const props = {
+        curatorId: mockCuratorId,
+        url: mockUrl,
+        annotationFieldId: mockFieldId,
+        value: mockDyadValue,
+        publishedRecordId: initialRecordId,
+      };
+      const annotation = Annotation.create(props).getValue();
+      expect(annotation.publishedRecordId).toEqual(initialRecordId);
 
-        const updatedRecordId = PublishedRecordId.create(
-          "at://did:example:repo/app.annos.annotation/updatedAnno789"
-        );
-        annotation.updatePublishedRecordId(updatedRecordId);
+      const updatedRecordId = PublishedRecordId.create(
+        "at://did:example:repo/app.annos.annotation/updatedAnno789"
+      );
+      annotation.updatePublishedRecordId(updatedRecordId);
 
-        expect(annotation.publishedRecordId).toEqual(updatedRecordId);
-      });
+      expect(annotation.publishedRecordId).toEqual(updatedRecordId);
+    });
   });
 
   describe("updateValue", () => {
@@ -255,7 +255,7 @@ describe("Annotation Aggregate", () => {
     });
 
     it("should update the value successfully if the type is the same", () => {
-      const newValue = DyadValue.create({ value: 90 }).getValue(); // Same type (DyadValue)
+      const newValue = DyadValue.create({ value: 90 });
       const result = annotation.updateValue(newValue);
 
       expect(result.isRight()).toBe(true); // Check if it's a success (right side of Either)

@@ -64,7 +64,7 @@ export class AnnotationTemplateFields extends ValueObject<AnnotationTemplateFiel
       return Result.fail<AnnotationTemplateFields>(guardResult.getErrorValue());
     }
 
-    const exists = this.findById(field.annotationFieldId);
+    const exists = this.findById(field.annotationFieldId.getValue());
     if (exists) {
       return Result.fail<AnnotationTemplateFields>(
         "Field already exists in the template."

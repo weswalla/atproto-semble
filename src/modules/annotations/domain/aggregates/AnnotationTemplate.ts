@@ -5,36 +5,21 @@ import { Guard, IGuardArgument } from "../../../../shared/core/Guard";
 import {
   AnnotationTemplateId,
   AnnotationTemplateName,
-  AnnotationTemplateId,
-  AnnotationTemplateName,
   AnnotationTemplateDescription,
   CuratorId,
   PublishedRecordId,
-  AnnotationTemplateField, // Keep this for input props type
-  AnnotationTemplateFields, // Import the new collection class
+  AnnotationTemplateField,
+  AnnotationTemplateFields,
 } from "../value-objects";
 
-// Properties required to construct an AnnotationTemplate
 export interface AnnotationTemplateProps {
   curatorId: CuratorId;
   name: AnnotationTemplateName;
   description: AnnotationTemplateDescription;
-  annotationFields: AnnotationTemplateFields; // Use the collection class
+  annotationFields: AnnotationTemplateFields;
   createdAt?: Date;
   publishedRecordId?: PublishedRecordId;
 }
-
-// Input properties might still use the raw array for convenience during creation
-interface AnnotationTemplateCreateProps {
-  curatorId: CuratorId;
-  name: AnnotationTemplateName;
-  description: AnnotationTemplateDescription;
-  annotationFields: AnnotationTemplateField[]; // Input uses raw array
-  createdAt?: Date;
-  publishedRecordId?: PublishedRecordId;
-  id?: UniqueEntityID; // Allow passing ID during creation
-}
-
 
 export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
   get templateId(): AnnotationTemplateId {
@@ -77,14 +62,13 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
   }
 
   public static create(
-    props: AnnotationTemplateCreateProps,
+    props: AnnotationTemplateProps,
     id?: UniqueEntityID
   ): Result<AnnotationTemplate> {
     const guardArgs: IGuardArgument[] = [
       { argument: props.curatorId, argumentName: "curatorId" },
       { argument: props.name, argumentName: "name" },
       { argument: props.description, argumentName: "description" },
-      // annotationFields array itself is checked by AnnotationTemplateFields.create
       { argument: props.annotationFields, argumentName: "annotationFields" },
     ];
 
@@ -93,23 +77,11 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
       return Result.fail<AnnotationTemplate>(guardResult.getErrorValue());
     }
 
-    // Create the AnnotationTemplateFields collection, handling potential failure
-    const annotationFieldsResult = AnnotationTemplateFields.create(
-      props.annotationFields
-    );
-    if (annotationFieldsResult.isFailure) {
-      return Result.fail<AnnotationTemplate>(
-        annotationFieldsResult.getErrorValue()
-      );
-    }
-    const annotationFields = annotationFieldsResult.getValue();
-
-    // Construct the final props for the AggregateRoot, using the collection object
     const aggregateProps: AnnotationTemplateProps = {
       curatorId: props.curatorId,
       name: props.name,
       description: props.description,
-      annotationFields: annotationFields, // Use the created collection
+      annotationFields: props.annotationFields,
       createdAt: props.createdAt || new Date(),
       publishedRecordId: props.publishedRecordId,
     };

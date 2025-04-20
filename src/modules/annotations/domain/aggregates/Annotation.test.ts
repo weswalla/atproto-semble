@@ -109,7 +109,7 @@ describe("Annotation Aggregate", () => {
         annotationFieldId: mockFieldId,
         value: mockDyadValue,
       };
-      const result = Annotation.create(props as any);
+      const result = Annotation.create(<any>props);
 
       expect(result.isFailure).toBe(true);
       expect(result.getErrorValue()).toContain("url");
@@ -122,7 +122,7 @@ describe("Annotation Aggregate", () => {
         annotationFieldId: mockFieldId,
         // value: mockDyadValue, // Missing value
       };
-      const result = Annotation.create(props as any);
+      const result = Annotation.create(<any>props);
 
       expect(result.isFailure).toBe(true);
       expect(result.getErrorValue()).toContain("value");
@@ -135,7 +135,7 @@ describe("Annotation Aggregate", () => {
         // annotationFieldId: mockFieldId, // Missing field ID
         value: mockDyadValue,
       };
-      const result = Annotation.create(props as any);
+      const result = Annotation.create(<any>props);
 
       expect(result.isFailure).toBe(true);
       expect(result.getErrorValue()).toContain("annotationFieldId");

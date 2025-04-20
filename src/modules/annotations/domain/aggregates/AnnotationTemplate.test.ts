@@ -119,7 +119,7 @@ describe("AnnotationTemplate Aggregate", () => {
         description: mockDescription,
         annotationFields: [mockField1],
       };
-      const result = AnnotationTemplate.create(props as any);
+      const result = AnnotationTemplate.create(<any>props);
 
       expect(result.isFailure).toBe(true);
       expect(result.getErrorValue()).toContain("name");
@@ -132,7 +132,7 @@ describe("AnnotationTemplate Aggregate", () => {
         // description: mockDescription, // Missing description
         annotationFields: [mockField1],
       };
-      const result = AnnotationTemplate.create(props as any);
+      const result = AnnotationTemplate.create(<any>props);
 
       expect(result.isFailure).toBe(true);
       expect(result.getErrorValue()).toContain("description");
@@ -145,7 +145,7 @@ describe("AnnotationTemplate Aggregate", () => {
         description: mockDescription,
         // annotationFields: [mockField1], // Missing fields
       };
-      const result = AnnotationTemplate.create(props as any);
+      const result = AnnotationTemplate.create(<any>props);
 
       expect(result.isFailure).toBe(true);
       expect(result.getErrorValue()).toContain("annotationFields");

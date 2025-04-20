@@ -5,21 +5,36 @@ import { Guard, IGuardArgument } from "../../../../shared/core/Guard";
 import {
   AnnotationTemplateId,
   AnnotationTemplateName,
+  AnnotationTemplateId,
+  AnnotationTemplateName,
   AnnotationTemplateDescription,
   CuratorId,
   PublishedRecordId,
-  AnnotationTemplateField,
-} from "../value-objects"; // Import necessary value objects
+  AnnotationTemplateField, // Keep this for input props type
+  AnnotationTemplateFields, // Import the new collection class
+} from "../value-objects";
 
 // Properties required to construct an AnnotationTemplate
 export interface AnnotationTemplateProps {
   curatorId: CuratorId;
   name: AnnotationTemplateName;
   description: AnnotationTemplateDescription;
-  annotationFields: AnnotationTemplateField[]; // Assuming TemplateField is already a ValueObject
+  annotationFields: AnnotationTemplateFields; // Use the collection class
   createdAt?: Date;
   publishedRecordId?: PublishedRecordId;
 }
+
+// Input properties might still use the raw array for convenience during creation
+interface AnnotationTemplateCreateProps {
+  curatorId: CuratorId;
+  name: AnnotationTemplateName;
+  description: AnnotationTemplateDescription;
+  annotationFields: AnnotationTemplateField[]; // Input uses raw array
+  createdAt?: Date;
+  publishedRecordId?: PublishedRecordId;
+  id?: UniqueEntityID; // Allow passing ID during creation
+}
+
 
 export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
   get templateId(): AnnotationTemplateId {
@@ -39,10 +54,9 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
     return this.props.description;
   }
 
-  get annotationFields(): AnnotationTemplateField[] {
-    // Return a copy to prevent external modification if TemplateField is mutable
-    // If TemplateField is an immutable ValueObject, direct return is fine.
-    return [...this.props.annotationFields];
+  get annotationFields(): AnnotationTemplateFields {
+    // Return the collection instance itself
+    return this.props.annotationFields;
   }
 
   get createdAt(): Date {
@@ -63,37 +77,44 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
   }
 
   public static create(
-    props: AnnotationTemplateProps,
+    props: AnnotationTemplateCreateProps,
     id?: UniqueEntityID
   ): Result<AnnotationTemplate> {
     const guardArgs: IGuardArgument[] = [
       { argument: props.curatorId, argumentName: "curatorId" },
       { argument: props.name, argumentName: "name" },
       { argument: props.description, argumentName: "description" },
+      // annotationFields array itself is checked by AnnotationTemplateFields.create
       { argument: props.annotationFields, argumentName: "annotationFields" },
     ];
 
     const guardResult = Guard.againstNullOrUndefinedBulk(guardArgs);
-
     if (guardResult.isFailure) {
       return Result.fail<AnnotationTemplate>(guardResult.getErrorValue());
     }
 
-    // Additional validation specific to AnnotationTemplate
-    if (!props.annotationFields || props.annotationFields.length === 0) {
+    // Create the AnnotationTemplateFields collection, handling potential failure
+    const annotationFieldsResult = AnnotationTemplateFields.create(
+      props.annotationFields
+    );
+    if (annotationFieldsResult.isFailure) {
       return Result.fail<AnnotationTemplate>(
-        "AnnotationTemplate must include at least one field."
+        annotationFieldsResult.getErrorValue()
       );
     }
-    // Could add validation for duplicate fields here if needed
+    const annotationFields = annotationFieldsResult.getValue();
 
-    const defaultValues: AnnotationTemplateProps = {
-      ...props,
+    // Construct the final props for the AggregateRoot, using the collection object
+    const aggregateProps: AnnotationTemplateProps = {
+      curatorId: props.curatorId,
+      name: props.name,
+      description: props.description,
+      annotationFields: annotationFields, // Use the created collection
       createdAt: props.createdAt || new Date(),
       publishedRecordId: props.publishedRecordId,
     };
 
-    const annotationTemplate = new AnnotationTemplate(defaultValues, id);
+    const annotationTemplate = new AnnotationTemplate(aggregateProps, id);
 
     // Optionally: Add domain event for AnnotationTemplateCreated
 
@@ -102,38 +123,30 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
 
   // --- Methods for business logic ---
 
-  // Method to add a field (example of behavior)
+  // Method to add a field
   public addField(field: AnnotationTemplateField): Result<void> {
-    // Check if field already exists (assuming TemplateField has an equals method or unique ID)
-    const fieldExists = this.props.annotationFields.some(
-      (existingField) => existingField.equals(field) // Adjust based on TemplateField's comparison logic
-    );
+    const result = this.props.annotationFields.add(field);
 
-    if (fieldExists) {
-      return Result.fail<void>("Field already exists in the template.");
+    if (result.isFailure) {
+      return Result.fail<void>(result.getErrorValue());
     }
 
-    this.props.annotationFields.push(field);
+    // Update the aggregate's state with the new immutable collection
+    this.props.annotationFields = result.getValue();
     // Optionally add domain event: TemplateFieldAdded
     return Result.ok<void>();
   }
 
   // Method to remove a field by its AnnotationFieldId
   public removeField(fieldIdToRemove: UniqueEntityID): Result<void> {
-    const initialLength = this.props.annotationFields.length;
-    this.props.annotationFields = this.props.annotationFields.filter(
-      (field) => !field.annotationFieldId.getValue().equals(fieldIdToRemove) // Compare UniqueEntityIDs
-    );
+    const result = this.props.annotationFields.remove(fieldIdToRemove);
 
-    if (this.props.annotationFields.length === initialLength) {
-      return Result.fail<void>("Field not found in the template.");
+    if (result.isFailure) {
+      return Result.fail<void>(result.getErrorValue());
     }
 
-    if (this.props.annotationFields.length === 0) {
-      return Result.fail<void>(
-        "Cannot remove the last field from the template."
-      );
-    }
+    // Update the aggregate's state with the new immutable collection
+    this.props.annotationFields = result.getValue();
 
     // Optionally add domain event: TemplateFieldRemoved
     return Result.ok<void>();

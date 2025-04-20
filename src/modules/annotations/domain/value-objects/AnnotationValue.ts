@@ -1,9 +1,6 @@
-import e from "express";
 import { ValueObject } from "../../../../shared/domain/ValueObject";
-import { Annotation } from "../aggregates";
 import { AnnotationType } from "./AnnotationType";
 
-// Define interfaces for the props of each value object type
 interface IDyadValueProps {
   value: number;
 }
@@ -52,11 +49,11 @@ export class DyadValue extends AnnotationValueBase<IDyadValueProps> {
     super(props);
   }
 
-  public static create(value: number): DyadValue {
-    if (value < 0 || value > 100) {
+  public static create(props: IDyadValueProps): DyadValue {
+    if (props.value < 0 || props.value > 100) {
       throw new Error("Dyad value must be between 0 and 100.");
     }
-    return new DyadValue({ value });
+    return new DyadValue({ value: props.value });
   }
 }
 
@@ -103,13 +100,13 @@ export class RatingValue extends AnnotationValueBase<IRatingValueProps> {
     super(props);
   }
 
-  public static create(rating: number): RatingValue {
+  public static create(props: IRatingValueProps): RatingValue {
     // TODO: Potentially link validation to RatingFieldDef.numberOfStars?
     // Lexicon currently defines 1-10 range directly on value.
-    if (rating < 1 || rating > 10) {
+    if (props.rating < 1 || props.rating > 10) {
       throw new Error("Rating value must be between 1 and 10.");
     }
-    return new RatingValue({ rating });
+    return new RatingValue({ rating: props.rating });
   }
 }
 

@@ -1,5 +1,4 @@
 import { CuratorId } from "./CuratorId";
-import { Result } from "../../../../shared/core/Result";
 
 describe("CuratorId Value Object", () => {
   describe("create", () => {

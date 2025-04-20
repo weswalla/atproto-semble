@@ -5,7 +5,9 @@ import { PublishedRecordId } from "../../domain/value-objects"; // Import Publis
 // Interface for AnnotationField Repository
 export interface IAnnotationFieldRepository {
   findById(id: AnnotationFieldId): Promise<AnnotationField | null>;
-  findByPublishedRecordId(recordId: PublishedRecordId): Promise<AnnotationField | null>; // Find by AT URI (PublishedRecordId)
+  findByPublishedRecordId(
+    recordId: PublishedRecordId
+  ): Promise<AnnotationField | null>; // Find by AT URI (PublishedRecordId)
   findByName(name: string): Promise<AnnotationField | null>; // Example query
   save(field: AnnotationField): Promise<void>;
   delete(id: AnnotationFieldId): Promise<void>;

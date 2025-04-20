@@ -1,17 +1,5 @@
-import {
-  AnnotationField,
-  AnnotationFieldProps,
-} from "../../../domain/aggregates/AnnotationField";
+import { AnnotationField } from "../../../domain/aggregates/AnnotationField";
 import { AnnotationFieldOutputDTO } from "../../../application/dtos/AnnotationFieldDTO";
-import { TID } from "../../../../../atproto/domain/value-objects/TID";
-import {
-  FieldDefinition,
-  DyadFieldDef,
-  MultiSelectFieldDef,
-  RatingFieldDef,
-  SingleSelectFieldDef,
-  TriadFieldDef,
-} from "../../../domain/value-objects/FieldDefinition";
 
 // Placeholder for mapping between AnnotationField domain object and persistence layer structure
 // Import DB schema types if needed
@@ -50,8 +38,8 @@ export class AnnotationFieldMapper {
   public static toDTO(field: AnnotationField): AnnotationFieldOutputDTO {
     return {
       id: field.id.toString(),
-      name: field.name,
-      description: field.description,
+      name: field.name.value,
+      description: field.description.value,
       // Assuming definition value object is structured correctly for direct use in DTO:
       definition: field.definition,
       createdAt: field.createdAt.toISOString(),

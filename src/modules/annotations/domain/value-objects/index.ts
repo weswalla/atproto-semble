@@ -11,3 +11,4 @@ export * from "./CuratorId";
 export * from "./AnnotationTemplateName";
 export * from "./AnnotationTemplateDescription";
 export * from "./AnnotationTemplateField";
+export * from "./AnnotationTemplateFields";

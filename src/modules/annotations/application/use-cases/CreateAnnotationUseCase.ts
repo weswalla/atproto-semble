@@ -1,6 +1,6 @@
-import { Annotation } from '../../domain/aggregates/Annotation'
-import { IAnnotationRepository } from '../repositories/IAnnotationRepository'
-import { IAnnotationFieldRepository } from '../repositories/IAnnotationFieldRepository'
+import { Annotation } from "../../domain/aggregates/Annotation";
+import { IAnnotationRepository } from "../repositories/IAnnotationRepository";
+import { IAnnotationFieldRepository } from "../repositories/IAnnotationFieldRepository";
 // Import DTOs for input/output if needed
 // Import Value Objects
 
@@ -8,10 +8,12 @@ import { IAnnotationFieldRepository } from '../repositories/IAnnotationFieldRepo
 export class CreateAnnotationUseCase {
   constructor(
     private annotationRepo: IAnnotationRepository,
-    private fieldRepo: IAnnotationFieldRepository, // Needed for validation
+    private fieldRepo: IAnnotationFieldRepository // Needed for validation
   ) {}
 
-  async execute(input: /* Define Input DTO */ any): Promise</* Output DTO or Annotation ID */ any> {
+  async execute(
+    input: /* Define Input DTO */ any
+  ): Promise</* Output DTO or Annotation ID */ any> {
     // 1. Validate input DTO
     // 2. Fetch the referenced AnnotationField using fieldRepo
     // 3. Validate the input.value against the AnnotationField.definition
@@ -22,7 +24,7 @@ export class CreateAnnotationUseCase {
     // 6. Persist using annotationRepo.save(annotation)
     // 7. Return result (e.g., annotation ID or Output DTO)
 
-    console.log('Executing CreateAnnotationUseCase with input:', input)
+    console.log("Executing CreateAnnotationUseCase with input:", input);
     // Placeholder implementation
     // const field = await this.fieldRepo.findById(input.fieldRef.uri);
     // if (!field) throw new Error('AnnotationField not found');
@@ -30,6 +32,6 @@ export class CreateAnnotationUseCase {
     // const annotation = Annotation.create({...});
     // await this.annotationRepo.save(annotation);
     // return annotation.id;
-    throw new Error('Not implemented')
+    throw new Error("Not implemented");
   }
 }

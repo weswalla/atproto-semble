@@ -18,8 +18,12 @@ export class InMemoryAnnotationFieldRepository
   }
 
   // Renamed findByUri to findByPublishedRecordId for clarity
-  async findByPublishedRecordId(recordId: PublishedRecordId): Promise<AnnotationField | null> {
-    const fieldIdString = this.publishedRecordIdToIdMap.get(recordId.getValue());
+  async findByPublishedRecordId(
+    recordId: PublishedRecordId
+  ): Promise<AnnotationField | null> {
+    const fieldIdString = this.publishedRecordIdToIdMap.get(
+      recordId.getValue()
+    );
     if (!fieldIdString) return null;
     const field = this.fields.get(fieldIdString);
     return field ? this.clone(field) : null;
@@ -43,14 +47,14 @@ export class InMemoryAnnotationFieldRepository
 
     // If the field has a publishedRecordId, update the mapping
     if (fieldToStore.props.publishedRecordId) {
-        const recordIdString = fieldToStore.props.publishedRecordId.getValue();
-        // Clean up any old mapping for this field ID first
-        for (const [key, value] of this.publishedRecordIdToIdMap.entries()) {
-            if (value === fieldIdString && key !== recordIdString) {
-                this.publishedRecordIdToIdMap.delete(key);
-            }
+      const recordIdString = fieldToStore.props.publishedRecordId.getValue();
+      // Clean up any old mapping for this field ID first
+      for (const [key, value] of this.publishedRecordIdToIdMap.entries()) {
+        if (value === fieldIdString && key !== recordIdString) {
+          this.publishedRecordIdToIdMap.delete(key);
         }
-        this.publishedRecordIdToIdMap.set(recordIdString, fieldIdString);
+      }
+      this.publishedRecordIdToIdMap.set(recordIdString, fieldIdString);
     }
   }
 
@@ -60,7 +64,10 @@ export class InMemoryAnnotationFieldRepository
     if (field) {
       // Find and remove from publishedRecordIdToIdMap as well
       let recordIdToRemove: string | null = null;
-      for (const [recordId, storedId] of this.publishedRecordIdToIdMap.entries()) {
+      for (const [
+        recordId,
+        storedId,
+      ] of this.publishedRecordIdToIdMap.entries()) {
         if (storedId === fieldIdString) {
           recordIdToRemove = recordId;
           break;
@@ -103,7 +110,10 @@ export class InMemoryAnnotationFieldRepository
     // For this in-memory repo, we assume cloning a valid object results in a valid object.
     if (createResult.isFailure) {
       // This shouldn't happen if the original field was valid
-      console.error("Failed to clone AnnotationField:", createResult.getErrorValue());
+      console.error(
+        "Failed to clone AnnotationField:",
+        createResult.getErrorValue()
+      );
       throw new Error("Cloning failed");
     }
 

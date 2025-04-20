@@ -1,7 +1,6 @@
 import { AnnotationTemplate } from "../../domain/aggregates/AnnotationTemplate";
 import { IAnnotationTemplateRepository } from "../repositories/IAnnotationTemplateRepository";
 import { IAnnotationFieldRepository } from "../repositories/IAnnotationFieldRepository"; // To validate field refs
-import { TemplateField } from "../../domain/value-objects/TemplateField";
 import { StrongRef } from "../../../../atproto/domain/value-objects/StrongRef";
 // Import DTOs
 

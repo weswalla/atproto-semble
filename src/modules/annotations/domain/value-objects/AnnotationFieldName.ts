@@ -26,7 +26,9 @@ export class AnnotationFieldName extends ValueObject<AnnotationFieldNameProps> {
     }
 
     if (nameTrimmed.length === 0) {
-        return Result.fail<AnnotationFieldName>("AnnotationField name cannot be empty.");
+      return Result.fail<AnnotationFieldName>(
+        "AnnotationField name cannot be empty."
+      );
     }
 
     if (nameTrimmed.length > this.MAX_LENGTH) {
@@ -35,6 +37,8 @@ export class AnnotationFieldName extends ValueObject<AnnotationFieldNameProps> {
       );
     }
 
-    return Result.ok<AnnotationFieldName>(new AnnotationFieldName({ value: nameTrimmed }));
+    return Result.ok<AnnotationFieldName>(
+      new AnnotationFieldName({ value: nameTrimmed })
+    );
   }
 }

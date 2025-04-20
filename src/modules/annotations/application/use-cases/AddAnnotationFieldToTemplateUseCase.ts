@@ -2,7 +2,6 @@ import { IAnnotationTemplateRepository } from "../repositories/IAnnotationTempla
 import { IAnnotationFieldRepository } from "../repositories/IAnnotationFieldRepository";
 import { TID } from "../../../../atproto/domain/value-objects/TID";
 import { StrongRef } from "../../../../atproto/domain/value-objects/StrongRef";
-import { TemplateField } from "../../domain/value-objects/TemplateField";
 // Import DTOs
 
 // Placeholder for AddAnnotationFieldToTemplateUseCase

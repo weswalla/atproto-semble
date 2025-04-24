@@ -10,16 +10,21 @@ describe('CreateAndPublishAnnotationTemplateUseCase', () => {
   it('can publish a valid annotation template, along with all of its fields, and include the published record id', async () => {
     const annotationTemplateRepository =
       new InMemoryAnnotationTemplateRepository();
-    const annotationFieldRepository = new InMemoryAnnotationFieldRepository();
+    // const annotationFieldRepository = new InMemoryAnnotationFieldRepository(); // No longer injected directly for saving
     const annotationTemplatePublisher = new FakeAnnotationTemplatePublisher();
-    const annotationFieldPublisher = new FakeAnnotationFieldPublisher();
+    const annotationFieldPublisher = new FakeAnnotationFieldPublisher(); // Keep for publishing
+
+    // Mock the repository used internally by the template repo if needed for field checks
+    // Or rely on checking the retrieved template's fields
+    const internalFieldRepo = new InMemoryAnnotationFieldRepository();
+    annotationTemplateRepository.setInternalFieldRepo(internalFieldRepo); // Assuming this method exists for testing
 
     const createAndPublishAnnotationTemplateUseCase =
       new CreateAndPublishAnnotationTemplateUseCase(
         annotationTemplateRepository,
-        annotationFieldRepository,
+        // annotationFieldRepository, // Removed
         annotationTemplatePublisher,
-        annotationFieldPublisher
+        annotationFieldPublisher,
       );
 
     // Given: a valid annotation template and fields
@@ -57,24 +62,41 @@ describe('CreateAndPublishAnnotationTemplateUseCase', () => {
     expect(template).toBeDefined();
     expect(template).not.toBeNull();
     expect(template!.publishedRecordId).toBeDefined();
-    expect(template!.publishedRecordId?.getValue()).toMatch(/^at:\/\/fake-did\/app\.annos\.template\//); // Check format
+    expect(template!.publishedRecordId?.getValue()).toMatch(
+      /^at:\/\/fake-did\/app\.annos\.template\//,
+    ); // Check format
 
-    const fieldIdValueObjects = template!.annotationFields.getFieldIds(); // Get AnnotationFieldId[]
-    const fieldIdStrings = fieldIdValueObjects.map((id) => id.getStringValue()); // Convert to string[]
-
-    // Assuming findByFieldIds takes string[] or adapt as needed
-    const fields: AnnotationField[] =
-      await annotationFieldRepository.findByFieldIds(fieldIdStrings);
-
-    expect(fields).toBeDefined();
-    expect(fields.length).toBe(
+    // Check fields *within* the retrieved template aggregate
+    const fieldsInTemplate = template!.getFields();
+    expect(fieldsInTemplate).toBeDefined();
+    expect(fieldsInTemplate.length).toBe(
       createAndPublishAnnotationTemplateDTO.fields.length,
-    ); // Ensure all fields were found
+    );
 
-    fields.forEach((field) => {
-        expect(field.publishedRecordId).toBeDefined();
-        expect(field.publishedRecordId?.getValue()).toMatch(/^at:\/\/fake-did\/app\.annos\.field\//); // Check format
-      });
+    // Verify each field within the template has its publishedRecordId set
+    fieldsInTemplate.forEach((field) => {
+      expect(field.publishedRecordId).toBeDefined();
+      expect(field.publishedRecordId?.getValue()).toMatch(
+        /^at:\/\/fake-did\/app\.annos\.field\//,
+      ); // Check format
+    });
+
+    // Optionally, also check the internal field repo if needed for deeper verification
+    const fieldIdValueObjects = fieldsInTemplate.map((f) => f.fieldId);
+    const fieldIdStrings = fieldIdValueObjects.map((id) => id.getStringValue());
+    const fieldsInRepo: AnnotationField[] =
+      await internalFieldRepo.findByFieldIds(fieldIdStrings); // Use the internal repo instance
+
+    expect(fieldsInRepo).toBeDefined();
+    expect(fieldsInRepo.length).toBe(
+      createAndPublishAnnotationTemplateDTO.fields.length,
+    );
+    fieldsInRepo.forEach((field) => {
+      expect(field.publishedRecordId).toBeDefined();
+      expect(field.publishedRecordId?.getValue()).toMatch(
+        /^at:\/\/fake-did\/app\.annos\.field\//,
+      );
+    });
     } else {
       // Fail test if result is Err
       fail('Expected result to be Ok, but it was Err: ' + result.error.message);

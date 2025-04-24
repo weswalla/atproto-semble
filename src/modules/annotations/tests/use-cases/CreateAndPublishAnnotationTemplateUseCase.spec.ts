@@ -1,11 +1,13 @@
 import { AnnotationField, AnnotationTemplate } from "../../domain/aggregates";
 import { InMemoryAnnotationFieldRepository } from "../../infrastructure/persistence/repositories/InMemoryAnnotationFieldRepository";
 import { InMemoryAnnotationTemplateRepository } from "../../infrastructure/persistence/repositories/InMemoryAnnotationTemplateRepository";
-import { FakeAnnotationFieldPublisher } from "../infrastructure/FakeAnnotationFieldPublisher";
-import { FakeAnnotationTemplatePublisher } from "../infrastructure/FakeAnnotationTemplatePublisher";
+import { FakeAnnotationFieldPublisher } from '../infrastructure/FakeAnnotationFieldPublisher';
+import { FakeAnnotationTemplatePublisher } from '../infrastructure/FakeAnnotationTemplatePublisher';
+import { CreateAndPublishAnnotationTemplateUseCase } from '../../application/use-cases/CreateAndPublishAnnotationTemplateUseCase';
+import { AnnotationTemplateDTOBuilder } from '../builders/AnnotationTemplateDTOBuilder'; // Assuming this builder exists
 
-describe("CreateAndPublishAnnotationTemplateUseCase", () => {
-  it("can publish a valid annotation template, along with all of its fields, and include the published record id", async () => {
+describe('CreateAndPublishAnnotationTemplateUseCase', () => {
+  it('can publish a valid annotation template, along with all of its fields, and include the published record id', async () => {
     const annotationTemplateRepository =
       new InMemoryAnnotationTemplateRepository();
     const annotationFieldRepository = new InMemoryAnnotationFieldRepository();
@@ -39,22 +41,39 @@ describe("CreateAndPublishAnnotationTemplateUseCase", () => {
 
     // when: the template is created and published
     const result = await createAndPublishAnnotationTemplateUseCase.execute(
-      createAndPublishAnnotationTemplateDTO
+      createAndPublishAnnotationTemplateDTO,
     );
 
-    // then: the annotation template and fields include their published record id
-    expect(result.isSuccess).toBe(true);
-    const template: AnnotationTemplate =
-      await annotationTemplateRepository.findById(result.value.templateId);
-    expect(template).toBeDefined();
-    expect(template?.publishedRecordId).toBeDefined();
+    // then: the result is successful and contains the template ID
+    expect(result.isRight()).toBe(true);
+    const resultValue = result.value as { templateId: string }; // Type assertion for success case
+    expect(resultValue.templateId).toBeDefined();
 
-    const fieldIdStrings = template.annotationFields.getFieldIds();
+    // then: the annotation template and fields were saved and include their published record id
+    const template: AnnotationTemplate | null =
+      await annotationTemplateRepository.findByIdString(resultValue.templateId); // Assuming findByIdString exists or adapt as needed
+    expect(template).toBeDefined();
+    expect(template).not.toBeNull();
+    expect(template!.publishedRecordId).toBeDefined();
+    expect(template!.publishedRecordId?.getValue()).toMatch(/^at:\/\/fake-did\/app\.annos\.template\//); // Check format
+
+    const fieldIdValueObjects = template!.annotationFields.getFieldIds(); // Get AnnotationFieldId[]
+    const fieldIdStrings = fieldIdValueObjects.map((id) => id.getStringValue()); // Convert to string[]
+
+    // Assuming findByFieldIds takes string[] or adapt as needed
     const fields: AnnotationField[] =
       await annotationFieldRepository.findByFieldIds(fieldIdStrings);
+
     expect(fields).toBeDefined();
+    expect(fields.length).toBe(
+      createAndPublishAnnotationTemplateDTO.fields.length,
+    ); // Ensure all fields were found
+
     fields.forEach((field) => {
       expect(field.publishedRecordId).toBeDefined();
+      expect(field.publishedRecordId?.getValue()).toMatch(/^at:\/\/fake-did\/app\.annos\.field\//); // Check format
     });
   });
+
+  // Add more tests for error cases (e.g., invalid input, publisher failure, repo failure)
 });

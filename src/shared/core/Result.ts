@@ -21,6 +21,10 @@ export class Ok<T, E> {
   public isErr(): this is Err<T, E> {
     return false;
   }
+
+  public unwrap(): T {
+    return this.value;
+  }
 }
 
 /**
@@ -43,6 +47,10 @@ export class Err<T, E> {
   /** Type guard indicating failure */
   public isErr(): this is Err<T, E> {
     return true;
+  }
+
+  public unwrap(): T {
+    throw this.error;
   }
 }
 
@@ -90,7 +98,6 @@ export const combine = <T, E>(results: Result<T, E>[]): Result<T[], E> => {
   // If no errors were found, return an Ok with the collected values
   return ok<T[], E>(values);
 };
-
 
 // --- Either Type (kept separate for now) ---
 

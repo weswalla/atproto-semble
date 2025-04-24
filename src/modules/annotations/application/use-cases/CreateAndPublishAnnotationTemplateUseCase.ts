@@ -3,7 +3,7 @@ import { IAnnotationTemplateRepository } from '../repositories/IAnnotationTempla
 import { IAnnotationFieldRepository } from '../repositories/IAnnotationFieldRepository';
 import { IAnnotationTemplatePublisher } from '../ports/IAnnotationTemplatePublisher';
 import { IAnnotationFieldPublisher } from '../ports/IAnnotationFieldPublisher';
-import { Result, left, right, combine } from '../../../../shared/core/Result';
+import { Result, ok, err, combine } from '../../../../shared/core/Result'; // Updated imports
 import { AppError } from '../../../../shared/core/AppError';
 import { UseCaseError } from '../../../../shared/core/UseCaseError';
 import { AnnotationTemplate } from '../../domain/aggregates/AnnotationTemplate';
@@ -19,45 +19,7 @@ import { AnnotationTemplateField } from '../../domain/value-objects/AnnotationTe
 import { AnnotationTemplateFields } from '../../domain/value-objects/AnnotationTemplateFields';
 import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
 import { AnnotationTemplateId } from '../../domain/value-objects/AnnotationTemplateId';
-
-// Define potential specific errors for this use case
-export namespace CreateAndPublishAnnotationTemplateErrors {
-  export class FieldCreationFailed extends Result<UseCaseError> {
-    constructor(fieldName: string, error: string) {
-      super(false, `Failed to create field "${fieldName}": ${error}`);
-    }
-  }
-
-  export class FieldPublishFailed extends Result<UseCaseError> {
-    constructor(fieldId: string, error: string) {
-      super(false, `Failed to publish field "${fieldId}": ${error}`);
-    }
-  }
-
-  export class FieldSaveFailed extends Result<UseCaseError> {
-    constructor(fieldId: string, error: string) {
-      super(false, `Failed to save field "${fieldId}": ${error}`);
-    }
-  }
-
-  export class TemplateCreationFailed extends Result<UseCaseError> {
-    constructor(error: string) {
-      super(false, `Failed to create template: ${error}`);
-    }
-  }
-
-  export class TemplatePublishFailed extends Result<UseCaseError> {
-    constructor(templateId: string, error: string) {
-      super(false, `Failed to publish template "${templateId}": ${error}`);
-    }
-  }
-
-  export class TemplateSaveFailed extends Result<UseCaseError> {
-    constructor(templateId: string, error: string) {
-      super(false, `Failed to save template "${templateId}": ${error}`);
-    }
-  }
-}
+import { CreateAndPublishAnnotationTemplateErrors } from './errors'; // Import from errors file
 
 // Input DTO structure based on the test builder
 interface AnnotationTemplateFieldInputDTO {
@@ -84,7 +46,7 @@ export type CreateAndPublishAnnotationTemplateResponse = Result<
   | CreateAndPublishAnnotationTemplateErrors.TemplateCreationFailed
   | CreateAndPublishAnnotationTemplateErrors.TemplatePublishFailed
   | CreateAndPublishAnnotationTemplateErrors.TemplateSaveFailed
-  | AppError.UnexpectedError
+  | AppError.UnexpectedError // Keep AppError for unexpected issues
 >;
 
 export class CreateAndPublishAnnotationTemplateUseCase
@@ -118,16 +80,17 @@ export class CreateAndPublishAnnotationTemplateUseCase
         templateNameOrError,
         templateDescOrError,
       ]);
-      if (combinedProps.isFailure) {
-        return left(
+      // Use the new Result type check
+      if (combinedProps.isErr()) {
+        // Return err with the specific error instance
+        return err(
           new CreateAndPublishAnnotationTemplateErrors.TemplateCreationFailed(
-            combinedProps.error,
+            combinedProps.error.message, // Assuming error has a message property
           ),
         );
       }
-      const curatorId = curatorIdOrError.getValue();
-      const templateName = templateNameOrError.getValue();
-      const templateDescription = templateDescOrError.getValue();
+      // Values are in an array if combine succeeds
+      const [curatorId, templateName, templateDescription] = combinedProps.value;
 
       // 1. Create, Publish, and Save Fields
       const createdFields: AnnotationField[] = [];
@@ -151,19 +114,18 @@ export class CreateAndPublishAnnotationTemplateUseCase
           fieldDefOrError,
         ]);
 
-        if (combinedFieldProps.isFailure) {
-          return left(
+        if (combinedFieldProps.isErr()) {
+          return err(
             new CreateAndPublishAnnotationTemplateErrors.FieldCreationFailed(
               fieldDTO.name,
-              combinedFieldProps.error,
+              combinedFieldProps.error.message, // Assuming error has a message property
             ),
           );
         }
 
-        const fieldName = fieldNameOrError.getValue();
-        const fieldDescription = fieldDescOrError.getValue();
-        const fieldType = fieldTypeOrError.getValue();
-        const fieldDefinition = fieldDefOrError.getValue();
+        // Values are in an array if combine succeeds
+        const [fieldName, fieldDescription, fieldType, fieldDefinition] =
+          combinedFieldProps.value;
 
         const fieldOrError = AnnotationField.create({
           curatorId,
@@ -174,28 +136,28 @@ export class CreateAndPublishAnnotationTemplateUseCase
           // publishedRecordId will be set after publishing
         });
 
-        if (fieldOrError.isFailure) {
-          return left(
+        if (fieldOrError.isErr()) {
+          return err(
             new CreateAndPublishAnnotationTemplateErrors.FieldCreationFailed(
               fieldDTO.name,
-              fieldOrError.error.toString(),
+              fieldOrError.error.message, // Assuming error has a message property
             ),
           );
         }
-        const field = fieldOrError.getValue();
+        const field = fieldOrError.value;
         const fieldIdString = field.fieldId.getStringValue();
 
         // Publish field
         const publishResult = await this.annotationFieldPublisher.publish(field);
-        if (publishResult.isFailure) {
-          return left(
+        if (publishResult.isErr()) {
+          return err(
             new CreateAndPublishAnnotationTemplateErrors.FieldPublishFailed(
               fieldIdString,
-              publishResult.error.message,
+              publishResult.error.message, // Assuming error has a message property
             ),
           );
         }
-        const publishedRecordId = publishResult.getValue();
+        const publishedRecordId = publishResult.value;
 
         // Update field with publishedRecordId
         field.setPublishedRecordId(publishedRecordId);
@@ -203,11 +165,11 @@ export class CreateAndPublishAnnotationTemplateUseCase
         // Save field
         try {
           await this.annotationFieldRepository.save(field);
-        } catch (err: any) {
-          return left(
+        } catch (error: any) {
+          return err(
             new CreateAndPublishAnnotationTemplateErrors.FieldSaveFailed(
               fieldIdString,
-              err.message,
+              error.message,
             ),
           );
         }
@@ -220,25 +182,25 @@ export class CreateAndPublishAnnotationTemplateUseCase
           required: fieldDTO.required ?? false, // Default required to false if not provided
         });
 
-        if (templateFieldOrError.isFailure) {
+        if (templateFieldOrError.isErr()) {
           // This should ideally not fail if fieldId is valid
-          return left(
+          return err(
             new CreateAndPublishAnnotationTemplateErrors.TemplateCreationFailed(
-              `Failed to create template field link for ${fieldDTO.name}: ${templateFieldOrError.error}`,
+              `Failed to create template field link for ${fieldDTO.name}: ${templateFieldOrError.error.message}`, // Assuming error has a message property
             ),
           );
         }
-        templateFields.push(templateFieldOrError.getValue());
+        templateFields.push(templateFieldOrError.value);
       }
 
       // 2. Create AnnotationTemplate
       const annotationTemplateFieldsOrError = AnnotationTemplateFields.create({
         fields: templateFields,
       });
-      if (annotationTemplateFieldsOrError.isFailure) {
-        return left(
+      if (annotationTemplateFieldsOrError.isErr()) {
+        return err(
           new CreateAndPublishAnnotationTemplateErrors.TemplateCreationFailed(
-            annotationTemplateFieldsOrError.error,
+            annotationTemplateFieldsOrError.error.message, // Assuming error has a message property
           ),
         );
       }
@@ -251,29 +213,29 @@ export class CreateAndPublishAnnotationTemplateUseCase
         // publishedRecordId will be set after publishing
       });
 
-      if (templateOrError.isFailure) {
-        return left(
+      if (templateOrError.isErr()) {
+        return err(
           new CreateAndPublishAnnotationTemplateErrors.TemplateCreationFailed(
-            templateOrError.error.toString(),
+            templateOrError.error.message, // Assuming error has a message property
           ),
         );
       }
-      const template = templateOrError.getValue();
+      const template = templateOrError.value;
       const templateId = template.templateId; // Get the ID before potential modification
       const templateIdString = templateId.getStringValue();
 
       // 3. Publish Template
       const publishResult =
         await this.annotationTemplatePublisher.publish(template);
-      if (publishResult.isFailure) {
-        return left(
+      if (publishResult.isErr()) {
+        return err(
           new CreateAndPublishAnnotationTemplateErrors.TemplatePublishFailed(
             templateIdString,
-            publishResult.error.message,
+            publishResult.error.message, // Assuming error has a message property
           ),
         );
       }
-      const publishedRecordId = publishResult.getValue();
+      const publishedRecordId = publishResult.value;
 
       // 4. Update Template with publishedRecordId
       template.setPublishedRecordId(publishedRecordId);
@@ -281,19 +243,20 @@ export class CreateAndPublishAnnotationTemplateUseCase
       // 5. Save Template
       try {
         await this.annotationTemplateRepository.save(template);
-      } catch (err: any) {
-        return left(
+      } catch (error: any) {
+        return err(
           new CreateAndPublishAnnotationTemplateErrors.TemplateSaveFailed(
             templateIdString,
-            err.message,
+            error.message,
           ),
         );
       }
 
       // 6. Return Success
-      return right({ templateId: templateIdString });
-    } catch (err: any) {
-      return left(new AppError.UnexpectedError(err));
+      return ok({ templateId: templateIdString }); // Use ok for success
+    } catch (error: any) {
+      // Catch unexpected errors and wrap them
+      return err(new AppError.UnexpectedError(error));
     }
   }
 }

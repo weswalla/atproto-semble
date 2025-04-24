@@ -44,14 +44,16 @@ describe('CreateAndPublishAnnotationTemplateUseCase', () => {
       createAndPublishAnnotationTemplateDTO,
     );
 
-    // then: the result is successful and contains the template ID
-    expect(result.isRight()).toBe(true);
-    const resultValue = result.value as { templateId: string }; // Type assertion for success case
-    expect(resultValue.templateId).toBeDefined();
+    // then: the result is successful (Ok) and contains the template ID
+    expect(result.isOk()).toBe(true); // Use isOk()
+    // Type assertion is safer within the isOk check
+    if (result.isOk()) {
+      const resultValue = result.value; // Access value directly
+      expect(resultValue.templateId).toBeDefined();
 
-    // then: the annotation template and fields were saved and include their published record id
-    const template: AnnotationTemplate | null =
-      await annotationTemplateRepository.findByIdString(resultValue.templateId); // Assuming findByIdString exists or adapt as needed
+      // then: the annotation template and fields were saved and include their published record id
+      const template: AnnotationTemplate | null =
+        await annotationTemplateRepository.findByIdString(resultValue.templateId); // Assuming findByIdString exists or adapt as needed
     expect(template).toBeDefined();
     expect(template).not.toBeNull();
     expect(template!.publishedRecordId).toBeDefined();
@@ -70,9 +72,13 @@ describe('CreateAndPublishAnnotationTemplateUseCase', () => {
     ); // Ensure all fields were found
 
     fields.forEach((field) => {
-      expect(field.publishedRecordId).toBeDefined();
-      expect(field.publishedRecordId?.getValue()).toMatch(/^at:\/\/fake-did\/app\.annos\.field\//); // Check format
-    });
+        expect(field.publishedRecordId).toBeDefined();
+        expect(field.publishedRecordId?.getValue()).toMatch(/^at:\/\/fake-did\/app\.annos\.field\//); // Check format
+      });
+    } else {
+      // Fail test if result is Err
+      fail('Expected result to be Ok, but it was Err: ' + result.error.message);
+    }
   });
 
   // Add more tests for error cases (e.g., invalid input, publisher failure, repo failure)

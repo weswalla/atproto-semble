@@ -1,13 +1,16 @@
 import { AnnotationField, AnnotationTemplate } from "../../domain/aggregates";
 import { InMemoryAnnotationFieldRepository } from "../../infrastructure/persistence/repositories/InMemoryAnnotationFieldRepository";
+import { InMemoryAnnotationTemplateRepository } from "../../infrastructure/persistence/repositories/InMemoryAnnotationTemplateRepository";
+import { FakeAnnotationFieldPublisher } from "../infrastructure/FakeAnnotationFieldPublisher";
+import { FakeAnnotationTemplatePublisher } from "../infrastructure/FakeAnnotationTemplatePublisher";
 
 describe("CreateAndPublishAnnotationTemplateUseCase", () => {
   it("can publish a valid annotation template, along with all of its fields, and include the published record id", async () => {
     const annotationTemplateRepository =
       new InMemoryAnnotationTemplateRepository();
     const annotationFieldRepository = new InMemoryAnnotationFieldRepository();
-    const annotationTemplatePublisher = new MockAnnotationTemplatePublisher();
-    const annotationFieldPublisher = new MockAnnotationFieldPublisher();
+    const annotationTemplatePublisher = new FakeAnnotationTemplatePublisher();
+    const annotationFieldPublisher = new FakeAnnotationFieldPublisher();
 
     const createAndPublishAnnotationTemplateUseCase =
       new CreateAndPublishAnnotationTemplateUseCase(

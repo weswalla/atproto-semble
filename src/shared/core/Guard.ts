@@ -1,6 +1,6 @@
-export type GuardResponse = string;
+export type GuardResponse = string; // This remains the type for the error message
 
-import { Result } from "./Result";
+import { Result, ok, err } from './Result'; // Import ok and err factories
 
 export interface IGuardArgument {
   argument: any;
@@ -9,86 +9,93 @@ export interface IGuardArgument {
 
 export type GuardArgumentCollection = IGuardArgument[];
 
-export class Guard {
-  public static combine(guardResults: Result<any>[]): Result<GuardResponse> {
-    for (let result of guardResults) {
-      if (result.isFailure) return result;
-    }
+// Define the specific Result type used by Guard functions
+// Success holds `void` (or `undefined`), Error holds the message string
+type GuardResult = Result<void, GuardResponse>;
 
-    return Result.ok<GuardResponse>();
+export class Guard {
+  // Combine function now expects GuardResult[] and returns GuardResult
+  public static combine(guardResults: GuardResult[]): GuardResult {
+    for (const result of guardResults) {
+      // Use the isErr type guard
+      if (result.isErr()) {
+        // Return the first error encountered
+        return result; // No need to cast, it's already Err<void, GuardResponse>
+      }
+    }
+    // If all results are Ok, return a single Ok
+    return ok(undefined); // Success case carries no value
   }
 
   public static greaterThan(
     minValue: number,
-    actualValue: number
-  ): Result<GuardResponse> {
+    actualValue: number,
+  ): GuardResult {
     return actualValue > minValue
-      ? Result.ok<GuardResponse>()
-      : Result.fail<GuardResponse>(
-          `Number given {${actualValue}} is not greater than {${minValue}}`
-        );
+      ? ok(undefined) // Use ok factory
+      : err(`Number given {${actualValue}} is not greater than {${minValue}}`); // Use err factory
   }
 
-  public static againstAtLeast(
-    numChars: number,
-    text: string
-  ): Result<GuardResponse> {
+  public static againstAtLeast(numChars: number, text: string): GuardResult {
     return text.length >= numChars
-      ? Result.ok<GuardResponse>()
-      : Result.fail<GuardResponse>(`Text is not at least ${numChars} chars.`);
+      ? ok(undefined) // Use ok factory
+      : err(`Text is not at least ${numChars} chars.`); // Use err factory
   }
 
-  public static againstAtMost(
-    numChars: number,
-    text: string
-  ): Result<GuardResponse> {
+  public static againstAtMost(numChars: number, text: string): GuardResult {
     return text.length <= numChars
-      ? Result.ok<GuardResponse>()
-      : Result.fail<GuardResponse>(`Text is greater than ${numChars} chars.`);
+      ? ok(undefined) // Use ok factory
+      : err(`Text is greater than ${numChars} chars.`); // Use err factory
   }
 
   public static againstNullOrUndefined(
     argument: any,
-    argumentName: string
-  ): Result<GuardResponse> {
+    argumentName: string,
+  ): GuardResult {
     if (argument === null || argument === undefined) {
-      return Result.fail<GuardResponse>(`${argumentName} is null or undefined`);
+      return err(`${argumentName} is null or undefined`); // Use err factory
     } else {
-      return Result.ok<GuardResponse>();
+      return ok(undefined); // Use ok factory
     }
   }
 
   public static againstNullOrUndefinedBulk(
-    args: GuardArgumentCollection
-  ): Result<GuardResponse> {
-    for (let arg of args) {
+    args: GuardArgumentCollection,
+  ): GuardResult {
+    for (const arg of args) {
       const result = this.againstNullOrUndefined(
         arg.argument,
-        arg.argumentName
+        arg.argumentName,
       );
-      if (result.isFailure) return result;
+      // Use the isErr type guard
+      if (result.isErr()) {
+        return result; // Return the Err result directly
+      }
     }
-
-    return Result.ok<GuardResponse>();
+    // If loop completes, all arguments were valid
+    return ok(undefined); // Use ok factory
   }
 
   public static isOneOf(
     value: any,
     validValues: any[],
-    argumentName: string
-  ): Result<GuardResponse> {
+    argumentName: string,
+  ): GuardResult {
     let isValid = false;
-    for (let validValue of validValues) {
+    for (const validValue of validValues) {
       if (value === validValue) {
         isValid = true;
       }
     }
 
     if (isValid) {
-      return Result.ok<GuardResponse>();
+      return ok(undefined); // Use ok factory
     } else {
-      return Result.fail<GuardResponse>(
-        `${argumentName} isn't oneOf the correct types in ${JSON.stringify(validValues)}. Got "${value}".`
+      // Use err factory
+      return err(
+        `${argumentName} isn't oneOf the correct types in ${JSON.stringify(
+          validValues,
+        )}. Got "${value}".`,
       );
     }
   }
@@ -97,15 +104,14 @@ export class Guard {
     num: number,
     min: number,
     max: number,
-    argumentName: string
-  ): Result<GuardResponse> {
+    argumentName: string,
+  ): GuardResult {
     const isInRange = num >= min && num <= max;
     if (!isInRange) {
-      return Result.fail<GuardResponse>(
-        `${argumentName} is not within range ${min} to ${max}.`
-      );
+      // Use err factory
+      return err(`${argumentName} is not within range ${min} to ${max}.`);
     } else {
-      return Result.ok<GuardResponse>();
+      return ok(undefined); // Use ok factory
     }
   }
 
@@ -113,21 +119,19 @@ export class Guard {
     numbers: number[],
     min: number,
     max: number,
-    argumentName: string
-  ): Result<GuardResponse> {
-    let failingResult: Result<GuardResponse> | null = null;
-
-    for (let num of numbers) {
+    argumentName: string,
+  ): GuardResult {
+    for (const num of numbers) {
       const numIsInRangeResult = this.inRange(num, min, max, argumentName);
-      if (!numIsInRangeResult.isFailure) failingResult = numIsInRangeResult;
+      // Use isErr type guard
+      if (numIsInRangeResult.isErr()) {
+        // Return the specific error from inRange
+        return err(
+          `${argumentName} is not within the range. Failed value: ${num}`,
+        ); // Or return numIsInRangeResult directly
+      }
     }
-
-    if (failingResult) {
-      return Result.fail<GuardResponse>(
-        `${argumentName} is not within the range.`
-      );
-    } else {
-      return Result.ok<GuardResponse>();
-    }
+    // If loop completes, all numbers are in range
+    return ok(undefined); // Use ok factory
   }
 }

@@ -1,25 +1,24 @@
-import { UseCase } from '../../../../shared/core/UseCase';
-import { IAnnotationTemplateRepository } from '../repositories/IAnnotationTemplateRepository';
-import { IAnnotationFieldRepository } from '../repositories/IAnnotationFieldRepository';
-import { IAnnotationTemplatePublisher } from '../ports/IAnnotationTemplatePublisher';
-import { IAnnotationFieldPublisher } from '../ports/IAnnotationFieldPublisher';
-import { Result, ok, err, combine } from '../../../../shared/core/Result'; // Updated imports
-import { AppError } from '../../../../shared/core/AppError';
-import { UseCaseError } from '../../../../shared/core/UseCaseError';
-import { AnnotationTemplate } from '../../domain/aggregates/AnnotationTemplate';
-import { AnnotationField } from '../../domain/aggregates/AnnotationField';
-import { CuratorId } from '../../domain/value-objects/CuratorId';
-import { AnnotationTemplateName } from '../../domain/value-objects/AnnotationTemplateName';
-import { AnnotationTemplateDescription } from '../../domain/value-objects/AnnotationTemplateDescription';
-import { AnnotationFieldName } from '../../domain/value-objects/AnnotationFieldName';
-import { AnnotationFieldDescription } from '../../domain/value-objects/AnnotationFieldDescription';
-import { AnnotationType } from '../../domain/value-objects/AnnotationType';
-import { AnnotationDefinition } from '../../domain/value-objects/AnnotationDefinition';
-import { AnnotationTemplateField } from '../../domain/value-objects/AnnotationTemplateField';
-import { AnnotationTemplateFields } from '../../domain/value-objects/AnnotationTemplateFields';
-import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
-import { AnnotationTemplateId } from '../../domain/value-objects/AnnotationTemplateId';
-import { CreateAndPublishAnnotationTemplateErrors } from './errors'; // Import from errors file
+import { UseCase } from "../../../../shared/core/UseCase";
+import { IAnnotationTemplateRepository } from "../repositories/IAnnotationTemplateRepository";
+import { IAnnotationFieldRepository } from "../repositories/IAnnotationFieldRepository";
+import { IAnnotationTemplatePublisher } from "../ports/IAnnotationTemplatePublisher";
+import { IAnnotationFieldPublisher } from "../ports/IAnnotationFieldPublisher";
+import { Result, ok, err, combine } from "../../../../shared/core/Result"; // Updated imports
+import { AppError } from "../../../../shared/core/AppError";
+import { UseCaseError } from "../../../../shared/core/UseCaseError";
+import { AnnotationTemplate } from "../../domain/aggregates/AnnotationTemplate";
+import { AnnotationField } from "../../domain/aggregates/AnnotationField";
+import { CreateAndPublishAnnotationTemplateErrors } from "./errors"; // Import from errors file
+import {
+  AnnotationFieldDefinitionBase,
+  AnnotationFieldDescription,
+  AnnotationTemplateDescription,
+  AnnotationTemplateField,
+  AnnotationTemplateName,
+  CuratorId,
+} from "../../domain/value-objects";
+import { AnnotationFieldName } from "../../domain/value-objects/AnnotationFieldName";
+import { AnnotationType } from "../../domain/value-objects/AnnotationType";
 
 // Input DTO structure based on the test builder
 interface AnnotationTemplateFieldInputDTO {
@@ -60,20 +59,18 @@ export class CreateAndPublishAnnotationTemplateUseCase
     private readonly annotationTemplateRepository: IAnnotationTemplateRepository,
     private readonly annotationFieldRepository: IAnnotationFieldRepository,
     private readonly annotationTemplatePublisher: IAnnotationTemplatePublisher,
-    private readonly annotationFieldPublisher: IAnnotationFieldPublisher,
+    private readonly annotationFieldPublisher: IAnnotationFieldPublisher
   ) {}
 
   async execute(
-    request: CreateAndPublishAnnotationTemplateDTO,
+    request: CreateAndPublishAnnotationTemplateDTO
   ): Promise<CreateAndPublishAnnotationTemplateResponse> {
     try {
       const curatorIdOrError = CuratorId.create(request.curatorId);
-      const templateNameOrError = AnnotationTemplateName.create({
-        value: request.name,
-      });
-      const templateDescOrError = AnnotationTemplateDescription.create({
-        value: request.description,
-      });
+      const templateNameOrError = AnnotationTemplateName.create(request.name);
+      const templateDescOrError = AnnotationTemplateDescription.create(
+        request.description
+      );
 
       const combinedProps = combine([
         curatorIdOrError,
@@ -85,27 +82,28 @@ export class CreateAndPublishAnnotationTemplateUseCase
         // Return err with the specific error instance
         return err(
           new CreateAndPublishAnnotationTemplateErrors.TemplateCreationFailed(
-            combinedProps.error.message, // Assuming error has a message property
-          ),
+            combinedProps.error.message // Assuming error has a message property
+          )
         );
       }
       // Values are in an array if combine succeeds
-      const [curatorId, templateName, templateDescription] = combinedProps.value;
+      const [curatorId, templateName, templateDescription] =
+        combinedProps.value;
 
       // 1. Create, Publish, and Save Fields
       const createdFields: AnnotationField[] = [];
       const templateFields: AnnotationTemplateField[] = [];
 
       for (const fieldDTO of request.fields) {
-        const fieldNameOrError = AnnotationFieldName.create({
-          value: fieldDTO.name,
-        });
-        const fieldDescOrError = AnnotationFieldDescription.create({
-          value: fieldDTO.description,
-        });
+        const fieldNameOrError = AnnotationFieldName.create(fieldDTO.name);
+        const fieldDescOrError = AnnotationFieldDescription.create(
+          fieldDTO.description
+        );
         const fieldTypeOrError = AnnotationType.create(fieldDTO.type);
         // Assuming AnnotationDefinition can be created directly for now
-        const fieldDefOrError = AnnotationDefinition.create(fieldDTO.definition);
+        const fieldDefOrError = AnnotationFieldDefinitionBase.create(
+          fieldDTO.definition
+        );
 
         const combinedFieldProps = combine([
           fieldNameOrError,
@@ -118,8 +116,8 @@ export class CreateAndPublishAnnotationTemplateUseCase
           return err(
             new CreateAndPublishAnnotationTemplateErrors.FieldCreationFailed(
               fieldDTO.name,
-              combinedFieldProps.error.message, // Assuming error has a message property
-            ),
+              combinedFieldProps.error.message // Assuming error has a message property
+            )
           );
         }
 
@@ -140,27 +138,28 @@ export class CreateAndPublishAnnotationTemplateUseCase
           return err(
             new CreateAndPublishAnnotationTemplateErrors.FieldCreationFailed(
               fieldDTO.name,
-              fieldOrError.error.message, // Assuming error has a message property
-            ),
+              fieldOrError.error.message // Assuming error has a message property
+            )
           );
         }
         const field = fieldOrError.value;
         const fieldIdString = field.fieldId.getStringValue();
 
         // Publish field
-        const publishResult = await this.annotationFieldPublisher.publish(field);
+        const publishResult =
+          await this.annotationFieldPublisher.publish(field);
         if (publishResult.isErr()) {
           return err(
             new CreateAndPublishAnnotationTemplateErrors.FieldPublishFailed(
               fieldIdString,
-              publishResult.error.message, // Assuming error has a message property
-            ),
+              publishResult.error.message // Assuming error has a message property
+            )
           );
         }
         const publishedRecordId = publishResult.value;
 
         // Update field with publishedRecordId
-        field.setPublishedRecordId(publishedRecordId);
+        field.updatePublishedRecordId(publishedRecordId);
 
         // Save field
         try {
@@ -169,8 +168,8 @@ export class CreateAndPublishAnnotationTemplateUseCase
           return err(
             new CreateAndPublishAnnotationTemplateErrors.FieldSaveFailed(
               fieldIdString,
-              error.message,
-            ),
+              error.message
+            )
           );
         }
 
@@ -186,22 +185,21 @@ export class CreateAndPublishAnnotationTemplateUseCase
           // This should ideally not fail if fieldId is valid
           return err(
             new CreateAndPublishAnnotationTemplateErrors.TemplateCreationFailed(
-              `Failed to create template field link for ${fieldDTO.name}: ${templateFieldOrError.error.message}`, // Assuming error has a message property
-            ),
+              `Failed to create template field link for ${fieldDTO.name}: ${templateFieldOrError.error.message}` // Assuming error has a message property
+            )
           );
         }
         templateFields.push(templateFieldOrError.value);
       }
 
       // 2. Create AnnotationTemplate
-      const annotationTemplateFieldsOrError = AnnotationTemplateFields.create({
-        fields: templateFields,
-      });
+      const annotationTemplateFieldsOrError =
+        AnnotationTemplateFields.create(templateFields);
       if (annotationTemplateFieldsOrError.isErr()) {
         return err(
           new CreateAndPublishAnnotationTemplateErrors.TemplateCreationFailed(
-            annotationTemplateFieldsOrError.error.message, // Assuming error has a message property
-          ),
+            annotationTemplateFieldsOrError.error.message // Assuming error has a message property
+          )
         );
       }
 
@@ -216,8 +214,8 @@ export class CreateAndPublishAnnotationTemplateUseCase
       if (templateOrError.isErr()) {
         return err(
           new CreateAndPublishAnnotationTemplateErrors.TemplateCreationFailed(
-            templateOrError.error.message, // Assuming error has a message property
-          ),
+            templateOrError.error.message // Assuming error has a message property
+          )
         );
       }
       const template = templateOrError.value;
@@ -231,14 +229,14 @@ export class CreateAndPublishAnnotationTemplateUseCase
         return err(
           new CreateAndPublishAnnotationTemplateErrors.TemplatePublishFailed(
             templateIdString,
-            publishResult.error.message, // Assuming error has a message property
-          ),
+            publishResult.error.message // Assuming error has a message property
+          )
         );
       }
       const publishedRecordId = publishResult.value;
 
       // 4. Update Template with publishedRecordId
-      template.setPublishedRecordId(publishedRecordId);
+      template.updatePublishedRecordId(publishedRecordId);
 
       // 5. Save Template
       try {
@@ -247,8 +245,8 @@ export class CreateAndPublishAnnotationTemplateUseCase
         return err(
           new CreateAndPublishAnnotationTemplateErrors.TemplateSaveFailed(
             templateIdString,
-            error.message,
-          ),
+            error.message
+          )
         );
       }
 

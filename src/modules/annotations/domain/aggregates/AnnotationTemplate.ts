@@ -1,7 +1,5 @@
 import { AggregateRoot } from "../../../../shared/domain/AggregateRoot";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
-import { Result } from "../../../../shared/core/Result";
-import { Guard, IGuardArgument } from "../../../../shared/core/Guard";
 import { Result, ok, err, combine } from "../../../../shared/core/Result"; // Import Result types
 import { Guard, IGuardArgument } from "../../../../shared/core/Guard";
 import {
@@ -12,13 +10,13 @@ import {
   PublishedRecordId,
   AnnotationTemplateField,
   // AnnotationTemplateFields, // No longer used directly in props
-  AnnotationFieldName,
   AnnotationFieldDescription,
-  AnnotationType,
   AnnotationFieldDefinitionBase,
   AnnotationFieldId,
 } from "../value-objects";
 import { AnnotationField } from "./AnnotationField"; // Import AnnotationField aggregate
+import { AnnotationFieldName } from "../value-objects/AnnotationFieldName";
+import { AnnotationType } from "../value-objects/AnnotationType";
 
 // Input DTO for field creation within the template factory
 // Duplicates the one in the use case, consider moving to a shared location if used elsewhere
@@ -54,7 +52,7 @@ export interface AnnotationTemplateCreateProps {
 export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
   get templateId(): AnnotationTemplateId {
     // Assuming AnnotationTemplateId.create takes UniqueEntityID
-    return AnnotationTemplateId.create(this._id).getValue();
+    return AnnotationTemplateId.create(this._id).unwrap();
   }
 
   get curatorId(): CuratorId {
@@ -80,7 +78,9 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
   }
 
   // Method to get specific field link by ID
-  getFieldLink(fieldId: AnnotationFieldId): AnnotationTemplateField | undefined {
+  getFieldLink(
+    fieldId: AnnotationFieldId
+  ): AnnotationTemplateField | undefined {
     return this.props.fieldLinks.get(fieldId.getStringValue());
   }
 
@@ -104,22 +104,24 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
   // Factory method now takes DTOs and creates fields internally
   public static create(
     props: AnnotationTemplateCreateProps, // Use the new create props type
-    id?: UniqueEntityID,
+    id?: UniqueEntityID
   ): Result<AnnotationTemplate> {
     const guardArgs: IGuardArgument[] = [
-      { argument: props.curatorId, argumentName: 'curatorId' },
-      { argument: props.name, argumentName: 'name' },
-      { argument: props.description, argumentName: 'description' },
-      { argument: props.fields, argumentName: 'fields' }, // Check if fields array is provided
+      { argument: props.curatorId, argumentName: "curatorId" },
+      { argument: props.name, argumentName: "name" },
+      { argument: props.description, argumentName: "description" },
+      { argument: props.fields, argumentName: "fields" }, // Check if fields array is provided
     ];
 
     const guardResult = Guard.againstNullOrUndefinedBulk(guardArgs);
-    if (!guardResult.isSuccess) {
-      return err(new Error(guardResult.getErrorValue())); // Use err()
+    if (guardResult.isErr()) {
+      return err(new Error(guardResult.error));
     }
 
     if (!Array.isArray(props.fields) || props.fields.length === 0) {
-      return err(new Error('Annotation template must have at least one field.'));
+      return err(
+        new Error("Annotation template must have at least one field.")
+      );
     }
 
     const createdFields: AnnotationField[] = [];
@@ -129,11 +131,11 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
     for (const fieldDTO of props.fields) {
       const fieldNameOrError = AnnotationFieldName.create(fieldDTO.name);
       const fieldDescOrError = AnnotationFieldDescription.create(
-        fieldDTO.description,
+        fieldDTO.description
       );
       const fieldTypeOrError = AnnotationType.create(fieldDTO.type);
       const fieldDefOrError = AnnotationFieldDefinitionBase.create(
-        fieldDTO.definition,
+        fieldDTO.definition
       ); // Assuming this static method exists
 
       const combinedFieldProps = combine([
@@ -146,8 +148,8 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
       if (combinedFieldProps.isErr()) {
         return err(
           new Error(
-            `Failed to create value objects for field "${fieldDTO.name}": ${combinedFieldProps.error.message}`,
-          ),
+            `Failed to create value objects for field "${fieldDTO.name}": ${combinedFieldProps.error.message}`
+          )
         );
       }
 
@@ -167,8 +169,8 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
       if (fieldOrError.isErr()) {
         return err(
           new Error(
-            `Failed to create AnnotationField "${fieldDTO.name}": ${fieldOrError.error.message}`,
-          ),
+            `Failed to create AnnotationField "${fieldDTO.name}": ${fieldOrError.error.message}`
+          )
         );
       }
       const field = fieldOrError.value;
@@ -184,20 +186,20 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
         // Should not happen if fieldId is valid, but check anyway
         return err(
           new Error(
-            `Failed to create field link for "${fieldDTO.name}": ${templateFieldOrError.error.message}`,
-          ),
+            `Failed to create field link for "${fieldDTO.name}": ${templateFieldOrError.error.message}`
+          )
         );
       }
       fieldLinksMap.set(
         field.fieldId.getStringValue(),
-        templateFieldOrError.value,
+        templateFieldOrError.value
       );
     }
 
     // Ensure field names are unique within the template
     const fieldNames = createdFields.map((f) => f.name.value);
     if (new Set(fieldNames).size !== fieldNames.length) {
-      return err(new Error('Field names within a template must be unique.'));
+      return err(new Error("Field names within a template must be unique."));
     }
 
     const aggregateProps: AnnotationTemplateProps = {
@@ -222,14 +224,14 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
   // Method to update the published record ID of a specific field
   public updateFieldPublishedRecordId(
     fieldId: AnnotationFieldId,
-    publishedRecordId: PublishedRecordId,
+    publishedRecordId: PublishedRecordId
   ): Result<void> {
     const field = this.props.fields.find((f) => f.fieldId.equals(fieldId));
     if (!field) {
       return err(
         new Error(
-          `Field with ID ${fieldId.getStringValue()} not found in this template.`,
-        ),
+          `Field with ID ${fieldId.getStringValue()} not found in this template.`
+        )
       );
     }
     // Assuming AnnotationField has a method to update its ID
@@ -237,22 +239,4 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
     // Optionally add domain event: TemplateFieldPublishedIdUpdated
     return ok(undefined);
   }
-
-  // Method to update name (keep existing)
-  public updateName(newName: AnnotationTemplateName): Result<void> {
-    this.props.name = newName;
-    // Optionally add domain event: TemplateNameUpdated
-    return Result.ok<void>();
-  }
-
-  // Method to update description
-  public updateDescription(
-    newDescription: AnnotationTemplateDescription
-  ): Result<void> {
-    this.props.description = newDescription;
-    // Optionally add domain event: TemplateDescriptionUpdated
-    return Result.ok<void>();
-  }
-
-  // Potentially methods to reorder fields, update 'required' status on a field, etc.
 }

@@ -72,13 +72,13 @@ export class DyadFieldDef extends AnnotationFieldDefinitionBase<IDyadFieldDefPro
       propsTypeResult.isErr() ||
       !propsTypeResult.value.equals(AnnotationType.DYAD)
     ) {
-      return err(new Error("Invalid DyadFieldDef props"));
+      return err(new Error('Invalid DyadFieldDef props'));
     }
     if (!props.sideA?.trim() || !props.sideB?.trim()) {
-      return fail("Dyad field labels cannot be empty.");
+      return err(new Error('Dyad field labels cannot be empty.')); // Use err
     }
     return ok(
-      new DyadFieldDef({ sideA: props.sideA.trim(), sideB: props.sideB.trim() })
+      new DyadFieldDef({ sideA: props.sideA.trim(), sideB: props.sideB.trim() }),
     );
   }
 }
@@ -113,7 +113,7 @@ export class TriadFieldDef extends AnnotationFieldDefinitionBase<ITriadFieldDefP
       !props.vertexB?.trim() ||
       !props.vertexC?.trim()
     ) {
-      return fail("Triad field labels cannot be empty.");
+      return err(new Error('Triad field labels cannot be empty.')); // Use err
     }
     return ok(
       new TriadFieldDef({
@@ -141,13 +141,13 @@ export class RatingFieldDef extends AnnotationFieldDefinitionBase<IRatingFieldDe
 // Helper for select options validation
 function validateSelectOptions(options: string[]): Result<string[]> {
   if (!options || options.length === 0) {
-    return fail("Selected field must have options.");
+    return err(new Error('Selected field must have options.')); // Use err
   }
   const trimmedOptions = options
     .map((opt) => opt?.trim())
     .filter((opt) => !!opt);
   if (trimmedOptions.length !== options.length) {
-    return fail("Selected options cannot be empty or just whitespace.");
+    return err(new Error('Selected options cannot be empty or just whitespace.')); // Use err
   }
   // Ensure unique options and sort for consistent comparison via props
   const uniqueSortedOptions = [...new Set(trimmedOptions)].sort();
@@ -177,7 +177,7 @@ export class SingleSelectFieldDef extends AnnotationFieldDefinitionBase<ISelectF
     }
     const optionsResult = validateSelectOptions(props.options);
     if (optionsResult.isErr()) {
-      return fail(optionsResult.error);
+      return err(optionsResult.error); // Propagate error
     }
     return ok(new SingleSelectFieldDef({ options: optionsResult.value }));
   }
@@ -206,7 +206,7 @@ export class MultiSelectFieldDef extends AnnotationFieldDefinitionBase<ISelectFi
     }
     const optionsResult = validateSelectOptions(props.options);
     if (optionsResult.isErr()) {
-      return fail(optionsResult.error);
+      return err(optionsResult.error); // Propagate error
     }
 
     return ok(new MultiSelectFieldDef({ options: optionsResult.value }));

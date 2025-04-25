@@ -81,7 +81,8 @@ export class AnnotationField extends Entity<AnnotationFieldProps> {
     const guardResult = Guard.againstNullOrUndefinedBulk(guardArgs);
 
     if (guardResult.isErr()) {
-      return fail(guardResult.error);
+      // Use err() and ensure error is an Error instance
+      return err(new Error(guardResult.error));
     }
 
     const defaultValues: AnnotationFieldProps = {

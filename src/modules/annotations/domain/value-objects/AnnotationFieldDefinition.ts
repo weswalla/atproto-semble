@@ -1,25 +1,47 @@
 import { ValueObject } from "../../../../shared/domain/ValueObject";
 import { AnnotationType } from "./AnnotationType";
-import { Result } from "../../../../shared/core/Result";
+import { err, ok, Result } from "../../../../shared/core/Result";
 
-// Define interfaces for the props of each definition type
-interface IDyadFieldDefProps {
+export interface IDyadFieldDefProps {
   sideA: string;
   sideB: string;
 }
-interface ITriadFieldDefProps {
+export interface ITriadFieldDefProps {
   vertexA: string;
   vertexB: string;
   vertexC: string;
 }
-interface IRatingFieldDefProps {
+export interface IRatingFieldDefProps {
   numberOfStars: 5;
-} // Fixed by lexicon
-interface ISelectFieldDefProps {
+}
+export interface ISelectFieldDefProps {
   options: string[];
-} // Used by Single and Multi
+}
 
-// Abstract base class for all annotation field definitions
+export type AnnotationFieldDefProps =
+  | IDyadFieldDefProps
+  | ITriadFieldDefProps
+  | IRatingFieldDefProps
+  | ISelectFieldDefProps;
+
+function getAnnotationFieldType(
+  props: AnnotationFieldDefProps
+): Result<AnnotationType> {
+  if ("sideA" in props && "sideB" in props) {
+    return ok(AnnotationType.DYAD);
+  }
+  if ("vertexA" in props && "vertexB" in props && "vertexC" in props) {
+    return ok(AnnotationType.TRIAD);
+  }
+  if ("numberOfStars" in props && props.numberOfStars === 5) {
+    return ok(AnnotationType.RATING);
+  }
+  if ("options" in props && Array.isArray(props.options)) {
+    return ok(AnnotationType.SINGLE_SELECT);
+  }
+  return err(Error("invalid annotation field def props"));
+}
+
 export abstract class AnnotationFieldDefinitionBase<
   T extends object,
 > extends ValueObject<T> {
@@ -29,8 +51,6 @@ export abstract class AnnotationFieldDefinitionBase<
     return !!other && this.type.equals(other.type);
   }
 }
-
-// Concrete definition classes
 
 export class DyadFieldDef extends AnnotationFieldDefinitionBase<IDyadFieldDefProps> {
   readonly type = AnnotationType.DYAD;
@@ -46,12 +66,19 @@ export class DyadFieldDef extends AnnotationFieldDefinitionBase<IDyadFieldDefPro
     super(props);
   }
 
-  public static create(sideA: string, sideB: string): Result<DyadFieldDef> {
-    if (!sideA?.trim() || !sideB?.trim()) {
-      return Result.fail<DyadFieldDef>("Dyad field labels cannot be empty.");
+  public static create(props: IDyadFieldDefProps): Result<DyadFieldDef> {
+    const propsTypeResult = getAnnotationFieldType(props);
+    if (
+      propsTypeResult.isErr() ||
+      !propsTypeResult.value.equals(AnnotationType.DYAD)
+    ) {
+      return err(new Error("Invalid DyadFieldDef props"));
     }
-    return Result.ok<DyadFieldDef>(
-      new DyadFieldDef({ sideA: sideA.trim(), sideB: sideB.trim() })
+    if (!props.sideA?.trim() || !props.sideB?.trim()) {
+      return fail("Dyad field labels cannot be empty.");
+    }
+    return ok(
+      new DyadFieldDef({ sideA: props.sideA.trim(), sideB: props.sideB.trim() })
     );
   }
 }
@@ -73,19 +100,26 @@ export class TriadFieldDef extends AnnotationFieldDefinitionBase<ITriadFieldDefP
     super(props);
   }
 
-  public static create(
-    vertexA: string,
-    vertexB: string,
-    vertexC: string
-  ): Result<TriadFieldDef> {
-    if (!vertexA?.trim() || !vertexB?.trim() || !vertexC?.trim()) {
-      return Result.fail<TriadFieldDef>("Triad field labels cannot be empty.");
+  public static create(props: ITriadFieldDefProps): Result<TriadFieldDef> {
+    const propsTypeResult = getAnnotationFieldType(props);
+    if (
+      propsTypeResult.isErr() ||
+      !propsTypeResult.value.equals(AnnotationType.TRIAD)
+    ) {
+      return err(new Error("Invalid TriadFieldDef props"));
     }
-    return Result.ok<TriadFieldDef>(
+    if (
+      !props.vertexA?.trim() ||
+      !props.vertexB?.trim() ||
+      !props.vertexC?.trim()
+    ) {
+      return fail("Triad field labels cannot be empty.");
+    }
+    return ok(
       new TriadFieldDef({
-        vertexA: vertexA.trim(),
-        vertexB: vertexB.trim(),
-        vertexC: vertexC.trim(),
+        vertexA: props.vertexA.trim(),
+        vertexB: props.vertexB.trim(),
+        vertexC: props.vertexC.trim(),
       })
     );
   }
@@ -93,34 +127,31 @@ export class TriadFieldDef extends AnnotationFieldDefinitionBase<ITriadFieldDefP
 
 export class RatingFieldDef extends AnnotationFieldDefinitionBase<IRatingFieldDefProps> {
   readonly type = AnnotationType.RATING;
-  readonly numberOfStars: 5 = 5; // Fixed by lexicon
+  readonly numberOfStars: 5 = 5;
 
   private constructor(props: IRatingFieldDefProps) {
     super(props);
   }
 
-  // Since numberOfStars is fixed, create doesn't need arguments
   public static create(): Result<RatingFieldDef> {
-    return Result.ok<RatingFieldDef>(new RatingFieldDef({ numberOfStars: 5 }));
+    return ok(new RatingFieldDef({ numberOfStars: 5 }));
   }
 }
 
 // Helper for select options validation
 function validateSelectOptions(options: string[]): Result<string[]> {
   if (!options || options.length === 0) {
-    return Result.fail<string[]>("Select field must have options.");
+    return fail("Selected field must have options.");
   }
   const trimmedOptions = options
     .map((opt) => opt?.trim())
     .filter((opt) => !!opt);
   if (trimmedOptions.length !== options.length) {
-    return Result.fail<string[]>(
-      "Select options cannot be empty or just whitespace."
-    );
+    return fail("Selected options cannot be empty or just whitespace.");
   }
   // Ensure unique options and sort for consistent comparison via props
   const uniqueSortedOptions = [...new Set(trimmedOptions)].sort();
-  return Result.ok<string[]>(uniqueSortedOptions);
+  return ok(uniqueSortedOptions);
 }
 
 export class SingleSelectFieldDef extends AnnotationFieldDefinitionBase<ISelectFieldDefProps> {
@@ -134,14 +165,21 @@ export class SingleSelectFieldDef extends AnnotationFieldDefinitionBase<ISelectF
     super(props);
   }
 
-  public static create(options: string[]): Result<SingleSelectFieldDef> {
-    const optionsResult = validateSelectOptions(options);
-    if (optionsResult.isFailure) {
-      return Result.fail<SingleSelectFieldDef>(optionsResult.getErrorValue());
+  public static create(
+    props: ISelectFieldDefProps
+  ): Result<SingleSelectFieldDef> {
+    const propsTypeResult = getAnnotationFieldType(props);
+    if (
+      propsTypeResult.isErr() ||
+      !propsTypeResult.value.equals(AnnotationType.SINGLE_SELECT)
+    ) {
+      return err(new Error("Invalid SingleSelectFieldDef props"));
     }
-    return Result.ok<SingleSelectFieldDef>(
-      new SingleSelectFieldDef({ options: optionsResult.getValue() })
-    );
+    const optionsResult = validateSelectOptions(props.options);
+    if (optionsResult.isErr()) {
+      return fail(optionsResult.error);
+    }
+    return ok(new SingleSelectFieldDef({ options: optionsResult.value }));
   }
 }
 
@@ -156,14 +194,22 @@ export class MultiSelectFieldDef extends AnnotationFieldDefinitionBase<ISelectFi
     super(props);
   }
 
-  public static create(options: string[]): Result<MultiSelectFieldDef> {
-    const optionsResult = validateSelectOptions(options);
-    if (optionsResult.isFailure) {
-      return Result.fail<MultiSelectFieldDef>(optionsResult.getErrorValue());
+  public static create(
+    props: ISelectFieldDefProps
+  ): Result<MultiSelectFieldDef> {
+    const propsTypeResult = getAnnotationFieldType(props);
+    if (
+      propsTypeResult.isErr() ||
+      !propsTypeResult.value.equals(AnnotationType.SINGLE_SELECT)
+    ) {
+      return err(new Error("Invalid MultiSelectFieldDef props"));
     }
-    return Result.ok<MultiSelectFieldDef>(
-      new MultiSelectFieldDef({ options: optionsResult.getValue() })
-    );
+    const optionsResult = validateSelectOptions(props.options);
+    if (optionsResult.isErr()) {
+      return fail(optionsResult.error);
+    }
+
+    return ok(new MultiSelectFieldDef({ options: optionsResult.value }));
   }
 }
 

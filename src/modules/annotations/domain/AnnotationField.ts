@@ -1,14 +1,13 @@
-import { AggregateRoot } from "../../../../shared/domain/AggregateRoot";
-import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
-import { Result } from "../../../../shared/core/Result";
-import { Guard, IGuardArgument } from "../../../../shared/core/Guard";
-import { AnnotationFieldId } from "../value-objects/AnnotationFieldId"; // Assuming this exists and wraps UniqueEntityID
-import { AnnotationFieldName } from "../value-objects/AnnotationFieldName";
-import { AnnotationFieldDescription } from "../value-objects/AnnotationFieldDescription";
-import { AnnotationFieldDefinition } from "../value-objects/AnnotationFieldDefinition"; // Renamed and refactored
-import { CuratorId, PublishedRecordId } from "../value-objects";
+import { UniqueEntityID } from "../../../shared/domain/UniqueEntityID";
+import { ok, Result } from "../../../shared/core/Result";
+import { Guard, IGuardArgument } from "../../../shared/core/Guard";
+import { AnnotationFieldId } from "./value-objects/AnnotationFieldId"; // Assuming this exists and wraps UniqueEntityID
+import { AnnotationFieldName } from "./value-objects/AnnotationFieldName";
+import { AnnotationFieldDescription } from "./value-objects/AnnotationFieldDescription";
+import { AnnotationFieldDefinition } from "./value-objects/AnnotationFieldDefinition"; // Renamed and refactored
+import { CuratorId, PublishedRecordId } from "./value-objects";
+import { Entity } from "src/shared/domain/Entity";
 
-// Properties required to construct an AnnotationField
 export interface AnnotationFieldProps {
   curatorId: CuratorId;
   name: AnnotationFieldName;
@@ -18,9 +17,9 @@ export interface AnnotationFieldProps {
   publishedRecordId?: PublishedRecordId;
 }
 
-export class AnnotationField extends AggregateRoot<AnnotationFieldProps> {
+export class AnnotationField extends Entity<AnnotationFieldProps> {
   get fieldId(): AnnotationFieldId {
-    return AnnotationFieldId.create(this._id).getValue();
+    return AnnotationFieldId.create(this._id).unwrap();
   }
 
   get curatorId(): CuratorId {
@@ -47,12 +46,26 @@ export class AnnotationField extends AggregateRoot<AnnotationFieldProps> {
     return this.props.publishedRecordId;
   }
 
-  public updatePublishedRecordId(publishedRecordId: PublishedRecordId): void {
+  public isPublished(): boolean {
+    return this.props.publishedRecordId !== undefined;
+  }
+
+  public markAsPublished(publishedRecordId: PublishedRecordId): void {
     this.props.publishedRecordId = publishedRecordId;
   }
 
   private constructor(props: AnnotationFieldProps, id?: UniqueEntityID) {
     super(props, id);
+  }
+
+  public clone(): AnnotationField {
+    return new AnnotationField(
+      {
+        ...this.props,
+        createdAt: this.props.createdAt,
+      },
+      this._id
+    );
   }
 
   public static create(
@@ -67,8 +80,8 @@ export class AnnotationField extends AggregateRoot<AnnotationFieldProps> {
 
     const guardResult = Guard.againstNullOrUndefinedBulk(guardArgs);
 
-    if (guardResult.isFailure) {
-      return Result.fail<AnnotationField>(guardResult.getErrorValue());
+    if (guardResult.isErr()) {
+      return fail(guardResult.error);
     }
 
     const defaultValues: AnnotationFieldProps = {
@@ -78,12 +91,6 @@ export class AnnotationField extends AggregateRoot<AnnotationFieldProps> {
 
     const annotationField = new AnnotationField(defaultValues, id);
 
-    // Optionally: Add domain event for AnnotationFieldCreated
-
-    return Result.ok<AnnotationField>(annotationField);
+    return ok(annotationField);
   }
-
-  // Methods for business logic related to AnnotationField
-  // e.g., updateDescription(newDescription: AnnotationFieldDescription): Result<void>
-  // e.g., updateDefinition(newDefinition: AnnotationFieldDefinition): Result<void> - careful with type changes!
 }

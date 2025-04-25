@@ -1,114 +1,118 @@
 import { ValueObject } from "src/shared/domain/ValueObject";
 import { AnnotationTemplateField } from "./AnnotationTemplateField";
-import { Result } from "src/shared/core/Result";
+import { err, ok, Result } from "src/shared/core/Result";
 import { Guard } from "src/shared/core/Guard";
-import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
+import { AnnotationField } from "../aggregates";
+import { AnnotationFieldDefProps } from "./AnnotationFieldDefinition";
+import { AnnotationType } from "./AnnotationType";
+import { AnnotationFieldName } from "./AnnotationFieldName";
+import { AnnotationFieldDescription } from "./AnnotationFieldDescription";
+import { AnnotationFieldDefinitionFactory } from "../AnnotationFieldDefinitionFactory";
+import { CuratorId } from "./CuratorId";
 import { AnnotationFieldId } from "./AnnotationFieldId";
 
+export interface AnnotationTemplateFieldInputDTO {
+  name: string;
+  description: string;
+  type: string;
+  definition: AnnotationFieldDefProps;
+  required?: boolean; // Assuming optional based on AnnotationTemplateField
+}
 interface AnnotationTemplateFieldsProps {
   fields: AnnotationTemplateField[];
 }
 
+interface AnnotationTemplateFieldsFromDtoProps {
+  fields: AnnotationTemplateFieldInputDTO[];
+  curatorId: string;
+}
+
 export class AnnotationTemplateFields extends ValueObject<AnnotationTemplateFieldsProps> {
-  get fields(): AnnotationTemplateField[] {
+  get annotationTemplateFields(): AnnotationTemplateField[] {
     return [...this.props.fields];
   }
 
-  getFieldIds(): AnnotationFieldId[] {
-    return this.props.fields.map((field) => field.annotationFieldId);
+  getAnnotationFields(): AnnotationField[] {
+    return this.props.fields.map((field) => field.annotationField);
+  }
+
+  public isEmpty(): boolean {
+    return this.props.fields.length === 0;
+  }
+
+  public getAnnotationFieldById(
+    annotationFieldId: AnnotationFieldId
+  ): Result<AnnotationField> {
+    const field = this.props.fields.find((field) =>
+      field.annotationField.fieldId.equals(annotationFieldId)
+    );
+    if (!field) {
+      return err(new Error("Field not found"));
+    }
+    return ok(field.annotationField);
   }
 
   private constructor(props: AnnotationTemplateFieldsProps) {
     super(props);
   }
 
+  public static fromDto(
+    props: AnnotationTemplateFieldsFromDtoProps
+  ): Result<AnnotationTemplateFields> {
+    const annotationTemplateFields: AnnotationTemplateField[] = [];
+    for (const field of props.fields) {
+      const fieldType = AnnotationType.create(field.type);
+      const annotationFieldNameResult = AnnotationFieldName.create(field.name);
+      const annotationFieldDescriptionResult =
+        AnnotationFieldDescription.create(field.description);
+      const annotationFieldDefinitionResult =
+        AnnotationFieldDefinitionFactory.create({
+          type: fieldType,
+          fieldDefProps: field.definition,
+        });
+
+      if (
+        annotationFieldNameResult.isErr() ||
+        annotationFieldDescriptionResult.isErr() ||
+        annotationFieldDefinitionResult.isErr()
+      ) {
+        return err(Error("Invalid field data"));
+      }
+
+      const annotationFieldResult = AnnotationField.create({
+        curatorId: CuratorId.create(props.curatorId).unwrap(),
+        name: annotationFieldNameResult.value,
+        description: annotationFieldDescriptionResult.value,
+        definition: annotationFieldDefinitionResult.value,
+      });
+
+      if (annotationFieldResult.isErr()) {
+        return err(Error("Invalid field data"));
+      }
+      const annotationTemplateFieldResult = AnnotationTemplateField.create({
+        annotationField: annotationFieldResult.value,
+        required: field.required,
+      });
+      if (annotationTemplateFieldResult.isErr()) {
+        return err(Error("Invalid field data"));
+      }
+      annotationTemplateFields.push(annotationTemplateFieldResult.value);
+    }
+    return AnnotationTemplateFields.create(annotationTemplateFields);
+  }
+
   public static create(
     fields: AnnotationTemplateField[]
   ): Result<AnnotationTemplateFields> {
     const guardResult = Guard.againstNullOrUndefined(fields, "fields");
-    if (guardResult.isFailure) {
-      return Result.fail<AnnotationTemplateFields>(guardResult.getErrorValue());
+    if (guardResult.isErr()) {
+      return fail(guardResult.error);
     }
 
     if (fields.length === 0) {
-      return Result.fail<AnnotationTemplateFields>(
-        "AnnotationTemplate must include at least one field."
-      );
+      return fail("AnnotationTemplate must include at least one field.");
     }
 
-    // Check for duplicate fields based on AnnotationFieldId
-    const fieldIds = fields.map((field) =>
-      field.annotationFieldId.getValue().toString()
-    );
-    const uniqueFieldIds = new Set(fieldIds);
-    if (uniqueFieldIds.size !== fieldIds.length) {
-      return Result.fail<AnnotationTemplateFields>(
-        "AnnotationTemplate cannot contain duplicate fields."
-      );
-    }
-
-    return Result.ok<AnnotationTemplateFields>(
-      new AnnotationTemplateFields({ fields: [...fields] }) // Store a copy
-    );
-  }
-
-  public findById(
-    fieldId: UniqueEntityID
-  ): AnnotationTemplateField | undefined {
-    return this.props.fields.find((field) =>
-      field.annotationFieldId.getValue().equals(fieldId)
-    );
-  }
-
-  public add(field: AnnotationTemplateField): Result<AnnotationTemplateFields> {
-    const guardResult = Guard.againstNullOrUndefined(field, "field");
-    if (guardResult.isFailure) {
-      return Result.fail<AnnotationTemplateFields>(guardResult.getErrorValue());
-    }
-
-    const exists = this.findById(field.annotationFieldId.getValue());
-    if (exists) {
-      return Result.fail<AnnotationTemplateFields>(
-        "Field already exists in the template."
-      );
-    }
-
-    const newFields = [...this.props.fields, field];
-    return AnnotationTemplateFields.create(newFields); // Re-validates and creates new instance
-  }
-
-  public remove(
-    fieldIdToRemove: UniqueEntityID
-  ): Result<AnnotationTemplateFields> {
-    const guardResult = Guard.againstNullOrUndefined(
-      fieldIdToRemove,
-      "fieldIdToRemove"
-    );
-    if (guardResult.isFailure) {
-      return Result.fail<AnnotationTemplateFields>(guardResult.getErrorValue());
-    }
-
-    const initialLength = this.props.fields.length;
-    const newFields = this.props.fields.filter(
-      (field) => !field.annotationFieldId.getValue().equals(fieldIdToRemove)
-    );
-
-    if (newFields.length === initialLength) {
-      return Result.fail<AnnotationTemplateFields>(
-        "Field not found in the template."
-      );
-    }
-
-    // The create method already checks for emptiness
-    return AnnotationTemplateFields.create(newFields);
-  }
-
-  public count(): number {
-    return this.props.fields.length;
-  }
-
-  // Optional: If you need to get the raw array (use with caution)
-  public getRawFields(): AnnotationTemplateField[] {
-    return this.props.fields;
+    return ok(new AnnotationTemplateFields({ fields: [...fields] }));
   }
 }

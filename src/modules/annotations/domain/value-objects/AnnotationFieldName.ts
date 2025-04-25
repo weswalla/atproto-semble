@@ -1,5 +1,5 @@
 import { ValueObject } from "../../../../shared/domain/ValueObject";
-import { ok, Result } from "../../../../shared/core/Result";
+import { err, ok, Result } from "../../../../shared/core/Result";
 
 interface AnnotationFieldNameProps {
   value: string;
@@ -20,12 +20,14 @@ export class AnnotationFieldName extends ValueObject<AnnotationFieldNameProps> {
     const nameTrimmed = name?.trim(); // Handle potential null/undefined input
 
     if (nameTrimmed.length === 0) {
-      return fail("AnnotationField name cannot be empty.");
+      return err(Error("AnnotationField name cannot be empty."));
     }
 
     if (nameTrimmed.length > this.MAX_LENGTH) {
-      return fail(
-        `AnnotationField name exceeds maximum length of ${this.MAX_LENGTH} characters.`
+      return err(
+        Error(
+          `AnnotationField name exceeds maximum length of ${this.MAX_LENGTH} characters.`
+        )
       );
     }
 

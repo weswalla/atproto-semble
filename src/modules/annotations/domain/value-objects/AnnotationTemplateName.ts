@@ -1,5 +1,5 @@
 import { ValueObject } from "../../../../shared/domain/ValueObject";
-import { ok, Result } from "../../../../shared/core/Result";
+import { err, ok, Result } from "../../../../shared/core/Result";
 
 interface AnnotationTemplateNameProps {
   value: string;
@@ -20,12 +20,14 @@ export class AnnotationTemplateName extends ValueObject<AnnotationTemplateNamePr
     const nameTrimmed = name?.trim();
 
     if (nameTrimmed.length === 0) {
-      return fail("AnnotationTemplate name cannot be empty.");
+      return err(Error("AnnotationTemplate name cannot be empty."));
     }
 
     if (nameTrimmed.length > this.MAX_LENGTH) {
-      return fail(
-        `AnnotationTemplate name exceeds maximum length of ${this.MAX_LENGTH} characters.`
+      return err(
+        Error(
+          `AnnotationTemplate name exceeds maximum length of ${this.MAX_LENGTH} characters.`
+        )
       );
     }
 

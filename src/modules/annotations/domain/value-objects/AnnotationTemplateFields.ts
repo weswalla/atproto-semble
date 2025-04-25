@@ -110,7 +110,7 @@ export class AnnotationTemplateFields extends ValueObject<AnnotationTemplateFiel
     }
 
     if (fields.length === 0) {
-      return fail("AnnotationTemplate must include at least one field.");
+      return err(Error("AnnotationTemplate must include at least one field."));
     }
 
     return ok(new AnnotationTemplateFields({ fields: [...fields] }));

@@ -1,5 +1,6 @@
 export * from "./AnnotationValue";
 export * from "./AnnotationFieldDefinition";
+export * from "./AnnotationFieldDescription";
 export * from "./Identifier";
 export * from "./URI";
 export * from "./AnnotationFieldId";

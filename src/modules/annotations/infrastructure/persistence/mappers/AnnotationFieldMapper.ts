@@ -1,4 +1,4 @@
-import { AnnotationField } from "../../../domain/aggregates/AnnotationField";
+import { AnnotationField } from "../../../domain/AnnotationField";
 import { AnnotationFieldOutputDTO } from "../../../application/dtos/AnnotationFieldDTO";
 
 // Placeholder for mapping between AnnotationField domain object and persistence layer structure

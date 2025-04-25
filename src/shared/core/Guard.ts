@@ -1,6 +1,6 @@
 export type GuardResponse = string; // This remains the type for the error message
 
-import { Result, ok, err } from './Result'; // Import ok and err factories
+import { Result, ok, err } from "./Result"; // Import ok and err factories
 
 export interface IGuardArgument {
   argument: any;
@@ -29,7 +29,7 @@ export class Guard {
 
   public static greaterThan(
     minValue: number,
-    actualValue: number,
+    actualValue: number
   ): GuardResult {
     return actualValue > minValue
       ? ok(undefined) // Use ok factory
@@ -50,7 +50,7 @@ export class Guard {
 
   public static againstNullOrUndefined(
     argument: any,
-    argumentName: string,
+    argumentName: string
   ): GuardResult {
     if (argument === null || argument === undefined) {
       return err(`${argumentName} is null or undefined`); // Use err factory
@@ -60,12 +60,12 @@ export class Guard {
   }
 
   public static againstNullOrUndefinedBulk(
-    args: GuardArgumentCollection,
+    args: GuardArgumentCollection
   ): GuardResult {
     for (const arg of args) {
       const result = this.againstNullOrUndefined(
         arg.argument,
-        arg.argumentName,
+        arg.argumentName
       );
       // Use the isErr type guard
       if (result.isErr()) {
@@ -79,7 +79,7 @@ export class Guard {
   public static isOneOf(
     value: any,
     validValues: any[],
-    argumentName: string,
+    argumentName: string
   ): GuardResult {
     let isValid = false;
     for (const validValue of validValues) {
@@ -94,8 +94,8 @@ export class Guard {
       // Use err factory
       return err(
         `${argumentName} isn't oneOf the correct types in ${JSON.stringify(
-          validValues,
-        )}. Got "${value}".`,
+          validValues
+        )}. Got "${value}".`
       );
     }
   }
@@ -104,7 +104,7 @@ export class Guard {
     num: number,
     min: number,
     max: number,
-    argumentName: string,
+    argumentName: string
   ): GuardResult {
     const isInRange = num >= min && num <= max;
     if (!isInRange) {
@@ -119,7 +119,7 @@ export class Guard {
     numbers: number[],
     min: number,
     max: number,
-    argumentName: string,
+    argumentName: string
   ): GuardResult {
     for (const num of numbers) {
       const numIsInRangeResult = this.inRange(num, min, max, argumentName);
@@ -127,7 +127,7 @@ export class Guard {
       if (numIsInRangeResult.isErr()) {
         // Return the specific error from inRange
         return err(
-          `${argumentName} is not within the range. Failed value: ${num}`,
+          `${argumentName} is not within the range. Failed value: ${num}`
         ); // Or return numIsInRangeResult directly
       }
     }

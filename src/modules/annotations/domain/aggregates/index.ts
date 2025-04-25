@@ -1,3 +1,3 @@
-export * from './Annotation'
-export * from './AnnotationField'
-export * from './AnnotationTemplate'
+export * from "./Annotation";
+export * from "../AnnotationField";
+export * from "./AnnotationTemplate";

@@ -1,14 +1,14 @@
-import { IAnnotationPublisher } from '../../application/ports/IAnnotationPublisher';
-import { Annotation } from '../../domain/aggregates/Annotation';
-import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
-import { Result, ok } from '../../../../shared/core/Result';
-import { UseCaseError } from '../../../../shared/core/UseCaseError';
+import { IAnnotationPublisher } from "../../application/ports/IAnnotationPublisher";
+import { Annotation } from "../../domain/aggregates/Annotation";
+import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
+import { Result, ok } from "../../../../shared/core/Result";
+import { UseCaseError } from "../../../../shared/core/UseCaseError";
 
 export class FakeAnnotationPublisher implements IAnnotationPublisher {
   private publishedRecords: Map<string, Annotation> = new Map();
 
   async publish(
-    annotation: Annotation,
+    annotation: Annotation
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     const annotationId = annotation.annotationId.getStringValue();
     // Simulate generating an AT URI based on DID and collection/rkey
@@ -19,13 +19,13 @@ export class FakeAnnotationPublisher implements IAnnotationPublisher {
     this.publishedRecords.set(publishedRecordId.getValue(), annotation);
 
     console.log(
-      `[FakeAnnotationPublisher] Published annotation ${annotationId} to ${fakeUri}`,
+      `[FakeAnnotationPublisher] Published annotation ${annotationId} to ${fakeUri}`
     );
     return ok(publishedRecordId);
   }
 
   async unpublish(
-    recordId: PublishedRecordId,
+    recordId: PublishedRecordId
   ): Promise<Result<void, UseCaseError>> {
     const uri = recordId.getValue();
     if (this.publishedRecords.has(uri)) {
@@ -34,7 +34,7 @@ export class FakeAnnotationPublisher implements IAnnotationPublisher {
       return ok(undefined); // Use ok(undefined) for void success
     } else {
       console.warn(
-        `[FakeAnnotationPublisher] Record not found for unpublishing: ${uri}`,
+        `[FakeAnnotationPublisher] Record not found for unpublishing: ${uri}`
       );
       // Depending on requirements, you might return an error here
       // For a simple fake, we can still return success

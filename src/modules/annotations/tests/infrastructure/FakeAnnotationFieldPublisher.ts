@@ -1,14 +1,14 @@
-import { IAnnotationFieldPublisher } from '../../application/ports/IAnnotationFieldPublisher';
-import { AnnotationField } from '../../domain/aggregates/AnnotationField';
-import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
-import { Result, ok } from '../../../../shared/core/Result';
-import { UseCaseError } from '../../../../shared/core/UseCaseError';
+import { IAnnotationFieldPublisher } from "../../application/ports/IAnnotationFieldPublisher";
+import { AnnotationField } from "../../domain/AnnotationField";
+import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
+import { Result, ok } from "../../../../shared/core/Result";
+import { UseCaseError } from "../../../../shared/core/UseCaseError";
 
 export class FakeAnnotationFieldPublisher implements IAnnotationFieldPublisher {
   private publishedRecords: Map<string, AnnotationField> = new Map();
 
   async publish(
-    field: AnnotationField,
+    field: AnnotationField
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     const fieldId = field.fieldId.getStringValue();
     // Simulate generating an AT URI based on DID and collection/rkey
@@ -19,13 +19,13 @@ export class FakeAnnotationFieldPublisher implements IAnnotationFieldPublisher {
     this.publishedRecords.set(publishedRecordId.getValue(), field);
 
     console.log(
-      `[FakeAnnotationFieldPublisher] Published field ${fieldId} to ${fakeUri}`,
+      `[FakeAnnotationFieldPublisher] Published field ${fieldId} to ${fakeUri}`
     );
     return ok(publishedRecordId);
   }
 
   async unpublish(
-    recordId: PublishedRecordId,
+    recordId: PublishedRecordId
   ): Promise<Result<void, UseCaseError>> {
     const uri = recordId.getValue();
     if (this.publishedRecords.has(uri)) {
@@ -34,7 +34,7 @@ export class FakeAnnotationFieldPublisher implements IAnnotationFieldPublisher {
       return ok(undefined); // Use ok(undefined) for void success
     } else {
       console.warn(
-        `[FakeAnnotationFieldPublisher] Record not found for unpublishing: ${uri}`,
+        `[FakeAnnotationFieldPublisher] Record not found for unpublishing: ${uri}`
       );
       // Depending on requirements, you might return an error here
       // For a simple fake, we can still return success

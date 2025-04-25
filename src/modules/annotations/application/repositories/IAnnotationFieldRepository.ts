@@ -1,4 +1,4 @@
-import { AnnotationField } from "../../domain/aggregates/AnnotationField";
+import { AnnotationField } from "../../domain/AnnotationField";
 import { AnnotationFieldId } from "../../domain/value-objects/AnnotationFieldId";
 import { PublishedRecordId } from "../../domain/value-objects"; // Import PublishedRecordId
 

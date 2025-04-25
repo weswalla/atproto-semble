@@ -14,25 +14,19 @@ export class InMemoryAnnotationTemplateRepository
   // Simple clone function using structuredClone (requires Node.js >= 17 or polyfill)
   // Fallback to basic spread if structuredClone is unavailable, but be aware of limitations.
   private clone(template: AnnotationTemplate): AnnotationTemplate {
-    if (typeof structuredClone === "function") {
-      return structuredClone(template);
-    } else {
-      // Basic spread - WARNING: May not deeply clone nested objects/classes correctly.
-      // Consider a more robust cloning method if needed.
-      console.warn(
-        "structuredClone not available, using basic spread for cloning. Nested objects might not be fully cloned."
+    console.warn(
+      "structuredClone not available, using basic spread for cloning. Nested objects might not be fully cloned."
+    );
+    const props = { ...template.props };
+    // Re-create to ensure prototype chain is correct, though nested objects are still shallow copied
+    const recreatedResult = AnnotationTemplate.create(props, template.id);
+    if (recreatedResult.isErr()) {
+      // This should ideally not happen if cloning valid props
+      throw new Error(
+        `Cloning failed during re-creation: ${recreatedResult.error.message}`
       );
-      const props = { ...template.props };
-      // Re-create to ensure prototype chain is correct, though nested objects are still shallow copied
-      const recreatedResult = AnnotationTemplate.create(props, template.id);
-      if (recreatedResult.isErr()) {
-        // This should ideally not happen if cloning valid props
-        throw new Error(
-          `Cloning failed during re-creation: ${recreatedResult.error.message}`
-        );
-      }
-      return recreatedResult.value;
     }
+    return recreatedResult.value;
   }
 
   async findById(id: AnnotationTemplateId): Promise<AnnotationTemplate | null> {

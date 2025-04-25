@@ -1,11 +1,10 @@
-import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
-import { Result, ok, err } from '../../../../shared/core/Result';
+import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
+import { Result, ok, err } from "../../../../shared/core/Result";
 import {
   AnnotationField,
   AnnotationFieldProps,
-} from '../../domain/AnnotationField';
+} from "../../domain/AnnotationField";
 import {
-  AnnotationFieldName,
   AnnotationFieldDescription,
   CuratorId,
   PublishedRecordId,
@@ -18,14 +17,15 @@ import {
   IDyadFieldDefProps,
   ITriadFieldDefProps,
   ISelectFieldDefProps,
-} from '../../domain/value-objects';
+} from "../../domain/value-objects";
+import { AnnotationFieldName } from "../../domain/value-objects/AnnotationFieldName";
 
 export class AnnotationFieldBuilder {
   private _id?: UniqueEntityID;
-  private _curatorId: string = 'did:example:defaultCurator';
-  private _name: string = 'Default Field Name';
-  private _description: string = 'Default field description.';
-  private _definitionProps: any = { sideA: 'Left', sideB: 'Right' }; // Default to Dyad
+  private _curatorId: string = "did:plc:defaultCurator";
+  private _name: string = "Default Field Name";
+  private _description: string = "Default field description.";
+  private _definitionProps: any = { sideA: "Left", sideB: "Right" }; // Default to Dyad
   private _definition?: AnnotationFieldDefinition; // Allow setting directly
   private _createdAt?: Date;
   private _publishedRecordId?: string;
@@ -106,7 +106,7 @@ export class AnnotationFieldBuilder {
     const curatorIdResult = CuratorId.create(this._curatorId);
     const nameResult = AnnotationFieldName.create(this._name);
     const descriptionResult = AnnotationFieldDescription.create(
-      this._description,
+      this._description
     );
 
     let definitionResult: Result<AnnotationFieldDefinition>;
@@ -117,13 +117,13 @@ export class AnnotationFieldBuilder {
     } else if (this._definitionProps) {
       // Attempt to create definition from props
       // This requires trying each type based on the props structure
-      if ('sideA' in this._definitionProps) {
+      if ("sideA" in this._definitionProps) {
         definitionResult = DyadFieldDef.create(this._definitionProps);
-      } else if ('vertexA' in this._definitionProps) {
+      } else if ("vertexA" in this._definitionProps) {
         definitionResult = TriadFieldDef.create(this._definitionProps);
-      } else if ('numberOfStars' in this._definitionProps) {
+      } else if ("numberOfStars" in this._definitionProps) {
         definitionResult = RatingFieldDef.create(); // No props needed
-      } else if ('options' in this._definitionProps) {
+      } else if ("options" in this._definitionProps) {
         // Try both select types - assumes structure is sufficient to distinguish
         // Or rely on a 'type' hint if added to builder state
         // For simplicity, let's assume SingleSelect first, then MultiSelect
@@ -133,40 +133,31 @@ export class AnnotationFieldBuilder {
         }
       } else {
         definitionResult = err(
-          new Error('Could not determine definition type from props'),
+          new Error("Could not determine definition type from props")
         );
       }
     } else {
-      return err(new Error('AnnotationField definition not set in builder'));
+      return err(new Error("AnnotationField definition not set in builder"));
     }
 
-    let publishedRecordIdResult: Result<PublishedRecordId | undefined> = ok(
-      undefined,
-    );
-    if (this._publishedRecordId) {
-      publishedRecordIdResult = PublishedRecordId.create(
-        this._publishedRecordId,
-      );
+    let publishedRecordIdResult: Result<PublishedRecordId | undefined> =
+      ok(undefined);
+    const publishedRecordId = this._publishedRecordId
+      ? PublishedRecordId.create(this._publishedRecordId)
+      : undefined;
+    if (
+      curatorIdResult.isErr() ||
+      nameResult.isErr() ||
+      descriptionResult.isErr() ||
+      definitionResult.isErr()
+    ) {
+      throw new Error("Failed to create one of the required properties");
     }
 
-    const combinedProps = Result.combineWithAllErrors([
-      curatorIdResult,
-      nameResult,
-      descriptionResult,
-      definitionResult,
-      publishedRecordIdResult,
-    ]);
-
-    if (combinedProps.isErr()) {
-      // Combine errors for better feedback
-      const errorMessages = combinedProps.error.map((e) => e.message).join('; ');
-      return err(
-        new Error(`Failed to create value objects: ${errorMessages}`),
-      );
-    }
-
-    const [curatorId, name, description, definition, publishedRecordId] =
-      combinedProps.value;
+    const curatorId = curatorIdResult.value;
+    const name = nameResult.value;
+    const description = descriptionResult.value;
+    const definition = definitionResult.value;
 
     const fieldProps: AnnotationFieldProps = {
       curatorId,
@@ -183,8 +174,8 @@ export class AnnotationFieldBuilder {
     if (fieldResult.isErr()) {
       return err(
         new Error(
-          `AnnotationField creation failed: ${fieldResult.error.message}`,
-        ),
+          `AnnotationField creation failed: ${fieldResult.error.message}`
+        )
       );
     }
 

@@ -1,6 +1,5 @@
 import { ValueObject } from "../../../../shared/domain/ValueObject";
-import { Result } from "../../../../shared/core/Result";
-import { Guard } from "../../../../shared/core/Guard";
+import { ok, Result } from "../../../../shared/core/Result";
 
 // Use the same validation as the generic DID value object
 // Allows did:plc and potentially did:web, adjust regex if needed
@@ -24,23 +23,18 @@ export class CuratorId extends ValueObject<CuratorIdProps> {
   }
 
   public static create(did: string): Result<CuratorId> {
-    const guardResult = Guard.againstNullOrUndefined(did, "curatorId");
-    if (guardResult.isFailure) {
-      return Result.fail<CuratorId>(guardResult.getErrorValue());
-    }
-
     const didTrimmed = did.trim();
     if (didTrimmed.length === 0) {
-      return Result.fail<CuratorId>("CuratorId cannot be empty.");
+      return fail("CuratorId cannot be empty.");
     }
 
     if (!DID_REGEX.test(didTrimmed)) {
-      return Result.fail<CuratorId>(
+      return fail(
         `Invalid CuratorId format (must be a valid DID): ${didTrimmed}`
       );
     }
 
-    return Result.ok<CuratorId>(new CuratorId({ value: didTrimmed }));
+    return ok(new CuratorId({ value: didTrimmed }));
   }
 
   toString(): string {

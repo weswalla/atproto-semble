@@ -1,5 +1,5 @@
 import { ValueObject } from "../../../../shared/domain/ValueObject";
-import { Result } from "../../../../shared/core/Result";
+import { ok, Result } from "../../../../shared/core/Result";
 import { Guard } from "../../../../shared/core/Guard";
 
 interface AnnotationTemplateDescriptionProps {
@@ -17,21 +17,17 @@ export class AnnotationTemplateDescription extends ValueObject<AnnotationTemplat
     super(props);
   }
 
-  public static create(description: string): Result<AnnotationTemplateDescription> {
-    const descriptionTrimmed = description?.trim();
-
-    const guardResult = Guard.againstNullOrUndefined(descriptionTrimmed, "description");
-     if (guardResult.isFailure) {
-       // Allow null/undefined to pass through, representing an empty description
-       return Result.ok<AnnotationTemplateDescription>(new AnnotationTemplateDescription({ value: "" }));
-     }
+  public static create(
+    description: string
+  ): Result<AnnotationTemplateDescription> {
+    const descriptionTrimmed = description.trim();
 
     if (descriptionTrimmed.length > this.MAX_LENGTH) {
-      return Result.fail<AnnotationTemplateDescription>(
+      return fail(
         `AnnotationTemplate description exceeds maximum length of ${this.MAX_LENGTH} characters.`
       );
     }
 
-    return Result.ok<AnnotationTemplateDescription>(new AnnotationTemplateDescription({ value: descriptionTrimmed }));
+    return ok(new AnnotationTemplateDescription({ value: descriptionTrimmed }));
   }
 }

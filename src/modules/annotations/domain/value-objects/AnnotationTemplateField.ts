@@ -1,20 +1,20 @@
 import { ValueObject } from "src/shared/domain/ValueObject";
-import { AnnotationFieldId } from "./AnnotationFieldId";
-import { Result } from "src/shared/core/Result";
+import { ok, Result } from "src/shared/core/Result";
 import { Guard } from "src/shared/core/Guard";
+import { AnnotationField } from "../aggregates";
 
 interface AnnotationTemplateFieldProps {
-  annotationFieldId: AnnotationFieldId;
+  annotationField: AnnotationField;
   required?: boolean;
 }
 export class AnnotationTemplateField extends ValueObject<{
-  annotationFieldId: AnnotationFieldId;
+  annotationField: AnnotationField;
   required?: boolean;
 }> {
-  get annotationFieldId(): AnnotationFieldId {
-    return this.props.annotationFieldId;
+  get annotationField(): AnnotationField {
+    return this.props.annotationField;
   }
-  get required(): boolean {
+  isRequired(): boolean {
     return this.props.required ?? false;
   }
 
@@ -25,14 +25,12 @@ export class AnnotationTemplateField extends ValueObject<{
     props: AnnotationTemplateFieldProps
   ): Result<AnnotationTemplateField> {
     const nullGuard = Guard.againstNullOrUndefined(
-      props.annotationFieldId,
-      "annotationFieldId"
+      props.annotationField,
+      "annotationField"
     );
-    if (nullGuard.isFailure) {
-      return Result.fail<AnnotationTemplateField>(nullGuard.getErrorValue());
+    if (nullGuard.isErr()) {
+      return fail(nullGuard.error);
     }
-    return Result.ok<AnnotationTemplateField>(
-      new AnnotationTemplateField(props)
-    );
+    return ok(new AnnotationTemplateField(props));
   }
 }

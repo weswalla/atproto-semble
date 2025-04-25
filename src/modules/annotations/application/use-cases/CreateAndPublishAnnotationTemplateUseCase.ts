@@ -96,7 +96,6 @@ export class CreateAndPublishAnnotationTemplateUseCase
         );
       }
       const template = templateOrError.value;
-
       const publishedAnnotationFields: AnnotationField[] = [];
 
       for (const annotationField of template.getAnnotationFields()) {
@@ -113,16 +112,24 @@ export class CreateAndPublishAnnotationTemplateUseCase
 
         const annotationFieldCloned = annotationField.clone();
         annotationFieldCloned.markAsPublished(publishedFieldId.value);
-        publishedAnnotationFields.push(annotationField);
+        publishedAnnotationFields.push(annotationFieldCloned);
       }
 
       for (const publishedField of publishedAnnotationFields) {
-        template.markAnnotationTemplateFieldAsPublished(
-          publishedField.fieldId,
-          publishedField.publishedRecordId!
-        );
+        const markAnnotationResult =
+          template.markAnnotationTemplateFieldAsPublished(
+            publishedField.fieldId,
+            publishedField.publishedRecordId!
+          );
+        if (markAnnotationResult.isErr()) {
+          return err(
+            new CreateAndPublishAnnotationTemplateErrors.FieldSaveFailed(
+              publishedField.name.value,
+              markAnnotationResult.error.message
+            )
+          );
+        }
       }
-
       if (template.hasUnpublishedFields()) {
         return err(
           new CreateAndPublishAnnotationTemplateErrors.FieldPublishFailed(
@@ -143,6 +150,8 @@ export class CreateAndPublishAnnotationTemplateUseCase
           )
         );
       }
+
+      template.markAsPublished(publishedTemplateIdResult.value);
 
       await this.annotationTemplateRepository.save(template);
 

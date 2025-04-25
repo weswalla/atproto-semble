@@ -5,6 +5,7 @@ import { FakeAnnotationTemplatePublisher } from "../utils/FakeAnnotationTemplate
 import { CreateAndPublishAnnotationTemplateUseCase } from "../../application/use-cases/CreateAndPublishAnnotationTemplateUseCase";
 import { AnnotationTemplateId } from "../../domain/value-objects";
 import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
+import { AnnotationTemplateDTOBuilder } from "../utils/AnnotationTemplateDTOBuilder";
 
 describe("CreateAndPublishAnnotationTemplateUseCase", () => {
   it("can publish a valid annotation template, along with all of its fields, and include the published record id", async () => {
@@ -23,7 +24,7 @@ describe("CreateAndPublishAnnotationTemplateUseCase", () => {
     // Given: a valid annotation template and fields
     const createAndPublishAnnotationTemplateDTO =
       new AnnotationTemplateDTOBuilder()
-        .withCuratorId("curatorId")
+        .withCuratorId("did:plc:1234")
         .withName("Test Template")
         .withDescription("Test Description")
         .addField({

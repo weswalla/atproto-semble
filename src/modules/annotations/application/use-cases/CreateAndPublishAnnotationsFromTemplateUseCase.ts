@@ -13,7 +13,10 @@ import {
 } from "../../domain/value-objects";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
 import { UseCaseError } from "../../../../shared/core/UseCaseError";
-import { AnnotationValueFactory } from "../../domain/AnnotationValueFactory";
+import {
+  AnnotationValueFactory,
+  AnnotationValueInput,
+} from "../../domain/AnnotationValueFactory";
 import { AnnotationType } from "../../domain/value-objects/AnnotationType";
 
 // Define specific errors
@@ -23,13 +26,13 @@ export namespace CreateAndPublishAnnotationErrors {
       super(`Failed to create annotation: ${message}`);
     }
   }
-  
+
   export class AnnotationPublishFailed extends UseCaseError {
     constructor(id: string, message: string) {
       super(`Failed to publish annotation ${id}: ${message}`);
     }
   }
-  
+
   export class AnnotationSaveFailed extends UseCaseError {
     constructor(id: string, message: string) {
       super(`Failed to save annotation ${id}: ${message}`);
@@ -77,13 +80,13 @@ export class CreateAndPublishAnnotationUseCase
       const fieldIdOrError = AnnotationFieldId.create(
         new UniqueEntityID(request.annotationFieldId)
       );
-      const typeOrError = AnnotationType.create(request.type);
-      
+      const type = AnnotationType.create(request.type);
+
       // Handle optional values
-      const noteOrError = request.note
+      const note = request.note
         ? AnnotationNote.create(request.note)
-        : ok(undefined);
-        
+        : undefined;
+
       const templateIdsOrError = request.annotationTemplateIds
         ? Result.all(
             request.annotationTemplateIds.map((id) =>
@@ -97,8 +100,6 @@ export class CreateAndPublishAnnotationUseCase
         curatorIdOrError.isErr() ||
         urlOrError.isErr() ||
         fieldIdOrError.isErr() ||
-        typeOrError.isErr() ||
-        noteOrError.isErr() ||
         templateIdsOrError.isErr()
       ) {
         return err(
@@ -110,7 +111,7 @@ export class CreateAndPublishAnnotationUseCase
 
       // Create annotation value
       const valueOrError = AnnotationValueFactory.create({
-        type: typeOrError.value,
+        type: type,
         valueInput: request.value,
       });
 
@@ -128,14 +129,14 @@ export class CreateAndPublishAnnotationUseCase
         url: urlOrError.value,
         annotationFieldId: fieldIdOrError.value,
         value: valueOrError.value,
-        note: noteOrError.value,
+        note: note,
         annotationTemplateIds: templateIdsOrError.value,
       });
 
       if (annotationOrError.isErr()) {
         return err(
           new CreateAndPublishAnnotationErrors.AnnotationCreationFailed(
-            annotationOrError.error.message
+            annotationOrError.error
           )
         );
       }
@@ -155,7 +156,7 @@ export class CreateAndPublishAnnotationUseCase
 
       // Mark as published and save
       annotation.markAsPublished(publishResult.value);
-      
+
       try {
         await this.annotationRepository.save(annotation);
       } catch (error: any) {

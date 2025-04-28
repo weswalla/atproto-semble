@@ -1,4 +1,3 @@
-import { InMemoryAnnotationRepository } from "../../infrastructure/persistence/repositories/InMemoryAnnotationRepository"; // Assuming this exists
 import { FakeAnnotationPublisher } from "../utils/FakeAnnotationPublisher"; // Assuming this exists
 import { CreateAndPublishAnnotationUseCase } from "../../application/use-cases/CreateAndPublishAnnotationsFromTemplateUseCase";
 import { Annotation } from "../../domain/aggregates/Annotation";

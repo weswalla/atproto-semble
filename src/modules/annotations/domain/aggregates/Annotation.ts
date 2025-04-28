@@ -1,7 +1,7 @@
 import { AnnotationValue } from "../value-objects/AnnotationValue";
 import { URI } from "../value-objects/URI";
 import { AggregateRoot } from "src/shared/domain/AggregateRoot";
-import { Either, left, Result, right } from "src/shared/core/Result";
+import { err, ok, Result } from "src/shared/core/Result";
 import { UpdateAnnotationErrors } from "../../application/use-cases/errors";
 import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
 import { Guard, IGuardArgument } from "src/shared/core/Guard";
@@ -13,11 +13,6 @@ import {
   CuratorId,
   PublishedRecordId,
 } from "../value-objects";
-
-export type UpdateAnnotationValueResult = Either<
-  UpdateAnnotationErrors.InvalidValueTypeError,
-  Result<void>
->;
 
 export interface AnnotationProps {
   curatorId: CuratorId;
@@ -32,7 +27,7 @@ export interface AnnotationProps {
 
 export class Annotation extends AggregateRoot<AnnotationProps> {
   get annotationId(): AnnotationId {
-    return AnnotationId.create(this._id).getValue();
+    return AnnotationId.create(this._id).unwrap();
   }
   get curatorId(): CuratorId {
     return this.props.curatorId;
@@ -63,12 +58,14 @@ export class Annotation extends AggregateRoot<AnnotationProps> {
     this.props.publishedRecordId = publishedRecordId;
   }
 
-  public updateValue(value: AnnotationValue): UpdateAnnotationValueResult {
+  public updateValue(
+    value: AnnotationValue
+  ): Result<void, UpdateAnnotationErrors.InvalidValueTypeError> {
     if (!this.value.isSameType(value)) {
-      return left(new UpdateAnnotationErrors.InvalidValueTypeError());
+      return err(new UpdateAnnotationErrors.InvalidValueTypeError());
     }
     this.props.value = value;
-    return right(Result.ok<void>());
+    return ok(undefined);
   }
 
   private constructor(props: AnnotationProps, id?: UniqueEntityID) {
@@ -78,7 +75,7 @@ export class Annotation extends AggregateRoot<AnnotationProps> {
   public static create(
     props: AnnotationProps,
     id?: UniqueEntityID
-  ): Result<Annotation> {
+  ): Result<Annotation, string> {
     const guardArgs: IGuardArgument[] = [
       { argument: props.curatorId, argumentName: "curatorId" },
       { argument: props.url, argumentName: "url" },
@@ -88,8 +85,8 @@ export class Annotation extends AggregateRoot<AnnotationProps> {
 
     const guardResult = Guard.againstNullOrUndefinedBulk(guardArgs);
 
-    if (guardResult.isFailure) {
-      return Result.fail<Annotation>(guardResult.getErrorValue());
+    if (guardResult.isErr()) {
+      return err(guardResult.error);
     }
 
     const defaultValues: AnnotationProps = {
@@ -102,6 +99,6 @@ export class Annotation extends AggregateRoot<AnnotationProps> {
 
     const annotation = new Annotation(defaultValues, id);
 
-    return Result.ok<Annotation>(annotation);
+    return ok(annotation);
   }
 }

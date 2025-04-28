@@ -55,6 +55,19 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
     return this.props.annotationTemplateFields.getAnnotationFields();
   }
 
+  public getAnnotationFieldById(
+    annotationFieldId: AnnotationFieldId
+  ): Result<AnnotationField> {
+    return this.props.annotationTemplateFields.getAnnotationFieldById(
+      annotationFieldId
+    );
+  }
+
+  public getRequiredFields(): AnnotationField[] {
+    return this.props.annotationTemplateFields.annotationTemplateFields
+      .filter((field) => field.isRequired())
+      .map((field) => field.annotationField);
+  }
   public markAsPublished(publishedRecordId: PublishedRecordId): void {
     this.props.publishedRecordId = publishedRecordId;
   }

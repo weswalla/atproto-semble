@@ -1,4 +1,5 @@
 import { ValueObject } from "../../../../shared/domain/ValueObject";
+import { AnnotationFieldDefinition } from "./AnnotationFieldDefinition";
 import { AnnotationType } from "./AnnotationType";
 
 interface IDyadValueProps {
@@ -33,6 +34,10 @@ export abstract class AnnotationValueBase<
    */
   public isSameType(other?: AnnotationValueBase<any>): boolean {
     return !!other && this.type.equals(other.type);
+  }
+
+  public typeMatchesDefinition(definition: AnnotationFieldDefinition): boolean {
+    return this.type.equals(definition.type);
   }
 }
 
@@ -74,18 +79,18 @@ export class TriadValue extends AnnotationValueBase<ITriadValueProps> {
     super(props);
   }
 
-  public static create(
-    vertexA: number,
-    vertexB: number,
-    vertexC: number
-  ): TriadValue {
-    if ([vertexA, vertexB, vertexC].some((v) => v < 0 || v > 1000)) {
+  public static create(props: ITriadValueProps): TriadValue {
+    if (
+      [props.vertexA, props.vertexB, props.vertexC].some(
+        (v) => v < 0 || v > 1000
+      )
+    ) {
       throw new Error("Triad vertex values must be between 0 and 1000.");
     }
-    if (vertexA + vertexB + vertexC !== 1000) {
+    if (props.vertexA + props.vertexB + props.vertexC !== 1000) {
       throw new Error("Triad vertex values must sum to 1000.");
     }
-    return new TriadValue({ vertexA, vertexB, vertexC });
+    return new TriadValue(props);
   }
 }
 

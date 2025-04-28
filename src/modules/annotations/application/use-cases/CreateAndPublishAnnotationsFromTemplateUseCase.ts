@@ -113,7 +113,8 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
       const templateId = templateIdOrError.value;
 
       // Fetch the template
-      const template = await this.annotationTemplateRepository.findById(templateId);
+      const template =
+        await this.annotationTemplateRepository.findById(templateId);
       if (!template) {
         return err(
           new CreateAndPublishAnnotationsFromTemplateErrors.TemplateNotFound(
@@ -124,21 +125,17 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
 
       // Create annotations from inputs
       const annotations: Annotation[] = [];
-      
+
       for (const annotationInput of request.annotations) {
         const fieldIdOrError = AnnotationFieldId.create(
           new UniqueEntityID(annotationInput.annotationFieldId)
         );
-        const typeOrError = AnnotationType.create(annotationInput.type);
-        const noteOrError = annotationInput.note
+        const type = AnnotationType.create(annotationInput.type);
+        const note = annotationInput.note
           ? AnnotationNote.create(annotationInput.note)
-          : ok(undefined);
+          : undefined;
 
-        if (
-          fieldIdOrError.isErr() ||
-          typeOrError.isErr() ||
-          noteOrError.isErr()
-        ) {
+        if (fieldIdOrError.isErr()) {
           return err(
             new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
               "Invalid annotation properties"
@@ -148,7 +145,7 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
 
         // Create annotation value
         const valueOrError = AnnotationValueFactory.create({
-          type: typeOrError.value,
+          type: type,
           valueInput: annotationInput.value,
         });
 
@@ -166,14 +163,14 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
           url,
           annotationFieldId: fieldIdOrError.value,
           value: valueOrError.value,
-          note: noteOrError.value,
+          note: note,
           annotationTemplateIds: [templateId],
         });
 
         if (annotationOrError.isErr()) {
           return err(
             new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
-              annotationOrError.error.message || "Failed to create annotation"
+              annotationOrError.error || "Failed to create annotation"
             )
           );
         }
@@ -202,7 +199,8 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
 
       for (const annotation of annotations) {
         // Publish annotation
-        const publishResult = await this.annotationPublisher.publish(annotation);
+        const publishResult =
+          await this.annotationPublisher.publish(annotation);
         if (publishResult.isErr()) {
           return err(
             new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationPublishFailed(

@@ -95,11 +95,7 @@ export class AnnotationTemplateBuilder {
     return this;
   }
 
-  addRatingField(
-    name: string,
-    description: string,
-    required = false
-  ): this {
+  addRatingField(name: string, description: string, required = false): this {
     this._fields.push({
       name,
       description,
@@ -151,16 +147,26 @@ export class AnnotationTemplateBuilder {
 
     const curatorIdResult = CuratorId.create(this._curatorId);
     const nameResult = AnnotationTemplateName.create(this._name);
-    const descriptionResult = AnnotationTemplateDescription.create(this._description);
+    const descriptionResult = AnnotationTemplateDescription.create(
+      this._description
+    );
 
     if (curatorIdResult.isErr()) {
-      return err(new Error(`CuratorId creation failed: ${curatorIdResult.error}`));
+      return err(
+        new Error(`CuratorId creation failed: ${curatorIdResult.error}`)
+      );
     }
     if (nameResult.isErr()) {
-      return err(new Error(`AnnotationTemplateName creation failed: ${nameResult.error}`));
+      return err(
+        new Error(`AnnotationTemplateName creation failed: ${nameResult.error}`)
+      );
     }
     if (descriptionResult.isErr()) {
-      return err(new Error(`AnnotationTemplateDescription creation failed: ${descriptionResult.error}`));
+      return err(
+        new Error(
+          `AnnotationTemplateDescription creation failed: ${descriptionResult.error}`
+        )
+      );
     }
 
     // Create fields from the input DTOs
@@ -170,7 +176,11 @@ export class AnnotationTemplateBuilder {
     });
 
     if (fieldsResult.isErr()) {
-      return err(new Error(`AnnotationTemplateFields creation failed: ${fieldsResult.error}`));
+      return err(
+        new Error(
+          `AnnotationTemplateFields creation failed: ${fieldsResult.error}`
+        )
+      );
     }
 
     // Create published record ID if provided
@@ -192,7 +202,9 @@ export class AnnotationTemplateBuilder {
     const templateResult = AnnotationTemplate.create(props, this._id);
 
     if (templateResult.isErr()) {
-      return err(new Error(`AnnotationTemplate creation failed: ${templateResult.error}`));
+      return err(
+        new Error(`AnnotationTemplate creation failed: ${templateResult.error}`)
+      );
     }
 
     return ok(templateResult.value);

@@ -9,6 +9,7 @@ import { AnnotationTemplateDTOBuilder } from "../utils/AnnotationTemplateDTOBuil
 import { CreateAndPublishAnnotationTemplateUseCase } from "../../application/use-cases/CreateAndPublishAnnotationTemplateUseCase";
 import { FakeAnnotationTemplatePublisher } from "../utils/FakeAnnotationTemplatePublisher";
 import { FakeAnnotationFieldPublisher } from "../utils/FakeAnnotationFieldPublisher";
+import { UseCaseError } from "src/shared/core/UseCaseError";
 
 describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
   let annotationRepository: InMemoryAnnotationRepository;
@@ -29,7 +30,7 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
     );
 
     const templateDTO = new AnnotationTemplateDTOBuilder()
-      .withCuratorId("did:example:curator123")
+      .withCuratorId("did:plc:curator123")
       .withName("Test Template")
       .withDescription("Test Description")
       .addField({
@@ -37,8 +38,7 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
         description: "A rating field",
         type: "rating",
         definition: {
-          min: 1,
-          max: 5,
+          numberOfStars: 5,
         },
         required: true,
       })
@@ -80,7 +80,7 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
   it("should create and publish annotations from a template", async () => {
     // Arrange
     const dto = {
-      curatorId: "did:example:curator123",
+      curatorId: "did:plc:curator123",
       url: "https://example.com/resource",
       templateId: templateId,
       annotations: [
@@ -108,11 +108,15 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
     expect(fields.length).toBe(2);
 
     // Update the DTO with actual field IDs
-    dto.annotations[0].annotationFieldId = fields[0].fieldId.getStringValue();
-    dto.annotations[1].annotationFieldId = fields[1].fieldId.getStringValue();
+    dto.annotations[0]!.annotationFieldId = fields[0]!.fieldId.getStringValue();
+    dto.annotations[1]!.annotationFieldId = fields[1]!.fieldId.getStringValue();
 
     // Act
     const result = await useCase.execute(dto);
+    if (result.isErr()) {
+      console.error("Error creating annotations:", result.error);
+    }
+    // Check if the annotations were published
 
     // Assert
     expect(result.isOk()).toBe(true);
@@ -138,18 +142,18 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
         expect(savedAnnotation!.annotationTemplateIds).toBeDefined();
         expect(savedAnnotation!.annotationTemplateIds!.length).toBe(1);
         expect(
-          savedAnnotation!.annotationTemplateIds![0].getStringValue()
+          savedAnnotation!.annotationTemplateIds![0]!.getStringValue()
         ).toBe(templateId);
       }
     } else {
-      fail(`Expected Ok, got Err: ${result.error.message}`);
+      fail(`Expected Ok, got Err: ${result.error}`);
     }
   });
 
   it("should fail when template is not found", async () => {
     // Arrange
     const dto = {
-      curatorId: "did:example:curator123",
+      curatorId: "did:plc:curator123",
       url: "https://example.com/resource",
       templateId: new UniqueEntityID().toString(), // Non-existent template ID
       annotations: [
@@ -167,7 +171,7 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
     // Assert
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
-      expect(result.error.message).toContain("not found");
+      expect((result.error as UseCaseError).message).toContain("not found");
     }
   });
 

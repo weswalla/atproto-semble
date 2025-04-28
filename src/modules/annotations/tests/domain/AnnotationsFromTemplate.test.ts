@@ -27,13 +27,12 @@ describe.only("AnnotationsFromTemplate", () => {
       .buildOrThrow();
 
     // Attempt to create AnnotationsFromTemplate should throw
-    expect(() => {
-      AnnotationsFromTemplate.create({
-        annotations: [annotation],
-        template,
-        curatorId: CuratorId.create(curatorId).unwrap(),
-      });
-    }).toThrow("Annotations are not valid for the template");
+    const annotationsFromTemplateResult = AnnotationsFromTemplate.create({
+      annotations: [annotation],
+      template,
+      curatorId: CuratorId.create(curatorId).unwrap(),
+    });
+    expect(annotationsFromTemplateResult.isErr()).toBe(true);
   });
 
   it("can be instantiated with valid annotations and a template", () => {
@@ -60,11 +59,12 @@ describe.only("AnnotationsFromTemplate", () => {
       .buildOrThrow();
 
     // Create AnnotationsFromTemplate should not throw
-    const annotationsFromTemplate = AnnotationsFromTemplate.create({
+    const annotationsFromTemplateResult = AnnotationsFromTemplate.create({
       annotations: [annotation1],
       template,
       curatorId: CuratorId.create(curatorId).unwrap(),
     });
+    const annotationsFromTemplate = annotationsFromTemplateResult.unwrap();
 
     expect(annotationsFromTemplate).toBeDefined();
     expect(annotationsFromTemplate.props.template).toBe(template);
@@ -95,12 +95,12 @@ describe.only("AnnotationsFromTemplate", () => {
       .buildOrThrow();
 
     // Attempt to create AnnotationsFromTemplate should throw
-    expect(() => {
-      AnnotationsFromTemplate.create({
-        annotations: [annotation1],
-        template,
-        curatorId: CuratorId.create(curatorId).unwrap(),
-      });
-    }).toThrow("Annotations are not valid for the template");
+    const annotationsFromTemplateResult = AnnotationsFromTemplate.create({
+      annotations: [annotation1],
+      template,
+      curatorId: CuratorId.create(curatorId).unwrap(),
+    });
+
+    expect(annotationsFromTemplateResult.isErr()).toBe(true);
   });
 });

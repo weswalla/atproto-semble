@@ -4,6 +4,7 @@ import { IAnnotationPublisher } from "../ports/IAnnotationPublisher";
 import { Result, ok, err } from "../../../../shared/core/Result";
 import { AppError } from "../../../../shared/core/AppError";
 import { Annotation } from "../../domain/aggregates/Annotation";
+import { AnnotationsFromTemplate } from "../../domain/aggregates/AnnotationsFromTemplate";
 import {
   CuratorId,
   URI,
@@ -18,12 +19,19 @@ import {
   AnnotationValueInput,
 } from "../../domain/AnnotationValueFactory";
 import { AnnotationType } from "../../domain/value-objects/AnnotationType";
+import { IAnnotationTemplateRepository } from "../repositories/IAnnotationTemplateRepository";
 
 // Define specific errors
-export namespace CreateAndPublishAnnotationErrors {
+export namespace CreateAndPublishAnnotationsFromTemplateErrors {
+  export class TemplateNotFound extends UseCaseError {
+    constructor(templateId: string) {
+      super(`Template with ID ${templateId} not found`);
+    }
+  }
+
   export class AnnotationCreationFailed extends UseCaseError {
     constructor(message: string) {
-      super(`Failed to create annotation: ${message}`);
+      super(`Failed to create annotations: ${message}`);
     }
   }
 
@@ -40,135 +48,187 @@ export namespace CreateAndPublishAnnotationErrors {
   }
 }
 
-export interface CreateAndPublishAnnotationDTO {
-  curatorId: string;
-  url: string;
+// Single annotation input for a template
+export interface AnnotationInput {
   annotationFieldId: string;
-  type: string; // The annotation type (dyad, triad, etc.)
-  value: AnnotationValueInput; // Using the type from AnnotationValueFactory
-  annotationTemplateIds?: string[];
+  type: string;
+  value: AnnotationValueInput;
   note?: string;
 }
 
-export type CreateAndPublishAnnotationResponse = Result<
-  { annotationId: string },
-  | CreateAndPublishAnnotationErrors.AnnotationCreationFailed
-  | CreateAndPublishAnnotationErrors.AnnotationPublishFailed
-  | CreateAndPublishAnnotationErrors.AnnotationSaveFailed
+export interface CreateAndPublishAnnotationsFromTemplateDTO {
+  curatorId: string;
+  url: string;
+  templateId: string;
+  annotations: AnnotationInput[];
+}
+
+export type CreateAndPublishAnnotationsFromTemplateResponse = Result<
+  { annotationIds: string[] },
+  | CreateAndPublishAnnotationsFromTemplateErrors.TemplateNotFound
+  | CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed
+  | CreateAndPublishAnnotationsFromTemplateErrors.AnnotationPublishFailed
+  | CreateAndPublishAnnotationsFromTemplateErrors.AnnotationSaveFailed
   | AppError.UnexpectedError
 >;
 
-export class CreateAndPublishAnnotationUseCase
+export class CreateAndPublishAnnotationsFromTemplateUseCase
   implements
     UseCase<
-      CreateAndPublishAnnotationDTO,
-      Promise<CreateAndPublishAnnotationResponse>
+      CreateAndPublishAnnotationsFromTemplateDTO,
+      Promise<CreateAndPublishAnnotationsFromTemplateResponse>
     >
 {
   constructor(
     private readonly annotationRepository: IAnnotationRepository,
+    private readonly annotationTemplateRepository: IAnnotationTemplateRepository,
     private readonly annotationPublisher: IAnnotationPublisher
   ) {}
 
   async execute(
-    request: CreateAndPublishAnnotationDTO
-  ): Promise<CreateAndPublishAnnotationResponse> {
+    request: CreateAndPublishAnnotationsFromTemplateDTO
+  ): Promise<CreateAndPublishAnnotationsFromTemplateResponse> {
     try {
-      // Create value objects
+      // Create common value objects
       const curatorIdOrError = CuratorId.create(request.curatorId);
       const urlOrError = URI.create(request.url);
-      const fieldIdOrError = AnnotationFieldId.create(
-        new UniqueEntityID(request.annotationFieldId)
+      const templateIdOrError = AnnotationTemplateId.create(
+        new UniqueEntityID(request.templateId)
       );
-      const type = AnnotationType.create(request.type);
 
-      // Handle optional values
-      const note = request.note
-        ? AnnotationNote.create(request.note)
-        : undefined;
-
-      const templateIdsOrError = request.annotationTemplateIds
-        ? Result.all(
-            request.annotationTemplateIds.map((id) =>
-              AnnotationTemplateId.create(new UniqueEntityID(id))
-            )
-          )
-        : ok([]);
-
-      // Validate all value objects
       if (
         curatorIdOrError.isErr() ||
         urlOrError.isErr() ||
-        fieldIdOrError.isErr() ||
-        templateIdsOrError.isErr()
+        templateIdOrError.isErr()
       ) {
         return err(
-          new CreateAndPublishAnnotationErrors.AnnotationCreationFailed(
-            "Invalid annotation properties"
+          new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
+            "Invalid common properties"
           )
         );
       }
 
-      // Create annotation value
-      const valueOrError = AnnotationValueFactory.create({
-        type: type,
-        valueInput: request.value,
-      });
+      const curatorId = curatorIdOrError.value;
+      const url = urlOrError.value;
+      const templateId = templateIdOrError.value;
 
-      if (valueOrError.isErr()) {
+      // Fetch the template
+      const template = await this.annotationTemplateRepository.findById(templateId);
+      if (!template) {
         return err(
-          new CreateAndPublishAnnotationErrors.AnnotationCreationFailed(
-            `Invalid annotation value: ${valueOrError.error.message}`
+          new CreateAndPublishAnnotationsFromTemplateErrors.TemplateNotFound(
+            templateId.getValue().toString()
           )
         );
       }
 
-      // Create annotation aggregate
-      const annotationOrError = Annotation.create({
-        curatorId: curatorIdOrError.value,
-        url: urlOrError.value,
-        annotationFieldId: fieldIdOrError.value,
-        value: valueOrError.value,
-        note: note,
-        annotationTemplateIds: templateIdsOrError.value,
-      });
-
-      if (annotationOrError.isErr()) {
-        return err(
-          new CreateAndPublishAnnotationErrors.AnnotationCreationFailed(
-            annotationOrError.error
-          )
+      // Create annotations from inputs
+      const annotations: Annotation[] = [];
+      
+      for (const annotationInput of request.annotations) {
+        const fieldIdOrError = AnnotationFieldId.create(
+          new UniqueEntityID(annotationInput.annotationFieldId)
         );
+        const typeOrError = AnnotationType.create(annotationInput.type);
+        const noteOrError = annotationInput.note
+          ? AnnotationNote.create(annotationInput.note)
+          : ok(undefined);
+
+        if (
+          fieldIdOrError.isErr() ||
+          typeOrError.isErr() ||
+          noteOrError.isErr()
+        ) {
+          return err(
+            new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
+              "Invalid annotation properties"
+            )
+          );
+        }
+
+        // Create annotation value
+        const valueOrError = AnnotationValueFactory.create({
+          type: typeOrError.value,
+          valueInput: annotationInput.value,
+        });
+
+        if (valueOrError.isErr()) {
+          return err(
+            new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
+              `Invalid annotation value: ${valueOrError.error.message}`
+            )
+          );
+        }
+
+        // Create annotation with template ID
+        const annotationOrError = Annotation.create({
+          curatorId,
+          url,
+          annotationFieldId: fieldIdOrError.value,
+          value: valueOrError.value,
+          note: noteOrError.value,
+          annotationTemplateIds: [templateId],
+        });
+
+        if (annotationOrError.isErr()) {
+          return err(
+            new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
+              annotationOrError.error.message || "Failed to create annotation"
+            )
+          );
+        }
+
+        annotations.push(annotationOrError.value);
       }
 
-      const annotation = annotationOrError.value;
-
-      // Publish annotation
-      const publishResult = await this.annotationPublisher.publish(annotation);
-      if (publishResult.isErr()) {
-        return err(
-          new CreateAndPublishAnnotationErrors.AnnotationPublishFailed(
-            annotation.id.toString(),
-            publishResult.error.message
-          )
-        );
-      }
-
-      // Mark as published and save
-      annotation.markAsPublished(publishResult.value);
-
+      // Create AnnotationsFromTemplate aggregate to enforce invariants
       try {
-        await this.annotationRepository.save(annotation);
+        const annotationsFromTemplate = AnnotationsFromTemplate.create({
+          annotations,
+          template,
+          curatorId,
+          createdAt: new Date(),
+        });
       } catch (error: any) {
         return err(
-          new CreateAndPublishAnnotationErrors.AnnotationSaveFailed(
-            annotation.id.toString(),
-            error.message
+          new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
+            error.message || "Annotations do not satisfy template requirements"
           )
         );
       }
 
-      return ok({ annotationId: annotation.annotationId.getStringValue() });
+      // Publish and save each annotation
+      const publishedAnnotationIds: string[] = [];
+
+      for (const annotation of annotations) {
+        // Publish annotation
+        const publishResult = await this.annotationPublisher.publish(annotation);
+        if (publishResult.isErr()) {
+          return err(
+            new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationPublishFailed(
+              annotation.id.toString(),
+              publishResult.error.message
+            )
+          );
+        }
+
+        // Mark as published and save
+        annotation.markAsPublished(publishResult.value);
+
+        try {
+          await this.annotationRepository.save(annotation);
+          publishedAnnotationIds.push(annotation.annotationId.getStringValue());
+        } catch (error: any) {
+          return err(
+            new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationSaveFailed(
+              annotation.id.toString(),
+              error.message
+            )
+          );
+        }
+      }
+
+      return ok({ annotationIds: publishedAnnotationIds });
     } catch (error: any) {
       return err(new AppError.UnexpectedError(error));
     }

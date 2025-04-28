@@ -14,32 +14,35 @@ import {
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
 import { UseCaseError } from "../../../../shared/core/UseCaseError";
 import { AnnotationValueFactory } from "../../domain/AnnotationValueFactory";
+import { AnnotationType } from "../../domain/value-objects/AnnotationType";
 
-// Define potential specific errors (minimal for now)
+// Define specific errors
 export namespace CreateAndPublishAnnotationErrors {
   export class AnnotationCreationFailed extends UseCaseError {
-    constructor(error: string) {
-      super(`Failed to create annotation: ${error}`);
+    constructor(message: string) {
+      super(`Failed to create annotation: ${message}`);
     }
   }
+  
   export class AnnotationPublishFailed extends UseCaseError {
-    constructor(error: string) {
-      super(`Failed to publish annotation: ${error}`);
+    constructor(id: string, message: string) {
+      super(`Failed to publish annotation ${id}: ${message}`);
     }
   }
+  
   export class AnnotationSaveFailed extends UseCaseError {
-    constructor(error: string) {
-      super(`Failed to save annotation: ${error}`);
+    constructor(id: string, message: string) {
+      super(`Failed to save annotation ${id}: ${message}`);
     }
   }
-  // Add validation errors if needed (e.g., FieldNotFound)
 }
 
 export interface CreateAndPublishAnnotationDTO {
   curatorId: string;
   url: string;
   annotationFieldId: string;
-  value: any; // Raw value, validation happens during VO creation
+  type: string; // The annotation type (dyad, triad, etc.)
+  value: AnnotationValueInput; // Using the type from AnnotationValueFactory
   annotationTemplateIds?: string[];
   note?: string;
 }
@@ -61,69 +64,72 @@ export class CreateAndPublishAnnotationUseCase
 {
   constructor(
     private readonly annotationRepository: IAnnotationRepository,
-    private readonly annotationPublisher: IAnnotationPublisher // Assuming IAnnotationPublisher exists
-    // Add IAnnotationFieldRepository if field validation is needed
+    private readonly annotationPublisher: IAnnotationPublisher
   ) {}
 
   async execute(
     request: CreateAndPublishAnnotationDTO
   ): Promise<CreateAndPublishAnnotationResponse> {
     try {
-      // 1. Create Value Objects from DTO
+      // Create value objects
       const curatorIdOrError = CuratorId.create(request.curatorId);
       const urlOrError = URI.create(request.url);
       const fieldIdOrError = AnnotationFieldId.create(
         new UniqueEntityID(request.annotationFieldId)
-      ); // Assuming fieldId is UniqueEntityID string
-      const valueOrError = AnnotationValueFactory.create(request.value); // Assuming generic create
+      );
+      const typeOrError = AnnotationType.create(request.type);
+      
+      // Handle optional values
       const noteOrError = request.note
         ? AnnotationNote.create(request.note)
         : ok(undefined);
-      const templateIdsOrError = Result.all(
-        (request.annotationTemplateIds ?? []).map((id) =>
-          AnnotationTemplateId.create(new UniqueEntityID(id))
-        )
-      );
+        
+      const templateIdsOrError = request.annotationTemplateIds
+        ? Result.all(
+            request.annotationTemplateIds.map((id) =>
+              AnnotationTemplateId.create(new UniqueEntityID(id))
+            )
+          )
+        : ok([]);
 
-      const combinedProps = Result.combineWithAllErrors([
-        curatorIdOrError,
-        urlOrError,
-        fieldIdOrError,
-        valueOrError,
-        noteOrError,
-        templateIdsOrError, // Combine the Result<AnnotationTemplateId[]>
-      ]);
-
-      if (combinedProps.isErr()) {
-        const errorMessages = combinedProps.error
-          .map((e) => e.message)
-          .join("; ");
+      // Validate all value objects
+      if (
+        curatorIdOrError.isErr() ||
+        urlOrError.isErr() ||
+        fieldIdOrError.isErr() ||
+        typeOrError.isErr() ||
+        noteOrError.isErr() ||
+        templateIdsOrError.isErr()
+      ) {
         return err(
           new CreateAndPublishAnnotationErrors.AnnotationCreationFailed(
-            `Invalid properties: ${errorMessages}`
+            "Invalid annotation properties"
           )
         );
       }
 
-      const [
-        curatorId,
-        url,
-        annotationFieldId,
-        value,
-        optionalNote,
-        templateIds,
-      ] = combinedProps.value;
+      // Create annotation value
+      const valueOrError = AnnotationValueFactory.create({
+        type: typeOrError.value,
+        valueInput: request.value,
+      });
 
-      // Optional: Validate fieldId exists using IAnnotationFieldRepository
+      if (valueOrError.isErr()) {
+        return err(
+          new CreateAndPublishAnnotationErrors.AnnotationCreationFailed(
+            `Invalid annotation value: ${valueOrError.error.message}`
+          )
+        );
+      }
 
-      // 2. Create Annotation Aggregate
+      // Create annotation aggregate
       const annotationOrError = Annotation.create({
-        curatorId,
-        url,
-        annotationFieldId,
-        value,
-        note: optionalNote, // Pass optional note
-        annotationTemplateIds: templateIds, // Pass array of template IDs
+        curatorId: curatorIdOrError.value,
+        url: urlOrError.value,
+        annotationFieldId: fieldIdOrError.value,
+        value: valueOrError.value,
+        note: noteOrError.value,
+        annotationTemplateIds: templateIdsOrError.value,
       });
 
       if (annotationOrError.isErr()) {
@@ -133,37 +139,35 @@ export class CreateAndPublishAnnotationUseCase
           )
         );
       }
+
       const annotation = annotationOrError.value;
-      const annotationIdString = annotation.annotationId.getStringValue();
 
-      // 3. Publish Annotation
+      // Publish annotation
       const publishResult = await this.annotationPublisher.publish(annotation);
-
       if (publishResult.isErr()) {
         return err(
           new CreateAndPublishAnnotationErrors.AnnotationPublishFailed(
+            annotation.id.toString(),
             publishResult.error.message
           )
         );
       }
-      const publishedRecordId = publishResult.value;
 
-      // 4. Update Annotation with PublishedRecordId
-      annotation.markAsPublished(publishedRecordId); // Assuming this method exists
-
-      // 5. Save Annotation
+      // Mark as published and save
+      annotation.markAsPublished(publishResult.value);
+      
       try {
         await this.annotationRepository.save(annotation);
       } catch (error: any) {
         return err(
           new CreateAndPublishAnnotationErrors.AnnotationSaveFailed(
+            annotation.id.toString(),
             error.message
           )
         );
       }
 
-      // 6. Return Success
-      return ok({ annotationId: annotationIdString });
+      return ok({ annotationId: annotation.annotationId.getStringValue() });
     } catch (error: any) {
       return err(new AppError.UnexpectedError(error));
     }

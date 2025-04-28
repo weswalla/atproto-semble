@@ -1,4 +1,4 @@
-import { Result } from "src/shared/core/Result";
+import { err, Result } from "src/shared/core/Result";
 import { AnnotationType } from "./value-objects/AnnotationType";
 import {
   AnnotationFieldDefinition,
@@ -8,6 +8,7 @@ import {
   ISelectFieldDefProps,
   ITriadFieldDefProps,
   MultiSelectFieldDef,
+  RatingFieldDef,
   SingleSelectFieldDef,
   TriadFieldDef,
 } from "./value-objects";
@@ -34,8 +35,10 @@ export class AnnotationFieldDefinitionFactory {
         return MultiSelectFieldDef.create(
           props.fieldDefProps as ISelectFieldDefProps
         );
+      case AnnotationType.RATING.value:
+        return RatingFieldDef.create();
       default:
-        return fail("Invalid annotation field type.");
+        return err(Error("Invalid annotation field type."));
     }
   }
 }

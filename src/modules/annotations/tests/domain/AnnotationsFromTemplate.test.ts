@@ -4,12 +4,10 @@ import { AnnotationTemplateBuilder } from "../utils/AnnotationTemplateBuilder";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
 import { CuratorId } from "../../domain/value-objects";
 
-describe("AnnotationsFromTemplate", () => {
+describe.only("AnnotationsFromTemplate", () => {
   const curatorId = "did:plc:testcurator123";
   const templateId = new UniqueEntityID("template-123");
-  const fieldId1 = new UniqueEntityID("field-123");
-  const fieldId2 = new UniqueEntityID("field-456");
-  
+
   it("results in an error when the annotations don't match the template fields", () => {
     // Create a template with required fields
     const template = new AnnotationTemplateBuilder()
@@ -18,7 +16,7 @@ describe("AnnotationsFromTemplate", () => {
       .withName("Test Template")
       .addDyadField("Field 1", "Description 1", "Left", "Right", true) // Required field
       .buildOrThrow();
-    
+
     // Create an annotation that doesn't match the template's required field
     const annotation = new AnnotationBuilder()
       .withCuratorId(curatorId)
@@ -27,7 +25,7 @@ describe("AnnotationsFromTemplate", () => {
       .withDyadValue(0.5, 0.5)
       .withAnnotationTemplateIds([templateId.toString()])
       .buildOrThrow();
-    
+
     // Attempt to create AnnotationsFromTemplate should throw
     expect(() => {
       AnnotationsFromTemplate.create({
@@ -37,7 +35,7 @@ describe("AnnotationsFromTemplate", () => {
       });
     }).toThrow("Annotations are not valid for the template");
   });
-  
+
   it("can be instantiated with valid annotations and a template", () => {
     // Create a template with fields
     const template = new AnnotationTemplateBuilder()
@@ -47,11 +45,11 @@ describe("AnnotationsFromTemplate", () => {
       .addDyadField("Field 1", "Description 1", "Left", "Right", true)
       .addRatingField("Field 2", "Description 2", false)
       .buildOrThrow();
-    
+
     // Get the field IDs from the template
-    const fields = template.getAnnotationTemplateFields().annotationTemplateFields;
-    const field1Id = fields[0].annotationField.fieldId;
-    
+    const fields = template.annotationTemplateFields.annotationTemplateFields;
+    const field1Id = fields[0]!.annotationField.fieldId;
+
     // Create annotations that match the template's fields
     const annotation1 = new AnnotationBuilder()
       .withCuratorId(curatorId)
@@ -60,19 +58,19 @@ describe("AnnotationsFromTemplate", () => {
       .withDyadValue(0.5, 0.5)
       .withAnnotationTemplateIds([templateId.toString()])
       .buildOrThrow();
-    
+
     // Create AnnotationsFromTemplate should not throw
     const annotationsFromTemplate = AnnotationsFromTemplate.create({
       annotations: [annotation1],
       template,
       curatorId: CuratorId.create(curatorId).unwrap(),
     });
-    
+
     expect(annotationsFromTemplate).toBeDefined();
     expect(annotationsFromTemplate.props.template).toBe(template);
     expect(annotationsFromTemplate.props.annotations).toContain(annotation1);
   });
-  
+
   it("validates that all required fields are present", () => {
     // Create a template with a required field
     const template = new AnnotationTemplateBuilder()
@@ -82,11 +80,11 @@ describe("AnnotationsFromTemplate", () => {
       .addDyadField("Field 1", "Description 1", "Left", "Right", true) // Required
       .addRatingField("Field 2", "Description 2", true) // Also required
       .buildOrThrow();
-    
+
     // Get the field IDs from the template
-    const fields = template.getAnnotationTemplateFields().annotationTemplateFields;
-    const field1Id = fields[0].annotationField.fieldId;
-    
+    const fields = template.annotationTemplateFields.annotationTemplateFields;
+    const field1Id = fields[0]!.annotationField.fieldId;
+
     // Create only one annotation, missing the second required field
     const annotation1 = new AnnotationBuilder()
       .withCuratorId(curatorId)
@@ -95,7 +93,7 @@ describe("AnnotationsFromTemplate", () => {
       .withDyadValue(0.5, 0.5)
       .withAnnotationTemplateIds([templateId.toString()])
       .buildOrThrow();
-    
+
     // Attempt to create AnnotationsFromTemplate should throw
     expect(() => {
       AnnotationsFromTemplate.create({

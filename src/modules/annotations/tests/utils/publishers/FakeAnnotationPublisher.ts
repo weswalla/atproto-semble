@@ -1,8 +1,8 @@
-import { IAnnotationPublisher } from "../../application/ports/IAnnotationPublisher";
-import { Annotation } from "../../domain/aggregates/Annotation";
-import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
-import { Result, ok } from "../../../../shared/core/Result";
-import { UseCaseError } from "../../../../shared/core/UseCaseError";
+import { IAnnotationPublisher } from "src/modules/annotations/application/ports/IAnnotationPublisher";
+import { Annotation } from "src/modules/annotations/domain/aggregates";
+import { PublishedRecordId } from "src/modules/annotations/domain/value-objects";
+import { ok, Result } from "src/shared/core/Result";
+import { UseCaseError } from "src/shared/core/UseCaseError";
 
 export class FakeAnnotationPublisher implements IAnnotationPublisher {
   private publishedRecords: Map<string, Annotation> = new Map();

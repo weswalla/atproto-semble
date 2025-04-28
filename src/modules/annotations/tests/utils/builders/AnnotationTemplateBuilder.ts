@@ -1,9 +1,9 @@
-import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
-import { Result, ok, err } from "../../../../shared/core/Result";
+import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
+import { Result, ok, err } from "../../../../../shared/core/Result";
 import {
   AnnotationTemplate,
   AnnotationTemplateProps,
-} from "../../domain/aggregates/AnnotationTemplate";
+} from "../../../domain/aggregates/AnnotationTemplate";
 import {
   AnnotationTemplateName,
   AnnotationTemplateDescription,
@@ -14,10 +14,10 @@ import {
   AnnotationTemplateField,
   AnnotationFieldDescription,
   AnnotationFieldName,
-} from "../../domain/value-objects";
-import { AnnotationField } from "../../domain/aggregates";
-import { AnnotationFieldDefinitionFactory } from "../../domain/AnnotationFieldDefinitionFactory";
-import { AnnotationType } from "../../domain/value-objects/AnnotationType";
+} from "../../../domain/value-objects";
+import { AnnotationField } from "../../../domain/aggregates";
+import { AnnotationFieldDefinitionFactory } from "../../../domain/AnnotationFieldDefinitionFactory";
+import { AnnotationType } from "../../../domain/value-objects/AnnotationType";
 
 export class AnnotationTemplateBuilder {
   private _id?: UniqueEntityID;

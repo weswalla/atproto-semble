@@ -1,5 +1,8 @@
-import { AnnotationValueInput } from "../../domain/AnnotationValueFactory";
-import { AnnotationInput, CreateAndPublishAnnotationsFromTemplateDTO } from "../../application/use-cases/CreateAndPublishAnnotationsFromTemplateUseCase";
+import { AnnotationValueInput } from "../../../domain/AnnotationValueFactory";
+import {
+  AnnotationInput,
+  CreateAndPublishAnnotationsFromTemplateDTO,
+} from "../../../application/use-cases/CreateAndPublishAnnotationsFromTemplateUseCase";
 
 export class AnnotationsFromTemplateDTOBuilder {
   private _curatorId: string = "did:example:defaultCurator";
@@ -32,7 +35,7 @@ export class AnnotationsFromTemplateDTOBuilder {
       annotationFieldId: fieldId,
       type,
       value,
-      note
+      note,
     });
     return this;
   }
@@ -42,7 +45,7 @@ export class AnnotationsFromTemplateDTOBuilder {
       curatorId: this._curatorId,
       url: this._url,
       templateId: this._templateId,
-      annotations: [...this._annotations]
+      annotations: [...this._annotations],
     };
   }
 }

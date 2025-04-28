@@ -1,8 +1,8 @@
-import { IAnnotationFieldPublisher } from "../../application/ports/IAnnotationFieldPublisher";
-import { AnnotationField } from "../../domain/AnnotationField";
-import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
-import { Result, ok } from "../../../../shared/core/Result";
-import { UseCaseError } from "../../../../shared/core/UseCaseError";
+import { IAnnotationFieldPublisher } from "../../../application/ports/IAnnotationFieldPublisher";
+import { AnnotationField } from "../../../domain/AnnotationField";
+import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
+import { Result, ok } from "../../../../../shared/core/Result";
+import { UseCaseError } from "../../../../../shared/core/UseCaseError";
 
 export class FakeAnnotationFieldPublisher implements IAnnotationFieldPublisher {
   private publishedRecords: Map<string, AnnotationField> = new Map();

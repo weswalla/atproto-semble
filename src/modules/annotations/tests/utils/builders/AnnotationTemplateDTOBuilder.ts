@@ -1,5 +1,5 @@
-import { AnnotationTemplateFieldInputDTO } from "../../domain/value-objects";
-import { CreateAndPublishAnnotationTemplateDTO } from "../../application/use-cases/CreateAndPublishAnnotationTemplateUseCase";
+import { AnnotationTemplateFieldInputDTO } from "../../../domain/value-objects";
+import { CreateAndPublishAnnotationTemplateDTO } from "../../../application/use-cases/CreateAndPublishAnnotationTemplateUseCase";
 
 export class AnnotationTemplateDTOBuilder {
   private _curatorId: string = "did:example:defaultCurator";

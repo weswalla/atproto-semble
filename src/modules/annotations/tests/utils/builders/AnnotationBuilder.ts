@@ -1,9 +1,9 @@
-import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
-import { Result, ok, err } from "../../../../shared/core/Result";
+import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
+import { Result, ok, err } from "../../../../../shared/core/Result";
 import {
   Annotation,
   AnnotationProps,
-} from "../../domain/aggregates/Annotation";
+} from "../../../domain/aggregates/Annotation";
 import {
   AnnotationFieldId,
   AnnotationNote,
@@ -12,14 +12,14 @@ import {
   CuratorId,
   PublishedRecordId,
   URI,
-} from "../../domain/value-objects";
+} from "../../../domain/value-objects";
 import {
   DyadValue,
   TriadValue,
   RatingValue,
   SingleSelectValue,
   MultiSelectValue,
-} from "../../domain/value-objects/AnnotationValue";
+} from "../../../domain/value-objects/AnnotationValue";
 
 export class AnnotationBuilder {
   private _id?: UniqueEntityID;

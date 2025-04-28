@@ -1,9 +1,9 @@
-import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
-import { Result, ok, err } from "../../../../shared/core/Result";
+import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
+import { Result, ok, err } from "../../../../../shared/core/Result";
 import {
   AnnotationField,
   AnnotationFieldProps,
-} from "../../domain/AnnotationField";
+} from "../../../domain/AnnotationField";
 import {
   AnnotationFieldDescription,
   CuratorId,
@@ -17,8 +17,8 @@ import {
   IDyadFieldDefProps,
   ITriadFieldDefProps,
   ISelectFieldDefProps,
-} from "../../domain/value-objects";
-import { AnnotationFieldName } from "../../domain/value-objects/AnnotationFieldName";
+} from "../../../domain/value-objects";
+import { AnnotationFieldName } from "../../../domain/value-objects/AnnotationFieldName";
 
 export class AnnotationFieldBuilder {
   private _id?: UniqueEntityID;

@@ -9,7 +9,7 @@ import {
   PublishedRecordId,
 } from "../../domain/value-objects";
 import { AnnotationType } from "../../domain/value-objects/AnnotationType";
-import { AnnotationFieldBuilder } from "../utils/AnnotationFieldBuilder";
+import { AnnotationFieldBuilder } from "../utils/builders/AnnotationFieldBuilder";
 
 describe("AnnotationTemplate", () => {
   const curatorId = CuratorId.create("did:plc:1234").unwrap();

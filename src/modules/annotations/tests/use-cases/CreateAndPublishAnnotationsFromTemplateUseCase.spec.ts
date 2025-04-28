@@ -1,15 +1,15 @@
-import { InMemoryAnnotationRepository } from "../../infrastructure/persistence/repositories/InMemoryAnnotationRepository";
-import { InMemoryAnnotationTemplateRepository } from "../../infrastructure/persistence/repositories/InMemoryAnnotationTemplateRepository";
-import { FakeAnnotationPublisher } from "../utils/FakeAnnotationPublisher";
 import { CreateAndPublishAnnotationsFromTemplateUseCase } from "../../application/use-cases/CreateAndPublishAnnotationsFromTemplateUseCase";
 import { Annotation } from "../../domain/aggregates/Annotation";
 import { AnnotationTemplateId } from "../../domain/value-objects";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
-import { AnnotationTemplateDTOBuilder } from "../utils/AnnotationTemplateDTOBuilder";
+import { AnnotationTemplateDTOBuilder } from "../utils/builders/AnnotationTemplateDTOBuilder";
 import { CreateAndPublishAnnotationTemplateUseCase } from "../../application/use-cases/CreateAndPublishAnnotationTemplateUseCase";
-import { FakeAnnotationTemplatePublisher } from "../utils/FakeAnnotationTemplatePublisher";
-import { FakeAnnotationFieldPublisher } from "../utils/FakeAnnotationFieldPublisher";
+import { FakeAnnotationFieldPublisher } from "../utils/builders/FakeAnnotationFieldPublisher";
 import { UseCaseError } from "src/shared/core/UseCaseError";
+import { InMemoryAnnotationRepository } from "../utils/InMemoryAnnotationRepository";
+import { InMemoryAnnotationTemplateRepository } from "../utils/InMemoryAnnotationTemplateRepository";
+import { FakeAnnotationPublisher } from "../utils/publishers/FakeAnnotationPublisher";
+import { FakeAnnotationTemplatePublisher } from "../utils/publishers/FakeAnnotationTemplatePublisher";
 
 describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
   let annotationRepository: InMemoryAnnotationRepository;

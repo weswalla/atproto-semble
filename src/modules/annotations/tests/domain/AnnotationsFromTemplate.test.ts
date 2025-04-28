@@ -1,6 +1,6 @@
 import { AnnotationsFromTemplate } from "../../domain/aggregates/AnnotationsFromTemplate";
-import { AnnotationBuilder } from "../utils/AnnotationBuilder";
-import { AnnotationTemplateBuilder } from "../utils/AnnotationTemplateBuilder";
+import { AnnotationBuilder } from "../utils/builders/AnnotationBuilder";
+import { AnnotationTemplateBuilder } from "../utils/builders/AnnotationTemplateBuilder";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
 import { CuratorId } from "../../domain/value-objects";
 

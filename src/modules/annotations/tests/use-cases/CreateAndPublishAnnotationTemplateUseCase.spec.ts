@@ -1,11 +1,11 @@
 import { AnnotationTemplate } from "../../domain/aggregates";
-import { InMemoryAnnotationTemplateRepository } from "../../infrastructure/persistence/repositories/InMemoryAnnotationTemplateRepository";
-import { FakeAnnotationFieldPublisher } from "../utils/FakeAnnotationFieldPublisher";
-import { FakeAnnotationTemplatePublisher } from "../utils/FakeAnnotationTemplatePublisher";
+import { FakeAnnotationFieldPublisher } from "../utils/builders/FakeAnnotationFieldPublisher";
 import { CreateAndPublishAnnotationTemplateUseCase } from "../../application/use-cases/CreateAndPublishAnnotationTemplateUseCase";
 import { AnnotationTemplateId } from "../../domain/value-objects";
 import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
-import { AnnotationTemplateDTOBuilder } from "../utils/AnnotationTemplateDTOBuilder";
+import { AnnotationTemplateDTOBuilder } from "../utils/builders/AnnotationTemplateDTOBuilder";
+import { InMemoryAnnotationTemplateRepository } from "../utils/InMemoryAnnotationTemplateRepository";
+import { FakeAnnotationTemplatePublisher } from "../utils/publishers/FakeAnnotationTemplatePublisher";
 
 describe("CreateAndPublishAnnotationTemplateUseCase", () => {
   it("can publish a valid annotation template, along with all of its fields, and include the published record id", async () => {

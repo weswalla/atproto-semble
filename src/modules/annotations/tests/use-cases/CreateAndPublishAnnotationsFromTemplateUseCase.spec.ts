@@ -1,3 +1,4 @@
+import { InMemoryAnnotationRepository } from "../../infrastructure/persistence/repositories/InMemoryAnnotationRepository";
 import { InMemoryAnnotationTemplateRepository } from "../../infrastructure/persistence/repositories/InMemoryAnnotationTemplateRepository";
 import { FakeAnnotationPublisher } from "../utils/FakeAnnotationPublisher";
 import { CreateAndPublishAnnotationsFromTemplateUseCase } from "../../application/use-cases/CreateAndPublishAnnotationsFromTemplateUseCase";

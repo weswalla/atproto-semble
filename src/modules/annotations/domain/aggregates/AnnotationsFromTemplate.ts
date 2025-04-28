@@ -3,6 +3,7 @@ import { CuratorId } from "../value-objects";
 import { Annotation } from "./Annotation";
 import { AnnotationTemplate } from "./AnnotationTemplate";
 import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
+import { Result, ok, err } from "src/shared/core/Result";
 
 interface AnnotationsFromTemplateProps {
   annotations: Annotation[];
@@ -22,16 +23,16 @@ export class AnnotationsFromTemplate extends AggregateRoot<AnnotationsFromTempla
   public static create(
     props: AnnotationsFromTemplateProps,
     id?: UniqueEntityID
-  ): AnnotationsFromTemplate {
+  ): Result<AnnotationsFromTemplate, string> {
     if (
       !AnnotationsFromTemplate.annotationsAreValid(
         props.annotations,
         props.template
       )
     ) {
-      throw new Error("Annotations are not valid for the template");
+      return err("Annotations are not valid for the template");
     }
-    return new AnnotationsFromTemplate(props, id);
+    return ok(new AnnotationsFromTemplate(props, id));
   }
 
   private static hasAllRequiredFields(

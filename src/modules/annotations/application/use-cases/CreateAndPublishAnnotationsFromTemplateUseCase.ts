@@ -179,17 +179,17 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
       }
 
       // Create AnnotationsFromTemplate aggregate to enforce invariants
-      try {
-        const annotationsFromTemplate = AnnotationsFromTemplate.create({
-          annotations,
-          template,
-          curatorId,
-          createdAt: new Date(),
-        });
-      } catch (error: any) {
+      const annotationsFromTemplateResult = AnnotationsFromTemplate.create({
+        annotations,
+        template,
+        curatorId,
+        createdAt: new Date(),
+      });
+      
+      if (annotationsFromTemplateResult.isErr()) {
         return err(
           new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
-            error.message || "Annotations do not satisfy template requirements"
+            annotationsFromTemplateResult.error || "Annotations do not satisfy template requirements"
           )
         );
       }

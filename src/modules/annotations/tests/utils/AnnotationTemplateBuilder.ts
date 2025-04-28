@@ -12,8 +12,8 @@ import {
   AnnotationTemplateFields,
   AnnotationTemplateFieldInputDTO,
   AnnotationTemplateField,
-  AnnotationFieldName,
   AnnotationFieldDescription,
+  AnnotationFieldName,
 } from "../../domain/value-objects";
 import { AnnotationField } from "../../domain/aggregates";
 import { AnnotationFieldDefinitionFactory } from "../../domain/AnnotationFieldDefinitionFactory";
@@ -176,58 +176,82 @@ export class AnnotationTemplateBuilder {
 
     // Create fields directly instead of using createFromDto
     const annotationTemplateFields: AnnotationTemplateField[] = [];
-    
+
     for (const fieldDto of this._fields) {
       // Create the annotation field first
       const fieldType = AnnotationType.create(fieldDto.type);
       const nameResult = AnnotationFieldName.create(fieldDto.name);
-      const descriptionResult = AnnotationFieldDescription.create(fieldDto.description);
+      const descriptionResult = AnnotationFieldDescription.create(
+        fieldDto.description
+      );
       const definitionResult = AnnotationFieldDefinitionFactory.create({
         type: fieldType,
         fieldDefProps: fieldDto.definition,
       });
-      
+
       if (nameResult.isErr()) {
-        return err(new Error(`Field name creation failed: ${nameResult.error}`));
+        return err(
+          new Error(`Field name creation failed: ${nameResult.error}`)
+        );
       }
-      
+
       if (descriptionResult.isErr()) {
-        return err(new Error(`Field description creation failed: ${descriptionResult.error}`));
+        return err(
+          new Error(
+            `Field description creation failed: ${descriptionResult.error}`
+          )
+        );
       }
-      
+
       if (definitionResult.isErr()) {
-        return err(new Error(`Field definition creation failed: ${definitionResult.error}`));
+        return err(
+          new Error(
+            `Field definition creation failed: ${definitionResult.error}`
+          )
+        );
       }
-      
+
       const fieldResult = AnnotationField.create({
         curatorId: curatorIdResult.value,
         name: nameResult.value,
         description: descriptionResult.value,
         definition: definitionResult.value,
       });
-      
+
       if (fieldResult.isErr()) {
-        return err(new Error(`Annotation field creation failed: ${fieldResult.error}`));
+        return err(
+          new Error(`Annotation field creation failed: ${fieldResult.error}`)
+        );
       }
-      
+
       // Create the template field with the annotation field
       const templateFieldResult = AnnotationTemplateField.create({
         annotationField: fieldResult.value,
         required: fieldDto.required || false,
       });
-      
+
       if (templateFieldResult.isErr()) {
-        return err(new Error(`Template field creation failed: ${templateFieldResult.error}`));
+        return err(
+          new Error(
+            `Template field creation failed: ${templateFieldResult.error}`
+          )
+        );
       }
-      
+
       annotationTemplateFields.push(templateFieldResult.value);
     }
-    
+
     // Create the AnnotationTemplateFields value object
-    const fieldsResult = AnnotationTemplateFields.create(annotationTemplateFields);
-    
+    const fieldsResult = AnnotationTemplateFields.create(
+      annotationTemplateFields
+    );
+
     if (fieldsResult.isErr()) {
-      return err(new Error(`AnnotationTemplateFields creation failed: ${fieldsResult.error}`));
+      return err(
+        new Error(
+          `AnnotationTemplateFields creation failed: ${fieldsResult.error}`
+        )
+      );
     }
 
     // Create published record ID if provided

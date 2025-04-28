@@ -13,7 +13,13 @@ import {
   PublishedRecordId,
   URI,
 } from "../../domain/value-objects";
-import { DyadValue, TriadValue, RatingValue, SingleSelectValue, MultiSelectValue } from "../../domain/value-objects/AnnotationValue";
+import {
+  DyadValue,
+  TriadValue,
+  RatingValue,
+  SingleSelectValue,
+  MultiSelectValue,
+} from "../../domain/value-objects/AnnotationValue";
 
 export class AnnotationBuilder {
   private _id?: UniqueEntityID;
@@ -117,15 +123,15 @@ export class AnnotationBuilder {
   // Method to build the Annotation aggregate
   build(): Result<Annotation> {
     const curatorIdResult = CuratorId.create(this._curatorId);
-    const urlResult = URI.create(this._url);
+    const urlResult = new URI(this._url);
     const fieldIdResult = AnnotationFieldId.create(
       new UniqueEntityID(this._annotationFieldId)
     );
 
     // Create value based on type if not directly set
-    let valueResult: Result<AnnotationValue>;
+    let valueResult: AnnotationValue;
     if (this._value) {
-      valueResult = ok(this._value);
+      valueResult = this._value;
     } else {
       // Create value based on type and props
       switch (this._valueType) {
@@ -150,7 +156,7 @@ export class AnnotationBuilder {
     }
 
     // Create template IDs if any
-    const templateIds = this._annotationTemplateIds.map(id => 
+    const templateIds = this._annotationTemplateIds.map((id) =>
       AnnotationTemplateId.create(new UniqueEntityID(id)).unwrap()
     );
 
@@ -168,23 +174,21 @@ export class AnnotationBuilder {
 
     // Check for errors in required value objects
     if (curatorIdResult.isErr()) {
-      return err(new Error(`CuratorId creation failed: ${curatorIdResult.error}`));
-    }
-    if (urlResult.isErr()) {
-      return err(new Error(`URL creation failed: ${urlResult.error}`));
+      return err(
+        new Error(`CuratorId creation failed: ${curatorIdResult.error}`)
+      );
     }
     if (fieldIdResult.isErr()) {
-      return err(new Error(`AnnotationFieldId creation failed: ${fieldIdResult.error}`));
-    }
-    if (valueResult.isErr()) {
-      return err(new Error(`AnnotationValue creation failed: ${valueResult.error}`));
+      return err(
+        new Error(`AnnotationFieldId creation failed: ${fieldIdResult.error}`)
+      );
     }
 
     const props: AnnotationProps = {
       curatorId: curatorIdResult.value,
-      url: urlResult.value,
+      url: urlResult,
       annotationFieldId: fieldIdResult.value,
-      value: valueResult.value,
+      value: valueResult,
       annotationTemplateIds: templateIds.length > 0 ? templateIds : undefined,
       note,
       createdAt: this._createdAt,
@@ -195,7 +199,9 @@ export class AnnotationBuilder {
     const annotationResult = Annotation.create(props, this._id);
 
     if (annotationResult.isErr()) {
-      return err(new Error(`Annotation creation failed: ${annotationResult.error}`));
+      return err(
+        new Error(`Annotation creation failed: ${annotationResult.error}`)
+      );
     }
 
     return ok(annotationResult.value);

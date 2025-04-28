@@ -102,4 +102,45 @@ export class AnnotationsFromTemplate extends AggregateRoot<AnnotationsFromTempla
     }
     return true;
   }
+
+  public get annotations(): Annotation[] {
+    return [...this.props.annotations];
+  }
+
+  public get template(): AnnotationTemplate {
+    return this.props.template;
+  }
+
+  public markAnnotationAsPublished(
+    annotationId: AnnotationId,
+    publishedRecordId: PublishedRecordId
+  ): Result<void, string> {
+    const annotation = this.props.annotations.find((a) =>
+      a.annotationId.equals(annotationId)
+    );
+    
+    if (!annotation) {
+      return err(`Annotation with ID ${annotationId.getStringValue()} not found`);
+    }
+    
+    annotation.markAsPublished(publishedRecordId);
+    return ok(undefined);
+  }
+
+  public markAllAnnotationsAsPublished(
+    publishedRecordIds: Map<string, PublishedRecordId>
+  ): Result<void, string> {
+    for (const annotation of this.props.annotations) {
+      const idString = annotation.annotationId.getStringValue();
+      const publishedRecordId = publishedRecordIds.get(idString);
+      
+      if (!publishedRecordId) {
+        return err(`Published record ID not found for annotation ${idString}`);
+      }
+      
+      annotation.markAsPublished(publishedRecordId);
+    }
+    
+    return ok(undefined);
+  }
 }

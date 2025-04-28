@@ -195,10 +195,14 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
         );
       }
 
+      // Get the AnnotationsFromTemplate instance
+      const annotationsFromTemplate = annotationsFromTemplateResult.value;
+      
       // Publish and save each annotation
       const publishedAnnotationIds: string[] = [];
+      const publishedRecordIds = new Map<string, PublishedRecordId>();
 
-      for (const annotation of annotations) {
+      for (const annotation of annotationsFromTemplate.annotations) {
         // Publish annotation
         const publishResult =
           await this.annotationPublisher.publish(annotation);
@@ -211,20 +215,35 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
           );
         }
 
-        // Mark as published and save
-        annotation.markAsPublished(publishResult.value);
-
-        try {
+        // Store the published record ID for later batch update
+        const annotationIdString = annotation.annotationId.getStringValue();
+        publishedRecordIds.set(annotationIdString, publishResult.value);
+        publishedAnnotationIds.push(annotationIdString);
+      }
+      
+      // Mark all annotations as published in one operation
+      const markPublishedResult = annotationsFromTemplate.markAllAnnotationsAsPublished(publishedRecordIds);
+      if (markPublishedResult.isErr()) {
+        return err(
+          new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationPublishFailed(
+            "batch",
+            markPublishedResult.error
+          )
+        );
+      }
+      
+      // Save all annotations
+      try {
+        for (const annotation of annotationsFromTemplate.annotations) {
           await this.annotationRepository.save(annotation);
-          publishedAnnotationIds.push(annotation.annotationId.getStringValue());
-        } catch (error: any) {
-          return err(
-            new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationSaveFailed(
-              annotation.id.toString(),
-              error.message
-            )
-          );
         }
+      } catch (error: any) {
+        return err(
+          new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationSaveFailed(
+            "batch",
+            error.message
+          )
+        );
       }
 
       return ok({ annotationIds: publishedAnnotationIds });

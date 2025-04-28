@@ -57,6 +57,10 @@ export class Annotation extends AggregateRoot<AnnotationProps> {
   public updatePublishedRecordId(publishedRecordId: PublishedRecordId): void {
     this.props.publishedRecordId = publishedRecordId;
   }
+  
+  public markAsPublished(publishedRecordId: PublishedRecordId): void {
+    this.props.publishedRecordId = publishedRecordId;
+  }
 
   public updateValue(
     value: AnnotationValue

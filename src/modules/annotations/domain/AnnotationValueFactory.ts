@@ -46,9 +46,7 @@ interface CreateAnnotationValueProps {
 }
 
 export class AnnotationValueFactory {
-  static create(
-    props: CreateAnnotationValueProps
-  ): Result<AnnotationValue> {
+  static create(props: CreateAnnotationValueProps): Result<AnnotationValue> {
     try {
       switch (props.type.value) {
         case AnnotationType.DYAD.value:

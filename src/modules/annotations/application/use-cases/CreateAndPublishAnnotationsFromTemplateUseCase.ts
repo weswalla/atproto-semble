@@ -1,19 +1,19 @@
-import { UseCase } from '../../../../shared/core/UseCase';
-import { IAnnotationRepository } from '../repositories/IAnnotationRepository';
-import { IAnnotationPublisher } from '../ports/IAnnotationPublisher';
-import { Result, ok, err } from '../../../../shared/core/Result';
-import { AppError } from '../../../../shared/core/AppError';
-import { Annotation } from '../../domain/aggregates/Annotation';
+import { UseCase } from "../../../../shared/core/UseCase";
+import { IAnnotationRepository } from "../repositories/IAnnotationRepository";
+import { IAnnotationPublisher } from "../ports/IAnnotationPublisher";
+import { Result, ok, err } from "../../../../shared/core/Result";
+import { AppError } from "../../../../shared/core/AppError";
+import { Annotation } from "../../domain/aggregates/Annotation";
 import {
   CuratorId,
   URI,
   AnnotationFieldId,
-  AnnotationValue,
   AnnotationNote,
   AnnotationTemplateId,
-} from '../../domain/value-objects';
-import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
-import { UseCaseError } from '../../../../shared/core/UseCaseError';
+} from "../../domain/value-objects";
+import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
+import { UseCaseError } from "../../../../shared/core/UseCaseError";
+import { AnnotationValueFactory } from "../../domain/AnnotationValueFactory";
 
 // Define potential specific errors (minimal for now)
 export namespace CreateAndPublishAnnotationErrors {
@@ -61,28 +61,28 @@ export class CreateAndPublishAnnotationUseCase
 {
   constructor(
     private readonly annotationRepository: IAnnotationRepository,
-    private readonly annotationPublisher: IAnnotationPublisher, // Assuming IAnnotationPublisher exists
-                                                              // Add IAnnotationFieldRepository if field validation is needed
+    private readonly annotationPublisher: IAnnotationPublisher // Assuming IAnnotationPublisher exists
+    // Add IAnnotationFieldRepository if field validation is needed
   ) {}
 
   async execute(
-    request: CreateAndPublishAnnotationDTO,
+    request: CreateAndPublishAnnotationDTO
   ): Promise<CreateAndPublishAnnotationResponse> {
     try {
       // 1. Create Value Objects from DTO
       const curatorIdOrError = CuratorId.create(request.curatorId);
       const urlOrError = URI.create(request.url);
       const fieldIdOrError = AnnotationFieldId.create(
-        new UniqueEntityID(request.annotationFieldId),
+        new UniqueEntityID(request.annotationFieldId)
       ); // Assuming fieldId is UniqueEntityID string
-      const valueOrError = AnnotationValue.create(request.value); // Assuming generic create
+      const valueOrError = AnnotationValueFactory.create(request.value); // Assuming generic create
       const noteOrError = request.note
         ? AnnotationNote.create(request.note)
         : ok(undefined);
       const templateIdsOrError = Result.all(
         (request.annotationTemplateIds ?? []).map((id) =>
-          AnnotationTemplateId.create(new UniqueEntityID(id)),
-        ),
+          AnnotationTemplateId.create(new UniqueEntityID(id))
+        )
       );
 
       const combinedProps = Result.combineWithAllErrors([
@@ -95,11 +95,13 @@ export class CreateAndPublishAnnotationUseCase
       ]);
 
       if (combinedProps.isErr()) {
-        const errorMessages = combinedProps.error.map((e) => e.message).join('; ');
+        const errorMessages = combinedProps.error
+          .map((e) => e.message)
+          .join("; ");
         return err(
           new CreateAndPublishAnnotationErrors.AnnotationCreationFailed(
-            `Invalid properties: ${errorMessages}`,
-          ),
+            `Invalid properties: ${errorMessages}`
+          )
         );
       }
 
@@ -127,8 +129,8 @@ export class CreateAndPublishAnnotationUseCase
       if (annotationOrError.isErr()) {
         return err(
           new CreateAndPublishAnnotationErrors.AnnotationCreationFailed(
-            annotationOrError.error.message,
-          ),
+            annotationOrError.error.message
+          )
         );
       }
       const annotation = annotationOrError.value;
@@ -140,8 +142,8 @@ export class CreateAndPublishAnnotationUseCase
       if (publishResult.isErr()) {
         return err(
           new CreateAndPublishAnnotationErrors.AnnotationPublishFailed(
-            publishResult.error.message,
-          ),
+            publishResult.error.message
+          )
         );
       }
       const publishedRecordId = publishResult.value;
@@ -155,8 +157,8 @@ export class CreateAndPublishAnnotationUseCase
       } catch (error: any) {
         return err(
           new CreateAndPublishAnnotationErrors.AnnotationSaveFailed(
-            error.message,
-          ),
+            error.message
+          )
         );
       }
 

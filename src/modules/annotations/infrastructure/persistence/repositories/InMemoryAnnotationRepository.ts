@@ -13,9 +13,6 @@ export class InMemoryAnnotationRepository implements IAnnotationRepository {
 
   // Simple clone function to prevent mutation of stored objects
   private clone(annotation: Annotation): Annotation {
-    console.warn(
-      "Using basic spread for cloning. Nested objects might not be fully cloned."
-    );
     const props = { ...annotation.props };
     // Re-create to ensure prototype chain is correct
     const recreatedResult = Annotation.create(props, annotation.id);
@@ -39,32 +36,32 @@ export class InMemoryAnnotationRepository implements IAnnotationRepository {
 
   async findByUrl(url: URI): Promise<Annotation[]> {
     const annotations = this.annotationsByUrl.get(url.value) || [];
-    return annotations.map(annotation => this.clone(annotation));
+    return annotations.map((annotation) => this.clone(annotation));
   }
 
   async save(annotation: Annotation): Promise<void> {
     // Store a clone to prevent mutation of the stored object
     const annotationToStore = this.clone(annotation);
     const idString = annotationToStore.annotationId.getStringValue();
-    
+
     // Store by ID
     this.annotations.set(idString, annotationToStore);
-    
+
     // Store by URI if available
     if (annotationToStore.publishedRecordId) {
       const uri = annotationToStore.publishedRecordId.getValue();
       this.annotationsByUri.set(uri, annotationToStore);
     }
-    
+
     // Store by URL
     const urlString = annotationToStore.url.value;
     const existingForUrl = this.annotationsByUrl.get(urlString) || [];
-    
+
     // Remove any existing annotation with the same ID
     const filteredExisting = existingForUrl.filter(
-      a => a.annotationId.getStringValue() !== idString
+      (a) => a.annotationId.getStringValue() !== idString
     );
-    
+
     // Add the new/updated annotation
     filteredExisting.push(annotationToStore);
     this.annotationsByUrl.set(urlString, filteredExisting);
@@ -73,22 +70,22 @@ export class InMemoryAnnotationRepository implements IAnnotationRepository {
   async delete(id: TID): Promise<void> {
     const annotation = this.annotations.get(id.toString());
     if (!annotation) return;
-    
+
     // Remove from ID index
     this.annotations.delete(id.toString());
-    
+
     // Remove from URI index if available
     if (annotation.publishedRecordId) {
       this.annotationsByUri.delete(annotation.publishedRecordId.getValue());
     }
-    
+
     // Remove from URL index
     const urlString = annotation.url.value;
     const existingForUrl = this.annotationsByUrl.get(urlString) || [];
     const filteredExisting = existingForUrl.filter(
-      a => a.annotationId.getStringValue() !== id.toString()
+      (a) => a.annotationId.getStringValue() !== id.toString()
     );
-    
+
     if (filteredExisting.length > 0) {
       this.annotationsByUrl.set(urlString, filteredExisting);
     } else {

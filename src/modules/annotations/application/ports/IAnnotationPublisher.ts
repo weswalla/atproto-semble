@@ -1,7 +1,7 @@
-import { Annotation } from '../../domain/aggregates/Annotation';
-import { Result } from '../../../../shared/core/Result';
-import { UseCaseError } from '../../../../shared/core/UseCaseError';
-import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
+import { Annotation } from "../../domain/aggregates/Annotation";
+import { Result } from "../../../../shared/core/Result";
+import { UseCaseError } from "../../../../shared/core/UseCaseError";
+import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
 
 /**
  * @description Interface for publishing Annotation aggregates.
@@ -14,7 +14,7 @@ export interface IAnnotationPublisher {
    * @returns A Result indicating success (void) or a UseCaseError on failure.
    */
   publish(
-    annotation: Annotation,
+    annotation: Annotation
   ): Promise<Result<PublishedRecordId, UseCaseError>>;
 
   /**

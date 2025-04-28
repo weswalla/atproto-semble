@@ -74,7 +74,10 @@ describe("AnnotationValueFactory", () => {
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
         expect(result.value).toBeInstanceOf(MultiSelectValue);
-        expect((result.value as MultiSelectValue).options).toEqual(["Option A", "Option B"]);
+        expect((result.value as MultiSelectValue).options).toEqual([
+          "Option A",
+          "Option B",
+        ]);
       }
     });
 
@@ -110,7 +113,9 @@ describe("AnnotationValueFactory", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toBe("Dyad value must be between 0 and 100.");
+        expect(result.error.message).toBe(
+          "Dyad value must be between 0 and 100."
+        );
       }
     });
   });

@@ -14,9 +14,6 @@ export class InMemoryAnnotationTemplateRepository
   // Simple clone function using structuredClone (requires Node.js >= 17 or polyfill)
   // Fallback to basic spread if structuredClone is unavailable, but be aware of limitations.
   private clone(template: AnnotationTemplate): AnnotationTemplate {
-    console.warn(
-      "structuredClone not available, using basic spread for cloning. Nested objects might not be fully cloned."
-    );
     const props = { ...template.props };
     // Re-create to ensure prototype chain is correct, though nested objects are still shallow copied
     const recreatedResult = AnnotationTemplate.create(props, template.id);

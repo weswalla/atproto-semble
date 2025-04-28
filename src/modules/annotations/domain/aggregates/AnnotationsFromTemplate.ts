@@ -1,5 +1,5 @@
 import { AggregateRoot } from "src/shared/domain/AggregateRoot";
-import { CuratorId } from "../value-objects";
+import { AnnotationId, CuratorId, PublishedRecordId } from "../value-objects";
 import { Annotation } from "./Annotation";
 import { AnnotationTemplate } from "./AnnotationTemplate";
 import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
@@ -59,15 +59,17 @@ export class AnnotationsFromTemplate extends AggregateRoot<AnnotationsFromTempla
     if (annotations.length === 0) {
       return false;
     }
-    
+
     for (const annotation of annotations) {
       const templateIds = annotation.annotationTemplateIds;
       if (!templateIds) {
         return false;
       }
-      if (!templateIds.some((templateId) =>
-        templateId.equals(template.templateId)
-      )) {
+      if (
+        !templateIds.some((templateId) =>
+          templateId.equals(template.templateId)
+        )
+      ) {
         return false;
       }
     }
@@ -118,11 +120,13 @@ export class AnnotationsFromTemplate extends AggregateRoot<AnnotationsFromTempla
     const annotation = this.props.annotations.find((a) =>
       a.annotationId.equals(annotationId)
     );
-    
+
     if (!annotation) {
-      return err(`Annotation with ID ${annotationId.getStringValue()} not found`);
+      return err(
+        `Annotation with ID ${annotationId.getStringValue()} not found`
+      );
     }
-    
+
     annotation.markAsPublished(publishedRecordId);
     return ok(undefined);
   }
@@ -133,14 +137,14 @@ export class AnnotationsFromTemplate extends AggregateRoot<AnnotationsFromTempla
     for (const annotation of this.props.annotations) {
       const idString = annotation.annotationId.getStringValue();
       const publishedRecordId = publishedRecordIds.get(idString);
-      
+
       if (!publishedRecordId) {
         return err(`Published record ID not found for annotation ${idString}`);
       }
-      
+
       annotation.markAsPublished(publishedRecordId);
     }
-    
+
     return ok(undefined);
   }
 }

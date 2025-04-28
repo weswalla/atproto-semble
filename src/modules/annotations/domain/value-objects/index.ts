@@ -13,3 +13,4 @@ export * from "./AnnotationTemplateName";
 export * from "./AnnotationTemplateDescription";
 export * from "./AnnotationTemplateField";
 export * from "./AnnotationTemplateFields";
+export * from "./AnnotationFieldName";

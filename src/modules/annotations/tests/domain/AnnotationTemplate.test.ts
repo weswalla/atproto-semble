@@ -11,7 +11,7 @@ import {
 import { AnnotationType } from "../../domain/value-objects/AnnotationType";
 import { AnnotationFieldBuilder } from "../utils/AnnotationFieldBuilder";
 
-describe.skip("AnnotationTemplate", () => {
+describe("AnnotationTemplate", () => {
   const curatorId = CuratorId.create("did:plc:1234").unwrap();
   const name = AnnotationTemplateName.create("Test Template").unwrap();
   const description =

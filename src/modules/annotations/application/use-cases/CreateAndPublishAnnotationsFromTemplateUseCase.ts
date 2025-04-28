@@ -11,6 +11,7 @@ import {
   AnnotationFieldId,
   AnnotationNote,
   AnnotationTemplateId,
+  PublishedRecordId,
 } from "../../domain/value-objects";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
 import { UseCaseError } from "../../../../shared/core/UseCaseError";
@@ -197,7 +198,7 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
 
       // Get the AnnotationsFromTemplate instance
       const annotationsFromTemplate = annotationsFromTemplateResult.value;
-      
+
       // Publish and save each annotation
       const publishedAnnotationIds: string[] = [];
       const publishedRecordIds = new Map<string, PublishedRecordId>();
@@ -220,9 +221,12 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
         publishedRecordIds.set(annotationIdString, publishResult.value);
         publishedAnnotationIds.push(annotationIdString);
       }
-      
+
       // Mark all annotations as published in one operation
-      const markPublishedResult = annotationsFromTemplate.markAllAnnotationsAsPublished(publishedRecordIds);
+      const markPublishedResult =
+        annotationsFromTemplate.markAllAnnotationsAsPublished(
+          publishedRecordIds
+        );
       if (markPublishedResult.isErr()) {
         return err(
           new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationPublishFailed(
@@ -231,7 +235,7 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
           )
         );
       }
-      
+
       // Save all annotations
       try {
         for (const annotation of annotationsFromTemplate.annotations) {

@@ -185,11 +185,12 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
         curatorId,
         createdAt: new Date(),
       });
-      
+
       if (annotationsFromTemplateResult.isErr()) {
         return err(
           new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
-            annotationsFromTemplateResult.error || "Annotations do not satisfy template requirements"
+            annotationsFromTemplateResult.error ||
+              "Annotations do not satisfy template requirements"
           )
         );
       }

@@ -1,9 +1,7 @@
-import { InMemoryAnnotationRepository } from "../../infrastructure/persistence/repositories/InMemoryAnnotationRepository";
 import { InMemoryAnnotationTemplateRepository } from "../../infrastructure/persistence/repositories/InMemoryAnnotationTemplateRepository";
 import { FakeAnnotationPublisher } from "../utils/FakeAnnotationPublisher";
 import { CreateAndPublishAnnotationsFromTemplateUseCase } from "../../application/use-cases/CreateAndPublishAnnotationsFromTemplateUseCase";
 import { Annotation } from "../../domain/aggregates/Annotation";
-import { AnnotationTemplate } from "../../domain/aggregates/AnnotationTemplate";
 import { AnnotationTemplateId } from "../../domain/value-objects";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
 import { AnnotationTemplateDTOBuilder } from "../utils/AnnotationTemplateDTOBuilder";
@@ -22,13 +20,13 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
   async function createTestTemplate() {
     const templatePublisher = new FakeAnnotationTemplatePublisher();
     const fieldPublisher = new FakeAnnotationFieldPublisher();
-    
+
     const createTemplateUseCase = new CreateAndPublishAnnotationTemplateUseCase(
       annotationTemplateRepository,
       templatePublisher,
       fieldPublisher
     );
-    
+
     const templateDTO = new AnnotationTemplateDTOBuilder()
       .withCuratorId("did:example:curator123")
       .withName("Test Template")
@@ -53,10 +51,10 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
         },
       })
       .build();
-    
+
     const result = await createTemplateUseCase.execute(templateDTO);
     expect(result.isOk()).toBe(true);
-    
+
     if (result.isOk()) {
       return result.value.templateId;
     }
@@ -67,13 +65,13 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
     annotationRepository = new InMemoryAnnotationRepository();
     annotationTemplateRepository = new InMemoryAnnotationTemplateRepository();
     annotationPublisher = new FakeAnnotationPublisher();
-    
+
     useCase = new CreateAndPublishAnnotationsFromTemplateUseCase(
       annotationRepository,
       annotationTemplateRepository,
       annotationPublisher
     );
-    
+
     // Create a template for testing
     templateId = await createTestTemplate();
   });
@@ -89,25 +87,25 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
           annotationFieldId: "1", // This will be replaced with actual field ID
           type: "rating",
           value: { rating: 4 },
-          note: "Good rating"
+          note: "Good rating",
         },
         {
           annotationFieldId: "2", // This will be replaced with actual field ID
           type: "dyad",
           value: { value: 0.7 },
-        }
-      ]
+        },
+      ],
     };
-    
+
     // Get the actual field IDs from the template
     const template = await annotationTemplateRepository.findById(
       AnnotationTemplateId.create(new UniqueEntityID(templateId)).unwrap()
     );
     expect(template).not.toBeNull();
-    
+
     const fields = template!.getAnnotationFields();
     expect(fields.length).toBe(2);
-    
+
     // Update the DTO with actual field IDs
     dto.annotations[0].annotationFieldId = fields[0].fieldId.getStringValue();
     dto.annotations[1].annotationFieldId = fields[1].fieldId.getStringValue();
@@ -134,11 +132,13 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
         expect(savedAnnotation!.publishedRecordId).toBeDefined();
         expect(savedAnnotation!.curatorId.value).toBe(dto.curatorId);
         expect(savedAnnotation!.url.value).toBe(dto.url);
-        
+
         // Check template association
         expect(savedAnnotation!.annotationTemplateIds).toBeDefined();
         expect(savedAnnotation!.annotationTemplateIds!.length).toBe(1);
-        expect(savedAnnotation!.annotationTemplateIds![0].getStringValue()).toBe(templateId);
+        expect(
+          savedAnnotation!.annotationTemplateIds![0].getStringValue()
+        ).toBe(templateId);
       }
     } else {
       fail(`Expected Ok, got Err: ${result.error.message}`);
@@ -156,8 +156,8 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
           annotationFieldId: new UniqueEntityID().toString(),
           type: "rating",
           value: { rating: 4 },
-        }
-      ]
+        },
+      ],
     };
 
     // Act
@@ -173,7 +173,7 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
   it("should fail when required fields are missing", async () => {
     // This test would need to be implemented once we have the AnnotationsFromTemplate
     // aggregate properly checking for required fields
-    
+
     // For now, we'll just create a placeholder test
     expect(true).toBe(true);
   });

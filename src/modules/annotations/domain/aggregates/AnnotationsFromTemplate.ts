@@ -55,16 +55,22 @@ export class AnnotationsFromTemplate extends AggregateRoot<AnnotationsFromTempla
     annotations: Annotation[],
     template: AnnotationTemplate
   ): boolean {
+    if (annotations.length === 0) {
+      return false;
+    }
+    
     for (const annotation of annotations) {
       const templateIds = annotation.annotationTemplateIds;
       if (!templateIds) {
         return false;
       }
-      return templateIds.some((templateId) =>
+      if (!templateIds.some((templateId) =>
         templateId.equals(template.templateId)
-      );
+      )) {
+        return false;
+      }
     }
-    return false;
+    return true;
   }
 
   private static annotationsAreValid(
@@ -79,7 +85,7 @@ export class AnnotationsFromTemplate extends AggregateRoot<AnnotationsFromTempla
     ) {
       return false;
     }
-    if (AnnotationsFromTemplate.hasAllRequiredFields(annotations, template)) {
+    if (!AnnotationsFromTemplate.hasAllRequiredFields(annotations, template)) {
       return false;
     }
     for (const annotation of annotations) {

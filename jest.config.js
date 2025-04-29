@@ -15,4 +15,6 @@ module.exports = {
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/src/$1',
   },
+  // Increase timeout for tests that use containers
+  testTimeout: 60000,
 };

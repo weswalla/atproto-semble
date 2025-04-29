@@ -15,7 +15,7 @@ import {
   AnnotationFieldDefinition,
 } from "../../../domain/value-objects/AnnotationFieldDefinition";
 import { AnnotationType } from "../../../domain/value-objects/AnnotationType";
-import { Result } from "../../../../../shared/core/Result";
+import { err, Result } from "../../../../../shared/core/Result";
 
 // Database representation of an annotation field
 export interface AnnotationFieldDTO {
@@ -34,22 +34,24 @@ export class AnnotationFieldMapper {
     // Create value objects
     const curatorIdOrError = CuratorId.create(dto.curatorId);
     if (curatorIdOrError.isErr()) {
-      return Result.err(curatorIdOrError.error);
+      return err(curatorIdOrError.error);
     }
 
     const nameOrError = AnnotationFieldName.create(dto.name);
     if (nameOrError.isErr()) {
-      return Result.err(nameOrError.error);
+      return err(nameOrError.error);
     }
 
-    const descriptionOrError = AnnotationFieldDescription.create(dto.description);
+    const descriptionOrError = AnnotationFieldDescription.create(
+      dto.description
+    );
     if (descriptionOrError.isErr()) {
-      return Result.err(descriptionOrError.error);
+      return err(descriptionOrError.error);
     }
 
     // Create the appropriate definition based on type
     let definitionOrError: Result<AnnotationFieldDefinition>;
-    
+
     switch (dto.definitionType) {
       case AnnotationType.DYAD.value:
         definitionOrError = DyadFieldDef.create({
@@ -78,17 +80,19 @@ export class AnnotationFieldMapper {
         });
         break;
       default:
-        return Result.err(new Error(`Unknown annotation field type: ${dto.definitionType}`));
+        return err(
+          new Error(`Unknown annotation field type: ${dto.definitionType}`)
+        );
     }
 
     if (definitionOrError.isErr()) {
-      return Result.err(definitionOrError.error);
+      return err(definitionOrError.error);
     }
 
     // Create published record ID if it exists
     let publishedRecordId: PublishedRecordId | undefined;
     if (dto.publishedRecordId) {
-      publishedRecordId = PublishedRecordId.create(dto.publishedRecordId).unwrap();
+      publishedRecordId = PublishedRecordId.create(dto.publishedRecordId);
     }
 
     // Create the annotation field

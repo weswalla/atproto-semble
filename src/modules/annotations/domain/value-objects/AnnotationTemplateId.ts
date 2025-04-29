@@ -21,10 +21,12 @@ export class AnnotationTemplateId extends ValueObject<{
     value: UniqueEntityID
   ): Result<AnnotationTemplateId, Error> {
     return ok(new AnnotationTemplateId(value));
-    // let guardResult = Guard.againstNullOrUndefined(value, "value");
-    // if (guardResult.isFailure) {
-    //   return Result.fail<AnnotationTemplateId>(guardResult.getErrorValue());
-    // }
-    // return Result.ok<AnnotationTemplateId>(new AnnotationTemplateId(value));
+  }
+
+  public static createFromString(
+    value: string
+  ): Result<AnnotationTemplateId, Error> {
+    const uniqueEntityID = new UniqueEntityID(value);
+    return AnnotationTemplateId.create(uniqueEntityID);
   }
 }

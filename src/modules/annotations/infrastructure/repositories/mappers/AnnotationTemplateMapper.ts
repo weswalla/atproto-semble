@@ -18,7 +18,7 @@ export interface AnnotationTemplateDTO {
   name: string;
   description: string;
   createdAt: Date;
-  publishedRecordId?: string;
+  publishedRecordId: string | null;
   fields: AnnotationTemplateFieldDTO[];
 }
 

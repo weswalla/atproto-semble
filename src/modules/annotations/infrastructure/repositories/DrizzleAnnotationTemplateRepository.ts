@@ -3,6 +3,7 @@ import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { IAnnotationTemplateRepository } from "../../application/repositories/IAnnotationTemplateRepository";
 import { AnnotationTemplate } from "../../domain/aggregates/AnnotationTemplate";
 import {
+  AnnotationFieldId,
   AnnotationTemplateId,
   PublishedRecordId,
 } from "../../domain/value-objects";
@@ -44,9 +45,15 @@ export class DrizzleAnnotationTemplateRepository
     // Fetch the actual annotation fields
     const annotationFields = await Promise.all(
       fieldsResult.map(async (field) => {
-        const annotationField = await this.annotationFieldRepository.findById(
+        const annotationFieldIdResult = AnnotationFieldId.createFromString(
           field.fieldId
         );
+        if (annotationFieldIdResult.isErr()) {
+          throw new Error(`Invalid field ID: ${field.fieldId}`);
+        }
+        const fieldId = annotationFieldIdResult.value;
+        const annotationField =
+          await this.annotationFieldRepository.findById(fieldId);
         return {
           fieldId: field.fieldId,
           required: field.required,
@@ -62,6 +69,9 @@ export class DrizzleAnnotationTemplateRepository
 
     // Map to domain object
     const template = templateResult[0];
+    if (!template) {
+      throw new Error("Template not found");
+    }
     const templateDTO = {
       id: template.id,
       curatorId: template.curatorId,
@@ -90,10 +100,13 @@ export class DrizzleAnnotationTemplateRepository
     if (templateResult.length === 0) {
       return null;
     }
+    if (!templateResult[0]) {
+      throw new Error("Template not found");
+    }
 
     // Use the findById method to get the complete template with fields
     return this.findById(
-      AnnotationTemplateId.create(templateResult[0].id).unwrap()
+      AnnotationTemplateId.createFromString(templateResult[0].id).unwrap()
     );
   }
 
@@ -107,10 +120,13 @@ export class DrizzleAnnotationTemplateRepository
     if (templateResult.length === 0) {
       return null;
     }
+    if (!templateResult[0]) {
+      throw new Error("Template not found");
+    }
 
     // Use the findById method to get the complete template with fields
     return this.findById(
-      AnnotationTemplateId.create(templateResult[0].id).unwrap()
+      AnnotationTemplateId.createFromString(templateResult[0].id).unwrap()
     );
   }
 

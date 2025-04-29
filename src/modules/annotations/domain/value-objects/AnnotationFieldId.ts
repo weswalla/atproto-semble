@@ -23,4 +23,9 @@ export class AnnotationFieldId extends ValueObject<{ value: UniqueEntityID }> {
     }
     return ok(new AnnotationFieldId(value));
   }
+
+  public static createFromString(value: string): Result<AnnotationFieldId> {
+    const uniqueEntityID = new UniqueEntityID(value);
+    return AnnotationFieldId.create(uniqueEntityID);
+  }
 }

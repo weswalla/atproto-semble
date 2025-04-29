@@ -2,11 +2,16 @@ import { eq } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { IAnnotationFieldRepository } from "../../application/repositories/IAnnotationFieldRepository";
 import { AnnotationField } from "../../domain/AnnotationField";
-import { AnnotationFieldId, PublishedRecordId } from "../../domain/value-objects";
+import {
+  AnnotationFieldId,
+  PublishedRecordId,
+} from "../../domain/value-objects";
 import { annotationFields } from "./schema/annotationFieldSchema";
 import { AnnotationFieldMapper } from "./mappers/AnnotationFieldMapper";
 
-export class DrizzleAnnotationFieldRepository implements IAnnotationFieldRepository {
+export class DrizzleAnnotationFieldRepository
+  implements IAnnotationFieldRepository
+{
   constructor(private db: PostgresJsDatabase) {}
 
   async findById(id: AnnotationFieldId): Promise<AnnotationField | null> {

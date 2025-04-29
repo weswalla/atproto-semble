@@ -83,7 +83,7 @@ export class DrizzleAnnotationTemplateRepository
     };
 
     const domainResult = AnnotationTemplateMapper.toDomain(templateDTO);
-    return domainResult.isOk() ? domainResult.value : null;
+    return domainResult.isOk() ? domainResult.unwrap() : null;
   }
 
   async findByPublishedRecordId(

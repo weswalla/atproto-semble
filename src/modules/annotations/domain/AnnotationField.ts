@@ -1,12 +1,12 @@
 import { UniqueEntityID } from "../../../shared/domain/UniqueEntityID";
-import { ok, Result } from "../../../shared/core/Result";
+import { ok, Result, err } from "../../../shared/core/Result";
 import { Guard, IGuardArgument } from "../../../shared/core/Guard";
 import { AnnotationFieldId } from "./value-objects/AnnotationFieldId"; // Assuming this exists and wraps UniqueEntityID
 import { AnnotationFieldName } from "./value-objects/AnnotationFieldName";
 import { AnnotationFieldDescription } from "./value-objects/AnnotationFieldDescription";
 import { AnnotationFieldDefinition } from "./value-objects/AnnotationFieldDefinition"; // Renamed and refactored
 import { CuratorId, PublishedRecordId } from "./value-objects";
-import { Entity } from "src/shared/domain/Entity";
+import { Entity } from "../../../shared/domain/Entity";
 
 export interface AnnotationFieldProps {
   curatorId: CuratorId;

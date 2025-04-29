@@ -27,6 +27,10 @@ export class DrizzleAnnotationFieldRepository
       return null;
     }
 
+    if (!result[0]) {
+      throw new Error("Field not found");
+    }
+
     const fieldDTO = {
       id: result[0].id,
       curatorId: result[0].curatorId,
@@ -57,6 +61,10 @@ export class DrizzleAnnotationFieldRepository
       return null;
     }
 
+    if (!result[0]) {
+      throw new Error("Field not found");
+    }
+
     const fieldDTO = {
       id: result[0].id,
       curatorId: result[0].curatorId,
@@ -81,6 +89,10 @@ export class DrizzleAnnotationFieldRepository
 
     if (result.length === 0) {
       return null;
+    }
+
+    if (!result[0]) {
+      throw new Error("Field not found");
     }
 
     const fieldDTO = {

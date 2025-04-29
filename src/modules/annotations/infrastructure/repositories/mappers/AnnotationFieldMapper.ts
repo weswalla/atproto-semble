@@ -26,7 +26,7 @@ export interface AnnotationFieldDTO {
   definitionType: string;
   definitionData: any; // JSON data for the definition
   createdAt: Date;
-  publishedRecordId?: string;
+  publishedRecordId: string | null;
 }
 
 export class AnnotationFieldMapper {
@@ -155,7 +155,7 @@ export class AnnotationFieldMapper {
       definitionType,
       definitionData,
       createdAt: field.createdAt,
-      publishedRecordId: field.publishedRecordId?.getValue(),
+      publishedRecordId: field.publishedRecordId?.getValue() || null,
     };
   }
 }

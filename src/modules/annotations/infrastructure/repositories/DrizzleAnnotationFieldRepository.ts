@@ -39,7 +39,7 @@ export class DrizzleAnnotationFieldRepository
     };
 
     const domainResult = AnnotationFieldMapper.toDomain(fieldDTO);
-    return domainResult.isOk() ? domainResult.value : null;
+    return domainResult.isOk() ? domainResult.unwrap() : null;
   }
 
   async findByPublishedRecordId(
@@ -69,7 +69,7 @@ export class DrizzleAnnotationFieldRepository
     };
 
     const domainResult = AnnotationFieldMapper.toDomain(fieldDTO);
-    return domainResult.isOk() ? domainResult.value : null;
+    return domainResult.isOk() ? domainResult.unwrap() : null;
   }
 
   async findByName(name: string): Promise<AnnotationField | null> {
@@ -95,7 +95,7 @@ export class DrizzleAnnotationFieldRepository
     };
 
     const domainResult = AnnotationFieldMapper.toDomain(fieldDTO);
-    return domainResult.isOk() ? domainResult.value : null;
+    return domainResult.isOk() ? domainResult.unwrap() : null;
   }
 
   async save(field: AnnotationField): Promise<void> {

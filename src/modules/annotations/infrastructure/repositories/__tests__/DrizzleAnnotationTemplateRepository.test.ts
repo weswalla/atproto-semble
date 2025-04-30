@@ -1,5 +1,4 @@
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { StartedTestContainer } from "testcontainers";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { DrizzleAnnotationTemplateRepository } from "../DrizzleAnnotationTemplateRepository";
@@ -18,7 +17,7 @@ import {
 import { annotationFields } from "../schema/annotationFieldSchema";
 
 describe("DrizzleAnnotationTemplateRepository", () => {
-  let container: StartedTestContainer;
+  let container: PostgreSqlContainer;
   let db: ReturnType<typeof drizzle>;
   let fieldRepository: DrizzleAnnotationFieldRepository;
   let templateRepository: DrizzleAnnotationTemplateRepository;
@@ -29,7 +28,7 @@ describe("DrizzleAnnotationTemplateRepository", () => {
     container = await new PostgreSqlContainer().start();
 
     // Create database connection
-    const connectionString = `postgres://${container.getUsername()}:${container.getPassword()}@${container.getHost()}:${container.getPort()}/${container.getDatabase()}`;
+    const connectionString = container.getConnectionUri();
     process.env.DATABASE_URL = connectionString;
     const client = postgres(connectionString);
     db = drizzle(client);

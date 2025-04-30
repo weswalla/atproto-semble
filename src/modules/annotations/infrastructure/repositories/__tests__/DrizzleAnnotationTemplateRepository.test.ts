@@ -1,6 +1,9 @@
-import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import {
+  PostgreSqlContainer,
+  StartedPostgreSqlContainer,
+} from "@testcontainers/postgresql";
 import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
+import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { DrizzleAnnotationTemplateRepository } from "../DrizzleAnnotationTemplateRepository";
 import { DrizzleAnnotationFieldRepository } from "../DrizzleAnnotationFieldRepository";
 import { AnnotationTemplateId, CuratorId } from "../../../domain/value-objects";
@@ -17,8 +20,8 @@ import {
 import { annotationFields } from "../schema/annotationFieldSchema";
 
 describe("DrizzleAnnotationTemplateRepository", () => {
-  let container: PostgreSqlContainer;
-  let db: ReturnType<typeof drizzle>;
+  let container: StartedPostgreSqlContainer;
+  let db: PostgresJsDatabase;
   let fieldRepository: DrizzleAnnotationFieldRepository;
   let templateRepository: DrizzleAnnotationTemplateRepository;
 

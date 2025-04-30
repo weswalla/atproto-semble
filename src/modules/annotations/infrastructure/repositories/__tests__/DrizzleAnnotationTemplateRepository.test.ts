@@ -6,7 +6,13 @@ import postgres from "postgres";
 import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { DrizzleAnnotationTemplateRepository } from "../DrizzleAnnotationTemplateRepository";
 import { DrizzleAnnotationFieldRepository } from "../DrizzleAnnotationFieldRepository";
-import { AnnotationTemplateId, CuratorId } from "../../../domain/value-objects";
+import {
+  AnnotationFieldDescription,
+  AnnotationFieldName,
+  AnnotationTemplateField,
+  AnnotationTemplateId,
+  CuratorId,
+} from "../../../domain/value-objects";
 import { AnnotationTemplate } from "../../../domain/aggregates/AnnotationTemplate";
 import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
 import { AnnotationTemplateName } from "../../../domain/value-objects/AnnotationTemplateName";
@@ -18,6 +24,9 @@ import {
   annotationTemplateFields,
 } from "../schema/annotationTemplateSchema";
 import { annotationFields } from "../schema/annotationFieldSchema";
+import { AnnotationFieldDefinitionFactory } from "src/modules/annotations/domain/AnnotationFieldDefinitionFactory";
+import { AnnotationType } from "src/modules/annotations/domain/value-objects/AnnotationType";
+import { AnnotationField } from "src/modules/annotations/domain/aggregates";
 
 describe("DrizzleAnnotationTemplateRepository", () => {
   let container: StartedPostgreSqlContainer;
@@ -87,40 +96,92 @@ describe("DrizzleAnnotationTemplateRepository", () => {
     await db.delete(annotationFields);
   });
 
-  // Basic test to verify repository can save and retrieve a template
-  it("should save and retrieve a template without fields", async () => {
-    // Create a test template
-    const id = new UniqueEntityID("template-test-123");
+  it("should save and retrieve a template with fields", async () => {
+    // Import necessary dependencies
+    // Create a test annotation field
+    const fieldId = new UniqueEntityID("field-test-123");
     const curatorId = CuratorId.create("did:plc:testcurator").unwrap();
-    const name = AnnotationTemplateName.create("Test Template").unwrap();
-    const description =
-      AnnotationTemplateDescription.create("Test description").unwrap();
-    const fields = AnnotationTemplateFields.create([]).unwrap();
+    const fieldName = AnnotationFieldName.create("Test Field").unwrap();
+    const fieldDescription = AnnotationFieldDescription.create(
+      "Test field description"
+    ).unwrap();
+
+    // Create a dyad field definition
+    const fieldDefinition = AnnotationFieldDefinitionFactory.create({
+      type: AnnotationType.create("dyad"),
+      fieldDefProps: {
+        sideA: "Side A",
+        sideB: "Side B",
+      },
+    }).unwrap();
+
+    // Create the annotation field
+    const annotationField = AnnotationField.create(
+      {
+        curatorId,
+        name: fieldName,
+        description: fieldDescription,
+        definition: fieldDefinition,
+      },
+      fieldId
+    ).unwrap();
+
+    // Save the field first
+    await fieldRepository.save(annotationField);
+
+    // Create a template field using the annotation field
+    const templateField = AnnotationTemplateField.create({
+      annotationField,
+      required: true,
+    }).unwrap();
+
+    // Create template fields collection
+    const templateFields = AnnotationTemplateFields.create([
+      templateField,
+    ]).unwrap();
+
+    // Create the template
+    const templateId = new UniqueEntityID("template-with-fields-123");
+    const templateName = AnnotationTemplateName.create(
+      "Template With Fields"
+    ).unwrap();
+    const templateDescription = AnnotationTemplateDescription.create(
+      "A template with fields"
+    ).unwrap();
 
     const template = AnnotationTemplate.create(
       {
         curatorId,
-        name,
-        description,
-        annotationTemplateFields: fields,
+        name: templateName,
+        description: templateDescription,
+        annotationTemplateFields: templateFields,
       },
-      id
+      templateId
     ).unwrap();
 
     // Save the template
     await templateRepository.save(template);
 
     // Retrieve the template
-    const templateId = AnnotationTemplateId.create(id).unwrap();
-    const retrievedTemplate = await templateRepository.findById(templateId);
+    const retrievedTemplateId =
+      AnnotationTemplateId.create(templateId).unwrap();
+    const retrievedTemplate =
+      await templateRepository.findById(retrievedTemplateId);
 
     // Verify template was retrieved correctly
     expect(retrievedTemplate).not.toBeNull();
     expect(retrievedTemplate?.templateId.getStringValue()).toBe(
-      templateId.getStringValue()
+      retrievedTemplateId.getStringValue()
     );
-    expect(retrievedTemplate?.name.value).toBe("Test Template");
-    expect(retrievedTemplate?.description.value).toBe("Test description");
-    expect(retrievedTemplate?.annotationTemplateFields.isEmpty()).toBe(true);
+    expect(retrievedTemplate?.name.value).toBe("Template With Fields");
+    expect(retrievedTemplate?.description.value).toBe("A template with fields");
+
+    // Verify fields were retrieved correctly
+    expect(retrievedTemplate?.annotationTemplateFields.isEmpty()).toBe(false);
+    expect(retrievedTemplate?.getAnnotationFields().length).toBe(1);
+
+    const retrievedField = retrievedTemplate?.getAnnotationFields()[0];
+    expect(retrievedField?.fieldId.getStringValue()).toBe(fieldId.toString());
+    expect(retrievedField?.name.value).toBe("Test Field");
   });
 });

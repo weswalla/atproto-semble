@@ -1,3 +1,4 @@
+import { GenericContainer, StartedTestContainer } from "testcontainers";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { DrizzleAnnotationTemplateRepository } from "../DrizzleAnnotationTemplateRepository";
@@ -16,7 +17,7 @@ import {
 import { annotationFields } from "../schema/annotationFieldSchema";
 
 describe("DrizzleAnnotationTemplateRepository", () => {
-  let container: PostgreSqlContainer;
+  let container: StartedTestContainer;
   let db: ReturnType<typeof drizzle>;
   let fieldRepository: DrizzleAnnotationFieldRepository;
   let templateRepository: DrizzleAnnotationTemplateRepository;
@@ -24,10 +25,16 @@ describe("DrizzleAnnotationTemplateRepository", () => {
   // Setup before all tests
   beforeAll(async () => {
     // Start PostgreSQL container
-    container = await new PostgreSqlContainer().start();
+    container = await new GenericContainer("postgres")
+      .withEnv("POSTGRES_USER", "test")
+      .withEnv("POSTGRES_PASSWORD", "test")
+      .withEnv("POSTGRES_DB", "myapp_test")
+      .withExposedPorts(5432)
+      .start();
 
     // Create database connection
-    const connectionString = container.getConnectionUri();
+    const connectionString = `postgres://test:test@localhost:${container.getMappedPort(5432)}/myapp_test`;
+    process.env.DATABASE_URL = connectionString;
     const client = postgres(connectionString);
     db = drizzle(client);
 

@@ -1,19 +1,21 @@
-import { PostgreSqlContainer } from 'testcontainers';
-import postgres from 'postgres';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import { DrizzleAnnotationTemplateRepository } from '../DrizzleAnnotationTemplateRepository';
-import { DrizzleAnnotationFieldRepository } from '../DrizzleAnnotationFieldRepository';
-import { AnnotationTemplateId, CuratorId } from '../../../domain/value-objects';
-import { AnnotationTemplate } from '../../../domain/aggregates/AnnotationTemplate';
-import { UniqueEntityID } from '../../../../../shared/domain/UniqueEntityID';
-import { AnnotationTemplateName } from '../../../domain/value-objects/AnnotationTemplateName';
-import { AnnotationTemplateDescription } from '../../../domain/value-objects/AnnotationTemplateDescription';
-import { AnnotationTemplateFields } from '../../../domain/value-objects/AnnotationTemplateFields';
-import { sql } from 'drizzle-orm';
-import { annotationTemplates, annotationTemplateFields } from '../schema/annotationTemplateSchema';
-import { annotationFields } from '../schema/annotationFieldSchema';
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { DrizzleAnnotationTemplateRepository } from "../DrizzleAnnotationTemplateRepository";
+import { DrizzleAnnotationFieldRepository } from "../DrizzleAnnotationFieldRepository";
+import { AnnotationTemplateId, CuratorId } from "../../../domain/value-objects";
+import { AnnotationTemplate } from "../../../domain/aggregates/AnnotationTemplate";
+import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
+import { AnnotationTemplateName } from "../../../domain/value-objects/AnnotationTemplateName";
+import { AnnotationTemplateDescription } from "../../../domain/value-objects/AnnotationTemplateDescription";
+import { AnnotationTemplateFields } from "../../../domain/value-objects/AnnotationTemplateFields";
+import { sql } from "drizzle-orm";
+import {
+  annotationTemplates,
+  annotationTemplateFields,
+} from "../schema/annotationTemplateSchema";
+import { annotationFields } from "../schema/annotationFieldSchema";
 
-describe('DrizzleAnnotationTemplateRepository', () => {
+describe("DrizzleAnnotationTemplateRepository", () => {
   let container: PostgreSqlContainer;
   let db: ReturnType<typeof drizzle>;
   let fieldRepository: DrizzleAnnotationFieldRepository;
@@ -23,16 +25,19 @@ describe('DrizzleAnnotationTemplateRepository', () => {
   beforeAll(async () => {
     // Start PostgreSQL container
     container = await new PostgreSqlContainer().start();
-    
+
     // Create database connection
     const connectionString = container.getConnectionUri();
     const client = postgres(connectionString);
     db = drizzle(client);
-    
+
     // Create repositories
     fieldRepository = new DrizzleAnnotationFieldRepository(db);
-    templateRepository = new DrizzleAnnotationTemplateRepository(db, fieldRepository);
-    
+    templateRepository = new DrizzleAnnotationTemplateRepository(
+      db,
+      fieldRepository
+    );
+
     // Create schema for both tables
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS annotation_fields (
@@ -78,20 +83,24 @@ describe('DrizzleAnnotationTemplateRepository', () => {
   });
 
   // Basic test to verify repository can save and retrieve a template
-  it('should save and retrieve a template without fields', async () => {
+  it("should save and retrieve a template without fields", async () => {
     // Create a test template
-    const id = new UniqueEntityID('template-test-123');
-    const curatorId = CuratorId.create('did:plc:testcurator').unwrap();
-    const name = AnnotationTemplateName.create('Test Template').unwrap();
-    const description = AnnotationTemplateDescription.create('Test description').unwrap();
+    const id = new UniqueEntityID("template-test-123");
+    const curatorId = CuratorId.create("did:plc:testcurator").unwrap();
+    const name = AnnotationTemplateName.create("Test Template").unwrap();
+    const description =
+      AnnotationTemplateDescription.create("Test description").unwrap();
     const fields = AnnotationTemplateFields.create([]).unwrap();
-    
-    const template = AnnotationTemplate.create({
-      curatorId,
-      name,
-      description,
-      annotationTemplateFields: fields
-    }, id).unwrap();
+
+    const template = AnnotationTemplate.create(
+      {
+        curatorId,
+        name,
+        description,
+        annotationTemplateFields: fields,
+      },
+      id
+    ).unwrap();
 
     // Save the template
     await templateRepository.save(template);
@@ -102,9 +111,11 @@ describe('DrizzleAnnotationTemplateRepository', () => {
 
     // Verify template was retrieved correctly
     expect(retrievedTemplate).not.toBeNull();
-    expect(retrievedTemplate?.templateId.getStringValue()).toBe(templateId.getStringValue());
-    expect(retrievedTemplate?.name.value).toBe('Test Template');
-    expect(retrievedTemplate?.description.value).toBe('Test description');
+    expect(retrievedTemplate?.templateId.getStringValue()).toBe(
+      templateId.getStringValue()
+    );
+    expect(retrievedTemplate?.name.value).toBe("Test Template");
+    expect(retrievedTemplate?.description.value).toBe("Test description");
     expect(retrievedTemplate?.annotationTemplateFields.isEmpty()).toBe(true);
   });
 });

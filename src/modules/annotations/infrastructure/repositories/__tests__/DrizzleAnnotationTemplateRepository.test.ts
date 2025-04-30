@@ -52,7 +52,7 @@ describe("DrizzleAnnotationTemplateRepository", () => {
       fieldRepository
     );
 
-    // Create schema for both tables
+    // Create schema using drizzle schema definitions
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS annotation_fields (
         id TEXT PRIMARY KEY,
@@ -66,7 +66,7 @@ describe("DrizzleAnnotationTemplateRepository", () => {
       );
 
       CREATE TABLE IF NOT EXISTS annotation_templates (
-        id TEXT PRIMARY KEY,
+        id UUID PRIMARY KEY,
         curator_id TEXT NOT NULL,
         name TEXT NOT NULL,
         description TEXT NOT NULL,
@@ -75,10 +75,10 @@ describe("DrizzleAnnotationTemplateRepository", () => {
       );
 
       CREATE TABLE IF NOT EXISTS annotation_template_fields (
-        template_id TEXT NOT NULL REFERENCES annotation_templates(id) ON DELETE CASCADE,
-        field_id TEXT NOT NULL REFERENCES annotation_fields(id),
-        required BOOLEAN NOT NULL DEFAULT false,
-        PRIMARY KEY (template_id, field_id)
+        id UUID PRIMARY KEY,
+        template_id UUID NOT NULL REFERENCES annotation_templates(id) ON DELETE CASCADE,
+        field_id UUID NOT NULL,
+        required BOOLEAN NOT NULL DEFAULT false
       );
     `);
   }, 60000); // Increase timeout for container startup

@@ -91,7 +91,8 @@ export class AnnotationMapper implements Mapper<Annotation> {
         new UniqueEntityID(dto.id)
       );
 
-      if (annotationOrError.isErr()) return err(annotationOrError.error);
+      if (annotationOrError.isErr())
+        return err(new Error(annotationOrError.error));
 
       return ok(annotationOrError.value);
     } catch (error) {
@@ -137,9 +138,7 @@ export class AnnotationMapper implements Mapper<Annotation> {
     }
   }
 
-  public static toPersistence(
-    annotation: Annotation
-  ): {
+  public static toPersistence(annotation: Annotation): {
     annotation: {
       id: string;
       curatorId: string;
@@ -186,8 +185,13 @@ export class AnnotationMapper implements Mapper<Annotation> {
     }
 
     // Create template links if they exist
-    let templateLinks: { id: string; annotationId: string; templateId: string }[] | undefined;
-    if (annotation.annotationTemplateIds && annotation.annotationTemplateIds.length > 0) {
+    let templateLinks:
+      | { id: string; annotationId: string; templateId: string }[]
+      | undefined;
+    if (
+      annotation.annotationTemplateIds &&
+      annotation.annotationTemplateIds.length > 0
+    ) {
       templateLinks = annotation.annotationTemplateIds.map((templateId) => ({
         id: new UniqueEntityID().toString(),
         annotationId: annotation.id.toString(),

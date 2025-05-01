@@ -1,7 +1,7 @@
 import { IAnnotationRepository } from "src/modules/annotations/application/repositories/IAnnotationRepository";
 import { Annotation } from "src/modules/annotations/domain/aggregates/Annotation";
-import { TID } from "src/atproto/domain/value-objects/TID";
 import { URI } from "src/modules/annotations/domain/value-objects/URI";
+import { AnnotationId } from "../../domain/value-objects";
 
 export class InMemoryAnnotationRepository implements IAnnotationRepository {
   // Store annotations using the string representation of TID
@@ -24,8 +24,8 @@ export class InMemoryAnnotationRepository implements IAnnotationRepository {
     return recreatedResult.value;
   }
 
-  async findById(id: TID): Promise<Annotation | null> {
-    const annotation = this.annotations.get(id.toString());
+  async findById(id: AnnotationId): Promise<Annotation | null> {
+    const annotation = this.annotations.get(id.getStringValue());
     return annotation ? this.clone(annotation) : null;
   }
 
@@ -67,8 +67,8 @@ export class InMemoryAnnotationRepository implements IAnnotationRepository {
     this.annotationsByUrl.set(urlString, filteredExisting);
   }
 
-  async delete(id: TID): Promise<void> {
-    const annotation = this.annotations.get(id.toString());
+  async delete(id: AnnotationId): Promise<void> {
+    const annotation = this.annotations.get(id.getStringValue());
     if (!annotation) return;
 
     // Remove from ID index

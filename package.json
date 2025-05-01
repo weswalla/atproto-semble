@@ -10,7 +10,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "build:watch": "tsc --watch",
-    "lexgen": "lex gen-server ./src/modules/atproto/infrastructure/lexicon ./lexicons/*"
+    "lexgen": "lex gen-server ./src/modules/atproto/infrastructure/lexicon ./src/modules/atproto/infrastructure/lexicons/*"
   },
   "keywords": [],
   "author": "",

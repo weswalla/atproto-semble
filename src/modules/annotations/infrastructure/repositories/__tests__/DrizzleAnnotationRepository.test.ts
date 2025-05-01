@@ -17,7 +17,6 @@ import {
   annotationTemplateFields,
 } from "../schema/annotationTemplateSchema";
 import { AnnotationBuilder } from "../../../tests/utils/builders/AnnotationBuilder";
-import { TID } from "../../../../../atproto/domain/value-objects/TID";
 import { URI } from "../../../domain/value-objects/URI";
 import { AnnotationField } from "../../../domain/aggregates";
 import {
@@ -207,7 +206,7 @@ describe("DrizzleAnnotationRepository", () => {
 
     // Retrieve the annotation
     const retrievedAnnotation = await annotationRepository.findById(
-      TID.fromString(annotationId.toString())
+      AnnotationId.create(new UniqueEntityID(annotationId.toString())).unwrap()
     );
 
     // Verify annotation was retrieved correctly
@@ -287,7 +286,7 @@ describe("DrizzleAnnotationRepository", () => {
 
     // Retrieve the updated annotation
     const retrievedAnnotation = await annotationRepository.findById(
-      TID.fromString(annotationId.toString())
+      AnnotationId.create(new UniqueEntityID(annotationId.toString())).unwrap()
     );
 
     // Verify annotation was updated correctly
@@ -314,11 +313,13 @@ describe("DrizzleAnnotationRepository", () => {
     await annotationRepository.save(annotation);
 
     // Delete the annotation
-    await annotationRepository.delete(TID.fromString(annotationId.toString()));
+    await annotationRepository.delete(
+      AnnotationId.create(new UniqueEntityID(annotationId.toString())).unwrap()
+    );
 
     // Try to retrieve the deleted annotation
     const retrievedAnnotation = await annotationRepository.findById(
-      TID.fromString(annotationId.toString())
+      AnnotationId.create(new UniqueEntityID(annotationId.toString())).unwrap()
     );
 
     // Verify annotation was deleted

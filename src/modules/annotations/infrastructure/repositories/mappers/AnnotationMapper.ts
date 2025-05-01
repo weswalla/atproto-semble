@@ -19,6 +19,7 @@ import {
   MultiSelectValue,
   AnnotationValue,
 } from "../../../domain/value-objects/AnnotationValue";
+import { AnnotationValueFactory, AnnotationValueInput } from "../../../domain/AnnotationValueFactory";
 
 // Database representation of an annotation
 export interface AnnotationDTO {
@@ -113,26 +114,11 @@ export class AnnotationMapper implements Mapper<Annotation> {
     data: any
   ): Result<AnnotationValue> {
     try {
-      switch (type) {
-        case AnnotationType.DYAD.value:
-          return ok(DyadValue.create({ value: data.value }));
-        case AnnotationType.TRIAD.value:
-          return ok(
-            TriadValue.create({
-              vertexA: data.vertexA,
-              vertexB: data.vertexB,
-              vertexC: data.vertexC,
-            })
-          );
-        case AnnotationType.RATING.value:
-          return ok(RatingValue.create({ rating: data.rating }));
-        case AnnotationType.SINGLE_SELECT.value:
-          return ok(SingleSelectValue.create(data.option));
-        case AnnotationType.MULTI_SELECT.value:
-          return ok(MultiSelectValue.create(data.options));
-        default:
-          return err(new Error(`Unknown annotation value type: ${type}`));
-      }
+      const annotationType = AnnotationType.create(type);
+      return AnnotationValueFactory.create({
+        type: annotationType,
+        valueInput: data as AnnotationValueInput,
+      });
     } catch (error) {
       return err(error as Error);
     }
@@ -145,7 +131,7 @@ export class AnnotationMapper implements Mapper<Annotation> {
       url: string;
       annotationFieldId: string;
       valueType: string;
-      valueData: any;
+      valueData: AnnotationValueInput;
       note?: string;
       createdAt: Date;
       publishedRecordId?: string;
@@ -157,28 +143,23 @@ export class AnnotationMapper implements Mapper<Annotation> {
     }[];
   } {
     const value = annotation.value;
-    let valueType: string;
-    let valueData: any;
+    const valueType = value.type.value;
+    let valueData: AnnotationValueInput;
 
     // Extract the appropriate data based on value type
     if (value instanceof DyadValue) {
-      valueType = AnnotationType.DYAD.value;
       valueData = { value: value.value };
     } else if (value instanceof TriadValue) {
-      valueType = AnnotationType.TRIAD.value;
       valueData = {
         vertexA: value.vertexA,
         vertexB: value.vertexB,
         vertexC: value.vertexC,
       };
     } else if (value instanceof RatingValue) {
-      valueType = AnnotationType.RATING.value;
       valueData = { rating: value.rating };
     } else if (value instanceof SingleSelectValue) {
-      valueType = AnnotationType.SINGLE_SELECT.value;
       valueData = { option: value.option };
     } else if (value instanceof MultiSelectValue) {
-      valueType = AnnotationType.MULTI_SELECT.value;
       valueData = { options: value.options };
     } else {
       throw new Error("Unknown annotation value type");

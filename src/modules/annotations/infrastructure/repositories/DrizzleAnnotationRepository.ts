@@ -2,7 +2,7 @@ import { eq, inArray } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { IAnnotationRepository } from "../../application/repositories/IAnnotationRepository";
 import { Annotation } from "../../domain/aggregates/Annotation";
-import { TID } from "../../../../atproto/domain/value-objects/TID";
+import { AnnotationId } from "../../domain/value-objects";
 import { URI } from "../../domain/value-objects/URI";
 import { annotations, annotationToTemplates } from "./schema/annotationSchema";
 import { AnnotationDTO, AnnotationMapper } from "./mappers/AnnotationMapper";
@@ -10,8 +10,8 @@ import { AnnotationDTO, AnnotationMapper } from "./mappers/AnnotationMapper";
 export class DrizzleAnnotationRepository implements IAnnotationRepository {
   constructor(private db: PostgresJsDatabase) {}
 
-  async findById(id: TID): Promise<Annotation | null> {
-    const annotationId = id.toString();
+  async findById(id: AnnotationId): Promise<Annotation | null> {
+    const annotationId = id.getStringValue();
 
     const annotationResult = await this.db
       .select()
@@ -75,7 +75,7 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
       throw new Error("Annotation not found");
     }
 
-    return this.findById(TID.fromString(annotation.id));
+    return this.findById(AnnotationId.create(annotation.id).unwrap());
   }
 
   async findByUrl(url: URI): Promise<Annotation[]> {
@@ -176,8 +176,8 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
     });
   }
 
-  async delete(id: TID): Promise<void> {
-    const annotationId = id.toString();
+  async delete(id: AnnotationId): Promise<void> {
+    const annotationId = id.getStringValue();
 
     // The foreign key constraint with ON DELETE CASCADE will automatically
     // delete related records in the annotationToTemplates table

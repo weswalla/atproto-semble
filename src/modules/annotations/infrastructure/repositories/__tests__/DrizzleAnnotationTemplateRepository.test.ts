@@ -99,7 +99,7 @@ describe("DrizzleAnnotationTemplateRepository", () => {
   it("should save and retrieve a template with fields", async () => {
     // Import necessary dependencies
     // Create a test annotation field
-    const fieldId = new UniqueEntityID("field-test-123");
+    const fieldId = new UniqueEntityID();
     const curatorId = CuratorId.create("did:plc:testcurator").unwrap();
     const fieldName = AnnotationFieldName.create("Test Field").unwrap();
     const fieldDescription = AnnotationFieldDescription.create(
@@ -141,7 +141,7 @@ describe("DrizzleAnnotationTemplateRepository", () => {
     ]).unwrap();
 
     // Create the template
-    const templateId = new UniqueEntityID("template-with-fields-123");
+    const templateId = new UniqueEntityID();
     const templateName = AnnotationTemplateName.create(
       "Template With Fields"
     ).unwrap();

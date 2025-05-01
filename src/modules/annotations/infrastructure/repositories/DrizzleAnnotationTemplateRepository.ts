@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { IAnnotationTemplateRepository } from "../../application/repositories/IAnnotationTemplateRepository";
 import { AnnotationTemplate } from "../../domain/aggregates/AnnotationTemplate";
@@ -13,6 +13,7 @@ import {
 } from "./schema/annotationTemplateSchema";
 import { AnnotationTemplateMapper } from "./mappers/AnnotationTemplateMapper";
 import { IAnnotationFieldRepository } from "../../application/repositories/IAnnotationFieldRepository";
+import { AnnotationFieldMapper } from "./mappers/AnnotationFieldMapper";
 
 export class DrizzleAnnotationTemplateRepository
   implements IAnnotationTemplateRepository
@@ -25,7 +26,6 @@ export class DrizzleAnnotationTemplateRepository
   async findById(id: AnnotationTemplateId): Promise<AnnotationTemplate | null> {
     const templateId = id.getStringValue();
 
-    // Fetch the template
     const templateResult = await this.db
       .select()
       .from(annotationTemplates)
@@ -63,9 +63,14 @@ export class DrizzleAnnotationTemplateRepository
     );
 
     // Filter out any null fields (in case some were deleted)
-    const validFields = annotationFields.filter(
-      (field) => field.field !== null
-    );
+    const validFields = annotationFields
+      .filter((field) => field.field !== null)
+      .map((field) => {
+        return {
+          ...field,
+          field: AnnotationFieldMapper.toPersistence(field.field!),
+        };
+      });
 
     // Map to domain object
     const template = templateResult[0];
@@ -83,7 +88,11 @@ export class DrizzleAnnotationTemplateRepository
     };
 
     const domainResult = AnnotationTemplateMapper.toDomain(templateDTO);
-    return domainResult.isOk() ? domainResult.unwrap() : null;
+    if (domainResult.isErr()) {
+      console.error("Error mapping template to domain:", domainResult.error);
+      return null;
+    }
+    return domainResult.value;
   }
 
   async findByPublishedRecordId(

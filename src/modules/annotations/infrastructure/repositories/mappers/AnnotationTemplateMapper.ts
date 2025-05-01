@@ -10,7 +10,10 @@ import {
 } from "../../../domain/value-objects";
 import { Mapper } from "../../../../../shared/infra/Mapper";
 import { err, ok, Result } from "../../../../../shared/core/Result";
-import { AnnotationFieldMapper } from "./AnnotationFieldMapper";
+import {
+  AnnotationFieldDTO,
+  AnnotationFieldMapper,
+} from "./AnnotationFieldMapper";
 
 export interface AnnotationTemplateDTO {
   id: string;
@@ -25,7 +28,7 @@ export interface AnnotationTemplateDTO {
 export interface AnnotationTemplateFieldDTO {
   fieldId: string;
   required: boolean;
-  field: any; // This would be the AnnotationFieldDTO
+  field: AnnotationFieldDTO; // This would be the AnnotationFieldDTO
 }
 
 export class AnnotationTemplateMapper implements Mapper<AnnotationTemplate> {

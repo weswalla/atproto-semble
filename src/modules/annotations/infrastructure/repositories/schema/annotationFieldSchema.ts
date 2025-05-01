@@ -1,7 +1,7 @@
-import { pgTable, text, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, jsonb, uuid } from "drizzle-orm/pg-core";
 
 export const annotationFields = pgTable("annotation_fields", {
-  id: text("id").primaryKey(),
+  id: uuid("id").primaryKey(),
   curatorId: text("curator_id").notNull(),
   name: text("name").notNull(),
   description: text("description").notNull(),

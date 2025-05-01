@@ -25,4 +25,12 @@ export class AnnotationId extends ValueObject<{
     }
     return ok(new AnnotationId(value));
   }
+  public static createFromString(value: string): Result<AnnotationId> {
+    const guardResult = Guard.againstNullOrUndefined(value, "value");
+    if (guardResult.isErr()) {
+      return err(new Error(guardResult.error));
+    }
+    const uniqueEntityID = new UniqueEntityID(value);
+    return ok(new AnnotationId(uniqueEntityID));
+  }
 }

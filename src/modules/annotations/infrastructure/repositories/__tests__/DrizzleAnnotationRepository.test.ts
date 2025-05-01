@@ -211,7 +211,7 @@ describe("DrizzleAnnotationRepository", () => {
 
     // Verify annotation was retrieved correctly
     expect(retrievedAnnotation).not.toBeNull();
-    expect(retrievedAnnotation?.annotationId.toString()).toBe(
+    expect(retrievedAnnotation?.annotationId.getStringValue()).toBe(
       annotationId.toString()
     );
     expect(retrievedAnnotation?.url.value).toBe("https://example.com/article1");
@@ -234,25 +234,29 @@ describe("DrizzleAnnotationRepository", () => {
       .withId(annotationId)
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
-      .withAnnotationFieldId(testField.id.toString())
+      .withAnnotationFieldId(testField.fieldId.toString())
       .withRatingValue(5)
       .withAnnotationTemplateIds([testTemplate.id.toString()])
       .buildOrThrow();
 
     // Save the annotation
     await annotationRepository.save(annotation);
+    const annotationIdResult = AnnotationId.create(annotationId);
+    if (annotationIdResult.isErr()) {
+      throw new Error("Failed to create AnnotationId");
+    }
+    const annotationIdValue = annotationIdResult.unwrap();
 
     // Retrieve the annotation
-    const retrievedAnnotation = await annotationRepository.findById(
-      AnnotationId.create(annotationId.toString())
-    );
+    const retrievedAnnotation =
+      await annotationRepository.findById(annotationIdValue);
 
     // Verify annotation was retrieved correctly
     expect(retrievedAnnotation).not.toBeNull();
     expect(retrievedAnnotation?.annotationTemplateIds).toBeDefined();
     expect(retrievedAnnotation?.annotationTemplateIds?.length).toBe(1);
     expect(
-      retrievedAnnotation?.annotationTemplateIds?.[0].getValue().toString()
+      retrievedAnnotation?.annotationTemplateIds?.[0]?.getValue().toString()
     ).toBe(testTemplate.id.toString());
   });
 
@@ -265,7 +269,7 @@ describe("DrizzleAnnotationRepository", () => {
       .withId(annotationId)
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
-      .withAnnotationFieldId(testField.id.toString())
+      .withAnnotationFieldId(testField.fieldId.toString())
       .withRatingValue(3)
       .buildOrThrow();
 
@@ -277,7 +281,7 @@ describe("DrizzleAnnotationRepository", () => {
       .withId(annotationId)
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
-      .withAnnotationFieldId(testField.id.toString())
+      .withAnnotationFieldId(testField.fieldId.toString())
       .withRatingValue(5)
       .withNote("Updated my rating")
       .buildOrThrow();
@@ -305,7 +309,7 @@ describe("DrizzleAnnotationRepository", () => {
       .withId(annotationId)
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
-      .withAnnotationFieldId(testField.id.toString())
+      .withAnnotationFieldId(testField.fieldId.toString())
       .withRatingValue(2)
       .buildOrThrow();
 
@@ -333,7 +337,7 @@ describe("DrizzleAnnotationRepository", () => {
     const annotation1 = new AnnotationBuilder()
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
-      .withAnnotationFieldId(testField.id.toString())
+      .withAnnotationFieldId(testField.fieldId.toString())
       .withRatingValue(4)
       .withNote("First annotation")
       .buildOrThrow();
@@ -341,7 +345,7 @@ describe("DrizzleAnnotationRepository", () => {
     const annotation2 = new AnnotationBuilder()
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
-      .withAnnotationFieldId(testField.id.toString())
+      .withAnnotationFieldId(testField.fieldId.toString())
       .withRatingValue(5)
       .withNote("Second annotation")
       .buildOrThrow();
@@ -372,7 +376,7 @@ describe("DrizzleAnnotationRepository", () => {
       .withId(annotationId)
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
-      .withAnnotationFieldId(testField.id.toString())
+      .withAnnotationFieldId(testField.fieldId.toString())
       .withRatingValue(5)
       .withPublishedRecordId(publishedUri)
       .buildOrThrow();
@@ -383,9 +387,8 @@ describe("DrizzleAnnotationRepository", () => {
     // Find annotation by URI
     const foundAnnotation = await annotationRepository.findByUri(publishedUri);
 
-    // Verify annotation was found
     expect(foundAnnotation).not.toBeNull();
-    expect(foundAnnotation?.annotationId.toString()).toBe(
+    expect(foundAnnotation?.annotationId.getStringValue()).toBe(
       annotationId.toString()
     );
     expect(foundAnnotation?.publishedRecordId?.getValue()).toBe(publishedUri);

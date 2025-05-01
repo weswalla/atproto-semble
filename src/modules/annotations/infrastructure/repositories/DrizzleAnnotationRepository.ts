@@ -75,7 +75,7 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
       throw new Error("Annotation not found");
     }
 
-    return this.findById(AnnotationId.create(annotation.id).unwrap());
+    return this.findById(AnnotationId.createFromString(annotation.id).unwrap());
   }
 
   async findByUrl(url: URI): Promise<Annotation[]> {

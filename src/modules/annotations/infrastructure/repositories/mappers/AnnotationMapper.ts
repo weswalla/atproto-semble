@@ -19,7 +19,10 @@ import {
   MultiSelectValue,
   AnnotationValue,
 } from "../../../domain/value-objects/AnnotationValue";
-import { AnnotationValueFactory, AnnotationValueInput } from "../../../domain/AnnotationValueFactory";
+import {
+  AnnotationValueFactory,
+  AnnotationValueInput,
+} from "../../../domain/AnnotationValueFactory";
 
 // Database representation of an annotation
 export interface AnnotationDTO {

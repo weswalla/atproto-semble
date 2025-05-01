@@ -80,7 +80,7 @@ export class AnnotationBuilder {
 
   withRatingValue(stars: number): this {
     this._valueType = "rating";
-    this._valueProps = { stars };
+    this._valueProps = { rating: stars };
     this._value = undefined;
     return this;
   }

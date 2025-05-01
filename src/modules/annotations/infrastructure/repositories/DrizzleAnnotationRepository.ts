@@ -1,13 +1,11 @@
-import { eq, sql, and, inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { IAnnotationRepository } from "../../application/repositories/IAnnotationRepository";
 import { Annotation } from "../../domain/aggregates/Annotation";
 import { TID } from "../../../../atproto/domain/value-objects/TID";
 import { URI } from "../../domain/value-objects/URI";
 import { annotations, annotationToTemplates } from "./schema/annotationSchema";
-import { AnnotationMapper } from "./mappers/AnnotationMapper";
-import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
-import { AnnotationTemplateId } from "../../domain/value-objects";
+import { AnnotationDTO, AnnotationMapper } from "./mappers/AnnotationMapper";
 
 export class DrizzleAnnotationRepository implements IAnnotationRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -39,16 +37,16 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
       throw new Error("Annotation not found");
     }
 
-    const annotationDTO = {
+    const annotationDTO: AnnotationDTO = {
       id: annotation.id,
       curatorId: annotation.curatorId,
       url: annotation.url,
       annotationFieldId: annotation.annotationFieldId,
       valueType: annotation.valueType,
       valueData: annotation.valueData,
-      note: annotation.note,
+      note: annotation.note || undefined,
       createdAt: annotation.createdAt,
-      publishedRecordId: annotation.publishedRecordId,
+      publishedRecordId: annotation.publishedRecordId || undefined,
       templateIds: templateIds.length > 0 ? templateIds : undefined,
     };
 
@@ -102,33 +100,39 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
       .where(inArray(annotationToTemplates.annotationId, annotationIds));
 
     // Group template IDs by annotation ID
-    const templateIdsByAnnotation = templateLinks.reduce((acc, link) => {
-      if (!acc[link.annotationId]) {
-        acc[link.annotationId] = [];
-      }
-      acc[link.annotationId].push(link.templateId);
-      return acc;
-    }, {} as Record<string, string[]>);
+    const templateIdsByAnnotation = templateLinks.reduce(
+      (acc, link) => {
+        if (!acc[link.annotationId]) {
+          acc[link.annotationId] = [];
+        }
+        acc[link.annotationId]!.push(link.templateId);
+        return acc;
+      },
+      {} as Record<string, string[]>
+    );
 
     // Map each annotation to domain object
     const domainAnnotations: Annotation[] = [];
     for (const annotation of annotationResults) {
-      const annotationDTO = {
+      const annotationDTO: AnnotationDTO = {
         id: annotation.id,
         curatorId: annotation.curatorId,
         url: annotation.url,
         annotationFieldId: annotation.annotationFieldId,
         valueType: annotation.valueType,
         valueData: annotation.valueData,
-        note: annotation.note,
+        note: annotation.note || undefined,
         createdAt: annotation.createdAt,
-        publishedRecordId: annotation.publishedRecordId,
+        publishedRecordId: annotation.publishedRecordId || undefined,
         templateIds: templateIdsByAnnotation[annotation.id] || undefined,
       };
 
       const domainResult = AnnotationMapper.toDomain(annotationDTO);
       if (domainResult.isErr()) {
-        console.error("Error mapping annotation to domain:", domainResult.error);
+        console.error(
+          "Error mapping annotation to domain:",
+          domainResult.error
+        );
         continue;
       }
       domainAnnotations.push(domainResult.value);
@@ -177,8 +181,6 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
 
     // The foreign key constraint with ON DELETE CASCADE will automatically
     // delete related records in the annotationToTemplates table
-    await this.db
-      .delete(annotations)
-      .where(eq(annotations.id, annotationId));
+    await this.db.delete(annotations).where(eq(annotations.id, annotationId));
   }
 }

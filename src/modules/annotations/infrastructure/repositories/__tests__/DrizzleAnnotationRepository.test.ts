@@ -7,17 +7,23 @@ import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { DrizzleAnnotationRepository } from "../DrizzleAnnotationRepository";
 import { DrizzleAnnotationFieldRepository } from "../DrizzleAnnotationFieldRepository";
 import { DrizzleAnnotationTemplateRepository } from "../DrizzleAnnotationTemplateRepository";
-import { CuratorId } from "../../../domain/value-objects";
+import { AnnotationId, CuratorId } from "../../../domain/value-objects";
 import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
 import { sql } from "drizzle-orm";
 import { annotations, annotationToTemplates } from "../schema/annotationSchema";
 import { annotationFields } from "../schema/annotationFieldSchema";
-import { annotationTemplates, annotationTemplateFields } from "../schema/annotationTemplateSchema";
+import {
+  annotationTemplates,
+  annotationTemplateFields,
+} from "../schema/annotationTemplateSchema";
 import { AnnotationBuilder } from "../../../tests/utils/builders/AnnotationBuilder";
 import { TID } from "../../../../../atproto/domain/value-objects/TID";
 import { URI } from "../../../domain/value-objects/URI";
 import { AnnotationField } from "../../../domain/aggregates";
-import { AnnotationFieldName, AnnotationFieldDescription } from "../../../domain/value-objects";
+import {
+  AnnotationFieldName,
+  AnnotationFieldDescription,
+} from "../../../domain/value-objects";
 import { AnnotationFieldDefinitionFactory } from "../../../domain/AnnotationFieldDefinitionFactory";
 import { AnnotationType } from "../../../domain/value-objects/AnnotationType";
 import { AnnotationTemplate } from "../../../domain/aggregates/AnnotationTemplate";
@@ -32,7 +38,7 @@ describe("DrizzleAnnotationRepository", () => {
   let fieldRepository: DrizzleAnnotationFieldRepository;
   let templateRepository: DrizzleAnnotationTemplateRepository;
   let annotationRepository: DrizzleAnnotationRepository;
-  
+
   // Test data
   let testField: AnnotationField;
   let testTemplate: AnnotationTemplate;
@@ -107,7 +113,7 @@ describe("DrizzleAnnotationRepository", () => {
 
     // Create test data
     curatorId = CuratorId.create("did:plc:testcurator").unwrap();
-    
+
     // Create a test annotation field
     const fieldId = new UniqueEntityID();
     const fieldName = AnnotationFieldName.create("Test Rating Field").unwrap();
@@ -119,9 +125,7 @@ describe("DrizzleAnnotationRepository", () => {
     const fieldDefinition = AnnotationFieldDefinitionFactory.create({
       type: AnnotationType.create("rating"),
       fieldDefProps: {
-        min: 1,
-        max: 5,
-        step: 1,
+        numberOfStars: 5,
       },
     }).unwrap();
 
@@ -152,9 +156,8 @@ describe("DrizzleAnnotationRepository", () => {
 
     // Create the template
     const templateId = new UniqueEntityID();
-    const templateName = AnnotationTemplateName.create(
-      "Rating Template"
-    ).unwrap();
+    const templateName =
+      AnnotationTemplateName.create("Rating Template").unwrap();
     const templateDescription = AnnotationTemplateDescription.create(
       "A template for rating content"
     ).unwrap();
@@ -189,12 +192,12 @@ describe("DrizzleAnnotationRepository", () => {
     // Create a test annotation
     const annotationId = new UniqueEntityID();
     const url = new URI("https://example.com/article1");
-    
+
     const annotation = new AnnotationBuilder()
       .withId(annotationId)
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
-      .withAnnotationFieldId(testField.id.toString())
+      .withAnnotationFieldId(testField.fieldId.toString())
       .withRatingValue(4)
       .withNote("This is a great article")
       .buildOrThrow();
@@ -213,8 +216,10 @@ describe("DrizzleAnnotationRepository", () => {
       annotationId.toString()
     );
     expect(retrievedAnnotation?.url.value).toBe("https://example.com/article1");
-    expect(retrievedAnnotation?.note?.getValue()).toBe("This is a great article");
-    
+    expect(retrievedAnnotation?.note?.getValue()).toBe(
+      "This is a great article"
+    );
+
     // Verify the value was retrieved correctly
     expect(retrievedAnnotation?.value.type.value).toBe("rating");
     // @ts-ignore - We know this is a RatingValue
@@ -225,7 +230,7 @@ describe("DrizzleAnnotationRepository", () => {
     // Create a test annotation with template
     const annotationId = new UniqueEntityID();
     const url = new URI("https://example.com/article2");
-    
+
     const annotation = new AnnotationBuilder()
       .withId(annotationId)
       .withCuratorId(curatorId.value)
@@ -240,23 +245,23 @@ describe("DrizzleAnnotationRepository", () => {
 
     // Retrieve the annotation
     const retrievedAnnotation = await annotationRepository.findById(
-      TID.fromString(annotationId.toString())
+      AnnotationId.create(annotationId.toString())
     );
 
     // Verify annotation was retrieved correctly
     expect(retrievedAnnotation).not.toBeNull();
     expect(retrievedAnnotation?.annotationTemplateIds).toBeDefined();
     expect(retrievedAnnotation?.annotationTemplateIds?.length).toBe(1);
-    expect(retrievedAnnotation?.annotationTemplateIds?.[0].getValue().toString()).toBe(
-      testTemplate.id.toString()
-    );
+    expect(
+      retrievedAnnotation?.annotationTemplateIds?.[0].getValue().toString()
+    ).toBe(testTemplate.id.toString());
   });
 
   it("should update an existing annotation", async () => {
     // Create a test annotation
     const annotationId = new UniqueEntityID();
     const url = new URI("https://example.com/article3");
-    
+
     const annotation = new AnnotationBuilder()
       .withId(annotationId)
       .withCuratorId(curatorId.value)
@@ -296,7 +301,7 @@ describe("DrizzleAnnotationRepository", () => {
     // Create a test annotation
     const annotationId = new UniqueEntityID();
     const url = new URI("https://example.com/article4");
-    
+
     const annotation = new AnnotationBuilder()
       .withId(annotationId)
       .withCuratorId(curatorId.value)
@@ -323,7 +328,7 @@ describe("DrizzleAnnotationRepository", () => {
   it("should find annotations by URL", async () => {
     // Create multiple annotations with the same URL
     const url = new URI("https://example.com/shared-article");
-    
+
     const annotation1 = new AnnotationBuilder()
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
@@ -349,9 +354,9 @@ describe("DrizzleAnnotationRepository", () => {
 
     // Verify annotations were found
     expect(foundAnnotations.length).toBe(2);
-    
+
     // Verify the annotations have the correct notes
-    const notes = foundAnnotations.map(a => a.note?.getValue());
+    const notes = foundAnnotations.map((a) => a.note?.getValue());
     expect(notes).toContain("First annotation");
     expect(notes).toContain("Second annotation");
   });
@@ -361,7 +366,7 @@ describe("DrizzleAnnotationRepository", () => {
     const annotationId = new UniqueEntityID();
     const url = new URI("https://example.com/article5");
     const publishedUri = "at://did:plc:testcurator/app.annos.annotation/1234";
-    
+
     const annotation = new AnnotationBuilder()
       .withId(annotationId)
       .withCuratorId(curatorId.value)
@@ -379,7 +384,9 @@ describe("DrizzleAnnotationRepository", () => {
 
     // Verify annotation was found
     expect(foundAnnotation).not.toBeNull();
-    expect(foundAnnotation?.annotationId.toString()).toBe(annotationId.toString());
+    expect(foundAnnotation?.annotationId.toString()).toBe(
+      annotationId.toString()
+    );
     expect(foundAnnotation?.publishedRecordId?.getValue()).toBe(publishedUri);
   });
 });

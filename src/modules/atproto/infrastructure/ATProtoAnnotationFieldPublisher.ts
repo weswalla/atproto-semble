@@ -4,9 +4,8 @@ import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 import { PublishedRecordId } from "src/modules/annotations/domain/value-objects/PublishedRecordId";
 import { BskyAgent } from "@atproto/api";
-import { Record as AnnotationFieldRecord } from "./lexicon/types/app/annos/annotationField";
 import { AppError } from "src/shared/core/AppError";
-import { AnnotationType } from "src/modules/annotations/domain/value-objects/AnnotationType";
+import { AnnotationFieldMapper } from "./AnnotationFieldMapper";
 
 export class ATProtoAnnotationFieldPublisher
   implements IAnnotationFieldPublisher
@@ -19,69 +18,13 @@ export class ATProtoAnnotationFieldPublisher
   }
 
   /**
-   * Maps an AnnotationField domain object to the AT Protocol record format
-   */
-  private mapToRecord(field: AnnotationField): AnnotationFieldRecord {
-    const definition = this.mapDefinition(field);
-
-    return {
-      $type: "app.annos.annotationField",
-      name: field.name.value,
-      description: field.description.value,
-      createdAt: field.createdAt.toISOString(),
-      definition,
-    };
-  }
-
-  /**
-   * Maps the field definition from domain object to AT Protocol format
-   */
-  private mapDefinition(field: AnnotationField): any {
-    const def = field.definition;
-    const defType = def.type.value;
-
-    switch (defType) {
-      case AnnotationType.DYAD.value:
-        return {
-          $type: "app.annos.annotationField#dyadFieldDef",
-          sideA: def.getSideA(),
-          sideB: def.getSideB(),
-        };
-      case "triad":
-        return {
-          $type: "app.annos.annotationField#triadFieldDef",
-          vertexA: def.getVertexA(),
-          vertexB: def.getVertexB(),
-          vertexC: def.getVertexC(),
-        };
-      case "rating":
-        return {
-          $type: "app.annos.annotationField#ratingFieldDef",
-          numberOfStars: 5, // Fixed at 5 per the schema
-        };
-      case "singleSelect":
-        return {
-          $type: "app.annos.annotationField#singleSelectFieldDef",
-          options: def.getOptions(),
-        };
-      case "multiSelect":
-        return {
-          $type: "app.annos.annotationField#multiSelectFieldDef",
-          options: def.getOptions(),
-        };
-      default:
-        throw new Error(`Unsupported field definition type: ${defType}`);
-    }
-  }
-
-  /**
    * Publishes an AnnotationField to the AT Protocol
    */
   async publish(
     field: AnnotationField
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
-      const record = this.mapToRecord(field);
+      const record = AnnotationFieldMapper.toCreateRecordDTO(field);
       const curatorDid = field.curatorId.value;
 
       // If the field is already published, update it

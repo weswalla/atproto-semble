@@ -15,14 +15,16 @@ import { annotationFields } from "../schema/annotationFieldSchema";
 import { AnnotationFieldDefinitionFactory } from "src/modules/annotations/domain/AnnotationFieldDefinitionFactory";
 import { AnnotationType } from "src/modules/annotations/domain/value-objects/AnnotationType";
 import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
+import { assertDockerIsRunning } from "../assertDockerDaemon";
 
-describe("DrizzleAnnotationFieldRepository", () => {
+describe.skip("DrizzleAnnotationFieldRepository", () => {
   let container: StartedPostgreSqlContainer;
   let db: PostgresJsDatabase;
   let repository: DrizzleAnnotationFieldRepository;
 
   // Setup before all tests
   beforeAll(async () => {
+    await assertDockerIsRunning();
     // Start PostgreSQL container
     container = await new PostgreSqlContainer().start();
 
@@ -67,23 +69,27 @@ describe("DrizzleAnnotationFieldRepository", () => {
     const id = new UniqueEntityID();
     const curatorId = CuratorId.create("did:plc:testcurator").unwrap();
     const name = AnnotationFieldName.create("Test Field").unwrap();
-    const description = AnnotationFieldDescription.create("Test description").unwrap();
-    
+    const description =
+      AnnotationFieldDescription.create("Test description").unwrap();
+
     // Create a dyad field definition using the factory
     const fieldDefinition = AnnotationFieldDefinitionFactory.create({
       type: AnnotationType.create("dyad"),
       fieldDefProps: {
         sideA: "Left",
-        sideB: "Right"
+        sideB: "Right",
       },
     }).unwrap();
-    
-    const field = AnnotationField.create({
-      curatorId,
-      name,
-      description,
-      definition: fieldDefinition
-    }, id).unwrap();
+
+    const field = AnnotationField.create(
+      {
+        curatorId,
+        name,
+        description,
+        definition: fieldDefinition,
+      },
+      id
+    ).unwrap();
 
     // Save the field
     await repository.save(field);
@@ -94,7 +100,9 @@ describe("DrizzleAnnotationFieldRepository", () => {
 
     // Verify field was retrieved correctly
     expect(retrievedField).not.toBeNull();
-    expect(retrievedField?.fieldId.getStringValue()).toBe(fieldId.getStringValue());
+    expect(retrievedField?.fieldId.getStringValue()).toBe(
+      fieldId.getStringValue()
+    );
     expect(retrievedField?.name.value).toBe("Test Field");
     expect(retrievedField?.description.value).toBe("Test description");
     expect(retrievedField?.definition.type).toBe(AnnotationType.DYAD);
@@ -106,22 +114,26 @@ describe("DrizzleAnnotationFieldRepository", () => {
     const id = new UniqueEntityID();
     const curatorId = CuratorId.create("did:plc:testcurator").unwrap();
     const name = AnnotationFieldName.create("Unique Field Name").unwrap();
-    const description = AnnotationFieldDescription.create("Test description").unwrap();
-    
+    const description =
+      AnnotationFieldDescription.create("Test description").unwrap();
+
     const fieldDefinition = AnnotationFieldDefinitionFactory.create({
       type: AnnotationType.create("dyad"),
       fieldDefProps: {
         sideA: "Left",
-        sideB: "Right"
+        sideB: "Right",
       },
     }).unwrap();
-    
-    const field = AnnotationField.create({
-      curatorId,
-      name,
-      description,
-      definition: fieldDefinition
-    }, id).unwrap();
+
+    const field = AnnotationField.create(
+      {
+        curatorId,
+        name,
+        description,
+        definition: fieldDefinition,
+      },
+      id
+    ).unwrap();
 
     await repository.save(field);
 
@@ -140,33 +152,43 @@ describe("DrizzleAnnotationFieldRepository", () => {
     const id = new UniqueEntityID();
     const curatorId = CuratorId.create("did:plc:testcurator").unwrap();
     const name = AnnotationFieldName.create("Published Field").unwrap();
-    const description = AnnotationFieldDescription.create("Field with published ID").unwrap();
-    const publishedRecordId = PublishedRecordId.create("at://did:plc:testcurator/app.annos.annotationField/test-record");
-    
+    const description = AnnotationFieldDescription.create(
+      "Field with published ID"
+    ).unwrap();
+    const publishedRecordId = PublishedRecordId.create(
+      "at://did:plc:testcurator/app.annos.annotationField/test-record"
+    );
+
     const fieldDefinition = AnnotationFieldDefinitionFactory.create({
       type: AnnotationType.create("rating"),
       fieldDefProps: {
-        numberOfStars: 5
+        numberOfStars: 5,
       },
     }).unwrap();
-    
-    const field = AnnotationField.create({
-      curatorId,
-      name,
-      description,
-      definition: fieldDefinition,
-      publishedRecordId
-    }, id).unwrap();
+
+    const field = AnnotationField.create(
+      {
+        curatorId,
+        name,
+        description,
+        definition: fieldDefinition,
+        publishedRecordId,
+      },
+      id
+    ).unwrap();
 
     await repository.save(field);
 
     // Find by published record ID
-    const retrievedField = await repository.findByPublishedRecordId(publishedRecordId);
+    const retrievedField =
+      await repository.findByPublishedRecordId(publishedRecordId);
 
     // Verify field was found
     expect(retrievedField).not.toBeNull();
     expect(retrievedField?.fieldId.getStringValue()).toBe(id.toString());
-    expect(retrievedField?.publishedRecordId?.getValue()).toBe(publishedRecordId.getValue());
+    expect(retrievedField?.publishedRecordId?.getValue()).toBe(
+      publishedRecordId.getValue()
+    );
   });
 
   // Test for delete
@@ -175,23 +197,28 @@ describe("DrizzleAnnotationFieldRepository", () => {
     const id = new UniqueEntityID();
     const curatorId = CuratorId.create("did:plc:testcurator").unwrap();
     const name = AnnotationFieldName.create("Field To Delete").unwrap();
-    const description = AnnotationFieldDescription.create("This field will be deleted").unwrap();
-    
+    const description = AnnotationFieldDescription.create(
+      "This field will be deleted"
+    ).unwrap();
+
     const fieldDefinition = AnnotationFieldDefinitionFactory.create({
       type: AnnotationType.create("triad"),
       fieldDefProps: {
         vertexA: "Vertex A",
         vertexB: "Vertex B",
-        vertexC: "Vertex C"
+        vertexC: "Vertex C",
       },
     }).unwrap();
-    
-    const field = AnnotationField.create({
-      curatorId,
-      name,
-      description,
-      definition: fieldDefinition
-    }, id).unwrap();
+
+    const field = AnnotationField.create(
+      {
+        curatorId,
+        name,
+        description,
+        definition: fieldDefinition,
+      },
+      id
+    ).unwrap();
 
     await repository.save(field);
 

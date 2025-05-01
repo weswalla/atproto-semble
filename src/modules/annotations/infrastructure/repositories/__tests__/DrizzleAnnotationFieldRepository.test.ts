@@ -145,7 +145,9 @@ describe("DrizzleAnnotationFieldRepository", () => {
     
     const fieldDefinition = AnnotationFieldDefinitionFactory.create({
       type: AnnotationType.create("rating"),
-      fieldDefProps: {},
+      fieldDefProps: {
+        numberOfStars: 5
+      },
     }).unwrap();
     
     const field = AnnotationField.create({

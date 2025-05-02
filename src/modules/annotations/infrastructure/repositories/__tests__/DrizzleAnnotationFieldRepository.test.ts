@@ -41,8 +41,10 @@ describe("DrizzleAnnotationFieldRepository", () => {
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS published_records (
         id UUID PRIMARY KEY,
-        uri TEXT NOT NULL UNIQUE,
-        cid TEXT NOT NULL
+        uri TEXT NOT NULL,
+        cid TEXT NOT NULL,
+        recorded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        UNIQUE(uri, cid)
       );
 
       CREATE TABLE IF NOT EXISTS annotation_fields (

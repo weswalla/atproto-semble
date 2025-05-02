@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { IAnnotationFieldRepository } from "../../application/repositories/IAnnotationFieldRepository";
 import { AnnotationField } from "../../domain/AnnotationField";
@@ -64,11 +64,16 @@ export class DrizzleAnnotationFieldRepository
   ): Promise<AnnotationField | null> {
     const publishedIdProps = recordId.getValue();
 
-    // First find the published record ID
+    // Find the published record ID with matching URI and CID
     const publishedRecordResult = await this.db
       .select()
       .from(publishedRecords)
-      .where(eq(publishedRecords.uri, publishedIdProps.uri))
+      .where(
+        and(
+          eq(publishedRecords.uri, publishedIdProps.uri),
+          eq(publishedRecords.cid, publishedIdProps.cid)
+        )
+      )
       .limit(1);
 
     if (publishedRecordResult.length === 0 || !publishedRecordResult[0]) {
@@ -170,7 +175,8 @@ export class DrizzleAnnotationFieldRepository
       let publishedRecordId: string | undefined = undefined;
 
       if (data.publishedRecord) {
-        // Insert or update the published record
+        // Insert the published record - we don't update existing records
+        // since we want to keep track of all CIDs
         const publishedRecordResult = await tx
           .insert(publishedRecords)
           .values({
@@ -178,15 +184,28 @@ export class DrizzleAnnotationFieldRepository
             uri: data.publishedRecord.uri,
             cid: data.publishedRecord.cid,
           })
-          .onConflictDoUpdate({
-            target: [publishedRecords.uri],
-            set: {
-              cid: data.publishedRecord.cid,
-            },
+          .onConflictDoNothing({
+            target: [publishedRecords.uri, publishedRecords.cid],
           })
           .returning({ id: publishedRecords.id });
 
-        if (publishedRecordResult.length > 0) {
+        // If we didn't insert (because it already exists), find the existing record
+        if (publishedRecordResult.length === 0) {
+          const existingRecord = await tx
+            .select()
+            .from(publishedRecords)
+            .where(
+              and(
+                eq(publishedRecords.uri, data.publishedRecord.uri),
+                eq(publishedRecords.cid, data.publishedRecord.cid)
+              )
+            )
+            .limit(1);
+            
+          if (existingRecord.length > 0) {
+            publishedRecordId = existingRecord[0]!.id;
+          }
+        } else {
           publishedRecordId = publishedRecordResult[0]!.id;
         }
       }

@@ -1,4 +1,4 @@
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, and } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { IAnnotationRepository } from "../../application/repositories/IAnnotationRepository";
 import { Annotation } from "../../domain/aggregates/Annotation";
@@ -58,9 +58,8 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
       valueData: annotation.valueData,
       note: annotation.note || undefined,
       createdAt: annotation.createdAt,
-      publishedRecordId: publishedRecord
-        ? { uri: publishedRecord.uri, cid: publishedRecord.cid }
-        : undefined,
+      publishedRecordId: publishedRecord?.id || null,
+      publishedRecord: publishedRecord || undefined,
       templateIds: templateIds.length > 0 ? templateIds : undefined,
     };
 
@@ -117,7 +116,12 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
     const templateLinks = await this.db
       .select()
       .from(annotationToTemplates)
-      .where(eq(annotationToTemplates.annotationId, annotationResult[0].annotation.id));
+      .where(
+        eq(
+          annotationToTemplates.annotationId,
+          annotationResult[0].annotation.id
+        )
+      );
 
     const templateIds = templateLinks.map((link) => link.templateId);
 
@@ -139,9 +143,8 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
       valueData: annotation.valueData,
       note: annotation.note || undefined,
       createdAt: annotation.createdAt,
-      publishedRecordId: publishedRecord
-        ? { uri: publishedRecord.uri, cid: publishedRecord.cid }
-        : undefined,
+      publishedRecordId: publishedRecord?.id || null,
+      publishedRecord: publishedRecord || undefined,
       templateIds: templateIds.length > 0 ? templateIds : undefined,
     };
 
@@ -211,9 +214,8 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
         valueData: annotation.valueData,
         note: annotation.note || undefined,
         createdAt: annotation.createdAt,
-        publishedRecordId: publishedRecord
-          ? { uri: publishedRecord.uri, cid: publishedRecord.cid }
-          : undefined,
+        publishedRecordId: publishedRecord?.id || null,
+        publishedRecord: publishedRecord || undefined,
         templateIds: templateIdsByAnnotation[annotation.id] || undefined,
       };
 
@@ -261,7 +263,7 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
           .returning({ id: publishedRecords.id });
 
         if (publishedRecordResult.length > 0) {
-          publishedRecordId = publishedRecordResult[0].id;
+          publishedRecordId = publishedRecordResult[0]!.id;
         }
       }
 

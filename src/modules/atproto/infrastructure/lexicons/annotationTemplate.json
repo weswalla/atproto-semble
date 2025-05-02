@@ -42,8 +42,7 @@
       "properties": {
         "ref": {
           "type": "ref",
-          "description": "A strong reference to the specific annotation field record.",
-          "ref": "com.atproto.repo.strongRef"
+          "ref": "app.annos.annotationField"
         },
         "required": {
           "type": "boolean",

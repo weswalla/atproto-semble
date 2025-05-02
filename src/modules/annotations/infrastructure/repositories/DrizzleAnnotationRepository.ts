@@ -2,7 +2,7 @@ import { eq, inArray } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { IAnnotationRepository } from "../../application/repositories/IAnnotationRepository";
 import { Annotation } from "../../domain/aggregates/Annotation";
-import { AnnotationId } from "../../domain/value-objects";
+import { AnnotationId, PublishedRecordId } from "../../domain/value-objects";
 import { URI } from "../../domain/value-objects/URI";
 import { annotations, annotationToTemplates } from "./schema/annotationSchema";
 import { publishedRecords } from "./schema/publishedRecordSchema";
@@ -72,7 +72,9 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
     return domainResult.value;
   }
 
-  async findByUri(uri: string): Promise<Annotation | null> {
+  async findByPublishedRecordId(
+    publishedRecordId: PublishedRecordId
+  ): Promise<Annotation | null> {
     // Find the published record ID first
     const publishedRecordResult = await this.db
       .select()
@@ -124,7 +126,9 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
     }
 
     // Get all annotation IDs
-    const annotationIds = annotationResults.map((result) => result.annotation.id);
+    const annotationIds = annotationResults.map(
+      (result) => result.annotation.id
+    );
 
     // Fetch all template links for these annotations in a single query
     const templateLinks = await this.db
@@ -180,14 +184,17 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
   }
 
   async save(annotation: Annotation): Promise<void> {
-    const { annotation: annotationData, publishedRecord, templateLinks } =
-      AnnotationMapper.toPersistence(annotation);
+    const {
+      annotation: annotationData,
+      publishedRecord,
+      templateLinks,
+    } = AnnotationMapper.toPersistence(annotation);
 
     // Use a transaction to ensure atomicity
     await this.db.transaction(async (tx) => {
       // Handle published record if it exists
       let publishedRecordId: string | undefined = undefined;
-      
+
       if (publishedRecord) {
         // Insert or update the published record
         const publishedRecordResult = await tx

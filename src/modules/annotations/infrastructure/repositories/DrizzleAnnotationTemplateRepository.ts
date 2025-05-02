@@ -11,6 +11,7 @@ import {
   annotationTemplates,
   annotationTemplateFields,
 } from "./schema/annotationTemplateSchema";
+import { publishedRecords } from "./schema/publishedRecordSchema";
 import { AnnotationTemplateMapper } from "./mappers/AnnotationTemplateMapper";
 import { IAnnotationFieldRepository } from "../../application/repositories/IAnnotationFieldRepository";
 import { AnnotationFieldMapper } from "./mappers/AnnotationFieldMapper";
@@ -27,8 +28,15 @@ export class DrizzleAnnotationTemplateRepository
     const templateId = id.getStringValue();
 
     const templateResult = await this.db
-      .select()
+      .select({
+        template: annotationTemplates,
+        publishedRecord: publishedRecords,
+      })
       .from(annotationTemplates)
+      .leftJoin(
+        publishedRecords,
+        eq(annotationTemplates.publishedRecordId, publishedRecords.id)
+      )
       .where(eq(annotationTemplates.id, templateId))
       .limit(1);
 
@@ -73,17 +81,23 @@ export class DrizzleAnnotationTemplateRepository
       });
 
     // Map to domain object
-    const template = templateResult[0];
-    if (!template) {
+    const result = templateResult[0];
+    if (!result || !result.template) {
       throw new Error("Template not found");
     }
+    
+    const template = result.template;
+    const publishedRecord = result.publishedRecord;
+    
     const templateDTO = {
       id: template.id,
       curatorId: template.curatorId,
       name: template.name,
       description: template.description,
       createdAt: template.createdAt,
-      publishedRecordId: template.publishedRecordId,
+      publishedRecordId: publishedRecord
+        ? { uri: publishedRecord.uri, cid: publishedRecord.cid }
+        : undefined,
       fields: validFields,
     };
 
@@ -98,19 +112,30 @@ export class DrizzleAnnotationTemplateRepository
   async findByPublishedRecordId(
     recordId: PublishedRecordId
   ): Promise<AnnotationTemplate | null> {
-    const publishedId = recordId.getValue();
+    const publishedIdProps = recordId.getValue();
 
+    // First find the published record ID
+    const publishedRecordResult = await this.db
+      .select()
+      .from(publishedRecords)
+      .where(eq(publishedRecords.uri, publishedIdProps.uri))
+      .limit(1);
+
+    if (publishedRecordResult.length === 0 || !publishedRecordResult[0]) {
+      return null;
+    }
+
+    const publishedRecordId = publishedRecordResult[0].id;
+
+    // Then find the template with this published record ID
     const templateResult = await this.db
       .select()
       .from(annotationTemplates)
-      .where(eq(annotationTemplates.publishedRecordId, publishedId))
+      .where(eq(annotationTemplates.publishedRecordId, publishedRecordId))
       .limit(1);
 
-    if (templateResult.length === 0) {
+    if (templateResult.length === 0 || !templateResult[0]) {
       return null;
-    }
-    if (!templateResult[0]) {
-      throw new Error("Template not found");
     }
 
     // Use the findById method to get the complete template with fields
@@ -140,22 +165,50 @@ export class DrizzleAnnotationTemplateRepository
   }
 
   async save(template: AnnotationTemplate): Promise<void> {
-    const { template: templateData, fields } =
+    const { template: templateData, fields, publishedRecord } =
       AnnotationTemplateMapper.toPersistence(template);
 
     // Use a transaction to ensure atomicity
     await this.db.transaction(async (tx) => {
+      // Handle published record if it exists
+      let publishedRecordId: string | undefined = undefined;
+      
+      if (publishedRecord) {
+        // Insert or update the published record
+        const publishedRecordResult = await tx
+          .insert(publishedRecords)
+          .values({
+            id: publishedRecord.id,
+            uri: publishedRecord.uri,
+            cid: publishedRecord.cid,
+          })
+          .onConflictDoUpdate({
+            target: [publishedRecords.uri],
+            set: {
+              cid: publishedRecord.cid,
+            },
+          })
+          .returning({ id: publishedRecords.id });
+
+        if (publishedRecordResult.length > 0) {
+          publishedRecordId = publishedRecordResult[0].id;
+        }
+      }
+
       // Upsert the template
       await tx
         .insert(annotationTemplates)
-        .values(templateData)
+        .values({
+          ...templateData,
+          publishedRecordId: publishedRecordId,
+        })
         .onConflictDoUpdate({
           target: annotationTemplates.id,
           set: {
             curatorId: templateData.curatorId,
             name: templateData.name,
             description: templateData.description,
-            publishedRecordId: templateData.publishedRecordId,
+            publishedRecordId: publishedRecordId,
           },
         });
 

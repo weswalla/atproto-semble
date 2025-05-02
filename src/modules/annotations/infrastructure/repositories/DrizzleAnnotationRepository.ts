@@ -5,6 +5,7 @@ import { Annotation } from "../../domain/aggregates/Annotation";
 import { AnnotationId } from "../../domain/value-objects";
 import { URI } from "../../domain/value-objects/URI";
 import { annotations, annotationToTemplates } from "./schema/annotationSchema";
+import { publishedRecords } from "./schema/publishedRecordSchema";
 import { AnnotationDTO, AnnotationMapper } from "./mappers/AnnotationMapper";
 
 export class DrizzleAnnotationRepository implements IAnnotationRepository {
@@ -13,9 +14,17 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
   async findById(id: AnnotationId): Promise<Annotation | null> {
     const annotationId = id.getStringValue();
 
+    // Join with publishedRecords to get URI and CID
     const annotationResult = await this.db
-      .select()
+      .select({
+        annotation: annotations,
+        publishedRecord: publishedRecords,
+      })
       .from(annotations)
+      .leftJoin(
+        publishedRecords,
+        eq(annotations.publishedRecordId, publishedRecords.id)
+      )
       .where(eq(annotations.id, annotationId))
       .limit(1);
 
@@ -32,10 +41,13 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
     const templateIds = templateLinks.map((link) => link.templateId);
 
     // Map to domain object
-    const annotation = annotationResult[0];
-    if (!annotation) {
+    const result = annotationResult[0];
+    if (!result || !result.annotation) {
       throw new Error("Annotation not found");
     }
+
+    const annotation = result.annotation;
+    const publishedRecord = result.publishedRecord;
 
     const annotationDTO: AnnotationDTO = {
       id: annotation.id,
@@ -46,7 +58,9 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
       valueData: annotation.valueData,
       note: annotation.note || undefined,
       createdAt: annotation.createdAt,
-      publishedRecordId: annotation.publishedRecordId || undefined,
+      publishedRecordId: publishedRecord
+        ? { uri: publishedRecord.uri, cid: publishedRecord.cid }
+        : undefined,
       templateIds: templateIds.length > 0 ? templateIds : undefined,
     };
 
@@ -59,31 +73,50 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
   }
 
   async findByUri(uri: string): Promise<Annotation | null> {
+    // Find the published record ID first
+    const publishedRecordResult = await this.db
+      .select()
+      .from(publishedRecords)
+      .where(eq(publishedRecords.uri, uri))
+      .limit(1);
+
+    if (publishedRecordResult.length === 0 || !publishedRecordResult[0]) {
+      return null;
+    }
+
+    const publishedRecordId = publishedRecordResult[0].id;
+
+    // Find the annotation with this published record ID
     const annotationResult = await this.db
       .select()
       .from(annotations)
-      .where(eq(annotations.publishedRecordId, uri))
+      .where(eq(annotations.publishedRecordId, publishedRecordId))
       .limit(1);
 
-    if (annotationResult.length === 0) {
+    if (annotationResult.length === 0 || !annotationResult[0]) {
       return null;
     }
 
     // Use the findById method to get the complete annotation with template links
-    const annotation = annotationResult[0];
-    if (!annotation) {
-      throw new Error("Annotation not found");
-    }
-
-    return this.findById(AnnotationId.createFromString(annotation.id).unwrap());
+    return this.findById(
+      AnnotationId.createFromString(annotationResult[0].id).unwrap()
+    );
   }
 
   async findByUrl(url: URI): Promise<Annotation[]> {
     const urlString = url.value;
 
+    // Join with publishedRecords to get URI and CID
     const annotationResults = await this.db
-      .select()
+      .select({
+        annotation: annotations,
+        publishedRecord: publishedRecords,
+      })
       .from(annotations)
+      .leftJoin(
+        publishedRecords,
+        eq(annotations.publishedRecordId, publishedRecords.id)
+      )
       .where(eq(annotations.url, urlString));
 
     if (annotationResults.length === 0) {
@@ -91,7 +124,7 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
     }
 
     // Get all annotation IDs
-    const annotationIds = annotationResults.map((a) => a.id);
+    const annotationIds = annotationResults.map((result) => result.annotation.id);
 
     // Fetch all template links for these annotations in a single query
     const templateLinks = await this.db
@@ -113,7 +146,10 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
 
     // Map each annotation to domain object
     const domainAnnotations: Annotation[] = [];
-    for (const annotation of annotationResults) {
+    for (const result of annotationResults) {
+      const annotation = result.annotation;
+      const publishedRecord = result.publishedRecord;
+
       const annotationDTO: AnnotationDTO = {
         id: annotation.id,
         curatorId: annotation.curatorId,
@@ -123,7 +159,9 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
         valueData: annotation.valueData,
         note: annotation.note || undefined,
         createdAt: annotation.createdAt,
-        publishedRecordId: annotation.publishedRecordId || undefined,
+        publishedRecordId: publishedRecord
+          ? { uri: publishedRecord.uri, cid: publishedRecord.cid }
+          : undefined,
         templateIds: templateIdsByAnnotation[annotation.id] || undefined,
       };
 
@@ -142,15 +180,43 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
   }
 
   async save(annotation: Annotation): Promise<void> {
-    const { annotation: annotationData, templateLinks } =
+    const { annotation: annotationData, publishedRecord, templateLinks } =
       AnnotationMapper.toPersistence(annotation);
 
     // Use a transaction to ensure atomicity
     await this.db.transaction(async (tx) => {
+      // Handle published record if it exists
+      let publishedRecordId: string | undefined = undefined;
+      
+      if (publishedRecord) {
+        // Insert or update the published record
+        const publishedRecordResult = await tx
+          .insert(publishedRecords)
+          .values({
+            id: publishedRecord.id,
+            uri: publishedRecord.uri,
+            cid: publishedRecord.cid,
+          })
+          .onConflictDoUpdate({
+            target: [publishedRecords.uri],
+            set: {
+              cid: publishedRecord.cid,
+            },
+          })
+          .returning({ id: publishedRecords.id });
+
+        if (publishedRecordResult.length > 0) {
+          publishedRecordId = publishedRecordResult[0].id;
+        }
+      }
+
       // Upsert the annotation
       await tx
         .insert(annotations)
-        .values(annotationData)
+        .values({
+          ...annotationData,
+          publishedRecordId: publishedRecordId,
+        })
         .onConflictDoUpdate({
           target: annotations.id,
           set: {
@@ -160,7 +226,7 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
             valueType: annotationData.valueType,
             valueData: annotationData.valueData,
             note: annotationData.note,
-            publishedRecordId: annotationData.publishedRecordId,
+            publishedRecordId: publishedRecordId,
           },
         });
 

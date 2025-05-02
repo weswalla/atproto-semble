@@ -1,11 +1,13 @@
 import { Annotation } from "../../domain/aggregates/Annotation";
-import { AnnotationId } from "../../domain/value-objects";
+import { AnnotationId, PublishedRecordId } from "../../domain/value-objects";
 import { URI } from "../../domain/value-objects/URI";
 
 // Interface for Annotation Repository
 export interface IAnnotationRepository {
   findById(id: AnnotationId): Promise<Annotation | null>;
-  findByUri(uri: string): Promise<Annotation | null>; // Find by AT URI
+  findByPublishedRecordId(
+    recordId: PublishedRecordId
+  ): Promise<Annotation | null>; // Find by AT URI (PublishedRecordId)
   findByUrl(url: URI): Promise<Annotation[]>; // Find by annotated resource URL
   save(annotation: Annotation): Promise<void>;
   delete(id: AnnotationId): Promise<void>;

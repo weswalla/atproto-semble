@@ -1,44 +1,48 @@
 import { $Typed } from "@atproto/api";
 import { AnnotationTemplate } from "src/modules/annotations/domain/aggregates/AnnotationTemplate";
 import { AnnotationField } from "src/modules/annotations/domain/aggregates";
-import { Record, AnnotationFieldRef } from "./lexicon/types/app/annos/annotationTemplate";
-import { ComAtprotoRepoStrongRef } from "@atproto/api";
+import {
+  Record,
+  AnnotationFieldRef,
+} from "./lexicon/types/app/annos/annotationTemplate";
 import { ATUri } from "../domain/ATUri";
 
+type AnnotationTemplateRecordDTO = Record;
 export class AnnotationTemplateMapper {
-  static toCreateRecordDTO(template: AnnotationTemplate): Record {
+  static toCreateRecordDTO(
+    template: AnnotationTemplate
+  ): AnnotationTemplateRecordDTO {
     return {
       $type: "app.annos.annotationTemplate",
       name: template.name.value,
       description: template.description.value,
-      annotationFields: template.getAnnotationFields().map(field => 
-        AnnotationTemplateMapper.toAnnotationFieldRef(
-          field, 
-          template.getRequiredFields().includes(field)
-        )
-      ),
+      annotationFields: template
+        .getAnnotationFields()
+        .map((field) =>
+          AnnotationTemplateMapper.toAnnotationFieldRef(
+            field,
+            template.getRequiredFields().includes(field)
+          )
+        ),
       createdAt: template.createdAt.toISOString(),
     };
   }
 
   private static toAnnotationFieldRef(
-    field: AnnotationField, 
+    field: AnnotationField,
     isRequired: boolean
   ): $Typed<AnnotationFieldRef> {
     if (!field.isPublished()) {
-      throw new Error(`Field ${field.name.value} must be published before it can be referenced`);
+      throw new Error(
+        `Field ${field.name.value} must be published before it can be referenced`
+      );
     }
 
-    const uri = field.publishedRecordId!.getValue();
-    const atUri = new ATUri(uri);
+    const uri = new ATUri(field.publishedRecordId!.getValue()).value;
 
     return {
       $type: "app.annos.annotationTemplate#annotationFieldRef",
-      ref: {
-        $type: "com.atproto.repo.strongRef",
-        uri: uri,
-        cid: atUri.cid,
-      },
+      ref: uri,
       required: isRequired,
     };
   }

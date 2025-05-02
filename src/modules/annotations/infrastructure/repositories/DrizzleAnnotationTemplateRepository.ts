@@ -85,10 +85,10 @@ export class DrizzleAnnotationTemplateRepository
     if (!result || !result.template) {
       throw new Error("Template not found");
     }
-    
+
     const template = result.template;
     const publishedRecord = result.publishedRecord;
-    
+
     const templateDTO = {
       id: template.id,
       curatorId: template.curatorId,
@@ -97,7 +97,7 @@ export class DrizzleAnnotationTemplateRepository
       createdAt: template.createdAt,
       publishedRecordId: publishedRecord
         ? { uri: publishedRecord.uri, cid: publishedRecord.cid }
-        : undefined,
+        : null,
       fields: validFields,
     };
 
@@ -165,14 +165,17 @@ export class DrizzleAnnotationTemplateRepository
   }
 
   async save(template: AnnotationTemplate): Promise<void> {
-    const { template: templateData, fields, publishedRecord } =
-      AnnotationTemplateMapper.toPersistence(template);
+    const {
+      template: templateData,
+      fields,
+      publishedRecord,
+    } = AnnotationTemplateMapper.toPersistence(template);
 
     // Use a transaction to ensure atomicity
     await this.db.transaction(async (tx) => {
       // Handle published record if it exists
       let publishedRecordId: string | undefined = undefined;
-      
+
       if (publishedRecord) {
         // Insert or update the published record
         const publishedRecordResult = await tx

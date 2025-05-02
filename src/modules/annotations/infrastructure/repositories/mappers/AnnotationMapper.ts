@@ -35,7 +35,10 @@ export interface AnnotationDTO {
   valueData: any; // JSON data for the value
   note?: string;
   createdAt: Date;
-  publishedRecordId?: PublishedRecordIdProps;
+  publishedRecordId?: {
+    uri: string;
+    cid: string;
+  };
   templateIds?: string[]; // Array of template IDs this annotation is associated with
 }
 

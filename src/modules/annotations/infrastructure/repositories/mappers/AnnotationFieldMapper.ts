@@ -27,7 +27,10 @@ export interface AnnotationFieldDTO {
   definitionType: string;
   definitionData: any; // JSON data for the definition
   createdAt: Date;
-  publishedRecordId: PublishedRecordIdProps | null;
+  publishedRecordId?: {
+    uri: string;
+    cid: string;
+  };
 }
 
 export class AnnotationFieldMapper {
@@ -110,7 +113,21 @@ export class AnnotationFieldMapper {
     );
   }
 
-  public static toPersistence(field: AnnotationField): AnnotationFieldDTO {
+  public static toPersistence(field: AnnotationField): {
+    id: string;
+    curatorId: string;
+    name: string;
+    description: string;
+    definitionType: string;
+    definitionData: any;
+    createdAt: Date;
+    publishedRecordId?: string;
+    publishedRecord?: {
+      id: string;
+      uri: string;
+      cid: string;
+    };
+  } {
     const definition = field.definition;
     let definitionType: string;
     let definitionData: any;
@@ -148,6 +165,20 @@ export class AnnotationFieldMapper {
       throw new Error("Unknown annotation field definition type");
     }
 
+    // Create published record data if it exists
+    let publishedRecord: { id: string; uri: string; cid: string } | undefined;
+    let publishedRecordId: string | undefined;
+    
+    if (field.publishedRecordId) {
+      const recordId = new UniqueEntityID().toString();
+      publishedRecord = {
+        id: recordId,
+        uri: field.publishedRecordId.uri,
+        cid: field.publishedRecordId.cid
+      };
+      publishedRecordId = recordId;
+    }
+
     return {
       id: field.fieldId.getStringValue(),
       curatorId: field.curatorId.value,
@@ -156,7 +187,8 @@ export class AnnotationFieldMapper {
       definitionType,
       definitionData,
       createdAt: field.createdAt,
-      publishedRecordId: field.publishedRecordId?.getValue() || null,
+      publishedRecordId,
+      publishedRecord,
     };
   }
 }

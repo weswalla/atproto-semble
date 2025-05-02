@@ -1,6 +1,7 @@
 import { pgTable, text, timestamp, jsonb, uuid } from "drizzle-orm/pg-core";
 import { annotationFields } from "./annotationFieldSchema";
 import { annotationTemplates } from "./annotationTemplateSchema";
+import { publishedRecords } from "./publishedRecordSchema";
 
 export const annotations = pgTable("annotations", {
   id: uuid("id").primaryKey(),
@@ -13,7 +14,7 @@ export const annotations = pgTable("annotations", {
   valueData: jsonb("value_data").notNull(),
   note: text("note"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  publishedRecordId: text("published_record_id"),
+  publishedRecordId: uuid("published_record_id").references(() => publishedRecords.id),
 });
 
 // Join table for annotations to templates (many-to-many)

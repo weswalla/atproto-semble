@@ -70,7 +70,10 @@ export class AnnotationMapper implements Mapper<Annotation> {
       // Create optional published record ID if it exists
       let publishedRecordId: PublishedRecordId | undefined;
       if (dto.publishedRecordId) {
-        publishedRecordId = PublishedRecordId.create(dto.publishedRecordId);
+        publishedRecordId = PublishedRecordId.create({
+          uri: dto.publishedRecordId.uri,
+          cid: dto.publishedRecordId.cid
+        });
       }
 
       // Create template IDs if they exist
@@ -138,7 +141,12 @@ export class AnnotationMapper implements Mapper<Annotation> {
       valueData: AnnotationValueInput;
       note?: string;
       createdAt: Date;
-      publishedRecordId?: PublishedRecordIdProps;
+      publishedRecordId?: string;
+    };
+    publishedRecord?: {
+      id: string;
+      uri: string;
+      cid: string;
     };
     templateLinks?: {
       id: string;
@@ -184,6 +192,20 @@ export class AnnotationMapper implements Mapper<Annotation> {
       }));
     }
 
+    // Create published record data if it exists
+    let publishedRecord: { id: string; uri: string; cid: string } | undefined;
+    let publishedRecordId: string | undefined;
+    
+    if (annotation.publishedRecordId) {
+      const recordId = new UniqueEntityID().toString();
+      publishedRecord = {
+        id: recordId,
+        uri: annotation.publishedRecordId.uri,
+        cid: annotation.publishedRecordId.cid
+      };
+      publishedRecordId = recordId;
+    }
+
     return {
       annotation: {
         id: annotation.id.toString(),
@@ -194,8 +216,9 @@ export class AnnotationMapper implements Mapper<Annotation> {
         valueData,
         note: annotation.note?.getValue(),
         createdAt: annotation.createdAt || new Date(),
-        publishedRecordId: annotation.publishedRecordId?.getValue(),
+        publishedRecordId,
       },
+      publishedRecord,
       templateLinks,
     };
   }

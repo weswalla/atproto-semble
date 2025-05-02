@@ -1,4 +1,5 @@
 import { pgTable, text, timestamp, uuid, boolean } from "drizzle-orm/pg-core";
+import { publishedRecords } from "./publishedRecordSchema";
 
 // Define the annotation template table schema
 export const annotationTemplates = pgTable("annotation_templates", {
@@ -7,7 +8,7 @@ export const annotationTemplates = pgTable("annotation_templates", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  publishedRecordId: text("published_record_id"),
+  publishedRecordId: uuid("published_record_id").references(() => publishedRecords.id),
 });
 
 // Define the annotation template fields join table schema

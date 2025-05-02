@@ -246,23 +246,38 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
       let publishedRecordId: string | undefined = undefined;
 
       if (publishedRecord) {
-        // Insert or update the published record
+        // Insert the published record - we don't update existing records
+        // since we want to keep track of all CIDs
         const publishedRecordResult = await tx
           .insert(publishedRecords)
           .values({
             id: publishedRecord.id,
             uri: publishedRecord.uri,
             cid: publishedRecord.cid,
+            recordedAt: publishedRecord.recordedAt || new Date(),
           })
-          .onConflictDoUpdate({
-            target: [publishedRecords.uri],
-            set: {
-              cid: publishedRecord.cid,
-            },
+          .onConflictDoNothing({
+            target: [publishedRecords.uri, publishedRecords.cid],
           })
           .returning({ id: publishedRecords.id });
 
-        if (publishedRecordResult.length > 0) {
+        // If we didn't insert (because it already exists), find the existing record
+        if (publishedRecordResult.length === 0) {
+          const existingRecord = await tx
+            .select()
+            .from(publishedRecords)
+            .where(
+              and(
+                eq(publishedRecords.uri, publishedRecord.uri),
+                eq(publishedRecords.cid, publishedRecord.cid)
+              )
+            )
+            .limit(1);
+            
+          if (existingRecord.length > 0) {
+            publishedRecordId = existingRecord[0]!.id;
+          }
+        } else {
           publishedRecordId = publishedRecordResult[0]!.id;
         }
       }

@@ -3,17 +3,17 @@ import { AnnotationTemplate } from "src/modules/annotations/domain/aggregates/An
 import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 import { PublishedRecordId } from "src/modules/annotations/domain/value-objects/PublishedRecordId";
-import { BskyAgent } from "@atproto/api";
+import { AtpAgent } from "@atproto/api";
 import { AnnotationTemplateMapper } from "./AnnotationTemplateMapper";
 import { ATUri } from "../domain/ATUri";
 
 export class ATProtoAnnotationTemplatePublisher
-  implements IAnnotationTemplatePublisher {
-  
-  private agent: BskyAgent;
+  implements IAnnotationTemplatePublisher
+{
+  private agent: AtpAgent;
   private readonly COLLECTION = "app.annos.annotationTemplate";
 
-  constructor(agent: BskyAgent) {
+  constructor(agent: AtpAgent) {
     this.agent = agent;
   }
 
@@ -27,7 +27,9 @@ export class ATProtoAnnotationTemplatePublisher
     try {
       // Check if all fields are published
       if (template.hasUnpublishedFields()) {
-        return err(new Error("All fields must be published before publishing a template"));
+        return err(
+          new Error("All fields must be published before publishing a template")
+        );
       }
 
       const record = AnnotationTemplateMapper.toCreateRecordDTO(template);
@@ -47,7 +49,7 @@ export class ATProtoAnnotationTemplatePublisher
         });
 
         return ok(template.publishedRecordId);
-      } 
+      }
       // Otherwise create a new record
       else {
         const createResult = await this.agent.com.atproto.repo.createRecord({
@@ -59,7 +61,9 @@ export class ATProtoAnnotationTemplatePublisher
         return ok(PublishedRecordId.create(createResult.data.uri));
       }
     } catch (error) {
-      return err(new Error(error instanceof Error ? error.message : String(error)));
+      return err(
+        new Error(error instanceof Error ? error.message : String(error))
+      );
     }
   }
 
@@ -83,7 +87,9 @@ export class ATProtoAnnotationTemplatePublisher
 
       return ok(undefined);
     } catch (error) {
-      return err(new Error(error instanceof Error ? error.message : String(error)));
+      return err(
+        new Error(error instanceof Error ? error.message : String(error))
+      );
     }
   }
 }

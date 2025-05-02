@@ -3,26 +3,24 @@ import { AnnotationField } from "src/modules/annotations/domain/AnnotationField"
 import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 import { PublishedRecordId } from "src/modules/annotations/domain/value-objects/PublishedRecordId";
-import { BskyAgent } from "@atproto/api";
-import { AppError } from "src/shared/core/AppError";
+import AtpAgent from "@atproto/api";
 import { AnnotationFieldMapper } from "./AnnotationFieldMapper";
+import { ATUri } from "../domain/ATUri";
 
 export class ATProtoAnnotationFieldPublisher
   implements IAnnotationFieldPublisher
 {
-  private agent: BskyAgent;
+  private agent: AtpAgent;
   private readonly COLLECTION = "app.annos.annotationField";
 
-  constructor(agent: BskyAgent) {
+  constructor(agent: AtpAgent) {
     this.agent = agent;
   }
 
   /**
    * Publishes an AnnotationField to the AT Protocol
    */
-  async publish(
-    field: AnnotationField
-  ): Promise<Result<PublishedRecordId, UseCaseError>> {
+  async publish(field: AnnotationField): Promise<Result<PublishedRecordId>> {
     try {
       const record = AnnotationFieldMapper.toCreateRecordDTO(field);
       const curatorDid = field.curatorId.value;
@@ -30,7 +28,7 @@ export class ATProtoAnnotationFieldPublisher
       // If the field is already published, update it
       if (field.isPublished()) {
         const uri = field.publishedRecordId!.getValue();
-        const [repo, collection, rkey] = uri.split("/").slice(2);
+        const rkey = new ATUri(uri).rkey;
 
         const updateResult = await this.agent.com.atproto.repo.putRecord({
           repo: curatorDid,
@@ -52,7 +50,7 @@ export class ATProtoAnnotationFieldPublisher
         return ok(PublishedRecordId.create(createResult.data.uri));
       }
     } catch (error) {
-      return err(AppError.UnexpectedError.create(error));
+      return err(new Error(error as any));
     }
   }
 
@@ -64,7 +62,9 @@ export class ATProtoAnnotationFieldPublisher
   ): Promise<Result<void, UseCaseError>> {
     try {
       const uri = recordId.getValue();
-      const [repo, collection, rkey] = uri.split("/").slice(2);
+      const atUri = new ATUri(uri);
+      const repo = atUri.did.toString();
+      const rkey = atUri.rkey;
 
       await this.agent.com.atproto.repo.deleteRecord({
         repo,
@@ -74,7 +74,7 @@ export class ATProtoAnnotationFieldPublisher
 
       return ok(undefined);
     } catch (error) {
-      return err(AppError.UnexpectedError.create(error));
+      return err(new Error(error as any));
     }
   }
 }

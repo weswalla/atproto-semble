@@ -34,9 +34,10 @@ export class InMemoryAnnotationTemplateRepository
   async findByPublishedRecordId(
     recordId: PublishedRecordId
   ): Promise<AnnotationTemplate | null> {
-    const recordIdValue = recordId.getValue();
+    const compositeKey = recordId.uri + recordId.cid;
     for (const template of this.templates.values()) {
-      if (template.publishedRecordId?.getValue() === recordIdValue) {
+      if (template.publishedRecordId && 
+          template.publishedRecordId.uri + template.publishedRecordId.cid === compositeKey) {
         return this.clone(template);
       }
     }

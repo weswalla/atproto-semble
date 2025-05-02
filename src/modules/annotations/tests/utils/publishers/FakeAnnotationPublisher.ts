@@ -8,7 +8,7 @@ import { ok, Result } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 
 export class FakeAnnotationPublisher implements IAnnotationPublisher {
-  private publishedRecords: Map<PublishedRecordIdProps, Annotation> = new Map();
+  private publishedRecords: Map<string, Annotation> = new Map();
 
   async publish(
     annotation: Annotation
@@ -22,8 +22,9 @@ export class FakeAnnotationPublisher implements IAnnotationPublisher {
       cid: fakeCid,
     });
 
-    // Store the published annotation for inspection if needed
-    this.publishedRecords.set(publishedRecordId.getValue(), annotation);
+    // Store the published annotation for inspection using composite key
+    const compositeKey = fakeUri + fakeCid;
+    this.publishedRecords.set(compositeKey, annotation);
 
     console.log(
       `[FakeAnnotationPublisher] Published annotation ${annotationId} to ${fakeUri}`
@@ -34,14 +35,14 @@ export class FakeAnnotationPublisher implements IAnnotationPublisher {
   async unpublish(
     recordId: PublishedRecordId
   ): Promise<Result<void, UseCaseError>> {
-    const uri = recordId.getValue();
-    if (this.publishedRecords.has(uri)) {
-      this.publishedRecords.delete(uri);
-      console.log(`[FakeAnnotationPublisher] Unpublished record ${uri}`);
+    const compositeKey = recordId.uri + recordId.cid;
+    if (this.publishedRecords.has(compositeKey)) {
+      this.publishedRecords.delete(compositeKey);
+      console.log(`[FakeAnnotationPublisher] Unpublished record ${recordId.uri}`);
       return ok(undefined); // Use ok(undefined) for void success
     } else {
       console.warn(
-        `[FakeAnnotationPublisher] Record not found for unpublishing: ${uri}`
+        `[FakeAnnotationPublisher] Record not found for unpublishing: ${recordId.uri}`
       );
       // Depending on requirements, you might return an error here
       // For a simple fake, we can still return success

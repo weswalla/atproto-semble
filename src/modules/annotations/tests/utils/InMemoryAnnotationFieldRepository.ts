@@ -10,7 +10,7 @@ export class InMemoryAnnotationFieldRepository
 {
   // Store fields using the string representation of AnnotationFieldId
   private fields: Map<string, AnnotationField> = new Map();
-  // Map PublishedRecordId (AT URI string) to AnnotationFieldId string
+  // Map PublishedRecordId (composite of URI+CID) to AnnotationFieldId string
   private publishedRecordIdToIdMap: Map<string, string> = new Map();
 
   async findById(id: AnnotationFieldId): Promise<AnnotationField | null> {
@@ -23,9 +23,8 @@ export class InMemoryAnnotationFieldRepository
   async findByPublishedRecordId(
     recordId: PublishedRecordId
   ): Promise<AnnotationField | null> {
-    const fieldIdString = this.publishedRecordIdToIdMap.get(
-      recordId.getValue()
-    );
+    const compositeKey = recordId.uri + recordId.cid;
+    const fieldIdString = this.publishedRecordIdToIdMap.get(compositeKey);
     if (!fieldIdString) return null;
     const field = this.fields.get(fieldIdString);
     return field ? this.clone(field) : null;
@@ -49,14 +48,16 @@ export class InMemoryAnnotationFieldRepository
 
     // If the field has a publishedRecordId, update the mapping
     if (fieldToStore.props.publishedRecordId) {
-      const recordIdString = fieldToStore.props.publishedRecordId.getValue();
+      const publishedRecordId = fieldToStore.props.publishedRecordId;
+      const compositeKey = publishedRecordId.uri + publishedRecordId.cid;
+      
       // Clean up any old mapping for this field ID first
       for (const [key, value] of this.publishedRecordIdToIdMap.entries()) {
-        if (value === fieldIdString && key !== recordIdString) {
+        if (value === fieldIdString && key !== compositeKey) {
           this.publishedRecordIdToIdMap.delete(key);
         }
       }
-      this.publishedRecordIdToIdMap.set(recordIdString, fieldIdString);
+      this.publishedRecordIdToIdMap.set(compositeKey, fieldIdString);
     }
   }
 

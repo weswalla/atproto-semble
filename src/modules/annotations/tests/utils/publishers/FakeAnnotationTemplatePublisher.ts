@@ -10,8 +10,7 @@ import { UseCaseError } from "src/shared/core/UseCaseError";
 export class FakeAnnotationTemplatePublisher
   implements IAnnotationTemplatePublisher
 {
-  private publishedRecords: Map<PublishedRecordIdProps, AnnotationTemplate> =
-    new Map();
+  private publishedRecords: Map<string, AnnotationTemplate> = new Map();
 
   async publish(
     template: AnnotationTemplate
@@ -25,8 +24,9 @@ export class FakeAnnotationTemplatePublisher
       cid: fakeCid,
     });
 
-    // Store the published template for inspection if needed
-    this.publishedRecords.set(publishedRecordId.getValue(), template);
+    // Store the published template for inspection using composite key
+    const compositeKey = fakeUri + fakeCid;
+    this.publishedRecords.set(compositeKey, template);
 
     console.log(
       `[FakeAnnotationTemplatePublisher] Published template ${templateId} to ${fakeUri}`
@@ -37,16 +37,16 @@ export class FakeAnnotationTemplatePublisher
   async unpublish(
     recordId: PublishedRecordId
   ): Promise<Result<void, UseCaseError>> {
-    const uri = recordId.getValue();
-    if (this.publishedRecords.has(uri)) {
-      this.publishedRecords.delete(uri);
+    const compositeKey = recordId.uri + recordId.cid;
+    if (this.publishedRecords.has(compositeKey)) {
+      this.publishedRecords.delete(compositeKey);
       console.log(
-        `[FakeAnnotationTemplatePublisher] Unpublished record ${uri}`
+        `[FakeAnnotationTemplatePublisher] Unpublished record ${recordId.uri}`
       );
       return ok(undefined); // Use ok(undefined) for void success
     } else {
       console.warn(
-        `[FakeAnnotationTemplatePublisher] Record not found for unpublishing: ${uri}`
+        `[FakeAnnotationTemplatePublisher] Record not found for unpublishing: ${recordId.uri}`
       );
       // Depending on requirements, you might return an error here
       // For a simple fake, we can still return success

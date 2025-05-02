@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { IAnnotationTemplateRepository } from "../../application/repositories/IAnnotationTemplateRepository";
 import { AnnotationTemplate } from "../../domain/aggregates/AnnotationTemplate";
@@ -12,7 +12,7 @@ import {
   annotationTemplateFields,
 } from "./schema/annotationTemplateSchema";
 import { publishedRecords } from "./schema/publishedRecordSchema";
-import { AnnotationTemplateMapper } from "./mappers/AnnotationTemplateMapper";
+import { AnnotationTemplateMapper, AnnotationTemplateDTO } from "./mappers/AnnotationTemplateMapper";
 import { IAnnotationFieldRepository } from "../../application/repositories/IAnnotationFieldRepository";
 import { AnnotationFieldMapper } from "./mappers/AnnotationFieldMapper";
 
@@ -76,7 +76,7 @@ export class DrizzleAnnotationTemplateRepository
       .map((field) => {
         return {
           ...field,
-          field: AnnotationFieldMapper.toPersistence(field.field!),
+          field: field.field!,
         };
       });
 
@@ -89,15 +89,19 @@ export class DrizzleAnnotationTemplateRepository
     const template = result.template;
     const publishedRecord = result.publishedRecord;
 
-    const templateDTO = {
+    const templateDTO: AnnotationTemplateDTO = {
       id: template.id,
       curatorId: template.curatorId,
       name: template.name,
       description: template.description,
       createdAt: template.createdAt,
-      publishedRecordId: publishedRecord
-        ? { uri: publishedRecord.uri, cid: publishedRecord.cid }
-        : null,
+      publishedRecordId: publishedRecord ? publishedRecord.id : null,
+      publishedRecord: publishedRecord ? {
+        id: publishedRecord.id,
+        uri: publishedRecord.uri,
+        cid: publishedRecord.cid,
+        recordedAt: publishedRecord.recordedAt
+      } : undefined,
       fields: validFields,
     };
 
@@ -114,24 +118,29 @@ export class DrizzleAnnotationTemplateRepository
   ): Promise<AnnotationTemplate | null> {
     const publishedIdProps = recordId.getValue();
 
-    // First find the published record ID
+    // Find the published record ID with matching URI and CID
     const publishedRecordResult = await this.db
       .select()
       .from(publishedRecords)
-      .where(eq(publishedRecords.uri, publishedIdProps.uri))
+      .where(
+        and(
+          eq(publishedRecords.uri, publishedIdProps.uri),
+          eq(publishedRecords.cid, publishedIdProps.cid)
+        )
+      )
       .limit(1);
 
     if (publishedRecordResult.length === 0 || !publishedRecordResult[0]) {
       return null;
     }
 
-    const publishedRecordId = publishedRecordResult[0].id;
+    const publishedRecordDbId = publishedRecordResult[0].id;
 
     // Then find the template with this published record ID
     const templateResult = await this.db
       .select()
       .from(annotationTemplates)
-      .where(eq(annotationTemplates.publishedRecordId, publishedRecordId))
+      .where(eq(annotationTemplates.publishedRecordId, publishedRecordDbId))
       .limit(1);
 
     if (templateResult.length === 0 || !templateResult[0]) {
@@ -177,24 +186,39 @@ export class DrizzleAnnotationTemplateRepository
       let publishedRecordId: string | undefined = undefined;
 
       if (publishedRecord) {
-        // Insert or update the published record
+        // Insert the published record - we don't update existing records
+        // since we want to keep track of all CIDs
         const publishedRecordResult = await tx
           .insert(publishedRecords)
           .values({
             id: publishedRecord.id,
             uri: publishedRecord.uri,
             cid: publishedRecord.cid,
+            recordedAt: publishedRecord.recordedAt || new Date(),
           })
-          .onConflictDoUpdate({
-            target: [publishedRecords.uri],
-            set: {
-              cid: publishedRecord.cid,
-            },
+          .onConflictDoNothing({
+            target: [publishedRecords.uri, publishedRecords.cid],
           })
           .returning({ id: publishedRecords.id });
 
-        if (publishedRecordResult.length > 0) {
-          publishedRecordId = publishedRecordResult[0].id;
+        // If we didn't insert (because it already exists), find the existing record
+        if (publishedRecordResult.length === 0) {
+          const existingRecord = await tx
+            .select()
+            .from(publishedRecords)
+            .where(
+              and(
+                eq(publishedRecords.uri, publishedRecord.uri),
+                eq(publishedRecords.cid, publishedRecord.cid)
+              )
+            )
+            .limit(1);
+            
+          if (existingRecord.length > 0) {
+            publishedRecordId = existingRecord[0]!.id;
+          }
+        } else {
+          publishedRecordId = publishedRecordResult[0]!.id;
         }
       }
 

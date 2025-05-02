@@ -168,7 +168,7 @@ export class DrizzleAnnotationFieldRepository
     await this.db.transaction(async (tx) => {
       // Handle published record if it exists
       let publishedRecordId: string | undefined = undefined;
-      
+
       if (data.publishedRecord) {
         // Insert or update the published record
         const publishedRecordResult = await tx
@@ -187,7 +187,7 @@ export class DrizzleAnnotationFieldRepository
           .returning({ id: publishedRecords.id });
 
         if (publishedRecordResult.length > 0) {
-          publishedRecordId = publishedRecordResult[0].id;
+          publishedRecordId = publishedRecordResult[0]!.id;
         }
       }
 

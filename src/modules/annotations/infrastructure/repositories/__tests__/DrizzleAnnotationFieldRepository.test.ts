@@ -17,7 +17,7 @@ import { AnnotationType } from "src/modules/annotations/domain/value-objects/Ann
 import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
 import { assertDockerIsRunning } from "../assertDockerDaemon";
 
-describe.skip("DrizzleAnnotationFieldRepository", () => {
+describe("DrizzleAnnotationFieldRepository", () => {
   let container: StartedPostgreSqlContainer;
   let db: PostgresJsDatabase;
   let repository: DrizzleAnnotationFieldRepository;

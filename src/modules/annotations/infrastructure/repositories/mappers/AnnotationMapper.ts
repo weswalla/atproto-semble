@@ -8,6 +8,7 @@ import {
   PublishedRecordId,
   PublishedRecordIdProps,
 } from "../../../domain/value-objects";
+import { PublishedRecordDTO, PublishedRecordRefDTO } from "./DTOTypes";
 import { URI } from "../../../domain/value-objects/URI";
 import { Mapper } from "../../../../../shared/infra/Mapper";
 import { err, ok, Result } from "../../../../../shared/core/Result";
@@ -26,7 +27,7 @@ import {
 } from "../../../domain/AnnotationValueFactory";
 
 // Database representation of an annotation
-export interface AnnotationDTO {
+export interface AnnotationDTO extends PublishedRecordRefDTO {
   id: string;
   curatorId: string;
   url: string;
@@ -35,10 +36,6 @@ export interface AnnotationDTO {
   valueData: any; // JSON data for the value
   note?: string;
   createdAt: Date;
-  publishedRecordId?: {
-    uri: string;
-    cid: string;
-  };
   templateIds?: string[]; // Array of template IDs this annotation is associated with
 }
 
@@ -72,10 +69,10 @@ export class AnnotationMapper implements Mapper<Annotation> {
 
       // Create optional published record ID if it exists
       let publishedRecordId: PublishedRecordId | undefined;
-      if (dto.publishedRecordId) {
+      if (dto.publishedRecord) {
         publishedRecordId = PublishedRecordId.create({
-          uri: dto.publishedRecordId.uri,
-          cid: dto.publishedRecordId.cid
+          uri: dto.publishedRecord.uri,
+          cid: dto.publishedRecord.cid
         });
       }
 
@@ -146,11 +143,7 @@ export class AnnotationMapper implements Mapper<Annotation> {
       createdAt: Date;
       publishedRecordId?: string;
     };
-    publishedRecord?: {
-      id: string;
-      uri: string;
-      cid: string;
-    };
+    publishedRecord?: PublishedRecordDTO;
     templateLinks?: {
       id: string;
       annotationId: string;
@@ -196,7 +189,7 @@ export class AnnotationMapper implements Mapper<Annotation> {
     }
 
     // Create published record data if it exists
-    let publishedRecord: { id: string; uri: string; cid: string } | undefined;
+    let publishedRecord: PublishedRecordDTO | undefined;
     let publishedRecordId: string | undefined;
     
     if (annotation.publishedRecordId) {
@@ -204,7 +197,8 @@ export class AnnotationMapper implements Mapper<Annotation> {
       publishedRecord = {
         id: recordId,
         uri: annotation.publishedRecordId.uri,
-        cid: annotation.publishedRecordId.cid
+        cid: annotation.publishedRecordId.cid,
+        recordedAt: new Date()
       };
       publishedRecordId = recordId;
     }

@@ -9,6 +9,7 @@ import {
   AnnotationTemplateField,
   PublishedRecordIdProps,
 } from "../../../domain/value-objects";
+import { PublishedRecordDTO, PublishedRecordRefDTO } from "./DTOTypes";
 import { Mapper } from "../../../../../shared/infra/Mapper";
 import { err, ok, Result } from "../../../../../shared/core/Result";
 import {
@@ -16,13 +17,12 @@ import {
   AnnotationFieldMapper,
 } from "./AnnotationFieldMapper";
 
-export interface AnnotationTemplateDTO {
+export interface AnnotationTemplateDTO extends PublishedRecordRefDTO {
   id: string;
   curatorId: string;
   name: string;
   description: string;
   createdAt: Date;
-  publishedRecordId: PublishedRecordIdProps | null;
   fields: AnnotationTemplateFieldDTO[];
 }
 
@@ -56,8 +56,11 @@ export class AnnotationTemplateMapper implements Mapper<AnnotationTemplate> {
 
       // Create optional published record ID if it exists
       let publishedRecordId: PublishedRecordId | undefined;
-      if (raw.publishedRecordId) {
-        publishedRecordId = PublishedRecordId.create(raw.publishedRecordId);
+      if (raw.publishedRecord) {
+        publishedRecordId = PublishedRecordId.create({
+          uri: raw.publishedRecord.uri,
+          cid: raw.publishedRecord.cid
+        });
       }
 
       // Create the aggregate
@@ -116,8 +119,9 @@ export class AnnotationTemplateMapper implements Mapper<AnnotationTemplate> {
       name: string;
       description: string;
       createdAt: Date;
-      publishedRecordId?: PublishedRecordIdProps;
+      publishedRecordId?: string;
     };
+    publishedRecord?: PublishedRecordDTO;
     fields: {
       id: string;
       templateId: string;
@@ -125,6 +129,21 @@ export class AnnotationTemplateMapper implements Mapper<AnnotationTemplate> {
       required: boolean;
     }[];
   } {
+    // Create published record data if it exists
+    let publishedRecord: PublishedRecordDTO | undefined;
+    let publishedRecordId: string | undefined;
+    
+    if (template.publishedRecordId) {
+      const recordId = new UniqueEntityID().toString();
+      publishedRecord = {
+        id: recordId,
+        uri: template.publishedRecordId.uri,
+        cid: template.publishedRecordId.cid,
+        recordedAt: new Date()
+      };
+      publishedRecordId = recordId;
+    }
+
     return {
       template: {
         id: template.id.toString(),
@@ -132,8 +151,9 @@ export class AnnotationTemplateMapper implements Mapper<AnnotationTemplate> {
         name: template.name.value,
         description: template.description.value,
         createdAt: template.createdAt,
-        publishedRecordId: template.publishedRecordId?.getValue(),
+        publishedRecordId,
       },
+      publishedRecord,
       fields: template.annotationTemplateFields.annotationTemplateFields.map(
         (field) => ({
           id: new UniqueEntityID().toString(), // Generate a new ID for the join table

@@ -7,6 +7,7 @@ import {
   PublishedRecordId,
   PublishedRecordIdProps,
 } from "../../../domain/value-objects";
+import { PublishedRecordDTO, PublishedRecordRefDTO } from "./DTOTypes";
 import {
   DyadFieldDef,
   TriadFieldDef,
@@ -19,7 +20,7 @@ import { AnnotationType } from "../../../domain/value-objects/AnnotationType";
 import { err, Result } from "../../../../../shared/core/Result";
 
 // Database representation of an annotation field
-export interface AnnotationFieldDTO {
+export interface AnnotationFieldDTO extends PublishedRecordRefDTO {
   id: string;
   curatorId: string;
   name: string;
@@ -27,10 +28,6 @@ export interface AnnotationFieldDTO {
   definitionType: string;
   definitionData: any; // JSON data for the definition
   createdAt: Date;
-  publishedRecordId?: {
-    uri: string;
-    cid: string;
-  };
 }
 
 export class AnnotationFieldMapper {
@@ -95,8 +92,11 @@ export class AnnotationFieldMapper {
 
     // Create published record ID if it exists
     let publishedRecordId: PublishedRecordId | undefined;
-    if (dto.publishedRecordId) {
-      publishedRecordId = PublishedRecordId.create(dto.publishedRecordId);
+    if (dto.publishedRecord) {
+      publishedRecordId = PublishedRecordId.create({
+        uri: dto.publishedRecord.uri,
+        cid: dto.publishedRecord.cid
+      });
     }
 
     // Create the annotation field
@@ -114,19 +114,17 @@ export class AnnotationFieldMapper {
   }
 
   public static toPersistence(field: AnnotationField): {
-    id: string;
-    curatorId: string;
-    name: string;
-    description: string;
-    definitionType: string;
-    definitionData: any;
-    createdAt: Date;
-    publishedRecordId?: string;
-    publishedRecord?: {
+    field: {
       id: string;
-      uri: string;
-      cid: string;
+      curatorId: string;
+      name: string;
+      description: string;
+      definitionType: string;
+      definitionData: any;
+      createdAt: Date;
+      publishedRecordId?: string;
     };
+    publishedRecord?: PublishedRecordDTO;
   } {
     const definition = field.definition;
     let definitionType: string;
@@ -166,7 +164,7 @@ export class AnnotationFieldMapper {
     }
 
     // Create published record data if it exists
-    let publishedRecord: { id: string; uri: string; cid: string } | undefined;
+    let publishedRecord: PublishedRecordDTO | undefined;
     let publishedRecordId: string | undefined;
     
     if (field.publishedRecordId) {
@@ -174,20 +172,23 @@ export class AnnotationFieldMapper {
       publishedRecord = {
         id: recordId,
         uri: field.publishedRecordId.uri,
-        cid: field.publishedRecordId.cid
+        cid: field.publishedRecordId.cid,
+        recordedAt: new Date()
       };
       publishedRecordId = recordId;
     }
 
     return {
-      id: field.fieldId.getStringValue(),
-      curatorId: field.curatorId.value,
-      name: field.name.value,
-      description: field.description.value,
-      definitionType,
-      definitionData,
-      createdAt: field.createdAt,
-      publishedRecordId,
+      field: {
+        id: field.fieldId.getStringValue(),
+        curatorId: field.curatorId.value,
+        name: field.name.value,
+        description: field.description.value,
+        definitionType,
+        definitionData,
+        createdAt: field.createdAt,
+        publishedRecordId,
+      },
       publishedRecord,
     };
   }

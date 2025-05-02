@@ -73,36 +73,84 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
   }
 
   async findByPublishedRecordId(
-    publishedRecordId: PublishedRecordId
+    recordId: PublishedRecordId
   ): Promise<Annotation | null> {
-    // Find the published record ID first
+    const publishedIdProps = recordId.getValue();
+
+    // Find the published record ID with matching URI and CID
     const publishedRecordResult = await this.db
       .select()
       .from(publishedRecords)
-      .where(eq(publishedRecords.uri, uri))
+      .where(
+        and(
+          eq(publishedRecords.uri, publishedIdProps.uri),
+          eq(publishedRecords.cid, publishedIdProps.cid)
+        )
+      )
       .limit(1);
 
     if (publishedRecordResult.length === 0 || !publishedRecordResult[0]) {
       return null;
     }
 
-    const publishedRecordId = publishedRecordResult[0].id;
+    const publishedRecordDbId = publishedRecordResult[0].id;
 
     // Find the annotation with this published record ID
     const annotationResult = await this.db
-      .select()
+      .select({
+        annotation: annotations,
+        publishedRecord: publishedRecords,
+      })
       .from(annotations)
-      .where(eq(annotations.publishedRecordId, publishedRecordId))
+      .innerJoin(
+        publishedRecords,
+        eq(annotations.publishedRecordId, publishedRecords.id)
+      )
+      .where(eq(publishedRecords.id, publishedRecordDbId))
       .limit(1);
 
     if (annotationResult.length === 0 || !annotationResult[0]) {
       return null;
     }
 
-    // Use the findById method to get the complete annotation with template links
-    return this.findById(
-      AnnotationId.createFromString(annotationResult[0].id).unwrap()
-    );
+    // Fetch associated template IDs
+    const templateLinks = await this.db
+      .select()
+      .from(annotationToTemplates)
+      .where(eq(annotationToTemplates.annotationId, annotationResult[0].annotation.id));
+
+    const templateIds = templateLinks.map((link) => link.templateId);
+
+    // Map to domain object
+    const result = annotationResult[0];
+    if (!result || !result.annotation) {
+      throw new Error("Annotation not found");
+    }
+
+    const annotation = result.annotation;
+    const publishedRecord = result.publishedRecord;
+
+    const annotationDTO: AnnotationDTO = {
+      id: annotation.id,
+      curatorId: annotation.curatorId,
+      url: annotation.url,
+      annotationFieldId: annotation.annotationFieldId,
+      valueType: annotation.valueType,
+      valueData: annotation.valueData,
+      note: annotation.note || undefined,
+      createdAt: annotation.createdAt,
+      publishedRecordId: publishedRecord
+        ? { uri: publishedRecord.uri, cid: publishedRecord.cid }
+        : undefined,
+      templateIds: templateIds.length > 0 ? templateIds : undefined,
+    };
+
+    const domainResult = AnnotationMapper.toDomain(annotationDTO);
+    if (domainResult.isErr()) {
+      console.error("Error mapping annotation to domain:", domainResult.error);
+      return null;
+    }
+    return domainResult.value;
   }
 
   async findByUrl(url: URI): Promise<Annotation[]> {

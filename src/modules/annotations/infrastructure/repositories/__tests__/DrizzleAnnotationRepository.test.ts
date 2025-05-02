@@ -64,6 +64,14 @@ describe("DrizzleAnnotationRepository", () => {
 
     // Create schema using drizzle schema definitions
     await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS published_records (
+        id UUID PRIMARY KEY,
+        uri TEXT NOT NULL,
+        cid TEXT NOT NULL,
+        recorded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        UNIQUE(uri, cid)
+      );
+
       CREATE TABLE IF NOT EXISTS annotation_fields (
         id TEXT PRIMARY KEY,
         curator_id TEXT NOT NULL,
@@ -72,7 +80,7 @@ describe("DrizzleAnnotationRepository", () => {
         definition_type TEXT NOT NULL,
         definition_data JSONB NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        published_record_id TEXT
+        published_record_id UUID REFERENCES published_records(id)
       );
 
       CREATE TABLE IF NOT EXISTS annotation_templates (
@@ -81,7 +89,7 @@ describe("DrizzleAnnotationRepository", () => {
         name TEXT NOT NULL,
         description TEXT NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        published_record_id TEXT
+        published_record_id UUID REFERENCES published_records(id)
       );
 
       CREATE TABLE IF NOT EXISTS annotation_template_fields (
@@ -100,7 +108,7 @@ describe("DrizzleAnnotationRepository", () => {
         value_data JSONB NOT NULL,
         note TEXT,
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        published_record_id TEXT
+        published_record_id UUID REFERENCES published_records(id)
       );
 
       CREATE TABLE IF NOT EXISTS annotation_to_templates (
@@ -371,6 +379,7 @@ describe("DrizzleAnnotationRepository", () => {
     const annotationId = new UniqueEntityID();
     const url = new URI("https://example.com/article5");
     const publishedUri = "at://did:plc:testcurator/app.annos.annotation/1234";
+    const publishedCid = "bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu";
 
     const annotation = new AnnotationBuilder()
       .withId(annotationId)
@@ -378,7 +387,7 @@ describe("DrizzleAnnotationRepository", () => {
       .withUrl(url.value)
       .withAnnotationFieldId(testField.fieldId.toString())
       .withRatingValue(5)
-      .withPublishedRecordId(publishedUri)
+      .withPublishedRecordId({ uri: publishedUri, cid: publishedCid })
       .buildOrThrow();
 
     // Save the annotation
@@ -391,6 +400,7 @@ describe("DrizzleAnnotationRepository", () => {
     expect(foundAnnotation?.annotationId.getStringValue()).toBe(
       annotationId.toString()
     );
-    expect(foundAnnotation?.publishedRecordId?.getValue()).toBe(publishedUri);
+    expect(foundAnnotation?.publishedRecordId?.uri).toBe(publishedUri);
+    expect(foundAnnotation?.publishedRecordId?.cid).toBe(publishedCid);
   });
 });

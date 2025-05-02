@@ -54,6 +54,14 @@ describe("DrizzleAnnotationTemplateRepository", () => {
 
     // Create schema using drizzle schema definitions
     await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS published_records (
+        id UUID PRIMARY KEY,
+        uri TEXT NOT NULL,
+        cid TEXT NOT NULL,
+        recorded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        UNIQUE(uri, cid)
+      );
+
       CREATE TABLE IF NOT EXISTS annotation_fields (
         id TEXT PRIMARY KEY,
         curator_id TEXT NOT NULL,
@@ -62,7 +70,7 @@ describe("DrizzleAnnotationTemplateRepository", () => {
         definition_type TEXT NOT NULL,
         definition_data JSONB NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        published_record_id TEXT
+        published_record_id UUID REFERENCES published_records(id)
       );
 
       CREATE TABLE IF NOT EXISTS annotation_templates (
@@ -71,7 +79,7 @@ describe("DrizzleAnnotationTemplateRepository", () => {
         name TEXT NOT NULL,
         description TEXT NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        published_record_id TEXT
+        published_record_id UUID REFERENCES published_records(id)
       );
 
       CREATE TABLE IF NOT EXISTS annotation_template_fields (

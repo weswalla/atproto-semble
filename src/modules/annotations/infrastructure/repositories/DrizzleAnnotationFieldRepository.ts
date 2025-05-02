@@ -8,7 +8,10 @@ import {
 } from "../../domain/value-objects";
 import { annotationFields } from "./schema/annotationFieldSchema";
 import { publishedRecords } from "./schema/publishedRecordSchema";
-import { AnnotationFieldMapper, AnnotationFieldDTO } from "./mappers/AnnotationFieldMapper";
+import {
+  AnnotationFieldMapper,
+  AnnotationFieldDTO,
+} from "./mappers/AnnotationFieldMapper";
 
 export class DrizzleAnnotationFieldRepository
   implements IAnnotationFieldRepository
@@ -51,12 +54,14 @@ export class DrizzleAnnotationFieldRepository
       definitionData: field.definitionData,
       createdAt: field.createdAt,
       publishedRecordId: publishedRecord ? publishedRecord.id : null,
-      publishedRecord: publishedRecord ? {
-        id: publishedRecord.id,
-        uri: publishedRecord.uri,
-        cid: publishedRecord.cid,
-        recordedAt: publishedRecord.recordedAt
-      } : undefined,
+      publishedRecord: publishedRecord
+        ? {
+            id: publishedRecord.id,
+            uri: publishedRecord.uri,
+            cid: publishedRecord.cid,
+            recordedAt: publishedRecord.recordedAt,
+          }
+        : undefined,
     };
 
     const domainResult = AnnotationFieldMapper.toDomain(fieldDTO);
@@ -124,7 +129,7 @@ export class DrizzleAnnotationFieldRepository
         id: publishedRecord.id,
         uri: publishedRecord.uri,
         cid: publishedRecord.cid,
-        recordedAt: publishedRecord.recordedAt
+        recordedAt: publishedRecord.recordedAt,
       },
     };
 
@@ -166,12 +171,14 @@ export class DrizzleAnnotationFieldRepository
       definitionData: field.definitionData,
       createdAt: field.createdAt,
       publishedRecordId: publishedRecord ? publishedRecord.id : null,
-      publishedRecord: publishedRecord ? {
-        id: publishedRecord.id,
-        uri: publishedRecord.uri,
-        cid: publishedRecord.cid,
-        recordedAt: publishedRecord.recordedAt
-      } : undefined,
+      publishedRecord: publishedRecord
+        ? {
+            id: publishedRecord.id,
+            uri: publishedRecord.uri,
+            cid: publishedRecord.cid,
+            recordedAt: publishedRecord.recordedAt,
+          }
+        : undefined,
     };
 
     const domainResult = AnnotationFieldMapper.toDomain(fieldDTO);
@@ -179,7 +186,10 @@ export class DrizzleAnnotationFieldRepository
   }
 
   async save(field: AnnotationField): Promise<void> {
-    const { field: fieldData, publishedRecord } = AnnotationFieldMapper.toPersistence(field);
+    const fieldDto = AnnotationFieldMapper.toPersistence(field);
+    const publishedRecord = fieldDto.publishedRecord;
+    const publishedRecordId = fieldDto.publishedRecordId;
+    const fieldData = fieldDto;
 
     // Use a transaction to ensure atomicity
     await this.db.transaction(async (tx) => {
@@ -214,7 +224,7 @@ export class DrizzleAnnotationFieldRepository
               )
             )
             .limit(1);
-            
+
           if (existingRecord.length > 0) {
             publishedRecordId = existingRecord[0]!.id;
           }

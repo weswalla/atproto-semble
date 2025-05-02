@@ -7,7 +7,11 @@ import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { DrizzleAnnotationRepository } from "../DrizzleAnnotationRepository";
 import { DrizzleAnnotationFieldRepository } from "../DrizzleAnnotationFieldRepository";
 import { DrizzleAnnotationTemplateRepository } from "../DrizzleAnnotationTemplateRepository";
-import { AnnotationId, CuratorId } from "../../../domain/value-objects";
+import {
+  AnnotationId,
+  CuratorId,
+  PublishedRecordId,
+} from "../../../domain/value-objects";
 import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
 import { sql } from "drizzle-orm";
 import { annotations, annotationToTemplates } from "../schema/annotationSchema";
@@ -374,12 +378,17 @@ describe("DrizzleAnnotationRepository", () => {
     expect(notes).toContain("Second annotation");
   });
 
-  it("should find an annotation by URI", async () => {
+  it("should find an annotation by published record id", async () => {
     // Create a test annotation with a published record ID
     const annotationId = new UniqueEntityID();
     const url = new URI("https://example.com/article5");
     const publishedUri = "at://did:plc:testcurator/app.annos.annotation/1234";
-    const publishedCid = "bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu";
+    const publishedCid =
+      "bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu";
+    const publishedRecordId = PublishedRecordId.create({
+      uri: publishedUri,
+      cid: publishedCid,
+    });
 
     const annotation = new AnnotationBuilder()
       .withId(annotationId)
@@ -394,7 +403,8 @@ describe("DrizzleAnnotationRepository", () => {
     await annotationRepository.save(annotation);
 
     // Find annotation by URI
-    const foundAnnotation = await annotationRepository.findByUri(publishedUri);
+    const foundAnnotation =
+      await annotationRepository.findByPublishedRecordId(publishedRecordId);
 
     expect(foundAnnotation).not.toBeNull();
     expect(foundAnnotation?.annotationId.getStringValue()).toBe(

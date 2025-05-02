@@ -12,9 +12,13 @@ import {
   annotationTemplateFields,
 } from "./schema/annotationTemplateSchema";
 import { publishedRecords } from "./schema/publishedRecordSchema";
-import { AnnotationTemplateMapper, AnnotationTemplateDTO } from "./mappers/AnnotationTemplateMapper";
+import {
+  AnnotationTemplateMapper,
+  AnnotationTemplateDTO,
+} from "./mappers/AnnotationTemplateMapper";
 import { IAnnotationFieldRepository } from "../../application/repositories/IAnnotationFieldRepository";
 import { AnnotationFieldMapper } from "./mappers/AnnotationFieldMapper";
+import { AnnotationMapper } from "./mappers/AnnotationMapper";
 
 export class DrizzleAnnotationTemplateRepository
   implements IAnnotationTemplateRepository
@@ -76,7 +80,7 @@ export class DrizzleAnnotationTemplateRepository
       .map((field) => {
         return {
           ...field,
-          field: field.field!,
+          field: AnnotationFieldMapper.toPersistence(field.field!),
         };
       });
 
@@ -96,12 +100,14 @@ export class DrizzleAnnotationTemplateRepository
       description: template.description,
       createdAt: template.createdAt,
       publishedRecordId: publishedRecord ? publishedRecord.id : null,
-      publishedRecord: publishedRecord ? {
-        id: publishedRecord.id,
-        uri: publishedRecord.uri,
-        cid: publishedRecord.cid,
-        recordedAt: publishedRecord.recordedAt
-      } : undefined,
+      publishedRecord: publishedRecord
+        ? {
+            id: publishedRecord.id,
+            uri: publishedRecord.uri,
+            cid: publishedRecord.cid,
+            recordedAt: publishedRecord.recordedAt,
+          }
+        : undefined,
       fields: validFields,
     };
 
@@ -213,7 +219,7 @@ export class DrizzleAnnotationTemplateRepository
               )
             )
             .limit(1);
-            
+
           if (existingRecord.length > 0) {
             publishedRecordId = existingRecord[0]!.id;
           }

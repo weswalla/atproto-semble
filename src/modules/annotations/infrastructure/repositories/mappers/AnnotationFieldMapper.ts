@@ -5,7 +5,6 @@ import {
   AnnotationFieldDescription,
   CuratorId,
   PublishedRecordId,
-  PublishedRecordIdProps,
 } from "../../../domain/value-objects";
 import { PublishedRecordDTO, PublishedRecordRefDTO } from "./DTOTypes";
 import {
@@ -95,7 +94,7 @@ export class AnnotationFieldMapper {
     if (dto.publishedRecord) {
       publishedRecordId = PublishedRecordId.create({
         uri: dto.publishedRecord.uri,
-        cid: dto.publishedRecord.cid
+        cid: dto.publishedRecord.cid,
       });
     }
 
@@ -113,19 +112,7 @@ export class AnnotationFieldMapper {
     );
   }
 
-  public static toPersistence(field: AnnotationField): {
-    field: {
-      id: string;
-      curatorId: string;
-      name: string;
-      description: string;
-      definitionType: string;
-      definitionData: any;
-      createdAt: Date;
-      publishedRecordId?: string;
-    };
-    publishedRecord?: PublishedRecordDTO;
-  } {
+  public static toPersistence(field: AnnotationField): AnnotationFieldDTO {
     const definition = field.definition;
     let definitionType: string;
     let definitionData: any;
@@ -166,29 +153,27 @@ export class AnnotationFieldMapper {
     // Create published record data if it exists
     let publishedRecord: PublishedRecordDTO | undefined;
     let publishedRecordId: string | undefined;
-    
+
     if (field.publishedRecordId) {
       const recordId = new UniqueEntityID().toString();
       publishedRecord = {
         id: recordId,
         uri: field.publishedRecordId.uri,
         cid: field.publishedRecordId.cid,
-        recordedAt: new Date()
+        recordedAt: new Date(),
       };
       publishedRecordId = recordId;
     }
 
     return {
-      field: {
-        id: field.fieldId.getStringValue(),
-        curatorId: field.curatorId.value,
-        name: field.name.value,
-        description: field.description.value,
-        definitionType,
-        definitionData,
-        createdAt: field.createdAt,
-        publishedRecordId,
-      },
+      id: field.fieldId.getStringValue(),
+      curatorId: field.curatorId.value,
+      name: field.name.value,
+      description: field.description.value,
+      definitionType,
+      definitionData,
+      createdAt: field.createdAt,
+      publishedRecordId: publishedRecordId || null,
       publishedRecord,
     };
   }

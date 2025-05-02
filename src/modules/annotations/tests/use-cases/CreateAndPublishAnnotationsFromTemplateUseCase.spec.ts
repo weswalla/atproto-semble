@@ -1,10 +1,13 @@
 import { CreateAndPublishAnnotationsFromTemplateUseCase } from "../../application/use-cases/CreateAndPublishAnnotationsFromTemplateUseCase";
 import { Annotation } from "../../domain/aggregates/Annotation";
-import { AnnotationTemplateId } from "../../domain/value-objects";
+import {
+  AnnotationTemplateId,
+  PublishedRecordId,
+} from "../../domain/value-objects";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
 import { AnnotationTemplateDTOBuilder } from "../utils/builders/AnnotationTemplateDTOBuilder";
 import { CreateAndPublishAnnotationTemplateUseCase } from "../../application/use-cases/CreateAndPublishAnnotationTemplateUseCase";
-import { FakeAnnotationFieldPublisher } from "../utils/builders/FakeAnnotationFieldPublisher";
+import { FakeAnnotationFieldPublisher } from "../utils/publishers/FakeAnnotationFieldPublisher";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 import { InMemoryAnnotationRepository } from "../utils/InMemoryAnnotationRepository";
 import { InMemoryAnnotationTemplateRepository } from "../utils/InMemoryAnnotationTemplateRepository";
@@ -128,9 +131,14 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
 
       // Check that annotations were saved
       for (const annotationId of annotationIds) {
-        const savedAnnotation = await annotationRepository.findByUri(
-          `at://fake-did/app.annos.annotation/${annotationId}`
-        );
+        const fakeUri = `at://fake-did/app.annos.annotation/${annotationId}`;
+        const fakeCid = `fake-cid-${annotationId}`;
+        const publishedRecordId = PublishedRecordId.create({
+          uri: fakeUri,
+          cid: fakeCid,
+        });
+        const savedAnnotation =
+          await annotationRepository.findByPublishedRecordId(publishedRecordId);
 
         expect(savedAnnotation).not.toBeNull();
         expect(savedAnnotation).toBeInstanceOf(Annotation);

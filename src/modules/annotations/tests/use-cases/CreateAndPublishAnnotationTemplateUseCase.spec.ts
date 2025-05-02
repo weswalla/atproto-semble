@@ -1,5 +1,5 @@
 import { AnnotationTemplate } from "../../domain/aggregates";
-import { FakeAnnotationFieldPublisher } from "../utils/builders/FakeAnnotationFieldPublisher";
+import { FakeAnnotationFieldPublisher } from "../utils/publishers/FakeAnnotationFieldPublisher";
 import { CreateAndPublishAnnotationTemplateUseCase } from "../../application/use-cases/CreateAndPublishAnnotationTemplateUseCase";
 import { AnnotationTemplateId } from "../../domain/value-objects";
 import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
@@ -60,9 +60,6 @@ describe("CreateAndPublishAnnotationTemplateUseCase", () => {
       expect(template).toBeDefined();
       expect(template).not.toBeNull();
       expect(template!.publishedRecordId).toBeDefined();
-      expect(template!.publishedRecordId?.getValue()).toMatch(
-        /^at:\/\/fake-did\/app\.annos\.template\//
-      ); // Check format
 
       // Check fields *within* the retrieved template aggregate
       expect(template!.hasUnpublishedFields()).toBe(false); // All fields should be published

@@ -69,7 +69,7 @@ describe("ATProtoAnnotationTemplatePublisher", () => {
         .withCuratorId(process.env.BSKY_DID)
         .withName("Test Template")
         .withDescription("A test template for integration testing")
-        .withFields([testField])
+        .withFields([testField], true) // Pass true to make the field required
         .withCreatedAt(new Date())
         .buildOrThrow();
 
@@ -115,7 +115,7 @@ describe("ATProtoAnnotationTemplatePublisher", () => {
       .withCuratorId(process.env.BSKY_DID)
       .withName("Invalid Template")
       .withDescription("Template with unpublished fields")
-      .withFields([unpublishedField])
+      .withFields([unpublishedField], false) // Pass false to make the field optional
       .withCreatedAt(new Date())
       .buildOrThrow();
 

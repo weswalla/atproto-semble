@@ -63,7 +63,7 @@ describe("AnnotationTemplate", () => {
     expect(annotationTemplate.hasUnpublishedFields()).toBe(true);
     annotationTemplate.markAnnotationTemplateFieldAsPublished(
       annotationField.unwrap().fieldId,
-      PublishedRecordId.create("at://fake.uri")
+      PublishedRecordId.create({ uri: "at://fake.uri", cid: "fake-cid" })
     );
     expect(annotationTemplate.hasUnpublishedFields()).toBe(false);
   });

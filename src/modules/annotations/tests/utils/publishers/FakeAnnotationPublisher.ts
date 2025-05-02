@@ -1,11 +1,14 @@
 import { IAnnotationPublisher } from "src/modules/annotations/application/ports/IAnnotationPublisher";
 import { Annotation } from "src/modules/annotations/domain/aggregates";
-import { PublishedRecordId } from "src/modules/annotations/domain/value-objects";
+import {
+  PublishedRecordId,
+  PublishedRecordIdProps,
+} from "src/modules/annotations/domain/value-objects";
 import { ok, Result } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 
 export class FakeAnnotationPublisher implements IAnnotationPublisher {
-  private publishedRecords: Map<string, Annotation> = new Map();
+  private publishedRecords: Map<PublishedRecordIdProps, Annotation> = new Map();
 
   async publish(
     annotation: Annotation
@@ -13,7 +16,11 @@ export class FakeAnnotationPublisher implements IAnnotationPublisher {
     const annotationId = annotation.annotationId.getStringValue();
     // Simulate generating an AT URI based on DID and collection/rkey
     const fakeUri = `at://fake-did/app.annos.annotation/${annotationId}`;
-    const publishedRecordId = PublishedRecordId.create(fakeUri);
+    const fakeCid = `fake-cid-${annotationId}`;
+    const publishedRecordId = PublishedRecordId.create({
+      uri: fakeUri,
+      cid: fakeCid,
+    });
 
     // Store the published annotation for inspection if needed
     this.publishedRecords.set(publishedRecordId.getValue(), annotation);
@@ -40,14 +47,5 @@ export class FakeAnnotationPublisher implements IAnnotationPublisher {
       // For a simple fake, we can still return success
       return ok(undefined);
     }
-  }
-
-  // Helper method for tests to check published state
-  getPublishedRecord(uri: string): Annotation | undefined {
-    return this.publishedRecords.get(uri);
-  }
-
-  clearPublishedRecords(): void {
-    this.publishedRecords.clear();
   }
 }

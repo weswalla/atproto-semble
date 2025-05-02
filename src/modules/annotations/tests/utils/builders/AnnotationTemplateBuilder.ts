@@ -14,6 +14,7 @@ import {
   AnnotationTemplateField,
   AnnotationFieldDescription,
   AnnotationFieldName,
+  PublishedRecordIdProps,
 } from "../../../domain/value-objects";
 import { AnnotationField } from "../../../domain/aggregates";
 import { AnnotationFieldDefinitionFactory } from "../../../domain/AnnotationFieldDefinitionFactory";
@@ -27,7 +28,7 @@ export class AnnotationTemplateBuilder {
   private _fieldDTOs: AnnotationTemplateFieldInputDTO[] = [];
   private _annotationTemplateFields?: AnnotationTemplateFields;
   private _createdAt?: Date;
-  private _publishedRecordId?: string;
+  private _publishedRecordId?: PublishedRecordIdProps;
 
   withId(id: UniqueEntityID): this {
     this._id = id;
@@ -54,7 +55,7 @@ export class AnnotationTemplateBuilder {
     return this;
   }
 
-  withPublishedRecordId(recordId: string): this {
+  withPublishedRecordId(recordId: PublishedRecordIdProps): this {
     this._publishedRecordId = recordId;
     return this;
   }
@@ -153,26 +154,30 @@ export class AnnotationTemplateBuilder {
   // Add fields from AnnotationField objects
   withFields(fields: AnnotationField[], allRequired: boolean = false): this {
     // Create AnnotationTemplateField objects from AnnotationField objects
-    const templateFields = fields.map(field => {
+    const templateFields = fields.map((field) => {
       const templateFieldResult = AnnotationTemplateField.create({
         annotationField: field,
         required: allRequired,
       });
-      
+
       if (templateFieldResult.isErr()) {
-        throw new Error(`Failed to create template field: ${templateFieldResult.error}`);
+        throw new Error(
+          `Failed to create template field: ${templateFieldResult.error}`
+        );
       }
-      
+
       return templateFieldResult.value;
     });
-    
+
     // Create AnnotationTemplateFields from the array
     const fieldsResult = AnnotationTemplateFields.create(templateFields);
-    
+
     if (fieldsResult.isErr()) {
-      throw new Error(`Failed to create template fields: ${fieldsResult.error}`);
+      throw new Error(
+        `Failed to create template fields: ${fieldsResult.error}`
+      );
     }
-    
+
     this._annotationTemplateFields = fieldsResult.value;
     return this;
   }
@@ -205,11 +210,11 @@ export class AnnotationTemplateBuilder {
 
     // Determine which fields to use
     let fieldsResult: Result<AnnotationTemplateFields>;
-    
+
     // If we have pre-built AnnotationTemplateFields, use those
     if (this._annotationTemplateFields) {
       fieldsResult = ok(this._annotationTemplateFields);
-    } 
+    }
     // Otherwise, create fields from DTOs if we have any
     else if (this._fieldDTOs.length > 0) {
       // Create fields directly instead of using createFromDto
@@ -280,9 +285,7 @@ export class AnnotationTemplateBuilder {
       }
 
       // Create the AnnotationTemplateFields value object
-      fieldsResult = AnnotationTemplateFields.create(
-        annotationTemplateFields
-      );
+      fieldsResult = AnnotationTemplateFields.create(annotationTemplateFields);
     } else {
       // No fields provided
       return err(new Error("AnnotationTemplate must have at least one field"));

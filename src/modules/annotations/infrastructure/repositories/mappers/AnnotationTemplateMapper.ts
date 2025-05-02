@@ -7,6 +7,7 @@ import {
   PublishedRecordId,
   AnnotationTemplateFields,
   AnnotationTemplateField,
+  PublishedRecordIdProps,
 } from "../../../domain/value-objects";
 import { Mapper } from "../../../../../shared/infra/Mapper";
 import { err, ok, Result } from "../../../../../shared/core/Result";
@@ -21,7 +22,7 @@ export interface AnnotationTemplateDTO {
   name: string;
   description: string;
   createdAt: Date;
-  publishedRecordId: string | null;
+  publishedRecordId: PublishedRecordIdProps | null;
   fields: AnnotationTemplateFieldDTO[];
 }
 
@@ -115,7 +116,7 @@ export class AnnotationTemplateMapper implements Mapper<AnnotationTemplate> {
       name: string;
       description: string;
       createdAt: Date;
-      publishedRecordId?: string;
+      publishedRecordId?: PublishedRecordIdProps;
     };
     fields: {
       id: string;

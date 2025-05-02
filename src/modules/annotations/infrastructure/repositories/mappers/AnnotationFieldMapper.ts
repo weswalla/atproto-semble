@@ -5,6 +5,7 @@ import {
   AnnotationFieldDescription,
   CuratorId,
   PublishedRecordId,
+  PublishedRecordIdProps,
 } from "../../../domain/value-objects";
 import {
   DyadFieldDef,
@@ -26,7 +27,7 @@ export interface AnnotationFieldDTO {
   definitionType: string;
   definitionData: any; // JSON data for the definition
   createdAt: Date;
-  publishedRecordId: string | null;
+  publishedRecordId: PublishedRecordIdProps | null;
 }
 
 export class AnnotationFieldMapper {

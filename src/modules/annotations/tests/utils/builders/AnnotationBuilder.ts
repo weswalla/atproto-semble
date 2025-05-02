@@ -11,6 +11,7 @@ import {
   AnnotationValue,
   CuratorId,
   PublishedRecordId,
+  PublishedRecordIdProps,
   URI,
 } from "../../../domain/value-objects";
 import {
@@ -32,7 +33,7 @@ export class AnnotationBuilder {
   private _annotationTemplateIds: string[] = [];
   private _note?: string;
   private _createdAt?: Date;
-  private _publishedRecordId?: string;
+  private _publishedRecordId?: PublishedRecordIdProps;
 
   withId(id: UniqueEntityID): this {
     this._id = id;
@@ -115,7 +116,7 @@ export class AnnotationBuilder {
     return this;
   }
 
-  withPublishedRecordId(recordId: string): this {
+  withPublishedRecordId(recordId: PublishedRecordIdProps): this {
     this._publishedRecordId = recordId;
     return this;
   }

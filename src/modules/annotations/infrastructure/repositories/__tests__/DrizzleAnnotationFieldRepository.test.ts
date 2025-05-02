@@ -155,9 +155,10 @@ describe.skip("DrizzleAnnotationFieldRepository", () => {
     const description = AnnotationFieldDescription.create(
       "Field with published ID"
     ).unwrap();
-    const publishedRecordId = PublishedRecordId.create(
-      "at://did:plc:testcurator/app.annos.annotationField/test-record"
-    );
+    const publishedRecordId = PublishedRecordId.create({
+      uri: "at://did:plc:testcurator/app.annos.annotationField/test-record",
+      cid: "test-cid",
+    });
 
     const fieldDefinition = AnnotationFieldDefinitionFactory.create({
       type: AnnotationType.create("rating"),
@@ -186,8 +187,8 @@ describe.skip("DrizzleAnnotationFieldRepository", () => {
     // Verify field was found
     expect(retrievedField).not.toBeNull();
     expect(retrievedField?.fieldId.getStringValue()).toBe(id.toString());
-    expect(retrievedField?.publishedRecordId?.getValue()).toBe(
-      publishedRecordId.getValue()
+    expect(retrievedField?.publishedRecordId?.equals(publishedRecordId)).toBe(
+      true
     );
   });
 

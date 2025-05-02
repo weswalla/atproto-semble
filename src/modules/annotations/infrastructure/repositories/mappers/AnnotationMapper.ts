@@ -6,6 +6,7 @@ import {
   AnnotationTemplateId,
   CuratorId,
   PublishedRecordId,
+  PublishedRecordIdProps,
 } from "../../../domain/value-objects";
 import { URI } from "../../../domain/value-objects/URI";
 import { Mapper } from "../../../../../shared/infra/Mapper";
@@ -34,7 +35,7 @@ export interface AnnotationDTO {
   valueData: any; // JSON data for the value
   note?: string;
   createdAt: Date;
-  publishedRecordId?: string;
+  publishedRecordId?: PublishedRecordIdProps;
   templateIds?: string[]; // Array of template IDs this annotation is associated with
 }
 
@@ -137,7 +138,7 @@ export class AnnotationMapper implements Mapper<Annotation> {
       valueData: AnnotationValueInput;
       note?: string;
       createdAt: Date;
-      publishedRecordId?: string;
+      publishedRecordId?: PublishedRecordIdProps;
     };
     templateLinks?: {
       id: string;

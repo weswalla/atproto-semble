@@ -1,13 +1,17 @@
 import { IAnnotationTemplatePublisher } from "src/modules/annotations/application/ports/IAnnotationTemplatePublisher";
 import { AnnotationTemplate } from "src/modules/annotations/domain/aggregates";
-import { PublishedRecordId } from "src/modules/annotations/domain/value-objects";
+import {
+  PublishedRecordId,
+  PublishedRecordIdProps,
+} from "src/modules/annotations/domain/value-objects";
 import { ok, Result } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 
 export class FakeAnnotationTemplatePublisher
   implements IAnnotationTemplatePublisher
 {
-  private publishedRecords: Map<string, AnnotationTemplate> = new Map();
+  private publishedRecords: Map<PublishedRecordIdProps, AnnotationTemplate> =
+    new Map();
 
   async publish(
     template: AnnotationTemplate
@@ -15,7 +19,11 @@ export class FakeAnnotationTemplatePublisher
     const templateId = template.templateId.getStringValue();
     // Simulate generating an AT URI based on DID and collection/rkey
     const fakeUri = `at://fake-did/app.annos.template/${templateId}`;
-    const publishedRecordId = PublishedRecordId.create(fakeUri);
+    const fakeCid = `fake-cid-${templateId}`;
+    const publishedRecordId = PublishedRecordId.create({
+      uri: fakeUri,
+      cid: fakeCid,
+    });
 
     // Store the published template for inspection if needed
     this.publishedRecords.set(publishedRecordId.getValue(), template);
@@ -44,14 +52,5 @@ export class FakeAnnotationTemplatePublisher
       // For a simple fake, we can still return success
       return ok(undefined);
     }
-  }
-
-  // Helper method for tests to check published state
-  getPublishedRecord(uri: string): AnnotationTemplate | undefined {
-    return this.publishedRecords.get(uri);
-  }
-
-  clearPublishedRecords(): void {
-    this.publishedRecords.clear();
   }
 }

@@ -1,11 +1,15 @@
 import { IAnnotationFieldPublisher } from "../../../application/ports/IAnnotationFieldPublisher";
 import { AnnotationField } from "../../../domain/AnnotationField";
-import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
+import {
+  PublishedRecordId,
+  PublishedRecordIdProps,
+} from "../../../domain/value-objects/PublishedRecordId";
 import { Result, ok } from "../../../../../shared/core/Result";
 import { UseCaseError } from "../../../../../shared/core/UseCaseError";
 
 export class FakeAnnotationFieldPublisher implements IAnnotationFieldPublisher {
-  private publishedRecords: Map<string, AnnotationField> = new Map();
+  private publishedRecords: Map<PublishedRecordIdProps, AnnotationField> =
+    new Map();
 
   async publish(
     field: AnnotationField
@@ -13,7 +17,11 @@ export class FakeAnnotationFieldPublisher implements IAnnotationFieldPublisher {
     const fieldId = field.fieldId.getStringValue();
     // Simulate generating an AT URI based on DID and collection/rkey
     const fakeUri = `at://fake-did/app.annos.field/${fieldId}`;
-    const publishedRecordId = PublishedRecordId.create(fakeUri);
+    const fakeCid = `fake-cid-${fieldId}`;
+    const publishedRecordId = PublishedRecordId.create({
+      uri: fakeUri,
+      cid: fakeCid,
+    });
 
     // Store the published field for inspection if needed
     this.publishedRecords.set(publishedRecordId.getValue(), field);
@@ -40,14 +48,5 @@ export class FakeAnnotationFieldPublisher implements IAnnotationFieldPublisher {
       // For a simple fake, we can still return success
       return ok(undefined);
     }
-  }
-
-  // Helper method for tests to check published state
-  getPublishedRecord(uri: string): AnnotationField | undefined {
-    return this.publishedRecords.get(uri);
-  }
-
-  clearPublishedRecords(): void {
-    this.publishedRecords.clear();
   }
 }

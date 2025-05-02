@@ -17,6 +17,7 @@ import {
   IDyadFieldDefProps,
   ITriadFieldDefProps,
   ISelectFieldDefProps,
+  PublishedRecordIdProps,
 } from "../../../domain/value-objects";
 import { AnnotationFieldName } from "../../../domain/value-objects/AnnotationFieldName";
 
@@ -28,7 +29,7 @@ export class AnnotationFieldBuilder {
   private _definitionProps: any = { sideA: "Left", sideB: "Right" }; // Default to Dyad
   private _definition?: AnnotationFieldDefinition; // Allow setting directly
   private _createdAt?: Date;
-  private _publishedRecordId?: string;
+  private _publishedRecordId?: PublishedRecordIdProps;
 
   withId(id: UniqueEntityID): this {
     this._id = id;
@@ -96,7 +97,7 @@ export class AnnotationFieldBuilder {
     return this;
   }
 
-  withPublishedRecordId(recordId: string): this {
+  withPublishedRecordId(recordId: PublishedRecordIdProps): this {
     this._publishedRecordId = recordId;
     return this;
   }

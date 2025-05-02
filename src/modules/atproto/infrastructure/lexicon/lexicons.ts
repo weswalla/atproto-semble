@@ -324,7 +324,9 @@ export const schemaDict = {
         properties: {
           ref: {
             type: 'ref',
-            ref: 'lex:app.annos.annotationField',
+            description:
+              'A strong reference to the specific annotation field record.',
+            ref: 'lex:com.atproto.repo.strongRef',
           },
           required: {
             type: 'boolean',

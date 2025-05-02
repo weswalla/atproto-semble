@@ -39,6 +39,12 @@ describe("DrizzleAnnotationFieldRepository", () => {
 
     // Create schema
     await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS published_records (
+        id UUID PRIMARY KEY,
+        uri TEXT NOT NULL,
+        cid TEXT NOT NULL
+      );
+
       CREATE TABLE IF NOT EXISTS annotation_fields (
         id UUID PRIMARY KEY,
         curator_id TEXT NOT NULL,
@@ -47,7 +53,7 @@ describe("DrizzleAnnotationFieldRepository", () => {
         definition_type TEXT NOT NULL,
         definition_data JSONB NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        published_record_id TEXT
+        published_record_id UUID REFERENCES published_records(id)
       );
     `);
   }, 60000); // Increase timeout for container startup

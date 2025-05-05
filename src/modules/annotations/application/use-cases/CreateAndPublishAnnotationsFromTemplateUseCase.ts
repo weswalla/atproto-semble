@@ -226,7 +226,7 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
       const publishResult = await this.annotationsFromTemplatePublisher.publish(
         annotationsFromTemplate
       );
-      
+
       if (publishResult.isErr()) {
         return err(
           new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationPublishFailed(
@@ -235,15 +235,16 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
           )
         );
       }
-      
+
       // Get the published record IDs
       const publishedRecordIds = publishResult.value;
-      
+
       // Mark all annotations as published in one operation
-      const markPublishedResult = annotationsFromTemplate.markAllAnnotationsAsPublished(
-        publishedRecordIds
-      );
-      
+      const markPublishedResult =
+        annotationsFromTemplate.markAllAnnotationsAsPublished(
+          publishedRecordIds
+        );
+
       if (markPublishedResult.isErr()) {
         return err(
           new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationPublishFailed(
@@ -252,11 +253,11 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
           )
         );
       }
-      
+
       // Create a list of published annotation IDs for the response
       const publishedAnnotationIds: string[] = [];
       for (const [annotationId, _] of publishedRecordIds) {
-        publishedAnnotationIds.push(annotationId.getStringValue());
+        publishedAnnotationIds.push(annotationId);
       }
 
       // Save all annotations

@@ -320,17 +320,14 @@ export const schemaDict = {
         type: 'object',
         description:
           'A reference to an annotation field. Defines if the field is required in the template.',
-        required: ['ref'],
+        required: ['subject'],
         properties: {
-          ref: {
+          subject: {
             type: 'ref',
-            description:
-              'A strong reference to the specific annotation field record.',
             ref: 'lex:com.atproto.repo.strongRef',
           },
           required: {
             type: 'boolean',
-            description: 'Indicates if this field is required in the template.',
           },
         },
       },

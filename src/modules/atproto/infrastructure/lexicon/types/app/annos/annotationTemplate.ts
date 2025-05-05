@@ -37,8 +37,7 @@ export function validateRecord<V>(v: V) {
 /** A reference to an annotation field. Defines if the field is required in the template. */
 export interface AnnotationFieldRef {
   $type?: 'app.annos.annotationTemplate#annotationFieldRef'
-  ref: ComAtprotoRepoStrongRef.Main
-  /** Indicates if this field is required in the template. */
+  subject: ComAtprotoRepoStrongRef.Main
   required?: boolean
 }
 

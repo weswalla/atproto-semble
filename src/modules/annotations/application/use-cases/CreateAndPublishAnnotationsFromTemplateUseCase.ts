@@ -19,7 +19,6 @@ import {
   AnnotationValueFactory,
   AnnotationValueInput,
 } from "../../domain/AnnotationValueFactory";
-import { AnnotationType } from "../../domain/value-objects/AnnotationType";
 import { IAnnotationTemplateRepository } from "../repositories/IAnnotationTemplateRepository";
 import { IAnnotationFieldRepository } from "../repositories/IAnnotationFieldRepository";
 
@@ -134,7 +133,7 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
         const fieldIdOrError = AnnotationFieldId.create(
           new UniqueEntityID(annotationInput.annotationFieldId)
         );
-        
+
         if (fieldIdOrError.isErr()) {
           return err(
             new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
@@ -142,9 +141,11 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
             )
           );
         }
-        
+
         // Fetch the actual field from the repository
-        const annotationField = await this.annotationFieldRepository.findById(fieldIdOrError.value);
+        const annotationField = await this.annotationFieldRepository.findById(
+          fieldIdOrError.value
+        );
         if (!annotationField) {
           return err(
             new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
@@ -152,7 +153,7 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
             )
           );
         }
-        
+
         // Verify the field type matches the input type
         if (annotationField.definition.type.value !== annotationInput.type) {
           return err(
@@ -161,7 +162,7 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
             )
           );
         }
-        
+
         const note = annotationInput.note
           ? AnnotationNote.create(annotationInput.note)
           : undefined;
@@ -193,7 +194,7 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
         if (annotationOrError.isErr()) {
           return err(
             new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
-              annotationOrError.error || "Failed to create annotation"
+              annotationOrError.error.message || "Failed to create annotation"
             )
           );
         }

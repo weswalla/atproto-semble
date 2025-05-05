@@ -1,4 +1,5 @@
 import { ValueObject } from "../../../../shared/domain/ValueObject";
+import { AnnotationField } from "../aggregates";
 import { AnnotationFieldDefinition } from "./AnnotationFieldDefinition";
 import { AnnotationType } from "./AnnotationType";
 
@@ -38,6 +39,10 @@ export abstract class AnnotationValueBase<
 
   public typeMatchesDefinition(definition: AnnotationFieldDefinition): boolean {
     return this.type.equals(definition.type);
+  }
+
+  public matchesFieldType(field: AnnotationField): boolean {
+    return this.type.equals(field.definition.type);
   }
 }
 

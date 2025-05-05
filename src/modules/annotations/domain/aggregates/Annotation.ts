@@ -39,7 +39,7 @@ export class Annotation extends AggregateRoot<AnnotationProps> {
   get annotationField(): AnnotationField {
     return this.props.annotationField;
   }
-  
+
   get annotationFieldId(): AnnotationFieldId {
     return this.annotationField.fieldId;
   }
@@ -62,7 +62,7 @@ export class Annotation extends AggregateRoot<AnnotationProps> {
   public updatePublishedRecordId(publishedRecordId: PublishedRecordId): void {
     this.props.publishedRecordId = publishedRecordId;
   }
-  
+
   public markAsPublished(publishedRecordId: PublishedRecordId): void {
     this.props.publishedRecordId = publishedRecordId;
   }
@@ -84,7 +84,7 @@ export class Annotation extends AggregateRoot<AnnotationProps> {
   public static create(
     props: AnnotationProps,
     id?: UniqueEntityID
-  ): Result<Annotation, string> {
+  ): Result<Annotation> {
     const guardArgs: IGuardArgument[] = [
       { argument: props.curatorId, argumentName: "curatorId" },
       { argument: props.url, argumentName: "url" },
@@ -95,7 +95,11 @@ export class Annotation extends AggregateRoot<AnnotationProps> {
     const guardResult = Guard.againstNullOrUndefinedBulk(guardArgs);
 
     if (guardResult.isErr()) {
-      return err(guardResult.error);
+      return err(new Error(guardResult.error));
+    }
+
+    if (!props.value.matchesFieldType(props.annotationField)) {
+      return err(new Error("Value does not match field type"));
     }
 
     const defaultValues: AnnotationProps = {

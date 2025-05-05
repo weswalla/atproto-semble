@@ -1,27 +1,35 @@
-// Placeholder for StrongRef Value Object (com.atproto.repo.strongRef)
-export class StrongRef {
-  readonly $type = 'com.atproto.repo.strongRef'
-  readonly cid: string
-  readonly uri: string // AT URI
+import { ValueObject } from "src/shared/domain/ValueObject";
+import { ATUri } from "./ATUri";
 
-  constructor(cid: string, uri: string) {
-    if (!cid || cid.trim().length === 0) {
-      throw new Error('StrongRef CID cannot be empty.')
-    }
-    // Basic AT-URI check (can be enhanced)
-    if (!uri || !uri.startsWith('at://') || !/at:\/\/[a-zA-Z0-9.-]+\/[a-zA-Z0-9.]+\/[a-zA-Z0-9]+/.test(uri)) {
-       throw new Error(`Invalid AT URI format for StrongRef: ${uri}`)
-    }
+interface StrongRefProps {
+  uri: string;
+  cid: string;
+}
+export class StrongRef extends ValueObject<StrongRefProps> {
+  readonly $type = "com.atproto.repo.strongRef";
 
-    this.cid = cid
-    this.uri = uri
+  private readonly _atUri: ATUri;
+
+  get atUri(): ATUri {
+    return this._atUri;
+  }
+
+  get cid(): string {
+    return this.props.cid;
+  }
+
+  getValue(): StrongRefProps {
+    return this.props;
+  }
+
+  constructor(props: StrongRefProps) {
+    super(props);
+    this._atUri = new ATUri(props.uri);
   }
 
   equals(other: StrongRef): boolean {
-    return this.cid === other.cid && this.uri === other.uri
-  }
-
-  toString(): string {
-    return this.uri;
+    return (
+      this.props.cid === other.props.cid && this.props.uri === other.props.uri
+    );
   }
 }

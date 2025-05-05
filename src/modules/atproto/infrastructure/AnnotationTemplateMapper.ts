@@ -5,7 +5,7 @@ import {
   Record,
   AnnotationFieldRef,
 } from "./lexicon/types/app/annos/annotationTemplate";
-import { ATUri } from "../domain/ATUri";
+import { StrongRef } from "../domain";
 
 type AnnotationTemplateRecordDTO = Record;
 export class AnnotationTemplateMapper {
@@ -38,11 +38,14 @@ export class AnnotationTemplateMapper {
       );
     }
 
-    const uri = new ATUri(field.publishedRecordId!.getValue()).value;
+    const strongRef = new StrongRef(field.publishedRecordId!.getValue());
 
     return {
       $type: "app.annos.annotationTemplate#annotationFieldRef",
-      ref: uri,
+      subject: {
+        uri: strongRef.getValue().uri,
+        cid: strongRef.getValue().cid,
+      },
       required: isRequired,
     };
   }

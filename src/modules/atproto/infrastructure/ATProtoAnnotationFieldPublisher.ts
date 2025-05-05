@@ -5,7 +5,7 @@ import { UseCaseError } from "src/shared/core/UseCaseError";
 import { PublishedRecordId } from "src/modules/annotations/domain/value-objects/PublishedRecordId";
 import AtpAgent from "@atproto/api";
 import { AnnotationFieldMapper } from "./AnnotationFieldMapper";
-import { ATUri } from "../domain/ATUri";
+import { StrongRef } from "../domain";
 
 export class ATProtoAnnotationFieldPublisher
   implements IAnnotationFieldPublisher
@@ -27,17 +27,22 @@ export class ATProtoAnnotationFieldPublisher
 
       // If the field is already published, update it
       if (field.isPublished()) {
-        const uri = field.publishedRecordId!.getValue();
-        const rkey = new ATUri(uri).rkey;
+        const publishedRecordId = field.publishedRecordId!.getValue();
+        const strongRef = new StrongRef(publishedRecordId);
 
         const updateResult = await this.agent.com.atproto.repo.putRecord({
           repo: curatorDid,
           collection: this.COLLECTION,
-          rkey: rkey,
+          rkey: strongRef.atUri.rkey,
           record,
         });
 
-        return ok(PublishedRecordId.create(uri));
+        return ok(
+          PublishedRecordId.create({
+            uri: updateResult.data.uri,
+            cid: updateResult.data.cid, // TODO: handle updates
+          })
+        );
       }
       // Otherwise create a new record
       else {
@@ -47,7 +52,12 @@ export class ATProtoAnnotationFieldPublisher
           record,
         });
 
-        return ok(PublishedRecordId.create(createResult.data.uri));
+        return ok(
+          PublishedRecordId.create({
+            uri: createResult.data.uri,
+            cid: createResult.data.cid,
+          })
+        );
       }
     } catch (error) {
       return err(new Error(error as any));
@@ -61,8 +71,8 @@ export class ATProtoAnnotationFieldPublisher
     recordId: PublishedRecordId
   ): Promise<Result<void, UseCaseError>> {
     try {
-      const uri = recordId.getValue();
-      const atUri = new ATUri(uri);
+      const strongRef = new StrongRef(recordId.getValue());
+      const atUri = strongRef.atUri;
       const repo = atUri.did.toString();
       const rkey = atUri.rkey;
 

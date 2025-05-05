@@ -1,6 +1,7 @@
 import { AnnotationsFromTemplate } from "../../domain/aggregates/AnnotationsFromTemplate";
 import { AnnotationBuilder } from "../utils/builders/AnnotationBuilder";
 import { AnnotationTemplateBuilder } from "../utils/builders/AnnotationTemplateBuilder";
+import { AnnotationFieldBuilder } from "../utils/builders/AnnotationFieldBuilder";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
 import { CuratorId } from "../../domain/value-objects";
 
@@ -17,11 +18,19 @@ describe.only("AnnotationsFromTemplate", () => {
       .addDyadField("Field 1", "Description 1", "Left", "Right", true) // Required field
       .buildOrThrow();
 
+    // Create a different field not in the template
+    const differentField = new AnnotationFieldBuilder()
+      .withCuratorId(curatorId)
+      .withName("Different Field")
+      .withDescription("A field not in the template")
+      .withDyadDefinition({ sideA: "Different Left", sideB: "Different Right" })
+      .buildOrThrow();
+
     // Create an annotation that doesn't match the template's required field
     const annotation = new AnnotationBuilder()
       .withCuratorId(curatorId)
       .withUrl("https://example.com/resource")
-      .withAnnotationFieldId("different-field-id") // Different field ID
+      .withAnnotationField(differentField) // Different field
       .withDyadValue(0.5)
       .withAnnotationTemplateIds([templateId.toString()])
       .buildOrThrow();
@@ -45,15 +54,15 @@ describe.only("AnnotationsFromTemplate", () => {
       .addRatingField("Field 2", "Description 2", false)
       .buildOrThrow();
 
-    // Get the field IDs from the template
+    // Get the fields from the template
     const fields = template.annotationTemplateFields.annotationTemplateFields;
-    const field1Id = fields[0]!.annotationField.fieldId;
+    const field1 = fields[0]!.annotationField;
 
     // Create annotations that match the template's fields
     const annotation1 = new AnnotationBuilder()
       .withCuratorId(curatorId)
       .withUrl("https://example.com/resource")
-      .withAnnotationFieldId(field1Id.getStringValue())
+      .withAnnotationField(field1)
       .withDyadValue(0.5)
       .withAnnotationTemplateIds([templateId.toString()])
       .buildOrThrow();
@@ -81,15 +90,15 @@ describe.only("AnnotationsFromTemplate", () => {
       .addRatingField("Field 2", "Description 2", true) // Also required
       .buildOrThrow();
 
-    // Get the field IDs from the template
+    // Get the fields from the template
     const fields = template.annotationTemplateFields.annotationTemplateFields;
-    const field1Id = fields[0]!.annotationField.fieldId;
+    const field1 = fields[0]!.annotationField;
 
     // Create only one annotation, missing the second required field
     const annotation1 = new AnnotationBuilder()
       .withCuratorId(curatorId)
       .withUrl("https://example.com/resource")
-      .withAnnotationFieldId(field1Id.getStringValue())
+      .withAnnotationField(field1)
       .withDyadValue(0.5)
       .withAnnotationTemplateIds([templateId.toString()])
       .buildOrThrow();

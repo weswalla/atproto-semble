@@ -5,7 +5,7 @@ import { UseCaseError } from "src/shared/core/UseCaseError";
 import { PublishedRecordId } from "src/modules/annotations/domain/value-objects/PublishedRecordId";
 import { AtpAgent } from "@atproto/api";
 import { AnnotationTemplateMapper } from "./AnnotationTemplateMapper";
-import { ATUri } from "../domain/ATUri";
+import { StrongRef } from "../domain";
 
 export class ATProtoAnnotationTemplatePublisher
   implements IAnnotationTemplatePublisher
@@ -37,8 +37,9 @@ export class ATProtoAnnotationTemplatePublisher
 
       // If the template is already published, update it
       if (template.publishedRecordId) {
-        const uri = template.publishedRecordId.getValue();
-        const atUri = new ATUri(uri);
+        const publishedRecordId = template.publishedRecordId.getValue();
+        const strongRef = new StrongRef(publishedRecordId);
+        const atUri = strongRef.atUri;
         const rkey = atUri.rkey;
 
         await this.agent.com.atproto.repo.putRecord({
@@ -58,7 +59,12 @@ export class ATProtoAnnotationTemplatePublisher
           record,
         });
 
-        return ok(PublishedRecordId.create(createResult.data.uri));
+        return ok(
+          PublishedRecordId.create({
+            uri: createResult.data.uri,
+            cid: createResult.data.cid,
+          })
+        );
       }
     } catch (error) {
       return err(
@@ -74,8 +80,9 @@ export class ATProtoAnnotationTemplatePublisher
     recordId: PublishedRecordId
   ): Promise<Result<void, UseCaseError>> {
     try {
-      const uri = recordId.getValue();
-      const atUri = new ATUri(uri);
+      const publishedRecordId = recordId.getValue();
+      const strongRef = new StrongRef(publishedRecordId);
+      const atUri = strongRef.atUri;
       const repo = atUri.did.toString();
       const rkey = atUri.rkey;
 

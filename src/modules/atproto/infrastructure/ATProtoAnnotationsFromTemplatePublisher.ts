@@ -1,18 +1,15 @@
-import { AtpAgent } from "@atproto/api";
+import { $Typed, AtpAgent } from "@atproto/api";
 import {
   IAnnotationsFromTemplatePublisher,
   PublishedAnnotationsFromTemplateResult,
 } from "src/modules/annotations/application/ports/IAnnotationsFromTemplatePublisher";
 import { AnnotationsFromTemplate } from "src/modules/annotations/domain/aggregates/AnnotationsFromTemplate";
-import {
-  AnnotationId,
-  PublishedRecordId,
-} from "src/modules/annotations/domain/value-objects";
+import { PublishedRecordId } from "src/modules/annotations/domain/value-objects";
 import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
-import { AnnotationMapper } from "./AnnotationMapper";
 import { AnnotationsFromTemplateMapper } from "./AnnotationsFromTemplateMapper";
 import { StrongRef } from "../domain";
+import { Delete } from "@atproto/sync";
 
 export class ATProtoAnnotationsFromTemplatePublisher
   implements IAnnotationsFromTemplatePublisher
@@ -43,9 +40,6 @@ export class ATProtoAnnotationsFromTemplatePublisher
         annotationsFromTemplate,
         this.COLLECTION
       );
-      const tempRkeys = AnnotationsFromTemplateMapper.generateRkeys(
-        annotationsFromTemplate
-      );
 
       // Apply all writes in a single transaction
       const result = await this.agent.com.atproto.repo.applyWrites({
@@ -59,26 +53,31 @@ export class ATProtoAnnotationsFromTemplatePublisher
 
       // Extract the results from the response
       const createResults = result.data.results || [];
-      
+
       // Map each annotation to its corresponding result
       for (let i = 0; i < annotations.length; i++) {
         const annotation = annotations[i];
-        const annotationId = annotation.annotationId.getStringValue();
+        const annotationId = annotation!.annotationId.getStringValue();
         const createResult = createResults[i];
-        
-        if (!createResult || createResult.$type !== 'com.atproto.repo.applyWrites#createResult') {
-          return err(new Error(`No create result found for annotation ${annotationId}`));
+
+        if (
+          !createResult ||
+          createResult.$type !== "com.atproto.repo.applyWrites#createResult"
+        ) {
+          return err(
+            new Error(`No create result found for annotation ${annotationId}`)
+          );
         }
-        
+
         // Get the URI and CID from the result
         const { uri, cid } = createResult;
-        
+
         // Create the PublishedRecordId
         const publishedRecordId = PublishedRecordId.create({
           uri,
           cid,
         });
-        
+
         // Add to the map using the annotation ID as the key
         publishedRecordIds.set(annotationId, publishedRecordId);
       }
@@ -117,16 +116,19 @@ export class ATProtoAnnotationsFromTemplatePublisher
 
       // For each repo, create a batch delete operation
       for (const [repo, records] of recordsByRepo.entries()) {
-        const writes = records.map((record) => ({
-          $type: "com.atproto.repo.applyWrites#delete",
-          collection: this.COLLECTION,
-          rkey: record.rkey,
-        }));
+        const writes = records.map(
+          (record) =>
+            ({
+              $type: "com.atproto.repo.applyWrites#delete",
+              collection: this.COLLECTION,
+              rkey: record.rkey,
+            }) as $Typed<Delete>
+        );
 
         // Apply all deletes for this repo in a single transaction
         await this.agent.com.atproto.repo.applyWrites({
           repo,
-          writes,
+          writes: writes as any,
           validate: true,
         });
       }

@@ -16,6 +16,7 @@ import {
   SingleSelectValue as SingleSelectValueObject,
   MultiSelectValue as MultiSelectValueObject,
 } from "src/modules/annotations/domain/value-objects/AnnotationValue";
+import { AnnotationTemplate } from "src/modules/annotations/domain/aggregates";
 
 type AnnotationRecordDTO = Record;
 
@@ -62,6 +63,27 @@ export class AnnotationMapper {
     return record;
   }
 
+  static toCreateRecordDTOFromTemplate(
+    annotation: Annotation,
+    template: AnnotationTemplate
+  ): AnnotationRecordDTO {
+    if (!template.publishedRecordId) {
+      throw new Error("Template must have a published record ID");
+    }
+    const recordWithoutTemplate = this.toCreateRecordDTO(annotation);
+
+    const record: AnnotationRecordDTO = {
+      ...recordWithoutTemplate,
+      fromTemplates: [
+        {
+          uri: template.publishedRecordId.getValue().uri,
+          cid: template.publishedRecordId.getValue().cid,
+        },
+      ],
+    };
+    return record;
+  }
+
   private static createFieldRef(annotation: Annotation): {
     uri: string;
     cid: string;
@@ -73,12 +95,14 @@ export class AnnotationMapper {
 
     // Check if the field has a published record ID
     if (!field.publishedRecordId) {
-      throw new Error(`Field ${field.fieldId.getStringValue()} is not published`);
+      throw new Error(
+        `Field ${field.fieldId.getStringValue()} is not published`
+      );
     }
 
     // Get the published record ID from the field
     const publishedRecordId = field.publishedRecordId.getValue();
-    
+
     return {
       uri: publishedRecordId.uri,
       cid: publishedRecordId.cid,

@@ -1,6 +1,5 @@
 import { UseCase } from "../../../../shared/core/UseCase";
 import { IAnnotationRepository } from "../repositories/IAnnotationRepository";
-import { IAnnotationPublisher } from "../ports/IAnnotationPublisher";
 import { Result, ok, err } from "../../../../shared/core/Result";
 import { AppError } from "../../../../shared/core/AppError";
 import { Annotation } from "../../domain/aggregates/Annotation";
@@ -21,6 +20,7 @@ import {
 } from "../../domain/AnnotationValueFactory";
 import { IAnnotationTemplateRepository } from "../repositories/IAnnotationTemplateRepository";
 import { IAnnotationFieldRepository } from "../repositories/IAnnotationFieldRepository";
+import { IAnnotationsFromTemplatePublisher } from "../ports/IAnnotationsFromTemplatePublisher";
 
 // Define specific errors
 export namespace CreateAndPublishAnnotationsFromTemplateErrors {
@@ -84,7 +84,7 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
     private readonly annotationRepository: IAnnotationRepository,
     private readonly annotationTemplateRepository: IAnnotationTemplateRepository,
     private readonly annotationFieldRepository: IAnnotationFieldRepository,
-    private readonly annotationPublisher: IAnnotationPublisher
+    private readonly annotationsFromTemplatePublisher: IAnnotationsFromTemplatePublisher
   ) {}
 
   async execute(
@@ -222,34 +222,28 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
       // Get the AnnotationsFromTemplate instance
       const annotationsFromTemplate = annotationsFromTemplateResult.value;
 
-      // Publish and save each annotation
-      const publishedAnnotationIds: string[] = [];
-      const publishedRecordIds = new Map<string, PublishedRecordId>();
-
-      for (const annotation of annotationsFromTemplate.annotations) {
-        // Publish annotation
-        const publishResult =
-          await this.annotationPublisher.publish(annotation);
-        if (publishResult.isErr()) {
-          return err(
-            new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationPublishFailed(
-              annotation.id.toString(),
-              publishResult.error.message
-            )
-          );
-        }
-
-        // Store the published record ID for later batch update
-        const annotationIdString = annotation.annotationId.getStringValue();
-        publishedRecordIds.set(annotationIdString, publishResult.value);
-        publishedAnnotationIds.push(annotationIdString);
-      }
-
-      // Mark all annotations as published in one operation
-      const markPublishedResult =
-        annotationsFromTemplate.markAllAnnotationsAsPublished(
-          publishedRecordIds
+      // Publish all annotations at once using the template publisher
+      const publishResult = await this.annotationsFromTemplatePublisher.publish(
+        annotationsFromTemplate
+      );
+      
+      if (publishResult.isErr()) {
+        return err(
+          new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationPublishFailed(
+            "batch",
+            publishResult.error.message
+          )
         );
+      }
+      
+      // Get the published record IDs
+      const publishedRecordIds = publishResult.value;
+      
+      // Mark all annotations as published in one operation
+      const markPublishedResult = annotationsFromTemplate.markAllAnnotationsAsPublished(
+        publishedRecordIds
+      );
+      
       if (markPublishedResult.isErr()) {
         return err(
           new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationPublishFailed(
@@ -257,6 +251,12 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
             markPublishedResult.error
           )
         );
+      }
+      
+      // Create a list of published annotation IDs for the response
+      const publishedAnnotationIds: string[] = [];
+      for (const [annotationId, _] of publishedRecordIds) {
+        publishedAnnotationIds.push(annotationId.getStringValue());
       }
 
       // Save all annotations

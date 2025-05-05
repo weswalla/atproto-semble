@@ -59,7 +59,7 @@ describe("DrizzleAnnotationRepository", () => {
       db,
       fieldRepository
     );
-    annotationRepository = new DrizzleAnnotationRepository(db);
+    annotationRepository = new DrizzleAnnotationRepository(db, fieldRepository);
 
     // Create schema using drizzle schema definitions
     await db.execute(sql`

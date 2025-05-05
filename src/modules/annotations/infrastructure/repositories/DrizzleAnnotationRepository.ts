@@ -1,15 +1,19 @@
 import { eq, inArray, and } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { IAnnotationRepository } from "../../application/repositories/IAnnotationRepository";
+import { IAnnotationFieldRepository } from "../../application/repositories/IAnnotationFieldRepository";
 import { Annotation } from "../../domain/aggregates/Annotation";
-import { AnnotationId, PublishedRecordId } from "../../domain/value-objects";
+import { AnnotationId, PublishedRecordId, AnnotationFieldId } from "../../domain/value-objects";
 import { URI } from "../../domain/value-objects/URI";
 import { annotations, annotationToTemplates } from "./schema/annotationSchema";
 import { publishedRecords } from "./schema/publishedRecordSchema";
 import { AnnotationDTO, AnnotationMapper } from "./mappers/AnnotationMapper";
 
 export class DrizzleAnnotationRepository implements IAnnotationRepository {
-  constructor(private db: PostgresJsDatabase) {}
+  constructor(
+    private db: PostgresJsDatabase,
+    private annotationFieldRepository: IAnnotationFieldRepository
+  ) {}
 
   async findById(id: AnnotationId): Promise<Annotation | null> {
     const annotationId = id.getStringValue();
@@ -49,11 +53,25 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
     const annotation = result.annotation;
     const publishedRecord = result.publishedRecord;
 
+    // Fetch the annotation field
+    const fieldId = AnnotationFieldId.create(new UniqueEntityID(annotation.annotationFieldId));
+    if (fieldId.isErr()) {
+      console.error("Error creating field ID:", fieldId.error);
+      return null;
+    }
+    
+    const annotationField = await this.annotationFieldRepository.findById(fieldId.value);
+    if (!annotationField) {
+      console.error(`Annotation field with ID ${annotation.annotationFieldId} not found`);
+      return null;
+    }
+
     const annotationDTO: AnnotationDTO = {
       id: annotation.id,
       curatorId: annotation.curatorId,
       url: annotation.url,
       annotationFieldId: annotation.annotationFieldId,
+      annotationField: annotationField,
       valueType: annotation.valueType,
       valueData: annotation.valueData,
       note: annotation.note || undefined,
@@ -134,11 +152,25 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
     const annotation = result.annotation;
     const publishedRecord = result.publishedRecord;
 
+    // Fetch the annotation field
+    const fieldId = AnnotationFieldId.create(new UniqueEntityID(annotation.annotationFieldId));
+    if (fieldId.isErr()) {
+      console.error("Error creating field ID:", fieldId.error);
+      return null;
+    }
+    
+    const annotationField = await this.annotationFieldRepository.findById(fieldId.value);
+    if (!annotationField) {
+      console.error(`Annotation field with ID ${annotation.annotationFieldId} not found`);
+      return null;
+    }
+
     const annotationDTO: AnnotationDTO = {
       id: annotation.id,
       curatorId: annotation.curatorId,
       url: annotation.url,
       annotationFieldId: annotation.annotationFieldId,
+      annotationField: annotationField,
       valueType: annotation.valueType,
       valueData: annotation.valueData,
       note: annotation.note || undefined,
@@ -205,11 +237,25 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
       const annotation = result.annotation;
       const publishedRecord = result.publishedRecord;
 
+      // Fetch the annotation field
+      const fieldId = AnnotationFieldId.create(new UniqueEntityID(annotation.annotationFieldId));
+      if (fieldId.isErr()) {
+        console.error("Error creating field ID:", fieldId.error);
+        continue;
+      }
+      
+      const annotationField = await this.annotationFieldRepository.findById(fieldId.value);
+      if (!annotationField) {
+        console.error(`Annotation field with ID ${annotation.annotationFieldId} not found`);
+        continue;
+      }
+
       const annotationDTO: AnnotationDTO = {
         id: annotation.id,
         curatorId: annotation.curatorId,
         url: annotation.url,
         annotationFieldId: annotation.annotationFieldId,
+        annotationField: annotationField,
         valueType: annotation.valueType,
         valueData: annotation.valueData,
         note: annotation.note || undefined,

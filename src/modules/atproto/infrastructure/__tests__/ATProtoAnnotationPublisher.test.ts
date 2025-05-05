@@ -21,10 +21,13 @@ describe.skip("ATProtoAnnotationPublisher", () => {
   let fieldPublisher: ATProtoAnnotationFieldPublisher;
   let templatePublisher: ATProtoAnnotationTemplatePublisher;
   let agent: AtpAgent;
-  
+
   // Store published entities for cleanup
   let publishedFields: { field: AnnotationField; id: PublishedRecordId }[] = [];
-  let publishedTemplate: { template: AnnotationTemplate; id: PublishedRecordId } | null = null;
+  let publishedTemplate: {
+    template: AnnotationTemplate;
+    id: PublishedRecordId;
+  } | null = null;
   let publishedAnnotationIds: PublishedRecordId[] = [];
 
   beforeAll(async () => {
@@ -94,7 +97,11 @@ describe.skip("ATProtoAnnotationPublisher", () => {
       .withCuratorId(curatorId)
       .withName("Triad Field")
       .withDescription("A triad field for testing")
-      .withTriadDefinition({ vertexA: "Good", vertexB: "Fast", vertexC: "Cheap" })
+      .withTriadDefinition({
+        vertexA: "Good",
+        vertexB: "Fast",
+        vertexC: "Cheap",
+      })
       .withCreatedAt(new Date())
       .buildOrThrow();
 
@@ -110,7 +117,9 @@ describe.skip("ATProtoAnnotationPublisher", () => {
       .withCuratorId(curatorId)
       .withName("Single Select Field")
       .withDescription("A single select field for testing")
-      .withSingleSelectDefinition({ options: ["Option 1", "Option 2", "Option 3"] })
+      .withSingleSelectDefinition({
+        options: ["Option 1", "Option 2", "Option 3"],
+      })
       .withCreatedAt(new Date())
       .buildOrThrow();
 
@@ -118,22 +127,32 @@ describe.skip("ATProtoAnnotationPublisher", () => {
       .withCuratorId(curatorId)
       .withName("Multi Select Field")
       .withDescription("A multi select field for testing")
-      .withMultiSelectDefinition({ options: ["Tag 1", "Tag 2", "Tag 3", "Tag 4"] })
+      .withMultiSelectDefinition({
+        options: ["Tag 1", "Tag 2", "Tag 3", "Tag 4"],
+      })
       .withCreatedAt(new Date())
       .buildOrThrow();
 
     // Publish all fields
-    const fields = [dyadField, triadField, ratingField, singleSelectField, multiSelectField];
-    
+    const fields = [
+      dyadField,
+      triadField,
+      ratingField,
+      singleSelectField,
+      multiSelectField,
+    ];
+
     for (const field of fields) {
       const fieldPublishResult = await fieldPublisher.publish(field);
       expect(fieldPublishResult.isOk()).toBe(true);
-      
+
       if (fieldPublishResult.isOk()) {
         const publishedFieldId = fieldPublishResult.value;
         field.markAsPublished(publishedFieldId);
         publishedFields.push({ field, id: publishedFieldId });
-        console.log(`Published field: ${field.name.value} with ID: ${publishedFieldId.getValue().uri}`);
+        console.log(
+          `Published field: ${field.name.value} with ID: ${publishedFieldId.getValue().uri}`
+        );
       }
     }
 
@@ -148,25 +167,27 @@ describe.skip("ATProtoAnnotationPublisher", () => {
 
     const templatePublishResult = await templatePublisher.publish(template);
     expect(templatePublishResult.isOk()).toBe(true);
-    
+
     if (templatePublishResult.isOk()) {
       const publishedTemplateId = templatePublishResult.value;
       template.markAsPublished(publishedTemplateId);
       publishedTemplate = { template, id: publishedTemplateId };
-      console.log(`Published template: ${template.name.value} with ID: ${publishedTemplateId.getValue().uri}`);
+      console.log(
+        `Published template: ${template.name.value} with ID: ${publishedTemplateId.getValue().uri}`
+      );
     }
 
     // 3. Create and publish annotations for each field type using AnnotationValueFactory
     const testUrl = new URI("https://example.com/test-page");
-    
+
     // Create a dyad annotation using AnnotationValueFactory
     const dyadType = AnnotationType.create("dyad");
     const dyadValueResult = AnnotationValueFactory.create({
       type: dyadType,
-      valueInput: { value: 0.75 } // 75% towards sideB
+      valueInput: { value: 75 }, // 75% towards sideB
     });
     expect(dyadValueResult.isOk()).toBe(true);
-    
+
     const dyadAnnotation = new AnnotationBuilder()
       .withCuratorId(curatorId)
       .withUrl(testUrl.value)
@@ -181,10 +202,10 @@ describe.skip("ATProtoAnnotationPublisher", () => {
     const triadType = AnnotationType.create("triad");
     const triadValueResult = AnnotationValueFactory.create({
       type: triadType,
-      valueInput: { vertexA: 200, vertexB: 300, vertexC: 500 } // Sum should be 1000
+      valueInput: { vertexA: 200, vertexB: 300, vertexC: 500 }, // Sum should be 1000
     });
     expect(triadValueResult.isOk()).toBe(true);
-    
+
     const triadAnnotation = new AnnotationBuilder()
       .withCuratorId(curatorId)
       .withUrl(testUrl.value)
@@ -199,10 +220,10 @@ describe.skip("ATProtoAnnotationPublisher", () => {
     const ratingType = AnnotationType.create("rating");
     const ratingValueResult = AnnotationValueFactory.create({
       type: ratingType,
-      valueInput: { rating: 4 } // 4 out of 5 stars
+      valueInput: { rating: 4 }, // 4 out of 5 stars
     });
     expect(ratingValueResult.isOk()).toBe(true);
-    
+
     const ratingAnnotation = new AnnotationBuilder()
       .withCuratorId(curatorId)
       .withUrl(testUrl.value)
@@ -217,10 +238,10 @@ describe.skip("ATProtoAnnotationPublisher", () => {
     const singleSelectType = AnnotationType.create("singleSelect");
     const singleSelectValueResult = AnnotationValueFactory.create({
       type: singleSelectType,
-      valueInput: { option: "Option 2" }
+      valueInput: { option: "Option 2" },
     });
     expect(singleSelectValueResult.isOk()).toBe(true);
-    
+
     const singleSelectAnnotation = new AnnotationBuilder()
       .withCuratorId(curatorId)
       .withUrl(testUrl.value)
@@ -235,10 +256,10 @@ describe.skip("ATProtoAnnotationPublisher", () => {
     const multiSelectType = AnnotationType.create("multiSelect");
     const multiSelectValueResult = AnnotationValueFactory.create({
       type: multiSelectType,
-      valueInput: { options: ["Tag 1", "Tag 3"] }
+      valueInput: { options: ["Tag 1", "Tag 3"] },
     });
     expect(multiSelectValueResult.isOk()).toBe(true);
-    
+
     const multiSelectAnnotation = new AnnotationBuilder()
       .withCuratorId(curatorId)
       .withUrl(testUrl.value)
@@ -255,27 +276,32 @@ describe.skip("ATProtoAnnotationPublisher", () => {
       triadAnnotation,
       ratingAnnotation,
       singleSelectAnnotation,
-      multiSelectAnnotation
+      multiSelectAnnotation,
     ];
 
     for (const annotation of annotations) {
-      const annotationPublishResult = await annotationPublisher.publish(annotation);
+      const annotationPublishResult =
+        await annotationPublisher.publish(annotation);
       expect(annotationPublishResult.isOk()).toBe(true);
-      
+
       if (annotationPublishResult.isOk()) {
         const publishedAnnotationId = annotationPublishResult.value;
         annotation.markAsPublished(publishedAnnotationId);
         publishedAnnotationIds.push(publishedAnnotationId);
-        console.log(`Published annotation with ID: ${publishedAnnotationId.getValue().uri}`);
+        console.log(
+          `Published annotation with ID: ${publishedAnnotationId.getValue().uri}`
+        );
       }
     }
 
     // 4. Test unpublishing one annotation
     if (publishedAnnotationIds.length > 0) {
       const idToUnpublish = publishedAnnotationIds[0];
-      const unpublishResult = await annotationPublisher.unpublish(idToUnpublish);
+      const unpublishResult = await annotationPublisher.unpublish(
+        idToUnpublish!
+      );
       expect(unpublishResult.isOk()).toBe(true);
-      
+
       // Remove from the cleanup list
       publishedAnnotationIds.shift();
     }

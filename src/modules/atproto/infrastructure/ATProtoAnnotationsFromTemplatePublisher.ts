@@ -5,6 +5,7 @@ import { AnnotationId, PublishedRecordId } from "src/modules/annotations/domain/
 import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 import { AnnotationMapper } from "./AnnotationMapper";
+import { AnnotationsFromTemplateMapper } from "./AnnotationsFromTemplateMapper";
 import { StrongRef } from "../domain";
 
 export class ATProtoAnnotationsFromTemplatePublisher implements IAnnotationsFromTemplatePublisher {
@@ -29,28 +30,12 @@ export class ATProtoAnnotationsFromTemplatePublisher implements IAnnotationsFrom
         return err(new Error("No curator DID found in annotations"));
       }
 
-      // Prepare writes for all annotations
-      const writes = [];
-      const tempRkeys = new Map<string, string>();
-
-      // First, prepare all the create operations
-      for (const annotation of annotations) {
-        const record = AnnotationMapper.toCreateRecordDTO(annotation);
-        const annotationId = annotation.annotationId.getStringValue();
-        
-        // Generate a deterministic rkey based on the annotation ID
-        // In a real implementation, you might want to use a more sophisticated approach
-        const rkey = `annotation-${annotationId}`;
-        tempRkeys.set(annotationId, rkey);
-        
-        // Create the write operation
-        writes.push({
-          $type: "com.atproto.repo.applyWrites#create",
-          collection: this.COLLECTION,
-          rkey,
-          value: record
-        });
-      }
+      // Use the mapper to generate create operations and rkeys
+      const writes = AnnotationsFromTemplateMapper.toCreateOperations(
+        annotationsFromTemplate,
+        this.COLLECTION
+      );
+      const tempRkeys = AnnotationsFromTemplateMapper.generateRkeys(annotationsFromTemplate);
 
       // Apply all writes in a single transaction
       const result = await this.agent.com.atproto.repo.applyWrites({

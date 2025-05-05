@@ -6,11 +6,18 @@ import {
 } from "src/modules/annotations/domain/value-objects";
 import { ok, Result } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
+import { FakeAnnotationFieldPublisher } from "./FakeAnnotationFieldPublisher";
+import { IAnnotationFieldRepository } from "src/modules/annotations/application/repositories/IAnnotationFieldRepository";
 
 export class FakeAnnotationTemplatePublisher
   implements IAnnotationTemplatePublisher
 {
   private publishedRecords: Map<string, AnnotationTemplate> = new Map();
+  
+  constructor(
+    private readonly fieldPublisher?: FakeAnnotationFieldPublisher,
+    private readonly fieldRepository?: IAnnotationFieldRepository
+  ) {}
 
   async publish(
     template: AnnotationTemplate
@@ -27,6 +34,29 @@ export class FakeAnnotationTemplatePublisher
     // Store the published template for inspection using composite key
     const compositeKey = fakeUri + fakeCid;
     this.publishedRecords.set(compositeKey, template);
+    
+    // If we have a field publisher and repository, publish all fields in the template
+    // and save them to the repository
+    if (this.fieldPublisher && this.fieldRepository) {
+      // Get all fields from the template
+      const fields = template.getAnnotationFields();
+      
+      // Publish each field and save to repository
+      for (const field of fields) {
+        const fieldPublishResult = await this.fieldPublisher.publish(field);
+        if (fieldPublishResult.isOk()) {
+          // Mark the field as published
+          field.markAsPublished(fieldPublishResult.value);
+          
+          // Save the field to the repository
+          await this.fieldRepository.save(field);
+          
+          console.log(
+            `[FakeAnnotationTemplatePublisher] Published and saved field ${field.fieldId.getStringValue()}`
+          );
+        }
+      }
+    }
 
     console.log(
       `[FakeAnnotationTemplatePublisher] Published template ${templateId} to ${fakeUri}`

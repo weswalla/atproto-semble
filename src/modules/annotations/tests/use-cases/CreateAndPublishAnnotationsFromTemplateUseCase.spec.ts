@@ -14,20 +14,21 @@ import { InMemoryAnnotationTemplateRepository } from "../utils/InMemoryAnnotatio
 import { FakeAnnotationPublisher } from "../utils/publishers/FakeAnnotationPublisher";
 import { FakeAnnotationTemplatePublisher } from "../utils/publishers/FakeAnnotationTemplatePublisher";
 import { InMemoryAnnotationFieldRepository } from "../utils/InMemoryAnnotationFieldRepository";
+import { AnnotationField } from "../../domain/aggregates";
 
 describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
   let annotationRepository: InMemoryAnnotationRepository;
   let annotationTemplateRepository: InMemoryAnnotationTemplateRepository;
   let annotationFieldRepository: InMemoryAnnotationFieldRepository;
   let annotationPublisher: FakeAnnotationPublisher;
+  let fieldPublisher: FakeAnnotationFieldPublisher;
+  let templatePublisher: FakeAnnotationTemplatePublisher;
   let useCase: CreateAndPublishAnnotationsFromTemplateUseCase;
   let templateId: string;
+  let createdFields: AnnotationField[] = [];
 
   // Helper to create a template first
   async function createTestTemplate() {
-    const templatePublisher = new FakeAnnotationTemplatePublisher();
-    const fieldPublisher = new FakeAnnotationFieldPublisher();
-
     const createTemplateUseCase = new CreateAndPublishAnnotationTemplateUseCase(
       annotationTemplateRepository,
       templatePublisher,
@@ -68,9 +69,20 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
   }
 
   beforeEach(async () => {
+    // Reset created fields array
+    createdFields = [];
+    
+    // Create repositories and publishers
     annotationRepository = new InMemoryAnnotationRepository();
-    annotationTemplateRepository = new InMemoryAnnotationTemplateRepository();
     annotationFieldRepository = new InMemoryAnnotationFieldRepository();
+    fieldPublisher = new FakeAnnotationFieldPublisher();
+    
+    // Create template repository with field repository reference
+    annotationTemplateRepository = new InMemoryAnnotationTemplateRepository();
+    
+    // Create template publisher with field repository reference
+    templatePublisher = new FakeAnnotationTemplatePublisher(fieldPublisher, annotationFieldRepository);
+    
     annotationPublisher = new FakeAnnotationPublisher();
 
     useCase = new CreateAndPublishAnnotationsFromTemplateUseCase(
@@ -113,6 +125,13 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
 
     const fields = template!.getAnnotationFields();
     expect(fields.length).toBe(2);
+
+    // Verify that fields are in the field repository
+    for (const field of fields) {
+      const savedField = await annotationFieldRepository.findById(field.fieldId);
+      expect(savedField).not.toBeNull();
+      console.log(`Found field in repository: ${field.fieldId.getStringValue()}`);
+    }
 
     // Update the DTO with actual field IDs
     dto.annotations[0]!.annotationFieldId = fields[0]!.fieldId.getStringValue();

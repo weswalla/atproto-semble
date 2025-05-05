@@ -32,6 +32,7 @@ export interface AnnotationDTO extends PublishedRecordRefDTO {
   curatorId: string;
   url: string;
   annotationFieldId: string;
+  annotationField?: any; // The full annotation field object
   valueType: string;
   valueData: any; // JSON data for the value
   note?: string;
@@ -49,10 +50,17 @@ export class AnnotationMapper implements Mapper<Annotation> {
       const urlOrError = this.createURI(dto.url);
       if (urlOrError.isErr()) return err(urlOrError.error);
 
-      const fieldIdOrError = AnnotationFieldId.create(
-        new UniqueEntityID(dto.annotationFieldId)
-      );
-      if (fieldIdOrError.isErr()) return err(fieldIdOrError.error);
+      // We need the annotation field object
+      if (!dto.annotationField) {
+        return err(new Error("Annotation field is required but not provided in DTO"));
+      }
+      
+      // Assuming we have a method to convert the field DTO to domain object
+      // This would need to be implemented or use an existing mapper
+      const annotationField = this.createAnnotationField(dto.annotationField);
+      if (!annotationField) {
+        return err(new Error("Failed to create annotation field from DTO"));
+      }
 
       // Create the appropriate value based on type
       const valueOrError = this.createAnnotationValue(
@@ -89,7 +97,7 @@ export class AnnotationMapper implements Mapper<Annotation> {
         {
           curatorId: curatorIdOrError.value,
           url: urlOrError.value,
-          annotationFieldId: fieldIdOrError.value,
+          annotationField: annotationField,
           value: valueOrError.value,
           annotationTemplateIds: templateIds,
           note,
@@ -113,6 +121,47 @@ export class AnnotationMapper implements Mapper<Annotation> {
       return ok(new URI(url));
     } catch (error) {
       return err(error as Error);
+    }
+  }
+
+  private static createAnnotationField(fieldData: any): AnnotationField | null {
+    try {
+      // This is a simplified implementation
+      // In a real application, you would use a proper AnnotationFieldMapper
+      // or retrieve the field from a repository
+      
+      // Create the necessary value objects
+      const curatorId = CuratorId.create(fieldData.curatorId).unwrap();
+      const name = AnnotationFieldName.create(fieldData.name).unwrap();
+      const description = AnnotationFieldDescription.create(fieldData.description).unwrap();
+      
+      // Create the field definition based on the type
+      // This is simplified and would need to be expanded based on your actual implementation
+      const definition = fieldData.definition;
+      
+      // Create published record ID if it exists
+      let publishedRecordId: PublishedRecordId | undefined;
+      if (fieldData.publishedRecord) {
+        publishedRecordId = PublishedRecordId.create({
+          uri: fieldData.publishedRecord.uri,
+          cid: fieldData.publishedRecord.cid
+        });
+      }
+      
+      // Create the field
+      const field = AnnotationField.create({
+        curatorId,
+        name,
+        description,
+        definition,
+        createdAt: fieldData.createdAt || new Date(),
+        publishedRecordId
+      }, new UniqueEntityID(fieldData.id)).unwrap();
+      
+      return field;
+    } catch (error) {
+      console.error("Error creating annotation field:", error);
+      return null;
     }
   }
 
@@ -140,6 +189,15 @@ export class AnnotationMapper implements Mapper<Annotation> {
       valueType: string;
       valueData: AnnotationValueInput;
       note?: string;
+      createdAt: Date;
+      publishedRecordId?: string;
+    };
+    annotationField: {
+      id: string;
+      curatorId: string;
+      name: string;
+      description: string;
+      definition: any;
       createdAt: Date;
       publishedRecordId?: string;
     };
@@ -203,6 +261,18 @@ export class AnnotationMapper implements Mapper<Annotation> {
       publishedRecordId = recordId;
     }
 
+    // Create the annotation field data
+    const field = annotation.annotationField;
+    const annotationField = {
+      id: field.fieldId.getStringValue(),
+      curatorId: field.curatorId.value,
+      name: field.name.value,
+      description: field.description.value,
+      definition: field.definition,
+      createdAt: field.createdAt,
+      publishedRecordId: field.publishedRecordId ? field.publishedRecordId.getValue().uri : undefined
+    };
+
     return {
       annotation: {
         id: annotation.id.toString(),
@@ -215,6 +285,7 @@ export class AnnotationMapper implements Mapper<Annotation> {
         createdAt: annotation.createdAt || new Date(),
         publishedRecordId,
       },
+      annotationField,
       publishedRecord,
       templateLinks,
     };

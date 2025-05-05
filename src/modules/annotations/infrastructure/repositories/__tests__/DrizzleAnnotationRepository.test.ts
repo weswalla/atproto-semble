@@ -203,7 +203,7 @@ describe("DrizzleAnnotationRepository", () => {
       .withId(annotationId)
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
-      .withAnnotationFieldId(testField.fieldId.toString())
+      .withAnnotationField(testField)
       .withRatingValue(4)
       .withNote("This is a great article")
       .buildOrThrow();
@@ -241,7 +241,7 @@ describe("DrizzleAnnotationRepository", () => {
       .withId(annotationId)
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
-      .withAnnotationFieldId(testField.fieldId.toString())
+      .withAnnotationField(testField)
       .withRatingValue(5)
       .withAnnotationTemplateIds([testTemplate.id.toString()])
       .buildOrThrow();
@@ -276,7 +276,7 @@ describe("DrizzleAnnotationRepository", () => {
       .withId(annotationId)
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
-      .withAnnotationFieldId(testField.fieldId.toString())
+      .withAnnotationField(testField)
       .withRatingValue(3)
       .buildOrThrow();
 
@@ -288,7 +288,7 @@ describe("DrizzleAnnotationRepository", () => {
       .withId(annotationId)
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
-      .withAnnotationFieldId(testField.fieldId.toString())
+      .withAnnotationField(testField)
       .withRatingValue(5)
       .withNote("Updated my rating")
       .buildOrThrow();
@@ -316,7 +316,7 @@ describe("DrizzleAnnotationRepository", () => {
       .withId(annotationId)
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
-      .withAnnotationFieldId(testField.fieldId.toString())
+      .withAnnotationField(testField)
       .withRatingValue(2)
       .buildOrThrow();
 
@@ -344,7 +344,7 @@ describe("DrizzleAnnotationRepository", () => {
     const annotation1 = new AnnotationBuilder()
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
-      .withAnnotationFieldId(testField.fieldId.toString())
+      .withAnnotationField(testField)
       .withRatingValue(4)
       .withNote("First annotation")
       .buildOrThrow();
@@ -352,7 +352,7 @@ describe("DrizzleAnnotationRepository", () => {
     const annotation2 = new AnnotationBuilder()
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
-      .withAnnotationFieldId(testField.fieldId.toString())
+      .withAnnotationField(testField)
       .withRatingValue(5)
       .withNote("Second annotation")
       .buildOrThrow();
@@ -389,7 +389,7 @@ describe("DrizzleAnnotationRepository", () => {
       .withId(annotationId)
       .withCuratorId(curatorId.value)
       .withUrl(url.value)
-      .withAnnotationFieldId(testField.fieldId.toString())
+      .withAnnotationField(testField)
       .withRatingValue(5)
       .withPublishedRecordId({ uri: publishedUri, cid: publishedCid })
       .buildOrThrow();

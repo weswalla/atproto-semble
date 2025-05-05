@@ -57,29 +57,29 @@ export class ATProtoAnnotationsFromTemplatePublisher
       // Create a map of annotation IDs to published record IDs
       const publishedRecordIds = new Map<string, PublishedRecordId>();
 
-      // For each annotation, create a PublishedRecordId
-      for (const annotation of annotations) {
+      // Extract the results from the response
+      const createResults = result.data.results || [];
+      
+      // Map each annotation to its corresponding result
+      for (let i = 0; i < annotations.length; i++) {
+        const annotation = annotations[i];
         const annotationId = annotation.annotationId.getStringValue();
-        const rkey = tempRkeys.get(annotationId);
-
-        if (!rkey) {
-          return err(new Error(`No rkey found for annotation ${annotationId}`));
+        const createResult = createResults[i];
+        
+        if (!createResult || createResult.$type !== 'com.atproto.repo.applyWrites#createResult') {
+          return err(new Error(`No create result found for annotation ${annotationId}`));
         }
-
-        // Construct the AT URI for this record
-        const uri = `at://${curatorDid}/${this.COLLECTION}/${rkey}`;
-
-        // In a real implementation, you would get the CID from the response
-        // For now, we'll use a placeholder
-        const cid = "placeholder-cid";
-
+        
+        // Get the URI and CID from the result
+        const { uri, cid } = createResult;
+        
         // Create the PublishedRecordId
         const publishedRecordId = PublishedRecordId.create({
           uri,
           cid,
         });
-
-        // Add to the map
+        
+        // Add to the map using the annotation ID as the key
         publishedRecordIds.set(annotationId, publishedRecordId);
       }
 

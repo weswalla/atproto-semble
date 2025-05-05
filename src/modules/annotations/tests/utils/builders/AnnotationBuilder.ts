@@ -54,7 +54,9 @@ export class AnnotationBuilder {
     return this;
   }
 
+  // Deprecated - use withAnnotationField instead
   withAnnotationFieldId(fieldId: string): this {
+    console.warn("withAnnotationFieldId is deprecated. Use withAnnotationField instead.");
     this._annotationFieldId = fieldId;
     this._annotationField = undefined; // Clear field if ID is set directly
     return this;
@@ -145,47 +147,38 @@ export class AnnotationBuilder {
   build(): Result<Annotation> {
     const curatorIdResult = CuratorId.create(this._curatorId);
     const urlResult = new URI(this._url);
-    const fieldIdResult = AnnotationFieldId.create(
-      new UniqueEntityID(this._annotationFieldId)
-    );
+    
+    // Get or create the annotation field
+    let annotationField: AnnotationField;
+    if (this._annotationField) {
+      annotationField = this._annotationField;
+    } else {
+      // If we don't have a field object but have an ID, we need to fail
+      // since we now require the full field object
+      return err(
+        new Error("AnnotationField object is required. Use withAnnotationField() instead of withAnnotationFieldId().")
+      );
+    }
 
     // Create value based on type if not directly set
     let valueResult: AnnotationValue;
     if (this._value) {
       valueResult = this._value;
     } else {
-      // Use AnnotationValueFactory if we have a field with type information
-      if (this._annotationField) {
-        const fieldType = this._annotationField.definition.type;
-        const factoryResult = AnnotationValueFactory.create({
-          type: fieldType,
-          valueInput: this._valueProps,
-        });
+      // Use AnnotationValueFactory with the field's type information
+      const fieldType = annotationField.definition.type;
+      const factoryResult = AnnotationValueFactory.create({
+        type: fieldType,
+        valueInput: this._valueProps,
+      });
 
-        if (factoryResult.isErr()) {
-          return err(
-            new Error(`Value creation failed: ${factoryResult.error}`)
-          );
-        }
-
-        valueResult = factoryResult.value;
-      } else {
-        // Create value based on type and props
-        const type = AnnotationType.create(this._valueType);
-
-        const factoryResult = AnnotationValueFactory.create({
-          type: type,
-          valueInput: this._valueProps,
-        });
-
-        if (factoryResult.isErr()) {
-          return err(
-            new Error(`Value creation failed: ${factoryResult.error}`)
-          );
-        }
-
-        valueResult = factoryResult.value;
+      if (factoryResult.isErr()) {
+        return err(
+          new Error(`Value creation failed: ${factoryResult.error}`)
+        );
       }
+
+      valueResult = factoryResult.value;
     }
 
     // Create template IDs if any
@@ -211,16 +204,11 @@ export class AnnotationBuilder {
         new Error(`CuratorId creation failed: ${curatorIdResult.error}`)
       );
     }
-    if (fieldIdResult.isErr()) {
-      return err(
-        new Error(`AnnotationFieldId creation failed: ${fieldIdResult.error}`)
-      );
-    }
 
     const props: AnnotationProps = {
       curatorId: curatorIdResult.value,
       url: urlResult,
-      annotationFieldId: fieldIdResult.value,
+      annotationField: annotationField,
       value: valueResult,
       annotationTemplateIds: templateIds.length > 0 ? templateIds : undefined,
       note,

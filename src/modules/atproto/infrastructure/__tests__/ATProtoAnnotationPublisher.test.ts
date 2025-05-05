@@ -63,17 +63,118 @@ describe.skip("ATProtoAnnotationPublisher", () => {
     for (const annotationId of publishedAnnotationIds) {
       await annotationPublisher.unpublish(annotationId);
     }
+    
+    // Clean up simple annotation if it exists
+    if (simpleAnnotationId) {
+      await annotationPublisher.unpublish(simpleAnnotationId);
+    }
 
     // Clean up the published template
     if (publishedTemplate) {
       await templatePublisher.unpublish(publishedTemplate.id);
+    }
+    
+    // Clean up simple template if it exists
+    if (simpleTemplate?.publishedRecordId) {
+      await templatePublisher.unpublish(simpleTemplate.publishedRecordId);
     }
 
     // Clean up all published fields
     for (const { id } of publishedFields) {
       await fieldPublisher.unpublish(id);
     }
+    
+    // Clean up simple field if it exists
+    if (simpleField?.publishedRecordId) {
+      await fieldPublisher.unpublish(simpleField.publishedRecordId);
+    }
   });
+
+  it("should publish and unpublish a single annotation", async () => {
+    // Skip test if credentials are not available
+    if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
+      console.warn("Skipping test: BSKY credentials not found in .env.test");
+      return;
+    }
+
+    const curatorId = process.env.BSKY_DID;
+
+    // 1. Create and publish a single field
+    simpleField = new AnnotationFieldBuilder()
+      .withCuratorId(curatorId)
+      .withName("Simple Rating Field")
+      .withDescription("A simple rating field for testing")
+      .withRatingDefinition()
+      .withCreatedAt(new Date())
+      .buildOrThrow();
+
+    const fieldPublishResult = await fieldPublisher.publish(simpleField);
+    expect(fieldPublishResult.isOk()).toBe(true);
+    
+    if (fieldPublishResult.isOk()) {
+      const publishedFieldId = fieldPublishResult.value;
+      simpleField.markAsPublished(publishedFieldId);
+      console.log(`Published field: ${simpleField.name.value} with ID: ${publishedFieldId.getValue().uri}`);
+    }
+
+    // 2. Create and publish a simple template with the field
+    simpleTemplate = new AnnotationTemplateBuilder()
+      .withCuratorId(curatorId)
+      .withName("Simple Test Template")
+      .withDescription("A simple template for testing")
+      .withFields([simpleField], false) // Make field optional
+      .withCreatedAt(new Date())
+      .buildOrThrow();
+
+    const templatePublishResult = await templatePublisher.publish(simpleTemplate);
+    expect(templatePublishResult.isOk()).toBe(true);
+    
+    if (templatePublishResult.isOk()) {
+      const publishedTemplateId = templatePublishResult.value;
+      simpleTemplate.markAsPublished(publishedTemplateId);
+      console.log(`Published template: ${simpleTemplate.name.value} with ID: ${publishedTemplateId.getValue().uri}`);
+    }
+
+    // 3. Create and publish a single annotation
+    const testUrl = new URI("https://example.com/simple-test");
+    
+    // Create a rating annotation
+    const ratingType = AnnotationType.create("rating");
+    const ratingValueResult = AnnotationValueFactory.create({
+      type: ratingType,
+      valueInput: { rating: 5 }, // 5 out of 5 stars
+    });
+    expect(ratingValueResult.isOk()).toBe(true);
+    
+    const simpleAnnotation = new AnnotationBuilder()
+      .withCuratorId(curatorId)
+      .withUrl(testUrl.value)
+      .withAnnotationFieldId(simpleField.fieldId.getStringValue())
+      .withValue(ratingValueResult.unwrap())
+      .withNote("This is a simple rating annotation test")
+      .withAnnotationTemplateIds([simpleTemplate.templateId.getStringValue()])
+      .withCreatedAt(new Date())
+      .buildOrThrow();
+
+    const annotationPublishResult = await annotationPublisher.publish(simpleAnnotation);
+    expect(annotationPublishResult.isOk()).toBe(true);
+    
+    if (annotationPublishResult.isOk()) {
+      simpleAnnotationId = annotationPublishResult.value;
+      simpleAnnotation.markAsPublished(simpleAnnotationId);
+      console.log(`Published simple annotation with ID: ${simpleAnnotationId.getValue().uri}`);
+    }
+
+    // 4. Test unpublishing the annotation
+    if (simpleAnnotationId) {
+      const unpublishResult = await annotationPublisher.unpublish(simpleAnnotationId);
+      expect(unpublishResult.isOk()).toBe(true);
+      
+      // Set to null since we've already unpublished it
+      simpleAnnotationId = null;
+      console.log("Successfully unpublished the simple annotation");
+    }
+  }, 15000); // Shorter timeout for simpler test
 
   it("should publish and unpublish annotations of all types from a template", async () => {
     // Skip test if credentials are not available

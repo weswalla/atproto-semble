@@ -71,18 +71,21 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
   beforeEach(async () => {
     // Reset created fields array
     createdFields = [];
-    
+
     // Create repositories and publishers
     annotationRepository = new InMemoryAnnotationRepository();
     annotationFieldRepository = new InMemoryAnnotationFieldRepository();
     fieldPublisher = new FakeAnnotationFieldPublisher();
-    
+
     // Create template repository with field repository reference
     annotationTemplateRepository = new InMemoryAnnotationTemplateRepository();
-    
+
     // Create template publisher with field repository reference
-    templatePublisher = new FakeAnnotationTemplatePublisher(fieldPublisher, annotationFieldRepository);
-    
+    templatePublisher = new FakeAnnotationTemplatePublisher(
+      fieldPublisher,
+      annotationFieldRepository
+    );
+
     annotationPublisher = new FakeAnnotationPublisher();
 
     useCase = new CreateAndPublishAnnotationsFromTemplateUseCase(
@@ -128,9 +131,13 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
 
     // Verify that fields are in the field repository
     for (const field of fields) {
-      const savedField = await annotationFieldRepository.findById(field.fieldId);
+      const savedField = await annotationFieldRepository.findById(
+        field.fieldId
+      );
       expect(savedField).not.toBeNull();
-      console.log(`Found field in repository: ${field.fieldId.getStringValue()}`);
+      console.log(
+        `Found field in repository: ${field.fieldId.getStringValue()}`
+      );
     }
 
     // Update the DTO with actual field IDs

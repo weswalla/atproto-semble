@@ -3,11 +3,17 @@ import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { IAnnotationRepository } from "../../application/repositories/IAnnotationRepository";
 import { IAnnotationFieldRepository } from "../../application/repositories/IAnnotationFieldRepository";
 import { Annotation } from "../../domain/aggregates/Annotation";
-import { AnnotationId, PublishedRecordId, AnnotationFieldId } from "../../domain/value-objects";
+import {
+  AnnotationId,
+  PublishedRecordId,
+  AnnotationFieldId,
+} from "../../domain/value-objects";
 import { URI } from "../../domain/value-objects/URI";
 import { annotations, annotationToTemplates } from "./schema/annotationSchema";
 import { publishedRecords } from "./schema/publishedRecordSchema";
 import { AnnotationDTO, AnnotationMapper } from "./mappers/AnnotationMapper";
+import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
+import { AnnotationFieldMapper } from "./mappers/AnnotationFieldMapper";
 
 export class DrizzleAnnotationRepository implements IAnnotationRepository {
   constructor(
@@ -54,24 +60,33 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
     const publishedRecord = result.publishedRecord;
 
     // Fetch the annotation field
-    const fieldId = AnnotationFieldId.create(new UniqueEntityID(annotation.annotationFieldId));
+    const fieldId = AnnotationFieldId.create(
+      new UniqueEntityID(annotation.annotationFieldId)
+    );
     if (fieldId.isErr()) {
       console.error("Error creating field ID:", fieldId.error);
       return null;
     }
-    
-    const annotationField = await this.annotationFieldRepository.findById(fieldId.value);
+
+    const annotationField = await this.annotationFieldRepository.findById(
+      fieldId.value
+    );
     if (!annotationField) {
-      console.error(`Annotation field with ID ${annotation.annotationFieldId} not found`);
+      console.error(
+        `Annotation field with ID ${annotation.annotationFieldId} not found`
+      );
       return null;
     }
+
+    const annotationFieldPersistence =
+      AnnotationFieldMapper.toPersistence(annotationField);
 
     const annotationDTO: AnnotationDTO = {
       id: annotation.id,
       curatorId: annotation.curatorId,
       url: annotation.url,
       annotationFieldId: annotation.annotationFieldId,
-      annotationField: annotationField,
+      annotationField: annotationFieldPersistence,
       valueType: annotation.valueType,
       valueData: annotation.valueData,
       note: annotation.note || undefined,
@@ -153,24 +168,33 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
     const publishedRecord = result.publishedRecord;
 
     // Fetch the annotation field
-    const fieldId = AnnotationFieldId.create(new UniqueEntityID(annotation.annotationFieldId));
+    const fieldId = AnnotationFieldId.create(
+      new UniqueEntityID(annotation.annotationFieldId)
+    );
     if (fieldId.isErr()) {
       console.error("Error creating field ID:", fieldId.error);
       return null;
     }
-    
-    const annotationField = await this.annotationFieldRepository.findById(fieldId.value);
+
+    const annotationField = await this.annotationFieldRepository.findById(
+      fieldId.value
+    );
     if (!annotationField) {
-      console.error(`Annotation field with ID ${annotation.annotationFieldId} not found`);
+      console.error(
+        `Annotation field with ID ${annotation.annotationFieldId} not found`
+      );
       return null;
     }
+
+    const annotationFieldPersistence =
+      AnnotationFieldMapper.toPersistence(annotationField);
 
     const annotationDTO: AnnotationDTO = {
       id: annotation.id,
       curatorId: annotation.curatorId,
       url: annotation.url,
       annotationFieldId: annotation.annotationFieldId,
-      annotationField: annotationField,
+      annotationField: annotationFieldPersistence,
       valueType: annotation.valueType,
       valueData: annotation.valueData,
       note: annotation.note || undefined,
@@ -238,24 +262,33 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
       const publishedRecord = result.publishedRecord;
 
       // Fetch the annotation field
-      const fieldId = AnnotationFieldId.create(new UniqueEntityID(annotation.annotationFieldId));
+      const fieldId = AnnotationFieldId.create(
+        new UniqueEntityID(annotation.annotationFieldId)
+      );
       if (fieldId.isErr()) {
         console.error("Error creating field ID:", fieldId.error);
         continue;
       }
-      
-      const annotationField = await this.annotationFieldRepository.findById(fieldId.value);
+
+      const annotationField = await this.annotationFieldRepository.findById(
+        fieldId.value
+      );
       if (!annotationField) {
-        console.error(`Annotation field with ID ${annotation.annotationFieldId} not found`);
+        console.error(
+          `Annotation field with ID ${annotation.annotationFieldId} not found`
+        );
         continue;
       }
+
+      const annotationFieldPersistence =
+        AnnotationFieldMapper.toPersistence(annotationField);
 
       const annotationDTO: AnnotationDTO = {
         id: annotation.id,
         curatorId: annotation.curatorId,
         url: annotation.url,
         annotationFieldId: annotation.annotationFieldId,
-        annotationField: annotationField,
+        annotationField: annotationFieldPersistence,
         valueType: annotation.valueType,
         valueData: annotation.valueData,
         note: annotation.note || undefined,
@@ -319,7 +352,7 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
               )
             )
             .limit(1);
-            
+
           if (existingRecord.length > 0) {
             publishedRecordId = existingRecord[0]!.id;
           }

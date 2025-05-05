@@ -5,7 +5,6 @@ import {
   AnnotationProps,
 } from "../../../domain/aggregates/Annotation";
 import {
-  AnnotationFieldId,
   AnnotationNote,
   AnnotationTemplateId,
   AnnotationValue,
@@ -14,15 +13,7 @@ import {
   PublishedRecordIdProps,
   URI,
 } from "../../../domain/value-objects";
-import {
-  DyadValue,
-  TriadValue,
-  RatingValue,
-  SingleSelectValue,
-  MultiSelectValue,
-} from "../../../domain/value-objects/AnnotationValue";
 import { AnnotationField } from "../../../domain/aggregates";
-import { AnnotationType } from "../../../domain/value-objects/AnnotationType";
 import { AnnotationValueFactory } from "../../../domain/AnnotationValueFactory";
 
 export class AnnotationBuilder {
@@ -56,7 +47,9 @@ export class AnnotationBuilder {
 
   // Deprecated - use withAnnotationField instead
   withAnnotationFieldId(fieldId: string): this {
-    console.warn("withAnnotationFieldId is deprecated. Use withAnnotationField instead.");
+    console.warn(
+      "withAnnotationFieldId is deprecated. Use withAnnotationField instead."
+    );
     this._annotationFieldId = fieldId;
     this._annotationField = undefined; // Clear field if ID is set directly
     return this;
@@ -147,7 +140,7 @@ export class AnnotationBuilder {
   build(): Result<Annotation> {
     const curatorIdResult = CuratorId.create(this._curatorId);
     const urlResult = new URI(this._url);
-    
+
     // Get or create the annotation field
     let annotationField: AnnotationField;
     if (this._annotationField) {
@@ -156,7 +149,9 @@ export class AnnotationBuilder {
       // If we don't have a field object but have an ID, we need to fail
       // since we now require the full field object
       return err(
-        new Error("AnnotationField object is required. Use withAnnotationField() instead of withAnnotationFieldId().")
+        new Error(
+          "AnnotationField object is required. Use withAnnotationField() instead of withAnnotationFieldId()."
+        )
       );
     }
 
@@ -173,9 +168,7 @@ export class AnnotationBuilder {
       });
 
       if (factoryResult.isErr()) {
-        return err(
-          new Error(`Value creation failed: ${factoryResult.error}`)
-        );
+        return err(new Error(`Value creation failed: ${factoryResult.error}`));
       }
 
       valueResult = factoryResult.value;

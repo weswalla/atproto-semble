@@ -50,7 +50,7 @@ export class InMemoryAnnotationFieldRepository
     if (fieldToStore.props.publishedRecordId) {
       const publishedRecordId = fieldToStore.props.publishedRecordId;
       const compositeKey = publishedRecordId.uri + publishedRecordId.cid;
-      
+
       // Clean up any old mapping for this field ID first
       for (const [key, value] of this.publishedRecordIdToIdMap.entries()) {
         if (value === fieldIdString && key !== compositeKey) {
@@ -106,20 +106,17 @@ export class InMemoryAnnotationFieldRepository
         createdAt: field.createdAt, // Pass the Date instance
         publishedRecordId: field.props.publishedRecordId, // Pass the value object instance or undefined
       },
-      field.id // Pass the original UniqueEntityID
+      field.fieldId.getValue() // Pass the original UniqueEntityID
     );
 
     // In a real scenario, handle the Result failure case appropriately.
     // For this in-memory repo, we assume cloning a valid object results in a valid object.
-    if (createResult.isFailure) {
+    if (createResult.isErr()) {
       // This shouldn't happen if the original field was valid
-      console.error(
-        "Failed to clone AnnotationField:",
-        createResult.getErrorValue()
-      );
+      console.error("Failed to clone AnnotationField:", createResult.error);
       throw new Error("Cloning failed");
     }
 
-    return createResult.getValue();
+    return createResult.value;
   }
 }

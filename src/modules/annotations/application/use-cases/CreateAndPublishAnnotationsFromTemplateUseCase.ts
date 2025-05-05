@@ -21,6 +21,7 @@ import {
 } from "../../domain/AnnotationValueFactory";
 import { AnnotationType } from "../../domain/value-objects/AnnotationType";
 import { IAnnotationTemplateRepository } from "../repositories/IAnnotationTemplateRepository";
+import { IAnnotationFieldRepository } from "../repositories/IAnnotationFieldRepository";
 
 // Define specific errors
 export namespace CreateAndPublishAnnotationsFromTemplateErrors {
@@ -83,6 +84,7 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
   constructor(
     private readonly annotationRepository: IAnnotationRepository,
     private readonly annotationTemplateRepository: IAnnotationTemplateRepository,
+    private readonly annotationFieldRepository: IAnnotationFieldRepository,
     private readonly annotationPublisher: IAnnotationPublisher
   ) {}
 
@@ -128,25 +130,45 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
       const annotations: Annotation[] = [];
 
       for (const annotationInput of request.annotations) {
+        // Get the field ID
         const fieldIdOrError = AnnotationFieldId.create(
           new UniqueEntityID(annotationInput.annotationFieldId)
         );
-        const type = AnnotationType.create(annotationInput.type);
+        
+        if (fieldIdOrError.isErr()) {
+          return err(
+            new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
+              "Invalid annotation field ID"
+            )
+          );
+        }
+        
+        // Fetch the actual field from the repository
+        const annotationField = await this.annotationFieldRepository.findById(fieldIdOrError.value);
+        if (!annotationField) {
+          return err(
+            new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
+              `Annotation field with ID ${annotationInput.annotationFieldId} not found`
+            )
+          );
+        }
+        
+        // Verify the field type matches the input type
+        if (annotationField.definition.type.value !== annotationInput.type) {
+          return err(
+            new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
+              `Type mismatch: Field expects ${annotationField.definition.type.value} but got ${annotationInput.type}`
+            )
+          );
+        }
+        
         const note = annotationInput.note
           ? AnnotationNote.create(annotationInput.note)
           : undefined;
 
-        if (fieldIdOrError.isErr()) {
-          return err(
-            new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
-              "Invalid annotation properties"
-            )
-          );
-        }
-
-        // Create annotation value
+        // Create annotation value using the field's type
         const valueOrError = AnnotationValueFactory.create({
-          type: type,
+          type: annotationField.definition.type,
           valueInput: annotationInput.value,
         });
 
@@ -158,11 +180,11 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
           );
         }
 
-        // Create annotation with template ID
+        // Create annotation with template ID and the full annotation field
         const annotationOrError = Annotation.create({
           curatorId,
           url,
-          annotationFieldId: fieldIdOrError.value,
+          annotationField,
           value: valueOrError.value,
           note: note,
           annotationTemplateIds: [templateId],

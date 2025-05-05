@@ -148,9 +148,9 @@ export const schemaDict = {
       multiSelectValue: {
         type: 'object',
         description: 'Value structure for a multi-select annotation.',
-        required: ['option'],
+        required: ['options'],
         properties: {
-          option: {
+          options: {
             type: 'array',
             description: 'The selected options',
             items: {

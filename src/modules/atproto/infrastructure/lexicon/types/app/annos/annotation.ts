@@ -122,7 +122,7 @@ export function validateSingleSelectValue<V>(v: V) {
 export interface MultiSelectValue {
   $type?: 'app.annos.annotation#multiSelectValue'
   /** The selected options */
-  option: string[]
+  options: string[]
 }
 
 const hashMultiSelectValue = 'multiSelectValue'

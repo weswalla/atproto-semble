@@ -15,11 +15,6 @@ import {
 import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
 import { sql } from "drizzle-orm";
 import { annotations, annotationToTemplates } from "../schema/annotationSchema";
-import { annotationFields } from "../schema/annotationFieldSchema";
-import {
-  annotationTemplates,
-  annotationTemplateFields,
-} from "../schema/annotationTemplateSchema";
 import { AnnotationBuilder } from "../../../tests/utils/builders/AnnotationBuilder";
 import { URI } from "../../../domain/value-objects/URI";
 import { AnnotationField } from "../../../domain/aggregates";

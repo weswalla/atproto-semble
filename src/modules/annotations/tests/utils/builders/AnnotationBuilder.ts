@@ -83,7 +83,11 @@ export class AnnotationBuilder {
     return this;
   }
 
-  withTriadValue(values: { vertexA: number; vertexB: number; vertexC: number }): this {
+  withTriadValue(values: {
+    vertexA: number;
+    vertexB: number;
+    vertexC: number;
+  }): this {
     this._valueType = "triad";
     this._valueProps = values;
     this._value = undefined;
@@ -157,28 +161,29 @@ export class AnnotationBuilder {
           type: fieldType,
           valueInput: this._valueProps,
         });
-        
+
         if (factoryResult.isErr()) {
-          return err(new Error(`Value creation failed: ${factoryResult.error}`));
+          return err(
+            new Error(`Value creation failed: ${factoryResult.error}`)
+          );
         }
-        
+
         valueResult = factoryResult.value;
       } else {
         // Create value based on type and props
-        const typeResult = AnnotationType.create(this._valueType);
-        if (typeResult.isErr()) {
-          return err(new Error(`Invalid annotation type: ${this._valueType}`));
-        }
-        
+        const type = AnnotationType.create(this._valueType);
+
         const factoryResult = AnnotationValueFactory.create({
-          type: typeResult,
+          type: type,
           valueInput: this._valueProps,
         });
-        
+
         if (factoryResult.isErr()) {
-          return err(new Error(`Value creation failed: ${factoryResult.error}`));
+          return err(
+            new Error(`Value creation failed: ${factoryResult.error}`)
+          );
         }
-        
+
         valueResult = factoryResult.value;
       }
     }

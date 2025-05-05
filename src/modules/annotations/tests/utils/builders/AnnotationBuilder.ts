@@ -21,12 +21,16 @@ import {
   SingleSelectValue,
   MultiSelectValue,
 } from "../../../domain/value-objects/AnnotationValue";
+import { AnnotationField } from "../../../domain/aggregates";
+import { AnnotationType } from "../../../domain/value-objects/AnnotationType";
+import { AnnotationValueFactory } from "../../../domain/AnnotationValueFactory";
 
 export class AnnotationBuilder {
   private _id?: UniqueEntityID;
   private _curatorId: string = "did:plc:defaultCurator";
   private _url: string = "https://example.com/resource";
   private _annotationFieldId: string = "default-field-id";
+  private _annotationField?: AnnotationField;
   private _value?: AnnotationValue; // Will be set based on type
   private _valueProps: any = {}; // For storing value props before creating value
   private _valueType: string = "dyad"; // Default value type
@@ -52,6 +56,13 @@ export class AnnotationBuilder {
 
   withAnnotationFieldId(fieldId: string): this {
     this._annotationFieldId = fieldId;
+    this._annotationField = undefined; // Clear field if ID is set directly
+    return this;
+  }
+
+  withAnnotationField(field: AnnotationField): this {
+    this._annotationField = field;
+    this._annotationFieldId = field.fieldId.getStringValue();
     return this;
   }
 
@@ -65,16 +76,16 @@ export class AnnotationBuilder {
   }
 
   // --- Convenience methods for setting value via props ---
-  withDyadValue(sideA: number, sideB: number): this {
+  withDyadValue(value: number): this {
     this._valueType = "dyad";
-    this._valueProps = { sideA, sideB };
+    this._valueProps = { value };
     this._value = undefined; // Clear direct value
     return this;
   }
 
-  withTriadValue(vertexA: number, vertexB: number, vertexC: number): this {
+  withTriadValue(values: { vertexA: number; vertexB: number; vertexC: number }): this {
     this._valueType = "triad";
-    this._valueProps = { vertexA, vertexB, vertexC };
+    this._valueProps = values;
     this._value = undefined;
     return this;
   }
@@ -86,16 +97,16 @@ export class AnnotationBuilder {
     return this;
   }
 
-  withSingleSelectValue(selected: string): this {
+  withSingleSelectValue(option: string): this {
     this._valueType = "singleSelect";
-    this._valueProps = { selected };
+    this._valueProps = { option };
     this._value = undefined;
     return this;
   }
 
-  withMultiSelectValue(selected: string[]): this {
+  withMultiSelectValue(options: string[]): this {
     this._valueType = "multiSelect";
-    this._valueProps = { selected };
+    this._valueProps = { options };
     this._value = undefined;
     return this;
   }
@@ -103,6 +114,11 @@ export class AnnotationBuilder {
 
   withAnnotationTemplateIds(templateIds: string[]): this {
     this._annotationTemplateIds = templateIds;
+    return this;
+  }
+
+  withAnnotationTemplateId(templateId: string): this {
+    this._annotationTemplateIds = [templateId];
     return this;
   }
 
@@ -134,25 +150,36 @@ export class AnnotationBuilder {
     if (this._value) {
       valueResult = this._value;
     } else {
-      // Create value based on type and props
-      switch (this._valueType) {
-        case "dyad":
-          valueResult = DyadValue.create(this._valueProps);
-          break;
-        case "triad":
-          valueResult = TriadValue.create(this._valueProps);
-          break;
-        case "rating":
-          valueResult = RatingValue.create(this._valueProps);
-          break;
-        case "singleSelect":
-          valueResult = SingleSelectValue.create(this._valueProps);
-          break;
-        case "multiSelect":
-          valueResult = MultiSelectValue.create(this._valueProps);
-          break;
-        default:
-          return err(new Error("Invalid or missing value type"));
+      // Use AnnotationValueFactory if we have a field with type information
+      if (this._annotationField) {
+        const fieldType = this._annotationField.definition.type;
+        const factoryResult = AnnotationValueFactory.create({
+          type: fieldType,
+          valueInput: this._valueProps,
+        });
+        
+        if (factoryResult.isErr()) {
+          return err(new Error(`Value creation failed: ${factoryResult.error}`));
+        }
+        
+        valueResult = factoryResult.value;
+      } else {
+        // Create value based on type and props
+        const typeResult = AnnotationType.create(this._valueType);
+        if (typeResult.isErr()) {
+          return err(new Error(`Invalid annotation type: ${this._valueType}`));
+        }
+        
+        const factoryResult = AnnotationValueFactory.create({
+          type: typeResult,
+          valueInput: this._valueProps,
+        });
+        
+        if (factoryResult.isErr()) {
+          return err(new Error(`Value creation failed: ${factoryResult.error}`));
+        }
+        
+        valueResult = factoryResult.value;
       }
     }
 

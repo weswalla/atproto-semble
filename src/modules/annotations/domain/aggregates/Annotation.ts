@@ -13,11 +13,12 @@ import {
   CuratorId,
   PublishedRecordId,
 } from "../value-objects";
+import { AnnotationField } from ".";
 
 export interface AnnotationProps {
   curatorId: CuratorId;
   url: URI;
-  annotationFieldId: AnnotationFieldId;
+  annotationField: AnnotationField;
   value: AnnotationValue;
   annotationTemplateIds?: AnnotationTemplateId[];
   note?: AnnotationNote;
@@ -35,8 +36,12 @@ export class Annotation extends AggregateRoot<AnnotationProps> {
   get url(): URI {
     return this.props.url;
   }
+  get annotationField(): AnnotationField {
+    return this.props.annotationField;
+  }
+  
   get annotationFieldId(): AnnotationFieldId {
-    return this.props.annotationFieldId;
+    return this.annotationField.fieldId;
   }
   get value(): AnnotationValue {
     return this.props.value;
@@ -83,7 +88,7 @@ export class Annotation extends AggregateRoot<AnnotationProps> {
     const guardArgs: IGuardArgument[] = [
       { argument: props.curatorId, argumentName: "curatorId" },
       { argument: props.url, argumentName: "url" },
-      { argument: props.annotationFieldId, argumentName: "annotationFieldId" },
+      { argument: props.annotationField, argumentName: "annotationField" },
       { argument: props.value, argumentName: "value" },
     ];
 

@@ -29,6 +29,11 @@ describe.skip("ATProtoAnnotationPublisher", () => {
     id: PublishedRecordId;
   } | null = null;
   let publishedAnnotationIds: PublishedRecordId[] = [];
+  
+  // Store simple test entities
+  let simpleField: AnnotationField;
+  let simpleTemplate: AnnotationTemplate;
+  let simpleAnnotationId: PublishedRecordId | null = null;
 
   beforeAll(async () => {
     // Skip test if credentials are not available

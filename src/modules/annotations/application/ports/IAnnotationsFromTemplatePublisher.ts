@@ -5,7 +5,7 @@ import { AnnotationId } from "../../domain/value-objects";
 import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
 
 export type PublishedAnnotationsFromTemplateResult = Map<
-  AnnotationId,
+  string,
   PublishedRecordId
 >;
 

@@ -11,16 +11,16 @@ import { FakeAnnotationFieldPublisher } from "../utils/publishers/FakeAnnotation
 import { UseCaseError } from "src/shared/core/UseCaseError";
 import { InMemoryAnnotationRepository } from "../utils/InMemoryAnnotationRepository";
 import { InMemoryAnnotationTemplateRepository } from "../utils/InMemoryAnnotationTemplateRepository";
-import { FakeAnnotationPublisher } from "../utils/publishers/FakeAnnotationPublisher";
 import { FakeAnnotationTemplatePublisher } from "../utils/publishers/FakeAnnotationTemplatePublisher";
 import { InMemoryAnnotationFieldRepository } from "../utils/InMemoryAnnotationFieldRepository";
 import { AnnotationField } from "../../domain/aggregates";
+import { FakeAnnotationsFromTemplatePublisher } from "../utils/publishers/FakeAnnotationsFromTemplatePublisher";
 
 describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
   let annotationRepository: InMemoryAnnotationRepository;
   let annotationTemplateRepository: InMemoryAnnotationTemplateRepository;
   let annotationFieldRepository: InMemoryAnnotationFieldRepository;
-  let annotationPublisher: FakeAnnotationPublisher;
+  let annotationsFromTemplatePublisher: FakeAnnotationsFromTemplatePublisher;
   let fieldPublisher: FakeAnnotationFieldPublisher;
   let templatePublisher: FakeAnnotationTemplatePublisher;
   let useCase: CreateAndPublishAnnotationsFromTemplateUseCase;
@@ -86,13 +86,14 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
       annotationFieldRepository
     );
 
-    annotationPublisher = new FakeAnnotationPublisher();
+    annotationsFromTemplatePublisher =
+      new FakeAnnotationsFromTemplatePublisher();
 
     useCase = new CreateAndPublishAnnotationsFromTemplateUseCase(
       annotationRepository,
       annotationTemplateRepository,
       annotationFieldRepository,
-      annotationPublisher
+      annotationsFromTemplatePublisher
     );
 
     // Create a template for testing

@@ -22,7 +22,7 @@ describe.only("AnnotationsFromTemplate", () => {
       .withCuratorId(curatorId)
       .withUrl("https://example.com/resource")
       .withAnnotationFieldId("different-field-id") // Different field ID
-      .withDyadValue(0.5, 0.5)
+      .withDyadValue(0.5)
       .withAnnotationTemplateIds([templateId.toString()])
       .buildOrThrow();
 
@@ -54,7 +54,7 @@ describe.only("AnnotationsFromTemplate", () => {
       .withCuratorId(curatorId)
       .withUrl("https://example.com/resource")
       .withAnnotationFieldId(field1Id.getStringValue())
-      .withDyadValue(0.5, 0.5)
+      .withDyadValue(0.5)
       .withAnnotationTemplateIds([templateId.toString()])
       .buildOrThrow();
 
@@ -90,7 +90,7 @@ describe.only("AnnotationsFromTemplate", () => {
       .withCuratorId(curatorId)
       .withUrl("https://example.com/resource")
       .withAnnotationFieldId(field1Id.getStringValue())
-      .withDyadValue(0.5, 0.5)
+      .withDyadValue(0.5)
       .withAnnotationTemplateIds([templateId.toString()])
       .buildOrThrow();
 

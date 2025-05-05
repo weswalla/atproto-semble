@@ -66,20 +66,22 @@ export class AnnotationMapper {
     uri: string;
     cid: string;
   } {
-    if (!annotation.annotationFieldId) {
-      throw new Error("Annotation must have a field ID");
+    const field = annotation.annotationField;
+    if (!field) {
+      throw new Error("Annotation must have a field");
     }
 
-    // This assumes the field is published and has a StrongRef
-    // In a real implementation, you might need to look up the field's published record
-    const fieldRef = new StrongRef({
-      uri: annotation.annotationFieldId.getStringValue(),
-      cid: "", // This would need to be populated from the actual field reference
-    });
+    // Check if the field has a published record ID
+    if (!field.publishedRecordId) {
+      throw new Error(`Field ${field.fieldId.getStringValue()} is not published`);
+    }
 
+    // Get the published record ID from the field
+    const publishedRecordId = field.publishedRecordId.getValue();
+    
     return {
-      uri: fieldRef.getValue().uri,
-      cid: fieldRef.getValue().cid,
+      uri: publishedRecordId.uri,
+      cid: publishedRecordId.cid,
     };
   }
 

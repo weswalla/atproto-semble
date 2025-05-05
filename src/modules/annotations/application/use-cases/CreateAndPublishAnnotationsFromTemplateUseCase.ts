@@ -256,8 +256,8 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
 
       // Create a list of published annotation IDs for the response
       const publishedAnnotationIds: string[] = [];
-      for (const [annotationId, _] of publishedRecordIds) {
-        publishedAnnotationIds.push(annotationId);
+      for (const annotation of annotationsFromTemplate.annotations) {
+        publishedAnnotationIds.push(annotation.annotationId.getStringValue());
       }
 
       // Save all annotations

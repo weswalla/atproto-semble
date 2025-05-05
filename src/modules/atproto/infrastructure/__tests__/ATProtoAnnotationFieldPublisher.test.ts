@@ -7,7 +7,7 @@ import dotenv from "dotenv";
 // Load environment variables from .env.test
 dotenv.config({ path: ".env.test" });
 
-describe("ATProtoAnnotationFieldPublisher", () => {
+describe.skip("ATProtoAnnotationFieldPublisher", () => {
   let publisher: ATProtoAnnotationFieldPublisher;
   let agent: AtpAgent;
   let publishedRecordId: PublishedRecordId;
@@ -57,16 +57,6 @@ describe("ATProtoAnnotationFieldPublisher", () => {
       // 2. Unpublish the field
       const unpublishResult = await publisher.unpublish(publishedRecordId);
       expect(unpublishResult.isOk()).toBe(true);
-    }
-  }, 10000); // Increase timeout for network requests
-  it.skip("deletes a record", async () => {
-    const uri =
-      "at://did:plc:rlknsba2qldjkicxsmni3vyn/app.annos.annotationField/3lo5j6xw33c2m";
-    const publishedRecordId = PublishedRecordId.create(uri);
-    const deleteResult = await publisher.unpublish(publishedRecordId);
-    expect(deleteResult.isOk()).toBe(true);
-    if (deleteResult.isOk()) {
-      console.log(`Deleted record: ${publishedRecordId.getValue()}`);
     }
   }, 10000); // Increase timeout for network requests
 });

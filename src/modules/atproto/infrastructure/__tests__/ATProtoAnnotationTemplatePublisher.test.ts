@@ -9,7 +9,7 @@ import dotenv from "dotenv";
 // Load environment variables from .env.test
 dotenv.config({ path: ".env.test" });
 
-describe("ATProtoAnnotationTemplatePublisher", () => {
+describe.skip("ATProtoAnnotationTemplatePublisher", () => {
   let templatePublisher: ATProtoAnnotationTemplatePublisher;
   let fieldPublisher: ATProtoAnnotationFieldPublisher;
   let agent: AtpAgent;

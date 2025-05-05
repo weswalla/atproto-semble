@@ -13,10 +13,12 @@ import { InMemoryAnnotationRepository } from "../utils/InMemoryAnnotationReposit
 import { InMemoryAnnotationTemplateRepository } from "../utils/InMemoryAnnotationTemplateRepository";
 import { FakeAnnotationPublisher } from "../utils/publishers/FakeAnnotationPublisher";
 import { FakeAnnotationTemplatePublisher } from "../utils/publishers/FakeAnnotationTemplatePublisher";
+import { InMemoryAnnotationFieldRepository } from "../utils/InMemoryAnnotationFieldRepository";
 
 describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
   let annotationRepository: InMemoryAnnotationRepository;
   let annotationTemplateRepository: InMemoryAnnotationTemplateRepository;
+  let annotationFieldRepository: InMemoryAnnotationFieldRepository;
   let annotationPublisher: FakeAnnotationPublisher;
   let useCase: CreateAndPublishAnnotationsFromTemplateUseCase;
   let templateId: string;
@@ -68,11 +70,13 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
   beforeEach(async () => {
     annotationRepository = new InMemoryAnnotationRepository();
     annotationTemplateRepository = new InMemoryAnnotationTemplateRepository();
+    annotationFieldRepository = new InMemoryAnnotationFieldRepository();
     annotationPublisher = new FakeAnnotationPublisher();
 
     useCase = new CreateAndPublishAnnotationsFromTemplateUseCase(
       annotationRepository,
       annotationTemplateRepository,
+      annotationFieldRepository,
       annotationPublisher
     );
 

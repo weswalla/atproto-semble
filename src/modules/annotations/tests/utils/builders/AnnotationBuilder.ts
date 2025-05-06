@@ -45,16 +45,6 @@ export class AnnotationBuilder {
     return this;
   }
 
-  // Deprecated - use withAnnotationField instead
-  withAnnotationFieldId(fieldId: string): this {
-    console.warn(
-      "withAnnotationFieldId is deprecated. Use withAnnotationField instead."
-    );
-    this._annotationFieldId = fieldId;
-    this._annotationField = undefined; // Clear field if ID is set directly
-    return this;
-  }
-
   withAnnotationField(field: AnnotationField): this {
     this._annotationField = field;
     this._annotationFieldId = field.fieldId.getStringValue();

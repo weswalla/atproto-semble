@@ -80,13 +80,13 @@ export class AnnotationFieldBuilder {
   }
 
   withSingleSelectDefinition(props: ISelectFieldDefProps): this {
-    this._definitionProps = { ...props, _type: 'singleSelect' };
+    this._definitionProps = { ...props, _type: "singleSelect" };
     this._definition = undefined;
     return this;
   }
 
   withMultiSelectDefinition(props: ISelectFieldDefProps): this {
-    this._definitionProps = { ...props, _type: 'multiSelect' };
+    this._definitionProps = { ...props, _type: "multiSelect" };
     this._definition = undefined;
     return this;
   }
@@ -126,7 +126,7 @@ export class AnnotationFieldBuilder {
         definitionResult = RatingFieldDef.create(); // No props needed
       } else if ("options" in this._definitionProps) {
         // Use the _type property to determine which select type to create
-        if (this._definitionProps._type === 'multiSelect') {
+        if (this._definitionProps._type === "multiSelect") {
           // Create a clean copy of props without the _type marker
           const { _type, ...cleanProps } = this._definitionProps;
           definitionResult = MultiSelectFieldDef.create(cleanProps);

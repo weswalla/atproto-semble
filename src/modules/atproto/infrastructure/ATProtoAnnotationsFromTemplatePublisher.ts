@@ -45,7 +45,7 @@ export class ATProtoAnnotationsFromTemplatePublisher
       const result = await this.agent.com.atproto.repo.applyWrites({
         repo: curatorDid,
         writes,
-        validate: true,
+        validate: false,
       });
 
       // Create a map of annotation IDs to published record IDs
@@ -84,6 +84,7 @@ export class ATProtoAnnotationsFromTemplatePublisher
 
       return ok(publishedRecordIds);
     } catch (error) {
+      console.error("Error publishing annotations:", error);
       return err(
         new Error(error instanceof Error ? error.message : String(error))
       );
@@ -129,7 +130,7 @@ export class ATProtoAnnotationsFromTemplatePublisher
         await this.agent.com.atproto.repo.applyWrites({
           repo,
           writes: writes as any,
-          validate: true,
+          validate: false,
         });
       }
 

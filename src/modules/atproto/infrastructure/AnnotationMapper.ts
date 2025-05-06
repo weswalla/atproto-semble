@@ -8,7 +8,6 @@ import {
   SingleSelectValue,
   MultiSelectValue,
 } from "./lexicon/types/app/annos/annotation";
-import { StrongRef } from "../domain";
 import {
   DyadValue as DyadValueObject,
   TriadValue as TriadValueObject,
@@ -23,10 +22,11 @@ type AnnotationRecordDTO = Record;
 export class AnnotationMapper {
   static toCreateRecordDTO(annotation: Annotation): AnnotationRecordDTO {
     // Create the base record
+    const fieldStrongRef = this.createFieldRef(annotation);
     const record: AnnotationRecordDTO = {
       $type: "app.annos.annotation",
       url: annotation.url.value,
-      field: this.createFieldRef(annotation),
+      field: fieldStrongRef,
       value: this.mapAnnotationValue(annotation.value),
       createdAt:
         annotation.createdAt?.toISOString() || new Date().toISOString(),
@@ -37,29 +37,8 @@ export class AnnotationMapper {
       record.note = annotation.note.getValue();
     }
 
-    if (
-      annotation.annotationTemplateIds &&
-      annotation.annotationTemplateIds.length > 0
-    ) {
-      record.fromTemplates = annotation.annotationTemplateIds.map(
-        (templateId) => {
-          // This assumes the template is published and has a StrongRef
-          const templateRef = new StrongRef({
-            uri: templateId.getStringValue(),
-            cid: "", // This would need to be populated from the actual template reference
-          });
-
-          return {
-            uri: templateRef.getValue().uri,
-            cid: templateRef.getValue().cid,
-          };
-        }
-      );
-    }
-
     // Add additional identifiers if any
     // This would be implemented if the domain model supports additional identifiers
-
     return record;
   }
 
@@ -72,14 +51,13 @@ export class AnnotationMapper {
     }
     const recordWithoutTemplate = this.toCreateRecordDTO(annotation);
 
+    const templateStrongRef = {
+      uri: template.publishedRecordId.getValue().uri,
+      cid: template.publishedRecordId.getValue().cid,
+    };
     const record: AnnotationRecordDTO = {
       ...recordWithoutTemplate,
-      fromTemplates: [
-        {
-          uri: template.publishedRecordId.getValue().uri,
-          cid: template.publishedRecordId.getValue().cid,
-        },
-      ],
+      fromTemplates: [templateStrongRef],
     };
     return record;
   }

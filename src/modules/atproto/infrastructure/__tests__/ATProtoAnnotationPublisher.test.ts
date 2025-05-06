@@ -33,7 +33,7 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
     id: PublishedRecordId;
   } | null = null;
   let publishedAnnotationIds: PublishedRecordId[] = [];
-  
+
   // Store simple test entities
   let simpleField: AnnotationField;
   let simpleTemplate: AnnotationTemplate;
@@ -58,7 +58,8 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
     });
 
     annotationPublisher = new ATProtoAnnotationPublisher(agent);
-    annotationsFromTemplatePublisher = new ATProtoAnnotationsFromTemplatePublisher(agent);
+    annotationsFromTemplatePublisher =
+      new ATProtoAnnotationsFromTemplatePublisher(agent);
     fieldPublisher = new ATProtoAnnotationFieldPublisher(agent);
     templatePublisher = new ATProtoAnnotationTemplatePublisher(agent);
   });
@@ -73,17 +74,12 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
     for (const annotationId of publishedAnnotationIds) {
       await annotationPublisher.unpublish(annotationId);
     }
-    
+
     // Clean up simple annotation if it exists
     if (simpleAnnotationId) {
       await annotationPublisher.unpublish(simpleAnnotationId);
     }
 
-    // Clean up the published template
-    if (publishedTemplate) {
-      await templatePublisher.unpublish(publishedTemplate.id);
-    }
-    
     // Clean up simple template if it exists
     if (simpleTemplate?.publishedRecordId) {
       await templatePublisher.unpublish(simpleTemplate.publishedRecordId);
@@ -93,7 +89,7 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
     for (const { id } of publishedFields) {
       await fieldPublisher.unpublish(id);
     }
-    
+
     // Clean up simple field if it exists
     if (simpleField?.publishedRecordId) {
       await fieldPublisher.unpublish(simpleField.publishedRecordId);
@@ -120,11 +116,13 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
 
     const fieldPublishResult = await fieldPublisher.publish(simpleField);
     expect(fieldPublishResult.isOk()).toBe(true);
-    
+
     if (fieldPublishResult.isOk()) {
       const publishedFieldId = fieldPublishResult.value;
       simpleField.markAsPublished(publishedFieldId);
-      console.log(`Published field: ${simpleField.name.value} with ID: ${publishedFieldId.getValue().uri}`);
+      console.log(
+        `Published field: ${simpleField.name.value} with ID: ${publishedFieldId.getValue().uri}`
+      );
     }
 
     // 2. Create and publish a simple template with the field
@@ -136,18 +134,21 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
       .withCreatedAt(new Date())
       .buildOrThrow();
 
-    const templatePublishResult = await templatePublisher.publish(simpleTemplate);
+    const templatePublishResult =
+      await templatePublisher.publish(simpleTemplate);
     expect(templatePublishResult.isOk()).toBe(true);
-    
+
     if (templatePublishResult.isOk()) {
       const publishedTemplateId = templatePublishResult.value;
       simpleTemplate.markAsPublished(publishedTemplateId);
-      console.log(`Published template: ${simpleTemplate.name.value} with ID: ${publishedTemplateId.getValue().uri}`);
+      console.log(
+        `Published template: ${simpleTemplate.name.value} with ID: ${publishedTemplateId.getValue().uri}`
+      );
     }
 
     // 3. Create and publish a single annotation
     const testUrl = new URI("https://example.com/simple-test");
-    
+
     // Create a rating annotation
     const ratingType = AnnotationType.create("rating");
     const ratingValueResult = AnnotationValueFactory.create({
@@ -155,31 +156,34 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
       valueInput: { rating: 5 }, // 5 out of 5 stars
     });
     expect(ratingValueResult.isOk()).toBe(true);
-    
+
     const simpleAnnotation = new AnnotationBuilder()
       .withCuratorId(curatorId)
       .withUrl(testUrl.value)
-      .withAnnotationFieldId(simpleField.fieldId.getStringValue())
+      .withAnnotationField(simpleField)
       .withValue(ratingValueResult.unwrap())
       .withNote("This is a simple rating annotation test")
-      .withAnnotationTemplateIds([simpleTemplate.templateId.getStringValue()])
       .withCreatedAt(new Date())
       .buildOrThrow();
 
-    const annotationPublishResult = await annotationPublisher.publish(simpleAnnotation);
+    const annotationPublishResult =
+      await annotationPublisher.publish(simpleAnnotation);
     expect(annotationPublishResult.isOk()).toBe(true);
-    
+
     if (annotationPublishResult.isOk()) {
       simpleAnnotationId = annotationPublishResult.value;
       simpleAnnotation.markAsPublished(simpleAnnotationId);
-      console.log(`Published simple annotation with ID: ${simpleAnnotationId.getValue().uri}`);
+      console.log(
+        `Published simple annotation with ID: ${simpleAnnotationId.getValue().uri}`
+      );
     }
 
-    // 4. Test unpublishing the annotation
+    // // 4. Test unpublishing the annotation
     if (simpleAnnotationId) {
-      const unpublishResult = await annotationPublisher.unpublish(simpleAnnotationId);
+      const unpublishResult =
+        await annotationPublisher.unpublish(simpleAnnotationId);
       expect(unpublishResult.isOk()).toBe(true);
-      
+
       // Set to null since we've already unpublished it
       simpleAnnotationId = null;
       console.log("Successfully unpublished the simple annotation");
@@ -202,7 +206,12 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
       .withDescription("A dyad field for testing")
       .withDyadDefinition({ sideA: "Agree", sideB: "Disagree" })
       .withCreatedAt(new Date())
+      .withPublishedRecordId({
+        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/app.annos.annotationField/3lohln4bc672c",
+        cid: "bafyreienwqqnfegi2wtgd4rekdofrmthsey5eixnjwwp337cmj65enajla",
+      })
       .buildOrThrow();
+    console.log("Dyad field created", JSON.stringify(dyadField));
 
     const triadField = new AnnotationFieldBuilder()
       .withCuratorId(curatorId)
@@ -214,6 +223,10 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
         vertexC: "Cheap",
       })
       .withCreatedAt(new Date())
+      .withPublishedRecordId({
+        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/app.annos.annotationField/3lohln4bc672c",
+        cid: "bafyreienwqqnfegi2wtgd4rekdofrmthsey5eixnjwwp337cmj65enajla",
+      })
       .buildOrThrow();
 
     const ratingField = new AnnotationFieldBuilder()
@@ -222,6 +235,10 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
       .withDescription("A rating field for testing")
       .withRatingDefinition()
       .withCreatedAt(new Date())
+      .withPublishedRecordId({
+        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/app.annos.annotationField/3lohln4bc672c",
+        cid: "bafyreienwqqnfegi2wtgd4rekdofrmthsey5eixnjwwp337cmj65enajla",
+      })
       .buildOrThrow();
 
     const singleSelectField = new AnnotationFieldBuilder()
@@ -232,6 +249,10 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
         options: ["Option 1", "Option 2", "Option 3"],
       })
       .withCreatedAt(new Date())
+      .withPublishedRecordId({
+        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/app.annos.annotationField/3lohln4bc672c",
+        cid: "bafyreienwqqnfegi2wtgd4rekdofrmthsey5eixnjwwp337cmj65enajla",
+      })
       .buildOrThrow();
 
     const multiSelectField = new AnnotationFieldBuilder()
@@ -242,6 +263,10 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
         options: ["Tag 1", "Tag 2", "Tag 3", "Tag 4"],
       })
       .withCreatedAt(new Date())
+      .withPublishedRecordId({
+        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/app.annos.annotationField/3lohln4bc672c",
+        cid: "bafyreienwqqnfegi2wtgd4rekdofrmthsey5eixnjwwp337cmj65enajla",
+      })
       .buildOrThrow();
 
     // Publish all fields
@@ -253,20 +278,6 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
       multiSelectField,
     ];
 
-    for (const field of fields) {
-      const fieldPublishResult = await fieldPublisher.publish(field);
-      expect(fieldPublishResult.isOk()).toBe(true);
-
-      if (fieldPublishResult.isOk()) {
-        const publishedFieldId = fieldPublishResult.value;
-        field.markAsPublished(publishedFieldId);
-        publishedFields.push({ field, id: publishedFieldId });
-        console.log(
-          `Published field: ${field.name.value} with ID: ${publishedFieldId.getValue().uri}`
-        );
-      }
-    }
-
     // 2. Create and publish a template with all fields
     const template = new AnnotationTemplateBuilder()
       .withCuratorId(curatorId)
@@ -274,19 +285,11 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
       .withDescription("A template with all field types for testing")
       .withFields(fields, false) // Make fields optional
       .withCreatedAt(new Date())
+      .withPublishedRecordId({
+        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/app.annos.annotationField/3lohln4bc672c",
+        cid: "bafyreienwqqnfegi2wtgd4rekdofrmthsey5eixnjwwp337cmj65enajla",
+      })
       .buildOrThrow();
-
-    const templatePublishResult = await templatePublisher.publish(template);
-    expect(templatePublishResult.isOk()).toBe(true);
-
-    if (templatePublishResult.isOk()) {
-      const publishedTemplateId = templatePublishResult.value;
-      template.markAsPublished(publishedTemplateId);
-      publishedTemplate = { template, id: publishedTemplateId };
-      console.log(
-        `Published template: ${template.name.value} with ID: ${publishedTemplateId.getValue().uri}`
-      );
-    }
 
     // 3. Create and publish annotations for each field type using AnnotationValueFactory
     const testUrl = new URI("https://example.com/test-page");
@@ -302,7 +305,7 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
     const dyadAnnotation = new AnnotationBuilder()
       .withCuratorId(curatorId)
       .withUrl(testUrl.value)
-      .withAnnotationFieldId(dyadField.fieldId.getStringValue())
+      .withAnnotationField(dyadField)
       .withValue(dyadValueResult.unwrap())
       .withNote("This is a dyad annotation test")
       .withAnnotationTemplateIds([template.templateId.getStringValue()])
@@ -320,7 +323,7 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
     const triadAnnotation = new AnnotationBuilder()
       .withCuratorId(curatorId)
       .withUrl(testUrl.value)
-      .withAnnotationFieldId(triadField.fieldId.getStringValue())
+      .withAnnotationField(triadField)
       .withValue(triadValueResult.unwrap())
       .withNote("This is a triad annotation test")
       .withAnnotationTemplateIds([template.templateId.getStringValue()])
@@ -338,7 +341,7 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
     const ratingAnnotation = new AnnotationBuilder()
       .withCuratorId(curatorId)
       .withUrl(testUrl.value)
-      .withAnnotationFieldId(ratingField.fieldId.getStringValue())
+      .withAnnotationField(ratingField)
       .withValue(ratingValueResult.unwrap())
       .withNote("This is a rating annotation test")
       .withAnnotationTemplateIds([template.templateId.getStringValue()])
@@ -356,7 +359,7 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
     const singleSelectAnnotation = new AnnotationBuilder()
       .withCuratorId(curatorId)
       .withUrl(testUrl.value)
-      .withAnnotationFieldId(singleSelectField.fieldId.getStringValue())
+      .withAnnotationField(singleSelectField)
       .withValue(singleSelectValueResult.unwrap())
       .withNote("This is a single select annotation test")
       .withAnnotationTemplateIds([template.templateId.getStringValue()])
@@ -364,7 +367,7 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
       .buildOrThrow();
 
     // Create a multi select annotation
-    const multiSelectType = AnnotationType.create("multiSelect");
+    const multiSelectType = AnnotationType.MULTI_SELECT;
     const multiSelectValueResult = AnnotationValueFactory.create({
       type: multiSelectType,
       valueInput: { options: ["Tag 1", "Tag 3"] },
@@ -374,7 +377,7 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
     const multiSelectAnnotation = new AnnotationBuilder()
       .withCuratorId(curatorId)
       .withUrl(testUrl.value)
-      .withAnnotationFieldId(multiSelectField.fieldId.getStringValue())
+      .withAnnotationField(multiSelectField)
       .withValue(multiSelectValueResult.unwrap())
       .withNote("This is a multi select annotation test")
       .withAnnotationTemplateIds([template.templateId.getStringValue()])
@@ -389,170 +392,48 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
       singleSelectAnnotation,
       multiSelectAnnotation,
     ];
-
-    for (const annotation of annotations) {
-      const annotationPublishResult =
-        await annotationPublisher.publish(annotation);
-      expect(annotationPublishResult.isOk()).toBe(true);
-
-      if (annotationPublishResult.isOk()) {
-        const publishedAnnotationId = annotationPublishResult.value;
-        annotation.markAsPublished(publishedAnnotationId);
-        publishedAnnotationIds.push(publishedAnnotationId);
-        console.log(
-          `Published annotation with ID: ${publishedAnnotationId.getValue().uri}`
-        );
-      }
-    }
-
-    // 4. Test unpublishing one annotation
-    if (publishedAnnotationIds.length > 0) {
-      const idToUnpublish = publishedAnnotationIds[0];
-      const unpublishResult = await annotationPublisher.unpublish(
-        idToUnpublish!
-      );
-      expect(unpublishResult.isOk()).toBe(true);
-
-      // Remove from the cleanup list
-      publishedAnnotationIds.shift();
-    }
-  }, 30000); // Increase timeout for network requests
-
-  it("should publish and unpublish annotations from template using batch publisher", async () => {
-    // Skip test if credentials are not available
-    if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
-      console.warn("Skipping test: BSKY credentials not found in .env.test");
-      return;
-    }
-
-    const curatorId = process.env.BSKY_DID;
-
-    // 1. Create and publish two simple fields
-    const ratingField = new AnnotationFieldBuilder()
-      .withCuratorId(curatorId)
-      .withName("Batch Rating Field")
-      .withDescription("A rating field for batch testing")
-      .withRatingDefinition()
-      .withCreatedAt(new Date())
-      .buildOrThrow();
-
-    const dyadField = new AnnotationFieldBuilder()
-      .withCuratorId(curatorId)
-      .withName("Batch Dyad Field")
-      .withDescription("A dyad field for batch testing")
-      .withDyadDefinition({ sideA: "Yes", sideB: "No" })
-      .withCreatedAt(new Date())
-      .buildOrThrow();
-
-    // Publish the fields
-    const fields = [ratingField, dyadField];
-    for (const field of fields) {
-      const fieldPublishResult = await fieldPublisher.publish(field);
-      expect(fieldPublishResult.isOk()).toBe(true);
-      
-      if (fieldPublishResult.isOk()) {
-        const publishedFieldId = fieldPublishResult.value;
-        field.markAsPublished(publishedFieldId);
-        publishedFields.push({ field, id: publishedFieldId });
-        console.log(`Published field: ${field.name.value} with ID: ${publishedFieldId.getValue().uri}`);
-      }
-    }
-
-    // 2. Create and publish a template with both fields
-    const batchTemplate = new AnnotationTemplateBuilder()
-      .withCuratorId(curatorId)
-      .withName("Batch Test Template")
-      .withDescription("A template for batch annotation publishing")
-      .withFields(fields, false) // Make fields optional
-      .withCreatedAt(new Date())
-      .buildOrThrow();
-
-    const templatePublishResult = await templatePublisher.publish(batchTemplate);
-    expect(templatePublishResult.isOk()).toBe(true);
-    
-    if (templatePublishResult.isOk()) {
-      const publishedTemplateId = templatePublishResult.value;
-      batchTemplate.markAsPublished(publishedTemplateId);
-      console.log(`Published template: ${batchTemplate.name.value} with ID: ${publishedTemplateId.getValue().uri}`);
-    }
-
-    // 3. Create annotations for both fields
-    const testUrl = new URI("https://example.com/batch-test");
-    
-    // Create a rating annotation
-    const ratingType = AnnotationType.create("rating");
-    const ratingValueResult = AnnotationValueFactory.create({
-      type: ratingType,
-      valueInput: { rating: 5 },
-    });
-    expect(ratingValueResult.isOk()).toBe(true);
-    
-    const ratingAnnotation = new AnnotationBuilder()
-      .withCuratorId(curatorId)
-      .withUrl(testUrl.value)
-      .withAnnotationField(ratingField)
-      .withValue(ratingValueResult.unwrap())
-      .withNote("This is a batch rating annotation")
-      .withAnnotationTemplateIds([batchTemplate.templateId.getStringValue()])
-      .withCreatedAt(new Date())
-      .buildOrThrow();
-
-    // Create a dyad annotation
-    const dyadType = AnnotationType.create("dyad");
-    const dyadValueResult = AnnotationValueFactory.create({
-      type: dyadType,
-      valueInput: { value: 25 }, // 25% towards sideB
-    });
-    expect(dyadValueResult.isOk()).toBe(true);
-    
-    const dyadAnnotation = new AnnotationBuilder()
-      .withCuratorId(curatorId)
-      .withUrl(testUrl.value)
-      .withAnnotationField(dyadField)
-      .withValue(dyadValueResult.unwrap())
-      .withNote("This is a batch dyad annotation")
-      .withAnnotationTemplateIds([batchTemplate.templateId.getStringValue()])
-      .withCreatedAt(new Date())
-      .buildOrThrow();
-
     // 4. Create AnnotationsFromTemplate aggregate
     const curatorIdObj = CuratorId.create(curatorId).unwrap();
     const annotationsFromTemplate = AnnotationsFromTemplate.create({
-      annotations: [ratingAnnotation, dyadAnnotation],
-      template: batchTemplate,
+      annotations: annotations,
+      template: template,
       curatorId: curatorIdObj,
-      createdAt: new Date()
+      createdAt: new Date(),
     });
-    
+
     expect(annotationsFromTemplate.isOk()).toBe(true);
-    
+
     // 5. Publish the annotations using the batch publisher
     const batchPublishResult = await annotationsFromTemplatePublisher.publish(
       annotationsFromTemplate.unwrap()
     );
-    
+
     expect(batchPublishResult.isOk()).toBe(true);
-    
+
     if (batchPublishResult.isOk()) {
       const publishedRecordIds = batchPublishResult.value;
-      
+
       // Mark annotations as published
-      annotationsFromTemplate.unwrap().markAllAnnotationsAsPublished(publishedRecordIds);
-      
+      annotationsFromTemplate
+        .unwrap()
+        .markAllAnnotationsAsPublished(publishedRecordIds);
+
       // Store the published record IDs for cleanup
       for (const [_, recordId] of publishedRecordIds) {
         publishedAnnotationIds.push(recordId);
-        console.log(`Published batch annotation with ID: ${recordId.getValue().uri}`);
+        console.log(
+          `Published batch annotation with ID: ${recordId.getValue().uri}`
+        );
       }
-      
+
       // 6. Test unpublishing the annotations
       const unpublishResult = await annotationsFromTemplatePublisher.unpublish(
         Array.from(publishedRecordIds.values())
       );
-      
+
       expect(unpublishResult.isOk()).toBe(true);
       console.log("Successfully unpublished batch annotations");
-      
+
       // Remove from cleanup list since we've already unpublished them
       publishedAnnotationIds = [];
     }

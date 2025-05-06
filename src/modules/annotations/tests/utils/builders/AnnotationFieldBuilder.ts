@@ -80,13 +80,13 @@ export class AnnotationFieldBuilder {
   }
 
   withSingleSelectDefinition(props: ISelectFieldDefProps): this {
-    this._definitionProps = props;
+    this._definitionProps = { ...props, _type: 'singleSelect' };
     this._definition = undefined;
     return this;
   }
 
   withMultiSelectDefinition(props: ISelectFieldDefProps): this {
-    this._definitionProps = props;
+    this._definitionProps = { ...props, _type: 'multiSelect' };
     this._definition = undefined;
     return this;
   }
@@ -125,12 +125,15 @@ export class AnnotationFieldBuilder {
       } else if ("numberOfStars" in this._definitionProps) {
         definitionResult = RatingFieldDef.create(); // No props needed
       } else if ("options" in this._definitionProps) {
-        // Try both select types - assumes structure is sufficient to distinguish
-        // Or rely on a 'type' hint if added to builder state
-        // For simplicity, let's assume SingleSelect first, then MultiSelect
-        definitionResult = SingleSelectFieldDef.create(this._definitionProps);
-        if (definitionResult.isErr()) {
-          definitionResult = MultiSelectFieldDef.create(this._definitionProps);
+        // Use the _type property to determine which select type to create
+        if (this._definitionProps._type === 'multiSelect') {
+          // Create a clean copy of props without the _type marker
+          const { _type, ...cleanProps } = this._definitionProps;
+          definitionResult = MultiSelectFieldDef.create(cleanProps);
+        } else {
+          // Default to SingleSelect (includes explicit 'singleSelect' type)
+          const { _type, ...cleanProps } = this._definitionProps;
+          definitionResult = SingleSelectFieldDef.create(cleanProps);
         }
       } else {
         definitionResult = err(

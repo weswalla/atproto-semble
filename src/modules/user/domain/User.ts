@@ -41,17 +41,13 @@ export class User extends AggregateRoot<UserProps> {
 
   public recordLogin(): void {
     this.props.lastLoginAt = new Date();
-    this.addDomainEvent(new UserLoggedInEvent(this));
   }
 
   private constructor(props: UserProps, id?: UniqueEntityID) {
     super(props, id);
   }
 
-  public static create(
-    props: UserProps,
-    id?: UniqueEntityID
-  ): Result<User> {
+  public static create(props: UserProps, id?: UniqueEntityID): Result<User> {
     const guardArgs: IGuardArgument[] = [
       { argument: props.did, argumentName: "did" },
       { argument: props.linkedAt, argumentName: "linkedAt" },
@@ -64,27 +60,19 @@ export class User extends AggregateRoot<UserProps> {
       return err(new Error(guardResult.error));
     }
 
-    const isNewUser = !id;
     const user = new User(props, id);
-    
-    if (isNewUser) {
-      user.addDomainEvent(new UserLinkedEvent(user));
-    }
 
     return ok(user);
   }
 
-  public static createNew(
-    did: DID,
-    handle?: Handle
-  ): Result<User> {
+  public static createNew(did: DID, handle?: Handle): Result<User> {
     const now = new Date();
-    
+
     return User.create({
       did,
       handle,
       linkedAt: now,
-      lastLoginAt: now
+      lastLoginAt: now,
     });
   }
 }

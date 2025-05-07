@@ -11,7 +11,7 @@ export class OAuthClientFactory {
   ): Promise<NodeOAuthClient> {
     const url = baseUrl || "http://localhost:3000";
     const enc = encodeURIComponent;
-    
+
     return new NodeOAuthClient({
       clientMetadata: {
         client_name: appName,

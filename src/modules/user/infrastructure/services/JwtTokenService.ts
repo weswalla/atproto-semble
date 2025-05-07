@@ -28,7 +28,9 @@ export class JwtTokenService implements ITokenService {
       const refreshToken = uuidv4();
       const tokenId = uuidv4();
       const now = new Date();
-      const expiresAt = new Date(now.getTime() + this.refreshTokenExpiresIn * 1000);
+      const expiresAt = new Date(
+        now.getTime() + this.refreshTokenExpiresIn * 1000
+      );
 
       // Store refresh token
       await this.db.insert(authRefreshTokens).values({
@@ -37,15 +39,15 @@ export class JwtTokenService implements ITokenService {
         refreshToken,
         issuedAt: now,
         expiresAt,
-        revoked: false
+        revoked: false,
       });
 
       return ok({
         accessToken,
         refreshToken,
-        expiresIn: this.accessTokenExpiresIn
+        expiresIn: this.accessTokenExpiresIn,
       });
-    } catch (error) {
+    } catch (error: any) {
       return err(error);
     }
   }
@@ -78,7 +80,10 @@ export class JwtTokenService implements ITokenService {
       }
 
       const tokenData = result[0];
-      
+      if (!tokenData) {
+        return err(new Error("Token not found"));
+      }
+
       // Check if token is expired
       if (new Date() > tokenData.expiresAt) {
         await this.revokeToken(refreshToken);
@@ -87,12 +92,12 @@ export class JwtTokenService implements ITokenService {
 
       // Generate new tokens
       const newTokens = await this.generateToken(tokenData.userDid);
-      
+
       // Revoke old token
       await this.revokeToken(refreshToken);
-      
+
       return newTokens;
-    } catch (error) {
+    } catch (error: any) {
       return err(error);
     }
   }
@@ -103,9 +108,9 @@ export class JwtTokenService implements ITokenService {
         .update(authRefreshTokens)
         .set({ revoked: true })
         .where(eq(authRefreshTokens.refreshToken, refreshToken));
-      
+
       return ok(undefined);
-    } catch (error) {
+    } catch (error: any) {
       return err(error);
     }
   }

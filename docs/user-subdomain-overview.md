@@ -67,10 +67,11 @@ This document outlines the Domain-Driven Design (DDD) approach for the User subd
 - **IOAuthProcessor**:
   - `processCallback(params: OAuthCallbackDTO): Promise<AuthResult>`
   - `generateAuthUrl(handle?: string): Promise<string>`
-- **ISessionService**:
-  - `createSession(did: string): Promise<string>`
-  - `validateSession(sessionId: string): Promise<string | null>`
-  - `destroySession(sessionId: string): Promise<void>`
+- **ITokenService**:
+  - `generateToken(did: string): Promise<TokenPair>`
+  - `validateToken(token: string): Promise<string | null>` // Returns DID if valid
+  - `refreshToken(refreshToken: string): Promise<TokenPair | null>`
+  - `revokeToken(refreshToken: string): Promise<void>`
 
 ## Infrastructure Layer
 
@@ -83,19 +84,21 @@ This document outlines the Domain-Driven Design (DDD) approach for the User subd
 - **AtProtoOAuthProcessor**: Implements `IOAuthProcessor`
   - Wraps `NodeOAuthClient` from `@atproto/oauth-client-node`
   - Handles OAuth flow and token management
-- **SessionService**: Implements `ISessionService`
-  - Uses `iron-session` for secure cookie-based sessions
-  - Manages session lifecycle
+- **TokenService**: Implements `ITokenService`
+  - Generates and validates JWT tokens for API authentication
+  - Manages token lifecycle and refresh
 
 ### API / Controllers
 - **AuthController**:
   - `/login`: Initiates OAuth flow
   - `/oauth/callback`: Handles OAuth callback
-  - `/logout`: Handles user logout
+  - `/oauth/token`: Issues JWT tokens after successful OAuth
+  - `/oauth/refresh`: Refreshes access token using refresh token
+  - `/oauth/revoke`: Revokes refresh token
 - **UserController**:
   - `/me`: Returns current user information
 - **AuthMiddleware**:
-  - `ensureAuthenticated`: Validates session and attaches user to request
+  - `ensureAuthenticated`: Validates JWT token and attaches user to request
 
 ## Implementation Details
 
@@ -103,15 +106,16 @@ This document outlines the Domain-Driven Design (DDD) approach for the User subd
 1. User initiates login via `/login` endpoint
 2. System redirects to PDS for authentication
 3. PDS redirects back to `/oauth/callback` with authorization code
-4. System exchanges code for tokens via `NodeOAuthClient`
-5. System creates/updates User entity and establishes session
-6. User receives encrypted session cookie
+4. System exchanges code for PDS tokens via `NodeOAuthClient`
+5. System creates/updates User entity and generates JWT tokens
+6. Client receives access and refresh tokens in response
 
-### Session Management
-- Server-side session state stored in database
-- Client receives encrypted `HttpOnly` cookie
-- Session contains minimal information (primarily user DID)
-- Full ATProto session restored as needed using stored refresh tokens
+### Token Management
+- JWT-based authentication with access and refresh tokens
+- Access tokens are short-lived (e.g., 1 hour)
+- Refresh tokens are longer-lived (e.g., 30 days)
+- Tokens contain minimal claims (primarily user DID)
+- Full ATProto session restored as needed using stored PDS refresh tokens
 
 ### Token Refresh
 - Access tokens automatically refreshed via `NodeOAuthClient`
@@ -130,11 +134,16 @@ CREATE TABLE users (
 );
 ```
 
-### Auth Session Table
+### Auth Tokens Table
 ```sql
-CREATE TABLE auth_session (
-  key TEXT PRIMARY KEY,  -- DID
-  session TEXT NOT NULL  -- JSON containing OAuth session data
+CREATE TABLE auth_refresh_tokens (
+  token_id TEXT PRIMARY KEY,
+  user_did TEXT NOT NULL,
+  refresh_token TEXT NOT NULL,
+  issued_at TIMESTAMP NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  revoked BOOLEAN DEFAULT FALSE,
+  FOREIGN KEY (user_did) REFERENCES users(id)
 );
 ```
 

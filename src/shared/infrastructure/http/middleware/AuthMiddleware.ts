@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import { ITokenService } from "../../../../modules/user/application/services/ITokenService";
-import { Result } from "../../../core/Result";
 
 export interface AuthenticatedRequest extends Request {
   did?: string;
@@ -10,7 +9,11 @@ export class AuthMiddleware {
   constructor(private tokenService: ITokenService) {}
 
   public ensureAuthenticated() {
-    return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    return async (
+      req: AuthenticatedRequest,
+      res: Response,
+      next: NextFunction
+    ) => {
       try {
         // Extract token from Authorization header
         const authHeader = req.headers.authorization;
@@ -39,7 +42,11 @@ export class AuthMiddleware {
   }
 
   public optionalAuth() {
-    return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    return async (
+      req: AuthenticatedRequest,
+      res: Response,
+      next: NextFunction
+    ) => {
       try {
         // Extract token from Authorization header
         const authHeader = req.headers.authorization;
@@ -57,7 +64,7 @@ export class AuthMiddleware {
           // Attach user DID to request for use in controllers
           req.did = didResult.value;
         }
-        
+
         // Continue to the controller regardless of token validity
         next();
       } catch (error) {

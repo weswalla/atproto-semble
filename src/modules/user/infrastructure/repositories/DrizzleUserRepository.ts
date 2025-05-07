@@ -24,7 +24,10 @@ export class DrizzleUserRepository implements IUserRepository {
       }
 
       const userData = result[0];
-      
+
+      if (!userData) {
+        return ok(null);
+      }
       // Create handle value object if it exists
       let handle: Handle | undefined;
       if (userData.handle) {
@@ -40,7 +43,7 @@ export class DrizzleUserRepository implements IUserRepository {
           did,
           handle,
           linkedAt: userData.linkedAt,
-          lastLoginAt: userData.lastLoginAt
+          lastLoginAt: userData.lastLoginAt,
         },
         new UniqueEntityID(did.value)
       );
@@ -50,7 +53,7 @@ export class DrizzleUserRepository implements IUserRepository {
       }
 
       return ok(userResult.value);
-    } catch (error) {
+    } catch (error: any) {
       return err(error);
     }
   }
@@ -63,18 +66,18 @@ export class DrizzleUserRepository implements IUserRepository {
           id: user.did.value,
           handle: user.handle?.value,
           linkedAt: user.linkedAt,
-          lastLoginAt: user.lastLoginAt
+          lastLoginAt: user.lastLoginAt,
         })
         .onConflictDoUpdate({
           target: users.id,
           set: {
             handle: user.handle?.value,
-            lastLoginAt: user.lastLoginAt
-          }
+            lastLoginAt: user.lastLoginAt,
+          },
         });
 
       return ok(undefined);
-    } catch (error) {
+    } catch (error: any) {
       return err(error);
     }
   }

@@ -99,6 +99,8 @@ This document outlines the Domain-Driven Design (DDD) approach for the User subd
   - `/me`: Returns current user information
 - **AuthMiddleware**:
   - `ensureAuthenticated`: Validates JWT token and attaches user to request
+  - Used across all protected routes in different subdomains
+  - Acts as a gatekeeper at the infrastructure layer
 
 ## Implementation Details
 
@@ -109,6 +111,8 @@ This document outlines the Domain-Driven Design (DDD) approach for the User subd
 4. System exchanges code for PDS tokens via `NodeOAuthClient`
 5. System creates/updates User entity and generates JWT tokens
 6. Client receives access and refresh tokens in response
+7. Client includes access token in subsequent API requests
+8. AuthMiddleware validates tokens for protected routes
 
 ### Token Management
 - JWT-based authentication with access and refresh tokens
@@ -158,4 +162,8 @@ CREATE TABLE auth_state (
 
 ## Conclusion
 
-This DDD approach to the User subdomain provides a clean separation of concerns while maintaining a minimal set of abstractions. The domain model focuses on the core concept of a User linked to an external ATProto identity, while the infrastructure layer handles the complexities of OAuth authentication and session management.
+This DDD approach to the User subdomain provides a clean separation of concerns while maintaining a minimal set of abstractions. The domain model focuses on the core concept of a User linked to an external ATProto identity, while the infrastructure layer handles the complexities of OAuth authentication and token management.
+
+The AuthMiddleware component serves as a critical cross-cutting concern that enforces authentication across all protected routes in the application. By implementing this middleware at the infrastructure layer, we maintain a clean separation between authentication logic and business logic, allowing other subdomains to focus on their core responsibilities while still benefiting from a consistent authentication mechanism.
+
+For more details on the authentication middleware implementation, see [auth-middleware.md](./auth-middleware.md).

@@ -15,23 +15,36 @@ export type InitiateOAuthSignInResponse = Result<
 >;
 
 export class InitiateOAuthSignInUseCase
-  implements UseCase<InitiateOAuthSignInDTO, Promise<InitiateOAuthSignInResponse>>
+  implements
+    UseCase<InitiateOAuthSignInDTO, Promise<InitiateOAuthSignInResponse>>
 {
   constructor(private oauthProcessor: IOAuthProcessor) {}
 
-  async execute(request: InitiateOAuthSignInDTO): Promise<InitiateOAuthSignInResponse> {
+  async execute(
+    request: InitiateOAuthSignInDTO
+  ): Promise<InitiateOAuthSignInResponse> {
     try {
-      // Validate handle if provided
-      if (request.handle) {
-        const handleOrError = Handle.create(request.handle);
-        if (handleOrError.isErr()) {
-          return err(new InitiateOAuthSignInErrors.InvalidHandleError(handleOrError.error.message));
-        }
+      if (!request.handle) {
+        return err(
+          new InitiateOAuthSignInErrors.InvalidHandleError(
+            "Handle is required for OAuth sign-in"
+          )
+        );
+      }
+      const handleOrError = Handle.create(request.handle);
+      if (handleOrError.isErr()) {
+        return err(
+          new InitiateOAuthSignInErrors.InvalidHandleError(
+            handleOrError.error.message
+          )
+        );
       }
 
       // Generate auth URL
-      const authUrlResult = await this.oauthProcessor.generateAuthUrl(request.handle);
-      
+      const authUrlResult = await this.oauthProcessor.generateAuthUrl(
+        request.handle
+      );
+
       if (authUrlResult.isErr()) {
         return err(new AppError.UnexpectedError(authUrlResult.error));
       }

@@ -8,7 +8,6 @@ import { OAuthCallbackDTO } from "../dtos/OAuthCallbackDTO";
 import { TokenPair } from "../dtos/TokenDTO";
 import { DID } from "../../domain/value-objects/DID";
 import { Handle } from "../../domain/value-objects/Handle";
-import { User } from "../../domain/User";
 import { CompleteOAuthSignInErrors } from "./errors/CompleteOAuthSignInErrors";
 import { IUserAuthenticationService } from "../../domain/services/IUserAuthenticationService";
 
@@ -30,7 +29,9 @@ export class CompleteOAuthSignInUseCase
     private userAuthService: IUserAuthenticationService
   ) {}
 
-  async execute(request: OAuthCallbackDTO): Promise<CompleteOAuthSignInResponse> {
+  async execute(
+    request: OAuthCallbackDTO
+  ): Promise<CompleteOAuthSignInResponse> {
     try {
       // Validate callback parameters
       if (!request.code || !request.state) {
@@ -39,15 +40,23 @@ export class CompleteOAuthSignInUseCase
 
       // Process OAuth callback
       const authResult = await this.oauthProcessor.processCallback(request);
-      
+
       if (authResult.isErr()) {
-        return err(new CompleteOAuthSignInErrors.AuthenticationFailedError(authResult.error.message));
+        return err(
+          new CompleteOAuthSignInErrors.AuthenticationFailedError(
+            authResult.error.message
+          )
+        );
       }
 
       // Create DID value object
       const didOrError = DID.create(authResult.value.did);
       if (didOrError.isErr()) {
-        return err(new CompleteOAuthSignInErrors.AuthenticationFailedError(didOrError.error.message));
+        return err(
+          new CompleteOAuthSignInErrors.AuthenticationFailedError(
+            didOrError.error.message
+          )
+        );
       }
       const did = didOrError.value;
 
@@ -61,25 +70,34 @@ export class CompleteOAuthSignInUseCase
       }
 
       // Validate user credentials through domain service
-      const authenticationResult = await this.userAuthService.validateUserCredentials(did, handle);
-      
+      const authenticationResult =
+        await this.userAuthService.validateUserCredentials(did, handle);
+
       if (authenticationResult.isErr()) {
-        return err(new CompleteOAuthSignInErrors.AuthenticationFailedError(authenticationResult.error.message));
+        return err(
+          new CompleteOAuthSignInErrors.AuthenticationFailedError(
+            authenticationResult.error.message
+          )
+        );
       }
 
       const user = authenticationResult.value.user;
-      
+
       // Record login
       user.recordLogin();
-      
+
       // Save updated user
       await this.userRepository.save(user);
 
       // Generate tokens
       const tokenResult = await this.tokenService.generateToken(did.value);
-      
+
       if (tokenResult.isErr()) {
-        return err(new CompleteOAuthSignInErrors.TokenGenerationError(tokenResult.error.message));
+        return err(
+          new CompleteOAuthSignInErrors.TokenGenerationError(
+            tokenResult.error.message
+          )
+        );
       }
 
       return ok(tokenResult.value);

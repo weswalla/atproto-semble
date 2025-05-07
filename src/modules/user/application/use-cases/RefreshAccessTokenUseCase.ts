@@ -19,10 +19,14 @@ export class RefreshAccessTokenUseCase
 {
   constructor(private tokenService: ITokenService) {}
 
-  async execute(request: RefreshAccessTokenDTO): Promise<RefreshAccessTokenResponse> {
+  async execute(
+    request: RefreshAccessTokenDTO
+  ): Promise<RefreshAccessTokenResponse> {
     try {
-      const tokenResult = await this.tokenService.refreshToken(request.refreshToken);
-      
+      const tokenResult = await this.tokenService.refreshToken(
+        request.refreshToken
+      );
+
       if (tokenResult.isErr()) {
         return err(new AppError.UnexpectedError(tokenResult.error));
       }

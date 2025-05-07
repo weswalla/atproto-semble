@@ -10,13 +10,13 @@ export class UserMap {
       did: user.did.value,
       handle: user.handle?.value,
       linkedAt: user.linkedAt,
-      lastLoginAt: user.lastLoginAt
+      lastLoginAt: user.lastLoginAt,
     };
   }
 
   public static toDomain(dto: UserDTO): User {
     const didOrError = DID.create(dto.did);
-    
+
     if (didOrError.isErr()) {
       throw new Error(`Could not create DID: ${didOrError.error.message}`);
     }
@@ -29,12 +29,15 @@ export class UserMap {
       }
     }
 
-    const userOrError = User.create({
-      did: didOrError.value,
-      handle,
-      linkedAt: dto.linkedAt,
-      lastLoginAt: dto.lastLoginAt
-    }, new UniqueEntityID(dto.did));
+    const userOrError = User.create(
+      {
+        did: didOrError.value,
+        handle,
+        linkedAt: dto.linkedAt,
+        lastLoginAt: dto.lastLoginAt,
+      },
+      new UniqueEntityID(dto.did)
+    );
 
     if (userOrError.isErr()) {
       throw new Error(`Could not create User: ${userOrError.error.message}`);

@@ -4,8 +4,6 @@ import { Guard, IGuardArgument } from "src/shared/core/Guard";
 import { err, ok, Result } from "src/shared/core/Result";
 import { DID } from "./value-objects/DID";
 import { Handle } from "./value-objects/Handle";
-import { UserLinkedEvent } from "./events/UserLinkedEvent";
-import { UserLoggedInEvent } from "./events/UserLoggedInEvent";
 
 export interface UserProps {
   did: DID;

@@ -24,26 +24,26 @@ export class GetCurrentUserUseCase
   async execute(request: GetCurrentUserDTO): Promise<GetCurrentUserResponse> {
     try {
       const didOrError = DID.create(request.did);
-      
+
       if (didOrError.isErr()) {
         return err(new GetCurrentUserErrors.UserNotFoundError());
       }
 
       const userResult = await this.userRepository.findByDID(didOrError.value);
-      
+
       if (userResult.isErr()) {
         return err(new AppError.UnexpectedError(userResult.error));
       }
 
       const user = userResult.value;
-      
+
       if (!user) {
         return err(new GetCurrentUserErrors.UserNotFoundError());
       }
 
       // Map domain entity to DTO
       const userDTO = UserMap.toDTO(user);
-      
+
       return ok(userDTO);
     } catch (error: any) {
       return err(new AppError.UnexpectedError(error));

@@ -9,6 +9,7 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:e2e": "jest src/modules/user/tests/e2e/OAuthSignInFlow.test.ts --testTimeout=300000",
     "build:watch": "tsc --watch",
     "lexgen": "lex gen-server ./src/modules/atproto/infrastructure/lexicon ./src/modules/atproto/infrastructure/lexicons/*"
   },

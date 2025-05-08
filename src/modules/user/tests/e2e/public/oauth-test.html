@@ -78,6 +78,15 @@
           document.getElementById('callback-response').textContent = JSON.stringify(data, null, 2);
           // Make the container visible immediately when we have data
           document.getElementById('callback-container').style.display = 'block';
+          
+          // Signal test completion if this is from the test
+          if (data.testComplete) {
+            // Add a test-complete element that the test can wait for
+            const testComplete = document.createElement('div');
+            testComplete.id = 'test-complete';
+            testComplete.style.display = 'none';
+            document.body.appendChild(testComplete);
+          }
         })
         .catch(error => {
           document.getElementById('callback-response').textContent = JSON.stringify({

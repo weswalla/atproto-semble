@@ -89,11 +89,15 @@ describe("OAuth Sign-In Flow", () => {
       res.json({ authUrl: result.unwrap().authUrl });
     });
 
+    // Store tokens globally so we can access them in the test
+    let oauthTokens: any = null;
+
     app.get("/api/user/oauth/callback", async (req, res) => {
       const { code, state, iss } = req.query;
 
       if (!code || !state || !iss) {
         res.status(400).json({ error: "Missing required parameters" });
+        return;
       }
 
       // Use the CompleteOAuthSignInUseCase to process the callback
@@ -105,12 +109,17 @@ describe("OAuth Sign-In Flow", () => {
 
       if (result.isErr()) {
         res.status(400).json({ error: result.error });
+        return;
       }
+
+      // Store tokens for test verification
+      oauthTokens = result.unwrap();
 
       // Return the tokens
       res.json({
         message: "Authentication successful",
-        tokens: result.unwrap(),
+        tokens: oauthTokens,
+        testComplete: true,
       });
     });
 
@@ -303,49 +312,30 @@ describe("OAuth Sign-In Flow", () => {
       throw error;
     }
 
-    // Wait for the callback results to be displayed
-    console.log("Waiting for callback response to be displayed...");
+    // Wait for the test-complete element to appear, which signals the callback was processed
+    console.log("Waiting for OAuth flow to complete...");
 
-    // Wait for the callback container to be visible
-    await page
-      .waitForSelector("#callback-container:visible", { timeout: 10000 })
-      .catch((e) =>
-        console.log("Callback container not visible yet, continuing anyway")
-      );
+    try {
+      // Wait for the test-complete element that's added when the callback is successful
+      await page.waitForSelector("#test-complete", { timeout: 10000 });
+      console.log("Test complete element found, OAuth flow completed!");
 
-    // Wait for the callback response to contain data
-    let response = {};
-    let attempts = 0;
-    const maxAttempts = 10;
+      // Take a final screenshot
+      await page.screenshot({ path: "final-callback-page.png" });
 
-    while (attempts < maxAttempts) {
-      try {
-        // Get the response text
-        const responseText = await page.textContent("#callback-response");
-        if (responseText && responseText.includes("accessToken")) {
-          response = JSON.parse(responseText);
-          if (response.tokens?.accessToken) {
-            console.log("Found valid response with tokens!");
-            break;
-          }
-        }
-      } catch (e) {
-        console.log(`Attempt ${attempts + 1}: Response not ready yet`);
-      }
+      // Close the browser early since we're done
+      await browser.close();
 
-      // Wait before trying again
-      await page.waitForTimeout(1000);
-      attempts++;
+      // Verify that we received tokens in the global variable
+      expect(oauthTokens).toBeTruthy();
+      expect(oauthTokens).toHaveProperty("accessToken");
+      expect(oauthTokens).toHaveProperty("refreshToken");
+
+      console.log("OAuth flow completed successfully!");
+    } catch (error) {
+      console.error("Error waiting for test completion:", error);
+      await page.screenshot({ path: "test-completion-error.png" });
+      throw error;
     }
-
-    // Take a final screenshot
-    await page.screenshot({ path: "final-callback-page.png" });
-
-    // Verify that we received tokens in the response
-    expect(response).toHaveProperty("tokens");
-    expect(response.tokens).toHaveProperty("accessToken");
-    expect(response.tokens).toHaveProperty("refreshToken");
-
-    console.log("OAuth flow completed successfully!");
   });
 });

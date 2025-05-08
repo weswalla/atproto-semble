@@ -23,12 +23,13 @@ export class CreateAndPublishAnnotationsFromTemplateController extends Controlle
         return this.badRequest(res, "Missing required parameters");
       }
 
-      const result = await this.createAndPublishAnnotationsFromTemplateUseCase.execute({
-        curatorId,
-        url,
-        templateId,
-        annotations
-      });
+      const result =
+        await this.createAndPublishAnnotationsFromTemplateUseCase.execute({
+          curatorId,
+          url,
+          templateId,
+          annotations,
+        });
 
       if (result.isErr()) {
         return this.fail(res, result.error as any);

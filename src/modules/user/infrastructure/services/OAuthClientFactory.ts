@@ -35,11 +35,11 @@ export class OAuthClientFactory {
     };
   }
 
-  static async createClient(
+  static createClient(
     db: PostgresJsDatabase,
     baseUrl: string,
     appName: string = "Annotation App"
-  ): Promise<NodeOAuthClient> {
+  ): NodeOAuthClient {
     const { clientMetadata } = this.getClientMetadata(baseUrl, appName);
     const stateStore = new DrizzleStateStore(db);
     const sessionStore = new DrizzleSessionStore(db);

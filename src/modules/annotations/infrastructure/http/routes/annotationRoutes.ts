@@ -13,9 +13,12 @@ export const createAnnotationRoutes = (
   router.post("/templates", authMiddleware.ensureAuthenticated(), (req, res) =>
     createAndPublishAnnotationTemplateController.execute(req, res)
   );
-  
-  router.post("/annotations/from-template", authMiddleware.ensureAuthenticated(), (req, res) =>
-    createAndPublishAnnotationsFromTemplateController.execute(req, res)
+
+  router.post(
+    "/annotations/from-template",
+    authMiddleware.ensureAuthenticated(),
+    (req, res) =>
+      createAndPublishAnnotationsFromTemplateController.execute(req, res)
   );
 
   return router;

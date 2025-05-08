@@ -1,5 +1,5 @@
-import { createExpressApp } from './infrastructure/http/app';
-import dotenv from 'dotenv';
+import { createExpressApp } from "./infrastructure/http/app";
+import dotenv from "dotenv";
 
 // Load environment variables
 dotenv.config();

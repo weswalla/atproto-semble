@@ -233,8 +233,8 @@ describe("OAuth Sign-In Flow", () => {
           "Not yet redirected to callback, looking for authorize button..."
         );
 
-        // Wait a moment for any page transitions
-        await page.waitForTimeout(2000);
+        // Wait a shorter time for page transitions
+        await page.waitForTimeout(500);
 
         // Take another screenshot to see the current state
         await page.screenshot({ path: "authorize-page.png" });

@@ -10,17 +10,17 @@ export class InitiateOAuthSignInController extends Controller {
   async executeImpl(req: Request, res: Response): Promise<any> {
     try {
       const { handle } = req.query;
-      
+
       const result = await this.initiateOAuthSignInUseCase.execute({
-        handle: handle as string | undefined
+        handle: handle as string | undefined,
       });
 
       if (result.isErr()) {
-        return this.fail(res, result.error.message);
+        return this.fail(res, result.error as any);
       }
 
       return this.ok(res, { authUrl: result.value });
-    } catch (error) {
+    } catch (error: any) {
       return this.fail(res, error);
     }
   }

@@ -10,21 +10,21 @@ export class RefreshAccessTokenController extends Controller {
   async executeImpl(req: Request, res: Response): Promise<any> {
     try {
       const { refreshToken } = req.body;
-      
+
       if (!refreshToken) {
         return this.badRequest(res, "Refresh token is required");
       }
 
       const result = await this.refreshAccessTokenUseCase.execute({
-        refreshToken
+        refreshToken,
       });
 
       if (result.isErr()) {
-        return this.fail(res, result.error.message);
+        return this.fail(res, result.error as any);
       }
 
       return this.ok(res, result.value);
-    } catch (error) {
+    } catch (error: any) {
       return this.fail(res, error);
     }
   }

@@ -13,12 +13,13 @@ export class AuthMiddleware {
       req: AuthenticatedRequest,
       res: Response,
       next: NextFunction
-    ) => {
+    ): Promise<void> => {
       try {
         // Extract token from Authorization header
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
-          return res.status(401).json({ message: "No access token provided" });
+          res.status(401).json({ message: "No access token provided" });
+          return; // Stop execution after sending a response
         }
 
         const token = authHeader.substring(7); // Remove 'Bearer ' prefix
@@ -27,16 +28,17 @@ export class AuthMiddleware {
         const didResult = await this.tokenService.validateToken(token);
 
         if (didResult.isErr() || !didResult.value) {
-          return res.status(403).json({ message: "Invalid or expired token" });
+          res.status(403).json({ message: "Invalid or expired token" });
+          return; // Stop execution after sending a response
         }
 
         // Attach user DID to request for use in controllers
         req.did = didResult.value;
 
-        // Continue to the controller
+        // Continue to the next middleware or controller
         next();
       } catch (error) {
-        return res.status(500).json({ message: "Authentication error" });
+        res.status(500).json({ message: "Authentication error" });
       }
     };
   }

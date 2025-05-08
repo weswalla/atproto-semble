@@ -15,15 +15,15 @@ export class GetCurrentUserController extends Controller {
       }
 
       const result = await this.getCurrentUserUseCase.execute({
-        did: req.did
+        did: req.did,
       });
 
       if (result.isErr()) {
-        return this.fail(res, result.error.message);
+        return this.fail(res, result.error as any);
       }
 
       return this.ok(res, result.value);
-    } catch (error) {
+    } catch (error: any) {
       return this.fail(res, error);
     }
   }

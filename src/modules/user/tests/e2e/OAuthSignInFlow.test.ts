@@ -140,16 +140,85 @@ describe("OAuth Sign-In Flow", () => {
     await page.waitForNavigation();
 
     // We should now be on the Bluesky login page
-    // Enter credentials and authorize
+    // Wait for the login form to be fully loaded
+    await page.waitForLoadState('networkidle');
+    
+    // The page is a React app, so we need to wait for elements to be available
+    await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+    await page.waitForSelector('input[type="password"]', { timeout: 10000 });
+    
+    // Enter credentials
     await page.fill('input[type="text"]', TEST_HANDLE);
     await page.fill('input[type="password"]', TEST_PASSWORD);
-
-    // Click the login/authorize button
-    // Note: The actual selector may need to be adjusted based on Bluesky's login page structure
-    await page.click('button[type="submit"]');
+    
+    // Click the login/authorize button - using a more specific selector
+    // In React apps, sometimes we need to wait a bit after filling inputs
+    await page.waitForTimeout(1000);
+    
+    // Find and click the submit button (could be different selectors)
+    try {
+      // Try different possible selectors for the submit button
+      const buttonSelectors = [
+        'button[type="submit"]',
+        'button:has-text("Sign in")',
+        'button:has-text("Authorize")',
+        'button.primary',
+        'button[aria-label="Sign in"]',
+        'form button'
+      ];
+      
+      for (const selector of buttonSelectors) {
+        const button = await page.$(selector);
+        if (button) {
+          await button.click();
+          console.log(`Clicked button with selector: ${selector}`);
+          break;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to find or click the submit button:', error);
+      // Take a screenshot to debug
+      await page.screenshot({ path: 'login-page-debug.png' });
+      throw error;
+    }
 
     // Wait for redirect back to our callback page
-    await page.waitForNavigation();
+    // Use a more robust approach to handle potential redirects
+    try {
+      await page.waitForNavigation({ timeout: 30000 });
+      
+      // Check if we're on the right page
+      const currentUrl = page.url();
+      console.log(`Redirected to: ${currentUrl}`);
+      
+      if (!currentUrl.includes('127.0.0.1:3001')) {
+        // We might need to click an additional authorize button
+        console.log('Not yet redirected to callback, looking for authorize button...');
+        
+        // Try to find and click an authorize button if present
+        const authorizeSelectors = [
+          'button:has-text("Authorize")',
+          'button:has-text("Allow")',
+          'button.authorize',
+          'button[aria-label="Authorize"]'
+        ];
+        
+        for (const selector of authorizeSelectors) {
+          const button = await page.$(selector);
+          if (button) {
+            await button.click();
+            console.log(`Clicked authorize button with selector: ${selector}`);
+            await page.waitForNavigation({ timeout: 30000 });
+            break;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Navigation error:', error);
+      // Take a screenshot to debug
+      await page.screenshot({ path: 'navigation-debug.png' });
+      throw error;
+    }
 
     // Wait for the callback results to be displayed
     await page.waitForSelector("#callback-container:visible");

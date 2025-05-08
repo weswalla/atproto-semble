@@ -9,13 +9,16 @@ export class OAuthClientFactory {
     baseUrl: string,
     appName: string = "Annotation App"
   ): Promise<NodeOAuthClient> {
+    const publicUrl = process.env.PUBLIC_URL;
     const url = baseUrl || "http://localhost:3000";
     const enc = encodeURIComponent;
 
     return new NodeOAuthClient({
       clientMetadata: {
         client_name: appName,
-        client_id: `${url}/client-metadata.json`,
+        client_id: publicUrl
+          ? `${url}/client-metadata.json`
+          : `http://localhost?redirect_uri=${enc(`${url}/oauth/callback`)}&scope=${enc("atproto transition:generic")}`,
         client_uri: url,
         redirect_uris: [`${url}/oauth/callback`],
         scope: "atproto transition:generic",

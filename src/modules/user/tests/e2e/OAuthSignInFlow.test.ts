@@ -304,17 +304,45 @@ describe("OAuth Sign-In Flow", () => {
     }
 
     // Wait for the callback results to be displayed
-    // change how we wait for the callback response
-    await page.waitForTimeout(2000); // Wait for 2 seconds to ensure the response is fully loaded
-
+    console.log("Waiting for callback response to be displayed...");
+    
+    // Wait for the callback container to be visible
+    await page.waitForSelector("#callback-container:visible", { timeout: 10000 })
+      .catch(e => console.log("Callback container not visible yet, continuing anyway"));
+    
+    // Wait for the callback response to contain data
+    let response = {};
+    let attempts = 0;
+    const maxAttempts = 10;
+    
+    while (attempts < maxAttempts) {
+      try {
+        // Get the response text
+        const responseText = await page.textContent("#callback-response");
+        if (responseText && responseText.includes("accessToken")) {
+          response = JSON.parse(responseText);
+          if (response.tokens?.accessToken) {
+            console.log("Found valid response with tokens!");
+            break;
+          }
+        }
+      } catch (e) {
+        console.log(`Attempt ${attempts + 1}: Response not ready yet`);
+      }
+      
+      // Wait before trying again
+      await page.waitForTimeout(1000);
+      attempts++;
+    }
+    
+    // Take a final screenshot
+    await page.screenshot({ path: "final-callback-page.png" });
+    
     // Verify that we received tokens in the response
-    const responseText = await page.textContent("#callback-response");
-    const response = JSON.parse(responseText || "{}");
-
     expect(response).toHaveProperty("tokens");
     expect(response.tokens).toHaveProperty("accessToken");
     expect(response.tokens).toHaveProperty("refreshToken");
-
+    
     console.log("OAuth flow completed successfully!");
   });
 });

@@ -72,15 +72,19 @@
       // We're on the callback page, display the results
       document.getElementById('callback-container').style.display = 'block';
       // Fetch the actual callback response from our server
-      fetch(`/api/user/oauth/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`)
+      fetch(`/api/user/oauth/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}&iss=${encodeURIComponent(urlParams.get('iss') || '')}`)
         .then(response => response.json())
         .then(data => {
           document.getElementById('callback-response').textContent = JSON.stringify(data, null, 2);
+          // Make the container visible immediately when we have data
+          document.getElementById('callback-container').style.display = 'block';
         })
         .catch(error => {
           document.getElementById('callback-response').textContent = JSON.stringify({
             error: error.message
           }, null, 2);
+          // Make the container visible even on error
+          document.getElementById('callback-container').style.display = 'block';
         });
     }
     

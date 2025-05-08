@@ -238,6 +238,10 @@ describe("OAuth Sign-In Flow", () => {
 
         // Take another screenshot to see the current state
         await page.screenshot({ path: "authorize-page.png" });
+        
+        // Wait for the authorization page to fully load, but with shorter timeouts
+        await page.waitForLoadState("networkidle", { timeout: 5000 });
+        await page.waitForTimeout(1000); // Give React app time to render
 
         // Try to find and click an authorize button if present
         const authorizeSelectors = [

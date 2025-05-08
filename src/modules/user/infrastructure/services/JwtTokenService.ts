@@ -39,7 +39,7 @@ export class JwtTokenService implements ITokenService {
         expiresAt,
         revoked: false,
       });
-      
+
       if (saveResult.isErr()) {
         return err(saveResult.error);
       }
@@ -66,12 +66,13 @@ export class JwtTokenService implements ITokenService {
   async refreshToken(refreshToken: string): Promise<Result<TokenPair | null>> {
     try {
       // Find the refresh token
-      const findResult = await this.tokenRepository.findRefreshToken(refreshToken);
-      
+      const findResult =
+        await this.tokenRepository.findRefreshToken(refreshToken);
+
       if (findResult.isErr()) {
         return err(findResult.error);
       }
-      
+
       const tokenData = findResult.unwrap();
       if (!tokenData) {
         return ok(null);
@@ -97,12 +98,13 @@ export class JwtTokenService implements ITokenService {
 
   async revokeToken(refreshToken: string): Promise<Result<void>> {
     try {
-      const revokeResult = await this.tokenRepository.revokeRefreshToken(refreshToken);
-      
+      const revokeResult =
+        await this.tokenRepository.revokeRefreshToken(refreshToken);
+
       if (revokeResult.isErr()) {
         return err(revokeResult.error);
       }
-      
+
       return ok(undefined);
     } catch (error: any) {
       return err(error);

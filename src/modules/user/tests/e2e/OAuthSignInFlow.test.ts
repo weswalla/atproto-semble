@@ -8,8 +8,11 @@ import { InitiateOAuthSignInUseCase } from "../../application/use-cases/Initiate
 import { CompleteOAuthSignInUseCase } from "../../application/use-cases/CompleteOAuthSignInUseCase";
 import { OAuthClientFactory } from "../../infrastructure/services/OAuthClientFactory";
 import { InMemoryUserRepository } from "../infrastructure/InMemoryUserRepository";
-import { InMemoryTokenService } from "../infrastructure/InMemoryTokenService";
-import { InMemoryUserAuthenticationService } from "../infrastructure/InMemoryUserAuthenticationService";
+import {
+  JwtTokenService,
+  UserAuthenticationService,
+} from "../../infrastructure";
+import { InMemoryTokenRepository } from "../infrastructure/InMemoryTokenRepository";
 
 // Load environment variables
 dotenv.config();
@@ -34,17 +37,18 @@ describe("OAuth Sign-In Flow", () => {
 
     // Create OAuth processor with the client
     const oauthProcessor = new AtProtoOAuthProcessor(oauthClient);
-    
+
     // Create in-memory services
     const userRepository = new InMemoryUserRepository();
-    const tokenService = new InMemoryTokenService();
-    const userAuthService = new InMemoryUserAuthenticationService();
+    const tokenRepository = new InMemoryTokenRepository();
+    const tokenService = new JwtTokenService(tokenRepository, "test-secret");
+    const userAuthService = new UserAuthenticationService(userRepository);
 
     // Create use cases
     const initiateOAuthSignInUseCase = new InitiateOAuthSignInUseCase(
       oauthProcessor
     );
-    
+
     const completeOAuthSignInUseCase = new CompleteOAuthSignInUseCase(
       oauthProcessor,
       tokenService,
@@ -91,7 +95,7 @@ describe("OAuth Sign-In Flow", () => {
       // Return the tokens
       res.json({
         message: "Authentication successful",
-        tokens: result.value
+        tokens: result.value,
       });
     });
 
@@ -126,6 +130,6 @@ describe("OAuth Sign-In Flow", () => {
     `);
 
     // Wait for manual testing (the test will timeout after the jest timeout)
-    await new Promise((resolve) => setTimeout(resolve, 4.5 * 60 * 1000));
+    await new Promise((resolve) => setTimeout(resolve, 60 * 1000));
   });
 });

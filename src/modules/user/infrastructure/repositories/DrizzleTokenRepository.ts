@@ -1,7 +1,10 @@
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { eq, and } from "drizzle-orm";
 import { Result, err, ok } from "src/shared/core/Result";
-import { ITokenRepository, RefreshToken } from "../../domain/repositories/ITokenRepository";
+import {
+  ITokenRepository,
+  RefreshToken,
+} from "../../domain/repositories/ITokenRepository";
 import { authRefreshTokens } from "./schema/authTokenSchema";
 
 export class DrizzleTokenRepository implements ITokenRepository {
@@ -24,7 +27,9 @@ export class DrizzleTokenRepository implements ITokenRepository {
     }
   }
 
-  async findRefreshToken(refreshToken: string): Promise<Result<RefreshToken | null>> {
+  async findRefreshToken(
+    refreshToken: string
+  ): Promise<Result<RefreshToken | null>> {
     try {
       const result = await this.db
         .select()

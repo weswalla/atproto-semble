@@ -1,26 +1,21 @@
-import { describe, it, beforeAll, afterAll } from 'vitest';
-import { chromium, Browser, Page } from 'playwright';
-import express from 'express';
-import { Server } from 'http';
-import path from 'path';
-import dotenv from 'dotenv';
-import { NodeOAuthClient, NodeSavedSessionStore, NodeSavedStateStore } from '@atproto/oauth-client-node';
-import { AtProtoOAuthProcessor } from '../../infrastructure/services/AtProtoOAuthProcessor';
-import { InitiateOAuthSignInUseCase } from '../../application/use-cases/InitiateOAuthSignInUseCase';
-import { CompleteOAuthSignInUseCase } from '../../application/use-cases/CompleteOAuthSignInUseCase';
-import { JwtTokenService } from '../../infrastructure/services/JwtTokenService';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { chromium, Browser, Page } from "playwright";
+import express from "express";
+import { Server } from "http";
+import path from "path";
+import dotenv from "dotenv";
+import { AtProtoOAuthProcessor } from "../../infrastructure/services/AtProtoOAuthProcessor";
+import { InitiateOAuthSignInUseCase } from "../../application/use-cases/InitiateOAuthSignInUseCase";
 
 // Load environment variables
 dotenv.config();
 
-describe('OAuth Sign-In Flow', () => {
+describe("OAuth Sign-In Flow", () => {
   let browser: Browser;
   let page: Page;
   let server: Server;
   const PORT = 3001;
   const BASE_URL = `http://localhost:${PORT}`;
-  
+
   // This test requires manual interaction
   // Set a longer timeout for manual testing
   jest.setTimeout(5 * 60 * 1000); // 5 minutes
@@ -28,65 +23,67 @@ describe('OAuth Sign-In Flow', () => {
   beforeAll(async () => {
     // Create OAuth client configuration
     const clientMetadata = {
-      clientId: process.env.OAUTH_CLIENT_ID || 'test-client-id',
-      clientName: 'Annos Test App',
+      clientId: process.env.OAUTH_CLIENT_ID || "test-client-id",
+      clientName: "Annos Test App",
       redirectUri: `${BASE_URL}/api/user/oauth/callback`,
-      scope: 'com.atproto.repo:read',
-      website: 'https://example.com',
+      scope: "com.atproto.repo:read",
+      website: "https://example.com",
     };
-    
+
     // Create state and session stores
     const stateStore = new NodeSavedStateStore();
     const sessionStore = new NodeSavedSessionStore();
-    
+
     // Create OAuth processor
     const oauthProcessor = new AtProtoOAuthProcessor(
       clientMetadata,
       stateStore,
       sessionStore
     );
-    
+
     // Create use cases
-    const initiateOAuthSignInUseCase = new InitiateOAuthSignInUseCase(oauthProcessor);
-    
+    const initiateOAuthSignInUseCase = new InitiateOAuthSignInUseCase(
+      oauthProcessor
+    );
+
     // Start a simple express server to serve our test page
     const app = express();
-    app.use(express.static(path.join(__dirname, 'public')));
-    
+    app.use(express.static(path.join(__dirname, "public")));
+
     // Real API endpoints using our actual implementations
-    app.get('/api/user/login', async (req, res) => {
+    app.get("/api/user/login", async (req, res) => {
       const handle = req.query.handle;
-      
+
       const result = await initiateOAuthSignInUseCase.execute({
-        handle: handle as string | undefined
+        handle: handle as string | undefined,
       });
-      
+
       if (result.isErr()) {
         return res.status(400).json({ error: result.error.message });
       }
-      
+
       return res.json({ authUrl: result.value.authUrl });
     });
-    
-    app.get('/api/user/oauth/callback', async (req, res) => {
+
+    app.get("/api/user/oauth/callback", async (req, res) => {
       // In a real implementation, this would use CompleteOAuthSignInUseCase
       // For this test, we'll just display the code and state for verification
       const { code, state } = req.query;
-      
+
       if (!code || !state) {
-        return res.status(400).json({ error: 'Missing required parameters' });
+        return res.status(400).json({ error: "Missing required parameters" });
       }
-      
+
       // Just return the code and state for manual verification
       res.json({
-        message: 'OAuth callback received',
+        message: "OAuth callback received",
         code: code as string,
-        state: state as string
+        state: state as string,
       });
     });
-    
+
     server = app.listen(PORT);
-    
+
     // Launch browser
     browser = await chromium.launch({ headless: false });
     page = await browser.newPage();
@@ -97,10 +94,10 @@ describe('OAuth Sign-In Flow', () => {
     server.close();
   });
 
-  it('should allow manual testing of the OAuth sign-in flow', async () => {
+  it("should allow manual testing of the OAuth sign-in flow", async () => {
     // Navigate to our test page
     await page.goto(`${BASE_URL}/oauth-test.html`);
-    
+
     // The rest of the test will be performed manually
     console.log(`
       Manual Test Instructions:
@@ -114,8 +111,8 @@ describe('OAuth Sign-In Flow', () => {
       The browser will stay open for 5 minutes to allow manual testing.
       Press Ctrl+C to end the test early.
     `);
-    
+
     // Wait for manual testing (the test will timeout after the jest timeout)
-    await new Promise(resolve => setTimeout(resolve, 4.5 * 60 * 1000));
+    await new Promise((resolve) => setTimeout(resolve, 4.5 * 60 * 1000));
   });
 });

@@ -25,19 +25,22 @@ describe("OAuth Sign-In Flow", () => {
 
   beforeAll(async () => {
     // Create database connection for the OAuth client
-    const connectionString = process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/annos_test";
+    const connectionString =
+      process.env.DATABASE_URL ||
+      "postgres://postgres:postgres@localhost:5432/annos_test";
     const client = postgres(connectionString);
     const db = drizzle(client);
-    
+
     // Create OAuth client using the factory
-    const oauthClient = await OAuthClientFactory.createClient(
-      db,
-      `${BASE_URL}/api/user`,
+    const oauthClient = OAuthClientFactory.getClientMetadata(
+      ``,
       "Annos Test App"
     );
-    
+
     // Create OAuth processor with the client
-    const oauthProcessor = new AtProtoOAuthProcessor(oauthClient);
+    const oauthProcessor = new AtProtoOAuthProcessor(
+      oauthClient.clientMetadata
+    );
 
     // Create use cases
     const initiateOAuthSignInUseCase = new InitiateOAuthSignInUseCase(

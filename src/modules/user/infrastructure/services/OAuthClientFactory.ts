@@ -1,4 +1,9 @@
-import { OAuthClientMetadataInput } from "@atproto/oauth-client-node";
+import { NodeOAuthClient, OAuthClientMetadataInput } from "@atproto/oauth-client-node";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { DrizzleStateStore } from "./DrizzleStateStore";
+import { DrizzleSessionStore } from "./DrizzleSessionStore";
+import { InMemoryStateStore } from "../../tests/infrastructure/InMemoryStateStore";
+import { InMemorySessionStore } from "../../tests/infrastructure/InMemorySessionStore";
 
 export class OAuthClientFactory {
   static getClientMetadata(
@@ -25,5 +30,36 @@ export class OAuthClientFactory {
         dpop_bound_access_tokens: true,
       },
     };
+  }
+
+  static async createClient(
+    db: PostgresJsDatabase,
+    baseUrl: string,
+    appName: string = "Annotation App"
+  ): Promise<NodeOAuthClient> {
+    const { clientMetadata } = this.getClientMetadata(baseUrl, appName);
+    const stateStore = new DrizzleStateStore(db);
+    const sessionStore = new DrizzleSessionStore(db);
+
+    return new NodeOAuthClient({
+      clientMetadata,
+      stateStore,
+      sessionStore,
+    });
+  }
+
+  static createInMemoryClient(
+    baseUrl: string,
+    appName: string = "Annotation App"
+  ): NodeOAuthClient {
+    const { clientMetadata } = this.getClientMetadata(baseUrl, appName);
+    const stateStore = new InMemoryStateStore();
+    const sessionStore = new InMemorySessionStore();
+
+    return new NodeOAuthClient({
+      clientMetadata,
+      stateStore,
+      sessionStore,
+    });
   }
 }

@@ -25,22 +25,11 @@ describe("OAuth Sign-In Flow", () => {
   jest.setTimeout(5 * 60 * 1000); // 5 minutes
 
   beforeAll(async () => {
-    // Create in-memory stores for testing
-    const stateStore = new InMemoryStateStore();
-    const sessionStore = new InMemorySessionStore();
-
-    // Get OAuth client metadata
-    const clientMetadataConfig = OAuthClientFactory.getClientMetadata(
+    // Create OAuth client using the factory with in-memory stores
+    const oauthClient = OAuthClientFactory.createInMemoryClient(
       `${BASE_URL}/api/user`,
       "Annos Test App"
     );
-
-    // Create OAuth client
-    const oauthClient = new NodeOAuthClient({
-      clientMetadata: clientMetadataConfig.clientMetadata,
-      stateStore,
-      sessionStore
-    });
 
     // Create OAuth processor with the client
     const oauthProcessor = new AtProtoOAuthProcessor(oauthClient);

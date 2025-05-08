@@ -20,26 +20,26 @@ export class AuthMiddleware {
       try {
         // Extract token from Authorization header
         const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-          return res.status(401).json({ message: 'No access token provided' });
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+          return res.status(401).json({ message: "No access token provided" });
         }
 
         const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
         // Validate token
         const didResult = await this.tokenService.validateToken(token);
-        
+
         if (didResult.isErr() || !didResult.value) {
-          return res.status(403).json({ message: 'Invalid or expired token' });
+          return res.status(403).json({ message: "Invalid or expired token" });
         }
 
         // Attach user DID to request for use in controllers
         req.did = didResult.value;
-        
+
         // Continue to the controller
         next();
       } catch (error) {
-        return res.status(500).json({ message: 'Authentication error' });
+        return res.status(500).json({ message: "Authentication error" });
       }
     };
   }
@@ -50,7 +50,7 @@ export class AuthMiddleware {
 
 ```typescript
 // src/modules/user/infrastructure/http/types/AuthenticatedRequest.ts
-import { Request } from 'express';
+import { Request } from "express";
 
 export interface AuthenticatedRequest extends Request {
   did: string; // The authenticated user's DID
@@ -63,9 +63,9 @@ The middleware is applied to routes that require authentication:
 
 ```typescript
 // src/modules/annotations/infrastructure/http/routes/annotationRoutes.ts
-import { Router } from 'express';
-import { AuthMiddleware } from '../../../../user/infrastructure/middleware/AuthMiddleware';
-import { CreateAnnotationController } from '../controllers/CreateAnnotationController';
+import { Router } from "express";
+import { AuthMiddleware } from "../../../../user/infrastructure/middleware/AuthMiddleware";
+import { CreateAnnotationController } from "../controllers/CreateAnnotationController";
 
 export const createAnnotationRoutes = (
   router: Router,
@@ -73,13 +73,13 @@ export const createAnnotationRoutes = (
   createAnnotationController: CreateAnnotationController
 ) => {
   router.post(
-    '/annotations',
+    "/annotations",
     authMiddleware.ensureAuthenticated(),
     (req, res) => createAnnotationController.execute(req, res)
   );
-  
+
   // Other annotation routes...
-  
+
   return router;
 };
 ```
@@ -90,10 +90,10 @@ Controllers can access the authenticated user's DID from the request:
 
 ```typescript
 // src/modules/annotations/infrastructure/http/controllers/CreateAnnotationController.ts
-import { Controller } from '../../../../../shared/infrastructure/http/Controller';
-import { CreateAnnotationUseCase } from '../../../application/use-cases/CreateAnnotationUseCase';
-import { AuthenticatedRequest } from '../../../../user/infrastructure/http/types/AuthenticatedRequest';
-import { Response } from 'express';
+import { Controller } from "../../../../../shared/infrastructure/http/Controller";
+import { CreateAnnotationUseCase } from "../../../application/use-cases/CreateAnnotationUseCase";
+import { AuthenticatedRequest } from "../../../../user/infrastructure/http/types/AuthenticatedRequest";
+import { Response } from "express";
 
 export class CreateAnnotationController extends Controller {
   constructor(private createAnnotationUseCase: CreateAnnotationUseCase) {
@@ -103,25 +103,25 @@ export class CreateAnnotationController extends Controller {
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const { url, fieldId, value } = req.body;
-      
+
       // The DID is available from the request
       const { did } = req;
-      
+
       const result = await this.createAnnotationUseCase.execute({
         curatorDid: did,
         url,
         fieldId,
-        value
+        value,
       });
-      
+
       if (result.isErr()) {
         const error = result.error;
-        
+
         // Handle specific error types...
-        
+
         return this.fail(res, error.message);
       }
-      
+
       return this.ok(res, result.value);
     } catch (error) {
       return this.fail(res, error);
@@ -144,16 +144,20 @@ When using a dependency injection container:
 
 ```typescript
 // src/modules/user/infrastructure/container.ts
-container.register('authMiddleware', {
+container.register("authMiddleware", {
   useFactory: (tokenService) => new AuthMiddleware(tokenService),
-  dependencies: ['tokenService']
+  dependencies: ["tokenService"],
 });
 
 // src/modules/annotations/infrastructure/container.ts
-container.register('annotationRouter', {
-  useFactory: (authMiddleware, createAnnotationController) => 
-    createAnnotationRoutes(Router(), authMiddleware, createAnnotationController),
-  dependencies: ['authMiddleware', 'createAnnotationController']
+container.register("annotationRouter", {
+  useFactory: (authMiddleware, createAnnotationController) =>
+    createAnnotationRoutes(
+      Router(),
+      authMiddleware,
+      createAnnotationController
+    ),
+  dependencies: ["authMiddleware", "createAnnotationController"],
 });
 ```
 

@@ -49,10 +49,10 @@ describe("OAuth Sign-In Flow", () => {
       });
 
       if (result.isErr()) {
-        return res.status(400).json({ error: result.error.message });
+        res.status(400).json({ error: result.error });
       }
 
-      return res.json({ authUrl: result.value.authUrl });
+      res.json({ authUrl: result.unwrap().authUrl });
     });
 
     app.get("/api/user/oauth/callback", async (req, res) => {
@@ -61,7 +61,7 @@ describe("OAuth Sign-In Flow", () => {
       const { code, state } = req.query;
 
       if (!code || !state) {
-        return res.status(400).json({ error: "Missing required parameters" });
+        res.status(400).json({ error: "Missing required parameters" });
       }
 
       // Just return the code and state for manual verification

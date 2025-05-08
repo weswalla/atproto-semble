@@ -46,7 +46,7 @@ export class DrizzleTokenRepository implements ITokenRepository {
         return ok(null);
       }
 
-      return ok(result[0]);
+      return ok({ ...result[0]!, revoked: result[0]!.revoked === true });
     } catch (error: any) {
       return err(error);
     }

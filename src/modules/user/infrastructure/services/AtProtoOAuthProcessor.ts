@@ -14,22 +14,14 @@ import { OAuthCallbackDTO } from "../../application/dtos/OAuthCallbackDTO";
 export class AtProtoOAuthProcessor implements IOAuthProcessor {
   private client: NodeOAuthClient;
 
-  constructor(
-    private clientMetadata: OAuthClientMetadataInput,
-    private stateStore: NodeSavedStateStore,
-    private sessionStore: NodeSavedSessionStore
-  ) {
-    this.client = new NodeOAuthClient({
-      clientMetadata,
-      stateStore,
-      sessionStore,
-    });
+  constructor(client: NodeOAuthClient) {
+    this.client = client;
   }
 
   async generateAuthUrl(handle: string): Promise<Result<string>> {
     try {
       const url = await this.client.authorize(handle, {
-        scope: this.clientMetadata.scope,
+        scope: this.client.clientMetadata.scope,
       });
       return ok(url.toString());
     } catch (error: any) {

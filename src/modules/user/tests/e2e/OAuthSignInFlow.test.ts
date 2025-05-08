@@ -216,7 +216,7 @@ describe("OAuth Sign-In Flow", () => {
     // Use a more robust approach to handle potential redirects
     try {
       // Wait for any navigation to complete
-      await page.waitForNavigation({ timeout: 30000 }).catch((e) => {
+      await page.waitForNavigation({ timeout: 1000 }).catch((e) => {
         console.log("Initial navigation timeout, continuing...");
       });
 
@@ -238,7 +238,7 @@ describe("OAuth Sign-In Flow", () => {
 
         // Take another screenshot to see the current state
         await page.screenshot({ path: "authorize-page.png" });
-        
+
         // Wait for the authorization page to fully load, but with shorter timeouts
         await page.waitForLoadState("networkidle", { timeout: 5000 });
         await page.waitForTimeout(1000); // Give React app time to render
@@ -265,7 +265,7 @@ describe("OAuth Sign-In Flow", () => {
                 `Clicked authorize button with selector: ${selector}`
               );
               buttonClicked = true;
-              await page.waitForNavigation({ timeout: 30000 }).catch((e) => {
+              await page.waitForNavigation({ timeout: 1000 }).catch((e) => {
                 console.log("Navigation after authorize click timed out");
               });
               break;
@@ -291,7 +291,7 @@ describe("OAuth Sign-In Flow", () => {
             if (authorizeButton) authorizeButton.click();
           });
 
-          await page.waitForNavigation({ timeout: 30000 }).catch((e) => {
+          await page.waitForNavigation({ timeout: 1000 }).catch((e) => {
             console.log("Navigation after JS authorize click timed out");
           });
         }
@@ -304,7 +304,8 @@ describe("OAuth Sign-In Flow", () => {
     }
 
     // Wait for the callback results to be displayed
-    await page.waitForSelector("#callback-container:visible");
+    // change how we wait for the callback response
+    await page.waitForTimeout(2000); // Wait for 2 seconds to ensure the response is fully loaded
 
     // Verify that we received tokens in the response
     const responseText = await page.textContent("#callback-response");

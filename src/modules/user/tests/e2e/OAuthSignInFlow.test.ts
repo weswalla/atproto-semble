@@ -18,14 +18,16 @@ import { InMemoryTokenRepository } from "../infrastructure/InMemoryTokenReposito
 // Load environment variables
 dotenv.config();
 // Load test environment variables
-config({ path: '.env.test' });
+config({ path: ".env.test" });
 
 // Get test credentials from environment
 const TEST_HANDLE = process.env.TEST_BLUESKY_HANDLE;
 const TEST_PASSWORD = process.env.TEST_BLUESKY_PASSWORD;
 
 if (!TEST_HANDLE || !TEST_PASSWORD) {
-  console.error('TEST_BLUESKY_HANDLE and TEST_BLUESKY_PASSWORD must be set in .env.test');
+  console.error(
+    "TEST_BLUESKY_HANDLE and TEST_BLUESKY_PASSWORD must be set in .env.test"
+  );
   process.exit(1);
 }
 
@@ -91,7 +93,7 @@ describe("OAuth Sign-In Flow", () => {
       const { code, state, iss } = req.query;
 
       if (!code || !state || !iss) {
-        return res.status(400).json({ error: "Missing required parameters" });
+        res.status(400).json({ error: "Missing required parameters" });
       }
 
       // Use the CompleteOAuthSignInUseCase to process the callback
@@ -102,13 +104,13 @@ describe("OAuth Sign-In Flow", () => {
       });
 
       if (result.isErr()) {
-        return res.status(400).json({ error: result.error.message });
+        res.status(400).json({ error: result.error });
       }
 
       // Return the tokens
       res.json({
         message: "Authentication successful",
-        tokens: result.value,
+        tokens: result.unwrap(),
       });
     });
 
@@ -129,37 +131,37 @@ describe("OAuth Sign-In Flow", () => {
     await page.goto(`${BASE_URL}/oauth-test.html`);
 
     // Enter the Bluesky handle from environment variables
-    await page.fill('#handle-input', TEST_HANDLE);
-    
+    await page.fill("#handle-input", TEST_HANDLE);
+
     // Click the login button
-    await page.click('#login-button');
-    
+    await page.click("#login-button");
+
     // Wait for navigation to the Bluesky OAuth page
     await page.waitForNavigation();
-    
+
     // We should now be on the Bluesky login page
     // Enter credentials and authorize
     await page.fill('input[type="text"]', TEST_HANDLE);
     await page.fill('input[type="password"]', TEST_PASSWORD);
-    
+
     // Click the login/authorize button
     // Note: The actual selector may need to be adjusted based on Bluesky's login page structure
     await page.click('button[type="submit"]');
-    
+
     // Wait for redirect back to our callback page
     await page.waitForNavigation();
-    
+
     // Wait for the callback results to be displayed
-    await page.waitForSelector('#callback-container:visible');
-    
+    await page.waitForSelector("#callback-container:visible");
+
     // Verify that we received tokens in the response
-    const responseText = await page.textContent('#callback-response');
-    const response = JSON.parse(responseText || '{}');
-    
-    expect(response).toHaveProperty('tokens');
-    expect(response.tokens).toHaveProperty('accessToken');
-    expect(response.tokens).toHaveProperty('refreshToken');
-    
-    console.log('OAuth flow completed successfully!');
+    const responseText = await page.textContent("#callback-response");
+    const response = JSON.parse(responseText || "{}");
+
+    expect(response).toHaveProperty("tokens");
+    expect(response.tokens).toHaveProperty("accessToken");
+    expect(response.tokens).toHaveProperty("refreshToken");
+
+    console.log("OAuth flow completed successfully!");
   });
 });

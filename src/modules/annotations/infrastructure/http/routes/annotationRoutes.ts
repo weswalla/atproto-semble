@@ -8,10 +8,8 @@ export const createAnnotationRoutes = (
   createAndPublishAnnotationTemplateController: CreateAndPublishAnnotationTemplateController
 ) => {
   // Protected routes - all annotation routes require authentication
-  router.post(
-    "/templates", 
-    authMiddleware.ensureAuthenticated(), 
-    (req, res) => createAndPublishAnnotationTemplateController.execute(req, res)
+  router.post("/templates", authMiddleware.ensureAuthenticated(), (req, res) =>
+    createAndPublishAnnotationTemplateController.execute(req, res)
   );
 
   return router;

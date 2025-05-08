@@ -1,15 +1,13 @@
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
-import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { eq, and } from "drizzle-orm";
 import { Result, err, ok } from "src/shared/core/Result";
 import { ITokenService } from "../../application/services/ITokenService";
 import { TokenPair } from "../../application/dtos/TokenDTO";
-import { authRefreshTokens } from "../repositories/schema/authTokenSchema";
+import { ITokenRepository } from "../../domain/repositories/ITokenRepository";
 
 export class JwtTokenService implements ITokenService {
   constructor(
-    private db: PostgresJsDatabase,
+    private tokenRepository: ITokenRepository,
     private jwtSecret: string,
     private accessTokenExpiresIn: number = 3600, // 1 hour
     private refreshTokenExpiresIn: number = 2592000 // 30 days
@@ -33,7 +31,7 @@ export class JwtTokenService implements ITokenService {
       );
 
       // Store refresh token
-      await this.db.insert(authRefreshTokens).values({
+      const saveResult = await this.tokenRepository.saveRefreshToken({
         tokenId,
         userDid: did,
         refreshToken,
@@ -41,6 +39,10 @@ export class JwtTokenService implements ITokenService {
         expiresAt,
         revoked: false,
       });
+      
+      if (saveResult.isErr()) {
+        return err(saveResult.error);
+      }
 
       return ok({
         accessToken,
@@ -64,24 +66,15 @@ export class JwtTokenService implements ITokenService {
   async refreshToken(refreshToken: string): Promise<Result<TokenPair | null>> {
     try {
       // Find the refresh token
-      const result = await this.db
-        .select()
-        .from(authRefreshTokens)
-        .where(
-          and(
-            eq(authRefreshTokens.refreshToken, refreshToken),
-            eq(authRefreshTokens.revoked, false)
-          )
-        )
-        .limit(1);
-
-      if (result.length === 0) {
-        return ok(null);
+      const findResult = await this.tokenRepository.findRefreshToken(refreshToken);
+      
+      if (findResult.isErr()) {
+        return err(findResult.error);
       }
-
-      const tokenData = result[0];
+      
+      const tokenData = findResult.unwrap();
       if (!tokenData) {
-        return err(new Error("Token not found"));
+        return ok(null);
       }
 
       // Check if token is expired
@@ -104,11 +97,12 @@ export class JwtTokenService implements ITokenService {
 
   async revokeToken(refreshToken: string): Promise<Result<void>> {
     try {
-      await this.db
-        .update(authRefreshTokens)
-        .set({ revoked: true })
-        .where(eq(authRefreshTokens.refreshToken, refreshToken));
-
+      const revokeResult = await this.tokenRepository.revokeRefreshToken(refreshToken);
+      
+      if (revokeResult.isErr()) {
+        return err(revokeResult.error);
+      }
+      
       return ok(undefined);
     } catch (error: any) {
       return err(error);

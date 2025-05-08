@@ -144,36 +144,63 @@ describe("OAuth Sign-In Flow", () => {
     await page.waitForLoadState("networkidle");
 
     // The page is a React app, so we need to wait for elements to be available
-    await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+    // Only wait for password field since the identifier is pre-filled
     await page.waitForSelector('input[type="password"]', { timeout: 10000 });
 
-    // Enter credentials
-    await page.fill('input[type="text"]', TEST_HANDLE);
+    // Enter password (identifier is already filled)
     await page.fill('input[type="password"]', TEST_PASSWORD);
 
     // Click the login/authorize button - using a more specific selector
     // In React apps, sometimes we need to wait a bit after filling inputs
     await page.waitForTimeout(1000);
 
-    // Find and click the submit button (could be different selectors)
+    // Find and click the submit button
     try {
+      // Take a screenshot before clicking to help with debugging
+      await page.screenshot({ path: "before-login-click.png" });
+      
       // Try different possible selectors for the submit button
       const buttonSelectors = [
         'button[type="submit"]',
         'button:has-text("Sign in")',
+        'button:has-text("Continue")',
         'button:has-text("Authorize")',
         "button.primary",
         'button[aria-label="Sign in"]',
         "form button",
+        // More specific selectors based on the HTML structure
+        "div > button",
+        "form > div > button"
       ];
 
+      let buttonClicked = false;
       for (const selector of buttonSelectors) {
         const button = await page.$(selector);
         if (button) {
-          await button.click();
-          console.log(`Clicked button with selector: ${selector}`);
-          break;
+          // Check if button is visible and enabled
+          const isVisible = await button.isVisible();
+          if (isVisible) {
+            await button.click();
+            console.log(`Clicked button with selector: ${selector}`);
+            buttonClicked = true;
+            break;
+          }
         }
+      }
+      
+      if (!buttonClicked) {
+        console.log("No button found with standard selectors, trying JavaScript click");
+        // Try clicking any button that looks like a submit button using JavaScript
+        await page.evaluate(() => {
+          const buttons = Array.from(document.querySelectorAll('button'));
+          const loginButton = buttons.find(button => 
+            button.innerText.includes('Sign in') || 
+            button.innerText.includes('Continue') || 
+            button.innerText.includes('Log in') ||
+            button.innerText.includes('Authorize')
+          );
+          if (loginButton) loginButton.click();
+        });
       }
     } catch (error) {
       console.error("Failed to find or click the submit button:", error);
@@ -185,34 +212,74 @@ describe("OAuth Sign-In Flow", () => {
     // Wait for redirect back to our callback page
     // Use a more robust approach to handle potential redirects
     try {
-      await page.waitForNavigation({ timeout: 30000 });
+      // Wait for any navigation to complete
+      await page.waitForNavigation({ timeout: 30000 }).catch(e => {
+        console.log("Initial navigation timeout, continuing...");
+      });
+
+      // Take a screenshot after login attempt
+      await page.screenshot({ path: "after-login-click.png" });
 
       // Check if we're on the right page
       const currentUrl = page.url();
-      console.log(`Redirected to: ${currentUrl}`);
+      console.log(`Current page URL: ${currentUrl}`);
 
+      // If we're not on our callback page yet, we might need to authorize
       if (!currentUrl.includes("127.0.0.1:3001")) {
-        // We might need to click an additional authorize button
-        console.log(
-          "Not yet redirected to callback, looking for authorize button..."
-        );
-
+        console.log("Not yet redirected to callback, looking for authorize button...");
+        
+        // Wait a moment for any page transitions
+        await page.waitForTimeout(2000);
+        
+        // Take another screenshot to see the current state
+        await page.screenshot({ path: "authorize-page.png" });
+        
         // Try to find and click an authorize button if present
         const authorizeSelectors = [
           'button:has-text("Authorize")',
           'button:has-text("Allow")',
+          'button:has-text("Continue")',
           "button.authorize",
           'button[aria-label="Authorize"]',
+          // More generic selectors
+          "button.primary",
+          "form button"
         ];
 
+        let buttonClicked = false;
         for (const selector of authorizeSelectors) {
-          const button = await page.$(selector);
-          if (button) {
-            await button.click();
-            console.log(`Clicked authorize button with selector: ${selector}`);
-            await page.waitForNavigation({ timeout: 30000 });
-            break;
+          try {
+            const button = await page.$(selector);
+            if (button && await button.isVisible()) {
+              await button.click();
+              console.log(`Clicked authorize button with selector: ${selector}`);
+              buttonClicked = true;
+              await page.waitForNavigation({ timeout: 30000 }).catch(e => {
+                console.log("Navigation after authorize click timed out");
+              });
+              break;
+            }
+          } catch (e) {
+            console.log(`Error with selector ${selector}:`, e);
           }
+        }
+        
+        if (!buttonClicked) {
+          console.log("No standard authorize button found, trying JavaScript click");
+          // Try clicking any button that looks like an authorize button using JavaScript
+          await page.evaluate(() => {
+            const buttons = Array.from(document.querySelectorAll('button'));
+            const authorizeButton = buttons.find(button => 
+              button.innerText.includes('Authorize') || 
+              button.innerText.includes('Allow') || 
+              button.innerText.includes('Continue')
+            );
+            if (authorizeButton) authorizeButton.click();
+          });
+          
+          await page.waitForNavigation({ timeout: 30000 }).catch(e => {
+            console.log("Navigation after JS authorize click timed out");
+          });
         }
       }
     } catch (error) {

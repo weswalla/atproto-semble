@@ -5,7 +5,11 @@ import path from "path";
 import dotenv from "dotenv";
 import { AtProtoOAuthProcessor } from "../../infrastructure/services/AtProtoOAuthProcessor";
 import { InitiateOAuthSignInUseCase } from "../../application/use-cases/InitiateOAuthSignInUseCase";
+import { CompleteOAuthSignInUseCase } from "../../application/use-cases/CompleteOAuthSignInUseCase";
 import { OAuthClientFactory } from "../../infrastructure/services/OAuthClientFactory";
+import { InMemoryUserRepository } from "../infrastructure/InMemoryUserRepository";
+import { InMemoryTokenService } from "../infrastructure/InMemoryTokenService";
+import { InMemoryUserAuthenticationService } from "../infrastructure/InMemoryUserAuthenticationService";
 
 // Load environment variables
 dotenv.config();
@@ -30,10 +34,22 @@ describe("OAuth Sign-In Flow", () => {
 
     // Create OAuth processor with the client
     const oauthProcessor = new AtProtoOAuthProcessor(oauthClient);
+    
+    // Create in-memory services
+    const userRepository = new InMemoryUserRepository();
+    const tokenService = new InMemoryTokenService();
+    const userAuthService = new InMemoryUserAuthenticationService();
 
     // Create use cases
     const initiateOAuthSignInUseCase = new InitiateOAuthSignInUseCase(
       oauthProcessor
+    );
+    
+    const completeOAuthSignInUseCase = new CompleteOAuthSignInUseCase(
+      oauthProcessor,
+      tokenService,
+      userRepository,
+      userAuthService
     );
 
     // Start a simple express server to serve our test page
@@ -56,19 +72,26 @@ describe("OAuth Sign-In Flow", () => {
     });
 
     app.get("/api/user/oauth/callback", async (req, res) => {
-      // In a real implementation, this would use CompleteOAuthSignInUseCase
-      // For this test, we'll just display the code and state for verification
       const { code, state } = req.query;
 
       if (!code || !state) {
-        res.status(400).json({ error: "Missing required parameters" });
+        return res.status(400).json({ error: "Missing required parameters" });
       }
 
-      // Just return the code and state for manual verification
-      res.json({
-        message: "OAuth callback received",
+      // Use the CompleteOAuthSignInUseCase to process the callback
+      const result = await completeOAuthSignInUseCase.execute({
         code: code as string,
         state: state as string,
+      });
+
+      if (result.isErr()) {
+        return res.status(400).json({ error: result.error.message });
+      }
+
+      // Return the tokens
+      res.json({
+        message: "Authentication successful",
+        tokens: result.value
       });
     });
 

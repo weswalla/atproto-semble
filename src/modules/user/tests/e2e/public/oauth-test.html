@@ -54,7 +54,7 @@
       <input type="text" id="handle-input" placeholder="username.bsky.social">
     </div>
     
-    <button id="sign-in-button">Sign in with Bluesky</button>
+    <button id="login-button">Sign in with Bluesky</button>
     
     <div id="callback-container" class="result" style="display: none;">
       <h3>OAuth Callback Results:</h3>
@@ -71,13 +71,20 @@
     if (code && state) {
       // We're on the callback page, display the results
       document.getElementById('callback-container').style.display = 'block';
-      document.getElementById('callback-response').textContent = JSON.stringify({
-        code,
-        state
-      }, null, 2);
+      // Fetch the actual callback response from our server
+      fetch(`/api/user/oauth/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('callback-response').textContent = JSON.stringify(data, null, 2);
+        })
+        .catch(error => {
+          document.getElementById('callback-response').textContent = JSON.stringify({
+            error: error.message
+          }, null, 2);
+        });
     }
     
-    document.getElementById('sign-in-button').addEventListener('click', async () => {
+    document.getElementById('login-button').addEventListener('click', async () => {
       const handle = document.getElementById('handle-input').value;
       if (!handle) {
         alert('Please enter a handle');

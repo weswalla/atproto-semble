@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAuth Sign-In Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container {
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 5px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #0070ff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 5px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Bluesky OAuth Sign-In Test</h1>
+  
+  <div class="container">
+    <div class="form-group">
+      <label for="handle-input">Enter your Bluesky handle:</label>
+      <input type="text" id="handle-input" placeholder="username.bsky.social">
+    </div>
+    
+    <button id="sign-in-button">Sign in with Bluesky</button>
+    
+    <div id="auth-url-container" class="result" style="display: none;">
+      <h3>Auth URL (would redirect in real app):</h3>
+      <div id="auth-url"></div>
+      <button id="simulate-callback" style="margin-top: 10px;">Simulate Callback</button>
+    </div>
+    
+    <div id="token-container" class="result" style="display: none;">
+      <h3>Token Response:</h3>
+      <pre id="token-response"></pre>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('sign-in-button').addEventListener('click', async () => {
+      const handle = document.getElementById('handle-input').value;
+      if (!handle) {
+        alert('Please enter a handle');
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/user/login?handle=${encodeURIComponent(handle)}`);
+        const data = await response.json();
+        
+        if (data.error) {
+          alert(`Error: ${data.error}`);
+          return;
+        }
+        
+        // Display the auth URL (in a real app, we would redirect)
+        document.getElementById('auth-url').textContent = data.authUrl;
+        document.getElementById('auth-url-container').style.display = 'block';
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    });
+    
+    document.getElementById('simulate-callback').addEventListener('click', async () => {
+      try {
+        // Simulate the callback with mock code and state
+        const response = await fetch('/api/user/oauth/callback?code=mock-code&state=mock-state');
+        const data = await response.json();
+        
+        if (data.error) {
+          alert(`Error: ${data.error}`);
+          return;
+        }
+        
+        // Display the token response
+        document.getElementById('token-response').textContent = JSON.stringify(data, null, 2);
+        document.getElementById('token-container').style.display = 'block';
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    });
+  </script>
+</body>
+</html>

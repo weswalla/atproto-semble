@@ -46,3 +46,18 @@
     "typescript": "^5.8.3"
   }
 }
+{
+  "name": "oauth-test",
+  "version": "1.0.0",
+  "description": "E2E tests for OAuth flow",
+  "scripts": {
+    "test:e2e": "vitest run src/modules/user/tests/e2e/OAuthSignInFlow.test.ts"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "playwright": "^1.40.0",
+    "vitest": "^0.34.6"
+  }
+}

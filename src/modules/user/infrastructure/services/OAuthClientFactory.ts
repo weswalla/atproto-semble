@@ -1,4 +1,7 @@
-import { NodeOAuthClient, OAuthClientMetadataInput } from "@atproto/oauth-client-node";
+import {
+  NodeOAuthClient,
+  OAuthClientMetadataInput,
+} from "@atproto/oauth-client-node";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { DrizzleStateStore } from "./DrizzleStateStore";
 import { DrizzleSessionStore } from "./DrizzleSessionStore";
@@ -11,7 +14,7 @@ export class OAuthClientFactory {
     appName: string = "Annotation App"
   ): { clientMetadata: OAuthClientMetadataInput } {
     const publicUrl = process.env.PUBLIC_URL;
-    const url = baseUrl || "http://localhost:3000";
+    const url = baseUrl || "http://127.0.0.1:3000";
     const enc = encodeURIComponent;
 
     return {

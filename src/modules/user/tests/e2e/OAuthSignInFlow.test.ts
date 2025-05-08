@@ -6,9 +6,6 @@ import dotenv from "dotenv";
 import { AtProtoOAuthProcessor } from "../../infrastructure/services/AtProtoOAuthProcessor";
 import { InitiateOAuthSignInUseCase } from "../../application/use-cases/InitiateOAuthSignInUseCase";
 import { OAuthClientFactory } from "../../infrastructure/services/OAuthClientFactory";
-import { InMemoryStateStore } from "../infrastructure/InMemoryStateStore";
-import { InMemorySessionStore } from "../infrastructure/InMemorySessionStore";
-import { NodeOAuthClient } from "@atproto/oauth-client-node";
 
 // Load environment variables
 dotenv.config();
@@ -18,7 +15,7 @@ describe("OAuth Sign-In Flow", () => {
   let page: Page;
   let server: Server;
   const PORT = 3001;
-  const BASE_URL = `http://localhost:${PORT}`;
+  const BASE_URL = `http://127.0.0.1:${PORT}`;
 
   // This test requires manual interaction
   // Set a longer timeout for manual testing

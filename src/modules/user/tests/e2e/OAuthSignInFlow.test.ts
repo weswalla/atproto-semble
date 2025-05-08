@@ -305,16 +305,19 @@ describe("OAuth Sign-In Flow", () => {
 
     // Wait for the callback results to be displayed
     console.log("Waiting for callback response to be displayed...");
-    
+
     // Wait for the callback container to be visible
-    await page.waitForSelector("#callback-container:visible", { timeout: 10000 })
-      .catch(e => console.log("Callback container not visible yet, continuing anyway"));
-    
+    await page
+      .waitForSelector("#callback-container:visible", { timeout: 10000 })
+      .catch((e) =>
+        console.log("Callback container not visible yet, continuing anyway")
+      );
+
     // Wait for the callback response to contain data
     let response = {};
     let attempts = 0;
     const maxAttempts = 10;
-    
+
     while (attempts < maxAttempts) {
       try {
         // Get the response text
@@ -329,20 +332,20 @@ describe("OAuth Sign-In Flow", () => {
       } catch (e) {
         console.log(`Attempt ${attempts + 1}: Response not ready yet`);
       }
-      
+
       // Wait before trying again
       await page.waitForTimeout(1000);
       attempts++;
     }
-    
+
     // Take a final screenshot
     await page.screenshot({ path: "final-callback-page.png" });
-    
+
     // Verify that we received tokens in the response
     expect(response).toHaveProperty("tokens");
     expect(response.tokens).toHaveProperty("accessToken");
     expect(response.tokens).toHaveProperty("refreshToken");
-    
+
     console.log("OAuth flow completed successfully!");
   });
 });

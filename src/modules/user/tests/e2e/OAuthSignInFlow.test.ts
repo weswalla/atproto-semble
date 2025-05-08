@@ -5,6 +5,9 @@ import path from "path";
 import dotenv from "dotenv";
 import { AtProtoOAuthProcessor } from "../../infrastructure/services/AtProtoOAuthProcessor";
 import { InitiateOAuthSignInUseCase } from "../../application/use-cases/InitiateOAuthSignInUseCase";
+import { OAuthClientFactory } from "../../infrastructure/services/OAuthClientFactory";
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
 
 // Load environment variables
 dotenv.config();
@@ -21,25 +24,20 @@ describe("OAuth Sign-In Flow", () => {
   jest.setTimeout(5 * 60 * 1000); // 5 minutes
 
   beforeAll(async () => {
-    // Create OAuth client configuration
-    const clientMetadata = {
-      clientId: process.env.OAUTH_CLIENT_ID || "test-client-id",
-      clientName: "Annos Test App",
-      redirectUri: `${BASE_URL}/api/user/oauth/callback`,
-      scope: "com.atproto.repo:read",
-      website: "https://example.com",
-    };
-
-    // Create state and session stores
-    const stateStore = new NodeSavedStateStore();
-    const sessionStore = new NodeSavedSessionStore();
-
-    // Create OAuth processor
-    const oauthProcessor = new AtProtoOAuthProcessor(
-      clientMetadata,
-      stateStore,
-      sessionStore
+    // Create database connection for the OAuth client
+    const connectionString = process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/annos_test";
+    const client = postgres(connectionString);
+    const db = drizzle(client);
+    
+    // Create OAuth client using the factory
+    const oauthClient = await OAuthClientFactory.createClient(
+      db,
+      `${BASE_URL}/api/user`,
+      "Annos Test App"
     );
+    
+    // Create OAuth processor with the client
+    const oauthProcessor = new AtProtoOAuthProcessor(oauthClient);
 
     // Create use cases
     const initiateOAuthSignInUseCase = new InitiateOAuthSignInUseCase(

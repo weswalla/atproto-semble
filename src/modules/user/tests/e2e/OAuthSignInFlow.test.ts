@@ -3,6 +3,7 @@ import express from "express";
 import { Server } from "http";
 import path from "path";
 import dotenv from "dotenv";
+import { config } from "dotenv";
 import { AtProtoOAuthProcessor } from "../../infrastructure/services/AtProtoOAuthProcessor";
 import { InitiateOAuthSignInUseCase } from "../../application/use-cases/InitiateOAuthSignInUseCase";
 import { CompleteOAuthSignInUseCase } from "../../application/use-cases/CompleteOAuthSignInUseCase";
@@ -16,6 +17,17 @@ import { InMemoryTokenRepository } from "../infrastructure/InMemoryTokenReposito
 
 // Load environment variables
 dotenv.config();
+// Load test environment variables
+config({ path: '.env.test' });
+
+// Get test credentials from environment
+const TEST_HANDLE = process.env.TEST_BLUESKY_HANDLE;
+const TEST_PASSWORD = process.env.TEST_BLUESKY_PASSWORD;
+
+if (!TEST_HANDLE || !TEST_PASSWORD) {
+  console.error('TEST_BLUESKY_HANDLE and TEST_BLUESKY_PASSWORD must be set in .env.test');
+  process.exit(1);
+}
 
 describe("OAuth Sign-In Flow", () => {
   let browser: Browser;
@@ -112,25 +124,42 @@ describe("OAuth Sign-In Flow", () => {
     server.close();
   });
 
-  it("should allow manual testing of the OAuth sign-in flow", async () => {
+  it("should complete the OAuth sign-in flow automatically", async () => {
     // Navigate to our test page
     await page.goto(`${BASE_URL}/oauth-test.html`);
 
-    // The rest of the test will be performed manually
-    console.log(`
-      Manual Test Instructions:
-      1. Enter your Bluesky handle in the input field
-      2. Click "Sign in with Bluesky"
-      3. You will be redirected to the Bluesky OAuth page
-      4. Complete the authentication process
-      5. You will be redirected back to our test page
-      6. Verify that the callback parameters are displayed
-      
-      The browser will stay open for 5 minutes to allow manual testing.
-      Press Ctrl+C to end the test early.
-    `);
-
-    // Wait for manual testing (the test will timeout after the jest timeout)
-    await new Promise((resolve) => setTimeout(resolve, 60 * 1000));
+    // Enter the Bluesky handle from environment variables
+    await page.fill('#handle-input', TEST_HANDLE);
+    
+    // Click the login button
+    await page.click('#login-button');
+    
+    // Wait for navigation to the Bluesky OAuth page
+    await page.waitForNavigation();
+    
+    // We should now be on the Bluesky login page
+    // Enter credentials and authorize
+    await page.fill('input[type="text"]', TEST_HANDLE);
+    await page.fill('input[type="password"]', TEST_PASSWORD);
+    
+    // Click the login/authorize button
+    // Note: The actual selector may need to be adjusted based on Bluesky's login page structure
+    await page.click('button[type="submit"]');
+    
+    // Wait for redirect back to our callback page
+    await page.waitForNavigation();
+    
+    // Wait for the callback results to be displayed
+    await page.waitForSelector('#callback-container:visible');
+    
+    // Verify that we received tokens in the response
+    const responseText = await page.textContent('#callback-response');
+    const response = JSON.parse(responseText || '{}');
+    
+    expect(response).toHaveProperty('tokens');
+    expect(response.tokens).toHaveProperty('accessToken');
+    expect(response.tokens).toHaveProperty('refreshToken');
+    
+    console.log('OAuth flow completed successfully!');
   });
 });

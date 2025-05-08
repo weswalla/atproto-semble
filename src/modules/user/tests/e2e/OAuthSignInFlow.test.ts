@@ -6,8 +6,9 @@ import dotenv from "dotenv";
 import { AtProtoOAuthProcessor } from "../../infrastructure/services/AtProtoOAuthProcessor";
 import { InitiateOAuthSignInUseCase } from "../../application/use-cases/InitiateOAuthSignInUseCase";
 import { OAuthClientFactory } from "../../infrastructure/services/OAuthClientFactory";
-import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
+import { InMemoryStateStore } from "../infrastructure/InMemoryStateStore";
+import { InMemorySessionStore } from "../infrastructure/InMemorySessionStore";
+import { NodeOAuthClient } from "@atproto/oauth-client-node";
 
 // Load environment variables
 dotenv.config();
@@ -24,23 +25,25 @@ describe("OAuth Sign-In Flow", () => {
   jest.setTimeout(5 * 60 * 1000); // 5 minutes
 
   beforeAll(async () => {
-    // Create database connection for the OAuth client
-    const connectionString =
-      process.env.DATABASE_URL ||
-      "postgres://postgres:postgres@localhost:5432/annos_test";
-    const client = postgres(connectionString);
-    const db = drizzle(client);
+    // Create in-memory stores for testing
+    const stateStore = new InMemoryStateStore();
+    const sessionStore = new InMemorySessionStore();
 
-    // Create OAuth client using the factory
-    const oauthClient = OAuthClientFactory.getClientMetadata(
-      ``,
+    // Get OAuth client metadata
+    const clientMetadataConfig = OAuthClientFactory.getClientMetadata(
+      `${BASE_URL}/api/user`,
       "Annos Test App"
     );
 
+    // Create OAuth client
+    const oauthClient = new NodeOAuthClient({
+      clientMetadata: clientMetadataConfig.clientMetadata,
+      stateStore,
+      sessionStore
+    });
+
     // Create OAuth processor with the client
-    const oauthProcessor = new AtProtoOAuthProcessor(
-      oauthClient.clientMetadata
-    );
+    const oauthProcessor = new AtProtoOAuthProcessor(oauthClient);
 
     // Create use cases
     const initiateOAuthSignInUseCase = new InitiateOAuthSignInUseCase(

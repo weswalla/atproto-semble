@@ -76,9 +76,9 @@ describe("OAuth Sign-In Flow", () => {
     });
 
     app.get("/api/user/oauth/callback", async (req, res) => {
-      const { code, state } = req.query;
+      const { code, state, iss } = req.query;
 
-      if (!code || !state) {
+      if (!code || !state || !iss) {
         return res.status(400).json({ error: "Missing required parameters" });
       }
 
@@ -86,6 +86,7 @@ describe("OAuth Sign-In Flow", () => {
       const result = await completeOAuthSignInUseCase.execute({
         code: code as string,
         state: state as string,
+        iss: iss as string,
       });
 
       if (result.isErr()) {

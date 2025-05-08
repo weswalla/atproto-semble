@@ -35,6 +35,7 @@ export class AtProtoOAuthProcessor implements IOAuthProcessor {
       const searchParams = new URLSearchParams();
       searchParams.append("code", params.code);
       searchParams.append("state", params.state);
+      searchParams.append("iss", params.iss);
 
       const { session } = await this.client.callback(searchParams);
 

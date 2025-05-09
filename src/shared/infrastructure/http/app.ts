@@ -1,29 +1,29 @@
 import express, { Express } from "express";
 import { Router } from "express";
-import { createUserRoutes } from "../../modules/user/infrastructure/http/routes/userRoutes";
-import { createAnnotationRoutes } from "../../modules/annotations/infrastructure/http/routes/annotationRoutes";
+import { createUserRoutes } from "../../../modules/user/infrastructure/http/routes/userRoutes";
+import { createAnnotationRoutes } from "../../../modules/annotations/infrastructure/http/routes/annotationRoutes";
 import { DatabaseFactory } from "../database/DatabaseFactory";
 
 // Controllers
-import { InitiateOAuthSignInController } from "../../modules/user/infrastructure/http/controllers/InitiateOAuthSignInController";
-import { CompleteOAuthSignInController } from "../../modules/user/infrastructure/http/controllers/CompleteOAuthSignInController";
-import { GetCurrentUserController } from "../../modules/user/infrastructure/http/controllers/GetCurrentUserController";
-import { RefreshAccessTokenController } from "../../modules/user/infrastructure/http/controllers/RefreshAccessTokenController";
-import { CreateAndPublishAnnotationTemplateController } from "../../modules/annotations/infrastructure/http/controllers/CreateAndPublishAnnotationTemplateController";
-import { CreateAndPublishAnnotationsFromTemplateController } from "../../modules/annotations/infrastructure/http/controllers/CreateAndPublishAnnotationsFromTemplateController";
+import { InitiateOAuthSignInController } from "../../../modules/user/infrastructure/http/controllers/InitiateOAuthSignInController";
+import { CompleteOAuthSignInController } from "../../../modules/user/infrastructure/http/controllers/CompleteOAuthSignInController";
+import { GetCurrentUserController } from "../../../modules/user/infrastructure/http/controllers/GetCurrentUserController";
+import { RefreshAccessTokenController } from "../../../modules/user/infrastructure/http/controllers/RefreshAccessTokenController";
+import { CreateAndPublishAnnotationTemplateController } from "../../../modules/annotations/infrastructure/http/controllers/CreateAndPublishAnnotationTemplateController";
+import { CreateAndPublishAnnotationsFromTemplateController } from "../../../modules/annotations/infrastructure/http/controllers/CreateAndPublishAnnotationsFromTemplateController";
 
 // Use cases
-import { InitiateOAuthSignInUseCase } from "../../modules/user/application/use-cases/InitiateOAuthSignInUseCase";
-import { CompleteOAuthSignInUseCase } from "../../modules/user/application/use-cases/CompleteOAuthSignInUseCase";
-import { GetCurrentUserUseCase } from "../../modules/user/application/use-cases/GetCurrentUserUseCase";
-import { RefreshAccessTokenUseCase } from "../../modules/user/application/use-cases/RefreshAccessTokenUseCase";
-import { CreateAndPublishAnnotationTemplateUseCase } from "../../modules/annotations/application/use-cases/CreateAndPublishAnnotationTemplateUseCase";
-import { CreateAndPublishAnnotationsFromTemplateUseCase } from "../../modules/annotations/application/use-cases/CreateAndPublishAnnotationsFromTemplateUseCase";
+import { InitiateOAuthSignInUseCase } from "../../../modules/user/application/use-cases/InitiateOAuthSignInUseCase";
+import { CompleteOAuthSignInUseCase } from "../../../modules/user/application/use-cases/CompleteOAuthSignInUseCase";
+import { GetCurrentUserUseCase } from "../../../modules/user/application/use-cases/GetCurrentUserUseCase";
+import { RefreshAccessTokenUseCase } from "../../../modules/user/application/use-cases/RefreshAccessTokenUseCase";
+import { CreateAndPublishAnnotationTemplateUseCase } from "../../../modules/annotations/application/use-cases/CreateAndPublishAnnotationTemplateUseCase";
+import { CreateAndPublishAnnotationsFromTemplateUseCase } from "../../../modules/annotations/application/use-cases/CreateAndPublishAnnotationsFromTemplateUseCase";
 
 // Services and repositories
-import { JwtTokenService } from "../../modules/user/infrastructure/services/JwtTokenService";
-import { AuthMiddleware } from "../../shared/infrastructure/http/middleware/AuthMiddleware";
-import { UserAuthenticationService } from "../../modules/user/infrastructure/services/UserAuthenticationService";
+import { JwtTokenService } from "../../../modules/user/infrastructure/services/JwtTokenService";
+import { AuthMiddleware } from "./middleware/AuthMiddleware";
+import { UserAuthenticationService } from "../../../modules/user/infrastructure/services/UserAuthenticationService";
 import {
   AtProtoOAuthProcessor,
   DrizzleUserRepository,

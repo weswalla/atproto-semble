@@ -2,6 +2,7 @@ import express, { Express } from "express";
 import { Router } from "express";
 import { createUserRoutes } from "../../modules/user/infrastructure/http/routes/userRoutes";
 import { createAnnotationRoutes } from "../../modules/annotations/infrastructure/http/routes/annotationRoutes";
+import { DatabaseFactory } from "../database/DatabaseFactory";
 
 // Controllers
 import { InitiateOAuthSignInController } from "../../modules/user/infrastructure/http/controllers/InitiateOAuthSignInController";
@@ -43,13 +44,21 @@ export const createExpressApp = (): Express => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  // Repositories
-  const userRepository = new DrizzleUserRepository();
-  const tokenRepository = new DrizzleTokenRepository();
-  const annotationTemplateRepository =
-    new DrizzleAnnotationTemplateRepository();
-  const annotationFieldRepository = new DrizzleAnnotationFieldRepository();
-  const annotationRepository = new DrizzleAnnotationRepository();
+  // Database connection
+  const db = DatabaseFactory.createConnection();
+
+  // Repositories with DB injection
+  const userRepository = new DrizzleUserRepository(db);
+  const tokenRepository = new DrizzleTokenRepository(db);
+  const annotationFieldRepository = new DrizzleAnnotationFieldRepository(db);
+  const annotationTemplateRepository = new DrizzleAnnotationTemplateRepository(
+    db,
+    annotationFieldRepository
+  );
+  const annotationRepository = new DrizzleAnnotationRepository(
+    db,
+    annotationFieldRepository
+  );
 
   // Services
   const jwtSecret = process.env.JWT_SECRET || "default-secret";

@@ -66,10 +66,11 @@ export const createExpressApp = (): Express => {
   const nodeOauthClient = OAuthClientFactory.createClient();
   const oauthProcessor = new AtProtoOAuthProcessor(nodeOauthClient);
   const userAuthService = new UserAuthenticationService();
-  const annotationTemplatePublisher = new ATProtoAnnotationTemplatePublisher();
-  const annotationFieldPublisher = new ATProtoAnnotationFieldPublisher();
+  const atProtoAgentService = new ATProtoAgentService(oauthProcessor);
+  const annotationTemplatePublisher = new ATProtoAnnotationTemplatePublisher(atProtoAgentService);
+  const annotationFieldPublisher = new ATProtoAnnotationFieldPublisher(atProtoAgentService);
   const annotationsFromTemplatePublisher =
-    new ATProtoAnnotationsFromTemplatePublisher();
+    new ATProtoAnnotationsFromTemplatePublisher(atProtoAgentService);
 
   // Auth middleware
   const authMiddleware = new AuthMiddleware(tokenService);

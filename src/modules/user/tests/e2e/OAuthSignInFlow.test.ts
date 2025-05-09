@@ -41,6 +41,7 @@ describe("OAuth Sign-In Flow", () => {
   // This test requires manual interaction
   // Set a longer timeout for manual testing
   jest.setTimeout(5 * 60 * 1000); // 5 minutes
+  let oauthTokens: any = null;
 
   beforeAll(async () => {
     // Create OAuth client using the factory with in-memory stores
@@ -90,7 +91,6 @@ describe("OAuth Sign-In Flow", () => {
     });
 
     // Store tokens globally so we can access them in the test
-    let oauthTokens: any = null;
 
     app.get("/api/user/oauth/callback", async (req, res) => {
       const { code, state, iss } = req.query;
@@ -203,14 +203,16 @@ describe("OAuth Sign-In Flow", () => {
         );
         // Try clicking any button that looks like a submit button using JavaScript
         await page.evaluate(() => {
+          // @ts-ignore
           const buttons = Array.from(document.querySelectorAll("button"));
           const loginButton = buttons.find(
-            (button) =>
+            (button: any) =>
               button.innerText.includes("Sign in") ||
               button.innerText.includes("Continue") ||
               button.innerText.includes("Log in") ||
               button.innerText.includes("Authorize")
           );
+          // @ts-ignore
           if (loginButton) loginButton.click();
         });
       }
@@ -290,13 +292,15 @@ describe("OAuth Sign-In Flow", () => {
           );
           // Try clicking any button that looks like an authorize button using JavaScript
           await page.evaluate(() => {
+            // @ts-ignore
             const buttons = Array.from(document.querySelectorAll("button"));
             const authorizeButton = buttons.find(
-              (button) =>
+              (button: any) =>
                 button.innerText.includes("Authorize") ||
                 button.innerText.includes("Allow") ||
                 button.innerText.includes("Continue")
             );
+            // @ts-ignore
             if (authorizeButton) authorizeButton.click();
           });
 

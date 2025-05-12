@@ -1,15 +1,10 @@
-import {
-  NodeOAuthClient,
-  NodeSavedSessionStore,
-  NodeSavedStateStore,
-  OAuthClientMetadataInput,
-} from "@atproto/oauth-client-node";
+import { NodeOAuthClient } from "@atproto/oauth-client-node";
 import { Result, err, ok } from "src/shared/core/Result";
 import {
   IOAuthProcessor,
   AuthResult,
-} from "../../application/services/IOAuthProcessor";
-import { OAuthCallbackDTO } from "../../application/dtos/OAuthCallbackDTO";
+} from "../../../user/application/services/IOAuthProcessor";
+import { OAuthCallbackDTO } from "../../../user/application/dtos/OAuthCallbackDTO";
 
 export class AtProtoOAuthProcessor implements IOAuthProcessor {
   private client: NodeOAuthClient;

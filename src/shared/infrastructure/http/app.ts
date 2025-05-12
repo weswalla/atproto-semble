@@ -35,6 +35,7 @@ import { DrizzleAnnotationRepository } from "src/modules/annotations/infrastruct
 import { ATProtoAnnotationTemplatePublisher } from "src/modules/atproto/infrastructure/ATProtoAnnotationTemplatePublisher";
 import { ATProtoAnnotationFieldPublisher } from "src/modules/atproto/infrastructure/ATProtoAnnotationFieldPublisher";
 import { ATProtoAnnotationsFromTemplatePublisher } from "src/modules/atproto/infrastructure/ATProtoAnnotationsFromTemplatePublisher";
+import { ATProtoAnnotationPublisher } from "src/modules/atproto/infrastructure/ATProtoAnnotationPublisher";
 import { DrizzleAnnotationFieldRepository } from "src/modules/annotations/infrastructure/repositories/DrizzleAnnotationFieldRepository";
 import { ATProtoAgentService } from "src/modules/atproto/infrastructure/services/ATProtoAgentService";
 
@@ -79,6 +80,9 @@ export const createExpressApp = (): Express => {
   );
   const annotationsFromTemplatePublisher =
     new ATProtoAnnotationsFromTemplatePublisher(atProtoAgentService);
+  const annotationPublisher = new ATProtoAnnotationPublisher(
+    atProtoAgentService
+  );
 
   // Auth middleware
   const authMiddleware = new AuthMiddleware(tokenService);
@@ -107,7 +111,8 @@ export const createExpressApp = (): Express => {
       annotationRepository,
       annotationTemplateRepository,
       annotationFieldRepository,
-      annotationsFromTemplatePublisher
+      annotationsFromTemplatePublisher,
+      annotationPublisher
     );
 
   // Controllers

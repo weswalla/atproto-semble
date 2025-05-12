@@ -1,14 +1,16 @@
 import { Agent } from "@atproto/api";
 import { NodeOAuthClient } from "@atproto/oauth-client-node";
 import { Result, ok, err } from "src/shared/core/Result";
+import { IAgentService } from "../../application/IAgentService";
+import { DID } from "../../domain/DID";
 
-export class ATProtoAgentService {
+export class ATProtoAgentService implements IAgentService {
   constructor(private readonly oauthClient: NodeOAuthClient) {}
 
-  async getAuthenticatedAgent(did: string): Promise<Result<Agent, Error>> {
+  async getAuthenticatedAgent(did: DID): Promise<Result<Agent, Error>> {
     try {
       // Try to restore the session for the DID
-      const oauthSession = await this.oauthClient.restore(did);
+      const oauthSession = await this.oauthClient.restore(did.value);
 
       // If we have a session, create and return an Agent
       if (oauthSession) {

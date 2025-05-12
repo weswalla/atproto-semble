@@ -5,14 +5,15 @@ import { UseCaseError } from "src/shared/core/UseCaseError";
 import { PublishedRecordId } from "src/modules/annotations/domain/value-objects/PublishedRecordId";
 import { AnnotationTemplateMapper } from "./AnnotationTemplateMapper";
 import { StrongRef } from "../domain";
-import { ATProtoAgentService } from "./services/ATProtoAgentService";
+import { IAgentService } from "../application/IAgentService";
+import { DID } from "../domain/DID";
 
 export class ATProtoAnnotationTemplatePublisher
   implements IAnnotationTemplatePublisher
 {
   private readonly COLLECTION = "app.annos.annotationTemplate";
 
-  constructor(private readonly agentService: ATProtoAgentService) {}
+  constructor(private readonly agentService: IAgentService) {}
 
   /**
    * Publishes an AnnotationTemplate to the AT Protocol
@@ -30,7 +31,7 @@ export class ATProtoAnnotationTemplatePublisher
       }
 
       const record = AnnotationTemplateMapper.toCreateRecordDTO(template);
-      const curatorDid = template.curatorId.value;
+      const curatorDid = new DID(template.curatorId.value);
 
       // Get an authenticated agent for this curator
       const agentResult =
@@ -56,7 +57,7 @@ export class ATProtoAnnotationTemplatePublisher
         const rkey = atUri.rkey;
 
         await agent.com.atproto.repo.putRecord({
-          repo: curatorDid,
+          repo: curatorDid.value,
           collection: this.COLLECTION,
           rkey: rkey,
           record,
@@ -67,7 +68,7 @@ export class ATProtoAnnotationTemplatePublisher
       // Otherwise create a new record
       else {
         const createResult = await agent.com.atproto.repo.createRecord({
-          repo: curatorDid,
+          repo: curatorDid.value,
           collection: this.COLLECTION,
           record,
         });
@@ -96,7 +97,7 @@ export class ATProtoAnnotationTemplatePublisher
       // Get an authenticated agent for this curator
       const strongRef = new StrongRef(recordId.getValue());
       const atUri = strongRef.atUri;
-      const curatorDid = atUri.did.value;
+      const curatorDid = atUri.did;
 
       const agentResult =
         await this.agentService.getAuthenticatedAgent(curatorDid);

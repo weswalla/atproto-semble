@@ -10,14 +10,15 @@ import { UseCaseError } from "src/shared/core/UseCaseError";
 import { AnnotationsFromTemplateMapper } from "./AnnotationsFromTemplateMapper";
 import { StrongRef } from "../domain";
 import { Delete } from "@atproto/sync";
-import { ATProtoAgentService } from "./services/ATProtoAgentService";
+import { IAgentService } from "../application/IAgentService";
+import { DID } from "../domain/DID";
 
 export class ATProtoAnnotationsFromTemplatePublisher
   implements IAnnotationsFromTemplatePublisher
 {
   private readonly COLLECTION = "app.annos.annotation";
 
-  constructor(private readonly agentService: ATProtoAgentService) {}
+  constructor(private readonly agentService: IAgentService) {}
 
   /**
    * Publishes multiple annotations from a template to the AT Protocol in a single transaction
@@ -27,11 +28,13 @@ export class ATProtoAnnotationsFromTemplatePublisher
   ): Promise<Result<PublishedAnnotationsFromTemplateResult, UseCaseError>> {
     try {
       const annotations = annotationsFromTemplate.annotations;
-      const curatorDid = annotations[0]?.curatorId.value;
+      const curatorDidValue = annotations[0]?.curatorId.value;
 
-      if (!curatorDid) {
+      if (!curatorDidValue) {
         return err(new Error("No curator DID found in annotations"));
       }
+      
+      const curatorDid = new DID(curatorDidValue);
 
       // Get an authenticated agent for this curator
       const agentResult =
@@ -57,7 +60,7 @@ export class ATProtoAnnotationsFromTemplatePublisher
 
       // Apply all writes in a single transaction
       const result = await agent.com.atproto.repo.applyWrites({
-        repo: curatorDid,
+        repo: curatorDid.value,
         writes,
         validate: false,
       });
@@ -140,7 +143,8 @@ export class ATProtoAnnotationsFromTemplatePublisher
         if (records.length === 0) continue;
 
         // Get an authenticated agent for this curator
-        const curatorDid = records[0]!.did;
+        const curatorDidValue = records[0]!.did;
+        const curatorDid = new DID(curatorDidValue);
         const agentResult =
           await this.agentService.getAuthenticatedAgent(curatorDid);
 

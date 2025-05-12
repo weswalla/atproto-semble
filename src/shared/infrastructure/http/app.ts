@@ -36,6 +36,7 @@ import { ATProtoAnnotationTemplatePublisher } from "src/modules/atproto/infrastr
 import { ATProtoAnnotationFieldPublisher } from "src/modules/atproto/infrastructure/ATProtoAnnotationFieldPublisher";
 import { ATProtoAnnotationsFromTemplatePublisher } from "src/modules/atproto/infrastructure/ATProtoAnnotationsFromTemplatePublisher";
 import { DrizzleAnnotationFieldRepository } from "src/modules/annotations/infrastructure/repositories/DrizzleAnnotationFieldRepository";
+import { ATProtoAgentService } from "src/modules/atproto/infrastructure/services/ATProtoAgentService";
 
 export const createExpressApp = (): Express => {
   const app = express();
@@ -63,12 +64,19 @@ export const createExpressApp = (): Express => {
   // Services
   const jwtSecret = process.env.JWT_SECRET || "default-secret";
   const tokenService = new JwtTokenService(tokenRepository, jwtSecret);
-  const nodeOauthClient = OAuthClientFactory.createClient();
+  const nodeOauthClient = OAuthClientFactory.createClient(
+    db,
+    "http://127.0.0.1:3000"
+  );
   const oauthProcessor = new AtProtoOAuthProcessor(nodeOauthClient);
-  const userAuthService = new UserAuthenticationService();
-  const atProtoAgentService = new ATProtoAgentService(oauthProcessor);
-  const annotationTemplatePublisher = new ATProtoAnnotationTemplatePublisher(atProtoAgentService);
-  const annotationFieldPublisher = new ATProtoAnnotationFieldPublisher(atProtoAgentService);
+  const userAuthService = new UserAuthenticationService(userRepository);
+  const atProtoAgentService = new ATProtoAgentService(nodeOauthClient);
+  const annotationTemplatePublisher = new ATProtoAnnotationTemplatePublisher(
+    atProtoAgentService
+  );
+  const annotationFieldPublisher = new ATProtoAnnotationFieldPublisher(
+    atProtoAgentService
+  );
   const annotationsFromTemplatePublisher =
     new ATProtoAnnotationsFromTemplatePublisher(atProtoAgentService);
 

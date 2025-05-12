@@ -1,33 +1,29 @@
 import { ATProtoAnnotationFieldPublisher } from "../ATProtoAnnotationFieldPublisher";
 import { PublishedRecordId } from "src/modules/annotations/domain/value-objects/PublishedRecordId";
-import { AtpAgent } from "@atproto/api";
 import { AnnotationFieldBuilder } from "src/modules/annotations/tests/utils/builders/AnnotationFieldBuilder";
 import dotenv from "dotenv";
+import { AppPasswordAgentService } from "./AppPasswordAgentService";
 
 // Load environment variables from .env.test
 dotenv.config({ path: ".env.test" });
 
 describe.skip("ATProtoAnnotationFieldPublisher", () => {
   let publisher: ATProtoAnnotationFieldPublisher;
-  let agent: AtpAgent;
   let publishedRecordId: PublishedRecordId;
 
   beforeAll(async () => {
-    // Create and authenticate the agent
-    agent = new AtpAgent({
-      service: "https://bsky.social",
-    });
-
-    // Sign in with credentials from environment variables
     if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
-      throw new Error("BSKY credentials not found in .env.test");
+      throw new Error(
+        "BSKY_DID and BSKY_APP_PASSWORD must be set in .env.test"
+      );
     }
-    await agent.login({
-      identifier: process.env.BSKY_DID!,
-      password: process.env.BSKY_APP_PASSWORD!,
+
+    const agentService = new AppPasswordAgentService({
+      did: process.env.BSKY_DID,
+      password: process.env.BSKY_APP_PASSWORD,
     });
 
-    publisher = new ATProtoAnnotationFieldPublisher(agent);
+    publisher = new ATProtoAnnotationFieldPublisher(agentService);
   });
 
   it("should publish and unpublish an annotation field", async () => {

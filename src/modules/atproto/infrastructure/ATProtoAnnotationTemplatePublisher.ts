@@ -33,16 +33,19 @@ export class ATProtoAnnotationTemplatePublisher
       const curatorDid = template.curatorId.value;
 
       // Get an authenticated agent for this curator
-      const agentResult = await this.agentService.getAuthenticatedAgent(curatorDid);
-      
+      const agentResult =
+        await this.agentService.getAuthenticatedAgent(curatorDid);
+
       if (agentResult.isErr()) {
-        return err(new Error(`Authentication error: ${agentResult.error.message}`));
+        return err(
+          new Error(`Authentication error: ${agentResult.error.message}`)
+        );
       }
-      
+
       const agent = agentResult.value;
-      
+
       if (!agent) {
-        return err(new Error('No authenticated session found for curator'));
+        return err(new Error("No authenticated session found for curator"));
       }
 
       // If the template is already published, update it
@@ -87,26 +90,29 @@ export class ATProtoAnnotationTemplatePublisher
    * Unpublishes (deletes) an AnnotationTemplate from the AT Protocol
    */
   async unpublish(
-    recordId: PublishedRecordId,
-    curatorDid: string
+    recordId: PublishedRecordId
   ): Promise<Result<void, UseCaseError>> {
     try {
       // Get an authenticated agent for this curator
-      const agentResult = await this.agentService.getAuthenticatedAgent(curatorDid);
-      
+      const strongRef = new StrongRef(recordId.getValue());
+      const atUri = strongRef.atUri;
+      const curatorDid = atUri.did.value;
+
+      const agentResult =
+        await this.agentService.getAuthenticatedAgent(curatorDid);
+
       if (agentResult.isErr()) {
-        return err(new Error(`Authentication error: ${agentResult.error.message}`));
-      }
-      
-      const agent = agentResult.value;
-      
-      if (!agent) {
-        return err(new Error('No authenticated session found for curator'));
+        return err(
+          new Error(`Authentication error: ${agentResult.error.message}`)
+        );
       }
 
-      const publishedRecordId = recordId.getValue();
-      const strongRef = new StrongRef(publishedRecordId);
-      const atUri = strongRef.atUri;
+      const agent = agentResult.value;
+
+      if (!agent) {
+        return err(new Error("No authenticated session found for curator"));
+      }
+
       const repo = atUri.did.toString();
       const rkey = atUri.rkey;
 

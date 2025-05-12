@@ -37,11 +37,12 @@ import { DrizzleAnnotationRepository } from "src/modules/annotations/infrastruct
 import { ATProtoAnnotationTemplatePublisher } from "src/modules/atproto/infrastructure/ATProtoAnnotationTemplatePublisher";
 import { ATProtoAnnotationFieldPublisher } from "src/modules/atproto/infrastructure/ATProtoAnnotationFieldPublisher";
 import { ATProtoAnnotationsFromTemplatePublisher } from "src/modules/atproto/infrastructure/ATProtoAnnotationsFromTemplatePublisher";
-import { ATProtoAnnotationPublisher } from "src/modules/atproto/infrastructure/ATProtoAnnotationPublisher";
 import { DrizzleAnnotationFieldRepository } from "src/modules/annotations/infrastructure/repositories/DrizzleAnnotationFieldRepository";
 import { ATProtoAgentService } from "src/modules/atproto/infrastructure/services/ATProtoAgentService";
 
-export const createExpressApp = (configService?: EnvironmentConfigService): Express => {
+export const createExpressApp = (
+  configService?: EnvironmentConfigService
+): Express => {
   const app = express();
 
   // Middleware setup
@@ -49,7 +50,9 @@ export const createExpressApp = (configService?: EnvironmentConfigService): Expr
   app.use(express.urlencoded({ extended: true }));
 
   // Database connection
-  const db = DatabaseFactory.createConnection(configService?.getDatabaseConfig());
+  const db = DatabaseFactory.createConnection(
+    configService?.getDatabaseConfig()
+  );
 
   // Repositories with DB injection
   const userRepository = new DrizzleUserRepository(db);
@@ -66,8 +69,8 @@ export const createExpressApp = (configService?: EnvironmentConfigService): Expr
 
   // Services
   const tokenService = new JwtTokenService(
-    tokenRepository, 
-    jwtConfig.secret,
+    tokenRepository,
+    jwtConfig.jwtSecret,
     jwtConfig.accessTokenExpiresIn,
     jwtConfig.refreshTokenExpiresIn
   );
@@ -86,9 +89,6 @@ export const createExpressApp = (configService?: EnvironmentConfigService): Expr
   );
   const annotationsFromTemplatePublisher =
     new ATProtoAnnotationsFromTemplatePublisher(atProtoAgentService);
-  const annotationPublisher = new ATProtoAnnotationPublisher(
-    atProtoAgentService
-  );
 
   // Auth middleware
   const authMiddleware = new AuthMiddleware(tokenService);

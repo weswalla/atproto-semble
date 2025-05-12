@@ -111,8 +111,7 @@ export const createExpressApp = (): Express => {
       annotationRepository,
       annotationTemplateRepository,
       annotationFieldRepository,
-      annotationsFromTemplatePublisher,
-      annotationPublisher
+      annotationsFromTemplatePublisher
     );
 
   // Controllers

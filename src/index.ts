@@ -1,6 +1,6 @@
-import { createExpressApp } from "./infrastructure/http/app";
+import { createExpressApp } from "./shared/infrastructure/http/app";
 import dotenv from "dotenv";
-import { DatabaseFactory } from "./infrastructure/database/DatabaseFactory";
+import { DatabaseFactory } from "./shared/infrastructure/database/DatabaseFactory";
 
 // Load environment variables
 dotenv.config();
@@ -8,7 +8,7 @@ dotenv.config();
 async function startServer() {
   // Create database connection
   const db = DatabaseFactory.createConnection();
-  
+
   // Run migrations
   try {
     await DatabaseFactory.runMigrations(db);
@@ -27,7 +27,7 @@ async function startServer() {
   });
 }
 
-startServer().catch(error => {
+startServer().catch((error) => {
   console.error("Failed to start server:", error);
   process.exit(1);
 });

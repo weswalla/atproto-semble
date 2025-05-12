@@ -7,9 +7,12 @@ import { databaseConfig } from '../config';
 export class DatabaseFactory {
   private static instance: PostgresJsDatabase | null = null;
 
-  public static createConnection(): PostgresJsDatabase {
+  public static createConnection(dbConfig = databaseConfig): PostgresJsDatabase {
     if (!this.instance) {
-      const queryClient = postgres(databaseConfig.url);
+      const connectionString = dbConfig.url || 
+        `postgres://${dbConfig.username}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`;
+      
+      const queryClient = postgres(connectionString);
       this.instance = drizzle(queryClient);
     }
     

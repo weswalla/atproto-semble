@@ -4,6 +4,7 @@ import { createUserRoutes } from "../../../modules/user/infrastructure/http/rout
 import { createAnnotationRoutes } from "../../../modules/annotations/infrastructure/http/routes/annotationRoutes";
 import { DatabaseFactory } from "../database/DatabaseFactory";
 import { jwtConfig, oauthConfig } from "../config";
+import { EnvironmentConfigService } from "../config/EnvironmentConfigService";
 
 // Controllers
 import { InitiateOAuthSignInController } from "../../../modules/user/infrastructure/http/controllers/InitiateOAuthSignInController";
@@ -40,7 +41,7 @@ import { ATProtoAnnotationPublisher } from "src/modules/atproto/infrastructure/A
 import { DrizzleAnnotationFieldRepository } from "src/modules/annotations/infrastructure/repositories/DrizzleAnnotationFieldRepository";
 import { ATProtoAgentService } from "src/modules/atproto/infrastructure/services/ATProtoAgentService";
 
-export const createExpressApp = (): Express => {
+export const createExpressApp = (configService?: EnvironmentConfigService): Express => {
   const app = express();
 
   // Middleware setup
@@ -48,7 +49,7 @@ export const createExpressApp = (): Express => {
   app.use(express.urlencoded({ extended: true }));
 
   // Database connection
-  const db = DatabaseFactory.createConnection();
+  const db = DatabaseFactory.createConnection(configService?.getDatabaseConfig());
 
   // Repositories with DB injection
   const userRepository = new DrizzleUserRepository(db);

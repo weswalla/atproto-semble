@@ -1,10 +1,13 @@
 import { createExpressApp } from "./shared/infrastructure/http/app";
 import { DatabaseFactory } from "./shared/infrastructure/database/DatabaseFactory";
-import { serverConfig } from "./shared/infrastructure/config";
+import { configService } from "./shared/infrastructure/config";
 
 async function startServer() {
-  // Create database connection
-  const db = DatabaseFactory.createConnection();
+  // Get configuration
+  const config = configService.get();
+  
+  // Create database connection with config
+  const db = DatabaseFactory.createConnection(configService.getDatabaseConfig());
 
   // Run migrations
   try {
@@ -15,11 +18,12 @@ async function startServer() {
     process.exit(1);
   }
 
-  // Create and start Express app
-  const app = createExpressApp();
+  // Create and start Express app with config
+  const app = createExpressApp(configService);
+  const PORT = config.server.port;
 
-  app.listen(serverConfig.port, () => {
-    console.log(`Server running on port ${serverConfig.port}`);
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT} in ${config.environment} environment`);
   });
 }
 

@@ -3,19 +3,16 @@ import { AnnotationField } from "src/modules/annotations/domain/AnnotationField"
 import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 import { PublishedRecordId } from "src/modules/annotations/domain/value-objects/PublishedRecordId";
-import AtpAgent from "@atproto/api";
 import { AnnotationFieldMapper } from "./AnnotationFieldMapper";
 import { StrongRef } from "../domain";
+import { ATProtoAgentService } from "./services/ATProtoAgentService";
 
 export class ATProtoAnnotationFieldPublisher
   implements IAnnotationFieldPublisher
 {
-  private agent: AtpAgent;
   private readonly COLLECTION = "app.annos.annotationField";
 
-  constructor(agent: AtpAgent) {
-    this.agent = agent;
-  }
+  constructor(private readonly agentService: ATProtoAgentService) {}
 
   /**
    * Publishes an AnnotationField to the AT Protocol
@@ -25,12 +22,28 @@ export class ATProtoAnnotationFieldPublisher
       const record = AnnotationFieldMapper.toCreateRecordDTO(field);
       const curatorDid = field.curatorId.value;
 
+      // Get an authenticated agent for this curator
+      const agentResult =
+        await this.agentService.getAuthenticatedAgent(curatorDid);
+
+      if (agentResult.isErr()) {
+        return err(
+          new Error(`Authentication error: ${agentResult.error.message}`)
+        );
+      }
+
+      const agent = agentResult.value;
+
+      if (!agent) {
+        return err(new Error("No authenticated session found for curator"));
+      }
+
       // If the field is already published, update it
       if (field.isPublished()) {
         const publishedRecordId = field.publishedRecordId!.getValue();
         const strongRef = new StrongRef(publishedRecordId);
 
-        const updateResult = await this.agent.com.atproto.repo.putRecord({
+        const updateResult = await agent.com.atproto.repo.putRecord({
           repo: curatorDid,
           collection: this.COLLECTION,
           rkey: strongRef.atUri.rkey,
@@ -46,7 +59,7 @@ export class ATProtoAnnotationFieldPublisher
       }
       // Otherwise create a new record
       else {
-        const createResult = await this.agent.com.atproto.repo.createRecord({
+        const createResult = await agent.com.atproto.repo.createRecord({
           repo: curatorDid,
           collection: this.COLLECTION,
           record,
@@ -73,10 +86,27 @@ export class ATProtoAnnotationFieldPublisher
     try {
       const strongRef = new StrongRef(recordId.getValue());
       const atUri = strongRef.atUri;
+      const curatorDid = atUri.did.value;
       const repo = atUri.did.toString();
       const rkey = atUri.rkey;
 
-      await this.agent.com.atproto.repo.deleteRecord({
+      // Get an authenticated agent for this curator
+      const agentResult =
+        await this.agentService.getAuthenticatedAgent(curatorDid);
+
+      if (agentResult.isErr()) {
+        return err(
+          new Error(`Authentication error: ${agentResult.error.message}`)
+        );
+      }
+
+      const agent = agentResult.value;
+
+      if (!agent) {
+        return err(new Error("No authenticated session found for curator"));
+      }
+
+      await agent.com.atproto.repo.deleteRecord({
         repo,
         collection: this.COLLECTION,
         rkey,

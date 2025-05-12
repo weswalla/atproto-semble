@@ -1,4 +1,4 @@
-import { $Typed, AtpAgent } from "@atproto/api";
+import { $Typed } from "@atproto/api";
 import {
   IAnnotationsFromTemplatePublisher,
   PublishedAnnotationsFromTemplateResult,
@@ -10,16 +10,14 @@ import { UseCaseError } from "src/shared/core/UseCaseError";
 import { AnnotationsFromTemplateMapper } from "./AnnotationsFromTemplateMapper";
 import { StrongRef } from "../domain";
 import { Delete } from "@atproto/sync";
+import { ATProtoAgentService } from "./services/ATProtoAgentService";
 
 export class ATProtoAnnotationsFromTemplatePublisher
   implements IAnnotationsFromTemplatePublisher
 {
-  private agent: AtpAgent;
   private readonly COLLECTION = "app.annos.annotation";
 
-  constructor(agent: AtpAgent) {
-    this.agent = agent;
-  }
+  constructor(private readonly agentService: ATProtoAgentService) {}
 
   /**
    * Publishes multiple annotations from a template to the AT Protocol in a single transaction
@@ -35,6 +33,22 @@ export class ATProtoAnnotationsFromTemplatePublisher
         return err(new Error("No curator DID found in annotations"));
       }
 
+      // Get an authenticated agent for this curator
+      const agentResult =
+        await this.agentService.getAuthenticatedAgent(curatorDid);
+
+      if (agentResult.isErr()) {
+        return err(
+          new Error(`Authentication error: ${agentResult.error.message}`)
+        );
+      }
+
+      const agent = agentResult.value;
+
+      if (!agent) {
+        return err(new Error("No authenticated session found for curator"));
+      }
+
       // Use the mapper to generate create operations and rkeys
       const writes = AnnotationsFromTemplateMapper.toCreateOperations(
         annotationsFromTemplate,
@@ -42,7 +56,7 @@ export class ATProtoAnnotationsFromTemplatePublisher
       );
 
       // Apply all writes in a single transaction
-      const result = await this.agent.com.atproto.repo.applyWrites({
+      const result = await agent.com.atproto.repo.applyWrites({
         repo: curatorDid,
         writes,
         validate: false,
@@ -99,7 +113,10 @@ export class ATProtoAnnotationsFromTemplatePublisher
   ): Promise<Result<void, UseCaseError>> {
     try {
       // Group records by repo (curator DID)
-      const recordsByRepo = new Map<string, { rkey: string; uri: string }[]>();
+      const recordsByRepo = new Map<
+        string,
+        { rkey: string; uri: string; did: string }[]
+      >();
 
       for (const recordId of recordIds) {
         const publishedRecordId = recordId.getValue();
@@ -107,16 +124,38 @@ export class ATProtoAnnotationsFromTemplatePublisher
         const atUri = strongRef.atUri;
         const repo = atUri.did.toString();
         const rkey = atUri.rkey;
+        const did = atUri.did.value;
 
         if (!recordsByRepo.has(repo)) {
           recordsByRepo.set(repo, []);
         }
 
-        recordsByRepo.get(repo)?.push({ rkey, uri: publishedRecordId.uri });
+        recordsByRepo
+          .get(repo)
+          ?.push({ rkey, uri: publishedRecordId.uri, did });
       }
 
       // For each repo, create a batch delete operation
       for (const [repo, records] of recordsByRepo.entries()) {
+        if (records.length === 0) continue;
+
+        // Get an authenticated agent for this curator
+        const curatorDid = records[0]!.did;
+        const agentResult =
+          await this.agentService.getAuthenticatedAgent(curatorDid);
+
+        if (agentResult.isErr()) {
+          return err(
+            new Error(`Authentication error: ${agentResult.error.message}`)
+          );
+        }
+
+        const agent = agentResult.value;
+
+        if (!agent) {
+          return err(new Error("No authenticated session found for curator"));
+        }
+
         const writes = records.map(
           (record) =>
             ({
@@ -127,7 +166,7 @@ export class ATProtoAnnotationsFromTemplatePublisher
         );
 
         // Apply all deletes for this repo in a single transaction
-        await this.agent.com.atproto.repo.applyWrites({
+        await agent.com.atproto.repo.applyWrites({
           repo,
           writes: writes as any,
           validate: false,

@@ -5,14 +5,15 @@ import { UseCaseError } from "src/shared/core/UseCaseError";
 import { PublishedRecordId } from "src/modules/annotations/domain/value-objects/PublishedRecordId";
 import { AnnotationFieldMapper } from "./AnnotationFieldMapper";
 import { StrongRef } from "../domain";
-import { ATProtoAgentService } from "./services/ATProtoAgentService";
+import { IAgentService } from "../application/IAgentService";
+import { DID } from "../domain/DID";
 
 export class ATProtoAnnotationFieldPublisher
   implements IAnnotationFieldPublisher
 {
   private readonly COLLECTION = "app.annos.annotationField";
 
-  constructor(private readonly agentService: ATProtoAgentService) {}
+  constructor(private readonly agentService: IAgentService) {}
 
   /**
    * Publishes an AnnotationField to the AT Protocol
@@ -20,7 +21,7 @@ export class ATProtoAnnotationFieldPublisher
   async publish(field: AnnotationField): Promise<Result<PublishedRecordId>> {
     try {
       const record = AnnotationFieldMapper.toCreateRecordDTO(field);
-      const curatorDid = field.curatorId.value;
+      const curatorDid = new DID(field.curatorId.value);
 
       // Get an authenticated agent for this curator
       const agentResult =
@@ -44,7 +45,7 @@ export class ATProtoAnnotationFieldPublisher
         const strongRef = new StrongRef(publishedRecordId);
 
         const updateResult = await agent.com.atproto.repo.putRecord({
-          repo: curatorDid,
+          repo: curatorDid.value,
           collection: this.COLLECTION,
           rkey: strongRef.atUri.rkey,
           record,
@@ -60,7 +61,7 @@ export class ATProtoAnnotationFieldPublisher
       // Otherwise create a new record
       else {
         const createResult = await agent.com.atproto.repo.createRecord({
-          repo: curatorDid,
+          repo: curatorDid.value,
           collection: this.COLLECTION,
           record,
         });
@@ -86,7 +87,7 @@ export class ATProtoAnnotationFieldPublisher
     try {
       const strongRef = new StrongRef(recordId.getValue());
       const atUri = strongRef.atUri;
-      const curatorDid = atUri.did.value;
+      const curatorDid = atUri.did;
       const repo = atUri.did.toString();
       const rkey = atUri.rkey;
 

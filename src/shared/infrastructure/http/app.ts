@@ -3,6 +3,7 @@ import { Router } from "express";
 import { createUserRoutes } from "../../../modules/user/infrastructure/http/routes/userRoutes";
 import { createAnnotationRoutes } from "../../../modules/annotations/infrastructure/http/routes/annotationRoutes";
 import { DatabaseFactory } from "../database/DatabaseFactory";
+import { jwtConfig, oauthConfig } from "../config";
 
 // Controllers
 import { InitiateOAuthSignInController } from "../../../modules/user/infrastructure/http/controllers/InitiateOAuthSignInController";
@@ -63,11 +64,15 @@ export const createExpressApp = (): Express => {
   );
 
   // Services
-  const jwtSecret = process.env.JWT_SECRET || "default-secret";
-  const tokenService = new JwtTokenService(tokenRepository, jwtSecret);
+  const tokenService = new JwtTokenService(
+    tokenRepository, 
+    jwtConfig.secret,
+    jwtConfig.accessTokenExpiresIn,
+    jwtConfig.refreshTokenExpiresIn
+  );
   const nodeOauthClient = OAuthClientFactory.createClient(
     db,
-    "http://127.0.0.1:3000"
+    oauthConfig.callbackUrl
   );
   const oauthProcessor = new AtProtoOAuthProcessor(nodeOauthClient);
   const userAuthService = new UserAuthenticationService(userRepository);

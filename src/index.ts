@@ -1,9 +1,6 @@
 import { createExpressApp } from "./shared/infrastructure/http/app";
-import dotenv from "dotenv";
 import { DatabaseFactory } from "./shared/infrastructure/database/DatabaseFactory";
-
-// Load environment variables
-dotenv.config();
+import { serverConfig } from "./shared/infrastructure/config";
 
 async function startServer() {
   // Create database connection
@@ -20,10 +17,9 @@ async function startServer() {
 
   // Create and start Express app
   const app = createExpressApp();
-  const PORT = process.env.PORT || 3000;
 
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  app.listen(serverConfig.port, () => {
+    console.log(`Server running on port ${serverConfig.port}`);
   });
 }
 

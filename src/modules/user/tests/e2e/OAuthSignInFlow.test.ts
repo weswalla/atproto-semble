@@ -4,7 +4,7 @@ import { Server } from "http";
 import path from "path";
 import dotenv from "dotenv";
 import { config } from "dotenv";
-import { AtProtoOAuthProcessor } from "../../infrastructure/services/AtProtoOAuthProcessor";
+import { AtProtoOAuthProcessor } from "../../../atproto/infrastructure/services/AtProtoOAuthProcessor";
 import { InitiateOAuthSignInUseCase } from "../../application/use-cases/InitiateOAuthSignInUseCase";
 import { CompleteOAuthSignInUseCase } from "../../application/use-cases/CompleteOAuthSignInUseCase";
 import { OAuthClientFactory } from "../../infrastructure/services/OAuthClientFactory";

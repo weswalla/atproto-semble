@@ -10,10 +10,10 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:e2e": "jest src/modules/user/tests/e2e/OAuthSignInFlow.test.ts --testTimeout=300000",
-    "build": "tsc",
+    "build": "tsup",
     "build:watch": "tsc --watch",
-    "start": "node dist/index.js",
-    "dev": "npm run docker:dev",
+    "start": "node dist/src/index.js",
+    "dev": "concurrently -k -n TYPE,CODE -c red,blue \"tsc --noEmit --watch\" \"tsup src/index.ts --watch --onSuccess='node dist/index.js'\"",
     "docker:dev": "docker-compose up",
     "docker:dev:build": "docker-compose up --build",
     "docker:down": "docker-compose down",
@@ -22,7 +22,7 @@
     "db:start": "docker run --name annos-postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=annotations -p 5432:5432 -d postgres:14",
     "db:stop": "docker stop annos-postgres",
     "db:remove": "docker rm annos-postgres",
-    "dev:local": "npm run build && node -r dotenv/config dist/index.js"
+    "dev:local": "npm run build && node -r tsconfig-paths/register -r dotenv/config dist/src/index.js"
   },
   "keywords": [],
   "author": "",
@@ -50,6 +50,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/pg": "^8.11.13",
     "@types/supertest": "^6.0.3",
+    "concurrently": "^9.1.2",
     "drizzle-kit": "^0.31.0",
     "drizzle-orm": "^0.32.1",
     "jest": "^29.7.0",
@@ -58,6 +59,8 @@
     "supertest": "^7.1.0",
     "testcontainers": "^10.24.2",
     "ts-jest": "^29.3.2",
+    "tsconfig-paths": "^4.2.0",
+    "tsup": "^8.4.0",
     "typescript": "^5.8.3"
   }
 }

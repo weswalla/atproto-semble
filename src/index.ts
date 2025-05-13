@@ -21,9 +21,10 @@ async function startServer() {
   // Create and start Express app with config
   const app = createExpressApp(configService);
   const PORT = config.server.port;
+  const HOST = config.server.host;
 
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT} in ${config.environment} environment`);
+  app.listen(PORT, HOST, () => {
+    console.log(`Server running on http://${HOST}:${PORT} in ${config.environment} environment`);
   });
 }
 

@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { authService } from "@/services/api";
 
 export default function LoginPage() {
   const [handle, setHandle] = useState("");
@@ -22,17 +23,11 @@ export default function LoginPage() {
     setError("");
 
     try {
-      // Use our API route which will proxy to the backend
-      const response = await fetch(`/api/auth?handle=${handle}`);
-      console.log("Response from API:", response);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to initiate login");
-      }
-
+      // Use our client-side API service
+      const { authUrl } = await authService.initiateLogin(handle);
+      
       // Redirect to the auth URL from the API
-      window.location.href = data.authUrl;
+      window.location.href = authUrl;
     } catch (err: any) {
       setError(err.message || "An error occurred during login");
     } finally {

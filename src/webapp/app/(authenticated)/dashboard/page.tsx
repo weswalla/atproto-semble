@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/api";
-import { isAuthenticated, getAccessToken, clearAuth } from "@/services/auth";
-import { Sidebar } from "@/components/Sidebar";
+import { getAccessToken, clearAuth } from "@/services/auth";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
@@ -15,12 +14,6 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        // Check if user is authenticated
-        if (!isAuthenticated()) {
-          router.push("/");
-          return;
-        }
-        
         const accessToken = getAccessToken();
         
         // Fetch user data
@@ -28,15 +21,13 @@ export default function DashboardPage() {
         setUser(userData);
       } catch (error) {
         console.error("Error fetching user:", error);
-        // If there's an error (like expired token), redirect to home
-        router.push("/");
       } finally {
         setLoading(false);
       }
     };
     
     fetchUser();
-  }, [router]);
+  }, []);
   
   const handleLogout = async () => {
     try {
@@ -55,37 +46,32 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center">
+      <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <main className="flex-1 p-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
-          
-          <div className="bg-white p-8 rounded-lg shadow-md">
-            <h2 className="text-2xl font-semibold mb-6">Welcome!</h2>
-            
-            {user && (
-              <div className="mb-6">
-                <p className="mb-2"><strong>Handle:</strong> {user.handle}</p>
-                <p><strong>DID:</strong> {user.did}</p>
-              </div>
-            )}
-            
-            <div className="flex justify-end">
-              <Button onClick={handleLogout} variant="outline">
-                Sign Out
-              </Button>
-            </div>
+    <>
+      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+      
+      <div className="bg-white p-8 rounded-lg shadow-md">
+        <h2 className="text-2xl font-semibold mb-6">Welcome!</h2>
+        
+        {user && (
+          <div className="mb-6">
+            <p className="mb-2"><strong>Handle:</strong> {user.handle}</p>
+            <p><strong>DID:</strong> {user.did}</p>
           </div>
+        )}
+        
+        <div className="flex justify-end">
+          <Button onClick={handleLogout} variant="outline">
+            Sign Out
+          </Button>
         </div>
-      </main>
-    </div>
+      </div>
+    </>
   );
 }

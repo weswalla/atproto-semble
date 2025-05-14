@@ -39,6 +39,7 @@ import { ATProtoAnnotationFieldPublisher } from "src/modules/atproto/infrastruct
 import { ATProtoAnnotationsFromTemplatePublisher } from "src/modules/atproto/infrastructure/ATProtoAnnotationsFromTemplatePublisher";
 import { DrizzleAnnotationFieldRepository } from "src/modules/annotations/infrastructure/repositories/DrizzleAnnotationFieldRepository";
 import { ATProtoAgentService } from "src/modules/atproto/infrastructure/services/ATProtoAgentService";
+import { createAtprotoRoutes } from "src/modules/atproto/infrastructure/atprotoRoutes";
 
 export const createExpressApp = (
   configService?: EnvironmentConfigService
@@ -146,6 +147,7 @@ export const createExpressApp = (
   // Routes
   const userRouter = Router();
   const annotationRouter = Router();
+  const atprotoRouter = Router();
 
   createUserRoutes(
     userRouter,
@@ -163,9 +165,12 @@ export const createExpressApp = (
     createAndPublishAnnotationsFromTemplateController
   );
 
+  createAtprotoRoutes(atprotoRouter, nodeOauthClient);
+
   // Register routes
   app.use("/api/users", userRouter);
   app.use("/api/annotations", annotationRouter);
+  app.use("/atproto", atprotoRouter);
 
   return app;
 };

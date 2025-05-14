@@ -37,5 +37,5 @@
     // "rootDir": "./src" // Removed: Let TS infer the root from 'include' paths
   },
   "include": ["src/**/*", "tests/**/*"], // Include source and test files
-  "exclude": ["node_modules", "dist"] // Exclude build output and dependencies
+  "exclude": ["node_modules", "dist", "src/webapp/**/*"] // Exclude build output and dependencies
 }

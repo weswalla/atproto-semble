@@ -38,7 +38,14 @@ export default function OAuthCallbackPage() {
         setStatus("success");
         setMessage("Login successful!");
 
+        // Clear the URL parameters for security
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+
         // Redirect to dashboard after a short delay
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1500);
       } catch (err: any) {
         setStatus("error");
         setMessage(err.message || "An error occurred during authentication");

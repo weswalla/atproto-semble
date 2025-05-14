@@ -24,7 +24,7 @@ export class DatabaseFactory {
 
   public static async runMigrations(db: PostgresJsDatabase): Promise<void> {
     await migrate(db, {
-      migrationsFolder: ".src/shared/infrastructure/database/migrations",
+      migrationsFolder: "./src/shared/infrastructure/database/migrations",
     });
   }
 }

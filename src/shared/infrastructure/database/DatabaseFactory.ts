@@ -2,7 +2,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { databaseConfig } from "../config";
+import { databaseConfig, configService } from "../config";
 
 export class DatabaseFactory {
   private static instance: PostgresJsDatabase | null = null;
@@ -11,11 +11,11 @@ export class DatabaseFactory {
     dbConfig = databaseConfig
   ): PostgresJsDatabase {
     if (!this.instance) {
-      const connectionString =
-        dbConfig.url ||
-        `postgres://${dbConfig.username}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`;
+      const connectionString = dbConfig.url;
 
-      const queryClient = postgres(connectionString);
+      const queryClient = postgres(connectionString, {
+        ssl: configService.get().environment === "local" ? false : "require",
+      });
       this.instance = drizzle(queryClient);
     }
 

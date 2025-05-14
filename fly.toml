@@ -20,3 +20,7 @@ primary_region = 'sea'
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
+
+[env]
+NODE_ENV="dev"
+ATPROTO_REDIRECT_URI="http://annos.fly.dev/api/users/oauth/callback"

@@ -34,7 +34,7 @@ export class CompleteOAuthSignInUseCase
   ): Promise<CompleteOAuthSignInResponse> {
     try {
       // Validate callback parameters
-      if (!request.code || !request.state) {
+      if (!request.code || !request.state || !request.iss) {
         return err(new CompleteOAuthSignInErrors.InvalidCallbackParamsError());
       }
 

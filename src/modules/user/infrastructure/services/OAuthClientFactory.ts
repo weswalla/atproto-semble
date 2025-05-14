@@ -7,24 +7,25 @@ import { DrizzleStateStore } from "./DrizzleStateStore";
 import { DrizzleSessionStore } from "./DrizzleSessionStore";
 import { InMemoryStateStore } from "../../tests/infrastructure/InMemoryStateStore";
 import { InMemorySessionStore } from "../../tests/infrastructure/InMemorySessionStore";
+import { configService } from "src/shared/infrastructure/config";
 
 export class OAuthClientFactory {
   static getClientMetadata(
     baseUrl: string,
     appName: string = "Annotation App"
   ): { clientMetadata: OAuthClientMetadataInput } {
-    const publicUrl = process.env.PUBLIC_URL;
     const url = baseUrl || "http://127.0.0.1:3000";
     const enc = encodeURIComponent;
+    const isLocal = configService.get().environment === "local";
 
     return {
       clientMetadata: {
         client_name: appName,
-        client_id: publicUrl
+        client_id: !isLocal
           ? `${url}/client-metadata.json`
-          : `http://localhost?redirect_uri=${enc(`${url}/oauth/callback`)}&scope=${enc("atproto transition:generic")}`,
+          : `http://localhost?redirect_uri=${enc(`${url}/api/users/oauth/callback`)}&scope=${enc("atproto transition:generic")}`,
         client_uri: url,
-        redirect_uris: [`${url}/oauth/callback`],
+        redirect_uris: [`${url}/api/users/oauth/callback`],
         scope: "atproto transition:generic",
         grant_types: ["authorization_code", "refresh_token"],
         response_types: ["code"],

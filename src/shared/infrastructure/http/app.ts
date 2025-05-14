@@ -76,7 +76,7 @@ export const createExpressApp = (
   );
   const nodeOauthClient = OAuthClientFactory.createClient(
     db,
-    oauthConfig.callbackUrl
+    oauthConfig.baseUrl
   );
   const oauthProcessor = new AtProtoOAuthProcessor(nodeOauthClient);
   const userAuthService = new UserAuthenticationService(userRepository);

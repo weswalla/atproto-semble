@@ -11,6 +11,7 @@ export interface EnvironmentConfig {
   atproto: {
     serviceEndpoint: string;
     redirectUri: string;
+    baseUrl: string;
   };
   server: {
     port: number;
@@ -47,6 +48,7 @@ export class EnvironmentConfigService {
       atproto: {
         serviceEndpoint:
           process.env.ATPROTO_SERVICE_ENDPOINT || "https://bsky.social",
+        baseUrl: process.env.BASE_URL || "http://127.0.0.1:3000",
         redirectUri:
           process.env.ATPROTO_REDIRECT_URI ||
           "http://127.0.0.1:3000/api/users/oauth/callback",

@@ -60,11 +60,12 @@ export const authService = {
   },
 
   /**
-   * Complete OAuth flow with code and state
+   * Complete OAuth flow with code, state, and iss
    */
   completeOAuth: async (
     code: string,
-    state: string
+    state: string,
+    iss: string
   ): Promise<{ accessToken: string; refreshToken: string }> => {
     if (!code || !state) {
       throw new ApiError("Code and state are required", 400);
@@ -73,7 +74,7 @@ export const authService = {
     try {
       const apiBaseUrl = getApiBaseUrl();
       const response = await fetch(
-        `${apiBaseUrl}/api/users/oauth/callback?code=${code}&state=${state}`,
+        `${apiBaseUrl}/api/users/oauth/callback?code=${code}&state=${state}&iss=${iss}`,
         {
           method: "GET",
           headers: {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { authService } from "@/services/api"
 
 export default function OAuthCallbackPage() {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading")
@@ -12,38 +13,21 @@ export default function OAuthCallbackPage() {
   useEffect(() => {
     const processCallback = async () => {
       try {
-        // Get the code and state from the URL
+        // Get the code, state, and iss from the URL
         const code = searchParams.get("code")
         const state = searchParams.get("state")
+        const iss = searchParams.get("iss") || ""
         
         if (!code || !state) {
           throw new Error("Missing required parameters")
         }
         
-        // Get the API base URL for the callback
-        const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+        // Use the authService to complete the OAuth flow
+        const { accessToken, refreshToken } = await authService.completeOAuth(code, state, iss)
         
-        // Call the backend API to complete the OAuth flow
-        const response = await fetch(`${apiBaseUrl}/api/users/oauth/callback?code=${code}&state=${state}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-        
-        const data = await response.json()
-        
-        if (!response.ok) {
-          throw new Error(data.message || "Authentication failed")
-        }
-        
-        // Success - store tokens if needed
-        if (data.accessToken) {
-          localStorage.setItem("accessToken", data.accessToken)
-        }
-        if (data.refreshToken) {
-          localStorage.setItem("refreshToken", data.refreshToken)
-        }
+        // Store tokens in localStorage
+        localStorage.setItem("accessToken", accessToken)
+        localStorage.setItem("refreshToken", refreshToken)
         
         setStatus("success")
         setMessage("Login successful!")

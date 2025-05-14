@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export default function Home() {
   return (
@@ -13,9 +14,11 @@ export default function Home() {
             Please sign in to access your annotations
           </p>
           <div className="flex justify-center">
-            <Button className="w-full">
-              Sign in with Bluesky
-            </Button>
+            <Link href="/login" className="w-full">
+              <Button className="w-full">
+                Sign in with Bluesky
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

@@ -17,6 +17,9 @@ export interface EnvironmentConfig {
     port: number;
     host: string;
   };
+  app: {
+    appUrl: string;
+  };
 }
 
 export class EnvironmentConfigService {
@@ -56,6 +59,9 @@ export class EnvironmentConfigService {
       server: {
         port: parseInt(process.env.PORT || "3000"),
         host: process.env.HOST || "127.0.0.1",
+      },
+      app: {
+        appUrl: process.env.APP_URL || "http://127.0.0.1:4000",
       },
     };
 

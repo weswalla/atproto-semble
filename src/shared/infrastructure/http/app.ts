@@ -1,4 +1,5 @@
 import express, { Express } from "express";
+import cors from "cors";
 import { Router } from "express";
 import { createUserRoutes } from "../../../modules/user/infrastructure/http/routes/userRoutes";
 import { createAnnotationRoutes } from "../../../modules/annotations/infrastructure/http/routes/annotationRoutes";
@@ -46,6 +47,13 @@ export const createExpressApp = (
 ): Express => {
   const app = express();
 
+  app.use(
+    cors({
+      origin: ["http://localhost:4000"],
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      credentials: true,
+    })
+  );
   // Middleware setup
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));

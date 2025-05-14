@@ -8,7 +8,6 @@ import {
 } from "../../../domain/value-objects";
 import { PublishedRecordDTO, PublishedRecordRefDTO } from "./DTOTypes";
 import { URI } from "../../../domain/value-objects/URI";
-import { Mapper } from "../../../../../shared/infra/Mapper";
 import { err, ok, Result } from "../../../../../shared/core/Result";
 import { AnnotationType } from "../../../domain/value-objects/AnnotationType";
 import {
@@ -42,7 +41,7 @@ export interface AnnotationDTO extends PublishedRecordRefDTO {
   templateIds?: string[]; // Array of template IDs this annotation is associated with
 }
 
-export class AnnotationMapper implements Mapper<Annotation> {
+export class AnnotationMapper {
   public static toDomain(dto: AnnotationDTO): Result<Annotation> {
     try {
       // Create value objects

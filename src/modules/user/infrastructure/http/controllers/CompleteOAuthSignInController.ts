@@ -9,15 +9,16 @@ export class CompleteOAuthSignInController extends Controller {
 
   async executeImpl(req: Request, res: Response): Promise<any> {
     try {
-      const { code, state } = req.query;
+      const { code, state, iss } = req.query;
 
-      if (!code || !state) {
+      if (!code || !state || !iss) {
         return this.badRequest(res, "Missing required parameters");
       }
 
       const result = await this.completeOAuthSignInUseCase.execute({
         code: code as string,
         state: state as string,
+        iss: iss as string,
       });
 
       if (result.isErr()) {

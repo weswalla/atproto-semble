@@ -1,4 +1,3 @@
-import { err, Result } from "src/shared/core/Result";
 import { AnnotationType } from "./value-objects/AnnotationType";
 import {
   AnnotationFieldDefinition,
@@ -12,6 +11,7 @@ import {
   SingleSelectFieldDef,
   TriadFieldDef,
 } from "./value-objects";
+import { err, Result } from "src/shared/core/Result";
 
 interface CreateAnnotationFieldDefProps {
   type: AnnotationType;

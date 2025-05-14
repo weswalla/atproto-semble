@@ -16,10 +16,10 @@ export class InitiateOAuthSignInController extends Controller {
       });
 
       if (result.isErr()) {
-        return this.fail(res, result.error as any);
+        return this.fail(res, result.error.message);
       }
 
-      return this.ok(res, { authUrl: result.value });
+      return this.ok(res, result.value);
     } catch (error: any) {
       return this.fail(res, error);
     }

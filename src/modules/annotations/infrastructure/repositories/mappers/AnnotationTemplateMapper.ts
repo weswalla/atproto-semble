@@ -7,10 +7,8 @@ import {
   PublishedRecordId,
   AnnotationTemplateFields,
   AnnotationTemplateField,
-  PublishedRecordIdProps,
 } from "../../../domain/value-objects";
 import { PublishedRecordDTO, PublishedRecordRefDTO } from "./DTOTypes";
-import { Mapper } from "../../../../../shared/infra/Mapper";
 import { err, ok, Result } from "../../../../../shared/core/Result";
 import {
   AnnotationFieldDTO,
@@ -32,7 +30,7 @@ export interface AnnotationTemplateFieldDTO {
   field: AnnotationFieldDTO; // This would be the AnnotationFieldDTO
 }
 
-export class AnnotationTemplateMapper implements Mapper<AnnotationTemplate> {
+export class AnnotationTemplateMapper {
   public static toDomain(
     raw: AnnotationTemplateDTO
   ): Result<AnnotationTemplate> {
@@ -59,7 +57,7 @@ export class AnnotationTemplateMapper implements Mapper<AnnotationTemplate> {
       if (raw.publishedRecord) {
         publishedRecordId = PublishedRecordId.create({
           uri: raw.publishedRecord.uri,
-          cid: raw.publishedRecord.cid
+          cid: raw.publishedRecord.cid,
         });
       }
 
@@ -132,14 +130,14 @@ export class AnnotationTemplateMapper implements Mapper<AnnotationTemplate> {
     // Create published record data if it exists
     let publishedRecord: PublishedRecordDTO | undefined;
     let publishedRecordId: string | undefined;
-    
+
     if (template.publishedRecordId) {
       const recordId = new UniqueEntityID().toString();
       publishedRecord = {
         id: recordId,
         uri: template.publishedRecordId.uri,
         cid: template.publishedRecordId.cid,
-        recordedAt: new Date()
+        recordedAt: new Date(),
       };
       publishedRecordId = recordId;
     }

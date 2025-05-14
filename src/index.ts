@@ -5,9 +5,11 @@ import { configService } from "./shared/infrastructure/config";
 async function startServer() {
   // Get configuration
   const config = configService.get();
-  
+
   // Create database connection with config
-  const db = DatabaseFactory.createConnection(configService.getDatabaseConfig());
+  const db = DatabaseFactory.createConnection(
+    configService.getDatabaseConfig()
+  );
 
   // Run migrations
   try {
@@ -24,7 +26,9 @@ async function startServer() {
   const HOST = config.server.host;
 
   app.listen(PORT, HOST, () => {
-    console.log(`Server running on http://${HOST}:${PORT} in ${config.environment} environment`);
+    console.log(
+      `Server running on http://${HOST}:${PORT} in ${config.environment} environment`
+    );
   });
 }
 

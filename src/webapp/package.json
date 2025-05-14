@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "PORT=4000 next dev",
+    "dev:prod": "NODE_ENV=production PORT=4000 next dev",
     "build": "next build",
+    "build:prod": "NODE_ENV=production next build",
     "start": "next start",
     "lint": "next lint"
   },

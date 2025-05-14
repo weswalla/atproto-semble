@@ -23,7 +23,7 @@
     "db:stop": "docker stop annos-postgres",
     "db:remove": "docker rm annos-postgres",
     "dev:local": "npm run build && node -r tsconfig-paths/register -r dotenv/config dist/src/index.js",
-    "db:generate": "drizzle-kit generate:pg --schema=./src/modules/annotations/infrastructure/repositories/schema/*.ts --schema=./src/modules/user/infrastructure/repositories/schema/*.ts --out=./migrations"
+    "db:generate": "drizzle-kit generate --schema=./src/modules/annotations/infrastructure/repositories/schema --out=./migrations --dialect=postgresql && drizzle-kit generate --schema=./src/modules/user/infrastructure/repositories/schema --out=./migrations --dialect=postgresql"
   },
   "keywords": [],
   "author": "",
@@ -52,8 +52,8 @@
     "@types/pg": "^8.11.13",
     "@types/supertest": "^6.0.3",
     "concurrently": "^9.1.2",
-    "drizzle-kit": "^0.31.0",
-    "drizzle-orm": "^0.32.1",
+    "drizzle-kit": "^0.31.1",
+    "drizzle-orm": "^0.43.1",
     "jest": "^29.7.0",
     "pg": "^8.14.1",
     "playwright": "^1.40.0",

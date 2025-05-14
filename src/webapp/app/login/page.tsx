@@ -22,7 +22,8 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const response = await fetch(`/api/users/login?handle=${handle}`);
+      // Use our API route which will proxy to the backend
+      const response = await fetch(`/api/auth?handle=${handle}`);
       console.log("Response from API:", response);
       const data = await response.json();
 

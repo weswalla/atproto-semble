@@ -20,8 +20,11 @@ export default function OAuthCallbackPage() {
           throw new Error("Missing required parameters")
         }
         
+        // Get the API base URL for the callback
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+        
         // Call the backend API to complete the OAuth flow
-        const response = await fetch("/api/users/oauth/callback", {
+        const response = await fetch(`${apiBaseUrl}/api/users/oauth/callback?code=${code}&state=${state}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

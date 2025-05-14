@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { getApiBaseUrl } from "@/lib/api"
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null)
@@ -19,7 +20,8 @@ export default function DashboardPage() {
           return
         }
         
-        const response = await fetch("/api/users/me", {
+        const apiBaseUrl = getApiBaseUrl();
+        const response = await fetch(`${apiBaseUrl}/api/users/me`, {
           headers: {
             Authorization: `Bearer ${accessToken}`
           }

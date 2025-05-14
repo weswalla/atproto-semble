@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { getApiBaseUrl } from "@/lib/api"
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -13,8 +14,8 @@ export async function GET(request: NextRequest) {
   
   try {
     // Call the backend API to initiate OAuth
-    const backendUrl = process.env.BACKEND_URL || "http://localhost:3001"
-    const response = await fetch(`${backendUrl}/api/users/login?handle=${handle}`, {
+    const apiBaseUrl = getApiBaseUrl()
+    const response = await fetch(`${apiBaseUrl}/api/users/login?handle=${handle}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

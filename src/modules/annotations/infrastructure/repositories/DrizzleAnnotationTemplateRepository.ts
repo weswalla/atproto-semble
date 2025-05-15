@@ -257,6 +257,11 @@ export class DrizzleAnnotationTemplateRepository
         }
       }
 
+      // First, save all annotation fields
+      for (const annotationField of template.getAnnotationFields()) {
+        await this.annotationFieldRepository.save(annotationField);
+      }
+
       // Upsert the template
       await tx
         .insert(annotationTemplates)

@@ -134,9 +134,6 @@ describe("DrizzleAnnotationTemplateRepository", () => {
       fieldId
     ).unwrap();
 
-    // Save the field first
-    await fieldRepository.save(annotationField);
-
     // Create a template field using the annotation field
     const templateField = AnnotationTemplateField.create({
       annotationField,
@@ -224,9 +221,6 @@ describe("DrizzleAnnotationTemplateRepository", () => {
       fieldId
     ).unwrap();
 
-    // Save the field
-    await fieldRepository.save(annotationField);
-
     // Create a template field using the annotation field
     const templateField = AnnotationTemplateField.create({
       annotationField,
@@ -313,9 +307,9 @@ describe("DrizzleAnnotationTemplateRepository", () => {
     expect(
       curator1Templates.every((t) => t.curatorId.value === "did:plc:curator1")
     ).toBe(true);
-    
+
     // Verify each template has the expected number of fields
-    curator1Templates.forEach(template => {
+    curator1Templates.forEach((template) => {
       expect(template.getAnnotationFields().length).toBe(1);
     });
 
@@ -327,7 +321,7 @@ describe("DrizzleAnnotationTemplateRepository", () => {
     expect(curator2Templates.length).toBe(1);
     expect(curator2Templates[0]!.name.value).toBe("Curator2 Template");
     expect(curator2Templates[0]!.curatorId.value).toBe("did:plc:curator2");
-    
+
     // Verify the template has the expected number of fields
     expect(curator2Templates[0]!.getAnnotationFields().length).toBe(1);
   });

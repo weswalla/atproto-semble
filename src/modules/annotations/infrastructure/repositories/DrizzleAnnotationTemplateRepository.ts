@@ -54,8 +54,6 @@ export class DrizzleAnnotationTemplateRepository
       .from(annotationTemplateFields)
       .where(eq(annotationTemplateFields.templateId, templateId));
 
-    console.log("Fields Result:", fieldsResult);
-
     // Fetch the actual annotation fields
     const annotationFields = await Promise.all(
       fieldsResult.map(async (field) => {
@@ -68,7 +66,6 @@ export class DrizzleAnnotationTemplateRepository
         const fieldId = annotationFieldIdResult.value;
         const annotationField =
           await this.annotationFieldRepository.findById(fieldId);
-        console.log("Annotation Field:", JSON.stringify(annotationField));
         return {
           fieldId: field.fieldId,
           required: field.required,
@@ -113,8 +110,6 @@ export class DrizzleAnnotationTemplateRepository
         : undefined,
       fields: validFields,
     };
-
-    console.log("Template DTO:", templateDTO);
 
     const domainResult = AnnotationTemplateMapper.toDomain(templateDTO);
     if (domainResult.isErr()) {

@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, createContext, useContext, ReactNode } from "react";
+import {
+  useState,
+  useEffect,
+  createContext,
+  useContext,
+  ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/api";
 import { getAccessToken, getRefreshToken, clearAuth } from "@/services/auth";
@@ -35,7 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setAccessToken(storedAccessToken);
       setRefreshToken(storedRefreshToken);
       setIsAuthenticated(true);
-      
+
       // Fetch user data
       authService
         .getCurrentUser(storedAccessToken)
@@ -72,7 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Store tokens (using auth service)
       localStorage.setItem("accessToken", newAccessToken);
       localStorage.setItem("refreshToken", newRefreshToken);
-      
+
       setAccessToken(newAccessToken);
       setRefreshToken(newRefreshToken);
       setIsAuthenticated(true);
@@ -105,7 +111,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setRefreshToken(null);
       setUser(null);
       setIsAuthenticated(false);
-      
+
       // Redirect to login
       router.push("/login");
     }

@@ -79,7 +79,6 @@ export const authService = {
           "Content-Type": "application/json",
         },
       });
-      console.log("Login response:", response);
 
       const data = await response.json();
 
@@ -108,7 +107,7 @@ export const authService = {
     state: string,
     iss: string
   ): Promise<{ accessToken: string; refreshToken: string }> => {
-    if (!code || !state) {
+    if (!code || !state || !iss) {
       throw new ApiError("Code and state are required", 400);
     }
 

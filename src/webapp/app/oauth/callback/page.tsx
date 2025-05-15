@@ -18,20 +18,20 @@ export default function OAuthCallbackPage() {
     const code = searchParams.get("code");
     const state = searchParams.get("state");
     const iss = searchParams.get("iss") || "";
-    
+
     // Clear the URL parameters for security right away
     const cleanUrl = window.location.pathname;
     window.history.replaceState({}, document.title, cleanUrl);
 
     const processCallback = async () => {
       try {
-        if (!code || !state) {
-          throw new Error("Missing required parameters");
+        if (!code || !state || !iss) {
+          throw new Error("Missing required parameters. Can't complete oauth");
         }
 
         // Use the auth context to complete the OAuth flow
         await completeOAuth(code, state, iss);
-        
+
         setStatus("success");
         setMessage("Login successful!");
       } catch (err: any) {

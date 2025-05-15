@@ -3,32 +3,33 @@
 import { Sidebar } from "@/components/Sidebar";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { isAuthenticated } from "@/services/auth";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [loading, setLoading] = useState(true);
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     // Check if user is authenticated
-    if (!isAuthenticated()) {
-      router.push("/");
-      return;
+    if (!isLoading && !isAuthenticated) {
+      router.push("/login");
     }
-    
-    setLoading(false);
-  }, [router]);
+  }, [isAuthenticated, isLoading, router]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
       </div>
     );
+  }
+
+  if (!isAuthenticated) {
+    return null; // Will redirect in the useEffect
   }
 
   return (

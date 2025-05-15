@@ -3,6 +3,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/api";
+import { getAccessToken, getRefreshToken, clearAuth } from "@/services/auth";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -27,8 +28,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // Check if user is already authenticated
-    const storedAccessToken = localStorage.getItem("accessToken");
-    const storedRefreshToken = localStorage.getItem("refreshToken");
+    const storedAccessToken = getAccessToken();
+    const storedRefreshToken = getRefreshToken();
 
     if (storedAccessToken) {
       setAccessToken(storedAccessToken);
@@ -68,7 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
         await authService.completeOAuth(code, state, iss);
 
-      // Store tokens
+      // Store tokens (using auth service)
       localStorage.setItem("accessToken", newAccessToken);
       localStorage.setItem("refreshToken", newRefreshToken);
       
@@ -96,9 +97,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      // Clear local storage and state
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
+      // Clear auth state
+      clearAuth();
       setAccessToken(null);
       setRefreshToken(null);
       setUser(null);

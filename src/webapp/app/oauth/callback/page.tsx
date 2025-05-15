@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { authService } from "@/services/api";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function OAuthCallbackPage() {
   const [status, setStatus] = useState<"loading" | "success" | "error">(
@@ -11,49 +11,42 @@ export default function OAuthCallbackPage() {
   const [message, setMessage] = useState("Processing your login...");
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { completeOAuth } = useAuth();
 
   useEffect(() => {
+    // Store params immediately to avoid race conditions
+    const code = searchParams.get("code");
+    const state = searchParams.get("state");
+    const iss = searchParams.get("iss") || "";
+    
+    // Clear the URL parameters for security right away
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+
     const processCallback = async () => {
       try {
-        // Get the code, state, and iss from the URL
-        const code = searchParams.get("code");
-        const state = searchParams.get("state");
-        const iss = searchParams.get("iss") || "";
-
         if (!code || !state) {
           throw new Error("Missing required parameters");
         }
 
-        // Use the authService to complete the OAuth flow
-        const { accessToken, refreshToken } = await authService.completeOAuth(
-          code,
-          state,
-          iss
-        );
-
-        // Store tokens in localStorage
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", refreshToken);
-
+        // Use the auth context to complete the OAuth flow
+        await completeOAuth(code, state, iss);
+        
         setStatus("success");
         setMessage("Login successful!");
-
-        // Clear the URL parameters for security
-        const cleanUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, cleanUrl);
-
-        // Redirect to dashboard after a short delay
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 1500);
       } catch (err: any) {
         setStatus("error");
         setMessage(err.message || "An error occurred during authentication");
       }
     };
 
-    processCallback();
-  }, [searchParams, router]);
+    if (code && state) {
+      processCallback();
+    } else {
+      setStatus("error");
+      setMessage("Missing required authentication parameters");
+    }
+  }, [completeOAuth]);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">

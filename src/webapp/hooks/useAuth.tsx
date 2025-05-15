@@ -81,8 +81,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const userData = await authService.getCurrentUser(newAccessToken);
       setUser(userData);
 
-      // Redirect to dashboard
-      router.push("/dashboard");
+      // Redirect to dashboard after a short delay
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
     } catch (error) {
       console.error("OAuth completion error:", error);
       throw error;

@@ -98,7 +98,6 @@ export class CreateAndPublishAnnotationTemplateUseCase
       const template = templateOrError.value;
       const publishedAnnotationFields: AnnotationField[] = [];
 
-      console.log("Creating and publishing annotation template with fields:");
       for (const annotationField of template.getAnnotationFields()) {
         const publishedFieldId =
           await this.annotationFieldPublisher.publish(annotationField);
@@ -115,10 +114,6 @@ export class CreateAndPublishAnnotationTemplateUseCase
         annotationFieldCloned.markAsPublished(publishedFieldId.value);
         publishedAnnotationFields.push(annotationFieldCloned);
       }
-      console.log(
-        "Finished creating and publishing annotation template with fields:",
-        JSON.stringify(publishedAnnotationFields)
-      );
 
       for (const publishedField of publishedAnnotationFields) {
         const markAnnotationResult =

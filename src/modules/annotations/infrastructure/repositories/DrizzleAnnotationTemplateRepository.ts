@@ -18,7 +18,6 @@ import {
 } from "./mappers/AnnotationTemplateMapper";
 import { IAnnotationFieldRepository } from "../../application/repositories/IAnnotationFieldRepository";
 import { AnnotationFieldMapper } from "./mappers/AnnotationFieldMapper";
-import { AnnotationMapper } from "./mappers/AnnotationMapper";
 
 export class DrizzleAnnotationTemplateRepository
   implements IAnnotationTemplateRepository
@@ -185,14 +184,6 @@ export class DrizzleAnnotationTemplateRepository
       fields,
       publishedRecord,
     } = AnnotationTemplateMapper.toPersistence(template);
-    console.log(
-      "Saving template data:",
-      JSON.stringify({
-        templateData,
-        fields,
-        publishedRecord,
-      })
-    );
 
     // Use a transaction to ensure atomicity
     await this.db.transaction(async (tx) => {

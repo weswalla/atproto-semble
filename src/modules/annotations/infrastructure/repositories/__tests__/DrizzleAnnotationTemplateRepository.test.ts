@@ -192,4 +192,128 @@ describe("DrizzleAnnotationTemplateRepository", () => {
     expect(retrievedField?.fieldId.getStringValue()).toBe(fieldId.toString());
     expect(retrievedField?.name.value).toBe("Test Field");
   });
+
+  it("should fetch templates by curator ID", async () => {
+    // Create two curators with different IDs
+    const curatorId1 = CuratorId.create("did:plc:curator1").unwrap();
+    const curatorId2 = CuratorId.create("did:plc:curator2").unwrap();
+    
+    // Create a field for templates
+    const fieldId = new UniqueEntityID();
+    const fieldName = AnnotationFieldName.create("Common Field").unwrap();
+    const fieldDescription = AnnotationFieldDescription.create(
+      "A common field for templates"
+    ).unwrap();
+    
+    const fieldDefinition = AnnotationFieldDefinitionFactory.create({
+      type: AnnotationType.create("dyad"),
+      fieldDefProps: {
+        sideA: "Left",
+        sideB: "Right",
+      },
+    }).unwrap();
+    
+    // Create the annotation field with curator1
+    const annotationField = AnnotationField.create(
+      {
+        curatorId: curatorId1,
+        name: fieldName,
+        description: fieldDescription,
+        definition: fieldDefinition,
+      },
+      fieldId
+    ).unwrap();
+    
+    // Save the field
+    await fieldRepository.save(annotationField);
+    
+    // Create a template field using the annotation field
+    const templateField = AnnotationTemplateField.create({
+      annotationField,
+      required: true,
+    }).unwrap();
+    
+    // Create template fields collection
+    const templateFields = AnnotationTemplateFields.create([
+      templateField,
+    ]).unwrap();
+    
+    // Create templates for curator1
+    const template1Id = new UniqueEntityID();
+    const template1Name = AnnotationTemplateName.create(
+      "Curator1 Template 1"
+    ).unwrap();
+    const template1Description = AnnotationTemplateDescription.create(
+      "First template for curator1"
+    ).unwrap();
+    
+    const template1 = AnnotationTemplate.create(
+      {
+        curatorId: curatorId1,
+        name: template1Name,
+        description: template1Description,
+        annotationTemplateFields: templateFields,
+      },
+      template1Id
+    ).unwrap();
+    
+    const template2Id = new UniqueEntityID();
+    const template2Name = AnnotationTemplateName.create(
+      "Curator1 Template 2"
+    ).unwrap();
+    const template2Description = AnnotationTemplateDescription.create(
+      "Second template for curator1"
+    ).unwrap();
+    
+    const template2 = AnnotationTemplate.create(
+      {
+        curatorId: curatorId1,
+        name: template2Name,
+        description: template2Description,
+        annotationTemplateFields: templateFields,
+      },
+      template2Id
+    ).unwrap();
+    
+    // Create a template for curator2
+    const template3Id = new UniqueEntityID();
+    const template3Name = AnnotationTemplateName.create(
+      "Curator2 Template"
+    ).unwrap();
+    const template3Description = AnnotationTemplateDescription.create(
+      "Template for curator2"
+    ).unwrap();
+    
+    const template3 = AnnotationTemplate.create(
+      {
+        curatorId: curatorId2,
+        name: template3Name,
+        description: template3Description,
+        annotationTemplateFields: templateFields,
+      },
+      template3Id
+    ).unwrap();
+    
+    // Save all templates
+    await templateRepository.save(template1);
+    await templateRepository.save(template2);
+    await templateRepository.save(template3);
+    
+    // Fetch templates for curator1
+    const curator1Templates = await templateRepository.findByCuratorId(curatorId1);
+    
+    // Verify we got the right templates
+    expect(curator1Templates.length).toBe(2);
+    expect(curator1Templates.some(t => t.name.value === "Curator1 Template 1")).toBe(true);
+    expect(curator1Templates.some(t => t.name.value === "Curator1 Template 2")).toBe(true);
+    expect(curator1Templates.every(t => t.curatorId.value === "did:plc:curator1")).toBe(true);
+    
+    // Fetch templates for curator2
+    const curator2Templates = await templateRepository.findByCuratorId(curatorId2);
+    
+    // Verify we got the right template
+    expect(curator2Templates.length).toBe(1);
+    expect(curator2Templates[0].name.value).toBe("Curator2 Template");
+    expect(curator2Templates[0].curatorId.value).toBe("did:plc:curator2");
+  });
 });

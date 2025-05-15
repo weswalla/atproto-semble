@@ -1,33 +1,4 @@
 {
   "version": "5",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1747175378199,
-      "tag": "0000_useful_leo",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1747175694972,
-      "tag": "0001_cheerful_johnny_storm",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1747186271326,
-      "tag": "0002_easy_wallflower",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1747186275588,
-      "tag": "0003_slimy_warhawk",
-      "breakpoints": true
-    }
-  ]
+  "entries": []
 }

@@ -10,7 +10,7 @@ export * from "./services/UserAuthenticationService";
 export * from "./services/OAuthClientFactory";
 
 // Schema
-export * from "./repositories/schema/userSchema";
-export * from "./repositories/schema/authTokenSchema";
-export * from "./repositories/schema/authStateSchema";
-export * from "./repositories/schema/authSessionSchema";
+export * from "./repositories/schema/user.sql";
+export * from "./repositories/schema/authToken.sql";
+export * from "./repositories/schema/authState.sql";
+export * from "./repositories/schema/authSession.sql";

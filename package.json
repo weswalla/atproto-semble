@@ -18,7 +18,7 @@
     "db:start": "docker run --name annos-postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=annotations -p 5432:5432 -d postgres:14",
     "db:stop": "docker stop annos-postgres",
     "db:remove": "docker rm annos-postgres",
-    "db:generate": "drizzle-kit generate --schema=./src/modules/annotations/infrastructure/repositories/schema --out=./src/shared/infrastructure/database/migrations --dialect=postgresql && drizzle-kit generate --schema=./src/modules/user/infrastructure/repositories/schema --out=./src/shared/infrastructure/database/migrations --dialect=postgresql",
+    "db:generate": "drizzle-kit generate --schema=./src/modules/**/*.sql.ts --dialect=postgresql",
     "webapp:dev": "cd src/webapp && npm run dev",
     "webapp:build": "cd src/webapp && npm run build",
     "webapp:start": "cd src/webapp && npm run start"

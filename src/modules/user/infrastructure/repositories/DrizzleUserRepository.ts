@@ -4,7 +4,7 @@ import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { User } from "../../domain/User";
 import { DID } from "../../domain/value-objects/DID";
 import { Handle } from "../../domain/value-objects/Handle";
-import { users } from "./schema/userSchema";
+import { users } from "./schema/user.sql";
 import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
 import { err, ok, Result } from "src/shared/core/Result";
 

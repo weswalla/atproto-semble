@@ -22,8 +22,8 @@ import { sql } from "drizzle-orm";
 import {
   annotationTemplates,
   annotationTemplateFields,
-} from "../schema/annotationTemplateSchema";
-import { annotationFields } from "../schema/annotationFieldSchema";
+} from "../schema/annotationTemplate.sql";
+import { annotationFields } from "../schema/annotationField.sql";
 import { AnnotationFieldDefinitionFactory } from "src/modules/annotations/domain/AnnotationFieldDefinitionFactory";
 import { AnnotationType } from "src/modules/annotations/domain/value-objects/AnnotationType";
 import { AnnotationField } from "src/modules/annotations/domain/aggregates";

@@ -6,8 +6,8 @@ import {
   AnnotationFieldId,
   PublishedRecordId,
 } from "../../domain/value-objects";
-import { annotationFields } from "./schema/annotationFieldSchema";
-import { publishedRecords } from "./schema/publishedRecordSchema";
+import { annotationFields } from "./schema/annotationField.sql";
+import { publishedRecords } from "./schema/publishedRecord.sql";
 import {
   AnnotationFieldMapper,
   AnnotationFieldDTO,

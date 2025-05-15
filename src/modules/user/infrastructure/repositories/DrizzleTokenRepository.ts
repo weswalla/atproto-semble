@@ -5,7 +5,7 @@ import {
   ITokenRepository,
   RefreshToken,
 } from "../../domain/repositories/ITokenRepository";
-import { authRefreshTokens } from "./schema/authTokenSchema";
+import { authRefreshTokens } from "./schema/authToken.sql";
 
 export class DrizzleTokenRepository implements ITokenRepository {
   constructor(private db: PostgresJsDatabase) {}

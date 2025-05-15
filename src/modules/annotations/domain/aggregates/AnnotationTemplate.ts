@@ -123,6 +123,10 @@ export class AnnotationTemplate extends AggregateRoot<AnnotationTemplateProps> {
       );
     }
 
+    if (!props.createdAt) {
+      props.createdAt = new Date();
+    }
+
     const annotationTemplate = new AnnotationTemplate(props, id);
 
     return ok(annotationTemplate);

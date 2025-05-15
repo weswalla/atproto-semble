@@ -10,8 +10,8 @@ import {
 import {
   annotationTemplates,
   annotationTemplateFields,
-} from "./schema/annotationTemplateSchema";
-import { publishedRecords } from "./schema/publishedRecordSchema";
+} from "./schema/annotationTemplate.sql";
+import { publishedRecords } from "./schema/publishedRecord.sql";
 import {
   AnnotationTemplateMapper,
   AnnotationTemplateDTO,
@@ -185,6 +185,14 @@ export class DrizzleAnnotationTemplateRepository
       fields,
       publishedRecord,
     } = AnnotationTemplateMapper.toPersistence(template);
+    console.log(
+      "Saving template data:",
+      JSON.stringify({
+        templateData,
+        fields,
+        publishedRecord,
+      })
+    );
 
     // Use a transaction to ensure atomicity
     await this.db.transaction(async (tx) => {

@@ -11,7 +11,7 @@ import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
 import { AnnotationFieldName } from "../../../domain/value-objects/AnnotationFieldName";
 import { AnnotationFieldDescription } from "../../../domain/value-objects/AnnotationFieldDescription";
 import { sql } from "drizzle-orm";
-import { annotationFields } from "../schema/annotationFieldSchema";
+import { annotationFields } from "../schema/annotationField.sql";
 import { AnnotationFieldDefinitionFactory } from "src/modules/annotations/domain/AnnotationFieldDefinitionFactory";
 import { AnnotationType } from "src/modules/annotations/domain/value-objects/AnnotationType";
 import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";

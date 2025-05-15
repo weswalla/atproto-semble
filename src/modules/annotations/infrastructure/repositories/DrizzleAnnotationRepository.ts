@@ -9,8 +9,8 @@ import {
   AnnotationFieldId,
 } from "../../domain/value-objects";
 import { URI } from "../../domain/value-objects/URI";
-import { annotations, annotationToTemplates } from "./schema/annotationSchema";
-import { publishedRecords } from "./schema/publishedRecordSchema";
+import { annotations, annotationToTemplates } from "./schema/annotation.sql";
+import { publishedRecords } from "./schema/publishedRecord.sql";
 import { AnnotationDTO, AnnotationMapper } from "./mappers/AnnotationMapper";
 import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
 import { AnnotationFieldMapper } from "./mappers/AnnotationFieldMapper";

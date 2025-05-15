@@ -1,5 +1,5 @@
 import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
-import { users } from "./userSchema";
+import { users } from "./user.sql";
 
 export const authRefreshTokens = pgTable("auth_refresh_tokens", {
   tokenId: text("token_id").primaryKey(),

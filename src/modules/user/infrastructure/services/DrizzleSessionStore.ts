@@ -4,7 +4,7 @@ import {
 } from "@atproto/oauth-client-node";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { eq } from "drizzle-orm";
-import { authSession } from "../repositories/schema/authSessionSchema";
+import { authSession } from "../repositories/schema/authSession.sql";
 
 export class DrizzleSessionStore implements NodeSavedSessionStore {
   constructor(private db: PostgresJsDatabase) {}

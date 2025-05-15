@@ -3,7 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { TemplateField, AnnotationFieldDefinition, Template } from "@/types/annotations";
+import {
+  TemplateField,
+  AnnotationFieldDefinition,
+  Template,
+} from "@/types/annotations";
 import { TemplateFieldEditor } from "@/components/templates/TemplateFieldEditor";
 
 export default function CreateTemplatePage() {
@@ -63,7 +67,7 @@ export default function CreateTemplatePage() {
 
   // Handle field type change
   const handleFieldTypeChange = (id: string, newType: string) => {
-    const field = fields.find(f => f.id === id);
+    const field = fields.find((f) => f.id === id);
     if (!field) return;
 
     let newDefinition: AnnotationFieldDefinition;
@@ -73,7 +77,7 @@ export default function CreateTemplatePage() {
         newDefinition = {
           type: "dyad",
           sideA: "Agree",
-          sideB: "Disagree"
+          sideB: "Disagree",
         };
         break;
       case "triad":
@@ -81,25 +85,25 @@ export default function CreateTemplatePage() {
           type: "triad",
           sideA: "Option A",
           sideB: "Option B",
-          sideC: "Option C"
+          sideC: "Option C",
         };
         break;
       case "rating":
         newDefinition = {
           type: "rating",
-          numberOfStars: 5
+          numberOfStars: 5,
         };
         break;
       case "singleSelect":
         newDefinition = {
           type: "singleSelect",
-          options: ["Option 1", "Option 2"]
+          options: ["Option 1", "Option 2"],
         };
         break;
       case "multiSelect":
         newDefinition = {
           type: "multiSelect",
-          options: ["Option 1", "Option 2"]
+          options: ["Option 1", "Option 2"],
         };
         break;
       default:
@@ -133,18 +137,28 @@ export default function CreateTemplatePage() {
           }
           break;
         case "triad":
-          if (!field.definition.sideA || !field.definition.sideB || !field.definition.sideC) {
+          if (
+            !field.definition.sideA ||
+            !field.definition.sideB ||
+            !field.definition.sideC
+          ) {
             return `Field "${field.name}" is missing triad labels`;
           }
           break;
         case "rating":
-          if (!field.definition.numberOfStars || field.definition.numberOfStars < 1) {
+          if (
+            !field.definition.numberOfStars ||
+            field.definition.numberOfStars < 1
+          ) {
             return `Field "${field.name}" needs a valid number of stars`;
           }
           break;
         case "singleSelect":
         case "multiSelect":
-          if (!field.definition.options || field.definition.options.length < 2) {
+          if (
+            !field.definition.options ||
+            field.definition.options.length < 2
+          ) {
             return `Field "${field.name}" needs at least 2 options`;
           }
           break;
@@ -170,12 +184,12 @@ export default function CreateTemplatePage() {
         name,
         description,
         fields: fields,
-        createdAt: new Date()
+        createdAt: new Date(),
       };
 
       // TODO: Submit to API
       console.log("Submitting template:", templateData);
-      
+
       // Redirect to templates page
       router.push("/templates");
     } catch (err: any) {
@@ -247,9 +261,13 @@ export default function CreateTemplatePage() {
                     key={field.id}
                     field={field}
                     onUpdate={(updates) => updateField(field.id, updates)}
-                    onUpdateDefinition={(updates) => updateFieldDefinition(field.id, updates)}
+                    onUpdateDefinition={(updates) =>
+                      updateFieldDefinition(field.id, updates)
+                    }
                     onRemove={() => removeField(field.id)}
-                    onTypeChange={(newType) => handleFieldTypeChange(field.id, newType)}
+                    onTypeChange={(newType) =>
+                      handleFieldTypeChange(field.id, newType)
+                    }
                   />
                 ))}
               </div>

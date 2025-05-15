@@ -230,7 +230,7 @@ export const annotationService = {
   ): Promise<{ templateId: string }> => {
     const apiBaseUrl = getApiBaseUrl();
     return authenticatedRequest(
-      `${apiBaseUrl}/api/templates`,
+      `${apiBaseUrl}/api/annotations/templates`,
       "POST",
       accessToken,
       templateData
@@ -267,12 +267,14 @@ export const annotationService = {
    */
   getTemplates: async (
     accessToken: string
-  ): Promise<Array<{
-    id: string;
-    name: string;
-    description: string;
-    createdAt: string;
-  }>> => {
+  ): Promise<
+    Array<{
+      id: string;
+      name: string;
+      description: string;
+      createdAt: string;
+    }>
+  > => {
     const apiBaseUrl = getApiBaseUrl();
     return authenticatedRequest(
       `${apiBaseUrl}/api/templates`,

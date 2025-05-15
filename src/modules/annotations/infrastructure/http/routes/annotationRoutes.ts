@@ -2,6 +2,7 @@ import { Router } from "express";
 import { CreateAndPublishAnnotationTemplateController } from "../controllers/CreateAndPublishAnnotationTemplateController";
 import { CreateAndPublishAnnotationsFromTemplateController } from "../controllers/CreateAndPublishAnnotationsFromTemplateController";
 import { FetchMyTemplatesController } from "../controllers/FetchMyTemplatesController";
+import { FetchTemplateByIdController } from "../controllers/FetchTemplateByIdController";
 import { AuthMiddleware } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
 
 export const createAnnotationRoutes = (
@@ -9,7 +10,8 @@ export const createAnnotationRoutes = (
   authMiddleware: AuthMiddleware,
   createAndPublishAnnotationTemplateController: CreateAndPublishAnnotationTemplateController,
   createAndPublishAnnotationsFromTemplateController: CreateAndPublishAnnotationsFromTemplateController,
-  fetchMyTemplatesController: FetchMyTemplatesController
+  fetchMyTemplatesController: FetchMyTemplatesController,
+  fetchTemplateByIdController: FetchTemplateByIdController
 ) => {
   // Protected routes - all annotation routes require authentication
   router.post("/templates", authMiddleware.ensureAuthenticated(), (req, res) =>
@@ -18,6 +20,10 @@ export const createAnnotationRoutes = (
 
   router.get("/templates", authMiddleware.ensureAuthenticated(), (req, res) =>
     fetchMyTemplatesController.execute(req, res)
+  );
+
+  router.get("/templates/:id", authMiddleware.ensureAuthenticated(), (req, res) =>
+    fetchTemplateByIdController.execute(req, res)
   );
 
   router.post(

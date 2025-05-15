@@ -273,11 +273,12 @@ export const annotationService = {
       name: string;
       description: string;
       createdAt: string;
+      fieldCount: number;
     }>
   > => {
     const apiBaseUrl = getApiBaseUrl();
     return authenticatedRequest(
-      `${apiBaseUrl}/api/templates`,
+      `${apiBaseUrl}/api/annotations/templates`,
       "GET",
       accessToken
     );
@@ -297,15 +298,16 @@ export const annotationService = {
       id: string;
       name: string;
       description: string;
-      type: string;
+      definitionType: string;
       definition: any;
       required: boolean;
     }>;
     createdAt: string;
+    curatorId: string;
   }> => {
     const apiBaseUrl = getApiBaseUrl();
     return authenticatedRequest(
-      `${apiBaseUrl}/api/templates/${templateId}`,
+      `${apiBaseUrl}/api/annotations/templates/${templateId}`,
       "GET",
       accessToken
     );

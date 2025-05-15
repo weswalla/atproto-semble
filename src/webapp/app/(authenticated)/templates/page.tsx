@@ -1,11 +1,47 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
+import { annotationService } from "@/services/api";
+import { format } from "date-fns";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface Template {
+  id: string;
+  name: string;
+  description: string;
+  createdAt: string;
+  fieldCount: number;
+}
 
 export default function TemplatesPage() {
-  const [templates, setTemplates] = useState([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { accessToken } = useAuth();
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      if (!accessToken) return;
+      
+      try {
+        setIsLoading(true);
+        const data = await annotationService.getTemplates(accessToken);
+        setTemplates(data);
+        setError(null);
+      } catch (err: any) {
+        console.error("Failed to fetch templates:", err);
+        setError(err.message || "Failed to load templates");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTemplates();
+  }, [accessToken]);
 
   return (
     <>
@@ -16,21 +52,73 @@ export default function TemplatesPage() {
         </Link>
       </div>
       
-      <div className="bg-white p-8 rounded-lg shadow-md">
-        {templates.length === 0 ? (
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <Skeleton className="h-6 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-full" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-2/3" />
+              </CardContent>
+              <CardFooter>
+                <Skeleton className="h-10 w-full" />
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 p-4 rounded-md text-red-800 mb-6">
+          <p>{error}</p>
+          <Button 
+            variant="outline" 
+            className="mt-2"
+            onClick={() => window.location.reload()}
+          >
+            Try Again
+          </Button>
+        </div>
+      ) : templates.length === 0 ? (
+        <div className="bg-white p-8 rounded-lg shadow-md">
           <div className="text-center py-8">
             <p className="text-gray-500 mb-4">No templates yet</p>
             <Link href="/templates/create">
               <Button>Create your first template</Button>
             </Link>
           </div>
-        ) : (
-          <div>
-            {/* Template list will go here */}
-            <p>Your templates will appear here</p>
-          </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {templates.map((template) => (
+            <Card key={template.id} className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle>{template.name}</CardTitle>
+                <CardDescription>
+                  Created {format(new Date(template.createdAt), "PPP")}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-500 line-clamp-2 mb-2">
+                  {template.description || "No description"}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {template.fieldCount} {template.fieldCount === 1 ? "field" : "fields"}
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Link href={`/templates/${template.id}`} className="w-full">
+                  <Button variant="outline" className="w-full">
+                    View Template
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
     </>
   );
 }

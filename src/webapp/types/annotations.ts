@@ -1,5 +1,3 @@
-import { UniqueEntityID } from "@/shared/domain/UniqueEntityID";
-
 // Field Definitions
 export interface FieldDefinition {
   // Common properties for all field types

@@ -14,6 +14,8 @@ import { GetCurrentUserController } from "../../../modules/user/infrastructure/h
 import { RefreshAccessTokenController } from "../../../modules/user/infrastructure/http/controllers/RefreshAccessTokenController";
 import { CreateAndPublishAnnotationTemplateController } from "../../../modules/annotations/infrastructure/http/controllers/CreateAndPublishAnnotationTemplateController";
 import { CreateAndPublishAnnotationsFromTemplateController } from "../../../modules/annotations/infrastructure/http/controllers/CreateAndPublishAnnotationsFromTemplateController";
+import { FetchMyTemplatesController } from "../../../modules/annotations/infrastructure/http/controllers/FetchMyTemplatesController";
+import { FetchTemplateByIdController } from "../../../modules/annotations/infrastructure/http/controllers/FetchTemplateByIdController";
 
 // Use cases
 import { InitiateOAuthSignInUseCase } from "../../../modules/user/application/use-cases/InitiateOAuthSignInUseCase";
@@ -22,6 +24,8 @@ import { GetCurrentUserUseCase } from "../../../modules/user/application/use-cas
 import { RefreshAccessTokenUseCase } from "../../../modules/user/application/use-cases/RefreshAccessTokenUseCase";
 import { CreateAndPublishAnnotationTemplateUseCase } from "../../../modules/annotations/application/use-cases/CreateAndPublishAnnotationTemplateUseCase";
 import { CreateAndPublishAnnotationsFromTemplateUseCase } from "../../../modules/annotations/application/use-cases/CreateAndPublishAnnotationsFromTemplateUseCase";
+import { FetchMyTemplatesUseCase } from "../../../modules/annotations/application/use-cases/FetchMyTemplatesUseCase";
+import { FetchTemplateByIdUseCase } from "../../../modules/annotations/application/use-cases/FetchTemplateByIdUseCase";
 
 // Services and repositories
 import { JwtTokenService } from "../../../modules/user/infrastructure/services/JwtTokenService";
@@ -128,6 +132,12 @@ export const createExpressApp = (
       annotationFieldRepository,
       annotationsFromTemplatePublisher
     );
+  const fetchMyTemplatesUseCase = new FetchMyTemplatesUseCase(
+    annotationTemplateRepository
+  );
+  const fetchTemplateByIdUseCase = new FetchTemplateByIdUseCase(
+    annotationTemplateRepository
+  );
 
   // Controllers
   const initiateOAuthSignInController = new InitiateOAuthSignInController(
@@ -151,6 +161,12 @@ export const createExpressApp = (
     new CreateAndPublishAnnotationsFromTemplateController(
       createAndPublishAnnotationsFromTemplateUseCase
     );
+  const fetchMyTemplatesController = new FetchMyTemplatesController(
+    fetchMyTemplatesUseCase
+  );
+  const fetchTemplateByIdController = new FetchTemplateByIdController(
+    fetchTemplateByIdUseCase
+  );
 
   // Routes
   const userRouter = Router();
@@ -170,7 +186,9 @@ export const createExpressApp = (
     annotationRouter,
     authMiddleware,
     createAndPublishAnnotationTemplateController,
-    createAndPublishAnnotationsFromTemplateController
+    createAndPublishAnnotationsFromTemplateController,
+    fetchMyTemplatesController,
+    fetchTemplateByIdController
   );
 
   createAtprotoRoutes(atprotoRouter, nodeOauthClient);

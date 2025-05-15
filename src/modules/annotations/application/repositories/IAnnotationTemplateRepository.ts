@@ -1,6 +1,7 @@
 import { AnnotationTemplate } from "../../domain/aggregates/AnnotationTemplate";
 import {
   AnnotationTemplateId,
+  CuratorId,
   PublishedRecordId,
 } from "../../domain/value-objects";
 

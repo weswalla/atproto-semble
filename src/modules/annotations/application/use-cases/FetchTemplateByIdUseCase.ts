@@ -49,28 +49,34 @@ export class FetchTemplateByIdUseCase
       const templateIdOrError = AnnotationTemplateId.createFromString(
         request.templateId
       );
-      
+
       if (templateIdOrError.isErr()) {
-        return err(new AppError.UnexpectedError(new Error("Invalid template ID format")));
+        return err(
+          new AppError.UnexpectedError(new Error("Invalid template ID format"))
+        );
       }
-      
+
       const templateId = templateIdOrError.value;
-      const template = await this.annotationTemplateRepository.findById(templateId);
-      
+      const template =
+        await this.annotationTemplateRepository.findById(templateId);
+
       if (!template) {
         return err(new AppError.NotFoundError("Template not found"));
       }
-      
+
       // Map domain object to DTO for the response
-      const fields = template.getAnnotationFields().map(field => ({
+      const fields = template.getAnnotationFields().map((field) => ({
         id: field.fieldId.getStringValue(),
         name: field.name.value,
         description: field.description.value,
-        required: template.isFieldRequired(field.fieldId),
+        required:
+          template.annotationTemplateFields.annotationTemplateFields
+            .find((f) => f.annotationField.fieldId === field.fieldId)
+            ?.isRequired() ?? false,
         definitionType: field.definition.type.value,
-        definition: field.definition.getProps(),
+        definition: field.definition.props,
       }));
-      
+
       const templateDTO: TemplateDetailDTO = {
         id: template.id.toString(),
         name: template.name.value,
@@ -78,14 +84,14 @@ export class FetchTemplateByIdUseCase
         createdAt: template.createdAt,
         curatorId: template.curatorId.value,
         fields: fields,
-        publishedRecordId: template.publishedRecordId 
+        publishedRecordId: template.publishedRecordId
           ? {
               uri: template.publishedRecordId.uri,
-              cid: template.publishedRecordId.cid
+              cid: template.publishedRecordId.cid,
             }
-          : undefined
+          : undefined,
       };
-      
+
       return ok(templateDTO);
     } catch (error: any) {
       return err(new AppError.UnexpectedError(error));

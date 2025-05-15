@@ -2,6 +2,7 @@ import { IAnnotationTemplateRepository } from "src/modules/annotations/applicati
 import { AnnotationTemplate } from "src/modules/annotations/domain/aggregates";
 import {
   AnnotationTemplateId,
+  CuratorId,
   PublishedRecordId,
 } from "src/modules/annotations/domain/value-objects";
 
@@ -36,8 +37,11 @@ export class InMemoryAnnotationTemplateRepository
   ): Promise<AnnotationTemplate | null> {
     const compositeKey = recordId.uri + recordId.cid;
     for (const template of this.templates.values()) {
-      if (template.publishedRecordId && 
-          template.publishedRecordId.uri + template.publishedRecordId.cid === compositeKey) {
+      if (
+        template.publishedRecordId &&
+        template.publishedRecordId.uri + template.publishedRecordId.cid ===
+          compositeKey
+      ) {
         return this.clone(template);
       }
     }
@@ -82,5 +86,14 @@ export class InMemoryAnnotationTemplateRepository
   ): AnnotationTemplate | undefined {
     // Returns the actual stored instance, not a clone
     return this.templates.get(id.getStringValue());
+  }
+
+  public async findByCuratorId(
+    curatorId: CuratorId
+  ): Promise<AnnotationTemplate[]> {
+    const templates = Array.from(this.templates.values()).filter(
+      (template) => template.curatorId === curatorId
+    );
+    return templates.map((template) => this.clone(template));
   }
 }

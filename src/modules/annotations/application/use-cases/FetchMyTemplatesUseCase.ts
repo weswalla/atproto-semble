@@ -37,29 +37,32 @@ export class FetchMyTemplatesUseCase
   ): Promise<FetchMyTemplatesResponse> {
     try {
       const curatorIdOrError = CuratorId.create(request.curatorId);
-      
+
       if (curatorIdOrError.isErr()) {
-        return err(new AppError.UnexpectedError(new Error("Invalid curator ID")));
+        return err(
+          new AppError.UnexpectedError(new Error("Invalid curator ID"))
+        );
       }
-      
+
       const curatorId = curatorIdOrError.value;
-      const templates = await this.annotationTemplateRepository.findByCuratorId(curatorId);
-      
+      const templates =
+        await this.annotationTemplateRepository.findByCuratorId(curatorId);
+
       // Map domain objects to DTOs for the response
-      const templateDTOs: TemplateListItemDTO[] = templates.map(template => ({
+      const templateDTOs: TemplateListItemDTO[] = templates.map((template) => ({
         id: template.id.toString(),
         name: template.name.value,
         description: template.description.value,
         createdAt: template.createdAt,
         fieldCount: template.getAnnotationFields().length,
-        publishedRecordId: template.publishedRecordId 
+        publishedRecordId: template.publishedRecordId
           ? {
               uri: template.publishedRecordId.uri,
-              cid: template.publishedRecordId.cid
+              cid: template.publishedRecordId.cid,
             }
-          : undefined
+          : undefined,
       }));
-      
+
       return ok(templateDTOs);
     } catch (error: any) {
       return err(new AppError.UnexpectedError(error));

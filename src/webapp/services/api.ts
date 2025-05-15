@@ -18,6 +18,47 @@ export class ApiError extends Error {
   }
 }
 
+// Helper function to make authenticated API requests
+const authenticatedRequest = async (
+  url: string,
+  method: string,
+  accessToken: string,
+  body?: any
+) => {
+  try {
+    const headers: HeadersInit = {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    };
+
+    const options: RequestInit = {
+      method,
+      headers,
+    };
+
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(url, options);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new ApiError(
+        data.message || `Request failed with status ${response.status}`,
+        response.status
+      );
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError("An error occurred during the request", 500);
+  }
+};
+
 // Auth service
 export const authService = {
   /**
@@ -165,5 +206,106 @@ export const authService = {
       console.error("Logout error:", error);
       // Don't throw on logout errors, just log them
     }
+  },
+};
+
+// Annotation service
+export const annotationService = {
+  /**
+   * Create and publish an annotation template
+   */
+  createTemplate: async (
+    accessToken: string,
+    templateData: {
+      name: string;
+      description: string;
+      fields: Array<{
+        name: string;
+        description: string;
+        type: string;
+        definition: any;
+        required: boolean;
+      }>;
+    }
+  ): Promise<{ templateId: string }> => {
+    const apiBaseUrl = getApiBaseUrl();
+    return authenticatedRequest(
+      `${apiBaseUrl}/api/templates`,
+      "POST",
+      accessToken,
+      templateData
+    );
+  },
+
+  /**
+   * Create and publish annotations from a template
+   */
+  createAnnotationsFromTemplate: async (
+    accessToken: string,
+    annotationData: {
+      url: string;
+      templateId: string;
+      annotations: Array<{
+        annotationFieldId: string;
+        type: string;
+        value: any;
+        note?: string;
+      }>;
+    }
+  ): Promise<{ annotationIds: string[] }> => {
+    const apiBaseUrl = getApiBaseUrl();
+    return authenticatedRequest(
+      `${apiBaseUrl}/api/annotations/from-template`,
+      "POST",
+      accessToken,
+      annotationData
+    );
+  },
+
+  /**
+   * Get templates created by the current user
+   */
+  getTemplates: async (
+    accessToken: string
+  ): Promise<Array<{
+    id: string;
+    name: string;
+    description: string;
+    createdAt: string;
+  }>> => {
+    const apiBaseUrl = getApiBaseUrl();
+    return authenticatedRequest(
+      `${apiBaseUrl}/api/templates`,
+      "GET",
+      accessToken
+    );
+  },
+
+  /**
+   * Get a specific template by ID
+   */
+  getTemplateById: async (
+    accessToken: string,
+    templateId: string
+  ): Promise<{
+    id: string;
+    name: string;
+    description: string;
+    fields: Array<{
+      id: string;
+      name: string;
+      description: string;
+      type: string;
+      definition: any;
+      required: boolean;
+    }>;
+    createdAt: string;
+  }> => {
+    const apiBaseUrl = getApiBaseUrl();
+    return authenticatedRequest(
+      `${apiBaseUrl}/api/templates/${templateId}`,
+      "GET",
+      accessToken
+    );
   },
 };

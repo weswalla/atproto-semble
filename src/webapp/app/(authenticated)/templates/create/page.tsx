@@ -9,6 +9,7 @@ import {
   Template,
 } from "@/types/annotations";
 import { TemplateFieldEditor } from "@/components/templates/TemplateFieldEditor";
+import { annotationService, ApiError } from "@/services/api";
 
 export default function CreateTemplatePage() {
   const router = useRouter();
@@ -180,18 +181,41 @@ export default function CreateTemplatePage() {
       }
 
       // Format the data for API submission
-      const templateData: Template = {
+      const templateData = {
         name,
         description,
-        fields: fields,
-        createdAt: new Date(),
+        fields: fields.map((field) => ({
+          name: field.name,
+          description: field.description,
+          type: field.definition.type,
+          definition: field.definition,
+          required: field.required,
+        })),
       };
 
-      // TODO: Submit to API
-      console.log("Submitting template:", templateData);
+      // Get access token from local storage
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        throw new Error("You must be logged in to create a template");
+      }
 
-      // Redirect to templates page
-      router.push("/templates");
+      // Submit to API
+      try {
+        const { templateId } = await annotationService.createTemplate(
+          accessToken,
+          templateData
+        );
+
+        console.log("Template created with ID:", templateId);
+
+        // Redirect to templates page
+        router.push("/templates");
+      } catch (apiError: any) {
+        if (apiError instanceof ApiError) {
+          throw new Error(`API Error: ${apiError.message}`);
+        }
+        throw apiError;
+      }
     } catch (err: any) {
       setError(err.message || "Failed to create template");
     } finally {

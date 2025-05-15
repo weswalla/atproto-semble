@@ -10,6 +10,7 @@ export interface IAnnotationTemplateRepository {
     recordId: PublishedRecordId
   ): Promise<AnnotationTemplate | null>;
   findByName(name: string): Promise<AnnotationTemplate | null>;
+  findByCuratorId(curatorId: CuratorId): Promise<AnnotationTemplate[]>;
   save(template: AnnotationTemplate): Promise<void>;
   delete(id: AnnotationTemplateId): Promise<void>;
 }

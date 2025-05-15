@@ -1,4 +1,4 @@
-import { eq, sql, and } from "drizzle-orm";
+import { eq, sql, and, desc } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { IAnnotationTemplateRepository } from "../../application/repositories/IAnnotationTemplateRepository";
 import { AnnotationTemplate } from "../../domain/aggregates/AnnotationTemplate";
@@ -175,6 +175,30 @@ export class DrizzleAnnotationTemplateRepository
     // Use the findById method to get the complete template with fields
     return this.findById(
       AnnotationTemplateId.createFromString(templateResult[0].id).unwrap()
+    );
+  }
+
+  async findByCuratorId(curatorId: CuratorId): Promise<AnnotationTemplate[]> {
+    const curatorIdStr = curatorId.value;
+    
+    const templateResults = await this.db
+      .select()
+      .from(annotationTemplates)
+      .where(eq(annotationTemplates.curatorId, curatorIdStr))
+      .orderBy(desc(annotationTemplates.createdAt));
+
+    // Map each template to domain object
+    const templates = await Promise.all(
+      templateResults.map(async (template) => {
+        return this.findById(
+          AnnotationTemplateId.createFromString(template.id).unwrap()
+        );
+      })
+    );
+
+    // Filter out any null templates
+    return templates.filter((template): template is AnnotationTemplate => 
+      template !== null
     );
   }
 

@@ -16,6 +16,7 @@ import { CreateAndPublishAnnotationTemplateController } from "../../../modules/a
 import { CreateAndPublishAnnotationsFromTemplateController } from "../../../modules/annotations/infrastructure/http/controllers/CreateAndPublishAnnotationsFromTemplateController";
 import { FetchMyTemplatesController } from "../../../modules/annotations/infrastructure/http/controllers/FetchMyTemplatesController";
 import { FetchTemplateByIdController } from "../../../modules/annotations/infrastructure/http/controllers/FetchTemplateByIdController";
+import { FetchAnnotationByIdController } from "../../../modules/annotations/infrastructure/http/controllers/FetchAnnotationByIdController";
 
 // Use cases
 import { InitiateOAuthSignInUseCase } from "../../../modules/user/application/use-cases/InitiateOAuthSignInUseCase";
@@ -143,6 +144,9 @@ export const createExpressApp = (
   const fetchMyAnnotationsUseCase = new FetchMyAnnotationsUseCase(
     annotationRepository
   );
+  const fetchAnnotationByIdUseCase = new FetchAnnotationByIdUseCase(
+    annotationRepository
+  );
 
   // Controllers
   const initiateOAuthSignInController = new InitiateOAuthSignInController(
@@ -175,6 +179,9 @@ export const createExpressApp = (
   const fetchMyAnnotationsController = new FetchMyAnnotationsController(
     fetchMyAnnotationsUseCase
   );
+  const fetchAnnotationByIdController = new FetchAnnotationByIdController(
+    fetchAnnotationByIdUseCase
+  );
 
   // Routes
   const userRouter = Router();
@@ -197,7 +204,8 @@ export const createExpressApp = (
     createAndPublishAnnotationsFromTemplateController,
     fetchMyTemplatesController,
     fetchTemplateByIdController,
-    fetchMyAnnotationsController
+    fetchMyAnnotationsController,
+    fetchAnnotationByIdController
   );
 
   createAtprotoRoutes(atprotoRouter, nodeOauthClient);

@@ -62,6 +62,42 @@ const authenticatedRequest = async (
 // Auth service
 export const authService = {
   /**
+   * Refresh access token using refresh token
+   */
+  refreshToken: async (refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> => {
+    if (!refreshToken) {
+      throw new ApiError("Refresh token is required", 400);
+    }
+
+    try {
+      const apiBaseUrl = getApiBaseUrl();
+      const response = await fetch(`${apiBaseUrl}/api/users/refresh`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new ApiError(
+          data.message || "Failed to refresh token",
+          response.status
+        );
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      console.error("Token refresh error:", error);
+      throw new ApiError("An error occurred during token refresh", 500);
+    }
+  },
+  /**
    * Initiate login with Bluesky handle
    */
   initiateLogin: async (handle: string): Promise<{ authUrl: string }> => {

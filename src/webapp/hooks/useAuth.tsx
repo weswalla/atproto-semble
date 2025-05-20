@@ -6,6 +6,7 @@ import {
   createContext,
   useContext,
   ReactNode,
+  useCallback,
 } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/api";
@@ -20,6 +21,7 @@ interface AuthContextType {
   login: (handle: string) => Promise<{ authUrl: string }>;
   completeOAuth: (code: string, state: string, iss: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshTokens: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,6 +33,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [user, setUser] = useState<any | null>(null);
   const router = useRouter();
+  
+  // Helper function to check if a JWT token is expired
+  const isTokenExpired = (token: string): boolean => {
+    if (!token) return true;
+    
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expiry = payload.exp * 1000; // Convert to milliseconds
+      return Date.now() >= expiry;
+    } catch (e) {
+      return true;
+    }
+  };
 
   useEffect(() => {
     // Check if user is already authenticated
@@ -42,24 +57,63 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setRefreshToken(storedRefreshToken);
       setIsAuthenticated(true);
 
-      // Fetch user data
-      authService
-        .getCurrentUser(storedAccessToken)
-        .then((userData) => {
-          setUser(userData);
-        })
-        .catch((error) => {
-          console.error("Error fetching user data:", error);
-          // If token is invalid, log out
-          handleLogout();
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
+      // Check if token is expired
+      if (isTokenExpired(storedAccessToken) && storedRefreshToken) {
+        // Try to refresh the token
+        refreshTokens()
+          .then(success => {
+            if (success) {
+              // Token refreshed, now fetch user data with new token
+              return authService.getCurrentUser(getAccessToken() || "");
+            }
+            throw new Error("Token refresh failed");
+          })
+          .then(userData => {
+            setUser(userData);
+          })
+          .catch(error => {
+            console.error("Error refreshing token or fetching user data:", error);
+            handleLogout();
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      } else {
+        // Token is still valid, fetch user data
+        authService
+          .getCurrentUser(storedAccessToken)
+          .then((userData) => {
+            setUser(userData);
+          })
+          .catch((error) => {
+            console.error("Error fetching user data:", error);
+            // If token is invalid, log out
+            handleLogout();
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      }
     } else {
       setIsLoading(false);
     }
-  }, []);
+  }, [refreshTokens]);
+
+  // Set up automatic token refresh
+  useEffect(() => {
+    if (!accessToken || !refreshToken) return;
+    
+    const checkTokenExpiration = async () => {
+      if (isTokenExpired(accessToken)) {
+        await refreshTokens();
+      }
+    };
+    
+    // Check token expiration every minute
+    const interval = setInterval(checkTokenExpiration, 60000);
+    
+    return () => clearInterval(interval);
+  }, [accessToken, refreshToken, refreshTokens]);
 
   const login = async (handle: string) => {
     try {
@@ -97,6 +151,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const refreshTokens = useCallback(async (): Promise<boolean> => {
+    if (!refreshToken) return false;
+    
+    try {
+      const { accessToken: newAccessToken, refreshToken: newRefreshToken } = 
+        await authService.refreshToken(refreshToken);
+      
+      // Store tokens
+      localStorage.setItem("accessToken", newAccessToken);
+      localStorage.setItem("refreshToken", newRefreshToken);
+      
+      // Update state
+      setAccessToken(newAccessToken);
+      setRefreshToken(newRefreshToken);
+      setIsAuthenticated(true);
+      return true;
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+      handleLogout();
+      return false;
+    }
+  }, [refreshToken]);
+
   const handleLogout = async () => {
     try {
       if (refreshToken) {
@@ -128,6 +205,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         completeOAuth,
         logout: handleLogout,
+        refreshTokens,
       }}
     >
       {children}

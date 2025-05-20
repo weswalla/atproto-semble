@@ -66,7 +66,7 @@ export function TriadValueInput({
             onChange={(e) => handleVertexChange("vertexA", e.target.value)}
             placeholder="Enter value"
             min="0"
-            max="100"
+            max="1000"
           />
         </div>
         <div>
@@ -78,7 +78,7 @@ export function TriadValueInput({
             onChange={(e) => handleVertexChange("vertexB", e.target.value)}
             placeholder="Enter value"
             min="0"
-            max="100"
+            max="1000"
           />
         </div>
         <div>
@@ -90,7 +90,7 @@ export function TriadValueInput({
             onChange={(e) => handleVertexChange("vertexC", e.target.value)}
             placeholder="Enter value"
             min="0"
-            max="100"
+            max="1000"
           />
         </div>
       </div>

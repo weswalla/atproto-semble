@@ -11,7 +11,6 @@ import {
   RatingDefinition,
   SingleSelectDefinition,
   MultiSelectDefinition,
-  Template
 } from "@/types/annotations";
 import { CreateTemplateResponse } from "@/types/api";
 import { TemplateFieldEditor } from "@/components/templates/TemplateFieldEditor";
@@ -60,7 +59,7 @@ export default function CreateTemplatePage() {
             definition: {
               ...field.definition,
               ...definitionUpdates,
-            },
+            } as AnnotationFieldDefinition,
           };
         }
         return field;
@@ -207,10 +206,8 @@ export default function CreateTemplatePage() {
 
       // Submit to API
       try {
-        const response: CreateTemplateResponse = await annotationService.createTemplate(
-          accessToken,
-          templateData
-        );
+        const response: CreateTemplateResponse =
+          await annotationService.createTemplate(accessToken, templateData);
 
         console.log("Template created with ID:", response.templateId);
 

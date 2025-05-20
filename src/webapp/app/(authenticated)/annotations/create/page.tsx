@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, FormEventHandler } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { annotationService } from "@/services/api";
@@ -33,7 +33,8 @@ export default function CreateAnnotationPage() {
   const [url, setUrl] = useState("");
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateDetail | null>(null);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<TemplateDetail | null>(null);
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -74,7 +75,7 @@ export default function CreateAnnotationPage() {
         setSelectedTemplate(templateData);
 
         // Initialize form values for each field
-        const initialValues = {};
+        const initialValues: { [field: string]: string } = {};
         templateData.fields.forEach((field) => {
           initialValues[field.id] = "";
         });
@@ -91,14 +92,14 @@ export default function CreateAnnotationPage() {
     fetchTemplateDetails();
   }, [selectedTemplateId, accessToken]);
 
-  const handleInputChange = (fieldId, value) => {
+  const handleInputChange = (fieldId: string, value: string) => {
     setFormValues((prev) => ({
       ...prev,
       [fieldId]: value,
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit: FormEventHandler = async (e) => {
     e.preventDefault();
 
     if (!url) {
@@ -118,7 +119,7 @@ export default function CreateAnnotationPage() {
       // Prepare annotations data
       const annotations = [];
 
-      for (const field of selectedTemplate.fields) {
+      for (const field of selectedTemplate?.fields || []) {
         const value = formValues[field.id];
 
         if (field.required && !value) {
@@ -142,7 +143,7 @@ export default function CreateAnnotationPage() {
 
       // Submit annotations
       const result = await annotationService.createAnnotationsFromTemplate(
-        accessToken,
+        accessToken || "",
         {
           url,
           templateId: selectedTemplateId,
@@ -157,7 +158,7 @@ export default function CreateAnnotationPage() {
       setTimeout(() => {
         router.push("/annotations");
       }, 2000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating annotations:", error);
       setError(
         error.message || "Failed to create annotations. Please try again."

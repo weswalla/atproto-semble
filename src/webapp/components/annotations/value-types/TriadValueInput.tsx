@@ -41,10 +41,10 @@ export function TriadValueInput({
 
   // Update the combined value when individual values change
   const handleVertexChange = (vertex: string, newValue: string) => {
-    const numericValue = newValue === "" ? "" : parseFloat(newValue);
+    // Store as string in state for editing, but will be converted to number on submission
     const updatedValues = {
       ...vertexValues,
-      [vertex]: numericValue,
+      [vertex]: newValue,
     };
     setVertexValues(updatedValues);
     onChange(JSON.stringify(updatedValues));

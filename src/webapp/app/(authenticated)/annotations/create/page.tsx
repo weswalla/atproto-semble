@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { annotationService } from "@/services/api";
+import { formatAnnotationValue } from "@/components/annotations/utils/valueFormatters";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -113,22 +114,8 @@ export default function CreateAnnotationPage() {
           return;
         }
         
-        // Create annotation based on field type
-        let formattedValue;
-        
-        switch (field.definitionType) {
-          case 'rating':
-            formattedValue = { value: parseInt(value, 10) };
-            break;
-          case 'dyad':
-            formattedValue = { value: parseFloat(value) };
-            break;
-          case 'multiSelect':
-            formattedValue = { value: JSON.parse(value) };
-            break;
-          default:
-            formattedValue = { value: value };
-        }
+        // Format the value based on field type
+        const formattedValue = formatAnnotationValue(field.definitionType, value);
         
         annotations.push({
           annotationFieldId: field.id,

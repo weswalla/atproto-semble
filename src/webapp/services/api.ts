@@ -311,4 +311,28 @@ export const annotationService = {
       accessToken
     );
   },
+
+  /**
+   * Get annotations created by the current user
+   */
+  getMyAnnotations: async (
+    accessToken: string
+  ): Promise<
+    Array<{
+      id: string;
+      url: string;
+      fieldName: string;
+      valueType: string;
+      valuePreview: string;
+      createdAt: string;
+      templateName?: string;
+    }>
+  > => {
+    const apiBaseUrl = getApiBaseUrl();
+    return authenticatedRequest(
+      `${apiBaseUrl}/api/annotations/my-annotations`,
+      "GET",
+      accessToken
+    );
+  },
 };

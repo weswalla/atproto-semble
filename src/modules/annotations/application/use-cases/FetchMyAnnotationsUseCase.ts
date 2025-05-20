@@ -3,7 +3,7 @@ import { IAnnotationRepository } from "../repositories/IAnnotationRepository";
 import { Result, ok, err } from "../../../../shared/core/Result";
 import { AppError } from "../../../../shared/core/AppError";
 import { CuratorId } from "../../domain/value-objects";
-import { AnnotationType } from "../../domain/value-objects/AnnotationType";
+import { AnnotationValueFormatter } from "../../domain/AnnotationValueFormatter";
 
 export interface FetchMyAnnotationsDTO {
   curatorId: string;
@@ -54,29 +54,8 @@ export class FetchMyAnnotationsUseCase
       // Map domain objects to DTOs for the response
       const annotationDTOs: AnnotationListItemDTO[] = annotations.map(
         (annotation) => {
-          // Create a preview of the value based on its type
-          let valuePreview = "";
-          const value = annotation.value;
-
-          switch (value.type.value) {
-            case AnnotationType.DYAD.value:
-              valuePreview = `Value: ${value}`;
-              break;
-            case "triad":
-              valuePreview = `Values: ${value}, ${value}, ${value}`;
-              break;
-            case "rating":
-              valuePreview = `Rating: ${value}`;
-              break;
-            case "singleSelect":
-              valuePreview = `Selected: ${value}`;
-              break;
-            case "multiSelect":
-              valuePreview = `Selected: ${value}`;
-              break;
-            default:
-              valuePreview = "Custom value";
-          }
+          // Use the formatter to create a preview of the value
+          const valuePreview = AnnotationValueFormatter.createPreview(annotation.value);
 
           return {
             id: annotation.id.toString(),

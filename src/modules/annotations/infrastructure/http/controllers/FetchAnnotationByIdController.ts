@@ -4,9 +4,7 @@ import { FetchAnnotationByIdUseCase } from "../../../application/use-cases/Fetch
 import { AuthenticatedRequest } from "src/shared/infrastructure/http/middleware";
 
 export class FetchAnnotationByIdController extends Controller {
-  constructor(
-    private fetchAnnotationByIdUseCase: FetchAnnotationByIdUseCase
-  ) {
+  constructor(private fetchAnnotationByIdUseCase: FetchAnnotationByIdUseCase) {
     super();
   }
 

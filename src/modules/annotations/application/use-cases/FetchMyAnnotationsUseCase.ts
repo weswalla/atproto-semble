@@ -3,7 +3,7 @@ import { IAnnotationRepository } from "../repositories/IAnnotationRepository";
 import { Result, ok, err } from "../../../../shared/core/Result";
 import { AppError } from "../../../../shared/core/AppError";
 import { CuratorId } from "../../domain/value-objects";
-import { URI } from "../../domain/value-objects/URI";
+import { AnnotationType } from "../../domain/value-objects/AnnotationType";
 
 export interface FetchMyAnnotationsDTO {
   curatorId: string;
@@ -31,9 +31,7 @@ export type FetchMyAnnotationsResponse = Result<
 export class FetchMyAnnotationsUseCase
   implements UseCase<FetchMyAnnotationsDTO, Promise<FetchMyAnnotationsResponse>>
 {
-  constructor(
-    private readonly annotationRepository: IAnnotationRepository
-  ) {}
+  constructor(private readonly annotationRepository: IAnnotationRepository) {}
 
   async execute(
     request: FetchMyAnnotationsDTO
@@ -48,54 +46,59 @@ export class FetchMyAnnotationsUseCase
       }
 
       const curatorId = curatorIdOrError.value;
-      
+
       // We need to add a method to the repository to find annotations by curator ID
-      const annotations = await this.annotationRepository.findByCuratorId(curatorId);
+      const annotations =
+        await this.annotationRepository.findByCuratorId(curatorId);
 
       // Map domain objects to DTOs for the response
-      const annotationDTOs: AnnotationListItemDTO[] = annotations.map((annotation) => {
-        // Create a preview of the value based on its type
-        let valuePreview = "";
-        const value = annotation.value;
-        
-        switch (value.type.value) {
-          case "dyad":
-            valuePreview = `Value: ${value.value}`;
-            break;
-          case "triad":
-            valuePreview = `Values: ${value.vertexA}, ${value.vertexB}, ${value.vertexC}`;
-            break;
-          case "rating":
-            valuePreview = `Rating: ${value.rating}`;
-            break;
-          case "singleSelect":
-            valuePreview = `Selected: ${value.option}`;
-            break;
-          case "multiSelect":
-            valuePreview = `Selected: ${value.options.join(", ")}`;
-            break;
-          default:
-            valuePreview = "Custom value";
-        }
+      const annotationDTOs: AnnotationListItemDTO[] = annotations.map(
+        (annotation) => {
+          // Create a preview of the value based on its type
+          let valuePreview = "";
+          const value = annotation.value;
 
-        return {
-          id: annotation.id.toString(),
-          url: annotation.url.value,
-          fieldName: annotation.annotationField.name.value,
-          valueType: value.type.value,
-          valuePreview,
-          createdAt: annotation.createdAt || new Date(),
-          templateName: annotation.annotationTemplateIds && annotation.annotationTemplateIds.length > 0 
-            ? "From template" // Ideally we'd fetch the template name
-            : undefined,
-          publishedRecordId: annotation.publishedRecordId
-            ? {
-                uri: annotation.publishedRecordId.uri,
-                cid: annotation.publishedRecordId.cid,
-              }
-            : undefined,
-        };
-      });
+          switch (value.type.value) {
+            case AnnotationType.DYAD.value:
+              valuePreview = `Value: ${value}`;
+              break;
+            case "triad":
+              valuePreview = `Values: ${value}, ${value}, ${value}`;
+              break;
+            case "rating":
+              valuePreview = `Rating: ${value}`;
+              break;
+            case "singleSelect":
+              valuePreview = `Selected: ${value}`;
+              break;
+            case "multiSelect":
+              valuePreview = `Selected: ${value}`;
+              break;
+            default:
+              valuePreview = "Custom value";
+          }
+
+          return {
+            id: annotation.id.toString(),
+            url: annotation.url.value,
+            fieldName: annotation.annotationField.name.value,
+            valueType: value.type.value,
+            valuePreview,
+            createdAt: annotation.createdAt || new Date(),
+            templateName:
+              annotation.annotationTemplateIds &&
+              annotation.annotationTemplateIds.length > 0
+                ? "From template" // Ideally we'd fetch the template name
+                : undefined,
+            publishedRecordId: annotation.publishedRecordId
+              ? {
+                  uri: annotation.publishedRecordId.uri,
+                  cid: annotation.publishedRecordId.cid,
+                }
+              : undefined,
+          };
+        }
+      );
 
       return ok(annotationDTOs);
     } catch (error: any) {

@@ -21,6 +21,106 @@ export class DrizzleAnnotationRepository implements IAnnotationRepository {
     private annotationFieldRepository: IAnnotationFieldRepository
   ) {}
 
+  async findByCuratorId(curatorId: CuratorId): Promise<Annotation[]> {
+    const curatorIdString = curatorId.value;
+
+    // Join with publishedRecords to get URI and CID
+    const annotationResults = await this.db
+      .select({
+        annotation: annotations,
+        publishedRecord: publishedRecords,
+      })
+      .from(annotations)
+      .leftJoin(
+        publishedRecords,
+        eq(annotations.publishedRecordId, publishedRecords.id)
+      )
+      .where(eq(annotations.curatorId, curatorIdString));
+
+    if (annotationResults.length === 0) {
+      return [];
+    }
+
+    // Get all annotation IDs
+    const annotationIds = annotationResults.map(
+      (result) => result.annotation.id
+    );
+
+    // Fetch all template links for these annotations in a single query
+    const templateLinks = await this.db
+      .select()
+      .from(annotationToTemplates)
+      .where(inArray(annotationToTemplates.annotationId, annotationIds));
+
+    // Group template IDs by annotation ID
+    const templateIdsByAnnotation = templateLinks.reduce(
+      (acc, link) => {
+        if (!acc[link.annotationId]) {
+          acc[link.annotationId] = [];
+        }
+        acc[link.annotationId]!.push(link.templateId);
+        return acc;
+      },
+      {} as Record<string, string[]>
+    );
+
+    // Map each annotation to domain object
+    const domainAnnotations: Annotation[] = [];
+    for (const result of annotationResults) {
+      const annotation = result.annotation;
+      const publishedRecord = result.publishedRecord;
+
+      // Fetch the annotation field
+      const fieldId = AnnotationFieldId.create(
+        new UniqueEntityID(annotation.annotationFieldId)
+      );
+      if (fieldId.isErr()) {
+        console.error("Error creating field ID:", fieldId.error);
+        continue;
+      }
+
+      const annotationField = await this.annotationFieldRepository.findById(
+        fieldId.value
+      );
+      if (!annotationField) {
+        console.error(
+          `Annotation field with ID ${annotation.annotationFieldId} not found`
+        );
+        continue;
+      }
+
+      const annotationFieldPersistence =
+        AnnotationFieldMapper.toPersistence(annotationField);
+
+      const annotationDTO: AnnotationDTO = {
+        id: annotation.id,
+        curatorId: annotation.curatorId,
+        url: annotation.url,
+        annotationFieldId: annotation.annotationFieldId,
+        annotationField: annotationFieldPersistence,
+        valueType: annotation.valueType,
+        valueData: annotation.valueData,
+        note: annotation.note || undefined,
+        createdAt: annotation.createdAt,
+        publishedRecordId: publishedRecord?.id || null,
+        publishedRecord: publishedRecord || undefined,
+        templateIds: templateIdsByAnnotation[annotation.id] || undefined,
+      };
+
+      const domainResult = AnnotationMapper.toDomain(annotationDTO);
+      if (domainResult.isErr()) {
+        console.error(
+          "Error mapping annotation to domain:",
+          domainResult.error
+        );
+        continue;
+      }
+      domainAnnotations.push(domainResult.value);
+    }
+
+    return domainAnnotations;
+  }
+
   async findById(id: AnnotationId): Promise<Annotation | null> {
     const annotationId = id.getStringValue();
 

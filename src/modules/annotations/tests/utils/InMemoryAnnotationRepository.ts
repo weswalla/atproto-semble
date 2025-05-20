@@ -1,13 +1,16 @@
 import { IAnnotationRepository } from "src/modules/annotations/application/repositories/IAnnotationRepository";
 import { Annotation } from "src/modules/annotations/domain/aggregates/Annotation";
 import { URI } from "src/modules/annotations/domain/value-objects/URI";
-import { AnnotationId, PublishedRecordId } from "../../domain/value-objects";
+import {
+  AnnotationId,
+  CuratorId,
+  PublishedRecordId,
+} from "../../domain/value-objects";
 
 export class InMemoryAnnotationRepository implements IAnnotationRepository {
   // Store annotations using the string representation of TID
   private annotations: Map<string, Annotation> = new Map();
   // Index by URI for faster lookups
-  // private annotationsByUri: Map<PublishedRecordIdProps, Annotation> = new Map();
   private annotationsByUri: Map<string, Annotation> = new Map();
   // Index by URL for faster lookups (multiple annotations can have the same URL)
   private annotationsByUrl: Map<string, Annotation[]> = new Map();
@@ -33,11 +36,6 @@ export class InMemoryAnnotationRepository implements IAnnotationRepository {
   async findByPublishedRecordId(
     publishedRecordId: PublishedRecordId
   ): Promise<Annotation | null> {
-    console.log(
-      `Finding annotation by published record ID: ${publishedRecordId.getValue()}`,
-      JSON.stringify(this.annotationsByUri)
-    );
-    // const annotation = this.annotationsByUri.get(publishedRecordId.getValue());
     const annotation = this.annotationsByUri.get(
       publishedRecordId.uri + publishedRecordId.cid
     );
@@ -47,6 +45,16 @@ export class InMemoryAnnotationRepository implements IAnnotationRepository {
   async findByUrl(url: URI): Promise<Annotation[]> {
     const annotations = this.annotationsByUrl.get(url.value) || [];
     return annotations.map((annotation) => this.clone(annotation));
+  }
+
+  async findByCuratorId(curatorId: CuratorId): Promise<Annotation[]> {
+    const result: Annotation[] = [];
+    for (const annotation of this.annotations.values()) {
+      if (annotation.curatorId && annotation.curatorId.equals(curatorId)) {
+        result.push(this.clone(annotation));
+      }
+    }
+    return result;
   }
 
   async save(annotation: Annotation): Promise<void> {
@@ -59,16 +67,11 @@ export class InMemoryAnnotationRepository implements IAnnotationRepository {
 
     // Store by URI if available
     if (annotationToStore.publishedRecordId) {
-      console.log("stored by uri", JSON.stringify(this.annotationsByUri));
       const publishedRecordId = annotationToStore.publishedRecordId;
-      const publishedRecordIdProps =
-        annotationToStore.publishedRecordId.getValue();
-      // this.annotationsByUri.set(publishedRecordIdProps, annotationToStore);
       this.annotationsByUri.set(
         publishedRecordId.uri + publishedRecordId.cid,
         annotationToStore
       );
-      console.log("stored by uri after", JSON.stringify(this.annotationsByUri));
     }
 
     // Store by URL

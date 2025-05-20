@@ -7,6 +7,7 @@ import {
   AnnotationId,
   PublishedRecordId,
   AnnotationFieldId,
+  CuratorId,
 } from "../../domain/value-objects";
 import { URI } from "../../domain/value-objects/URI";
 import { annotations, annotationToTemplates } from "./schema/annotation.sql";

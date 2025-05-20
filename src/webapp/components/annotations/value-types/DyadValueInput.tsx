@@ -25,9 +25,12 @@ export function DyadValueInput({ field, value, onChange }: DyadValueInputProps) 
       </div>
       <Input
         id={field.id}
+        type="number"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Enter value"
+        placeholder="Enter numeric value"
+        min="0"
+        max="100"
       />
     </div>
   );

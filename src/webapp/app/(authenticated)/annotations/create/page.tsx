@@ -120,6 +120,9 @@ export default function CreateAnnotationPage() {
           case 'rating':
             formattedValue = { value: parseInt(value, 10) };
             break;
+          case 'dyad':
+            formattedValue = { value: parseFloat(value) };
+            break;
           case 'multiSelect':
             formattedValue = { value: JSON.parse(value) };
             break;

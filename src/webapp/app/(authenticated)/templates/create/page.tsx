@@ -6,8 +6,14 @@ import { useRouter } from "next/navigation";
 import {
   TemplateField,
   AnnotationFieldDefinition,
-  Template,
+  DyadDefinition,
+  TriadDefinition,
+  RatingDefinition,
+  SingleSelectDefinition,
+  MultiSelectDefinition,
+  Template
 } from "@/types/annotations";
+import { CreateTemplateResponse } from "@/types/api";
 import { TemplateFieldEditor } from "@/components/templates/TemplateFieldEditor";
 import { annotationService, ApiError } from "@/services/api";
 
@@ -79,7 +85,7 @@ export default function CreateTemplatePage() {
           type: "dyad",
           sideA: "Agree",
           sideB: "Disagree",
-        };
+        } as DyadDefinition;
         break;
       case "triad":
         newDefinition = {
@@ -87,25 +93,25 @@ export default function CreateTemplatePage() {
           vertexA: "Option A",
           vertexB: "Option B",
           vertexC: "Option C",
-        };
+        } as TriadDefinition;
         break;
       case "rating":
         newDefinition = {
           type: "rating",
           numberOfStars: 5,
-        };
+        } as RatingDefinition;
         break;
       case "singleSelect":
         newDefinition = {
           type: "singleSelect",
           options: ["Option 1", "Option 2"],
-        };
+        } as SingleSelectDefinition;
         break;
       case "multiSelect":
         newDefinition = {
           type: "multiSelect",
           options: ["Option 1", "Option 2"],
-        };
+        } as MultiSelectDefinition;
         break;
       default:
         return;
@@ -201,12 +207,12 @@ export default function CreateTemplatePage() {
 
       // Submit to API
       try {
-        const { templateId } = await annotationService.createTemplate(
+        const response: CreateTemplateResponse = await annotationService.createTemplate(
           accessToken,
           templateData
         );
 
-        console.log("Template created with ID:", templateId);
+        console.log("Template created with ID:", response.templateId);
 
         // Redirect to templates page
         router.push("/templates");

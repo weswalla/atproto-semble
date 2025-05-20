@@ -1,3 +1,5 @@
+import { AnnotationValueType } from "./annotationValues";
+
 // Field Definitions
 export interface FieldDefinition {
   // Common properties for all field types

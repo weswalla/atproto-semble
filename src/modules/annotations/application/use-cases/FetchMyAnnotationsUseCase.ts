@@ -55,13 +55,15 @@ export class FetchMyAnnotationsUseCase
       const annotationDTOs: AnnotationListItemDTO[] = annotations.map(
         (annotation) => {
           // Use the formatter to create a preview of the value
-          const valuePreview = AnnotationValueFormatter.createPreview(annotation.value);
+          const valuePreview = AnnotationValueFormatter.createPreview(
+            annotation.value
+          );
 
           return {
             id: annotation.id.toString(),
             url: annotation.url.value,
             fieldName: annotation.annotationField.name.value,
-            valueType: value.type.value,
+            valueType: annotation.value.type.value,
             valuePreview,
             createdAt: annotation.createdAt || new Date(),
             templateName:

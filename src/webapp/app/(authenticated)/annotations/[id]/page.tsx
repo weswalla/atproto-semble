@@ -5,11 +5,17 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { annotationService } from "@/services/api";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 
 interface AnnotationDetail {
@@ -41,10 +47,13 @@ export default function AnnotationDetailPage() {
   useEffect(() => {
     const fetchAnnotation = async () => {
       if (!accessToken || !id) return;
-      
+
       try {
         setIsLoading(true);
-        const data = await annotationService.getAnnotationById(accessToken, id as string);
+        const data = await annotationService.getAnnotationById(
+          accessToken,
+          id as string
+        );
         setAnnotation(data);
         setError(null);
       } catch (err: any) {
@@ -94,8 +103,8 @@ export default function AnnotationDetailPage() {
           <CardContent className="pt-6">
             <div className="bg-red-50 p-4 rounded-md text-red-800">
               <p>{error}</p>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="mt-2"
                 onClick={() => window.location.reload()}
               >
@@ -129,7 +138,7 @@ export default function AnnotationDetailPage() {
         <Button variant="outline" onClick={handleBack}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Annotations
         </Button>
-        
+
         <div className="flex items-center space-x-2">
           <Badge variant="outline">{annotation.valueType}</Badge>
           {annotation.templateName && (
@@ -146,9 +155,9 @@ export default function AnnotationDetailPage() {
         <CardContent className="space-y-4">
           <div>
             <h3 className="text-sm font-medium text-gray-500 mb-1">URL</h3>
-            <a 
-              href={annotation.url} 
-              target="_blank" 
+            <a
+              href={annotation.url}
+              target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:underline flex items-center"
             >
@@ -171,12 +180,16 @@ export default function AnnotationDetailPage() {
 
           {annotation.publishedRecordId && (
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Published Record</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-1">
+                Published Record
+              </h3>
               <p className="text-sm break-all">
-                <span className="font-medium">URI:</span> {annotation.publishedRecordId.uri}
+                <span className="font-medium">URI:</span>{" "}
+                {annotation.publishedRecordId.uri}
               </p>
               <p className="text-sm break-all">
-                <span className="font-medium">CID:</span> {annotation.publishedRecordId.cid}
+                <span className="font-medium">CID:</span>{" "}
+                {annotation.publishedRecordId.cid}
               </p>
             </div>
           )}

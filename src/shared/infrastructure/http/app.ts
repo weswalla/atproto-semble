@@ -48,6 +48,7 @@ import { ATProtoAgentService } from "src/modules/atproto/infrastructure/services
 import { createAtprotoRoutes } from "src/modules/atproto/infrastructure/atprotoRoutes";
 import { FetchMyAnnotationsController } from "src/modules/annotations/infrastructure/http/controllers/FetchMyAnnotationsController";
 import { FetchMyAnnotationsUseCase } from "src/modules/annotations/application/use-cases/FetchMyAnnotationsUseCase";
+import { FetchAnnotationByIdUseCase } from "src/modules/annotations/application/use-cases/FetchAnnotationByIdUseCase";
 
 export const createExpressApp = (
   configService?: EnvironmentConfigService

@@ -33,23 +33,25 @@ export type FetchAnnotationByIdResponse = Result<
 >;
 
 export class FetchAnnotationByIdUseCase
-  implements UseCase<FetchAnnotationByIdDTO, Promise<FetchAnnotationByIdResponse>>
+  implements
+    UseCase<FetchAnnotationByIdDTO, Promise<FetchAnnotationByIdResponse>>
 {
-  constructor(
-    private readonly annotationRepository: IAnnotationRepository
-  ) {}
+  constructor(private readonly annotationRepository: IAnnotationRepository) {}
 
   async execute(
     request: FetchAnnotationByIdDTO
   ): Promise<FetchAnnotationByIdResponse> {
     try {
+      console.log("Fetching annotation by ID:", request.annotationId);
       const annotationIdOrError = AnnotationId.createFromString(
         request.annotationId
       );
 
       if (annotationIdOrError.isErr()) {
         return err(
-          new AppError.UnexpectedError(new Error("Invalid annotation ID format"))
+          new AppError.UnexpectedError(
+            new Error("Invalid annotation ID format")
+          )
         );
       }
 
@@ -72,9 +74,11 @@ export class FetchAnnotationByIdUseCase
         note: annotation.note?.getValue(),
         createdAt: annotation.createdAt || new Date(),
         curatorId: annotation.curatorId.value,
-        templateName: annotation.annotationTemplateIds && annotation.annotationTemplateIds.length > 0 
-          ? "From template" // Ideally we'd fetch the template name
-          : undefined,
+        templateName:
+          annotation.annotationTemplateIds &&
+          annotation.annotationTemplateIds.length > 0
+            ? "From template" // Ideally we'd fetch the template name
+            : undefined,
         publishedRecordId: annotation.publishedRecordId
           ? {
               uri: annotation.publishedRecordId.uri,

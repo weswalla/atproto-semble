@@ -4,20 +4,18 @@ import { FetchAnnotationByIdUseCase } from "../../../application/use-cases/Fetch
 import { AuthenticatedRequest } from "src/shared/infrastructure/http/middleware";
 
 export class FetchAnnotationByIdController extends Controller {
-  constructor(private fetchAnnotationByIdUseCase: FetchAnnotationByIdUseCase) {
+  constructor(
+    private fetchAnnotationByIdUseCase: FetchAnnotationByIdUseCase
+  ) {
     super();
   }
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const curatorId = req.did;
-      if (!curatorId) {
-        return this.unauthorized(res);
-      }
-
       const { id } = req.params;
+      
       if (!id) {
-        return this.clientError(res, "Annotation ID is required");
+        return this.badRequest(res, "Annotation ID is required");
       }
 
       const result = await this.fetchAnnotationByIdUseCase.execute({
@@ -25,11 +23,10 @@ export class FetchAnnotationByIdController extends Controller {
       });
 
       if (result.isErr()) {
-        const error = result.error;
-        if (error.name === "NotFoundError") {
-          return this.notFound(res, error.message);
+        if (result.error instanceof Error && result.error.name === "NotFoundError") {
+          return this.notFound(res, result.error.message);
         }
-        return this.fail(res, error);
+        return this.fail(res, result.error as any);
       }
 
       return this.ok(res, result.value);

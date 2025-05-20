@@ -7,9 +7,10 @@ import { annotationService } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import { AnnotationFieldInput } from "@/components/annotations/AnnotationFieldInput";
 
 export default function CreateAnnotationPage() {
   const { accessToken } = useAuth();
@@ -116,17 +117,11 @@ export default function CreateAnnotationPage() {
         let formattedValue;
         
         switch (field.definitionType) {
-          case 'dyad':
-            formattedValue = { value: value };
-            break;
-          case 'triad':
-            formattedValue = { value: value };
-            break;
           case 'rating':
             formattedValue = { value: parseInt(value, 10) };
             break;
-          case 'singleSelect':
-            formattedValue = { value: value };
+          case 'multiSelect':
+            formattedValue = { value: JSON.parse(value) };
             break;
           default:
             formattedValue = { value: value };
@@ -161,53 +156,6 @@ export default function CreateAnnotationPage() {
       console.error("Error creating annotations:", error);
       setError(error.message || "Failed to create annotations. Please try again.");
       setLoading(false);
-    }
-  };
-
-  // Render field input based on field type
-  const renderFieldInput = (field) => {
-    const value = formValues[field.id] || "";
-    
-    switch (field.definitionType) {
-      case 'rating':
-        return (
-          <Input
-            id={field.id}
-            type="number"
-            min={field.definition.min || 1}
-            max={field.definition.max || 5}
-            value={value}
-            onChange={(e) => handleInputChange(field.id, e.target.value)}
-            placeholder={`Rating (${field.definition.min || 1}-${field.definition.max || 5})`}
-          />
-        );
-      case 'singleSelect':
-        return (
-          <Select
-            value={value}
-            onValueChange={(value) => handleInputChange(field.id, value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select an option" />
-            </SelectTrigger>
-            <SelectContent>
-              {field.definition.options.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        );
-      default:
-        return (
-          <Input
-            id={field.id}
-            value={value}
-            onChange={(e) => handleInputChange(field.id, e.target.value)}
-            placeholder="Enter value"
-          />
-        );
     }
   };
 
@@ -295,15 +243,12 @@ export default function CreateAnnotationPage() {
                     
                     <div className="space-y-4">
                       {selectedTemplate.fields.map((field) => (
-                        <div key={field.id} className="space-y-2">
-                          <Label htmlFor={field.id}>
-                            {field.name}
-                            {field.required && <span className="text-red-500">*</span>}
-                          </Label>
-                          <p className="text-xs text-gray-500">
-                            {field.description}
-                          </p>
-                          {renderFieldInput(field)}
+                        <div key={field.id} className="p-3 bg-white rounded-md shadow-sm">
+                          <AnnotationFieldInput
+                            field={field}
+                            value={formValues[field.id] || ""}
+                            onChange={handleInputChange}
+                          />
                         </div>
                       ))}
                     </div>

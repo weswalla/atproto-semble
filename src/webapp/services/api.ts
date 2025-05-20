@@ -1,6 +1,14 @@
 /**
  * Client-side API service for making requests to the backend
  */
+import {
+  Template,
+  TemplateDetail,
+  Annotation,
+  AnnotationDetail,
+  CreateTemplateResponse,
+  CreateAnnotationsResponse
+} from "@/types/api";
 
 // Get the base URL for API requests from environment variables
 const getApiBaseUrl = (): string => {
@@ -262,7 +270,7 @@ export const annotationService = {
         required: boolean;
       }>;
     }
-  ): Promise<{ templateId: string }> => {
+  ): Promise<CreateTemplateResponse> => {
     const apiBaseUrl = getApiBaseUrl();
     return authenticatedRequest(
       `${apiBaseUrl}/api/annotations/templates`,
@@ -287,7 +295,7 @@ export const annotationService = {
         note?: string;
       }>;
     }
-  ): Promise<{ annotationIds: string[] }> => {
+  ): Promise<CreateAnnotationsResponse> => {
     const apiBaseUrl = getApiBaseUrl();
     return authenticatedRequest(
       `${apiBaseUrl}/api/annotations/from-template`,
@@ -302,15 +310,7 @@ export const annotationService = {
    */
   getTemplates: async (
     accessToken: string
-  ): Promise<
-    Array<{
-      id: string;
-      name: string;
-      description: string;
-      createdAt: string;
-      fieldCount: number;
-    }>
-  > => {
+  ): Promise<Template[]> => {
     const apiBaseUrl = getApiBaseUrl();
     return authenticatedRequest(
       `${apiBaseUrl}/api/annotations/templates`,
@@ -325,21 +325,7 @@ export const annotationService = {
   getTemplateById: async (
     accessToken: string,
     templateId: string
-  ): Promise<{
-    id: string;
-    name: string;
-    description: string;
-    fields: Array<{
-      id: string;
-      name: string;
-      description: string;
-      definitionType: string;
-      definition: any;
-      required: boolean;
-    }>;
-    createdAt: string;
-    curatorId: string;
-  }> => {
+  ): Promise<TemplateDetail> => {
     const apiBaseUrl = getApiBaseUrl();
     return authenticatedRequest(
       `${apiBaseUrl}/api/annotations/templates/${templateId}`,
@@ -353,17 +339,7 @@ export const annotationService = {
    */
   getMyAnnotations: async (
     accessToken: string
-  ): Promise<
-    Array<{
-      id: string;
-      url: string;
-      fieldName: string;
-      valueType: string;
-      valuePreview: string;
-      createdAt: string;
-      templateName?: string;
-    }>
-  > => {
+  ): Promise<Annotation[]> => {
     const apiBaseUrl = getApiBaseUrl();
     return authenticatedRequest(
       `${apiBaseUrl}/api/annotations/my-annotations`,
@@ -378,23 +354,7 @@ export const annotationService = {
   getAnnotationById: async (
     accessToken: string,
     annotationId: string
-  ): Promise<{
-    id: string;
-    url: string;
-    fieldName: string;
-    fieldDescription: string;
-    valueType: string;
-    valueData: any;
-    valuePreview: string;
-    note?: string;
-    createdAt: string;
-    curatorId: string;
-    templateName?: string;
-    publishedRecordId?: {
-      uri: string;
-      cid: string;
-    };
-  }> => {
+  ): Promise<AnnotationDetail> => {
     const apiBaseUrl = getApiBaseUrl();
     return authenticatedRequest(
       `${apiBaseUrl}/api/annotations/${annotationId}`,

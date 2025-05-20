@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { annotationService } from "@/services/api";
 import { formatAnnotationValue } from "@/components/annotations/utils/valueFormatters";
+import { Template, TemplateDetail } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,9 +32,9 @@ export default function CreateAnnotationPage() {
 
   const [url, setUrl] = useState("");
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
-  const [templates, setTemplates] = useState([]);
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [formValues, setFormValues] = useState({});
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateDetail | null>(null);
+  const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);

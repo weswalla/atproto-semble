@@ -4,6 +4,7 @@ import { CreateAndPublishAnnotationsFromTemplateController } from "../controller
 import { FetchMyTemplatesController } from "../controllers/FetchMyTemplatesController";
 import { FetchTemplateByIdController } from "../controllers/FetchTemplateByIdController";
 import { FetchMyAnnotationsController } from "../controllers/FetchMyAnnotationsController";
+import { FetchAnnotationByIdController } from "../controllers/FetchAnnotationByIdController";
 import { AuthMiddleware } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
 
 export const createAnnotationRoutes = (
@@ -13,7 +14,8 @@ export const createAnnotationRoutes = (
   createAndPublishAnnotationsFromTemplateController: CreateAndPublishAnnotationsFromTemplateController,
   fetchMyTemplatesController: FetchMyTemplatesController,
   fetchTemplateByIdController: FetchTemplateByIdController,
-  fetchMyAnnotationsController: FetchMyAnnotationsController
+  fetchMyAnnotationsController: FetchMyAnnotationsController,
+  fetchAnnotationByIdController: FetchAnnotationByIdController
 ) => {
   // Protected routes - all annotation routes require authentication
   router.post("/templates", authMiddleware.ensureAuthenticated(), (req, res) =>
@@ -41,6 +43,12 @@ export const createAnnotationRoutes = (
     "/my-annotations",
     authMiddleware.ensureAuthenticated(),
     (req, res) => fetchMyAnnotationsController.execute(req, res)
+  );
+
+  router.get(
+    "/:id",
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => fetchAnnotationByIdController.execute(req, res)
   );
 
   return router;

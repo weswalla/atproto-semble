@@ -335,4 +335,35 @@ export const annotationService = {
       accessToken
     );
   },
+
+  /**
+   * Get a specific annotation by ID
+   */
+  getAnnotationById: async (
+    accessToken: string,
+    annotationId: string
+  ): Promise<{
+    id: string;
+    url: string;
+    fieldName: string;
+    fieldDescription: string;
+    valueType: string;
+    valueData: any;
+    valuePreview: string;
+    note?: string;
+    createdAt: string;
+    curatorId: string;
+    templateName?: string;
+    publishedRecordId?: {
+      uri: string;
+      cid: string;
+    };
+  }> => {
+    const apiBaseUrl = getApiBaseUrl();
+    return authenticatedRequest(
+      `${apiBaseUrl}/api/annotations/${annotationId}`,
+      "GET",
+      accessToken
+    );
+  },
 };

@@ -5,7 +5,10 @@ interface TriadFieldConfigProps {
   onUpdate: (updates: Partial<TriadDefinition>) => void;
 }
 
-export function TriadFieldConfig({ definition, onUpdate }: TriadFieldConfigProps) {
+export function TriadFieldConfig({
+  definition,
+  onUpdate,
+}: TriadFieldConfigProps) {
   return (
     <div className="grid grid-cols-3 gap-4 mt-4">
       <div>
@@ -14,8 +17,8 @@ export function TriadFieldConfig({ definition, onUpdate }: TriadFieldConfigProps
         </label>
         <input
           type="text"
-          value={definition.sideA}
-          onChange={(e) => onUpdate({ sideA: e.target.value })}
+          value={definition.vertexA}
+          onChange={(e) => onUpdate({ vertexA: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-md"
           placeholder="e.g., Option A"
         />
@@ -26,8 +29,8 @@ export function TriadFieldConfig({ definition, onUpdate }: TriadFieldConfigProps
         </label>
         <input
           type="text"
-          value={definition.sideB}
-          onChange={(e) => onUpdate({ sideB: e.target.value })}
+          value={definition.vertexB}
+          onChange={(e) => onUpdate({ vertexB: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-md"
           placeholder="e.g., Option B"
         />
@@ -38,8 +41,8 @@ export function TriadFieldConfig({ definition, onUpdate }: TriadFieldConfigProps
         </label>
         <input
           type="text"
-          value={definition.sideC}
-          onChange={(e) => onUpdate({ sideC: e.target.value })}
+          value={definition.vertexC}
+          onChange={(e) => onUpdate({ vertexC: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-md"
           placeholder="e.g., Option C"
         />

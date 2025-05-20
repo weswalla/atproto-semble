@@ -7,7 +7,11 @@ interface TriadValueInputProps {
   onChange: (value: string) => void;
 }
 
-export function TriadValueInput({ field, value, onChange }: TriadValueInputProps) {
+export function TriadValueInput({
+  field,
+  value,
+  onChange,
+}: TriadValueInputProps) {
   return (
     <div className="space-y-2">
       <Label htmlFor={field.id}>
@@ -17,13 +21,13 @@ export function TriadValueInput({ field, value, onChange }: TriadValueInputProps
       <p className="text-xs text-gray-500">{field.description}</p>
       <div className="grid grid-cols-3 gap-4">
         <div className="text-center">
-          <p className="text-sm font-medium mb-1">{field.definition.sideA}</p>
+          <p className="text-sm font-medium mb-1">{field.definition.vertexA}</p>
         </div>
         <div className="text-center">
-          <p className="text-sm font-medium mb-1">{field.definition.sideB}</p>
+          <p className="text-sm font-medium mb-1">{field.definition.vertexB}</p>
         </div>
         <div className="text-center">
-          <p className="text-sm font-medium mb-1">{field.definition.sideC}</p>
+          <p className="text-sm font-medium mb-1">{field.definition.vertexC}</p>
         </div>
       </div>
       <Input

@@ -13,9 +13,9 @@ export interface DyadDefinition extends FieldDefinition {
 
 export interface TriadDefinition extends FieldDefinition {
   type: "triad";
-  sideA: string;
-  sideB: string;
-  sideC: string;
+  vertexA: string;
+  vertexB: string;
+  vertexC: string;
 }
 
 export interface RatingDefinition extends FieldDefinition {

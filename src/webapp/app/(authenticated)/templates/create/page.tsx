@@ -84,9 +84,9 @@ export default function CreateTemplatePage() {
       case "triad":
         newDefinition = {
           type: "triad",
-          sideA: "Option A",
-          sideB: "Option B",
-          sideC: "Option C",
+          vertexA: "Option A",
+          vertexB: "Option B",
+          vertexC: "Option C",
         };
         break;
       case "rating":
@@ -139,9 +139,9 @@ export default function CreateTemplatePage() {
           break;
         case "triad":
           if (
-            !field.definition.sideA ||
-            !field.definition.sideB ||
-            !field.definition.sideC
+            !field.definition.vertexA ||
+            !field.definition.vertexB ||
+            !field.definition.vertexC
           ) {
             return `Field "${field.name}" is missing triad labels`;
           }

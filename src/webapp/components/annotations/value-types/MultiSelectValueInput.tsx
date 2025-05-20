@@ -1,6 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useEffect } from "react";
+import { MultiSelectValue } from "@/types/annotationValues";
 
 interface MultiSelectValueInputProps {
   field: any;

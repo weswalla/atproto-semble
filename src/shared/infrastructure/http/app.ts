@@ -45,6 +45,8 @@ import { ATProtoAnnotationsFromTemplatePublisher } from "src/modules/atproto/inf
 import { DrizzleAnnotationFieldRepository } from "src/modules/annotations/infrastructure/repositories/DrizzleAnnotationFieldRepository";
 import { ATProtoAgentService } from "src/modules/atproto/infrastructure/services/ATProtoAgentService";
 import { createAtprotoRoutes } from "src/modules/atproto/infrastructure/atprotoRoutes";
+import { FetchMyAnnotationsController } from "src/modules/annotations/infrastructure/http/controllers/FetchMyAnnotationsController";
+import { FetchMyAnnotationsUseCase } from "src/modules/annotations/application/use-cases/FetchMyAnnotationsUseCase";
 
 export const createExpressApp = (
   configService?: EnvironmentConfigService
@@ -138,6 +140,9 @@ export const createExpressApp = (
   const fetchTemplateByIdUseCase = new FetchTemplateByIdUseCase(
     annotationTemplateRepository
   );
+  const fetchMyAnnotationsUseCase = new FetchMyAnnotationsUseCase(
+    annotationRepository
+  );
 
   // Controllers
   const initiateOAuthSignInController = new InitiateOAuthSignInController(
@@ -167,6 +172,9 @@ export const createExpressApp = (
   const fetchTemplateByIdController = new FetchTemplateByIdController(
     fetchTemplateByIdUseCase
   );
+  const fetchMyAnnotationsController = new FetchMyAnnotationsController(
+    fetchMyAnnotationsUseCase
+  );
 
   // Routes
   const userRouter = Router();
@@ -188,7 +196,8 @@ export const createExpressApp = (
     createAndPublishAnnotationTemplateController,
     createAndPublishAnnotationsFromTemplateController,
     fetchMyTemplatesController,
-    fetchTemplateByIdController
+    fetchTemplateByIdController,
+    fetchMyAnnotationsController
   );
 
   createAtprotoRoutes(atprotoRouter, nodeOauthClient);

@@ -14,7 +14,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { annotationService } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import Link from "next/link";
@@ -49,7 +55,7 @@ export default function TemplateDetailPage() {
   useEffect(() => {
     const fetchTemplate = async () => {
       if (!accessToken) return;
-      
+
       try {
         setIsLoading(true);
         const data = await annotationService.getTemplateById(accessToken, id);
@@ -73,7 +79,7 @@ export default function TemplateDetailPage() {
       triad: "Triad",
       rating: "Rating",
       "single-select": "Single Select",
-      "multi-select": "Multi Select"
+      "multi-select": "Multi Select",
     };
     return typeMap[type] || type;
   };
@@ -84,22 +90,40 @@ export default function TemplateDetailPage() {
       case "dyad":
         return (
           <div className="mt-2 text-sm">
-            <p><span className="font-medium">Side A:</span> {field.definition.sideA}</p>
-            <p><span className="font-medium">Side B:</span> {field.definition.sideB}</p>
+            <p>
+              <span className="font-medium">Side A:</span>{" "}
+              {field.definition.sideA}
+            </p>
+            <p>
+              <span className="font-medium">Side B:</span>{" "}
+              {field.definition.sideB}
+            </p>
           </div>
         );
       case "triad":
         return (
           <div className="mt-2 text-sm">
-            <p><span className="font-medium">Vertex A:</span> {field.definition.vertexA}</p>
-            <p><span className="font-medium">Vertex B:</span> {field.definition.vertexB}</p>
-            <p><span className="font-medium">Vertex C:</span> {field.definition.vertexC}</p>
+            <p>
+              <span className="font-medium">Vertex A:</span>{" "}
+              {field.definition.vertexA}
+            </p>
+            <p>
+              <span className="font-medium">Vertex B:</span>{" "}
+              {field.definition.vertexB}
+            </p>
+            <p>
+              <span className="font-medium">Vertex C:</span>{" "}
+              {field.definition.vertexC}
+            </p>
           </div>
         );
       case "rating":
         return (
           <div className="mt-2 text-sm">
-            <p><span className="font-medium">Rating:</span> {field.definition.numberOfStars} stars</p>
+            <p>
+              <span className="font-medium">Rating:</span>{" "}
+              {field.definition.numberOfStars} stars
+            </p>
           </div>
         );
       case "single-select":
@@ -125,7 +149,7 @@ export default function TemplateDetailPage() {
         <Button variant="ghost" onClick={() => router.back()} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Templates
         </Button>
-        
+
         {isLoading ? (
           <>
             <Skeleton className="h-10 w-3/4 mb-4" />
@@ -134,8 +158,8 @@ export default function TemplateDetailPage() {
         ) : error ? (
           <div className="bg-red-50 p-4 rounded-md text-red-800 mb-6">
             <p>{error}</p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="mt-2"
               onClick={() => window.location.reload()}
             >
@@ -191,7 +215,9 @@ export default function TemplateDetailPage() {
         </div>
       ) : template ? (
         <>
-          <h2 className="text-xl font-semibold mb-4">Fields ({template.fields.length})</h2>
+          <h2 className="text-xl font-semibold mb-4">
+            Fields ({template.fields.length})
+          </h2>
           <div className="space-y-4">
             {template.fields.map((field) => (
               <Card key={field.id}>
@@ -209,9 +235,7 @@ export default function TemplateDetailPage() {
                   </div>
                   <CardDescription>{field.description}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  {renderFieldDefinition(field)}
-                </CardContent>
+                <CardContent>{renderFieldDefinition(field)}</CardContent>
               </Card>
             ))}
           </div>

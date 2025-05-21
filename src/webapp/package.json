@@ -7,7 +7,7 @@
     "dev:prod": "NODE_ENV=production PORT=4000 next dev",
     "build": "next build",
     "build:prod": "NODE_ENV=production next build",
-    "start": "next start",
+    "start": "PORT=4000 next start",
     "lint": "next lint"
   },
   "dependencies": {

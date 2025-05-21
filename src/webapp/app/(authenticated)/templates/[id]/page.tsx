@@ -3,13 +3,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
-
-// This function is required for static site generation with dynamic routes
-export function generateStaticParams() {
-  // Return an empty array as we don't know all possible IDs at build time
-  // This tells Next.js to generate the page at runtime
-  return [];
-}
 import { useAuth } from "@/hooks/useAuth";
 import { annotationService } from "@/services/api";
 import { Button } from "@/components/ui/button";

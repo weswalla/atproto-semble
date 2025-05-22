@@ -91,8 +91,10 @@ export const createExpressApp = (
     jwtConfig.accessTokenExpiresIn,
     jwtConfig.refreshTokenExpiresIn
   );
-  const appUrl = configService.get().app.appUrl;
-  const nodeOauthClient = OAuthClientFactory.createClient(db, appUrl);
+  const nodeOauthClient = OAuthClientFactory.createClient(
+    db,
+    oauthConfig.baseUrl
+  );
   const oauthProcessor = new AtProtoOAuthProcessor(nodeOauthClient);
   const userAuthService = new UserAuthenticationService(userRepository);
   const atProtoAgentService = new ATProtoAgentService(nodeOauthClient);

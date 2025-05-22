@@ -51,7 +51,7 @@ import { FetchMyAnnotationsUseCase } from "src/modules/annotations/application/u
 import { FetchAnnotationByIdUseCase } from "src/modules/annotations/application/use-cases/FetchAnnotationByIdUseCase";
 
 export const createExpressApp = (
-  configService?: EnvironmentConfigService
+  configService: EnvironmentConfigService
 ): Express => {
   const app = express();
 
@@ -68,7 +68,7 @@ export const createExpressApp = (
 
   // Database connection
   const db = DatabaseFactory.createConnection(
-    configService?.getDatabaseConfig()
+    configService.getDatabaseConfig()
   );
 
   // Repositories with DB injection
@@ -91,10 +91,8 @@ export const createExpressApp = (
     jwtConfig.accessTokenExpiresIn,
     jwtConfig.refreshTokenExpiresIn
   );
-  const nodeOauthClient = OAuthClientFactory.createClient(
-    db,
-    oauthConfig.baseUrl
-  );
+  const appUrl = configService.get().app.appUrl;
+  const nodeOauthClient = OAuthClientFactory.createClient(db, appUrl);
   const oauthProcessor = new AtProtoOAuthProcessor(nodeOauthClient);
   const userAuthService = new UserAuthenticationService(userRepository);
   const atProtoAgentService = new ATProtoAgentService(nodeOauthClient);

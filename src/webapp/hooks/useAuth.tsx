@@ -22,6 +22,7 @@ interface AuthContextType {
   completeOAuth: (code: string, state: string, iss: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshTokens: () => Promise<boolean>;
+  setTokens: (accessToken: string, refreshToken: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,14 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
         await authService.refreshToken(refreshToken);
 
-      // Store tokens
-      localStorage.setItem("accessToken", newAccessToken);
-      localStorage.setItem("refreshToken", newRefreshToken);
-
-      // Update state
-      setAccessToken(newAccessToken);
-      setRefreshToken(newRefreshToken);
-      setIsAuthenticated(true);
+      setTokens(newAccessToken, newRefreshToken);
       return true;
     } catch (error) {
       console.error("Token refresh failed:", error);
@@ -154,13 +148,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
         await authService.completeOAuth(code, state, iss);
 
-      // Store tokens (using auth service)
-      localStorage.setItem("accessToken", newAccessToken);
-      localStorage.setItem("refreshToken", newRefreshToken);
-
-      setAccessToken(newAccessToken);
-      setRefreshToken(newRefreshToken);
-      setIsAuthenticated(true);
+      setTokens(newAccessToken, newRefreshToken);
 
       // Fetch user data
       const userData = await authService.getCurrentUser(newAccessToken);
@@ -196,6 +184,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const setTokens = useCallback((accessToken: string, refreshToken: string) => {
+    // Store tokens
+    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("refreshToken", refreshToken);
+
+    // Update state
+    setAccessToken(accessToken);
+    setRefreshToken(refreshToken);
+    setIsAuthenticated(true);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -208,6 +207,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         completeOAuth,
         logout: handleLogout,
         refreshTokens,
+        setTokens,
       }}
     >
       {children}

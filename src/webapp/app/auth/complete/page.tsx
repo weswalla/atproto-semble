@@ -25,7 +25,7 @@ export default function AuthCompletePage() {
     }
 
     if (accessToken && refreshToken) {
-      // Store tokens in auth context/local storage
+      // Store tokens using the auth context function
       setTokens(accessToken, refreshToken);
       
       // Redirect to dashboard or home page

@@ -17,16 +17,15 @@ export class OAuthClientFactory {
     const url = baseUrl || "http://127.0.0.1:3000";
     const enc = encodeURIComponent;
     const isLocal = configService.get().environment === "local";
-    const appUrl = configService.get().app.appUrl;
 
     return {
       clientMetadata: {
         client_name: appName,
         client_id: !isLocal
           ? `${url}/atproto/client-metadata.json`
-          : `http://localhost?redirect_uri=${enc(`${appUrl}/oauth/callback`)}&scope=${enc("atproto transition:generic")}`,
+          : `http://localhost?redirect_uri=${enc(`${baseUrl}/api/users/oauth/callback`)}&scope=${enc("atproto transition:generic")}`,
         client_uri: url,
-        redirect_uris: [`${appUrl}/oauth/callback`],
+        redirect_uris: [`${baseUrl}/api/users/oauth/callback`],
         scope: "atproto transition:generic",
         grant_types: ["authorization_code", "refresh_token"],
         response_types: ["code"],

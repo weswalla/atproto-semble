@@ -107,4 +107,7 @@ export class EnvironmentConfigService {
   public getServerConfig() {
     return this.config.server;
   }
+  public getAppConfig() {
+    return this.config.app;
+  }
 }

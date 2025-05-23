@@ -22,12 +22,16 @@ export class CompleteOAuthSignInController extends Controller {
       });
 
       if (result.isErr()) {
-        return this.fail(res, result.error as any);
+        // Instead of returning JSON, redirect with error
+        return res.redirect(`${process.env.FRONTEND_URL}/login?error=${encodeURIComponent(result.error.message)}`);
       }
 
-      return this.ok(res, result.value);
+      // Redirect back to frontend with tokens in URL parameters
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/auth/complete?accessToken=${encodeURIComponent(result.value.accessToken)}&refreshToken=${encodeURIComponent(result.value.refreshToken)}`
+      );
     } catch (error: any) {
-      return this.fail(res, error);
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=${encodeURIComponent(error.message || 'Unknown error')}`);
     }
   }
 }

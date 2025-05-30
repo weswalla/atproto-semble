@@ -1,0 +1,45 @@
+import { Result } from "../../../shared/core/Result";
+import { ICardRepository } from "./ICardRepository";
+import { ICollectionRepository } from "./ICollectionRepository";
+import { Card } from "./Card";
+import { Collection } from "./Collection";
+import { CardId } from "./value-objects/CardId";
+import { CollectionId } from "./value-objects/CollectionId";
+import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
+
+export class LibraryService {
+  constructor(
+    private cardRepository: ICardRepository,
+    private collectionRepository: ICollectionRepository
+  ) {}
+
+  async addCardToLibrary(card: Card): Promise<Result<void>> {
+    return await this.cardRepository.save(card);
+  }
+
+  async addCardToCollection(cardId: CardId, collectionId: CollectionId): Promise<Result<void>> {
+    const collectionResult = await this.collectionRepository.findById(collectionId);
+    
+    if (collectionResult.isErr()) {
+      return Result.fail(collectionResult.error);
+    }
+    
+    const collection = collectionResult.value;
+    
+    if (!collection) {
+      return Result.fail("Collection not found");
+    }
+    
+    const addResult = collection.addCard(cardId);
+    
+    if (addResult.isErr()) {
+      return Result.fail(addResult.error);
+    }
+    
+    return await this.collectionRepository.save(collection);
+  }
+
+  async getLibraryForUser(curatorId: CuratorId): Promise<Result<Card[]>> {
+    return await this.cardRepository.findByCuratorId(curatorId);
+  }
+}

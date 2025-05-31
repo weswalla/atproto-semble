@@ -21,11 +21,6 @@ The Card context represents a system where users can save various types of conte
    - Manages which cards belong to it
    - Responsible for maintaining collection membership
 
-3. **Library Aggregate**
-   - Represents a user's entire saved content
-   - Acts as the top-level container for a user's cards
-   - May contain references to collections
-
 ### Entities
 
 1. **Card** (Aggregate Root)
@@ -37,11 +32,6 @@ The Card context represents a system where users can save various types of conte
    - Has identity through CollectionId
    - Properties: name, description, creation date
    - Contains references to member cards
-
-3. **Library** (Aggregate Root)
-   - Has identity through user's identity
-   - Contains references to all user's cards
-   - May contain references to collections
 
 ### Value Objects
 
@@ -64,7 +54,8 @@ The Card context represents a system where users can save various types of conte
 
 1. **LibraryService**
    - Coordinates operations that span multiple aggregates
-   - Handles adding cards to libraries and collections
+   - Handles adding cards to a user's library and collections
+   - Provides access to a user's entire content (their "library")
 
 ## Relationships and Boundaries
 
@@ -97,3 +88,5 @@ The Card context represents a system where users can save various types of conte
 - When a card is added to multiple collections, this should be handled as separate operations on each Collection aggregate.
 - The LibraryService domain service coordinates operations that span multiple aggregates.
 - Card-to-card relationships (like highlights of a URL) are maintained within the Card aggregate.
+- "Library" is a conceptual grouping of a user's content rather than an aggregate with its own identity and lifecycle.
+- A user's library is accessed through repository methods (e.g., `findByCuratorId()`) and coordinated through the LibraryService.

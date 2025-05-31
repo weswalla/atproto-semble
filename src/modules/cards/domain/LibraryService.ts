@@ -1,8 +1,7 @@
-import { Result } from "../../../shared/core/Result";
+import { err, Result } from "../../../shared/core/Result";
 import { ICardRepository } from "./ICardRepository";
 import { ICollectionRepository } from "./ICollectionRepository";
 import { Card } from "./Card";
-import { Collection } from "./Collection";
 import { CardId } from "./value-objects/CardId";
 import { CollectionId } from "./value-objects/CollectionId";
 import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
@@ -17,25 +16,29 @@ export class LibraryService {
     return await this.cardRepository.save(card);
   }
 
-  async addCardToCollection(cardId: CardId, collectionId: CollectionId): Promise<Result<void>> {
-    const collectionResult = await this.collectionRepository.findById(collectionId);
-    
+  async addCardToCollection(
+    cardId: CardId,
+    collectionId: CollectionId
+  ): Promise<Result<void>> {
+    const collectionResult =
+      await this.collectionRepository.findById(collectionId);
+
     if (collectionResult.isErr()) {
-      return Result.fail(collectionResult.error);
+      return err(collectionResult.error);
     }
-    
+
     const collection = collectionResult.value;
-    
+
     if (!collection) {
-      return Result.fail("Collection not found");
+      return err(new Error("Collection not found"));
     }
-    
+
     const addResult = collection.addCard(cardId);
-    
+
     if (addResult.isErr()) {
-      return Result.fail(addResult.error);
+      return err(addResult.error);
     }
-    
+
     return await this.collectionRepository.save(collection);
   }
 

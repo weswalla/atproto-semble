@@ -1,5 +1,4 @@
-import { UseCase } from "../../../shared/application/UseCase";
-import { Result } from "../../../shared/core/Result";
+import { err, ok, Result } from "../../../shared/core/Result";
 import { Card } from "../domain/Card";
 import { ICardRepository } from "../domain/ICardRepository";
 import { LibraryService } from "../domain/LibraryService";
@@ -8,6 +7,7 @@ import { CardContent } from "../domain/value-objects/CardContent";
 import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
 import { CollectionId } from "../domain/value-objects/CollectionId";
 import { UniqueEntityID } from "../../../shared/domain/UniqueEntityID";
+import { UseCase } from "src/shared/core/UseCase";
 
 export interface AddCardToLibraryDTO {
   curatorId: string;
@@ -17,7 +17,9 @@ export interface AddCardToLibraryDTO {
   collectionIds?: string[];
 }
 
-export class AddCardToLibraryUseCase implements UseCase<AddCardToLibraryDTO, Result<string>> {
+export class AddCardToLibraryUseCase
+  implements UseCase<AddCardToLibraryDTO, Result<string>>
+{
   constructor(
     private cardRepository: ICardRepository,
     private libraryService: LibraryService
@@ -28,24 +30,24 @@ export class AddCardToLibraryUseCase implements UseCase<AddCardToLibraryDTO, Res
       // Create CuratorId
       const curatorIdResult = CuratorId.create(request.curatorId);
       if (curatorIdResult.isErr()) {
-        return Result.fail<string>(curatorIdResult.error);
+        return err(curatorIdResult.error);
       }
       const curatorId = curatorIdResult.value;
 
       // Create CardType
       const cardTypeResult = CardType.create(request.type as CardTypeEnum);
       if (cardTypeResult.isErr()) {
-        return Result.fail<string>(cardTypeResult.error);
+        return err(cardTypeResult.error);
       }
       const cardType = cardTypeResult.value;
 
       // Create CardContent
       const cardContentResult = CardContent.create({
         type: cardType.value,
-        data: request.content
+        data: request.content,
       });
       if (cardContentResult.isErr()) {
-        return Result.fail<string>(cardContentResult.error);
+        return err(cardContentResult.error);
       }
       const cardContent = cardContentResult.value;
 
@@ -55,31 +57,36 @@ export class AddCardToLibraryUseCase implements UseCase<AddCardToLibraryDTO, Res
         type: cardType,
         content: cardContent,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
       if (cardResult.isErr()) {
-        return Result.fail<string>(cardResult.error);
+        return err(cardResult.error);
       }
       const card = cardResult.value;
 
       // Add card to library
       const saveResult = await this.libraryService.addCardToLibrary(card);
       if (saveResult.isErr()) {
-        return Result.fail<string>(saveResult.error);
+        return err(saveResult.error);
       }
 
       // Add card to collections if specified
       if (request.collectionIds && request.collectionIds.length > 0) {
         for (const collectionIdStr of request.collectionIds) {
-          const collectionId = CollectionId.create(new UniqueEntityID(collectionIdStr)).unwrap();
-          await this.libraryService.addCardToCollection(card.cardId, collectionId);
+          const collectionId = CollectionId.create(
+            new UniqueEntityID(collectionIdStr)
+          ).unwrap();
+          await this.libraryService.addCardToCollection(
+            card.cardId,
+            collectionId
+          );
         }
       }
 
-      return Result.ok<string>(card.cardId.getStringValue());
+      return ok(card.cardId.getStringValue());
     } catch (error) {
-      return Result.fail<string>(`Error adding card to library: ${error}`);
+      return err(new Error(`Error adding card to library: ${error}`));
     }
   }
 }

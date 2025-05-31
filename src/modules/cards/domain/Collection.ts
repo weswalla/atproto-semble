@@ -1,6 +1,6 @@
 import { AggregateRoot } from "../../../shared/domain/AggregateRoot";
 import { UniqueEntityID } from "../../../shared/domain/UniqueEntityID";
-import { Result } from "../../../shared/core/Result";
+import { ok, Result } from "../../../shared/core/Result";
 import { CollectionId } from "./value-objects/CollectionId";
 import { CardId } from "./value-objects/CardId";
 import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
@@ -47,26 +47,29 @@ export class Collection extends AggregateRoot<CollectionProps> {
     super(props, id);
   }
 
-  public static create(props: CollectionProps, id?: UniqueEntityID): Result<Collection> {
+  public static create(
+    props: CollectionProps,
+    id?: UniqueEntityID
+  ): Result<Collection> {
     // Add validation logic here if needed
-    return Result.ok<Collection>(new Collection(props, id));
+    return ok(new Collection(props, id));
   }
 
   public addCard(cardId: CardId): Result<void> {
-    if (this.props.cardIds.some(id => id.equals(cardId))) {
-      return Result.ok<void>(); // Card already in collection
+    if (this.props.cardIds.some((id) => id.equals(cardId))) {
+      return ok(undefined); // Card already in collection
     }
-    
+
     this.props.cardIds.push(cardId);
     this.props.updatedAt = new Date();
-    
-    return Result.ok<void>();
+
+    return ok(undefined);
   }
 
   public removeCard(cardId: CardId): Result<void> {
-    this.props.cardIds = this.props.cardIds.filter(id => !id.equals(cardId));
+    this.props.cardIds = this.props.cardIds.filter((id) => !id.equals(cardId));
     this.props.updatedAt = new Date();
-    
-    return Result.ok<void>();
+
+    return ok(undefined);
   }
 }

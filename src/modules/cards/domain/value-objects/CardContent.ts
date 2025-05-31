@@ -1,6 +1,6 @@
-import { ValueObject } from "../../../../../shared/domain/ValueObject";
-import { Result } from "../../../../../shared/core/Result";
+import { ValueObject } from "src/shared/domain/ValueObject";
 import { CardTypeEnum } from "./CardType";
+import { ok, Result } from "src/shared/core/Result";
 
 interface CardContentProps {
   type: CardTypeEnum;
@@ -22,6 +22,6 @@ export class CardContent extends ValueObject<CardContentProps> {
 
   public static create(props: CardContentProps): Result<CardContent> {
     // Add validation based on type
-    return Result.ok<CardContent>(new CardContent(props));
+    return ok(new CardContent(props));
   }
 }

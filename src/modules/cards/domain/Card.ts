@@ -1,6 +1,6 @@
 import { AggregateRoot } from "../../../shared/domain/AggregateRoot";
 import { UniqueEntityID } from "../../../shared/domain/UniqueEntityID";
-import { Result } from "../../../shared/core/Result";
+import { ok, Result } from "../../../shared/core/Result";
 import { CardId } from "./value-objects/CardId";
 import { CardType } from "./value-objects/CardType";
 import { CardContent } from "./value-objects/CardContent";
@@ -50,6 +50,6 @@ export class Card extends AggregateRoot<CardProps> {
 
   public static create(props: CardProps, id?: UniqueEntityID): Result<Card> {
     // Add validation logic here if needed
-    return Result.ok<Card>(new Card(props, id));
+    return ok(new Card(props, id));
   }
 }

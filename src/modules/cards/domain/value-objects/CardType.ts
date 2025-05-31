@@ -1,12 +1,12 @@
-import { ValueObject } from "../../../../../shared/domain/ValueObject";
-import { Result } from "../../../../../shared/core/Result";
+import { ok, Result } from "src/shared/core/Result";
+import { ValueObject } from "src/shared/domain/ValueObject";
 
 export enum CardTypeEnum {
-  URL = 'URL',
-  NOTE = 'NOTE',
-  HIGHLIGHT = 'HIGHLIGHT',
-  SCREENSHOT = 'SCREENSHOT',
-  FILE = 'FILE'
+  URL = "URL",
+  NOTE = "NOTE",
+  HIGHLIGHT = "HIGHLIGHT",
+  SCREENSHOT = "SCREENSHOT",
+  FILE = "FILE",
 }
 
 interface CardTypeProps {
@@ -23,6 +23,6 @@ export class CardType extends ValueObject<CardTypeProps> {
   }
 
   public static create(type: CardTypeEnum): Result<CardType> {
-    return Result.ok<CardType>(new CardType({ value: type }));
+    return ok(new CardType({ value: type }));
   }
 }

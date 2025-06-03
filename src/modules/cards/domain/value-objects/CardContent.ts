@@ -3,15 +3,14 @@ import { CardTypeEnum } from "./CardType";
 import { ok, err, Result } from "../../../../shared/core/Result";
 import { UrlMetadata } from "./UrlMetadata";
 import { URL } from "./URL";
-import { UrlCardContent, UrlCardContentValidationError } from "./content/UrlCardContent";
-import { NoteCardContent, NoteCardContentValidationError } from "./content/NoteCardContent";
-import { 
-  HighlightCardContent, 
-  HighlightCardContentValidationError,
+import { UrlCardContent } from "./content/UrlCardContent";
+import { NoteCardContent } from "./content/NoteCardContent";
+import {
+  HighlightCardContent,
   HighlightSelector,
   TextQuoteSelector,
   TextPositionSelector,
-  RangeSelector
+  RangeSelector,
 } from "./content/HighlightCardContent";
 
 // Union type for all card content types
@@ -20,12 +19,17 @@ type CardContentUnion = UrlCardContent | NoteCardContent | HighlightCardContent;
 export class CardContentValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'CardContentValidationError';
+    this.name = "CardContentValidationError";
   }
 }
 
 // Re-export selector types for convenience
-export type { HighlightSelector, TextQuoteSelector, TextPositionSelector, RangeSelector };
+export type {
+  HighlightSelector,
+  TextQuoteSelector,
+  TextPositionSelector,
+  RangeSelector,
+};
 
 export class CardContent extends ValueObject<{ content: CardContentUnion }> {
   get type(): CardTypeEnum {
@@ -38,15 +42,21 @@ export class CardContent extends ValueObject<{ content: CardContentUnion }> {
 
   // Type-safe getters
   get urlContent(): UrlCardContent | null {
-    return this.props.content instanceof UrlCardContent ? this.props.content : null;
+    return this.props.content instanceof UrlCardContent
+      ? this.props.content
+      : null;
   }
 
   get noteContent(): NoteCardContent | null {
-    return this.props.content instanceof NoteCardContent ? this.props.content : null;
+    return this.props.content instanceof NoteCardContent
+      ? this.props.content
+      : null;
   }
 
   get highlightContent(): HighlightCardContent | null {
-    return this.props.content instanceof HighlightCardContent ? this.props.content : null;
+    return this.props.content instanceof HighlightCardContent
+      ? this.props.content
+      : null;
   }
 
   // Helper methods for highlight content (delegated to HighlightCardContent)
@@ -67,18 +77,28 @@ export class CardContent extends ValueObject<{ content: CardContentUnion }> {
   }
 
   // Factory methods that delegate to specific content classes
-  public static createUrlContent(url: URL, metadata?: UrlMetadata): Result<CardContent, CardContentValidationError> {
+  public static createUrlContent(
+    url: URL,
+    metadata?: UrlMetadata
+  ): Result<CardContent, CardContentValidationError> {
     const urlContentResult = UrlCardContent.create(url, metadata);
     if (urlContentResult.isErr()) {
-      return err(new CardContentValidationError(urlContentResult.error.message));
+      return err(
+        new CardContentValidationError(urlContentResult.error.message)
+      );
     }
     return ok(new CardContent(urlContentResult.value));
   }
 
-  public static createNoteContent(text: string, title?: string): Result<CardContent, CardContentValidationError> {
+  public static createNoteContent(
+    text: string,
+    title?: string
+  ): Result<CardContent, CardContentValidationError> {
     const noteContentResult = NoteCardContent.create(text, title);
     if (noteContentResult.isErr()) {
-      return err(new CardContentValidationError(noteContentResult.error.message));
+      return err(
+        new CardContentValidationError(noteContentResult.error.message)
+      );
     }
     return ok(new CardContent(noteContentResult.value));
   }
@@ -92,9 +112,15 @@ export class CardContent extends ValueObject<{ content: CardContentUnion }> {
       documentTitle?: string;
     }
   ): Result<CardContent, CardContentValidationError> {
-    const highlightContentResult = HighlightCardContent.create(text, selectors, options);
+    const highlightContentResult = HighlightCardContent.create(
+      text,
+      selectors,
+      options
+    );
     if (highlightContentResult.isErr()) {
-      return err(new CardContentValidationError(highlightContentResult.error.message));
+      return err(
+        new CardContentValidationError(highlightContentResult.error.message)
+      );
     }
     return ok(new CardContent(highlightContentResult.value));
   }
@@ -111,38 +137,45 @@ export class CardContent extends ValueObject<{ content: CardContentUnion }> {
       context?: string;
       documentUrl?: string;
       documentTitle?: string;
-      rangeSelector?: Omit<RangeSelector, 'type'>;
+      rangeSelector?: Omit<RangeSelector, "type">;
     }
   ): Result<CardContent, CardContentValidationError> {
-    const highlightContentResult = HighlightCardContent.createWithHypothesisSelectors(
-      text, exact, prefix, suffix, startPos, endPos, options
-    );
+    const highlightContentResult =
+      HighlightCardContent.createWithHypothesisSelectors(
+        text,
+        exact,
+        prefix,
+        suffix,
+        startPos,
+        endPos,
+        options
+      );
     if (highlightContentResult.isErr()) {
-      return err(new CardContentValidationError(highlightContentResult.error.message));
+      return err(
+        new CardContentValidationError(highlightContentResult.error.message)
+      );
     }
     return ok(new CardContent(highlightContentResult.value));
   }
 
   // Legacy create method for backward compatibility
-  public static create(props: any): Result<CardContent, CardContentValidationError> {
+  public static create(
+    props: any
+  ): Result<CardContent, CardContentValidationError> {
     switch (props.type) {
       case CardTypeEnum.URL:
         return CardContent.createUrlContent(props.url, props.metadata);
-      
+
       case CardTypeEnum.NOTE:
         return CardContent.createNoteContent(props.text, props.title);
-      
+
       case CardTypeEnum.HIGHLIGHT:
-        return CardContent.createHighlightContent(
-          props.text,
-          props.selectors,
-          {
-            context: props.context,
-            documentUrl: props.documentUrl,
-            documentTitle: props.documentTitle
-          }
-        );
-      
+        return CardContent.createHighlightContent(props.text, props.selectors, {
+          context: props.context,
+          documentUrl: props.documentUrl,
+          documentTitle: props.documentTitle,
+        });
+
       default:
         return err(new CardContentValidationError("Invalid card content type"));
     }

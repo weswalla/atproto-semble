@@ -1,6 +1,6 @@
-import { ValueObject } from "../../../../../shared/domain/ValueObject";
-import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
-import { Result } from "../../../../../shared/core/Result";
+import { ok, Result } from "src/shared/core/Result";
+import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
+import { ValueObject } from "src/shared/domain/ValueObject";
 
 interface CollectionIdProps {
   value: UniqueEntityID;
@@ -20,6 +20,6 @@ export class CollectionId extends ValueObject<CollectionIdProps> {
   }
 
   public static create(id: UniqueEntityID): Result<CollectionId> {
-    return Result.ok<CollectionId>(new CollectionId(id));
+    return ok(new CollectionId(id));
   }
 }

@@ -39,10 +39,13 @@ The Card context represents a system where users can save various types of conte
    - Unique identifier for a card
 
 2. **CardType**
-   - Enumeration of possible card types (URL, Note, Highlight, Screenshot, File)
+   - Enumeration of possible card types (URL, Note, Highlight)
 
 3. **CardContent**
-   - Value object representing the content of a card (varies by type)
+   - Value object representing the content of a card with type-specific validation
+   - URL cards contain URL and optional UrlMetadata
+   - Note cards contain text and optional title
+   - Highlight cards contain highlighted text with optional context and position data
 
 4. **CollectionId**
    - Unique identifier for a collection
@@ -83,8 +86,10 @@ The Card context represents a system where users can save various types of conte
   - When adding a card to a collection, the operation is handled by the Collection aggregate.
 
 - **Card-to-Card Relationships**:
-  - A card can reference other cards (e.g., a highlight card references its source URL card).
-  - These relationships are maintained within the Card aggregate.
+  - URL cards are standalone and do not reference other cards
+  - Note cards can be standalone or reference other cards via parentCardId or sourceCardId
+  - Highlight cards must reference a source card (the content being highlighted) via sourceCardId
+  - These relationships are maintained within the Card aggregate with validation rules
 
 ## Use Cases
 

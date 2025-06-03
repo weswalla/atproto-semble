@@ -1,12 +1,10 @@
-import { ok, Result } from "src/shared/core/Result";
-import { ValueObject } from "src/shared/domain/ValueObject";
+import { ok, Result } from "../../../../shared/core/Result";
+import { ValueObject } from "../../../../shared/domain/ValueObject";
 
 export enum CardTypeEnum {
   URL = "URL",
   NOTE = "NOTE",
   HIGHLIGHT = "HIGHLIGHT",
-  SCREENSHOT = "SCREENSHOT",
-  FILE = "FILE",
 }
 
 interface CardTypeProps {

@@ -3,8 +3,11 @@ import { Result, ok, err } from "../../../../shared/core/Result";
 import { UseCaseError } from "../../../../shared/core/UseCaseError";
 import { URL } from "../../domain/value-objects/URL";
 import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
+import { CardId } from "../../domain/value-objects/CardId";
+import { CardTypeEnum } from "../../domain/value-objects/CardType";
 import { IUrlMetadataRepository } from "../../domain/repositories/IUrlMetadataRepository";
 import { IMetadataService } from "../../domain/services/IMetadataService";
+import { ICardRepository } from "../../domain/ICardRepository";
 
 export interface GetUrlMetadataRequest {
   url: string;
@@ -24,8 +27,13 @@ export class MetadataNotFoundError extends UseCaseError {
   }
 }
 
+export interface GetUrlMetadataResult {
+  metadata: UrlMetadata;
+  cardId?: CardId;
+}
+
 export type GetUrlMetadataResponse = Result<
-  UrlMetadata,
+  GetUrlMetadataResult,
   ValidationError | MetadataNotFoundError | Error
 >;
 
@@ -34,7 +42,8 @@ export class GetUrlMetadataUseCase
 {
   constructor(
     private urlMetadataRepository: IUrlMetadataRepository,
-    private metadataService: IMetadataService
+    private metadataService: IMetadataService,
+    private cardRepository: ICardRepository
   ) {}
 
   public async execute(
@@ -55,7 +64,8 @@ export class GetUrlMetadataUseCase
         const existingMetadata =
           await this.urlMetadataRepository.findByUrl(url);
         if (existingMetadata && !existingMetadata.isStale(maxAgeHours)) {
-          return ok(existingMetadata);
+          const cardId = await this.findUrlCard(url);
+          return ok({ metadata: existingMetadata, cardId });
         }
       }
 
@@ -66,7 +76,8 @@ export class GetUrlMetadataUseCase
         const existingMetadata =
           await this.urlMetadataRepository.findByUrl(url);
         if (existingMetadata) {
-          return ok(existingMetadata);
+          const cardId = await this.findUrlCard(url);
+          return ok({ metadata: existingMetadata, cardId });
         }
         return err(new MetadataNotFoundError(url.value));
       }
@@ -80,9 +91,25 @@ export class GetUrlMetadataUseCase
         console.warn("Failed to save metadata:", saveResult.error);
       }
 
-      return ok(metadata);
+      // Check for existing URL card
+      const cardId = await this.findUrlCard(url);
+
+      return ok({ metadata, cardId });
     } catch (error) {
       return err(new Error(`Unexpected error: ${error}`));
+    }
+  }
+
+  private async findUrlCard(url: URL): Promise<CardId | undefined> {
+    try {
+      // This is a simplified approach - in a real implementation you might need
+      // to search cards by content or have a more sophisticated lookup
+      // For now, we'll return undefined as this would require additional
+      // repository methods to search cards by URL content
+      return undefined;
+    } catch (error) {
+      console.warn("Failed to find URL card:", error);
+      return undefined;
     }
   }
 }

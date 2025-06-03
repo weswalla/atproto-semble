@@ -22,12 +22,37 @@ interface NoteCardContentProps extends BaseCardContentProps {
   title?: string;
 }
 
+// Selector interfaces for robust highlight anchoring (Hypothes.is approach)
+interface TextQuoteSelector {
+  type: 'TextQuoteSelector';
+  exact: string; // The exact text being highlighted
+  prefix?: string; // Text immediately before the selection
+  suffix?: string; // Text immediately after the selection
+}
+
+interface TextPositionSelector {
+  type: 'TextPositionSelector';
+  start: number; // Character offset from document start
+  end: number; // Character offset from document start
+}
+
+interface RangeSelector {
+  type: 'RangeSelector';
+  startContainer: string; // XPath or CSS selector to start container
+  startOffset: number; // Offset within start container
+  endContainer: string; // XPath or CSS selector to end container
+  endOffset: number; // Offset within end container
+}
+
+type HighlightSelector = TextQuoteSelector | TextPositionSelector | RangeSelector;
+
 interface HighlightCardContentProps extends BaseCardContentProps {
   type: CardTypeEnum.HIGHLIGHT;
-  text: string;
-  context?: string; // Surrounding text for context
-  startOffset?: number;
-  endOffset?: number;
+  text: string; // The highlighted text
+  selectors: HighlightSelector[]; // Multiple selectors for robust anchoring
+  context?: string; // Additional surrounding text for context
+  documentUrl?: string; // URL of the document where highlight was made
+  documentTitle?: string; // Title of the document
 }
 
 type CardContentProps = UrlCardContentProps | NoteCardContentProps | HighlightCardContentProps;
@@ -55,6 +80,22 @@ export class CardContent extends ValueObject<CardContentProps> {
 
   get highlightContent(): HighlightCardContentProps | null {
     return this.props.type === CardTypeEnum.HIGHLIGHT ? (this.props as HighlightCardContentProps) : null;
+  }
+
+  // Helper methods for highlight content
+  getTextQuoteSelector(): TextQuoteSelector | undefined {
+    const highlight = this.highlightContent;
+    return highlight?.selectors.find(s => s.type === 'TextQuoteSelector') as TextQuoteSelector;
+  }
+
+  getTextPositionSelector(): TextPositionSelector | undefined {
+    const highlight = this.highlightContent;
+    return highlight?.selectors.find(s => s.type === 'TextPositionSelector') as TextPositionSelector;
+  }
+
+  getRangeSelector(): RangeSelector | undefined {
+    const highlight = this.highlightContent;
+    return highlight?.selectors.find(s => s.type === 'RangeSelector') as RangeSelector;
   }
 
   private constructor(props: CardContentProps) {
@@ -86,10 +127,13 @@ export class CardContent extends ValueObject<CardContentProps> {
   }
 
   public static createHighlightContent(
-    text: string, 
-    context?: string, 
-    startOffset?: number, 
-    endOffset?: number
+    text: string,
+    selectors: HighlightSelector[],
+    options?: {
+      context?: string;
+      documentUrl?: string;
+      documentTitle?: string;
+    }
   ): Result<CardContent, CardContentValidationError> {
     if (!text || text.trim().length === 0) {
       return err(new CardContentValidationError("Highlight text cannot be empty"));
@@ -99,17 +143,101 @@ export class CardContent extends ValueObject<CardContentProps> {
       return err(new CardContentValidationError("Highlight text cannot exceed 5,000 characters"));
     }
 
-    if (startOffset !== undefined && endOffset !== undefined && startOffset >= endOffset) {
-      return err(new CardContentValidationError("Start offset must be less than end offset"));
+    if (!selectors || selectors.length === 0) {
+      return err(new CardContentValidationError("Highlight must have at least one selector"));
+    }
+
+    // Validate selectors
+    const validationResult = CardContent.validateHighlightSelectors(selectors);
+    if (validationResult.isErr()) {
+      return err(validationResult.error);
     }
 
     return ok(new CardContent({
       type: CardTypeEnum.HIGHLIGHT,
       text: text.trim(),
-      context: context?.trim(),
-      startOffset,
-      endOffset
+      selectors,
+      context: options?.context?.trim(),
+      documentUrl: options?.documentUrl?.trim(),
+      documentTitle: options?.documentTitle?.trim()
     }));
+  }
+
+  private static validateHighlightSelectors(
+    selectors: HighlightSelector[]
+  ): Result<void, CardContentValidationError> {
+    for (const selector of selectors) {
+      switch (selector.type) {
+        case 'TextQuoteSelector':
+          if (!selector.exact || selector.exact.trim().length === 0) {
+            return err(new CardContentValidationError("TextQuoteSelector must have exact text"));
+          }
+          break;
+        
+        case 'TextPositionSelector':
+          if (selector.start < 0 || selector.end < 0 || selector.start >= selector.end) {
+            return err(new CardContentValidationError("TextPositionSelector must have valid start/end positions"));
+          }
+          break;
+        
+        case 'RangeSelector':
+          if (!selector.startContainer || !selector.endContainer) {
+            return err(new CardContentValidationError("RangeSelector must have start and end containers"));
+          }
+          if (selector.startOffset < 0 || selector.endOffset < 0) {
+            return err(new CardContentValidationError("RangeSelector offsets must be non-negative"));
+          }
+          break;
+        
+        default:
+          return err(new CardContentValidationError("Invalid selector type"));
+      }
+    }
+    return ok(undefined);
+  }
+
+  // Helper method to create highlight with common selector combination (Hypothes.is style)
+  public static createHighlightWithHypothesisSelectors(
+    text: string,
+    exact: string,
+    prefix: string,
+    suffix: string,
+    startPos: number,
+    endPos: number,
+    options?: {
+      context?: string;
+      documentUrl?: string;
+      documentTitle?: string;
+      rangeSelector?: Omit<RangeSelector, 'type'>;
+    }
+  ): Result<CardContent, CardContentValidationError> {
+    const selectors: HighlightSelector[] = [
+      {
+        type: 'TextQuoteSelector',
+        exact,
+        prefix,
+        suffix
+      },
+      {
+        type: 'TextPositionSelector',
+        start: startPos,
+        end: endPos
+      }
+    ];
+
+    // Add RangeSelector if provided
+    if (options?.rangeSelector) {
+      selectors.push({
+        type: 'RangeSelector',
+        ...options.rangeSelector
+      });
+    }
+
+    return CardContent.createHighlightContent(text, selectors, {
+      context: options?.context,
+      documentUrl: options?.documentUrl,
+      documentTitle: options?.documentTitle
+    });
   }
 
   // Legacy create method for backward compatibility
@@ -126,10 +254,13 @@ export class CardContent extends ValueObject<CardContentProps> {
       case CardTypeEnum.HIGHLIGHT:
         const highlightProps = props as HighlightCardContentProps;
         return CardContent.createHighlightContent(
-          highlightProps.text, 
-          highlightProps.context, 
-          highlightProps.startOffset, 
-          highlightProps.endOffset
+          highlightProps.text,
+          highlightProps.selectors,
+          {
+            context: highlightProps.context,
+            documentUrl: highlightProps.documentUrl,
+            documentTitle: highlightProps.documentTitle
+          }
         );
       
       default:

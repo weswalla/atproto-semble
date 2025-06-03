@@ -45,7 +45,7 @@ The Card context represents a system where users can save various types of conte
    - Value object representing the content of a card with type-specific validation
    - URL cards contain URL and optional UrlMetadata
    - Note cards contain text and optional title
-   - Highlight cards contain highlighted text with optional context and position data
+   - Highlight cards contain highlighted text with robust anchoring using multiple selectors (TextQuote, TextPosition, Range) following Hypothes.is approach for reliable re-anchoring
 
 4. **CollectionId**
    - Unique identifier for a collection

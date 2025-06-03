@@ -87,8 +87,8 @@ The Card context represents a system where users can save various types of conte
 
 - **Card-to-Card Relationships**:
   - URL cards are standalone and do not reference other cards
-  - Note cards can be standalone or reference other cards via parentCardId or sourceCardId
-  - Highlight cards must reference a source card (the content being highlighted) via sourceCardId
+  - Note cards can be standalone or reference other cards via parentCardId
+  - Highlight cards must reference a parent card (the content being highlighted) via parentCardId
   - These relationships are maintained within the Card aggregate with validation rules
 
 ## Use Cases

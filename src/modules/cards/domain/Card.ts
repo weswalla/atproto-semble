@@ -18,7 +18,6 @@ interface CardProps {
   type: CardType;
   content: CardContent;
   parentCardId?: CardId; // For NOTE and HIGHLIGHT cards that reference other cards
-  sourceCardId?: CardId; // For HIGHLIGHT cards that reference the original content
   createdAt: Date;
   updatedAt: Date;
 }
@@ -44,9 +43,6 @@ export class Card extends AggregateRoot<CardProps> {
     return this.props.parentCardId;
   }
 
-  get sourceCardId(): CardId | undefined {
-    return this.props.sourceCardId;
-  }
 
   get createdAt(): Date {
     return this.props.createdAt;
@@ -70,16 +66,11 @@ export class Card extends AggregateRoot<CardProps> {
   }
 
   get isStandaloneNote(): boolean {
-    return (
-      this.isNoteCard && !this.props.parentCardId && !this.props.sourceCardId
-    );
+    return this.isNoteCard && !this.props.parentCardId;
   }
 
   get isLinkedNote(): boolean {
-    return (
-      this.isNoteCard &&
-      (!!this.props.parentCardId || !!this.props.sourceCardId)
-    );
+    return this.isNoteCard && !!this.props.parentCardId;
   }
 
   private constructor(props: CardProps, id?: UniqueEntityID) {
@@ -114,33 +105,17 @@ export class Card extends AggregateRoot<CardProps> {
   private static validateCardRelationships(
     props: Omit<CardProps, "createdAt" | "updatedAt">
   ): Result<void, CardValidationError> {
-    // URL cards should not have parent or source cards
-    if (
-      props.type.value === CardTypeEnum.URL &&
-      (props.parentCardId || props.sourceCardId)
-    ) {
+    // URL cards should not have parent cards
+    if (props.type.value === CardTypeEnum.URL && props.parentCardId) {
       return err(
-        new CardValidationError("URL cards cannot have parent or source cards")
+        new CardValidationError("URL cards cannot have parent cards")
       );
     }
 
-    // HIGHLIGHT cards should have a source card (the content being highlighted)
-    if (props.type.value === CardTypeEnum.HIGHLIGHT && !props.sourceCardId) {
+    // HIGHLIGHT cards should have a parent card (the content being highlighted)
+    if (props.type.value === CardTypeEnum.HIGHLIGHT && !props.parentCardId) {
       return err(
-        new CardValidationError("Highlight cards must have a source card")
-      );
-    }
-
-    // NOTE cards can have either parentCardId OR sourceCardId, but not both
-    if (
-      props.type.value === CardTypeEnum.NOTE &&
-      props.parentCardId &&
-      props.sourceCardId
-    ) {
-      return err(
-        new CardValidationError(
-          "Note cards cannot have both parent and source cards"
-        )
+        new CardValidationError("Highlight cards must have a parent card")
       );
     }
 

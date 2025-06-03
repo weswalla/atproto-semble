@@ -1,6 +1,6 @@
 import { UseCase } from '../../../../shared/core/UseCase';
-import { Result } from '../../../../shared/core/Result';
-import { AppError } from '../../../../shared/core/AppError';
+import { Result, ok, err } from '../../../../shared/core/Result';
+import { UseCaseError } from '../../../../shared/core/UseCaseError';
 import { URL } from '../../domain/value-objects/URL';
 import { UrlMetadata } from '../../domain/value-objects/UrlMetadata';
 import { IUrlMetadataRepository } from '../../domain/repositories/IUrlMetadataRepository';
@@ -12,7 +12,19 @@ export interface GetUrlMetadataRequest {
   maxAgeHours?: number;
 }
 
-export type GetUrlMetadataResponse = Result<UrlMetadata>;
+export class ValidationError extends UseCaseError {
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+export class MetadataNotFoundError extends UseCaseError {
+  constructor(url: string) {
+    super(`No metadata found for URL: ${url}`);
+  }
+}
+
+export type GetUrlMetadataResponse = Result<UrlMetadata, ValidationError | MetadataNotFoundError | Error>;
 
 export class GetUrlMetadataUseCase implements UseCase<GetUrlMetadataRequest, GetUrlMetadataResponse> {
   constructor(
@@ -24,45 +36,45 @@ export class GetUrlMetadataUseCase implements UseCase<GetUrlMetadataRequest, Get
     try {
       // Validate URL
       const urlResult = URL.create(request.url);
-      if (urlResult.isFailure) {
-        return Result.fail<UrlMetadata>(urlResult.getErrorValue());
+      if (urlResult.isErr()) {
+        return err(new ValidationError(urlResult.error.message));
       }
 
-      const url = urlResult.getValue();
+      const url = urlResult.value;
       const maxAgeHours = request.maxAgeHours ?? 24;
 
       // Check if we should use cached metadata
       if (!request.forceRefresh) {
         const existingMetadata = await this.urlMetadataRepository.findByUrl(url);
         if (existingMetadata && !existingMetadata.isStale(maxAgeHours)) {
-          return Result.ok<UrlMetadata>(existingMetadata);
+          return ok(existingMetadata);
         }
       }
 
       // Fetch fresh metadata from external service
       const metadataResult = await this.metadataService.fetchMetadata(url);
-      if (metadataResult.isFailure) {
+      if (metadataResult.isErr()) {
         // If we have stale metadata, return it as fallback
         const existingMetadata = await this.urlMetadataRepository.findByUrl(url);
         if (existingMetadata) {
-          return Result.ok<UrlMetadata>(existingMetadata);
+          return ok(existingMetadata);
         }
-        return Result.fail<UrlMetadata>(metadataResult.getErrorValue());
+        return err(new MetadataNotFoundError(url.value));
       }
 
-      const metadata = metadataResult.getValue();
+      const metadata = metadataResult.value;
 
       // Save the fresh metadata
       const saveResult = await this.urlMetadataRepository.save(metadata);
-      if (saveResult.isFailure) {
+      if (saveResult.isErr()) {
         // Log the error but still return the metadata
-        console.warn('Failed to save metadata:', saveResult.getErrorValue());
+        console.warn('Failed to save metadata:', saveResult.error);
       }
 
-      return Result.ok<UrlMetadata>(metadata);
+      return ok(metadata);
 
     } catch (error) {
-      return Result.fail<UrlMetadata>(AppError.UnexpectedError.create(error).message);
+      return err(new Error(`Unexpected error: ${error}`));
     }
   }
 }

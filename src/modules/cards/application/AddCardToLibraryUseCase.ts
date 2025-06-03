@@ -79,7 +79,8 @@ export class AddCardToLibraryUseCase
           ).unwrap();
           await this.libraryService.addCardToCollection(
             card.cardId,
-            collectionId
+            collectionId,
+            curatorId
           );
         }
       }

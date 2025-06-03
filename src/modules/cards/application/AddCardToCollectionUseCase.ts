@@ -3,12 +3,14 @@ import { ICardRepository } from "../domain/ICardRepository";
 import { LibraryService } from "../domain/LibraryService";
 import { CardId } from "../domain/value-objects/CardId";
 import { CollectionId } from "../domain/value-objects/CollectionId";
+import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
 import { UniqueEntityID } from "../../../shared/domain/UniqueEntityID";
 import { UseCase } from "src/shared/core/UseCase";
 
 export interface AddCardToCollectionDTO {
   cardId: string;
   collectionId: string;
+  authorId: string;
 }
 
 export class AddCardToCollectionUseCase
@@ -25,6 +27,12 @@ export class AddCardToCollectionUseCase
       const collectionId = CollectionId.create(
         new UniqueEntityID(request.collectionId)
       ).unwrap();
+      
+      const authorIdResult = CuratorId.create(request.authorId);
+      if (authorIdResult.isErr()) {
+        return err(authorIdResult.error);
+      }
+      const authorId = authorIdResult.value;
 
       // Check if card exists
       const cardResult = await this.cardRepository.findById(cardId);
@@ -39,7 +47,8 @@ export class AddCardToCollectionUseCase
       // Add card to collection
       return await this.libraryService.addCardToCollection(
         cardId,
-        collectionId
+        collectionId,
+        authorId
       );
     } catch (error) {
       return err(new Error(`Error adding card to collection: ${error}`));

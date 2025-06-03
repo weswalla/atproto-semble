@@ -3,59 +3,19 @@ import { CardTypeEnum } from "./CardType";
 import { ok, err, Result } from "../../../../shared/core/Result";
 import { UrlMetadata } from "./UrlMetadata";
 import { URL } from "./URL";
+import { UrlCardContent, UrlCardContentValidationError } from "./content/UrlCardContent";
+import { NoteCardContent, NoteCardContentValidationError } from "./content/NoteCardContent";
+import { 
+  HighlightCardContent, 
+  HighlightCardContentValidationError,
+  HighlightSelector,
+  TextQuoteSelector,
+  TextPositionSelector,
+  RangeSelector
+} from "./content/HighlightCardContent";
 
-// Base interface for all card content
-interface BaseCardContentProps {
-  type: CardTypeEnum;
-}
-
-// Specific content interfaces
-interface UrlCardContentProps extends BaseCardContentProps {
-  type: CardTypeEnum.URL;
-  url: URL;
-  metadata?: UrlMetadata;
-}
-
-interface NoteCardContentProps extends BaseCardContentProps {
-  type: CardTypeEnum.NOTE;
-  text: string;
-  title?: string;
-}
-
-// Selector interfaces for robust highlight anchoring (Hypothes.is approach)
-interface TextQuoteSelector {
-  type: 'TextQuoteSelector';
-  exact: string; // The exact text being highlighted
-  prefix?: string; // Text immediately before the selection
-  suffix?: string; // Text immediately after the selection
-}
-
-interface TextPositionSelector {
-  type: 'TextPositionSelector';
-  start: number; // Character offset from document start
-  end: number; // Character offset from document start
-}
-
-interface RangeSelector {
-  type: 'RangeSelector';
-  startContainer: string; // XPath or CSS selector to start container
-  startOffset: number; // Offset within start container
-  endContainer: string; // XPath or CSS selector to end container
-  endOffset: number; // Offset within end container
-}
-
-type HighlightSelector = TextQuoteSelector | TextPositionSelector | RangeSelector;
-
-interface HighlightCardContentProps extends BaseCardContentProps {
-  type: CardTypeEnum.HIGHLIGHT;
-  text: string; // The highlighted text
-  selectors: HighlightSelector[]; // Multiple selectors for robust anchoring
-  context?: string; // Additional surrounding text for context
-  documentUrl?: string; // URL of the document where highlight was made
-  documentTitle?: string; // Title of the document
-}
-
-type CardContentProps = UrlCardContentProps | NoteCardContentProps | HighlightCardContentProps;
+// Union type for all card content types
+type CardContentUnion = UrlCardContent | NoteCardContent | HighlightCardContent;
 
 export class CardContentValidationError extends Error {
   constructor(message: string) {
@@ -64,66 +24,63 @@ export class CardContentValidationError extends Error {
   }
 }
 
-export class CardContent extends ValueObject<CardContentProps> {
+// Re-export selector types for convenience
+export type { HighlightSelector, TextQuoteSelector, TextPositionSelector, RangeSelector };
+
+export class CardContent extends ValueObject<{ content: CardContentUnion }> {
   get type(): CardTypeEnum {
-    return this.props.type;
+    return this.props.content.type;
+  }
+
+  get content(): CardContentUnion {
+    return this.props.content;
   }
 
   // Type-safe getters
-  get urlContent(): UrlCardContentProps | null {
-    return this.props.type === CardTypeEnum.URL ? (this.props as UrlCardContentProps) : null;
+  get urlContent(): UrlCardContent | null {
+    return this.props.content instanceof UrlCardContent ? this.props.content : null;
   }
 
-  get noteContent(): NoteCardContentProps | null {
-    return this.props.type === CardTypeEnum.NOTE ? (this.props as NoteCardContentProps) : null;
+  get noteContent(): NoteCardContent | null {
+    return this.props.content instanceof NoteCardContent ? this.props.content : null;
   }
 
-  get highlightContent(): HighlightCardContentProps | null {
-    return this.props.type === CardTypeEnum.HIGHLIGHT ? (this.props as HighlightCardContentProps) : null;
+  get highlightContent(): HighlightCardContent | null {
+    return this.props.content instanceof HighlightCardContent ? this.props.content : null;
   }
 
-  // Helper methods for highlight content
+  // Helper methods for highlight content (delegated to HighlightCardContent)
   getTextQuoteSelector(): TextQuoteSelector | undefined {
-    const highlight = this.highlightContent;
-    return highlight?.selectors.find(s => s.type === 'TextQuoteSelector') as TextQuoteSelector;
+    return this.highlightContent?.getTextQuoteSelector();
   }
 
   getTextPositionSelector(): TextPositionSelector | undefined {
-    const highlight = this.highlightContent;
-    return highlight?.selectors.find(s => s.type === 'TextPositionSelector') as TextPositionSelector;
+    return this.highlightContent?.getTextPositionSelector();
   }
 
   getRangeSelector(): RangeSelector | undefined {
-    const highlight = this.highlightContent;
-    return highlight?.selectors.find(s => s.type === 'RangeSelector') as RangeSelector;
+    return this.highlightContent?.getRangeSelector();
   }
 
-  private constructor(props: CardContentProps) {
-    super(props);
+  private constructor(content: CardContentUnion) {
+    super({ content });
   }
 
+  // Factory methods that delegate to specific content classes
   public static createUrlContent(url: URL, metadata?: UrlMetadata): Result<CardContent, CardContentValidationError> {
-    return ok(new CardContent({
-      type: CardTypeEnum.URL,
-      url,
-      metadata
-    }));
+    const urlContentResult = UrlCardContent.create(url, metadata);
+    if (urlContentResult.isErr()) {
+      return err(new CardContentValidationError(urlContentResult.error.message));
+    }
+    return ok(new CardContent(urlContentResult.value));
   }
 
   public static createNoteContent(text: string, title?: string): Result<CardContent, CardContentValidationError> {
-    if (!text || text.trim().length === 0) {
-      return err(new CardContentValidationError("Note text cannot be empty"));
+    const noteContentResult = NoteCardContent.create(text, title);
+    if (noteContentResult.isErr()) {
+      return err(new CardContentValidationError(noteContentResult.error.message));
     }
-
-    if (text.length > 10000) {
-      return err(new CardContentValidationError("Note text cannot exceed 10,000 characters"));
-    }
-
-    return ok(new CardContent({
-      type: CardTypeEnum.NOTE,
-      text: text.trim(),
-      title: title?.trim()
-    }));
+    return ok(new CardContent(noteContentResult.value));
   }
 
   public static createHighlightContent(
@@ -135,65 +92,11 @@ export class CardContent extends ValueObject<CardContentProps> {
       documentTitle?: string;
     }
   ): Result<CardContent, CardContentValidationError> {
-    if (!text || text.trim().length === 0) {
-      return err(new CardContentValidationError("Highlight text cannot be empty"));
+    const highlightContentResult = HighlightCardContent.create(text, selectors, options);
+    if (highlightContentResult.isErr()) {
+      return err(new CardContentValidationError(highlightContentResult.error.message));
     }
-
-    if (text.length > 5000) {
-      return err(new CardContentValidationError("Highlight text cannot exceed 5,000 characters"));
-    }
-
-    if (!selectors || selectors.length === 0) {
-      return err(new CardContentValidationError("Highlight must have at least one selector"));
-    }
-
-    // Validate selectors
-    const validationResult = CardContent.validateHighlightSelectors(selectors);
-    if (validationResult.isErr()) {
-      return err(validationResult.error);
-    }
-
-    return ok(new CardContent({
-      type: CardTypeEnum.HIGHLIGHT,
-      text: text.trim(),
-      selectors,
-      context: options?.context?.trim(),
-      documentUrl: options?.documentUrl?.trim(),
-      documentTitle: options?.documentTitle?.trim()
-    }));
-  }
-
-  private static validateHighlightSelectors(
-    selectors: HighlightSelector[]
-  ): Result<void, CardContentValidationError> {
-    for (const selector of selectors) {
-      switch (selector.type) {
-        case 'TextQuoteSelector':
-          if (!selector.exact || selector.exact.trim().length === 0) {
-            return err(new CardContentValidationError("TextQuoteSelector must have exact text"));
-          }
-          break;
-        
-        case 'TextPositionSelector':
-          if (selector.start < 0 || selector.end < 0 || selector.start >= selector.end) {
-            return err(new CardContentValidationError("TextPositionSelector must have valid start/end positions"));
-          }
-          break;
-        
-        case 'RangeSelector':
-          if (!selector.startContainer || !selector.endContainer) {
-            return err(new CardContentValidationError("RangeSelector must have start and end containers"));
-          }
-          if (selector.startOffset < 0 || selector.endOffset < 0) {
-            return err(new CardContentValidationError("RangeSelector offsets must be non-negative"));
-          }
-          break;
-        
-        default:
-          return err(new CardContentValidationError("Invalid selector type"));
-      }
-    }
-    return ok(undefined);
+    return ok(new CardContent(highlightContentResult.value));
   }
 
   // Helper method to create highlight with common selector combination (Hypothes.is style)
@@ -211,55 +114,32 @@ export class CardContent extends ValueObject<CardContentProps> {
       rangeSelector?: Omit<RangeSelector, 'type'>;
     }
   ): Result<CardContent, CardContentValidationError> {
-    const selectors: HighlightSelector[] = [
-      {
-        type: 'TextQuoteSelector',
-        exact,
-        prefix,
-        suffix
-      },
-      {
-        type: 'TextPositionSelector',
-        start: startPos,
-        end: endPos
-      }
-    ];
-
-    // Add RangeSelector if provided
-    if (options?.rangeSelector) {
-      selectors.push({
-        type: 'RangeSelector',
-        ...options.rangeSelector
-      });
+    const highlightContentResult = HighlightCardContent.createWithHypothesisSelectors(
+      text, exact, prefix, suffix, startPos, endPos, options
+    );
+    if (highlightContentResult.isErr()) {
+      return err(new CardContentValidationError(highlightContentResult.error.message));
     }
-
-    return CardContent.createHighlightContent(text, selectors, {
-      context: options?.context,
-      documentUrl: options?.documentUrl,
-      documentTitle: options?.documentTitle
-    });
+    return ok(new CardContent(highlightContentResult.value));
   }
 
   // Legacy create method for backward compatibility
-  public static create(props: CardContentProps): Result<CardContent, CardContentValidationError> {
+  public static create(props: any): Result<CardContent, CardContentValidationError> {
     switch (props.type) {
       case CardTypeEnum.URL:
-        const urlProps = props as UrlCardContentProps;
-        return CardContent.createUrlContent(urlProps.url, urlProps.metadata);
+        return CardContent.createUrlContent(props.url, props.metadata);
       
       case CardTypeEnum.NOTE:
-        const noteProps = props as NoteCardContentProps;
-        return CardContent.createNoteContent(noteProps.text, noteProps.title);
+        return CardContent.createNoteContent(props.text, props.title);
       
       case CardTypeEnum.HIGHLIGHT:
-        const highlightProps = props as HighlightCardContentProps;
         return CardContent.createHighlightContent(
-          highlightProps.text,
-          highlightProps.selectors,
+          props.text,
+          props.selectors,
           {
-            context: highlightProps.context,
-            documentUrl: highlightProps.documentUrl,
-            documentTitle: highlightProps.documentTitle
+            context: props.context,
+            documentUrl: props.documentUrl,
+            documentTitle: props.documentTitle
           }
         );
       

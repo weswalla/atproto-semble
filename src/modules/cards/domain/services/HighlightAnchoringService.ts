@@ -1,27 +1,10 @@
 import { Result, ok, err } from '../../../../shared/core/Result';
-
-export interface TextQuoteSelector {
-  type: 'TextQuoteSelector';
-  exact: string;
-  prefix?: string;
-  suffix?: string;
-}
-
-export interface TextPositionSelector {
-  type: 'TextPositionSelector';
-  start: number;
-  end: number;
-}
-
-export interface RangeSelector {
-  type: 'RangeSelector';
-  startContainer: string;
-  startOffset: number;
-  endContainer: string;
-  endOffset: number;
-}
-
-export type HighlightSelector = TextQuoteSelector | TextPositionSelector | RangeSelector;
+import { 
+  HighlightSelector, 
+  TextQuoteSelector, 
+  TextPositionSelector, 
+  RangeSelector 
+} from '../value-objects/content/HighlightCardContent';
 
 export interface AnchoringContext {
   documentText: string;

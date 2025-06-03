@@ -4,31 +4,34 @@ import {
 } from "@testcontainers/postgresql";
 import postgres from "postgres";
 import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { DrizzleAnnotationRepository } from "../DrizzleAnnotationRepository";
-import { DrizzleAnnotationFieldRepository } from "../DrizzleAnnotationFieldRepository";
-import { DrizzleAnnotationTemplateRepository } from "../DrizzleAnnotationTemplateRepository";
+import { DrizzleAnnotationRepository } from "../../infrastructure/repositories/DrizzleAnnotationRepository";
+import { DrizzleAnnotationFieldRepository } from "../../infrastructure/repositories/DrizzleAnnotationFieldRepository";
+import { DrizzleAnnotationTemplateRepository } from "../../infrastructure/repositories/DrizzleAnnotationTemplateRepository";
 import {
   AnnotationId,
   CuratorId,
   PublishedRecordId,
-} from "../../../domain/value-objects";
-import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
+} from "../../domain/value-objects";
+import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
 import { sql } from "drizzle-orm";
-import { annotations, annotationToTemplates } from "../schema/annotation.sql";
-import { AnnotationBuilder } from "../../../tests/utils/builders/AnnotationBuilder";
-import { URI } from "../../../domain/value-objects/URI";
-import { AnnotationField } from "../../../domain/aggregates";
+import {
+  annotations,
+  annotationToTemplates,
+} from "../../infrastructure/repositories/schema/annotation.sql";
+import { AnnotationBuilder } from "../utils/builders/AnnotationBuilder";
+import { URI } from "../../domain/value-objects/URI";
+import { AnnotationField } from "../../domain/aggregates";
 import {
   AnnotationFieldName,
   AnnotationFieldDescription,
-} from "../../../domain/value-objects";
-import { AnnotationFieldDefinitionFactory } from "../../../domain/AnnotationFieldDefinitionFactory";
-import { AnnotationType } from "../../../domain/value-objects/AnnotationType";
-import { AnnotationTemplate } from "../../../domain/aggregates/AnnotationTemplate";
-import { AnnotationTemplateName } from "../../../domain/value-objects/AnnotationTemplateName";
-import { AnnotationTemplateDescription } from "../../../domain/value-objects/AnnotationTemplateDescription";
-import { AnnotationTemplateField } from "../../../domain/value-objects";
-import { AnnotationTemplateFields } from "../../../domain/value-objects/AnnotationTemplateFields";
+} from "../../domain/value-objects";
+import { AnnotationFieldDefinitionFactory } from "../../domain/AnnotationFieldDefinitionFactory";
+import { AnnotationType } from "../../domain/value-objects/AnnotationType";
+import { AnnotationTemplate } from "../../domain/aggregates/AnnotationTemplate";
+import { AnnotationTemplateName } from "../../domain/value-objects/AnnotationTemplateName";
+import { AnnotationTemplateDescription } from "../../domain/value-objects/AnnotationTemplateDescription";
+import { AnnotationTemplateField } from "../../domain/value-objects";
+import { AnnotationTemplateFields } from "../../domain/value-objects/AnnotationTemplateFields";
 
 describe("DrizzleAnnotationRepository", () => {
   let container: StartedPostgreSqlContainer;

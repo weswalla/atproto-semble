@@ -4,26 +4,26 @@ import {
 } from "@testcontainers/postgresql";
 import postgres from "postgres";
 import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { DrizzleAnnotationTemplateRepository } from "../DrizzleAnnotationTemplateRepository";
-import { DrizzleAnnotationFieldRepository } from "../DrizzleAnnotationFieldRepository";
+import { DrizzleAnnotationTemplateRepository } from "../../infrastructure/repositories/DrizzleAnnotationTemplateRepository";
+import { DrizzleAnnotationFieldRepository } from "../../infrastructure/repositories/DrizzleAnnotationFieldRepository";
 import {
   AnnotationFieldDescription,
   AnnotationFieldName,
   AnnotationTemplateField,
   AnnotationTemplateId,
   CuratorId,
-} from "../../../domain/value-objects";
-import { AnnotationTemplate } from "../../../domain/aggregates/AnnotationTemplate";
-import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
-import { AnnotationTemplateName } from "../../../domain/value-objects/AnnotationTemplateName";
-import { AnnotationTemplateDescription } from "../../../domain/value-objects/AnnotationTemplateDescription";
-import { AnnotationTemplateFields } from "../../../domain/value-objects/AnnotationTemplateFields";
+} from "../../domain/value-objects";
+import { AnnotationTemplate } from "../../domain/aggregates/AnnotationTemplate";
+import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
+import { AnnotationTemplateName } from "../../domain/value-objects/AnnotationTemplateName";
+import { AnnotationTemplateDescription } from "../../domain/value-objects/AnnotationTemplateDescription";
+import { AnnotationTemplateFields } from "../../domain/value-objects/AnnotationTemplateFields";
 import { sql } from "drizzle-orm";
 import {
   annotationTemplates,
   annotationTemplateFields,
-} from "../schema/annotationTemplate.sql";
-import { annotationFields } from "../schema/annotationField.sql";
+} from "../../infrastructure/repositories/schema/annotationTemplate.sql";
+import { annotationFields } from "../../infrastructure/repositories/schema/annotationField.sql";
 import { AnnotationFieldDefinitionFactory } from "src/modules/annotations/domain/AnnotationFieldDefinitionFactory";
 import { AnnotationType } from "src/modules/annotations/domain/value-objects/AnnotationType";
 import { AnnotationField } from "src/modules/annotations/domain/aggregates";

@@ -1,7 +1,12 @@
-import { Collection, CollectionAccessType, CollectionAccessError } from "../../domain/Collection";
+import {
+  Collection,
+  CollectionAccessType,
+  CollectionAccessError,
+} from "../../domain/Collection";
 import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
 import { CardId } from "../../domain/value-objects/CardId";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
+import { Err } from "src/shared/core/Result";
 
 describe("Collection", () => {
   let authorId: CuratorId;
@@ -26,11 +31,11 @@ describe("Collection", () => {
         collaboratorIds: [],
         cardIds: [],
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
       expect(result.isOk()).toBe(true);
-      const collection = result.value;
+      const collection = result.unwrap();
       expect(collection.name).toBe("Test Collection");
       expect(collection.authorId).toBe(authorId);
       expect(collection.accessType).toBe(CollectionAccessType.OPEN);
@@ -51,7 +56,7 @@ describe("Collection", () => {
         collaboratorIds: [collaboratorId],
         cardIds: [],
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       }).unwrap();
 
       closedCollection = Collection.create({
@@ -61,7 +66,7 @@ describe("Collection", () => {
         collaboratorIds: [collaboratorId],
         cardIds: [],
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       }).unwrap();
     });
 
@@ -92,7 +97,9 @@ describe("Collection", () => {
       it("should prevent unauthorized users from adding cards to closed collection", () => {
         const result = closedCollection.addCard(cardId, otherUserId);
         expect(result.isErr()).toBe(true);
-        expect(result.error).toBeInstanceOf(CollectionAccessError);
+        expect(
+          (result as Err<undefined, CollectionAccessError>).error
+        ).toBeInstanceOf(CollectionAccessError);
         expect(closedCollection.cardIds).not.toContain(cardId);
       });
 
@@ -100,7 +107,9 @@ describe("Collection", () => {
         openCollection.addCard(cardId, authorId);
         const result = openCollection.addCard(cardId, authorId);
         expect(result.isOk()).toBe(true);
-        expect(openCollection.cardIds.filter(id => id.equals(cardId))).toHaveLength(1);
+        expect(
+          openCollection.cardIds.filter((id) => id.equals(cardId))
+        ).toHaveLength(1);
       });
     });
 
@@ -119,7 +128,9 @@ describe("Collection", () => {
       it("should prevent unauthorized users from removing cards from closed collection", () => {
         const result = closedCollection.removeCard(cardId, otherUserId);
         expect(result.isErr()).toBe(true);
-        expect(result.error).toBeInstanceOf(CollectionAccessError);
+        expect(
+          (result as Err<undefined, CollectionAccessError>).error
+        ).toBeInstanceOf(CollectionAccessError);
         expect(closedCollection.cardIds).toContain(cardId);
       });
     });
@@ -136,7 +147,7 @@ describe("Collection", () => {
         collaboratorIds: [],
         cardIds: [],
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       }).unwrap();
     });
 
@@ -150,7 +161,9 @@ describe("Collection", () => {
       it("should prevent non-authors from adding collaborators", () => {
         const result = collection.addCollaborator(collaboratorId, otherUserId);
         expect(result.isErr()).toBe(true);
-        expect(result.error).toBeInstanceOf(CollectionAccessError);
+        expect(
+          (result as Err<undefined, CollectionAccessError>).error
+        ).toBeInstanceOf(CollectionAccessError);
         expect(collection.collaboratorIds).not.toContain(collaboratorId);
       });
 
@@ -158,7 +171,9 @@ describe("Collection", () => {
         collection.addCollaborator(collaboratorId, authorId);
         const result = collection.addCollaborator(collaboratorId, authorId);
         expect(result.isOk()).toBe(true);
-        expect(collection.collaboratorIds.filter(id => id.equals(collaboratorId))).toHaveLength(1);
+        expect(
+          collection.collaboratorIds.filter((id) => id.equals(collaboratorId))
+        ).toHaveLength(1);
       });
     });
 
@@ -174,9 +189,14 @@ describe("Collection", () => {
       });
 
       it("should prevent non-authors from removing collaborators", () => {
-        const result = collection.removeCollaborator(collaboratorId, otherUserId);
+        const result = collection.removeCollaborator(
+          collaboratorId,
+          otherUserId
+        );
         expect(result.isErr()).toBe(true);
-        expect(result.error).toBeInstanceOf(CollectionAccessError);
+        expect(
+          (result as Err<undefined, CollectionAccessError>).error
+        ).toBeInstanceOf(CollectionAccessError);
         expect(collection.collaboratorIds).toContain(collaboratorId);
       });
     });
@@ -193,12 +213,15 @@ describe("Collection", () => {
         collaboratorIds: [],
         cardIds: [],
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       }).unwrap();
     });
 
     it("should allow author to change access type", () => {
-      const result = collection.changeAccessType(CollectionAccessType.CLOSED, authorId);
+      const result = collection.changeAccessType(
+        CollectionAccessType.CLOSED,
+        authorId
+      );
       expect(result.isOk()).toBe(true);
       expect(collection.accessType).toBe(CollectionAccessType.CLOSED);
       expect(collection.isClosed).toBe(true);
@@ -206,9 +229,14 @@ describe("Collection", () => {
     });
 
     it("should prevent non-authors from changing access type", () => {
-      const result = collection.changeAccessType(CollectionAccessType.CLOSED, otherUserId);
+      const result = collection.changeAccessType(
+        CollectionAccessType.CLOSED,
+        otherUserId
+      );
       expect(result.isErr()).toBe(true);
-      expect(result.error).toBeInstanceOf(CollectionAccessError);
+      expect(
+        (result as Err<undefined, CollectionAccessError>).error
+      ).toBeInstanceOf(CollectionAccessError);
       expect(collection.accessType).toBe(CollectionAccessType.OPEN);
     });
   });
@@ -225,7 +253,7 @@ describe("Collection", () => {
         collaboratorIds: [collaboratorId],
         cardIds: [cardId],
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       }).unwrap();
     });
 

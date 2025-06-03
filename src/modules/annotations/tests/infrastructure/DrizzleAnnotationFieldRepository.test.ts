@@ -4,18 +4,18 @@ import {
 } from "@testcontainers/postgresql";
 import postgres from "postgres";
 import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { DrizzleAnnotationFieldRepository } from "../DrizzleAnnotationFieldRepository";
-import { AnnotationFieldId, CuratorId } from "../../../domain/value-objects";
-import { AnnotationField } from "../../../domain/AnnotationField";
-import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
-import { AnnotationFieldName } from "../../../domain/value-objects/AnnotationFieldName";
-import { AnnotationFieldDescription } from "../../../domain/value-objects/AnnotationFieldDescription";
+import { DrizzleAnnotationFieldRepository } from "../../infrastructure/repositories/DrizzleAnnotationFieldRepository";
+import { AnnotationFieldId, CuratorId } from "../../domain/value-objects";
+import { AnnotationField } from "../../domain/AnnotationField";
+import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
+import { AnnotationFieldName } from "../../domain/value-objects/AnnotationFieldName";
+import { AnnotationFieldDescription } from "../../domain/value-objects/AnnotationFieldDescription";
 import { sql } from "drizzle-orm";
-import { annotationFields } from "../schema/annotationField.sql";
+import { annotationFields } from "../../infrastructure/repositories/schema/annotationField.sql";
 import { AnnotationFieldDefinitionFactory } from "src/modules/annotations/domain/AnnotationFieldDefinitionFactory";
 import { AnnotationType } from "src/modules/annotations/domain/value-objects/AnnotationType";
-import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
-import { assertDockerIsRunning } from "../assertDockerDaemon";
+import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
+import { assertDockerIsRunning } from "../../infrastructure/repositories/assertDockerDaemon";
 
 describe("DrizzleAnnotationFieldRepository", () => {
   let container: StartedPostgreSqlContainer;

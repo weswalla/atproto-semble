@@ -18,7 +18,8 @@ export class LibraryService {
 
   async addCardToCollection(
     cardId: CardId,
-    collectionId: CollectionId
+    collectionId: CollectionId,
+    authorId: CuratorId
   ): Promise<Result<void>> {
     const collectionResult =
       await this.collectionRepository.findById(collectionId);
@@ -33,7 +34,7 @@ export class LibraryService {
       return err(new Error("Collection not found"));
     }
 
-    const addResult = collection.addCard(cardId);
+    const addResult = collection.addCard(cardId, authorId);
 
     if (addResult.isErr()) {
       return err(addResult.error);

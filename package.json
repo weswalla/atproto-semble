@@ -8,8 +8,12 @@
   },
   "scripts": {
     "test": "jest",
+    "test:unit": "jest --testPathIgnorePatterns='.integration.test.' --testPathIgnorePatterns='.e2e.test.'",
+    "test:integration": "jest --testPathPattern='.integration.test.'",
+    "test:e2e": "jest --testPathPattern='.e2e.test.' --testTimeout=300000",
     "test:watch": "jest --watch",
-    "test:e2e": "jest src/modules/user/tests/e2e/OAuthSignInFlow.test.ts --testTimeout=300000",
+    "test:unit:watch": "jest --watch --testPathIgnorePatterns='.integration.test.' --testPathIgnorePatterns='.e2e.test.'",
+    "test:integration:watch": "jest --watch --testPathPattern='.integration.test.'",
     "build": "tsup",
     "build:watch": "tsc --watch",
     "dev:inner": "dotenv -e .env.local -- concurrently -k -n TYPE,CODE -c red,blue \"tsc --noEmit --watch\" \"tsup --watch --onSuccess='node dist/index.js'\"",

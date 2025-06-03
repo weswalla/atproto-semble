@@ -1,10 +1,10 @@
-import { UseCase } from '../../../../shared/core/UseCase';
-import { Result, ok, err } from '../../../../shared/core/Result';
-import { UseCaseError } from '../../../../shared/core/UseCaseError';
-import { URL } from '../../domain/value-objects/URL';
-import { UrlMetadata } from '../../domain/value-objects/UrlMetadata';
-import { IUrlMetadataRepository } from '../../domain/repositories/IUrlMetadataRepository';
-import { IMetadataService } from '../../domain/services/IMetadataService';
+import { UseCase } from "../../../../shared/core/UseCase";
+import { Result, ok, err } from "../../../../shared/core/Result";
+import { UseCaseError } from "../../../../shared/core/UseCaseError";
+import { URL } from "../../domain/value-objects/URL";
+import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
+import { IUrlMetadataRepository } from "../../domain/repositories/IUrlMetadataRepository";
+import { IMetadataService } from "../../domain/services/IMetadataService";
 
 export interface GetUrlMetadataRequest {
   url: string;
@@ -24,15 +24,22 @@ export class MetadataNotFoundError extends UseCaseError {
   }
 }
 
-export type GetUrlMetadataResponse = Result<UrlMetadata, ValidationError | MetadataNotFoundError | Error>;
+export type GetUrlMetadataResponse = Result<
+  UrlMetadata,
+  ValidationError | MetadataNotFoundError | Error
+>;
 
-export class GetUrlMetadataUseCase implements UseCase<GetUrlMetadataRequest, GetUrlMetadataResponse> {
+export class GetUrlMetadataUseCase
+  implements UseCase<GetUrlMetadataRequest, GetUrlMetadataResponse>
+{
   constructor(
     private urlMetadataRepository: IUrlMetadataRepository,
     private metadataService: IMetadataService
   ) {}
 
-  public async execute(request: GetUrlMetadataRequest): Promise<GetUrlMetadataResponse> {
+  public async execute(
+    request: GetUrlMetadataRequest
+  ): Promise<GetUrlMetadataResponse> {
     try {
       // Validate URL
       const urlResult = URL.create(request.url);
@@ -41,11 +48,12 @@ export class GetUrlMetadataUseCase implements UseCase<GetUrlMetadataRequest, Get
       }
 
       const url = urlResult.value;
-      const maxAgeHours = request.maxAgeHours ?? 24;
+      const maxAgeHours = request.maxAgeHours ?? 24 * 30; // Default to 30 days if not provided
 
       // Check if we should use cached metadata
       if (!request.forceRefresh) {
-        const existingMetadata = await this.urlMetadataRepository.findByUrl(url);
+        const existingMetadata =
+          await this.urlMetadataRepository.findByUrl(url);
         if (existingMetadata && !existingMetadata.isStale(maxAgeHours)) {
           return ok(existingMetadata);
         }
@@ -55,7 +63,8 @@ export class GetUrlMetadataUseCase implements UseCase<GetUrlMetadataRequest, Get
       const metadataResult = await this.metadataService.fetchMetadata(url);
       if (metadataResult.isErr()) {
         // If we have stale metadata, return it as fallback
-        const existingMetadata = await this.urlMetadataRepository.findByUrl(url);
+        const existingMetadata =
+          await this.urlMetadataRepository.findByUrl(url);
         if (existingMetadata) {
           return ok(existingMetadata);
         }
@@ -68,11 +77,10 @@ export class GetUrlMetadataUseCase implements UseCase<GetUrlMetadataRequest, Get
       const saveResult = await this.urlMetadataRepository.save(metadata);
       if (saveResult.isErr()) {
         // Log the error but still return the metadata
-        console.warn('Failed to save metadata:', saveResult.error);
+        console.warn("Failed to save metadata:", saveResult.error);
       }
 
       return ok(metadata);
-
     } catch (error) {
       return err(new Error(`Unexpected error: ${error}`));
     }

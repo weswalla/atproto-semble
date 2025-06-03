@@ -102,11 +102,14 @@ export class GetUrlMetadataUseCase
 
   private async findUrlCard(url: URL): Promise<CardId | undefined> {
     try {
-      // This is a simplified approach - in a real implementation you might need
-      // to search cards by content or have a more sophisticated lookup
-      // For now, we'll return undefined as this would require additional
-      // repository methods to search cards by URL content
-      return undefined;
+      const cardResult = await this.cardRepository.findByUrl(url);
+      if (cardResult.isErr()) {
+        console.warn("Error finding URL card:", cardResult.error);
+        return undefined;
+      }
+
+      const card = cardResult.value;
+      return card ? card.cardId : undefined;
     } catch (error) {
       console.warn("Failed to find URL card:", error);
       return undefined;

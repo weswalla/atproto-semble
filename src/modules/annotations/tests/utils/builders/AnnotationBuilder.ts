@@ -172,7 +172,11 @@ export class AnnotationBuilder {
     // Create note if provided
     let note: AnnotationNote | undefined;
     if (this._note) {
-      note = AnnotationNote.create(this._note);
+      const noteResult = AnnotationNote.create(this._note);
+      if (noteResult.isErr()) {
+        return err(new Error(`Note creation failed: ${noteResult.error}`));
+      }
+      note = noteResult.value;
     }
 
     // Create published record ID if provided

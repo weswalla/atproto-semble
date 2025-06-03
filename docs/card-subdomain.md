@@ -50,12 +50,28 @@ The Card context represents a system where users can save various types of conte
 5. **CuratorId**
    - References the user who owns/created the card or collection
 
+6. **URL**
+   - Value object representing a valid URL
+
+7. **UrlMetadata**
+   - Value object containing metadata about a URL (title, description, author, etc.)
+
 ## Domain Services
 
 1. **LibraryService**
    - Coordinates operations that span multiple aggregates
    - Handles adding cards to a user's library and collections
    - Provides access to a user's entire content (their "library")
+
+## Infrastructure Services
+
+1. **IMetadataService**
+   - Interface for external metadata retrieval services
+   - Abstracts the details of specific metadata providers (Citoid, etc.)
+
+2. **IUrlMetadataRepository**
+   - Repository interface for storing and retrieving URL metadata
+   - Provides caching layer for metadata to avoid repeated API calls
 
 ## Relationships and Boundaries
 
@@ -83,6 +99,12 @@ The Card context represents a system where users can save various types of conte
 3. **AnnotateCard**
    - Creates annotation cards (notes, highlights) linked to an existing card
 
+4. **GetUrlMetadataUseCase**
+   - Retrieves metadata for a given URL
+   - First checks if metadata already exists in the repository
+   - If not found, fetches from external metadata service (e.g., Citoid API)
+   - Stores retrieved metadata for future use
+
 ## Implementation Considerations
 
 - When a card is added to multiple collections, this should be handled as separate operations on each Collection aggregate.
@@ -90,3 +112,11 @@ The Card context represents a system where users can save various types of conte
 - Card-to-card relationships (like highlights of a URL) are maintained within the Card aggregate.
 - "Library" is a conceptual grouping of a user's content rather than an aggregate with its own identity and lifecycle.
 - A user's library is accessed through repository methods (e.g., `findByCuratorId()`) and coordinated through the LibraryService.
+
+### External API Integration Patterns
+
+- **Repository Pattern**: Use `IUrlMetadataRepository` to abstract metadata storage and provide caching
+- **Service Interface**: Use `IMetadataService` to abstract external API calls (Citoid, etc.)
+- **Dependency Inversion**: Domain layer depends on interfaces, infrastructure layer implements them
+- **Caching Strategy**: Check repository first before making external API calls to reduce latency and API usage
+- **Error Handling**: External API failures should be handled gracefully with fallback strategies

@@ -27,7 +27,14 @@ export interface AddCardToLibraryResponseDTO {
     uri: string;
     cid: string;
   };
-  addedToCollections: string[];
+  addedToCollections: Array<{
+    collectionId: string;
+    collectionRecord?: { uri: string; cid: string };
+    publishedLinks: Array<{
+      cardId: string;
+      linkRecord: { uri: string; cid: string };
+    }>;
+  }>;
   failedCollections: Array<{
     collectionId: string;
     reason: string;
@@ -139,7 +146,7 @@ export class AddCardToLibraryUseCase
       }
 
       // Handle collection additions if specified
-      const addedToCollections: string[] = [];
+      const addedToCollections: AddCardToLibraryResponseDTO['addedToCollections'] = [];
       const failedCollections: Array<{ collectionId: string; reason: string }> = [];
 
       if (request.collectionIds && request.collectionIds.length > 0) {
@@ -172,7 +179,7 @@ export class AddCardToLibraryUseCase
               continue;
             }
 
-            // Try to add the card to the collection
+            // Add card to collection
             const addCardResult = collection.addCard(card.cardId, curatorId);
             if (addCardResult.isErr()) {
               failedCollections.push({
@@ -182,7 +189,7 @@ export class AddCardToLibraryUseCase
               continue;
             }
 
-            // Publish the updated collection
+            // Publish the collection (including new links)
             const publishCollectionResult = await this.collectionPublisher.publish(collection);
             if (publishCollectionResult.isErr()) {
               failedCollections.push({
@@ -192,8 +199,12 @@ export class AddCardToLibraryUseCase
               continue;
             }
 
-            // Mark the collection as published
-            collection.markAsPublished(publishCollectionResult.value);
+            const publishResult = publishCollectionResult.value;
+
+            // Mark the collection as published if it has a collection record
+            if (publishResult.collectionRecord) {
+              collection.markAsPublished(publishResult.collectionRecord);
+            }
 
             // Save the updated collection
             const saveCollectionResult = await this.collectionRepository.save(collection);
@@ -205,7 +216,14 @@ export class AddCardToLibraryUseCase
               continue;
             }
 
-            addedToCollections.push(collectionIdStr);
+            addedToCollections.push({
+              collectionId: collectionIdStr,
+              collectionRecord: publishResult.collectionRecord ? {
+                uri: publishResult.collectionRecord.uri,
+                cid: publishResult.collectionRecord.cid
+              } : undefined,
+              publishedLinks: publishResult.publishedLinks
+            });
 
           } catch (error) {
             failedCollections.push({

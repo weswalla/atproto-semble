@@ -8,6 +8,13 @@ import { CollectionName, InvalidCollectionNameError } from "./value-objects/Coll
 import { CollectionDescription, InvalidCollectionDescriptionError } from "./value-objects/CollectionDescription";
 import { PublishedRecordId } from "./value-objects/PublishedRecordId";
 
+interface CardLink {
+  cardId: CardId;
+  addedBy: CuratorId;
+  addedAt: Date;
+  publishedRecordId?: PublishedRecordId; // AT URI of the link record
+}
+
 export enum CollectionAccessType {
   OPEN = "OPEN",
   CLOSED = "CLOSED"
@@ -33,8 +40,8 @@ interface CollectionProps {
   description?: CollectionDescription;
   accessType: CollectionAccessType;
   collaboratorIds: CuratorId[];
-  cardIds: CardId[];
-  publishedRecordId?: PublishedRecordId;
+  cardLinks: CardLink[]; // Instead of cardIds: CardId[]
+  publishedRecordId?: PublishedRecordId; // Collection's own published record
   createdAt: Date;
   updatedAt: Date;
 }
@@ -65,7 +72,19 @@ export class Collection extends AggregateRoot<CollectionProps> {
   }
 
   get cardIds(): CardId[] {
-    return [...this.props.cardIds];
+    return this.props.cardLinks.map(link => link.cardId);
+  }
+
+  get cardLinks(): CardLink[] {
+    return [...this.props.cardLinks];
+  }
+
+  get unpublishedCardLinks(): CardLink[] {
+    return this.props.cardLinks.filter(link => !link.publishedRecordId);
+  }
+
+  get hasUnpublishedLinks(): boolean {
+    return this.unpublishedCardLinks.length > 0;
   }
 
   get createdAt(): Date {
@@ -97,9 +116,10 @@ export class Collection extends AggregateRoot<CollectionProps> {
   }
 
   public static create(
-    props: Omit<CollectionProps, 'name' | 'description'> & {
+    props: Omit<CollectionProps, 'name' | 'description' | 'cardLinks'> & {
       name: string;
       description?: string;
+      cardLinks?: CardLink[];
     },
     id?: UniqueEntityID
   ): Result<Collection, CollectionValidationError> {
@@ -128,6 +148,7 @@ export class Collection extends AggregateRoot<CollectionProps> {
       ...props,
       name: nameResult.value,
       description,
+      cardLinks: props.cardLinks || [],
     };
 
     return ok(new Collection(collectionProps, id));
@@ -148,19 +169,36 @@ export class Collection extends AggregateRoot<CollectionProps> {
     return this.props.collaboratorIds.some(collaboratorId => collaboratorId.equals(userId));
   }
 
-  public addCard(cardId: CardId, userId: CuratorId): Result<void, CollectionAccessError> {
+  public addCard(cardId: CardId, userId: CuratorId): Result<CardLink, CollectionAccessError> {
     if (!this.canAddCard(userId)) {
       return err(new CollectionAccessError("User does not have permission to add cards to this collection"));
     }
 
-    if (this.props.cardIds.some((id) => id.equals(cardId))) {
-      return ok(undefined); // Card already in collection
+    // Check if card is already in collection
+    const existingLink = this.props.cardLinks.find(link => link.cardId.equals(cardId));
+    if (existingLink) {
+      return ok(existingLink); // Return existing link
     }
 
-    this.props.cardIds.push(cardId);
+    const newLink: CardLink = {
+      cardId,
+      addedBy: userId,
+      addedAt: new Date(),
+      publishedRecordId: undefined // Will be set when published
+    };
+
+    this.props.cardLinks.push(newLink);
     this.props.updatedAt = new Date();
 
-    return ok(undefined);
+    return ok(newLink);
+  }
+
+  public markCardLinkAsPublished(cardId: CardId, publishedRecordId: PublishedRecordId): void {
+    const link = this.props.cardLinks.find(link => link.cardId.equals(cardId));
+    if (link) {
+      link.publishedRecordId = publishedRecordId;
+      this.props.updatedAt = new Date();
+    }
   }
 
   public removeCard(cardId: CardId, userId: CuratorId): Result<void, CollectionAccessError> {
@@ -168,7 +206,7 @@ export class Collection extends AggregateRoot<CollectionProps> {
       return err(new CollectionAccessError("User does not have permission to remove cards from this collection"));
     }
 
-    this.props.cardIds = this.props.cardIds.filter((id) => !id.equals(cardId));
+    this.props.cardLinks = this.props.cardLinks.filter(link => !link.cardId.equals(cardId));
     this.props.updatedAt = new Date();
 
     return ok(undefined);

@@ -5,7 +5,6 @@ import { AppError } from "../../../shared/core/AppError";
 import { ICollectionRepository } from "../domain/ICollectionRepository";
 import { Collection, CollectionAccessType } from "../domain/Collection";
 import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
-import { CollectionId } from "../domain/value-objects/CollectionId";
 
 export interface CreateCollectionDTO {
   authorId: string;
@@ -21,23 +20,38 @@ export interface CreateCollectionResponseDTO {
 export class ValidationError extends UseCaseError {
   constructor(message: string) {
     super(message);
-    this.name = "ValidationError";
   }
 }
 
 export class CreateCollectionUseCase
-  implements UseCase<CreateCollectionDTO, Result<CreateCollectionResponseDTO, ValidationError | AppError.UnexpectedError>>
+  implements
+    UseCase<
+      CreateCollectionDTO,
+      Result<
+        CreateCollectionResponseDTO,
+        ValidationError | AppError.UnexpectedError
+      >
+    >
 {
   constructor(private collectionRepository: ICollectionRepository) {}
 
   async execute(
     request: CreateCollectionDTO
-  ): Promise<Result<CreateCollectionResponseDTO, ValidationError | AppError.UnexpectedError>> {
+  ): Promise<
+    Result<
+      CreateCollectionResponseDTO,
+      ValidationError | AppError.UnexpectedError
+    >
+  > {
     try {
       // Validate and create CuratorId
       const authorIdResult = CuratorId.create(request.authorId);
       if (authorIdResult.isErr()) {
-        return err(new ValidationError(`Invalid author ID: ${authorIdResult.error.message}`));
+        return err(
+          new ValidationError(
+            `Invalid author ID: ${authorIdResult.error.message}`
+          )
+        );
       }
       const authorId = authorIdResult.value;
 
@@ -47,12 +61,18 @@ export class CreateCollectionUseCase
       }
 
       if (request.name.length > 100) {
-        return err(new ValidationError("Collection name cannot exceed 100 characters"));
+        return err(
+          new ValidationError("Collection name cannot exceed 100 characters")
+        );
       }
 
       // Validate description if provided
       if (request.description && request.description.length > 500) {
-        return err(new ValidationError("Collection description cannot exceed 500 characters"));
+        return err(
+          new ValidationError(
+            "Collection description cannot exceed 500 characters"
+          )
+        );
       }
 
       // Validate access type
@@ -74,7 +94,11 @@ export class CreateCollectionUseCase
       });
 
       if (collectionResult.isErr()) {
-        return err(new ValidationError(`Failed to create collection: ${collectionResult.error.message}`));
+        return err(
+          new ValidationError(
+            `Failed to create collection: ${collectionResult.error.message}`
+          )
+        );
       }
 
       const collection = collectionResult.value;
@@ -88,7 +112,6 @@ export class CreateCollectionUseCase
       return ok({
         collectionId: collection.collectionId.getStringValue(),
       });
-
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
     }

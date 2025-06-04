@@ -1,7 +1,7 @@
-import { IMetadataService } from '../domain/services/IMetadataService';
-import { UrlMetadata } from '../domain/value-objects/UrlMetadata';
-import { URL } from '../domain/value-objects/URL';
-import { Result, ok, err } from '../../../shared/core/Result';
+import { IMetadataService } from "../domain/services/IMetadataService";
+import { UrlMetadata } from "../domain/value-objects/UrlMetadata";
+import { URL } from "../domain/value-objects/URL";
+import { Result, ok, err } from "../../../shared/core/Result";
 
 interface CitoidResponse {
   key?: string;
@@ -24,9 +24,10 @@ interface CitoidResponse {
 }
 
 export class CitoidMetadataService implements IMetadataService {
-  private readonly baseUrl = 'https://en.wikipedia.org/api/rest_v1/data/citation/zotero/';
+  private readonly baseUrl =
+    "https://en.wikipedia.org/api/rest_v1/data/citation/zotero/";
   private readonly headers = {
-    'accept': 'application/json; charset=utf-8;'
+    accept: "application/json; charset=utf-8;",
   };
 
   async fetchMetadata(url: URL): Promise<Result<UrlMetadata>> {
@@ -36,30 +37,36 @@ export class CitoidMetadataService implements IMetadataService {
       const fullUrl = this.baseUrl + encodedUrl;
 
       const response = await fetch(fullUrl, {
-        method: 'GET',
-        headers: this.headers
+        method: "GET",
+        headers: this.headers,
       });
 
       if (!response.ok) {
-        return err(new Error(`Citoid API request failed with status ${response.status}`));
+        return err(
+          new Error(`Citoid API request failed with status ${response.status}`)
+        );
       }
 
-      const data: CitoidResponse[] = await response.json();
+      const data: CitoidResponse[] = (await response.json()) as any;
 
       if (!data || data.length === 0) {
-        return err(new Error('No metadata found for the given URL'));
+        return err(new Error("No metadata found for the given URL"));
       }
 
       // Use the first result
       const citoidData = data[0];
+      if (!citoidData || !citoidData.itemType) {
+        return err(new Error("Invalid metadata format from Citoid"));
+      }
 
       // Extract author from creators array
-      const author = citoidData.creators && citoidData.creators.length > 0
-        ? this.formatAuthor(citoidData.creators[0])
-        : undefined;
+      const author =
+        citoidData.creators && citoidData.creators.length > 0
+          ? this.formatAuthor(citoidData.creators[0]!)
+          : undefined;
 
       // Parse published date
-      const publishedDate = citoidData.date 
+      const publishedDate = citoidData.date
         ? this.parseDate(citoidData.date)
         : undefined;
 
@@ -70,25 +77,28 @@ export class CitoidMetadataService implements IMetadataService {
         author,
         publishedDate,
         siteName: citoidData.publicationTitle || citoidData.libraryCatalog,
-        type: citoidData.itemType
+        type: citoidData.itemType,
       });
 
       return metadataResult;
-
     } catch (error) {
-      return err(new Error(`Failed to fetch metadata from Citoid: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      return err(
+        new Error(
+          `Failed to fetch metadata from Citoid: ${error instanceof Error ? error.message : "Unknown error"}`
+        )
+      );
     }
   }
 
   async isAvailable(): Promise<boolean> {
     try {
       // Test with a simple URL to check if the service is available
-      const testUrl = this.baseUrl + encodeURIComponent('https://example.com');
+      const testUrl = this.baseUrl + encodeURIComponent("https://example.com");
       const response = await fetch(testUrl, {
-        method: 'HEAD',
-        headers: this.headers
+        method: "HEAD",
+        headers: this.headers,
       });
-      
+
       // Service is available if we get any response (even 4xx errors are fine)
       return response.status < 500;
     } catch {
@@ -96,9 +106,12 @@ export class CitoidMetadataService implements IMetadataService {
     }
   }
 
-  private formatAuthor(creator: { firstName?: string; lastName?: string }): string {
+  private formatAuthor(creator: {
+    firstName?: string;
+    lastName?: string;
+  }): string {
     const { firstName, lastName } = creator;
-    
+
     if (firstName && lastName) {
       return `${firstName} ${lastName}`;
     } else if (lastName) {
@@ -106,20 +119,20 @@ export class CitoidMetadataService implements IMetadataService {
     } else if (firstName) {
       return firstName;
     }
-    
-    return '';
+
+    return "";
   }
 
   private parseDate(dateString: string): Date | undefined {
     try {
       // Try to parse the date string
       const parsed = new Date(dateString);
-      
+
       // Check if the date is valid
       if (isNaN(parsed.getTime())) {
         return undefined;
       }
-      
+
       return parsed;
     } catch {
       return undefined;

@@ -103,8 +103,8 @@ export class CardMapper {
 
       // Set timestamps manually since Card.create sets them to now
       const card = cardOrError.value;
-      (card as any).props.createdAt = dto.createdAt;
-      (card as any).props.updatedAt = dto.updatedAt;
+      card.props.createdAt = dto.createdAt;
+      card.props.updatedAt = dto.updatedAt;
 
       return ok(card);
     } catch (error) {
@@ -150,11 +150,15 @@ export class CardMapper {
 
         case CardTypeEnum.HIGHLIGHT:
           const highlightData = data as HighlightContentData;
-          return CardContent.createHighlightContent(highlightData.text, highlightData.selectors, {
-            context: highlightData.context,
-            documentUrl: highlightData.documentUrl,
-            documentTitle: highlightData.documentTitle,
-          });
+          return CardContent.createHighlightContent(
+            highlightData.text,
+            highlightData.selectors,
+            {
+              context: highlightData.context,
+              documentUrl: highlightData.documentUrl,
+              documentTitle: highlightData.documentTitle,
+            }
+          );
 
         default:
           return err(new Error(`Unknown card type: ${type}`));
@@ -195,7 +199,7 @@ export class CardMapper {
               siteName: urlContent.metadata.siteName,
               imageUrl: urlContent.metadata.imageUrl,
               type: urlContent.metadata.type,
-              retrievedAt: urlContent.metadata.retrievedAt.toISOString(),
+              retrievedAt: urlContent.metadata.retrievedAt?.toISOString(),
             }
           : undefined,
       } as UrlContentData;

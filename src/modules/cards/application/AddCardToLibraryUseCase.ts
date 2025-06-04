@@ -14,11 +14,16 @@ import { CardTypeEnum } from "../domain/value-objects/CardType";
 import { URL } from "../domain/value-objects/URL";
 import { ICardPublisher } from "./ports/ICardPublisher";
 import { ICollectionPublisher } from "./ports/ICollectionPublisher";
+import { CreateAndPublishAnnotationsFromTemplateUseCase, AnnotationInput } from "../../annotations/application/use-cases/CreateAndPublishAnnotationsFromTemplateUseCase";
 
 export interface AddCardToLibraryDTO {
   curatorId: string;
   cardInput: CardCreationInput;
   collectionIds?: string[];
+  annotationTemplate?: {
+    templateId: string;
+    annotations: AnnotationInput[];
+  };
 }
 
 export interface AddCardToLibraryResponseDTO {
@@ -39,6 +44,11 @@ export interface AddCardToLibraryResponseDTO {
     collectionId: string;
     reason: string;
   }>;
+  annotations?: {
+    success: boolean;
+    annotationIds?: string[];
+    error?: string;
+  };
 }
 
 export class ValidationError extends UseCaseError {
@@ -74,7 +84,8 @@ export class AddCardToLibraryUseCase
     private collectionRepository: ICollectionRepository,
     private metadataService: IMetadataService,
     private cardPublisher: ICardPublisher,
-    private collectionPublisher: ICollectionPublisher
+    private collectionPublisher: ICollectionPublisher,
+    private createAnnotationsUseCase?: CreateAndPublishAnnotationsFromTemplateUseCase
   ) {}
 
   async execute(
@@ -143,6 +154,37 @@ export class AddCardToLibraryUseCase
       const saveCardResult = await this.cardRepository.save(card);
       if (saveCardResult.isErr()) {
         return err(AppError.UnexpectedError.create(saveCardResult.error));
+      }
+
+      // Create annotations if specified
+      let annotationsResult: AddCardToLibraryResponseDTO['annotations'];
+      if (request.annotationTemplate && this.createAnnotationsUseCase) {
+        // Only create annotations for URL cards
+        if (request.cardInput.type === CardTypeEnum.URL) {
+          const annotationsResponse = await this.createAnnotationsUseCase.execute({
+            curatorId: request.curatorId,
+            url: request.cardInput.url,
+            templateId: request.annotationTemplate.templateId,
+            annotations: request.annotationTemplate.annotations
+          });
+
+          if (annotationsResponse.isOk()) {
+            annotationsResult = {
+              success: true,
+              annotationIds: annotationsResponse.value.annotationIds
+            };
+          } else {
+            annotationsResult = {
+              success: false,
+              error: annotationsResponse.error.message
+            };
+          }
+        } else {
+          annotationsResult = {
+            success: false,
+            error: "Annotations can only be created for URL cards"
+          };
+        }
       }
 
       // Handle collection additions if specified
@@ -248,6 +290,7 @@ export class AddCardToLibraryUseCase
         } : undefined,
         addedToCollections,
         failedCollections,
+        annotations: annotationsResult,
       });
 
     } catch (error) {

@@ -28,21 +28,18 @@ export interface AddCardToLibraryResponseDTO {
 export class ValidationError extends UseCaseError {
   constructor(message: string) {
     super(message);
-    this.name = "ValidationError";
   }
 }
 
 export class CardNotFoundError extends UseCaseError {
   constructor(cardId: string) {
     super(`Card not found: ${cardId}`);
-    this.name = "CardNotFoundError";
   }
 }
 
 export class CollectionNotFoundError extends UseCaseError {
   constructor(collectionId: string) {
     super(`Collection not found: ${collectionId}`);
-    this.name = "CollectionNotFoundError";
   }
 }
 

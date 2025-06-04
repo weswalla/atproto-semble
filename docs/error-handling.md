@@ -64,6 +64,8 @@ The `Result` type should be used for operations that can **predictably fail** du
     *   `ResourceNotFoundError`: A required entity (e.g., User, Annotation) wasn't found.
     *   `PermissionDeniedError`: User is not authorized.
     *   `AppError.UnexpectedError`: Wraps unexpected errors caught from lower layers or unforeseen exceptions.
+    
+    **Note:** `UseCaseError` is an abstract class that only provides a `message` property. Derived error classes should not set `this.name` as it's not part of the base class interface.
 *   **Example:**
     ```typescript
     // src/modules/annotations/application/use-cases/CreateAnnotationUseCase.ts
@@ -76,7 +78,11 @@ The `Result` type should be used for operations that can **predictably fail** du
     import { AnnotationNote, InvalidNoteError } from '../../domain/value-objects/AnnotationNote';
     // ... other imports
 
-    export class ValidationError extends UseCaseError { /* ... */ }
+    export class ValidationError extends UseCaseError {
+      constructor(message: string) {
+        super(message);
+      }
+    }
     export class CreateAnnotationUseCase implements UseCase<InputDTO, Result<void, ValidationError | AppError.UnexpectedError>> {
       constructor(private repo: IAnnotationRepository) {}
 

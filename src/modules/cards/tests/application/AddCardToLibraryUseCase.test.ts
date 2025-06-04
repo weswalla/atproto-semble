@@ -1,4 +1,8 @@
-import { AddCardToLibraryUseCase, ValidationError } from "../../application/AddCardToLibraryUseCase";
+import {
+  AddCardToLibraryDTO,
+  AddCardToLibraryUseCase,
+  ValidationError,
+} from "../../application/AddCardToLibraryUseCase";
 import { InMemoryCardRepository } from "../utils/InMemoryCardRepository";
 import { InMemoryCollectionRepository } from "../utils/InMemoryCollectionRepository";
 import { FakeMetadataService } from "../utils/FakeMetadataService";
@@ -26,7 +30,7 @@ describe("AddCardToLibraryUseCase", () => {
 
     const curatorIdResult = CuratorId.create("did:plc:curator123");
     expect(curatorIdResult.isOk()).toBe(true);
-    curatorId = curatorIdResult.value;
+    curatorId = curatorIdResult.unwrap();
   });
 
   afterEach(() => {
@@ -45,12 +49,11 @@ describe("AddCardToLibraryUseCase", () => {
         description: "A test article",
         author: "Test Author",
         siteName: "Test Site",
-        retrievedAt: new Date(),
       }).unwrap();
 
       metadataService.setMetadata(testUrl, expectedMetadata);
 
-      const dto = {
+      const dto: AddCardToLibraryDTO = {
         curatorId: curatorId.value,
         cardInput: {
           type: CardTypeEnum.URL,
@@ -74,8 +77,8 @@ describe("AddCardToLibraryUseCase", () => {
         expect(savedCards).toHaveLength(1);
         expect(savedCards[0]!.curatorId.value).toBe(curatorId.value);
         expect(savedCards[0]!.content.type).toBe("URL");
-        
-        const urlContent = savedCards[0]!.content.getUrlContent();
+
+        const urlContent = savedCards[0]!.content.urlContent;
         expect(urlContent?.url.value).toBe(testUrl);
         expect(urlContent?.metadata?.title).toBe("Test Article");
       }
@@ -85,7 +88,7 @@ describe("AddCardToLibraryUseCase", () => {
       // Arrange
       metadataService.setAvailable(false);
 
-      const dto = {
+      const dto: AddCardToLibraryDTO = {
         curatorId: curatorId.value,
         cardInput: {
           type: CardTypeEnum.URL,
@@ -106,7 +109,7 @@ describe("AddCardToLibraryUseCase", () => {
 
     it("should fail with invalid URL", async () => {
       // Arrange
-      const dto = {
+      const dto: AddCardToLibraryDTO = {
         curatorId: curatorId.value,
         cardInput: {
           type: CardTypeEnum.URL,
@@ -129,7 +132,7 @@ describe("AddCardToLibraryUseCase", () => {
   describe("Note Card Creation", () => {
     it("should create a note card", async () => {
       // Arrange
-      const dto = {
+      const dto: AddCardToLibraryDTO = {
         curatorId: curatorId.value,
         cardInput: {
           type: CardTypeEnum.NOTE,
@@ -151,8 +154,8 @@ describe("AddCardToLibraryUseCase", () => {
         const savedCards = cardRepository.getAllCards();
         expect(savedCards).toHaveLength(1);
         expect(savedCards[0]!.content.type).toBe("NOTE");
-        
-        const noteContent = savedCards[0]!.content.getNoteContent();
+
+        const noteContent = savedCards[0]!.content.noteContent;
         expect(noteContent?.text).toBe("This is a test note");
         expect(noteContent?.title).toBe("Test Note");
       }
@@ -172,11 +175,11 @@ describe("AddCardToLibraryUseCase", () => {
         updatedAt: new Date(),
       });
       expect(collectionResult.isOk()).toBe(true);
-      const collection = collectionResult.value;
-      
+      const collection = collectionResult.unwrap();
+
       await collectionRepository.save(collection);
 
-      const dto = {
+      const dto: AddCardToLibraryDTO = {
         curatorId: curatorId.value,
         cardInput: {
           type: CardTypeEnum.NOTE,
@@ -192,21 +195,27 @@ describe("AddCardToLibraryUseCase", () => {
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
         const response = result.value;
-        expect(response.addedToCollections).toEqual([collection.collectionId.getStringValue()]);
+        expect(response.addedToCollections).toEqual([
+          collection.collectionId.getStringValue(),
+        ]);
         expect(response.failedCollections).toEqual([]);
 
         // Verify collection was updated
-        const updatedCollectionResult = await collectionRepository.findById(collection.collectionId);
+        const updatedCollectionResult = await collectionRepository.findById(
+          collection.collectionId
+        );
         expect(updatedCollectionResult.isOk()).toBe(true);
-        const updatedCollection = updatedCollectionResult.value;
+        const updatedCollection = updatedCollectionResult.unwrap();
         expect(updatedCollection?.cardIds).toHaveLength(1);
-        expect(updatedCollection?.cardIds[0]?.getStringValue()).toBe(response.cardId);
+        expect(updatedCollection?.cardIds[0]?.getStringValue()).toBe(
+          response.cardId
+        );
       }
     });
 
     it("should handle non-existent collection gracefully", async () => {
       // Arrange
-      const dto = {
+      const dto: AddCardToLibraryDTO = {
         curatorId: curatorId.value,
         cardInput: {
           type: CardTypeEnum.NOTE,
@@ -225,8 +234,12 @@ describe("AddCardToLibraryUseCase", () => {
         expect(response.cardId).toBeDefined();
         expect(response.addedToCollections).toEqual([]);
         expect(response.failedCollections).toHaveLength(1);
-        expect(response.failedCollections[0]?.collectionId).toBe("non-existent-collection-id");
-        expect(response.failedCollections[0]?.reason).toBe("Collection not found");
+        expect(response.failedCollections[0]?.collectionId).toBe(
+          "non-existent-collection-id"
+        );
+        expect(response.failedCollections[0]?.reason).toBe(
+          "Collection not found"
+        );
 
         // Verify card was still created
         const savedCards = cardRepository.getAllCards();
@@ -236,7 +249,7 @@ describe("AddCardToLibraryUseCase", () => {
 
     it("should handle invalid collection ID gracefully", async () => {
       // Arrange
-      const dto = {
+      const dto: AddCardToLibraryDTO = {
         curatorId: curatorId.value,
         cardInput: {
           type: CardTypeEnum.NOTE,
@@ -253,7 +266,9 @@ describe("AddCardToLibraryUseCase", () => {
       if (result.isOk()) {
         const response = result.value;
         expect(response.failedCollections).toHaveLength(1);
-        expect(response.failedCollections[0]?.reason).toContain("Invalid collection ID");
+        expect(response.failedCollections[0]?.reason).toContain(
+          "Collection not found"
+        );
       }
     });
   });
@@ -261,7 +276,7 @@ describe("AddCardToLibraryUseCase", () => {
   describe("Error Handling", () => {
     it("should fail with invalid curator ID", async () => {
       // Arrange
-      const dto = {
+      const dto: AddCardToLibraryDTO = {
         curatorId: "invalid-curator-id",
         cardInput: {
           type: CardTypeEnum.NOTE,

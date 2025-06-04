@@ -6,6 +6,7 @@ import {
 import { InMemoryCardRepository } from "../utils/InMemoryCardRepository";
 import { InMemoryCollectionRepository } from "../utils/InMemoryCollectionRepository";
 import { FakeMetadataService } from "../utils/FakeMetadataService";
+import { FakeCardPublisher } from "../utils/FakeCardPublisher";
 import { Collection, CollectionAccessType } from "../../domain/Collection";
 import { CardTypeEnum } from "../../domain/value-objects/CardType";
 import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
@@ -15,6 +16,7 @@ describe("AddCardToLibraryUseCase", () => {
   let cardRepository: InMemoryCardRepository;
   let collectionRepository: InMemoryCollectionRepository;
   let metadataService: FakeMetadataService;
+  let cardPublisher: FakeCardPublisher;
   let useCase: AddCardToLibraryUseCase;
   let curatorId: CuratorId;
 
@@ -22,10 +24,12 @@ describe("AddCardToLibraryUseCase", () => {
     cardRepository = new InMemoryCardRepository();
     collectionRepository = new InMemoryCollectionRepository();
     metadataService = new FakeMetadataService();
+    cardPublisher = new FakeCardPublisher();
     useCase = new AddCardToLibraryUseCase(
       cardRepository,
       collectionRepository,
-      metadataService
+      metadataService,
+      cardPublisher
     );
 
     const curatorIdResult = CuratorId.create("did:plc:curator123");
@@ -37,6 +41,7 @@ describe("AddCardToLibraryUseCase", () => {
     cardRepository.clear();
     collectionRepository.clear();
     metadataService.clear();
+    cardPublisher.clear();
   });
 
   describe("URL Card Creation", () => {

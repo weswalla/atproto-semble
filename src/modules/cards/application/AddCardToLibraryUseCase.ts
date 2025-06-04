@@ -12,6 +12,7 @@ import { CollectionAccessError } from "../domain/Collection";
 import { IMetadataService } from "../domain/services/IMetadataService";
 import { CardTypeEnum } from "../domain/value-objects/CardType";
 import { URL } from "../domain/value-objects/URL";
+import { ICardPublisher } from "./ports/ICardPublisher";
 
 export interface AddCardToLibraryDTO {
   curatorId: string;
@@ -21,6 +22,10 @@ export interface AddCardToLibraryDTO {
 
 export interface AddCardToLibraryResponseDTO {
   cardId: string;
+  publishedRecordId?: {
+    uri: string;
+    cid: string;
+  };
   addedToCollections: string[];
   failedCollections: Array<{
     collectionId: string;
@@ -59,7 +64,8 @@ export class AddCardToLibraryUseCase
   constructor(
     private cardRepository: ICardRepository,
     private collectionRepository: ICollectionRepository,
-    private metadataService: IMetadataService
+    private metadataService: IMetadataService,
+    private cardPublisher: ICardPublisher
   ) {}
 
   async execute(
@@ -119,6 +125,17 @@ export class AddCardToLibraryUseCase
       const saveCardResult = await this.cardRepository.save(card);
       if (saveCardResult.isErr()) {
         return err(AppError.UnexpectedError.create(saveCardResult.error));
+      }
+
+      // Publish the card
+      const publishResult = await this.cardPublisher.publish(card);
+      if (publishResult.isErr()) {
+        // Log the error but don't fail the entire operation
+        console.warn(`Failed to publish card ${card.cardId.getStringValue()}: ${publishResult.error.message}`);
+      } else {
+        // Mark the card as published and save again
+        card.markAsPublished(publishResult.value);
+        await this.cardRepository.save(card);
       }
 
       // Handle collection additions if specified
@@ -188,6 +205,10 @@ export class AddCardToLibraryUseCase
 
       return ok({
         cardId: card.cardId.getStringValue(),
+        publishedRecordId: card.publishedRecordId ? {
+          uri: card.publishedRecordId.uri,
+          cid: card.publishedRecordId.cid,
+        } : undefined,
         addedToCollections,
         failedCollections,
       });

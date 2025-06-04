@@ -6,6 +6,7 @@ import { CardId } from "./value-objects/CardId";
 import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
 import { CollectionName, InvalidCollectionNameError } from "./value-objects/CollectionName";
 import { CollectionDescription, InvalidCollectionDescriptionError } from "./value-objects/CollectionDescription";
+import { PublishedRecordId } from "./value-objects/PublishedRecordId";
 
 export enum CollectionAccessType {
   OPEN = "OPEN",
@@ -33,6 +34,7 @@ interface CollectionProps {
   accessType: CollectionAccessType;
   collaboratorIds: CuratorId[];
   cardIds: CardId[];
+  publishedRecordId?: PublishedRecordId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -80,6 +82,14 @@ export class Collection extends AggregateRoot<CollectionProps> {
 
   get isClosed(): boolean {
     return this.props.accessType === CollectionAccessType.CLOSED;
+  }
+
+  get publishedRecordId(): PublishedRecordId | undefined {
+    return this.props.publishedRecordId;
+  }
+
+  get isPublished(): boolean {
+    return this.props.publishedRecordId !== undefined;
   }
 
   private constructor(props: CollectionProps, id?: UniqueEntityID) {
@@ -199,5 +209,15 @@ export class Collection extends AggregateRoot<CollectionProps> {
     this.props.updatedAt = new Date();
 
     return ok(undefined);
+  }
+
+  public markAsPublished(publishedRecordId: PublishedRecordId): void {
+    this.props.publishedRecordId = publishedRecordId;
+    this.props.updatedAt = new Date();
+  }
+
+  public markAsUnpublished(): void {
+    this.props.publishedRecordId = undefined;
+    this.props.updatedAt = new Date();
   }
 }

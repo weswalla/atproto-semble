@@ -5,6 +5,7 @@ import { CardId } from "./value-objects/CardId";
 import { CardType, CardTypeEnum } from "./value-objects/CardType";
 import { CardContent } from "./value-objects/CardContent";
 import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
+import { PublishedRecordId } from "./value-objects/PublishedRecordId";
 
 export class CardValidationError extends Error {
   constructor(message: string) {
@@ -18,6 +19,7 @@ interface CardProps {
   type: CardType;
   content: CardContent;
   parentCardId?: CardId; // For NOTE and HIGHLIGHT cards that reference other cards
+  publishedRecordId?: PublishedRecordId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +52,14 @@ export class Card extends AggregateRoot<CardProps> {
 
   get updatedAt(): Date {
     return this.props.updatedAt;
+  }
+
+  get publishedRecordId(): PublishedRecordId | undefined {
+    return this.props.publishedRecordId;
+  }
+
+  get isPublished(): boolean {
+    return this.props.publishedRecordId !== undefined;
   }
 
   // Type-specific convenience getters
@@ -135,5 +145,15 @@ export class Card extends AggregateRoot<CardProps> {
     this.props.updatedAt = new Date();
 
     return ok(undefined);
+  }
+
+  public markAsPublished(publishedRecordId: PublishedRecordId): void {
+    this.props.publishedRecordId = publishedRecordId;
+    this.props.updatedAt = new Date();
+  }
+
+  public markAsUnpublished(): void {
+    this.props.publishedRecordId = undefined;
+    this.props.updatedAt = new Date();
   }
 }

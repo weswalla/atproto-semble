@@ -15,6 +15,7 @@ import { cards } from "../../infrastructure/repositories/schema/card.sql";
 import { CardFactory } from "../../domain/CardFactory";
 import { CardTypeEnum } from "../../domain/value-objects/CardType";
 import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
+import { CardContent } from "../../domain/value-objects/CardContent";
 
 describe("DrizzleCardRepository", () => {
   let container: StartedPostgreSqlContainer;
@@ -115,7 +116,9 @@ describe("DrizzleCardRepository", () => {
     expect(retrievedCard?.curatorId.value).toBe(curatorId.value);
     expect(retrievedCard?.content.type).toBe(CardTypeEnum.URL);
     expect(retrievedCard?.content.urlContent?.url.value).toBe(url.value);
-    expect(retrievedCard?.content.urlContent?.metadata?.title).toBe("Test Article");
+    expect(retrievedCard?.content.urlContent?.metadata?.title).toBe(
+      "Test Article"
+    );
   });
 
   it("should save and retrieve a note card", async () => {
@@ -143,7 +146,9 @@ describe("DrizzleCardRepository", () => {
     const retrievedCard = retrievedResult.unwrap();
     expect(retrievedCard).not.toBeNull();
     expect(retrievedCard?.content.type).toBe(CardTypeEnum.NOTE);
-    expect(retrievedCard?.content.noteContent?.text).toBe("This is a test note");
+    expect(retrievedCard?.content.noteContent?.text).toBe(
+      "This is a test note"
+    );
     expect(retrievedCard?.content.noteContent?.title).toBe("Test Note");
   });
 
@@ -195,9 +200,13 @@ describe("DrizzleCardRepository", () => {
     const retrievedCard = retrievedResult.unwrap();
     expect(retrievedCard).not.toBeNull();
     expect(retrievedCard?.content.type).toBe(CardTypeEnum.HIGHLIGHT);
-    expect(retrievedCard?.content.highlightContent?.text).toBe("This is highlighted text");
+    expect(retrievedCard?.content.highlightContent?.text).toBe(
+      "This is highlighted text"
+    );
     expect(retrievedCard?.content.highlightContent?.selectors).toHaveLength(1);
-    expect(retrievedCard?.content.highlightContent?.context).toBe("Before This is highlighted text after");
+    expect(retrievedCard?.content.highlightContent?.context).toBe(
+      "Before This is highlighted text after"
+    );
   });
 
   it("should update an existing card", async () => {
@@ -215,7 +224,10 @@ describe("DrizzleCardRepository", () => {
     await cardRepository.save(card);
 
     // Update the card by modifying its content directly
-    const updatedContent = CardContent.createNoteContent("Updated text", "Updated Title");
+    const updatedContent = CardContent.createNoteContent(
+      "Updated text",
+      "Updated Title"
+    );
     if (updatedContent.isOk()) {
       card.updateContent(updatedContent.value);
     }
@@ -292,7 +304,7 @@ describe("DrizzleCardRepository", () => {
 
   it("should find card by URL", async () => {
     const url = URL.create("https://example.com/unique-article").unwrap();
-    
+
     const metadata = UrlMetadata.create({
       url: url.value,
       title: "Unique Article",
@@ -317,7 +329,9 @@ describe("DrizzleCardRepository", () => {
 
     const foundCard = foundCardResult.unwrap();
     expect(foundCard).not.toBeNull();
-    expect(foundCard?.cardId.getStringValue()).toBe(card.cardId.getStringValue());
+    expect(foundCard?.cardId.getStringValue()).toBe(
+      card.cardId.getStringValue()
+    );
     expect(foundCard?.content.urlContent?.url.value).toBe(url.value);
   });
 
@@ -340,8 +354,8 @@ describe("DrizzleCardRepository", () => {
       cardInput: {
         type: CardTypeEnum.NOTE,
         text: "Child card 1",
+        parentCardId: parentCard.cardId.getStringValue(),
       },
-      parentCardId: parentCard.cardId.getStringValue(),
     });
 
     const child2Result = CardFactory.create({
@@ -349,8 +363,8 @@ describe("DrizzleCardRepository", () => {
       cardInput: {
         type: CardTypeEnum.NOTE,
         text: "Child card 2",
+        parentCardId: parentCard.cardId.getStringValue(),
       },
-      parentCardId: parentCard.cardId.getStringValue(),
     });
 
     const child1 = child1Result.unwrap();
@@ -360,7 +374,9 @@ describe("DrizzleCardRepository", () => {
     await cardRepository.save(child2);
 
     // Find child cards
-    const childCardsResult = await cardRepository.findByParentCardId(parentCard.cardId);
+    const childCardsResult = await cardRepository.findByParentCardId(
+      parentCard.cardId
+    );
     expect(childCardsResult.isOk()).toBe(true);
 
     const childCards = childCardsResult.unwrap();
@@ -401,7 +417,11 @@ describe("DrizzleCardRepository", () => {
 
     const retrievedCard = retrievedResult.unwrap();
     expect(retrievedCard).not.toBeNull();
-    expect(retrievedCard?.publishedRecordId?.uri).toBe("at://did:plc:testcurator/app.cards.card/1234");
-    expect(retrievedCard?.publishedRecordId?.cid).toBe("bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu");
+    expect(retrievedCard?.publishedRecordId?.uri).toBe(
+      "at://did:plc:testcurator/app.cards.card/1234"
+    );
+    expect(retrievedCard?.publishedRecordId?.cid).toBe(
+      "bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu"
+    );
   });
 });

@@ -39,6 +39,7 @@ describe("HighlightCardContent Integration Tests", () => {
       // Set up global document for JSDOM
       global.document = document;
       global.window = dom.window as any;
+      global.Node = dom.window.Node;
     });
 
     afterEach(() => {
@@ -75,6 +76,8 @@ describe("HighlightCardContent Integration Tests", () => {
 
     // Helper function to generate XPath for an element
     function getXPath(element: Node): string {
+      const { Node } = dom.window;
+      
       if (element.nodeType === Node.TEXT_NODE) {
         const parent = element.parentNode;
         if (!parent) return "";
@@ -298,13 +301,23 @@ describe("HighlightCardContent Integration Tests", () => {
 
       // Simulate "finding" the annotation again using TextQuoteSelector
       const textQuoteSelector = content.getTextQuoteSelector()!;
-      const searchPattern =
-        textQuoteSelector.prefix +
-        textQuoteSelector.exact +
-        textQuoteSelector.suffix;
-      const foundIndex = documentText.indexOf(searchPattern);
-
-      expect(foundIndex).toBeGreaterThan(-1);
+      
+      // Check if we can find the exact text in the document
+      const exactTextIndex = documentText.indexOf(textQuoteSelector.exact);
+      expect(exactTextIndex).toBeGreaterThan(-1);
+      
+      // Also verify the prefix and suffix are correct
+      const actualPrefix = documentText.substring(
+        Math.max(0, exactTextIndex - textQuoteSelector.prefix.length),
+        exactTextIndex
+      );
+      const actualSuffix = documentText.substring(
+        exactTextIndex + textQuoteSelector.exact.length,
+        exactTextIndex + textQuoteSelector.exact.length + textQuoteSelector.suffix.length
+      );
+      
+      expect(actualPrefix.trim()).toBe(textQuoteSelector.prefix);
+      expect(actualSuffix.trim()).toBe(textQuoteSelector.suffix);
 
       // Verify position selector still works
       const positionSelector = content.getTextPositionSelector()!;

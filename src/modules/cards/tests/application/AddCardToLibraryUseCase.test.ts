@@ -80,7 +80,9 @@ describe("AddCardToLibraryUseCase", () => {
         const response = result.value;
         expect(response.cardId).toBeDefined();
         expect(response.publishedRecordId).toBeDefined();
-        expect(response.publishedRecordId?.uri).toContain("at://fake-did/app.cards.card/");
+        expect(response.publishedRecordId?.uri).toContain(
+          "at://fake-did/app.cards.card/"
+        );
         expect(response.addedToCollections).toEqual([]);
         expect(response.failedCollections).toEqual([]);
 

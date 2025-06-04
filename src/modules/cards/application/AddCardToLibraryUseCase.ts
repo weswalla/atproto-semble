@@ -13,6 +13,7 @@ import { IMetadataService } from "../domain/services/IMetadataService";
 import { CardTypeEnum } from "../domain/value-objects/CardType";
 import { URL } from "../domain/value-objects/URL";
 import { ICardPublisher } from "./ports/ICardPublisher";
+import { ICollectionPublisher } from "./ports/ICollectionPublisher";
 
 export interface AddCardToLibraryDTO {
   curatorId: string;
@@ -65,7 +66,8 @@ export class AddCardToLibraryUseCase
     private cardRepository: ICardRepository,
     private collectionRepository: ICollectionRepository,
     private metadataService: IMetadataService,
-    private cardPublisher: ICardPublisher
+    private cardPublisher: ICardPublisher,
+    private collectionPublisher: ICollectionPublisher
   ) {}
 
   async execute(
@@ -121,21 +123,19 @@ export class AddCardToLibraryUseCase
 
       const card = cardResult.value;
 
-      // Save the card to the repository
+      // Publish the card first
+      const publishResult = await this.cardPublisher.publish(card);
+      if (publishResult.isErr()) {
+        return err(new ValidationError(`Failed to publish card: ${publishResult.error.message}`));
+      }
+
+      // Mark the card as published
+      card.markAsPublished(publishResult.value);
+
+      // Save the card to the repository only after successful publication
       const saveCardResult = await this.cardRepository.save(card);
       if (saveCardResult.isErr()) {
         return err(AppError.UnexpectedError.create(saveCardResult.error));
-      }
-
-      // Publish the card
-      const publishResult = await this.cardPublisher.publish(card);
-      if (publishResult.isErr()) {
-        // Log the error but don't fail the entire operation
-        console.warn(`Failed to publish card ${card.cardId.getStringValue()}: ${publishResult.error.message}`);
-      } else {
-        // Mark the card as published and save again
-        card.markAsPublished(publishResult.value);
-        await this.cardRepository.save(card);
       }
 
       // Handle collection additions if specified
@@ -181,6 +181,19 @@ export class AddCardToLibraryUseCase
               });
               continue;
             }
+
+            // Publish the updated collection
+            const publishCollectionResult = await this.collectionPublisher.publish(collection);
+            if (publishCollectionResult.isErr()) {
+              failedCollections.push({
+                collectionId: collectionIdStr,
+                reason: `Failed to publish collection: ${publishCollectionResult.error.message}`,
+              });
+              continue;
+            }
+
+            // Mark the collection as published
+            collection.markAsPublished(publishCollectionResult.value);
 
             // Save the updated collection
             const saveCollectionResult = await this.collectionRepository.save(collection);

@@ -56,8 +56,6 @@ export class AddCardToLibraryUseCase
         curatorId,
         type: cardType,
         content: cardContent,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       });
 
       if (cardResult.isErr()) {

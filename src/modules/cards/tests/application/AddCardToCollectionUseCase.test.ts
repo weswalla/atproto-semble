@@ -89,10 +89,14 @@ describe("AddCardToCollectionUseCase", () => {
       if (result.isOk()) {
         const response = result.value;
         expect(response.cardId).toBe(card.cardId.getStringValue());
-        expect(response.collectionId).toBe(collection.collectionId.getStringValue());
+        expect(response.collectionId).toBe(
+          collection.collectionId.getStringValue()
+        );
         expect(response.collectionRecord).toBeDefined();
         expect(response.publishedLinks).toHaveLength(1);
-        expect(response.publishedLinks[0]?.cardId).toBe(card.cardId.getStringValue());
+        expect(response.publishedLinks[0]?.cardId).toBe(
+          card.cardId.getStringValue()
+        );
 
         // Verify collection was updated and published
         const updatedCollectionResult = await collectionRepository.findById(
@@ -198,8 +202,8 @@ describe("AddCardToCollectionUseCase", () => {
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
         const response = result.value;
-        expect(response.publishedLinks).toHaveLength(0); // No new links published
-        
+        expect(response.publishedLinks).toHaveLength(1); // will publish unpublished links
+
         // Verify collection still has only one card
         const updatedCollectionResult = await collectionRepository.findById(
           collection.collectionId

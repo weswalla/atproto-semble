@@ -57,11 +57,11 @@ describe("DrizzleCollectionRepository", () => {
       );
 
       CREATE TABLE IF NOT EXISTS cards (
-        id TEXT PRIMARY KEY,
+        id UUID PRIMARY KEY,
         curator_id TEXT NOT NULL,
         type TEXT NOT NULL,
         content_data JSONB NOT NULL,
-        parent_card_id TEXT,
+        parent_card_id UUID REFERENCES cards(id),
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         published_record_id UUID REFERENCES published_records(id)
@@ -88,7 +88,7 @@ describe("DrizzleCollectionRepository", () => {
       CREATE TABLE IF NOT EXISTS collection_cards (
         id UUID PRIMARY KEY,
         collection_id UUID NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
-        card_id TEXT NOT NULL,
+        card_id UUID NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
         added_by TEXT NOT NULL,
         added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         published_record_id UUID REFERENCES published_records(id),

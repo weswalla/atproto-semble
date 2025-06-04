@@ -48,11 +48,11 @@ describe("DrizzleCardRepository", () => {
       );
 
       CREATE TABLE IF NOT EXISTS cards (
-        id TEXT PRIMARY KEY,
+        id UUID PRIMARY KEY,
         curator_id TEXT NOT NULL,
         type TEXT NOT NULL,
         content_data JSONB NOT NULL,
-        parent_card_id TEXT,
+        parent_card_id UUID REFERENCES cards(id),
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         published_record_id UUID REFERENCES published_records(id)

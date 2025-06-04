@@ -30,11 +30,12 @@ export class FakeMetadataService implements IMetadataService {
       description: `Fake description for ${url.value}`,
       author: "Fake Author",
       siteName: "Fake Site",
-      retrievedAt: new Date(),
     });
 
     if (metadataResult.isErr()) {
-      return err(new Error(`Failed to create metadata: ${metadataResult.error.message}`));
+      return err(
+        new Error(`Failed to create metadata: ${metadataResult.error.message}`)
+      );
     }
 
     return ok(metadataResult.value);

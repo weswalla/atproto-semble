@@ -148,6 +148,18 @@ describe("DrizzleCardRepository", () => {
   });
 
   it("should save and retrieve a highlight card", async () => {
+    // Create a parent card first for the highlight
+    const parentCardResult = CardFactory.create({
+      curatorId: curatorId.value,
+      cardInput: {
+        type: CardTypeEnum.NOTE,
+        text: "Parent document",
+        title: "Test Document",
+      },
+    });
+    const parentCard = parentCardResult.unwrap();
+    await cardRepository.save(parentCard);
+
     // Create a highlight card
     const cardResult = CardFactory.create({
       curatorId: curatorId.value,
@@ -162,6 +174,7 @@ describe("DrizzleCardRepository", () => {
             suffix: " after",
           },
         ],
+        parentCardId: parentCard.cardId.getStringValue(),
         context: "Before This is highlighted text after",
         documentUrl: "https://example.com/document",
         documentTitle: "Test Document",
@@ -201,23 +214,13 @@ describe("DrizzleCardRepository", () => {
     const card = cardResult.unwrap();
     await cardRepository.save(card);
 
-    // Update the card content
-    const updatedCardResult = CardFactory.create({
-      curatorId: curatorId.value,
-      cardInput: {
-        type: CardTypeEnum.NOTE,
-        text: "Updated text",
-        title: "Updated Title",
-      },
-    });
+    // Update the card by modifying its content directly
+    const updatedContent = CardContent.createNoteContent("Updated text", "Updated Title");
+    if (updatedContent.isOk()) {
+      card.updateContent(updatedContent.value);
+    }
 
-    const updatedCard = updatedCardResult.unwrap();
-    // Use the same ID to simulate an update
-    const cardWithSameId = Object.create(Object.getPrototypeOf(updatedCard));
-    Object.assign(cardWithSameId, updatedCard);
-    cardWithSameId._id = card._id;
-
-    await cardRepository.save(cardWithSameId);
+    await cardRepository.save(card);
 
     // Retrieve the updated card
     const retrievedResult = await cardRepository.findById(card.cardId);
@@ -290,11 +293,18 @@ describe("DrizzleCardRepository", () => {
   it("should find card by URL", async () => {
     const url = URL.create("https://example.com/unique-article").unwrap();
     
+    const metadata = UrlMetadata.create({
+      url: url.value,
+      title: "Unique Article",
+      retrievedAt: new Date(),
+    }).unwrap();
+
     const cardResult = CardFactory.create({
       curatorId: curatorId.value,
       cardInput: {
         type: CardTypeEnum.URL,
         url: url.value,
+        metadata,
       },
     });
 

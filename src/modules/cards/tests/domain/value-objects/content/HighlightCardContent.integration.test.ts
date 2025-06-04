@@ -77,7 +77,7 @@ describe("HighlightCardContent Integration Tests", () => {
     // Helper function to generate XPath for an element
     function getXPath(element: Node): string {
       const { Node } = dom.window;
-      
+
       if (element.nodeType === Node.TEXT_NODE) {
         const parent = element.parentNode;
         if (!parent) return "";
@@ -273,11 +273,11 @@ describe("HighlightCardContent Integration Tests", () => {
       // Generate selectors as if creating the annotation
       const exactMatch = targetText;
       const globalStartIndex = globalPosition!.start;
-      
+
       // Extract prefix and suffix from the global document text
       const prefixLength = 20;
       const suffixLength = 20;
-      
+
       const prefix = documentText.substring(
         Math.max(0, globalStartIndex - prefixLength),
         globalStartIndex
@@ -308,21 +308,24 @@ describe("HighlightCardContent Integration Tests", () => {
 
       // Simulate "finding" the annotation again using TextQuoteSelector
       const textQuoteSelector = content.getTextQuoteSelector()!;
-      
+
       // Check if we can find the exact text in the document
       const exactTextIndex = documentText.indexOf(textQuoteSelector.exact);
       expect(exactTextIndex).toBeGreaterThan(-1);
-      
+
       // Verify the prefix and suffix match what we extracted
       const actualPrefix = documentText.substring(
-        exactTextIndex - textQuoteSelector.prefix.length,
-        exactTextIndex
+        exactTextIndex - textQuoteSelector.prefix!.length - 1,
+        exactTextIndex - 1
       );
       const actualSuffix = documentText.substring(
-        exactTextIndex + textQuoteSelector.exact.length,
-        exactTextIndex + textQuoteSelector.exact.length + textQuoteSelector.suffix.length
+        exactTextIndex + textQuoteSelector.exact.length + 1,
+        exactTextIndex +
+          textQuoteSelector.exact.length +
+          textQuoteSelector.suffix!.length +
+          1
       );
-      
+
       expect(actualPrefix).toBe(textQuoteSelector.prefix);
       expect(actualSuffix).toBe(textQuoteSelector.suffix);
 

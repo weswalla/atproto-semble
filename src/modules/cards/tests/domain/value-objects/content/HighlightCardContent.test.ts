@@ -7,6 +7,7 @@ import {
   HighlightSelector
 } from "../../../../domain/value-objects/content/HighlightCardContent";
 import { CardTypeEnum } from "../../../../domain/value-objects/CardType";
+import { Err } from "../../../../../shared/core/Result";
 
 describe("HighlightCardContent", () => {
   const validTextQuoteSelector: TextQuoteSelector = {
@@ -99,15 +100,15 @@ describe("HighlightCardContent", () => {
       const result = HighlightCardContent.create("", [validTextQuoteSelector]);
       
       expect(result.isErr()).toBe(true);
-      expect(result.error).toBeInstanceOf(HighlightCardContentValidationError);
-      expect(result.error.message).toBe("Highlight text cannot be empty");
+      expect((result as Err<HighlightCardContent, HighlightCardContentValidationError>).error).toBeInstanceOf(HighlightCardContentValidationError);
+      expect((result as Err<HighlightCardContent, HighlightCardContentValidationError>).error.message).toBe("Highlight text cannot be empty");
     });
 
     it("should reject whitespace-only text", () => {
       const result = HighlightCardContent.create("   ", [validTextQuoteSelector]);
       
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toBe("Highlight text cannot be empty");
+      expect((result as Err<HighlightCardContent, HighlightCardContentValidationError>).error.message).toBe("Highlight text cannot be empty");
     });
 
     it("should reject text exceeding max length", () => {
@@ -115,14 +116,14 @@ describe("HighlightCardContent", () => {
       const result = HighlightCardContent.create(longText, [validTextQuoteSelector]);
       
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toBe(`Highlight text cannot exceed ${HighlightCardContent.MAX_TEXT_LENGTH} characters`);
+      expect((result as Err<HighlightCardContent, HighlightCardContentValidationError>).error.message).toBe(`Highlight text cannot exceed ${HighlightCardContent.MAX_TEXT_LENGTH} characters`);
     });
 
     it("should reject empty selectors array", () => {
       const result = HighlightCardContent.create("highlighted text", []);
       
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toBe("Highlight must have at least one selector");
+      expect((result as Err<HighlightCardContent, HighlightCardContentValidationError>).error.message).toBe("Highlight must have at least one selector");
     });
   });
 
@@ -136,7 +137,7 @@ describe("HighlightCardContent", () => {
       const result = HighlightCardContent.create("highlighted text", [invalidSelector]);
       
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toBe("TextQuoteSelector must have exact text");
+      expect((result as Err<HighlightCardContent, HighlightCardContentValidationError>).error.message).toBe("TextQuoteSelector must have exact text");
     });
 
     it("should reject TextPositionSelector with invalid positions", () => {
@@ -149,7 +150,7 @@ describe("HighlightCardContent", () => {
       const result = HighlightCardContent.create("highlighted text", [invalidSelector]);
       
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toBe("TextPositionSelector must have valid start/end positions");
+      expect((result as Err<HighlightCardContent, HighlightCardContentValidationError>).error.message).toBe("TextPositionSelector must have valid start/end positions");
     });
 
     it("should reject TextPositionSelector with negative positions", () => {
@@ -162,7 +163,7 @@ describe("HighlightCardContent", () => {
       const result = HighlightCardContent.create("highlighted text", [invalidSelector]);
       
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toBe("TextPositionSelector must have valid start/end positions");
+      expect((result as Err<HighlightCardContent, HighlightCardContentValidationError>).error.message).toBe("TextPositionSelector must have valid start/end positions");
     });
 
     it("should reject RangeSelector with missing containers", () => {
@@ -177,7 +178,7 @@ describe("HighlightCardContent", () => {
       const result = HighlightCardContent.create("highlighted text", [invalidSelector]);
       
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toBe("RangeSelector must have start and end containers");
+      expect((result as Err<HighlightCardContent, HighlightCardContentValidationError>).error.message).toBe("RangeSelector must have start and end containers");
     });
 
     it("should reject RangeSelector with negative offsets", () => {
@@ -192,7 +193,7 @@ describe("HighlightCardContent", () => {
       const result = HighlightCardContent.create("highlighted text", [invalidSelector]);
       
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toBe("RangeSelector offsets must be non-negative");
+      expect((result as Err<HighlightCardContent, HighlightCardContentValidationError>).error.message).toBe("RangeSelector offsets must be non-negative");
     });
   });
 

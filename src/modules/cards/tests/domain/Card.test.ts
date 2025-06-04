@@ -5,6 +5,7 @@ import { CardId } from "../../domain/value-objects/CardId";
 import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
 import { URL } from "../../domain/value-objects/URL";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
+import { Err } from "../../../../shared/core/Result";
 
 describe("Card", () => {
   const validCuratorId = CuratorId.create("did:plc:test123").unwrap();
@@ -44,8 +45,8 @@ describe("Card", () => {
       });
 
       expect(result.isErr()).toBe(true);
-      expect(result.error).toBeInstanceOf(CardValidationError);
-      expect(result.error.message).toBe("URL cards cannot have parent cards");
+      expect((result as Err<Card, CardValidationError>).error).toBeInstanceOf(CardValidationError);
+      expect((result as Err<Card, CardValidationError>).error.message).toBe("URL cards cannot have parent cards");
     });
 
     it("should reject URL card with mismatched content type", () => {
@@ -59,8 +60,8 @@ describe("Card", () => {
       });
 
       expect(result.isErr()).toBe(true);
-      expect(result.error).toBeInstanceOf(CardValidationError);
-      expect(result.error.message).toBe("Card type must match content type");
+      expect((result as Err<Card, CardValidationError>).error).toBeInstanceOf(CardValidationError);
+      expect((result as Err<Card, CardValidationError>).error.message).toBe("Card type must match content type");
     });
   });
 
@@ -132,7 +133,7 @@ describe("Card", () => {
       const updateResult = card.updateContent(urlContent);
 
       expect(updateResult.isErr()).toBe(true);
-      expect(updateResult.error.message).toBe("Cannot change card content to different type");
+      expect((updateResult as Err<void, CardValidationError>).error.message).toBe("Cannot change card content to different type");
     });
   });
 
@@ -172,8 +173,8 @@ describe("Card", () => {
       });
 
       expect(result.isErr()).toBe(true);
-      expect(result.error).toBeInstanceOf(CardValidationError);
-      expect(result.error.message).toBe("Highlight cards must have a parent card");
+      expect((result as Err<Card, CardValidationError>).error).toBeInstanceOf(CardValidationError);
+      expect((result as Err<Card, CardValidationError>).error.message).toBe("Highlight cards must have a parent card");
     });
   });
 

@@ -1,5 +1,6 @@
 import { NoteCardContent, NoteCardContentValidationError } from "../../../../domain/value-objects/content/NoteCardContent";
 import { CardTypeEnum } from "../../../../domain/value-objects/CardType";
+import { Err } from "../../../../../shared/core/Result";
 
 describe("NoteCardContent", () => {
   describe("creation", () => {
@@ -36,16 +37,16 @@ describe("NoteCardContent", () => {
       const result = NoteCardContent.create("");
       
       expect(result.isErr()).toBe(true);
-      expect(result.error).toBeInstanceOf(NoteCardContentValidationError);
-      expect(result.error.message).toBe("Note text cannot be empty");
+      expect((result as Err<NoteCardContent, NoteCardContentValidationError>).error).toBeInstanceOf(NoteCardContentValidationError);
+      expect((result as Err<NoteCardContent, NoteCardContentValidationError>).error.message).toBe("Note text cannot be empty");
     });
 
     it("should reject whitespace-only text", () => {
       const result = NoteCardContent.create("   ");
       
       expect(result.isErr()).toBe(true);
-      expect(result.error).toBeInstanceOf(NoteCardContentValidationError);
-      expect(result.error.message).toBe("Note text cannot be empty");
+      expect((result as Err<NoteCardContent, NoteCardContentValidationError>).error).toBeInstanceOf(NoteCardContentValidationError);
+      expect((result as Err<NoteCardContent, NoteCardContentValidationError>).error.message).toBe("Note text cannot be empty");
     });
 
     it("should reject text exceeding max length", () => {
@@ -53,8 +54,8 @@ describe("NoteCardContent", () => {
       const result = NoteCardContent.create(longText);
       
       expect(result.isErr()).toBe(true);
-      expect(result.error).toBeInstanceOf(NoteCardContentValidationError);
-      expect(result.error.message).toBe(`Note text cannot exceed ${NoteCardContent.MAX_TEXT_LENGTH} characters`);
+      expect((result as Err<NoteCardContent, NoteCardContentValidationError>).error).toBeInstanceOf(NoteCardContentValidationError);
+      expect((result as Err<NoteCardContent, NoteCardContentValidationError>).error.message).toBe(`Note text cannot exceed ${NoteCardContent.MAX_TEXT_LENGTH} characters`);
     });
 
     it("should accept text at max length", () => {
@@ -90,8 +91,8 @@ describe("NoteCardContent", () => {
       const result = content.updateText("");
       
       expect(result.isErr()).toBe(true);
-      expect(result.error).toBeInstanceOf(NoteCardContentValidationError);
-      expect(result.error.message).toBe("Note text cannot be empty");
+      expect((result as Err<NoteCardContent, NoteCardContentValidationError>).error).toBeInstanceOf(NoteCardContentValidationError);
+      expect((result as Err<NoteCardContent, NoteCardContentValidationError>).error.message).toBe("Note text cannot be empty");
     });
 
     it("should reject text update exceeding max length", () => {
@@ -100,8 +101,8 @@ describe("NoteCardContent", () => {
       const result = content.updateText(longText);
       
       expect(result.isErr()).toBe(true);
-      expect(result.error).toBeInstanceOf(NoteCardContentValidationError);
-      expect(result.error.message).toBe(`Note text cannot exceed ${NoteCardContent.MAX_TEXT_LENGTH} characters`);
+      expect((result as Err<NoteCardContent, NoteCardContentValidationError>).error).toBeInstanceOf(NoteCardContentValidationError);
+      expect((result as Err<NoteCardContent, NoteCardContentValidationError>).error.message).toBe(`Note text cannot exceed ${NoteCardContent.MAX_TEXT_LENGTH} characters`);
     });
   });
 

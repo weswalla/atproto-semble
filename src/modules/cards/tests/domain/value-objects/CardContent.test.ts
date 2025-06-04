@@ -1,6 +1,7 @@
 import { CardContent, CardContentValidationError } from "../../../domain/value-objects/CardContent";
 import { CardTypeEnum } from "../../../domain/value-objects/CardType";
 import { URL } from "../../../domain/value-objects/URL";
+import { Err } from "../../../../shared/core/Result";
 
 describe("CardContent", () => {
   const validUrl = URL.create("https://example.com").unwrap();
@@ -53,8 +54,8 @@ describe("CardContent", () => {
       const result = CardContent.createNoteContent("");
       
       expect(result.isErr()).toBe(true);
-      expect(result.error).toBeInstanceOf(CardContentValidationError);
-      expect(result.error.message).toBe("Note text cannot be empty");
+      expect((result as Err<CardContent, CardContentValidationError>).error).toBeInstanceOf(CardContentValidationError);
+      expect((result as Err<CardContent, CardContentValidationError>).error.message).toBe("Note text cannot be empty");
     });
   });
 
@@ -95,7 +96,7 @@ describe("CardContent", () => {
       const result = CardContent.createHighlightContent("", []);
       
       expect(result.isErr()).toBe(true);
-      expect(result.error).toBeInstanceOf(CardContentValidationError);
+      expect((result as Err<CardContent, CardContentValidationError>).error).toBeInstanceOf(CardContentValidationError);
     });
   });
 
@@ -237,7 +238,7 @@ describe("CardContent", () => {
       });
       
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toBe("Invalid card content type");
+      expect((result as Err<CardContent, CardContentValidationError>).error.message).toBe("Invalid card content type");
     });
   });
 });

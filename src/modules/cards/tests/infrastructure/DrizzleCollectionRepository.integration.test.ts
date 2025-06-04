@@ -1,0 +1,505 @@
+import {
+  PostgreSqlContainer,
+  StartedPostgreSqlContainer,
+} from "@testcontainers/postgresql";
+import postgres from "postgres";
+import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { DrizzleCollectionRepository } from "../../infrastructure/repositories/DrizzleCollectionRepository";
+import { DrizzleCardRepository } from "../../infrastructure/repositories/DrizzleCardRepository";
+import { CollectionId } from "../../domain/value-objects/CollectionId";
+import { CardId } from "../../domain/value-objects/CardId";
+import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
+import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
+import { sql } from "drizzle-orm";
+import {
+  collections,
+  collectionCollaborators,
+  collectionCards,
+} from "../../infrastructure/repositories/schema/collection.sql";
+import { cards } from "../../infrastructure/repositories/schema/card.sql";
+import { Collection } from "../../domain/Collection";
+import { CollectionName } from "../../domain/value-objects/CollectionName";
+import { CollectionDescription } from "../../domain/value-objects/CollectionDescription";
+import { CollectionAccessType } from "../../domain/value-objects/CollectionAccessType";
+import { CardFactory } from "../../domain/CardFactory";
+import { CardTypeEnum } from "../../domain/value-objects/CardType";
+
+describe("DrizzleCollectionRepository", () => {
+  let container: StartedPostgreSqlContainer;
+  let db: PostgresJsDatabase;
+  let collectionRepository: DrizzleCollectionRepository;
+  let cardRepository: DrizzleCardRepository;
+
+  // Test data
+  let curatorId: CuratorId;
+  let collaboratorId: CuratorId;
+
+  // Setup before all tests
+  beforeAll(async () => {
+    // Start PostgreSQL container
+    container = await new PostgreSqlContainer().start();
+
+    // Create database connection
+    const connectionString = container.getConnectionUri();
+    process.env.DATABASE_URL = connectionString;
+    const client = postgres(connectionString);
+    db = drizzle(client);
+
+    // Create repositories
+    collectionRepository = new DrizzleCollectionRepository(db);
+    cardRepository = new DrizzleCardRepository(db);
+
+    // Create schema using drizzle schema definitions
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS published_records (
+        id UUID PRIMARY KEY,
+        uri TEXT NOT NULL,
+        cid TEXT NOT NULL,
+        recorded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        UNIQUE(uri, cid)
+      );
+
+      CREATE TABLE IF NOT EXISTS cards (
+        id TEXT PRIMARY KEY,
+        curator_id TEXT NOT NULL,
+        type TEXT NOT NULL,
+        content_data JSONB NOT NULL,
+        parent_card_id TEXT,
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        published_record_id UUID REFERENCES published_records(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS collections (
+        id UUID PRIMARY KEY,
+        author_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        description TEXT,
+        access_type TEXT NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        published_record_id UUID REFERENCES published_records(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS collection_collaborators (
+        id UUID PRIMARY KEY,
+        collection_id UUID NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+        collaborator_id TEXT NOT NULL,
+        UNIQUE(collection_id, collaborator_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS collection_cards (
+        id UUID PRIMARY KEY,
+        collection_id UUID NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+        card_id TEXT NOT NULL,
+        added_by TEXT NOT NULL,
+        added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        published_record_id UUID REFERENCES published_records(id),
+        UNIQUE(collection_id, card_id)
+      );
+    `);
+
+    // Create test data
+    curatorId = CuratorId.create("did:plc:testcurator").unwrap();
+    collaboratorId = CuratorId.create("did:plc:collaborator").unwrap();
+  }, 60000); // Increase timeout for container startup
+
+  // Cleanup after all tests
+  afterAll(async () => {
+    // Stop container
+    await container.stop();
+  });
+
+  // Clear data between tests
+  beforeEach(async () => {
+    await db.delete(collectionCards);
+    await db.delete(collectionCollaborators);
+    await db.delete(collections);
+    await db.delete(cards);
+  });
+
+  it("should save and retrieve a collection", async () => {
+    // Create a collection
+    const collectionId = new UniqueEntityID();
+    const name = CollectionName.create("Test Collection").unwrap();
+    const description = CollectionDescription.create("A test collection").unwrap();
+    const accessType = CollectionAccessType.create("PUBLIC").unwrap();
+
+    const collection = Collection.create(
+      {
+        authorId: curatorId,
+        name,
+        description,
+        accessType,
+      },
+      collectionId
+    ).unwrap();
+
+    // Save the collection
+    const saveResult = await collectionRepository.save(collection);
+    expect(saveResult.isOk()).toBe(true);
+
+    // Retrieve the collection
+    const retrievedResult = await collectionRepository.findById(
+      CollectionId.create(collectionId).unwrap()
+    );
+    expect(retrievedResult.isOk()).toBe(true);
+
+    const retrievedCollection = retrievedResult.unwrap();
+    expect(retrievedCollection).not.toBeNull();
+    expect(retrievedCollection?.collectionId.getStringValue()).toBe(
+      collectionId.toString()
+    );
+    expect(retrievedCollection?.authorId.value).toBe(curatorId.value);
+    expect(retrievedCollection?.name.value).toBe("Test Collection");
+    expect(retrievedCollection?.description?.value).toBe("A test collection");
+    expect(retrievedCollection?.accessType.value).toBe("PUBLIC");
+  });
+
+  it("should save and retrieve a collection with collaborators", async () => {
+    // Create a collection
+    const collectionId = new UniqueEntityID();
+    const name = CollectionName.create("Collaborative Collection").unwrap();
+    const accessType = CollectionAccessType.create("PRIVATE").unwrap();
+
+    const collection = Collection.create(
+      {
+        authorId: curatorId,
+        name,
+        accessType,
+      },
+      collectionId
+    ).unwrap();
+
+    // Add a collaborator
+    const addCollaboratorResult = collection.addCollaborator(collaboratorId, curatorId);
+    expect(addCollaboratorResult.isOk()).toBe(true);
+
+    // Save the collection
+    const saveResult = await collectionRepository.save(collection);
+    expect(saveResult.isOk()).toBe(true);
+
+    // Retrieve the collection
+    const retrievedResult = await collectionRepository.findById(
+      CollectionId.create(collectionId).unwrap()
+    );
+    expect(retrievedResult.isOk()).toBe(true);
+
+    const retrievedCollection = retrievedResult.unwrap();
+    expect(retrievedCollection).not.toBeNull();
+    expect(retrievedCollection?.collaborators).toHaveLength(1);
+    expect(retrievedCollection?.collaborators[0]?.value).toBe(collaboratorId.value);
+  });
+
+  it("should save and retrieve a collection with cards", async () => {
+    // Create a card first
+    const cardResult = CardFactory.create({
+      curatorId: curatorId.value,
+      cardInput: {
+        type: CardTypeEnum.NOTE,
+        text: "Test card for collection",
+      },
+    });
+
+    const card = cardResult.unwrap();
+    await cardRepository.save(card);
+
+    // Create a collection
+    const collectionId = new UniqueEntityID();
+    const name = CollectionName.create("Collection with Cards").unwrap();
+    const accessType = CollectionAccessType.create("PUBLIC").unwrap();
+
+    const collection = Collection.create(
+      {
+        authorId: curatorId,
+        name,
+        accessType,
+      },
+      collectionId
+    ).unwrap();
+
+    // Add the card to the collection
+    const addCardResult = collection.addCard(card.cardId, curatorId);
+    expect(addCardResult.isOk()).toBe(true);
+
+    // Save the collection
+    const saveResult = await collectionRepository.save(collection);
+    expect(saveResult.isOk()).toBe(true);
+
+    // Retrieve the collection
+    const retrievedResult = await collectionRepository.findById(
+      CollectionId.create(collectionId).unwrap()
+    );
+    expect(retrievedResult.isOk()).toBe(true);
+
+    const retrievedCollection = retrievedResult.unwrap();
+    expect(retrievedCollection).not.toBeNull();
+    expect(retrievedCollection?.cardLinks).toHaveLength(1);
+    expect(retrievedCollection?.cardLinks[0]?.cardId.getStringValue()).toBe(
+      card.cardId.getStringValue()
+    );
+    expect(retrievedCollection?.cardLinks[0]?.addedBy.value).toBe(curatorId.value);
+  });
+
+  it("should update an existing collection", async () => {
+    // Create a collection
+    const collectionId = new UniqueEntityID();
+    const name = CollectionName.create("Original Name").unwrap();
+    const accessType = CollectionAccessType.create("PRIVATE").unwrap();
+
+    const collection = Collection.create(
+      {
+        authorId: curatorId,
+        name,
+        accessType,
+      },
+      collectionId
+    ).unwrap();
+
+    await collectionRepository.save(collection);
+
+    // Update the collection
+    const updatedName = CollectionName.create("Updated Name").unwrap();
+    const updatedDescription = CollectionDescription.create("Updated description").unwrap();
+    
+    const updatedCollection = Collection.create(
+      {
+        authorId: curatorId,
+        name: updatedName,
+        description: updatedDescription,
+        accessType,
+      },
+      collectionId
+    ).unwrap();
+
+    await collectionRepository.save(updatedCollection);
+
+    // Retrieve the updated collection
+    const retrievedResult = await collectionRepository.findById(
+      CollectionId.create(collectionId).unwrap()
+    );
+    const retrievedCollection = retrievedResult.unwrap();
+
+    expect(retrievedCollection).not.toBeNull();
+    expect(retrievedCollection?.name.value).toBe("Updated Name");
+    expect(retrievedCollection?.description?.value).toBe("Updated description");
+  });
+
+  it("should delete a collection", async () => {
+    // Create a collection
+    const collectionId = new UniqueEntityID();
+    const name = CollectionName.create("Collection to Delete").unwrap();
+    const accessType = CollectionAccessType.create("PUBLIC").unwrap();
+
+    const collection = Collection.create(
+      {
+        authorId: curatorId,
+        name,
+        accessType,
+      },
+      collectionId
+    ).unwrap();
+
+    await collectionRepository.save(collection);
+
+    // Delete the collection
+    const deleteResult = await collectionRepository.delete(
+      CollectionId.create(collectionId).unwrap()
+    );
+    expect(deleteResult.isOk()).toBe(true);
+
+    // Try to retrieve the deleted collection
+    const retrievedResult = await collectionRepository.findById(
+      CollectionId.create(collectionId).unwrap()
+    );
+    expect(retrievedResult.isOk()).toBe(true);
+    expect(retrievedResult.unwrap()).toBeNull();
+  });
+
+  it("should find collections by curator ID", async () => {
+    // Create multiple collections for the same curator
+    const collection1Id = new UniqueEntityID();
+    const collection1 = Collection.create(
+      {
+        authorId: curatorId,
+        name: CollectionName.create("First Collection").unwrap(),
+        accessType: CollectionAccessType.create("PUBLIC").unwrap(),
+      },
+      collection1Id
+    ).unwrap();
+
+    const collection2Id = new UniqueEntityID();
+    const collection2 = Collection.create(
+      {
+        authorId: curatorId,
+        name: CollectionName.create("Second Collection").unwrap(),
+        accessType: CollectionAccessType.create("PRIVATE").unwrap(),
+      },
+      collection2Id
+    ).unwrap();
+
+    await collectionRepository.save(collection1);
+    await collectionRepository.save(collection2);
+
+    // Find collections by curator ID
+    const foundCollectionsResult = await collectionRepository.findByCuratorId(curatorId);
+    expect(foundCollectionsResult.isOk()).toBe(true);
+
+    const foundCollections = foundCollectionsResult.unwrap();
+    expect(foundCollections).toHaveLength(2);
+
+    const names = foundCollections.map((c) => c.name.value);
+    expect(names).toContain("First Collection");
+    expect(names).toContain("Second Collection");
+  });
+
+  it("should find collections by card ID", async () => {
+    // Create a card
+    const cardResult = CardFactory.create({
+      curatorId: curatorId.value,
+      cardInput: {
+        type: CardTypeEnum.NOTE,
+        text: "Shared card",
+      },
+    });
+
+    const card = cardResult.unwrap();
+    await cardRepository.save(card);
+
+    // Create multiple collections and add the card to them
+    const collection1Id = new UniqueEntityID();
+    const collection1 = Collection.create(
+      {
+        authorId: curatorId,
+        name: CollectionName.create("Collection One").unwrap(),
+        accessType: CollectionAccessType.create("PUBLIC").unwrap(),
+      },
+      collection1Id
+    ).unwrap();
+
+    const collection2Id = new UniqueEntityID();
+    const collection2 = Collection.create(
+      {
+        authorId: curatorId,
+        name: CollectionName.create("Collection Two").unwrap(),
+        accessType: CollectionAccessType.create("PRIVATE").unwrap(),
+      },
+      collection2Id
+    ).unwrap();
+
+    // Add card to both collections
+    collection1.addCard(card.cardId, curatorId);
+    collection2.addCard(card.cardId, curatorId);
+
+    await collectionRepository.save(collection1);
+    await collectionRepository.save(collection2);
+
+    // Find collections by card ID
+    const foundCollectionsResult = await collectionRepository.findByCardId(card.cardId);
+    expect(foundCollectionsResult.isOk()).toBe(true);
+
+    const foundCollections = foundCollectionsResult.unwrap();
+    expect(foundCollections).toHaveLength(2);
+
+    const names = foundCollections.map((c) => c.name.value);
+    expect(names).toContain("Collection One");
+    expect(names).toContain("Collection Two");
+  });
+
+  it("should save and retrieve a collection with published record", async () => {
+    // Create a collection
+    const collectionId = new UniqueEntityID();
+    const name = CollectionName.create("Published Collection").unwrap();
+    const accessType = CollectionAccessType.create("PUBLIC").unwrap();
+
+    const collection = Collection.create(
+      {
+        authorId: curatorId,
+        name,
+        accessType,
+      },
+      collectionId
+    ).unwrap();
+
+    // Mark as published
+    const publishedRecordId = PublishedRecordId.create({
+      uri: "at://did:plc:testcurator/app.cards.collection/1234",
+      cid: "bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu",
+    });
+
+    collection.markAsPublished(publishedRecordId);
+
+    // Save the collection
+    const saveResult = await collectionRepository.save(collection);
+    expect(saveResult.isOk()).toBe(true);
+
+    // Retrieve the collection
+    const retrievedResult = await collectionRepository.findById(
+      CollectionId.create(collectionId).unwrap()
+    );
+    expect(retrievedResult.isOk()).toBe(true);
+
+    const retrievedCollection = retrievedResult.unwrap();
+    expect(retrievedCollection).not.toBeNull();
+    expect(retrievedCollection?.publishedRecordId?.uri).toBe(
+      "at://did:plc:testcurator/app.cards.collection/1234"
+    );
+    expect(retrievedCollection?.publishedRecordId?.cid).toBe(
+      "bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu"
+    );
+  });
+
+  it("should handle card links with published records", async () => {
+    // Create a card
+    const cardResult = CardFactory.create({
+      curatorId: curatorId.value,
+      cardInput: {
+        type: CardTypeEnum.NOTE,
+        text: "Card with published link",
+      },
+    });
+
+    const card = cardResult.unwrap();
+    await cardRepository.save(card);
+
+    // Create a collection
+    const collectionId = new UniqueEntityID();
+    const collection = Collection.create(
+      {
+        authorId: curatorId,
+        name: CollectionName.create("Collection with Published Links").unwrap(),
+        accessType: CollectionAccessType.create("PUBLIC").unwrap(),
+      },
+      collectionId
+    ).unwrap();
+
+    // Add card to collection
+    collection.addCard(card.cardId, curatorId);
+
+    // Mark the card link as published
+    const linkPublishedRecord = PublishedRecordId.create({
+      uri: "at://did:plc:testcurator/app.cards.collectionLink/5678",
+      cid: "bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu",
+    });
+
+    collection.markCardLinkAsPublished(card.cardId, linkPublishedRecord);
+
+    // Save the collection
+    const saveResult = await collectionRepository.save(collection);
+    expect(saveResult.isOk()).toBe(true);
+
+    // Retrieve the collection
+    const retrievedResult = await collectionRepository.findById(
+      CollectionId.create(collectionId).unwrap()
+    );
+    expect(retrievedResult.isOk()).toBe(true);
+
+    const retrievedCollection = retrievedResult.unwrap();
+    expect(retrievedCollection).not.toBeNull();
+    expect(retrievedCollection?.cardLinks).toHaveLength(1);
+    expect(retrievedCollection?.cardLinks[0]?.publishedRecordId?.uri).toBe(
+      "at://did:plc:testcurator/app.cards.collectionLink/5678"
+    );
+  });
+});

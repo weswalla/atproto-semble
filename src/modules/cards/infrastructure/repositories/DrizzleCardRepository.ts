@@ -213,7 +213,8 @@ export class DrizzleCardRepository implements ICardRepository {
 
   async save(card: Card): Promise<Result<void>> {
     try {
-      const { card: cardData, publishedRecord } = CardMapper.toPersistence(card);
+      const { card: cardData, publishedRecord } =
+        CardMapper.toPersistence(card);
 
       await this.db.transaction(async (tx) => {
         // Handle published record if it exists

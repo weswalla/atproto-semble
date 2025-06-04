@@ -32,7 +32,10 @@ export class CardMapper {
       if (cardTypeOrError.isErr()) return err(cardTypeOrError.error);
 
       // Create content based on type
-      const contentOrError = this.createCardContent(dto.type as CardTypeEnum, dto.contentData);
+      const contentOrError = this.createCardContent(
+        dto.type as CardTypeEnum,
+        dto.contentData
+      );
       if (contentOrError.isErr()) return err(contentOrError.error);
 
       // Create optional parent card ID
@@ -77,26 +80,33 @@ export class CardMapper {
     }
   }
 
-  private static createCardContent(type: CardTypeEnum, data: any): Result<CardContent> {
+  private static createCardContent(
+    type: CardTypeEnum,
+    data: any
+  ): Result<CardContent> {
     try {
       switch (type) {
         case CardTypeEnum.URL:
           const urlOrError = URL.create(data.url);
           if (urlOrError.isErr()) return err(urlOrError.error);
-          
+
           let metadata: UrlMetadata | undefined;
           if (data.metadata) {
-            metadata = UrlMetadata.create({
+            const metadataResult = UrlMetadata.create({
               url: data.metadata.url,
               title: data.metadata.title,
               description: data.metadata.description,
               author: data.metadata.author,
-              publishedDate: data.metadata.publishedDate ? new Date(data.metadata.publishedDate) : undefined,
+              publishedDate: data.metadata.publishedDate
+                ? new Date(data.metadata.publishedDate)
+                : undefined,
               siteName: data.metadata.siteName,
               imageUrl: data.metadata.imageUrl,
               type: data.metadata.type,
               retrievedAt: new Date(data.metadata.retrievedAt),
             });
+            if (metadataResult.isErr()) return err(metadataResult.error);
+            metadata = metadataResult.value;
           }
 
           return CardContent.createUrlContent(urlOrError.value, metadata);
@@ -140,17 +150,19 @@ export class CardMapper {
       const urlContent = content.content as any;
       contentData = {
         url: urlContent.url.value,
-        metadata: urlContent.metadata ? {
-          url: urlContent.metadata.url,
-          title: urlContent.metadata.title,
-          description: urlContent.metadata.description,
-          author: urlContent.metadata.author,
-          publishedDate: urlContent.metadata.publishedDate?.toISOString(),
-          siteName: urlContent.metadata.siteName,
-          imageUrl: urlContent.metadata.imageUrl,
-          type: urlContent.metadata.type,
-          retrievedAt: urlContent.metadata.retrievedAt.toISOString(),
-        } : undefined,
+        metadata: urlContent.metadata
+          ? {
+              url: urlContent.metadata.url,
+              title: urlContent.metadata.title,
+              description: urlContent.metadata.description,
+              author: urlContent.metadata.author,
+              publishedDate: urlContent.metadata.publishedDate?.toISOString(),
+              siteName: urlContent.metadata.siteName,
+              imageUrl: urlContent.metadata.imageUrl,
+              type: urlContent.metadata.type,
+              retrievedAt: urlContent.metadata.retrievedAt.toISOString(),
+            }
+          : undefined,
       };
     } else if (content.type === CardTypeEnum.NOTE) {
       const noteContent = content.content as any;

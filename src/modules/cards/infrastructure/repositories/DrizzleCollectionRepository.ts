@@ -5,10 +5,10 @@ import { Collection } from "../../domain/Collection";
 import { CollectionId } from "../../domain/value-objects/CollectionId";
 import { CardId } from "../../domain/value-objects/CardId";
 import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
-import { 
-  collections, 
-  collectionCollaborators, 
-  collectionCards 
+import {
+  collections,
+  collectionCollaborators,
+  collectionCards,
 } from "./schema/collection.sql";
 import { publishedRecords } from "../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
 import { CollectionDTO, CollectionMapper } from "./mappers/CollectionMapper";
@@ -51,7 +51,7 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
         .from(collectionCollaborators)
         .where(eq(collectionCollaborators.collectionId, collectionId));
 
-      const collaborators = collaboratorResults.map(c => c.collaboratorId);
+      const collaborators = collaboratorResults.map((c) => c.collaboratorId);
 
       // Get card links
       const cardLinkResults = await this.db
@@ -66,7 +66,7 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
         )
         .where(eq(collectionCards.collectionId, collectionId));
 
-      const cardLinks = cardLinkResults.map(link => ({
+      const cardLinks = cardLinkResults.map((link) => ({
         cardId: link.cardLink.cardId,
         addedBy: link.cardLink.addedBy,
         addedAt: link.cardLink.addedAt,
@@ -133,10 +133,14 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
         .where(eq(collectionCollaborators.collaboratorId, curatorIdString));
 
       // Combine and deduplicate
-      const allCollectionResults = [...authorCollections, ...collaboratorCollections];
+      const allCollectionResults = [
+        ...authorCollections,
+        ...collaboratorCollections,
+      ];
       const uniqueCollections = allCollectionResults.filter(
         (collection, index, self) =>
-          index === self.findIndex(c => c.collection.id === collection.collection.id)
+          index ===
+          self.findIndex((c) => c.collection.id === collection.collection.id)
       );
 
       const domainCollections: Collection[] = [];
@@ -149,7 +153,7 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
           .from(collectionCollaborators)
           .where(eq(collectionCollaborators.collectionId, collectionId));
 
-        const collaborators = collaboratorResults.map(c => c.collaboratorId);
+        const collaborators = collaboratorResults.map((c) => c.collaboratorId);
 
         // Get card links for this collection
         const cardLinkResults = await this.db
@@ -164,7 +168,7 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
           )
           .where(eq(collectionCards.collectionId, collectionId));
 
-        const cardLinks = cardLinkResults.map(link => ({
+        const cardLinks = cardLinkResults.map((link) => ({
           cardId: link.cardLink.cardId,
           addedBy: link.cardLink.addedBy,
           addedAt: link.cardLink.addedAt,
@@ -188,7 +192,10 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
 
         const domainResult = CollectionMapper.toDomain(collectionDTO);
         if (domainResult.isErr()) {
-          console.error("Error mapping collection to domain:", domainResult.error);
+          console.error(
+            "Error mapping collection to domain:",
+            domainResult.error
+          );
           continue;
         }
         domainCollections.push(domainResult.value);
@@ -231,7 +238,7 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
           .from(collectionCollaborators)
           .where(eq(collectionCollaborators.collectionId, collectionId));
 
-        const collaborators = collaboratorResults.map(c => c.collaboratorId);
+        const collaborators = collaboratorResults.map((c) => c.collaboratorId);
 
         // Get card links for this collection
         const cardLinkResults = await this.db
@@ -246,7 +253,7 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
           )
           .where(eq(collectionCards.collectionId, collectionId));
 
-        const cardLinks = cardLinkResults.map(link => ({
+        const cardLinks = cardLinkResults.map((link) => ({
           cardId: link.cardLink.cardId,
           addedBy: link.cardLink.addedBy,
           addedAt: link.cardLink.addedAt,
@@ -270,7 +277,10 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
 
         const domainResult = CollectionMapper.toDomain(collectionDTO);
         if (domainResult.isErr()) {
-          console.error("Error mapping collection to domain:", domainResult.error);
+          console.error(
+            "Error mapping collection to domain:",
+            domainResult.error
+          );
           continue;
         }
         domainCollections.push(domainResult.value);
@@ -408,10 +418,11 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
 
         // Insert new card links with mapped published record IDs
         if (cardLinks.length > 0) {
-          const cardLinksWithMappedRecords = cardLinks.map(link => ({
+          const cardLinksWithMappedRecords = cardLinks.map((link) => ({
             ...link,
-            publishedRecordId: link.publishedRecordId 
-              ? linkPublishedRecordMap.get(link.publishedRecordId) || link.publishedRecordId
+            publishedRecordId: link.publishedRecordId
+              ? linkPublishedRecordMap.get(link.publishedRecordId) ||
+                link.publishedRecordId
               : undefined,
           }));
 
@@ -428,11 +439,11 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
   async delete(collectionId: CollectionId): Promise<Result<void>> {
     try {
       const id = collectionId.getStringValue();
-      
+
       // The foreign key constraints with ON DELETE CASCADE will automatically
       // delete related records in the collaborators and card links tables
       await this.db.delete(collections).where(eq(collections.id, id));
-      
+
       return ok(undefined);
     } catch (error) {
       return err(error as Error);

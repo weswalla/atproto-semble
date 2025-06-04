@@ -412,5 +412,4 @@ describe("HighlightCardContent", () => {
       expect(returnedSelectors).toHaveLength(3);
     });
   });
-
 });

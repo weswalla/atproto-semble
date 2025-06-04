@@ -80,6 +80,11 @@ export class DrizzleCardRepository implements ICardRepository {
 
       const domainCards: Card[] = [];
       for (const result of cardResults) {
+        if (!result.card) {
+          console.error("Card data is null, skipping");
+          continue;
+        }
+
         const cardDTO: CardDTO = {
           id: result.card.id,
           curatorId: result.card.curatorId,
@@ -124,6 +129,11 @@ export class DrizzleCardRepository implements ICardRepository {
 
       const domainCards: Card[] = [];
       for (const result of cardResults) {
+        if (!result.card) {
+          console.error("Card data is null, skipping");
+          continue;
+        }
+
         const cardDTO: CardDTO = {
           id: result.card.id,
           curatorId: result.card.curatorId,
@@ -168,6 +178,10 @@ export class DrizzleCardRepository implements ICardRepository {
 
       // Filter by URL in content data (since URL is stored in JSON)
       for (const result of cardResults) {
+        if (!result.card) {
+          continue;
+        }
+
         const contentData = result.card.contentData as any;
         if (contentData && contentData.url === urlString) {
           const cardDTO: CardDTO = {

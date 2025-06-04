@@ -7,14 +7,15 @@ import { ICollectionRepository } from "../domain/ICollectionRepository";
 import { CardFactory, CardCreationInput } from "../domain/CardFactory";
 import { CollectionId } from "../domain/value-objects/CollectionId";
 import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
-import { Card, CardValidationError } from "../domain/Card";
-import { CollectionAccessError } from "../domain/Collection";
 import { IMetadataService } from "../domain/services/IMetadataService";
 import { CardTypeEnum } from "../domain/value-objects/CardType";
 import { URL } from "../domain/value-objects/URL";
 import { ICardPublisher } from "./ports/ICardPublisher";
 import { ICollectionPublisher } from "./ports/ICollectionPublisher";
-import { CreateAndPublishAnnotationsFromTemplateUseCase, AnnotationInput } from "../../annotations/application/use-cases/CreateAndPublishAnnotationsFromTemplateUseCase";
+import {
+  CreateAndPublishAnnotationsFromTemplateUseCase,
+  AnnotationInput,
+} from "../../annotations/application/use-cases/CreateAndPublishAnnotationsFromTemplateUseCase";
 
 export interface AddCardToLibraryDTO {
   curatorId: string;
@@ -75,7 +76,10 @@ export class AddCardToLibraryUseCase
       AddCardToLibraryDTO,
       Result<
         AddCardToLibraryResponseDTO,
-        ValidationError | CardNotFoundError | CollectionNotFoundError | AppError.UnexpectedError
+        | ValidationError
+        | CardNotFoundError
+        | CollectionNotFoundError
+        | AppError.UnexpectedError
       >
     >
 {
@@ -93,7 +97,10 @@ export class AddCardToLibraryUseCase
   ): Promise<
     Result<
       AddCardToLibraryResponseDTO,
-      ValidationError | CardNotFoundError | CollectionNotFoundError | AppError.UnexpectedError
+      | ValidationError
+      | CardNotFoundError
+      | CollectionNotFoundError
+      | AppError.UnexpectedError
     >
   > {
     try {
@@ -113,14 +120,20 @@ export class AddCardToLibraryUseCase
       if (request.cardInput.type === CardTypeEnum.URL) {
         const urlResult = URL.create(request.cardInput.url);
         if (urlResult.isErr()) {
-          return err(new ValidationError(`Invalid URL: ${urlResult.error.message}`));
+          return err(
+            new ValidationError(`Invalid URL: ${urlResult.error.message}`)
+          );
         }
 
         const url = urlResult.value;
         const metadataResult = await this.metadataService.fetchMetadata(url);
-        
+
         if (metadataResult.isErr()) {
-          return err(new ValidationError(`Failed to fetch metadata: ${metadataResult.error.message}`));
+          return err(
+            new ValidationError(
+              `Failed to fetch metadata: ${metadataResult.error.message}`
+            )
+          );
         }
 
         cardInput = {
@@ -144,7 +157,11 @@ export class AddCardToLibraryUseCase
       // Publish the card first
       const publishResult = await this.cardPublisher.publish(card);
       if (publishResult.isErr()) {
-        return err(new ValidationError(`Failed to publish card: ${publishResult.error.message}`));
+        return err(
+          new ValidationError(
+            `Failed to publish card: ${publishResult.error.message}`
+          )
+        );
       }
 
       // Mark the card as published
@@ -157,45 +174,49 @@ export class AddCardToLibraryUseCase
       }
 
       // Create annotations if specified
-      let annotationsResult: AddCardToLibraryResponseDTO['annotations'];
+      let annotationsResult: AddCardToLibraryResponseDTO["annotations"];
       if (request.annotationTemplate && this.createAnnotationsUseCase) {
         // Only create annotations for URL cards
         if (request.cardInput.type === CardTypeEnum.URL) {
-          const annotationsResponse = await this.createAnnotationsUseCase.execute({
-            curatorId: request.curatorId,
-            url: request.cardInput.url,
-            templateId: request.annotationTemplate.templateId,
-            annotations: request.annotationTemplate.annotations
-          });
+          const annotationsResponse =
+            await this.createAnnotationsUseCase.execute({
+              curatorId: request.curatorId,
+              url: request.cardInput.url,
+              templateId: request.annotationTemplate.templateId,
+              annotations: request.annotationTemplate.annotations,
+            });
 
           if (annotationsResponse.isOk()) {
             annotationsResult = {
               success: true,
-              annotationIds: annotationsResponse.value.annotationIds
+              annotationIds: annotationsResponse.value.annotationIds,
             };
           } else {
             annotationsResult = {
               success: false,
-              error: annotationsResponse.error.message
+              error: annotationsResponse.error.message,
             };
           }
         } else {
           annotationsResult = {
             success: false,
-            error: "Annotations can only be created for URL cards"
+            error: "Annotations can only be created for URL cards",
           };
         }
       }
 
       // Handle collection additions if specified
-      const addedToCollections: AddCardToLibraryResponseDTO['addedToCollections'] = [];
-      const failedCollections: Array<{ collectionId: string; reason: string }> = [];
+      const addedToCollections: AddCardToLibraryResponseDTO["addedToCollections"] =
+        [];
+      const failedCollections: Array<{ collectionId: string; reason: string }> =
+        [];
 
       if (request.collectionIds && request.collectionIds.length > 0) {
         for (const collectionIdStr of request.collectionIds) {
           try {
             // Validate collection ID
-            const collectionIdResult = CollectionId.createFromString(collectionIdStr);
+            const collectionIdResult =
+              CollectionId.createFromString(collectionIdStr);
             if (collectionIdResult.isErr()) {
               failedCollections.push({
                 collectionId: collectionIdStr,
@@ -207,9 +228,12 @@ export class AddCardToLibraryUseCase
             const collectionId = collectionIdResult.value;
 
             // Find the collection
-            const collectionResult = await this.collectionRepository.findById(collectionId);
+            const collectionResult =
+              await this.collectionRepository.findById(collectionId);
             if (collectionResult.isErr()) {
-              return err(AppError.UnexpectedError.create(collectionResult.error));
+              return err(
+                AppError.UnexpectedError.create(collectionResult.error)
+              );
             }
 
             const collection = collectionResult.value;
@@ -232,7 +256,8 @@ export class AddCardToLibraryUseCase
             }
 
             // Publish the collection (including new links)
-            const publishCollectionResult = await this.collectionPublisher.publish(collection);
+            const publishCollectionResult =
+              await this.collectionPublisher.publish(collection);
             if (publishCollectionResult.isErr()) {
               failedCollections.push({
                 collectionId: collectionIdStr,
@@ -246,7 +271,10 @@ export class AddCardToLibraryUseCase
             // Mark each published link as published in the collection
             for (const publishedLink of publishResult.publishedLinks) {
               const cardId = card.cardId; // The card we just added
-              collection.markCardLinkAsPublished(cardId, publishedLink.linkRecord);
+              collection.markCardLinkAsPublished(
+                cardId,
+                publishedLink.linkRecord
+              );
             }
 
             // Mark the collection as published if it has a collection record
@@ -255,7 +283,8 @@ export class AddCardToLibraryUseCase
             }
 
             // Save the updated collection
-            const saveCollectionResult = await this.collectionRepository.save(collection);
+            const saveCollectionResult =
+              await this.collectionRepository.save(collection);
             if (saveCollectionResult.isErr()) {
               failedCollections.push({
                 collectionId: collectionIdStr,
@@ -266,13 +295,14 @@ export class AddCardToLibraryUseCase
 
             addedToCollections.push({
               collectionId: collectionIdStr,
-              collectionRecord: publishResult.collectionRecord ? {
-                uri: publishResult.collectionRecord.uri,
-                cid: publishResult.collectionRecord.cid
-              } : undefined,
-              publishedLinks: publishResult.publishedLinks
+              collectionRecord: publishResult.collectionRecord
+                ? {
+                    uri: publishResult.collectionRecord.uri,
+                    cid: publishResult.collectionRecord.cid,
+                  }
+                : undefined,
+              publishedLinks: publishResult.publishedLinks,
             });
-
           } catch (error) {
             failedCollections.push({
               collectionId: collectionIdStr,
@@ -284,15 +314,16 @@ export class AddCardToLibraryUseCase
 
       return ok({
         cardId: card.cardId.getStringValue(),
-        publishedRecordId: card.publishedRecordId ? {
-          uri: card.publishedRecordId.uri,
-          cid: card.publishedRecordId.cid,
-        } : undefined,
+        publishedRecordId: card.publishedRecordId
+          ? {
+              uri: card.publishedRecordId.uri,
+              cid: card.publishedRecordId.cid,
+            }
+          : undefined,
         addedToCollections,
         failedCollections,
         annotations: annotationsResult,
       });
-
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
     }

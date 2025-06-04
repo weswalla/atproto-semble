@@ -265,20 +265,27 @@ describe("HighlightCardContent Integration Tests", () => {
       const paragraph = document.querySelectorAll("p")[1];
       const fullText = paragraph!.textContent!;
 
-      // Generate selectors as if creating the annotation
-      const exactMatch = targetText;
-      const startIndex = fullText.indexOf(targetText);
-      const prefix = fullText.substring(
-        Math.max(0, startIndex - 20),
-        startIndex
-      );
-      const suffix = fullText.substring(
-        startIndex + targetText.length,
-        startIndex + targetText.length + 20
-      );
-
+      // Get document text for position calculation
       const documentText = getDocumentTextContent();
       const globalPosition = findTextPosition(targetText, documentText);
+      expect(globalPosition).toBeTruthy();
+
+      // Generate selectors as if creating the annotation
+      const exactMatch = targetText;
+      const globalStartIndex = globalPosition!.start;
+      
+      // Extract prefix and suffix from the global document text
+      const prefixLength = 20;
+      const suffixLength = 20;
+      
+      const prefix = documentText.substring(
+        Math.max(0, globalStartIndex - prefixLength),
+        globalStartIndex
+      );
+      const suffix = documentText.substring(
+        globalStartIndex + targetText.length,
+        globalStartIndex + targetText.length + suffixLength
+      );
 
       const selectors: HighlightSelector[] = [
         {
@@ -306,7 +313,7 @@ describe("HighlightCardContent Integration Tests", () => {
       const exactTextIndex = documentText.indexOf(textQuoteSelector.exact);
       expect(exactTextIndex).toBeGreaterThan(-1);
       
-      // Also verify the prefix and suffix are correct
+      // Verify the prefix and suffix match what we extracted
       const actualPrefix = documentText.substring(
         exactTextIndex - textQuoteSelector.prefix.length,
         exactTextIndex

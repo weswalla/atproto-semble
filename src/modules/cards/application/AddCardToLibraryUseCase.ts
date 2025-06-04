@@ -25,6 +25,7 @@ export interface AddCardToLibraryDTO {
     templateId: string;
     annotations: AnnotationInput[];
   };
+  url?: string;
 }
 
 export interface AddCardToLibraryResponseDTO {
@@ -177,11 +178,11 @@ export class AddCardToLibraryUseCase
       let annotationsResult: AddCardToLibraryResponseDTO["annotations"];
       if (request.annotationTemplate && this.createAnnotationsUseCase) {
         // Only create annotations for URL cards
-        if (request.cardInput.type === CardTypeEnum.URL) {
+        if (request.url) {
           const annotationsResponse =
             await this.createAnnotationsUseCase.execute({
               curatorId: request.curatorId,
-              url: request.cardInput.url,
+              url: request.url,
               templateId: request.annotationTemplate.templateId,
               annotations: request.annotationTemplate.annotations,
             });

@@ -42,7 +42,10 @@ interface IHighlightCardInput {
 }
 
 // Union type for all possible card creation inputs
-export type CardCreationInput = IUrlCardInput | INoteCardInput | IHighlightCardInput;
+export type CardCreationInput =
+  | IUrlCardInput
+  | INoteCardInput
+  | IHighlightCardInput;
 
 interface CreateCardProps {
   curatorId: string;
@@ -55,14 +58,22 @@ export class CardFactory {
       // Validate and create CuratorId
       const curatorIdResult = CuratorId.create(props.curatorId);
       if (curatorIdResult.isErr()) {
-        return err(new CardValidationError(`Invalid curator ID: ${curatorIdResult.error.message}`));
+        return err(
+          new CardValidationError(
+            `Invalid curator ID: ${curatorIdResult.error.message}`
+          )
+        );
       }
       const curatorId = curatorIdResult.value;
 
       // Create CardType
       const cardTypeResult = CardType.create(props.cardInput.type);
       if (cardTypeResult.isErr()) {
-        return err(new CardValidationError(`Invalid card type: ${cardTypeResult.error.message}`));
+        return err(
+          new CardValidationError(
+            `Invalid card type: ${cardTypeResult.error.message}`
+          )
+        );
       }
       const cardType = cardTypeResult.value;
 
@@ -76,9 +87,13 @@ export class CardFactory {
       // Create parent card ID if provided
       let parentCardId: CardId | undefined;
       if (this.hasParentCardId(props.cardInput)) {
-        const parentCardIdResult = CardId.create(props.cardInput.parentCardId);
+        const parentCardIdResult = CardId.create(props.cardInput.parentCardId!);
         if (parentCardIdResult.isErr()) {
-          return err(new CardValidationError(`Invalid parent card ID: ${parentCardIdResult.error.message}`));
+          return err(
+            new CardValidationError(
+              `Invalid parent card ID: ${parentCardIdResult.error.message}`
+            )
+          );
         }
         parentCardId = parentCardIdResult.value;
       }
@@ -90,13 +105,18 @@ export class CardFactory {
         content,
         parentCardId,
       });
-
     } catch (error) {
-      return err(new CardValidationError(error instanceof Error ? error.message : String(error)));
+      return err(
+        new CardValidationError(
+          error instanceof Error ? error.message : String(error)
+        )
+      );
     }
   }
 
-  private static createCardContent(cardInput: CardCreationInput): Result<CardContent, CardValidationError> {
+  private static createCardContent(
+    cardInput: CardCreationInput
+  ): Result<CardContent, CardValidationError> {
     switch (cardInput.type) {
       case CardTypeEnum.URL:
         return this.createUrlContent(cardInput);
@@ -112,11 +132,15 @@ export class CardFactory {
     }
   }
 
-  private static createUrlContent(input: IUrlCardInput): Result<CardContent, CardValidationError> {
+  private static createUrlContent(
+    input: IUrlCardInput
+  ): Result<CardContent, CardValidationError> {
     // Create URL value object
     const urlResult = URL.create(input.url);
     if (urlResult.isErr()) {
-      return err(new CardValidationError(`Invalid URL: ${urlResult.error.message}`));
+      return err(
+        new CardValidationError(`Invalid URL: ${urlResult.error.message}`)
+      );
     }
 
     // Create UrlMetadata if provided
@@ -134,7 +158,11 @@ export class CardFactory {
         retrievedAt: input.metadata.retrievedAt,
       });
       if (metadataResult.isErr()) {
-        return err(new CardValidationError(`Invalid metadata: ${metadataResult.error.message}`));
+        return err(
+          new CardValidationError(
+            `Invalid metadata: ${metadataResult.error.message}`
+          )
+        );
       }
       metadata = metadataResult.value;
     }
@@ -142,11 +170,15 @@ export class CardFactory {
     return CardContent.createUrlContent(urlResult.value, metadata);
   }
 
-  private static createNoteContent(input: INoteCardInput): Result<CardContent, CardValidationError> {
+  private static createNoteContent(
+    input: INoteCardInput
+  ): Result<CardContent, CardValidationError> {
     return CardContent.createNoteContent(input.text, input.title);
   }
 
-  private static createHighlightContent(input: IHighlightCardInput): Result<CardContent, CardValidationError> {
+  private static createHighlightContent(
+    input: IHighlightCardInput
+  ): Result<CardContent, CardValidationError> {
     return CardContent.createHighlightContent(input.text, input.selectors, {
       context: input.context,
       documentUrl: input.documentUrl,
@@ -155,25 +187,29 @@ export class CardFactory {
   }
 
   // Type guards
-  private static hasParentCardId(input: CardCreationInput): input is INoteCardInput | IHighlightCardInput {
-    return 'parentCardId' in input && input.parentCardId !== undefined;
+  private static hasParentCardId(
+    input: CardCreationInput
+  ): input is INoteCardInput | IHighlightCardInput {
+    return "parentCardId" in input && input.parentCardId !== undefined;
   }
 
   // Type guards for each card input type
   private static isUrlCardInput(input: any): input is IUrlCardInput {
-    return input.type === CardTypeEnum.URL && typeof input.url === 'string';
+    return input.type === CardTypeEnum.URL && typeof input.url === "string";
   }
 
   private static isNoteCardInput(input: any): input is INoteCardInput {
-    return input.type === CardTypeEnum.NOTE && typeof input.text === 'string';
+    return input.type === CardTypeEnum.NOTE && typeof input.text === "string";
   }
 
-  private static isHighlightCardInput(input: any): input is IHighlightCardInput {
+  private static isHighlightCardInput(
+    input: any
+  ): input is IHighlightCardInput {
     return (
       input.type === CardTypeEnum.HIGHLIGHT &&
-      typeof input.text === 'string' &&
+      typeof input.text === "string" &&
       Array.isArray(input.selectors) &&
-      typeof input.parentCardId === 'string'
+      typeof input.parentCardId === "string"
     );
   }
 }

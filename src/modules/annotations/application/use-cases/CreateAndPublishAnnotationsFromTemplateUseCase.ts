@@ -180,6 +180,13 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
             )
           );
         }
+        if (note?.isErr()) {
+          return err(
+            new CreateAndPublishAnnotationsFromTemplateErrors.AnnotationCreationFailed(
+              `Invalid annotation note: ${note.error.message}`
+            )
+          );
+        }
 
         // Create annotation with template ID and the full annotation field
         const annotationOrError = Annotation.create({
@@ -187,7 +194,7 @@ export class CreateAndPublishAnnotationsFromTemplateUseCase
           url,
           annotationField,
           value: valueOrError.value,
-          note: note,
+          note: note?.unwrap(),
           annotationTemplateIds: [templateId],
         });
 

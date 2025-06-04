@@ -7,7 +7,6 @@ import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { DrizzleCollectionRepository } from "../../infrastructure/repositories/DrizzleCollectionRepository";
 import { DrizzleCardRepository } from "../../infrastructure/repositories/DrizzleCardRepository";
 import { CollectionId } from "../../domain/value-objects/CollectionId";
-import { CardId } from "../../domain/value-objects/CardId";
 import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
 import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
@@ -19,8 +18,6 @@ import {
 } from "../../infrastructure/repositories/schema/collection.sql";
 import { cards } from "../../infrastructure/repositories/schema/card.sql";
 import { Collection, CollectionAccessType } from "../../domain/Collection";
-import { CollectionName } from "../../domain/value-objects/CollectionName";
-import { CollectionDescription } from "../../domain/value-objects/CollectionDescription";
 import { CardFactory } from "../../domain/CardFactory";
 import { CardTypeEnum } from "../../domain/value-objects/CardType";
 
@@ -173,7 +170,10 @@ describe("DrizzleCollectionRepository", () => {
     ).unwrap();
 
     // Add a collaborator
-    const addCollaboratorResult = collection.addCollaborator(collaboratorId, curatorId);
+    const addCollaboratorResult = collection.addCollaborator(
+      collaboratorId,
+      curatorId
+    );
     expect(addCollaboratorResult.isOk()).toBe(true);
 
     // Save the collection
@@ -189,7 +189,9 @@ describe("DrizzleCollectionRepository", () => {
     const retrievedCollection = retrievedResult.unwrap();
     expect(retrievedCollection).not.toBeNull();
     expect(retrievedCollection?.collaboratorIds).toHaveLength(1);
-    expect(retrievedCollection?.collaboratorIds[0]?.value).toBe(collaboratorId.value);
+    expect(retrievedCollection?.collaboratorIds[0]?.value).toBe(
+      collaboratorId.value
+    );
   });
 
   it("should save and retrieve a collection with cards", async () => {
@@ -240,7 +242,9 @@ describe("DrizzleCollectionRepository", () => {
     expect(retrievedCollection?.cardLinks[0]?.cardId.getStringValue()).toBe(
       card.cardId.getStringValue()
     );
-    expect(retrievedCollection?.cardLinks[0]?.addedBy.value).toBe(curatorId.value);
+    expect(retrievedCollection?.cardLinks[0]?.addedBy.value).toBe(
+      curatorId.value
+    );
   });
 
   it("should update an existing collection", async () => {
@@ -352,7 +356,8 @@ describe("DrizzleCollectionRepository", () => {
     await collectionRepository.save(collection2);
 
     // Find collections by curator ID
-    const foundCollectionsResult = await collectionRepository.findByCuratorId(curatorId);
+    const foundCollectionsResult =
+      await collectionRepository.findByCuratorId(curatorId);
     expect(foundCollectionsResult.isOk()).toBe(true);
 
     const foundCollections = foundCollectionsResult.unwrap();
@@ -411,7 +416,9 @@ describe("DrizzleCollectionRepository", () => {
     await collectionRepository.save(collection2);
 
     // Find collections by card ID
-    const foundCollectionsResult = await collectionRepository.findByCardId(card.cardId);
+    const foundCollectionsResult = await collectionRepository.findByCardId(
+      card.cardId
+    );
     expect(foundCollectionsResult.isOk()).toBe(true);
 
     const foundCollections = foundCollectionsResult.unwrap();

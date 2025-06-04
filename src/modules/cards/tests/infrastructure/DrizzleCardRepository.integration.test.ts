@@ -5,11 +5,9 @@ import {
 import postgres from "postgres";
 import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { DrizzleCardRepository } from "../../infrastructure/repositories/DrizzleCardRepository";
-import { CardId } from "../../domain/value-objects/CardId";
 import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
 import { URL } from "../../domain/value-objects/URL";
 import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
-import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
 import { sql } from "drizzle-orm";
 import { cards } from "../../infrastructure/repositories/schema/card.sql";
 import { CardFactory } from "../../domain/CardFactory";

@@ -1,4 +1,5 @@
-import { ok, Result } from "src/shared/core/Result";
+import { ok, Result, err } from "src/shared/core/Result";
+import { Guard } from "src/shared/core/Guard";
 import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
 import { ValueObject } from "src/shared/domain/ValueObject";
 
@@ -20,6 +21,19 @@ export class CardId extends ValueObject<CardIdProps> {
   }
 
   public static create(id: UniqueEntityID): Result<CardId> {
+    const guardResult = Guard.againstNullOrUndefined(id, "id");
+    if (guardResult.isErr()) {
+      return err(new Error(guardResult.error));
+    }
     return ok(new CardId(id));
+  }
+
+  public static createFromString(value: string): Result<CardId> {
+    const guardResult = Guard.againstNullOrUndefined(value, "value");
+    if (guardResult.isErr()) {
+      return err(new Error(guardResult.error));
+    }
+    const uniqueEntityID = new UniqueEntityID(value);
+    return ok(new CardId(uniqueEntityID));
   }
 }

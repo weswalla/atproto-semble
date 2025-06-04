@@ -104,7 +104,7 @@ export class AddCardToLibraryUseCase
         for (const collectionIdStr of request.collectionIds) {
           try {
             // Validate collection ID
-            const collectionIdResult = CollectionId.create(collectionIdStr);
+            const collectionIdResult = CollectionId.createFromString(collectionIdStr);
             if (collectionIdResult.isErr()) {
               failedCollections.push({
                 collectionId: collectionIdStr,

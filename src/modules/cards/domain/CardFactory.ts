@@ -87,7 +87,7 @@ export class CardFactory {
       // Create parent card ID if provided
       let parentCardId: CardId | undefined;
       if (this.hasParentCardId(props.cardInput)) {
-        const parentCardIdResult = CardId.create(props.cardInput.parentCardId!);
+        const parentCardIdResult = CardId.createFromString(props.cardInput.parentCardId!);
         if (parentCardIdResult.isErr()) {
           return err(
             new CardValidationError(

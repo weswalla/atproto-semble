@@ -13,6 +13,7 @@ import { IMetadataService } from "./services/IMetadataService";
 interface IUrlCardInput {
   type: CardTypeEnum.URL;
   url: string;
+  metadata?: UrlMetadata;
 }
 
 interface INoteCardInput {
@@ -41,11 +42,10 @@ export type CardCreationInput =
 interface CreateCardProps {
   curatorId: string;
   cardInput: CardCreationInput;
-  metadataService: IMetadataService;
 }
 
 export class CardFactory {
-  static async create(props: CreateCardProps): Promise<Result<Card, CardValidationError>> {
+  static create(props: CreateCardProps): Result<Card, CardValidationError> {
     try {
       // Validate and create CuratorId
       const curatorIdResult = CuratorId.create(props.curatorId);
@@ -70,7 +70,7 @@ export class CardFactory {
       const cardType = cardTypeResult.value;
 
       // Create CardContent based on type
-      const contentResult = await this.createCardContent(props.cardInput, props.metadataService);
+      const contentResult = this.createCardContent(props.cardInput);
       if (contentResult.isErr()) {
         return err(contentResult.error);
       }
@@ -108,13 +108,12 @@ export class CardFactory {
     }
   }
 
-  private static async createCardContent(
-    cardInput: CardCreationInput,
-    metadataService: IMetadataService
-  ): Promise<Result<CardContent, CardValidationError>> {
+  private static createCardContent(
+    cardInput: CardCreationInput
+  ): Result<CardContent, CardValidationError> {
     switch (cardInput.type) {
       case CardTypeEnum.URL:
-        return await this.createUrlContent(cardInput, metadataService);
+        return this.createUrlContent(cardInput);
 
       case CardTypeEnum.NOTE:
         return this.createNoteContent(cardInput);
@@ -127,10 +126,9 @@ export class CardFactory {
     }
   }
 
-  private static async createUrlContent(
-    input: IUrlCardInput,
-    metadataService: IMetadataService
-  ): Promise<Result<CardContent, CardValidationError>> {
+  private static createUrlContent(
+    input: IUrlCardInput
+  ): Result<CardContent, CardValidationError> {
     // Create URL value object
     const urlResult = URL.create(input.url);
     if (urlResult.isErr()) {
@@ -141,21 +139,14 @@ export class CardFactory {
 
     const url = urlResult.value;
 
-    // Fetch metadata using the metadata service
-    let metadata: UrlMetadata | undefined;
-    try {
-      const metadataResult = await metadataService.fetchMetadata(url);
-      if (metadataResult.isOk()) {
-        metadata = metadataResult.value;
-      }
-      // If metadata fetch fails, we continue without metadata
-      // This allows URL cards to be created even if metadata service is unavailable
-    } catch (error) {
-      // Log the error but don't fail the card creation
-      console.warn(`Failed to fetch metadata for URL ${input.url}:`, error);
+    // Require metadata for URL cards
+    if (!input.metadata) {
+      return err(
+        new CardValidationError("URL metadata is required for creating URL cards")
+      );
     }
 
-    return CardContent.createUrlContent(url, metadata);
+    return CardContent.createUrlContent(url, input.metadata);
   }
 
   private static createNoteContent(

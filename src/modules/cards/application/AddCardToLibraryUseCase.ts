@@ -10,6 +10,8 @@ import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
 import { Card, CardValidationError } from "../domain/Card";
 import { CollectionAccessError } from "../domain/Collection";
 import { IMetadataService } from "../domain/services/IMetadataService";
+import { CardTypeEnum } from "../domain/value-objects/CardType";
+import { URL } from "../domain/value-objects/URL";
 
 export interface AddCardToLibraryDTO {
   curatorId: string;
@@ -80,11 +82,31 @@ export class AddCardToLibraryUseCase
       }
       const curatorId = curatorIdResult.value;
 
+      // Fetch metadata for URL cards
+      let cardInput = request.cardInput;
+      if (request.cardInput.type === CardTypeEnum.URL) {
+        const urlResult = URL.create(request.cardInput.url);
+        if (urlResult.isErr()) {
+          return err(new ValidationError(`Invalid URL: ${urlResult.error.message}`));
+        }
+
+        const url = urlResult.value;
+        const metadataResult = await this.metadataService.fetchMetadata(url);
+        
+        if (metadataResult.isErr()) {
+          return err(new ValidationError(`Failed to fetch metadata: ${metadataResult.error.message}`));
+        }
+
+        cardInput = {
+          ...request.cardInput,
+          metadata: metadataResult.value,
+        };
+      }
+
       // Create the card using CardFactory
-      const cardResult = await CardFactory.create({
+      const cardResult = CardFactory.create({
         curatorId: request.curatorId,
-        cardInput: request.cardInput,
-        metadataService: this.metadataService,
+        cardInput: cardInput,
       });
 
       if (cardResult.isErr()) {

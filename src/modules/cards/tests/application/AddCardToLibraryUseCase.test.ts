@@ -185,7 +185,6 @@ describe("AddCardToLibraryUseCase", () => {
         name: "Test Collection",
         accessType: CollectionAccessType.OPEN,
         collaboratorIds: [],
-        cardIds: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       });

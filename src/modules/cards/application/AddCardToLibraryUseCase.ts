@@ -1,91 +1,177 @@
-import { err, ok, Result } from "../../../shared/core/Result";
-import { Card } from "../domain/Card";
+import { Result, ok, err } from "../../../shared/core/Result";
+import { UseCase } from "../../../shared/core/UseCase";
+import { UseCaseError } from "../../../shared/core/UseCaseError";
+import { AppError } from "../../../shared/core/AppError";
 import { ICardRepository } from "../domain/ICardRepository";
-import { LibraryService } from "../domain/LibraryService";
-import { CardType, CardTypeEnum } from "../domain/value-objects/CardType";
-import { CardContent } from "../domain/value-objects/CardContent";
-import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
+import { ICollectionRepository } from "../domain/ICollectionRepository";
+import { CardFactory, CardCreationInput } from "../domain/CardFactory";
 import { CollectionId } from "../domain/value-objects/CollectionId";
-import { UniqueEntityID } from "../../../shared/domain/UniqueEntityID";
-import { UseCase } from "src/shared/core/UseCase";
+import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
+import { Card, CardValidationError } from "../domain/Card";
+import { CollectionAccessError } from "../domain/Collection";
 
 export interface AddCardToLibraryDTO {
   curatorId: string;
-  type: string;
-  content: any;
-  parentCardId?: string;
+  cardInput: CardCreationInput;
   collectionIds?: string[];
 }
 
+export interface AddCardToLibraryResponseDTO {
+  cardId: string;
+  addedToCollections: string[];
+  failedCollections: Array<{
+    collectionId: string;
+    reason: string;
+  }>;
+}
+
+export class ValidationError extends UseCaseError {
+  constructor(message: string) {
+    super(message);
+    this.name = "ValidationError";
+  }
+}
+
+export class CardNotFoundError extends UseCaseError {
+  constructor(cardId: string) {
+    super(`Card not found: ${cardId}`);
+    this.name = "CardNotFoundError";
+  }
+}
+
+export class CollectionNotFoundError extends UseCaseError {
+  constructor(collectionId: string) {
+    super(`Collection not found: ${collectionId}`);
+    this.name = "CollectionNotFoundError";
+  }
+}
+
 export class AddCardToLibraryUseCase
-  implements UseCase<AddCardToLibraryDTO, Result<string>>
+  implements
+    UseCase<
+      AddCardToLibraryDTO,
+      Result<
+        AddCardToLibraryResponseDTO,
+        ValidationError | CardNotFoundError | CollectionNotFoundError | AppError.UnexpectedError
+      >
+    >
 {
   constructor(
     private cardRepository: ICardRepository,
-    private libraryService: LibraryService
+    private collectionRepository: ICollectionRepository
   ) {}
 
-  async execute(request: AddCardToLibraryDTO): Promise<Result<string>> {
+  async execute(
+    request: AddCardToLibraryDTO
+  ): Promise<
+    Result<
+      AddCardToLibraryResponseDTO,
+      ValidationError | CardNotFoundError | CollectionNotFoundError | AppError.UnexpectedError
+    >
+  > {
     try {
-      // Create CuratorId
+      // Validate and create CuratorId
       const curatorIdResult = CuratorId.create(request.curatorId);
       if (curatorIdResult.isErr()) {
-        return err(curatorIdResult.error);
+        return err(
+          new ValidationError(
+            `Invalid curator ID: ${curatorIdResult.error.message}`
+          )
+        );
       }
       const curatorId = curatorIdResult.value;
 
-      // Create CardType
-      const cardTypeResult = CardType.create(request.type as CardTypeEnum);
-      if (cardTypeResult.isErr()) {
-        return err(cardTypeResult.error);
-      }
-      const cardType = cardTypeResult.value;
-
-      // Create CardContent
-      const cardContentResult = CardContent.create({
-        type: cardType.value,
-        data: request.content,
-      });
-      if (cardContentResult.isErr()) {
-        return err(cardContentResult.error);
-      }
-      const cardContent = cardContentResult.value;
-
-      // Create Card
-      const cardResult = Card.create({
-        curatorId,
-        type: cardType,
-        content: cardContent,
+      // Create the card using CardFactory
+      const cardResult = CardFactory.create({
+        curatorId: request.curatorId,
+        cardInput: request.cardInput,
       });
 
       if (cardResult.isErr()) {
-        return err(cardResult.error);
+        return err(new ValidationError(cardResult.error.message));
       }
+
       const card = cardResult.value;
 
-      // Add card to library
-      const saveResult = await this.libraryService.addCardToLibrary(card);
-      if (saveResult.isErr()) {
-        return err(saveResult.error);
+      // Save the card to the repository
+      const saveCardResult = await this.cardRepository.save(card);
+      if (saveCardResult.isErr()) {
+        return err(AppError.UnexpectedError.create(saveCardResult.error));
       }
 
-      // Add card to collections if specified
+      // Handle collection additions if specified
+      const addedToCollections: string[] = [];
+      const failedCollections: Array<{ collectionId: string; reason: string }> = [];
+
       if (request.collectionIds && request.collectionIds.length > 0) {
         for (const collectionIdStr of request.collectionIds) {
-          const collectionId = CollectionId.create(
-            new UniqueEntityID(collectionIdStr)
-          ).unwrap();
-          await this.libraryService.addCardToCollection(
-            card.cardId,
-            collectionId,
-            curatorId
-          );
+          try {
+            // Validate collection ID
+            const collectionIdResult = CollectionId.create(collectionIdStr);
+            if (collectionIdResult.isErr()) {
+              failedCollections.push({
+                collectionId: collectionIdStr,
+                reason: `Invalid collection ID: ${collectionIdResult.error.message}`,
+              });
+              continue;
+            }
+
+            const collectionId = collectionIdResult.value;
+
+            // Find the collection
+            const collectionResult = await this.collectionRepository.findById(collectionId);
+            if (collectionResult.isErr()) {
+              return err(AppError.UnexpectedError.create(collectionResult.error));
+            }
+
+            const collection = collectionResult.value;
+            if (!collection) {
+              failedCollections.push({
+                collectionId: collectionIdStr,
+                reason: "Collection not found",
+              });
+              continue;
+            }
+
+            // Try to add the card to the collection
+            const addCardResult = collection.addCard(card.cardId, curatorId);
+            if (addCardResult.isErr()) {
+              failedCollections.push({
+                collectionId: collectionIdStr,
+                reason: addCardResult.error.message,
+              });
+              continue;
+            }
+
+            // Save the updated collection
+            const saveCollectionResult = await this.collectionRepository.save(collection);
+            if (saveCollectionResult.isErr()) {
+              failedCollections.push({
+                collectionId: collectionIdStr,
+                reason: "Failed to save collection",
+              });
+              continue;
+            }
+
+            addedToCollections.push(collectionIdStr);
+
+          } catch (error) {
+            failedCollections.push({
+              collectionId: collectionIdStr,
+              reason: error instanceof Error ? error.message : "Unknown error",
+            });
+          }
         }
       }
 
-      return ok(card.cardId.getStringValue());
+      return ok({
+        cardId: card.cardId.getStringValue(),
+        addedToCollections,
+        failedCollections,
+      });
+
     } catch (error) {
-      return err(new Error(`Error adding card to library: ${error}`));
+      return err(AppError.UnexpectedError.create(error));
     }
   }
 }

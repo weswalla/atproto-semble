@@ -16,6 +16,7 @@ export class InMemoryCardRepository implements ICardRepository {
         type: card.type,
         content: card.content,
         parentCardId: card.parentCardId,
+        publishedRecordId: card.publishedRecordId,
       },
       card.id
     );

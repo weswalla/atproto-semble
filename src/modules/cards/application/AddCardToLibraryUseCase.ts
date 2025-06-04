@@ -201,6 +201,12 @@ export class AddCardToLibraryUseCase
 
             const publishResult = publishCollectionResult.value;
 
+            // Mark each published link as published in the collection
+            for (const publishedLink of publishResult.publishedLinks) {
+              const cardId = card.cardId; // The card we just added
+              collection.markCardLinkAsPublished(cardId, publishedLink.linkRecord);
+            }
+
             // Mark the collection as published if it has a collection record
             if (publishResult.collectionRecord) {
               collection.markAsPublished(publishResult.collectionRecord);

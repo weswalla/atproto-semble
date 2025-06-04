@@ -4,6 +4,8 @@ import { ok, err, Result } from "../../../shared/core/Result";
 import { CollectionId } from "./value-objects/CollectionId";
 import { CardId } from "./value-objects/CardId";
 import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
+import { CollectionName, InvalidCollectionNameError } from "./value-objects/CollectionName";
+import { CollectionDescription, InvalidCollectionDescriptionError } from "./value-objects/CollectionDescription";
 
 export enum CollectionAccessType {
   OPEN = "OPEN",
@@ -17,10 +19,17 @@ export class CollectionAccessError extends Error {
   }
 }
 
+export class CollectionValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'CollectionValidationError';
+  }
+}
+
 interface CollectionProps {
   authorId: CuratorId;
-  name: string;
-  description?: string;
+  name: CollectionName;
+  description?: CollectionDescription;
   accessType: CollectionAccessType;
   collaboratorIds: CuratorId[];
   cardIds: CardId[];
@@ -37,11 +46,11 @@ export class Collection extends AggregateRoot<CollectionProps> {
     return this.props.authorId;
   }
 
-  get name(): string {
+  get name(): CollectionName {
     return this.props.name;
   }
 
-  get description(): string | undefined {
+  get description(): CollectionDescription | undefined {
     return this.props.description;
   }
 
@@ -78,11 +87,40 @@ export class Collection extends AggregateRoot<CollectionProps> {
   }
 
   public static create(
-    props: CollectionProps,
+    props: Omit<CollectionProps, 'name' | 'description'> & {
+      name: string;
+      description?: string;
+    },
     id?: UniqueEntityID
-  ): Result<Collection> {
-    // Add validation logic here if needed
-    return ok(new Collection(props, id));
+  ): Result<Collection, CollectionValidationError> {
+    // Validate and create CollectionName
+    const nameResult = CollectionName.create(props.name);
+    if (nameResult.isErr()) {
+      return err(new CollectionValidationError(nameResult.error.message));
+    }
+
+    // Validate and create CollectionDescription if provided
+    let description: CollectionDescription | undefined;
+    if (props.description) {
+      const descriptionResult = CollectionDescription.create(props.description);
+      if (descriptionResult.isErr()) {
+        return err(new CollectionValidationError(descriptionResult.error.message));
+      }
+      description = descriptionResult.value;
+    }
+
+    // Validate access type
+    if (!Object.values(CollectionAccessType).includes(props.accessType)) {
+      return err(new CollectionValidationError("Invalid access type"));
+    }
+
+    const collectionProps: CollectionProps = {
+      ...props,
+      name: nameResult.value,
+      description,
+    };
+
+    return ok(new Collection(collectionProps, id));
   }
 
   public canAddCard(userId: CuratorId): boolean {

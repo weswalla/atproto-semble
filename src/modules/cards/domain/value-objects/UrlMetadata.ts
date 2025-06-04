@@ -1,5 +1,5 @@
-import { ValueObject } from '../../../../shared/domain/ValueObject';
-import { Result, ok, err } from '../../../../shared/core/Result';
+import { ValueObject } from "../../../../shared/domain/ValueObject";
+import { Result, ok, err } from "../../../../shared/core/Result";
 
 interface UrlMetadataProps {
   url: string;
@@ -10,7 +10,7 @@ interface UrlMetadataProps {
   siteName?: string;
   imageUrl?: string;
   type?: string;
-  retrievedAt: Date;
+  retrievedAt?: Date;
 }
 
 export class UrlMetadata extends ValueObject<UrlMetadataProps> {
@@ -46,7 +46,7 @@ export class UrlMetadata extends ValueObject<UrlMetadataProps> {
     return this.props.type;
   }
 
-  get retrievedAt(): Date {
+  get retrievedAt(): Date | undefined {
     return this.props.retrievedAt;
   }
 
@@ -54,19 +54,25 @@ export class UrlMetadata extends ValueObject<UrlMetadataProps> {
     super(props);
   }
 
-  public static create(props: Omit<UrlMetadataProps, 'retrievedAt'>): Result<UrlMetadata, Error> {
+  public static create(props: UrlMetadataProps): Result<UrlMetadata, Error> {
     if (!props.url || props.url.trim().length === 0) {
-      return err(new Error('URL is required for metadata'));
+      return err(new Error("URL is required for metadata"));
     }
 
-    return ok(new UrlMetadata({
-      ...props,
-      retrievedAt: new Date()
-    }));
+    return ok(
+      new UrlMetadata({
+        ...props,
+        retrievedAt: props.retrievedAt || new Date(),
+      })
+    );
   }
 
   public isStale(maxAgeHours: number = 24): boolean {
-    const ageInHours = (Date.now() - this.retrievedAt.getTime()) / (1000 * 60 * 60);
+    if (!this.retrievedAt) {
+      return true; // If no retrievedAt, consider it stale
+    }
+    const ageInHours =
+      (Date.now() - this.retrievedAt.getTime()) / (1000 * 60 * 60);
     return ageInHours > maxAgeHours;
   }
 }

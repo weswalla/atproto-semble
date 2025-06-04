@@ -1,5 +1,6 @@
 import { pgTable, text, timestamp, uuid, boolean } from "drizzle-orm/pg-core";
 import { publishedRecords } from "../../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
+import { cards } from "./card.sql";
 
 export const collections = pgTable("collections", {
   id: uuid("id").primaryKey(),

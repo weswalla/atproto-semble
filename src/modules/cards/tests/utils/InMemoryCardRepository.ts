@@ -10,17 +10,20 @@ export class InMemoryCardRepository implements ICardRepository {
 
   private clone(card: Card): Card {
     // Simple clone - in a real implementation you'd want proper deep cloning
-    const cardResult = Card.create({
-      curatorId: card.curatorId,
-      type: card.type,
-      content: card.content,
-      parentCardId: card.parentCardId,
-    }, card.id);
-    
+    const cardResult = Card.create(
+      {
+        curatorId: card.curatorId,
+        type: card.type,
+        content: card.content,
+        parentCardId: card.parentCardId,
+      },
+      card.id
+    );
+
     if (cardResult.isErr()) {
       throw new Error(`Failed to clone card: ${cardResult.error.message}`);
     }
-    
+
     return cardResult.value;
   }
 
@@ -36,9 +39,10 @@ export class InMemoryCardRepository implements ICardRepository {
   async findByParentCardId(parentCardId: CardId): Promise<Result<Card[]>> {
     try {
       const cards = Array.from(this.cards.values()).filter(
-        card => card.parentCardId?.getStringValue() === parentCardId.getStringValue()
+        (card) =>
+          card.parentCardId?.getStringValue() === parentCardId.getStringValue()
       );
-      return ok(cards.map(card => this.clone(card)));
+      return ok(cards.map((card) => this.clone(card)));
     } catch (error) {
       return err(error as Error);
     }
@@ -47,9 +51,9 @@ export class InMemoryCardRepository implements ICardRepository {
   async findByCuratorId(curatorId: CuratorId): Promise<Result<Card[]>> {
     try {
       const cards = Array.from(this.cards.values()).filter(
-        card => card.curatorId.value === curatorId.value
+        (card) => card.curatorId.value === curatorId.value
       );
-      return ok(cards.map(card => this.clone(card)));
+      return ok(cards.map((card) => this.clone(card)));
     } catch (error) {
       return err(error as Error);
     }
@@ -58,8 +62,9 @@ export class InMemoryCardRepository implements ICardRepository {
   async findByUrl(url: URL): Promise<Result<Card | null>> {
     try {
       const card = Array.from(this.cards.values()).find(
-        card => card.content.type === "URL" && 
-                card.content.getUrlContent()?.url.value === url.value
+        (card) =>
+          card.content.type === "URL" &&
+          card.content.urlContent?.url.value === url.value
       );
       return ok(card ? this.clone(card) : null);
     } catch (error) {
@@ -95,6 +100,6 @@ export class InMemoryCardRepository implements ICardRepository {
   }
 
   public getAllCards(): Card[] {
-    return Array.from(this.cards.values()).map(card => this.clone(card));
+    return Array.from(this.cards.values()).map((card) => this.clone(card));
   }
 }

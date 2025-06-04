@@ -87,7 +87,9 @@ export class CardFactory {
       // Create parent card ID if provided
       let parentCardId: CardId | undefined;
       if (this.hasParentCardId(props.cardInput)) {
-        const parentCardIdResult = CardId.createFromString(props.cardInput.parentCardId!);
+        const parentCardIdResult = CardId.createFromString(
+          props.cardInput.parentCardId!
+        );
         if (parentCardIdResult.isErr()) {
           return err(
             new CardValidationError(
@@ -155,7 +157,6 @@ export class CardFactory {
         siteName: input.metadata.siteName,
         imageUrl: input.metadata.imageUrl,
         type: input.metadata.type,
-        retrievedAt: input.metadata.retrievedAt,
       });
       if (metadataResult.isErr()) {
         return err(

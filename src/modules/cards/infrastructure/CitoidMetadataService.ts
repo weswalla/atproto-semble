@@ -23,6 +23,10 @@ interface CitoidResponse {
   accessDate?: string;
 }
 
+interface CitoidErrorResponse {
+  Error: string;
+}
+
 export class CitoidMetadataService implements IMetadataService {
   private readonly baseUrl =
     "https://en.wikipedia.org/api/rest_v1/data/citation/zotero/";
@@ -47,14 +51,21 @@ export class CitoidMetadataService implements IMetadataService {
         );
       }
 
-      const data: CitoidResponse[] = (await response.json()) as any;
+      const data = (await response.json()) as any;
 
-      if (!data || data.length === 0) {
+      // Check if the response is an error
+      if (data && typeof data === 'object' && 'Error' in data) {
+        const errorResponse = data as CitoidErrorResponse;
+        return err(new Error(`Citoid service error: ${errorResponse.Error}`));
+      }
+
+      // Check if it's an array response
+      if (!Array.isArray(data) || data.length === 0) {
         return err(new Error("No metadata found for the given URL"));
       }
 
       // Use the first result
-      const citoidData = data[0];
+      const citoidData = data[0] as CitoidResponse;
       if (!citoidData || !citoidData.itemType) {
         return err(new Error("Invalid metadata format from Citoid"));
       }

@@ -70,7 +70,7 @@ describe("CitoidMetadataService Integration Tests", () => {
       // Assert
       // Should either succeed with minimal metadata or fail gracefully
       if (result.isErr()) {
-        expect(result.error.message).toContain("metadata");
+        expect(result.error.message).toMatch(/metadata|Unable to load URL/);
       } else {
         // If it succeeds, should at least have the URL
         const metadata = result.unwrap();

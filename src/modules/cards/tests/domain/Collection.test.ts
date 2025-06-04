@@ -2,6 +2,7 @@ import {
   Collection,
   CollectionAccessType,
   CollectionAccessError,
+  CollectionValidationError,
 } from "../../domain/Collection";
 import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
 import { CardId } from "../../domain/value-objects/CardId";
@@ -36,11 +37,79 @@ describe("Collection", () => {
 
       expect(result.isOk()).toBe(true);
       const collection = result.unwrap();
-      expect(collection.name).toBe("Test Collection");
+      expect(collection.name.value).toBe("Test Collection");
+      expect(collection.description?.value).toBe("A test collection");
       expect(collection.authorId).toBe(authorId);
       expect(collection.accessType).toBe(CollectionAccessType.OPEN);
       expect(collection.isOpen).toBe(true);
       expect(collection.isClosed).toBe(false);
+    });
+
+    it("should fail to create collection with empty name", () => {
+      const result = Collection.create({
+        authorId,
+        name: "",
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        cardIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      expect(result.isErr()).toBe(true);
+      expect(result.error).toBeInstanceOf(CollectionValidationError);
+      expect(result.error.message).toContain("Collection name cannot be empty");
+    });
+
+    it("should fail to create collection with name too long", () => {
+      const longName = "a".repeat(101);
+      const result = Collection.create({
+        authorId,
+        name: longName,
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        cardIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      expect(result.isErr()).toBe(true);
+      expect(result.error).toBeInstanceOf(CollectionValidationError);
+      expect(result.error.message).toContain("Collection name cannot exceed 100 characters");
+    });
+
+    it("should fail to create collection with description too long", () => {
+      const longDescription = "a".repeat(501);
+      const result = Collection.create({
+        authorId,
+        name: "Valid Name",
+        description: longDescription,
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        cardIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      expect(result.isErr()).toBe(true);
+      expect(result.error).toBeInstanceOf(CollectionValidationError);
+      expect(result.error.message).toContain("Collection description cannot exceed 500 characters");
+    });
+
+    it("should fail to create collection with invalid access type", () => {
+      const result = Collection.create({
+        authorId,
+        name: "Valid Name",
+        accessType: "INVALID" as CollectionAccessType,
+        collaboratorIds: [],
+        cardIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      expect(result.isErr()).toBe(true);
+      expect(result.error).toBeInstanceOf(CollectionValidationError);
+      expect(result.error.message).toContain("Invalid access type");
     });
   });
 

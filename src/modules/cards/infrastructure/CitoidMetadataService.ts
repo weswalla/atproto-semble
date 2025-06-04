@@ -47,14 +47,16 @@ export class CitoidMetadataService implements IMetadataService {
 
       if (!response.ok) {
         return err(
-          new Error(`Citoid API request failed with status ${response.status}`)
+          new Error(
+            `Citoid API request failed with status ${response.status} and message: ${response.statusText}`
+          )
         );
       }
 
       const data = (await response.json()) as any;
 
       // Check if the response is an error
-      if (data && typeof data === 'object' && 'Error' in data) {
+      if (data && typeof data === "object" && "Error" in data) {
         const errorResponse = data as CitoidErrorResponse;
         return err(new Error(`Citoid service error: ${errorResponse.Error}`));
       }

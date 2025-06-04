@@ -70,7 +70,7 @@ describe("CitoidMetadataService Integration Tests", () => {
       // Assert
       // Should either succeed with minimal metadata or fail gracefully
       if (result.isErr()) {
-        expect(result.error.message).toMatch(/metadata|Unable to load URL/);
+        expect(result.error.message).toMatch(/metadata|Not Found/);
       } else {
         // If it succeeds, should at least have the URL
         const metadata = result.unwrap();
@@ -91,9 +91,7 @@ describe("CitoidMetadataService Integration Tests", () => {
       // Assert
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain(
-          "Failed to fetch metadata from Citoid"
-        );
+        expect(result.error.message).toContain("Bad Request");
       }
     }, 10000);
   });

@@ -18,10 +18,9 @@ import {
   collectionCards,
 } from "../../infrastructure/repositories/schema/collection.sql";
 import { cards } from "../../infrastructure/repositories/schema/card.sql";
-import { Collection } from "../../domain/Collection";
+import { Collection, CollectionAccessType } from "../../domain/Collection";
 import { CollectionName } from "../../domain/value-objects/CollectionName";
 import { CollectionDescription } from "../../domain/value-objects/CollectionDescription";
-import { CollectionAccessType } from "../../domain/value-objects/CollectionAccessType";
 import { CardFactory } from "../../domain/CardFactory";
 import { CardTypeEnum } from "../../domain/value-objects/CardType";
 
@@ -122,16 +121,16 @@ describe("DrizzleCollectionRepository", () => {
   it("should save and retrieve a collection", async () => {
     // Create a collection
     const collectionId = new UniqueEntityID();
-    const name = CollectionName.create("Test Collection").unwrap();
-    const description = CollectionDescription.create("A test collection").unwrap();
-    const accessType = CollectionAccessType.create("PUBLIC").unwrap();
 
     const collection = Collection.create(
       {
         authorId: curatorId,
-        name,
-        description,
-        accessType,
+        name: "Test Collection",
+        description: "A test collection",
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       collectionId
     ).unwrap();
@@ -154,20 +153,21 @@ describe("DrizzleCollectionRepository", () => {
     expect(retrievedCollection?.authorId.value).toBe(curatorId.value);
     expect(retrievedCollection?.name.value).toBe("Test Collection");
     expect(retrievedCollection?.description?.value).toBe("A test collection");
-    expect(retrievedCollection?.accessType.value).toBe("PUBLIC");
+    expect(retrievedCollection?.accessType).toBe(CollectionAccessType.OPEN);
   });
 
   it("should save and retrieve a collection with collaborators", async () => {
     // Create a collection
     const collectionId = new UniqueEntityID();
-    const name = CollectionName.create("Collaborative Collection").unwrap();
-    const accessType = CollectionAccessType.create("PRIVATE").unwrap();
 
     const collection = Collection.create(
       {
         authorId: curatorId,
-        name,
-        accessType,
+        name: "Collaborative Collection",
+        accessType: CollectionAccessType.CLOSED,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       collectionId
     ).unwrap();
@@ -188,8 +188,8 @@ describe("DrizzleCollectionRepository", () => {
 
     const retrievedCollection = retrievedResult.unwrap();
     expect(retrievedCollection).not.toBeNull();
-    expect(retrievedCollection?.collaborators).toHaveLength(1);
-    expect(retrievedCollection?.collaborators[0]?.value).toBe(collaboratorId.value);
+    expect(retrievedCollection?.collaboratorIds).toHaveLength(1);
+    expect(retrievedCollection?.collaboratorIds[0]?.value).toBe(collaboratorId.value);
   });
 
   it("should save and retrieve a collection with cards", async () => {
@@ -207,14 +207,15 @@ describe("DrizzleCollectionRepository", () => {
 
     // Create a collection
     const collectionId = new UniqueEntityID();
-    const name = CollectionName.create("Collection with Cards").unwrap();
-    const accessType = CollectionAccessType.create("PUBLIC").unwrap();
 
     const collection = Collection.create(
       {
         authorId: curatorId,
-        name,
-        accessType,
+        name: "Collection with Cards",
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       collectionId
     ).unwrap();
@@ -245,14 +246,15 @@ describe("DrizzleCollectionRepository", () => {
   it("should update an existing collection", async () => {
     // Create a collection
     const collectionId = new UniqueEntityID();
-    const name = CollectionName.create("Original Name").unwrap();
-    const accessType = CollectionAccessType.create("PRIVATE").unwrap();
 
     const collection = Collection.create(
       {
         authorId: curatorId,
-        name,
-        accessType,
+        name: "Original Name",
+        accessType: CollectionAccessType.CLOSED,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       collectionId
     ).unwrap();
@@ -260,15 +262,15 @@ describe("DrizzleCollectionRepository", () => {
     await collectionRepository.save(collection);
 
     // Update the collection
-    const updatedName = CollectionName.create("Updated Name").unwrap();
-    const updatedDescription = CollectionDescription.create("Updated description").unwrap();
-    
     const updatedCollection = Collection.create(
       {
         authorId: curatorId,
-        name: updatedName,
-        description: updatedDescription,
-        accessType,
+        name: "Updated Name",
+        description: "Updated description",
+        accessType: CollectionAccessType.CLOSED,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       collectionId
     ).unwrap();
@@ -289,14 +291,15 @@ describe("DrizzleCollectionRepository", () => {
   it("should delete a collection", async () => {
     // Create a collection
     const collectionId = new UniqueEntityID();
-    const name = CollectionName.create("Collection to Delete").unwrap();
-    const accessType = CollectionAccessType.create("PUBLIC").unwrap();
 
     const collection = Collection.create(
       {
         authorId: curatorId,
-        name,
-        accessType,
+        name: "Collection to Delete",
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       collectionId
     ).unwrap();
@@ -323,8 +326,11 @@ describe("DrizzleCollectionRepository", () => {
     const collection1 = Collection.create(
       {
         authorId: curatorId,
-        name: CollectionName.create("First Collection").unwrap(),
-        accessType: CollectionAccessType.create("PUBLIC").unwrap(),
+        name: "First Collection",
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       collection1Id
     ).unwrap();
@@ -333,8 +339,11 @@ describe("DrizzleCollectionRepository", () => {
     const collection2 = Collection.create(
       {
         authorId: curatorId,
-        name: CollectionName.create("Second Collection").unwrap(),
-        accessType: CollectionAccessType.create("PRIVATE").unwrap(),
+        name: "Second Collection",
+        accessType: CollectionAccessType.CLOSED,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       collection2Id
     ).unwrap();
@@ -372,8 +381,11 @@ describe("DrizzleCollectionRepository", () => {
     const collection1 = Collection.create(
       {
         authorId: curatorId,
-        name: CollectionName.create("Collection One").unwrap(),
-        accessType: CollectionAccessType.create("PUBLIC").unwrap(),
+        name: "Collection One",
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       collection1Id
     ).unwrap();
@@ -382,8 +394,11 @@ describe("DrizzleCollectionRepository", () => {
     const collection2 = Collection.create(
       {
         authorId: curatorId,
-        name: CollectionName.create("Collection Two").unwrap(),
-        accessType: CollectionAccessType.create("PRIVATE").unwrap(),
+        name: "Collection Two",
+        accessType: CollectionAccessType.CLOSED,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       collection2Id
     ).unwrap();
@@ -410,14 +425,15 @@ describe("DrizzleCollectionRepository", () => {
   it("should save and retrieve a collection with published record", async () => {
     // Create a collection
     const collectionId = new UniqueEntityID();
-    const name = CollectionName.create("Published Collection").unwrap();
-    const accessType = CollectionAccessType.create("PUBLIC").unwrap();
 
     const collection = Collection.create(
       {
         authorId: curatorId,
-        name,
-        accessType,
+        name: "Published Collection",
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       collectionId
     ).unwrap();
@@ -468,8 +484,11 @@ describe("DrizzleCollectionRepository", () => {
     const collection = Collection.create(
       {
         authorId: curatorId,
-        name: CollectionName.create("Collection with Published Links").unwrap(),
-        accessType: CollectionAccessType.create("PUBLIC").unwrap(),
+        name: "Collection with Published Links",
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       collectionId
     ).unwrap();

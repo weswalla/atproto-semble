@@ -16,7 +16,8 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
       description: collection.description?.value,
       accessType: collection.accessType,
       collaboratorIds: collection.collaboratorIds,
-      cardIds: collection.cardIds,
+      cardLinks: collection.cardLinks,
+      publishedRecordId: collection.publishedRecordId,
       createdAt: collection.createdAt,
       updatedAt: collection.updatedAt,
     }, collection.id);
@@ -25,7 +26,14 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
       throw new Error(`Failed to clone collection: ${collectionResult.error.message}`);
     }
     
-    return collectionResult.value;
+    const clonedCollection = collectionResult.value;
+    
+    // Set the published record ID if it exists
+    if (collection.publishedRecordId) {
+      clonedCollection.markAsPublished(collection.publishedRecordId);
+    }
+    
+    return clonedCollection;
   }
 
   async findById(id: CollectionId): Promise<Result<Collection | null>> {

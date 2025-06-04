@@ -7,6 +7,7 @@ import { InMemoryCardRepository } from "../utils/InMemoryCardRepository";
 import { InMemoryCollectionRepository } from "../utils/InMemoryCollectionRepository";
 import { FakeMetadataService } from "../utils/FakeMetadataService";
 import { FakeCardPublisher } from "../utils/FakeCardPublisher";
+import { FakeCollectionPublisher } from "../utils/FakeCollectionPublisher";
 import { Collection, CollectionAccessType } from "../../domain/Collection";
 import { CardTypeEnum } from "../../domain/value-objects/CardType";
 import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
@@ -17,6 +18,7 @@ describe("AddCardToLibraryUseCase", () => {
   let collectionRepository: InMemoryCollectionRepository;
   let metadataService: FakeMetadataService;
   let cardPublisher: FakeCardPublisher;
+  let collectionPublisher: FakeCollectionPublisher;
   let useCase: AddCardToLibraryUseCase;
   let curatorId: CuratorId;
 
@@ -25,11 +27,13 @@ describe("AddCardToLibraryUseCase", () => {
     collectionRepository = new InMemoryCollectionRepository();
     metadataService = new FakeMetadataService();
     cardPublisher = new FakeCardPublisher();
+    collectionPublisher = new FakeCollectionPublisher();
     useCase = new AddCardToLibraryUseCase(
       cardRepository,
       collectionRepository,
       metadataService,
-      cardPublisher
+      cardPublisher,
+      collectionPublisher
     );
 
     const curatorIdResult = CuratorId.create("did:plc:curator123");
@@ -42,6 +46,7 @@ describe("AddCardToLibraryUseCase", () => {
     collectionRepository.clear();
     metadataService.clear();
     cardPublisher.clear();
+    collectionPublisher.clear();
   });
 
   describe("URL Card Creation", () => {
@@ -74,14 +79,17 @@ describe("AddCardToLibraryUseCase", () => {
       if (result.isOk()) {
         const response = result.value;
         expect(response.cardId).toBeDefined();
+        expect(response.publishedRecordId).toBeDefined();
+        expect(response.publishedRecordId?.uri).toContain("at://fake-did/app.cards.card/");
         expect(response.addedToCollections).toEqual([]);
         expect(response.failedCollections).toEqual([]);
 
-        // Verify card was saved
+        // Verify card was saved and published
         const savedCards = cardRepository.getAllCards();
         expect(savedCards).toHaveLength(1);
         expect(savedCards[0]!.curatorId.value).toBe(curatorId.value);
         expect(savedCards[0]!.content.type).toBe("URL");
+        expect(savedCards[0]!.isPublished).toBe(true);
 
         const urlContent = savedCards[0]!.content.urlContent;
         expect(urlContent?.url.value).toBe(testUrl);
@@ -154,11 +162,13 @@ describe("AddCardToLibraryUseCase", () => {
       if (result.isOk()) {
         const response = result.value;
         expect(response.cardId).toBeDefined();
+        expect(response.publishedRecordId).toBeDefined();
 
-        // Verify card was saved
+        // Verify card was saved and published
         const savedCards = cardRepository.getAllCards();
         expect(savedCards).toHaveLength(1);
         expect(savedCards[0]!.content.type).toBe("NOTE");
+        expect(savedCards[0]!.isPublished).toBe(true);
 
         const noteContent = savedCards[0]!.content.noteContent;
         expect(noteContent?.text).toBe("This is a test note");
@@ -200,12 +210,18 @@ describe("AddCardToLibraryUseCase", () => {
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
         const response = result.value;
-        expect(response.addedToCollections).toEqual([
-          collection.collectionId.getStringValue(),
-        ]);
+        expect(response.addedToCollections).toHaveLength(1);
+        expect(response.addedToCollections[0]?.collectionId).toBe(
+          collection.collectionId.getStringValue()
+        );
+        expect(response.addedToCollections[0]?.collectionRecord).toBeDefined();
+        expect(response.addedToCollections[0]?.publishedLinks).toHaveLength(1);
+        expect(response.addedToCollections[0]?.publishedLinks[0]?.cardId).toBe(
+          response.cardId
+        );
         expect(response.failedCollections).toEqual([]);
 
-        // Verify collection was updated
+        // Verify collection was updated and published
         const updatedCollectionResult = await collectionRepository.findById(
           collection.collectionId
         );
@@ -215,6 +231,12 @@ describe("AddCardToLibraryUseCase", () => {
         expect(updatedCollection?.cardIds[0]?.getStringValue()).toBe(
           response.cardId
         );
+        expect(updatedCollection?.isPublished).toBe(true);
+
+        // Verify the card link was marked as published
+        const cardLinks = updatedCollection?.cardLinks || [];
+        expect(cardLinks).toHaveLength(1);
+        expect(cardLinks[0]?.publishedRecordId).toBeDefined();
       }
     });
 
@@ -237,6 +259,7 @@ describe("AddCardToLibraryUseCase", () => {
       if (result.isOk()) {
         const response = result.value;
         expect(response.cardId).toBeDefined();
+        expect(response.publishedRecordId).toBeDefined();
         expect(response.addedToCollections).toEqual([]);
         expect(response.failedCollections).toHaveLength(1);
         expect(response.failedCollections[0]?.collectionId).toBe(
@@ -246,9 +269,10 @@ describe("AddCardToLibraryUseCase", () => {
           "Collection not found"
         );
 
-        // Verify card was still created
+        // Verify card was still created and published
         const savedCards = cardRepository.getAllCards();
         expect(savedCards).toHaveLength(1);
+        expect(savedCards[0]!.isPublished).toBe(true);
       }
     });
 

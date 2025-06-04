@@ -308,7 +308,7 @@ describe("HighlightCardContent Integration Tests", () => {
       
       // Also verify the prefix and suffix are correct
       const actualPrefix = documentText.substring(
-        Math.max(0, exactTextIndex - textQuoteSelector.prefix.length),
+        exactTextIndex - textQuoteSelector.prefix.length,
         exactTextIndex
       );
       const actualSuffix = documentText.substring(
@@ -316,8 +316,8 @@ describe("HighlightCardContent Integration Tests", () => {
         exactTextIndex + textQuoteSelector.exact.length + textQuoteSelector.suffix.length
       );
       
-      expect(actualPrefix.trim()).toBe(textQuoteSelector.prefix);
-      expect(actualSuffix.trim()).toBe(textQuoteSelector.suffix);
+      expect(actualPrefix).toBe(textQuoteSelector.prefix);
+      expect(actualSuffix).toBe(textQuoteSelector.suffix);
 
       // Verify position selector still works
       const positionSelector = content.getTextPositionSelector()!;

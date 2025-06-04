@@ -7,15 +7,47 @@ import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorI
 import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
 import { URL } from "../../../domain/value-objects/URL";
 import { UrlMetadata } from "../../../domain/value-objects/UrlMetadata";
+import { HighlightSelector } from "../../../domain/value-objects/content/HighlightCardContent";
 import { PublishedRecordDTO, PublishedRecordRefDTO } from "./DTOTypes";
 import { err, ok, Result } from "../../../../../shared/core/Result";
+
+// Type-safe content data interfaces
+interface UrlContentData {
+  url: string;
+  metadata?: {
+    url: string;
+    title?: string;
+    description?: string;
+    author?: string;
+    publishedDate?: string;
+    siteName?: string;
+    imageUrl?: string;
+    type?: string;
+    retrievedAt: string;
+  };
+}
+
+interface NoteContentData {
+  text: string;
+  title?: string;
+}
+
+interface HighlightContentData {
+  text: string;
+  selectors: HighlightSelector[];
+  context?: string;
+  documentUrl?: string;
+  documentTitle?: string;
+}
+
+type CardContentData = UrlContentData | NoteContentData | HighlightContentData;
 
 // Database representation of a card
 export interface CardDTO extends PublishedRecordRefDTO {
   id: string;
   curatorId: string;
   type: string;
-  contentData: any; // JSON data for the content
+  contentData: CardContentData; // Type-safe JSON data for the content
   parentCardId?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -82,28 +114,29 @@ export class CardMapper {
 
   private static createCardContent(
     type: CardTypeEnum,
-    data: any
+    data: CardContentData
   ): Result<CardContent> {
     try {
       switch (type) {
         case CardTypeEnum.URL:
-          const urlOrError = URL.create(data.url);
+          const urlData = data as UrlContentData;
+          const urlOrError = URL.create(urlData.url);
           if (urlOrError.isErr()) return err(urlOrError.error);
 
           let metadata: UrlMetadata | undefined;
-          if (data.metadata) {
+          if (urlData.metadata) {
             const metadataResult = UrlMetadata.create({
-              url: data.metadata.url,
-              title: data.metadata.title,
-              description: data.metadata.description,
-              author: data.metadata.author,
-              publishedDate: data.metadata.publishedDate
-                ? new Date(data.metadata.publishedDate)
+              url: urlData.metadata.url,
+              title: urlData.metadata.title,
+              description: urlData.metadata.description,
+              author: urlData.metadata.author,
+              publishedDate: urlData.metadata.publishedDate
+                ? new Date(urlData.metadata.publishedDate)
                 : undefined,
-              siteName: data.metadata.siteName,
-              imageUrl: data.metadata.imageUrl,
-              type: data.metadata.type,
-              retrievedAt: new Date(data.metadata.retrievedAt),
+              siteName: urlData.metadata.siteName,
+              imageUrl: urlData.metadata.imageUrl,
+              type: urlData.metadata.type,
+              retrievedAt: new Date(urlData.metadata.retrievedAt),
             });
             if (metadataResult.isErr()) return err(metadataResult.error);
             metadata = metadataResult.value;
@@ -112,13 +145,15 @@ export class CardMapper {
           return CardContent.createUrlContent(urlOrError.value, metadata);
 
         case CardTypeEnum.NOTE:
-          return CardContent.createNoteContent(data.text, data.title);
+          const noteData = data as NoteContentData;
+          return CardContent.createNoteContent(noteData.text, noteData.title);
 
         case CardTypeEnum.HIGHLIGHT:
-          return CardContent.createHighlightContent(data.text, data.selectors, {
-            context: data.context,
-            documentUrl: data.documentUrl,
-            documentTitle: data.documentTitle,
+          const highlightData = data as HighlightContentData;
+          return CardContent.createHighlightContent(highlightData.text, highlightData.selectors, {
+            context: highlightData.context,
+            documentUrl: highlightData.documentUrl,
+            documentTitle: highlightData.documentTitle,
           });
 
         default:
@@ -134,7 +169,7 @@ export class CardMapper {
       id: string;
       curatorId: string;
       type: string;
-      contentData: any;
+      contentData: CardContentData;
       parentCardId?: string;
       createdAt: Date;
       updatedAt: Date;
@@ -143,11 +178,11 @@ export class CardMapper {
     publishedRecord?: PublishedRecordDTO;
   } {
     const content = card.content;
-    let contentData: any;
+    let contentData: CardContentData;
 
     // Extract content data based on type
     if (content.type === CardTypeEnum.URL) {
-      const urlContent = content.content as any;
+      const urlContent = content.urlContent!;
       contentData = {
         url: urlContent.url.value,
         metadata: urlContent.metadata
@@ -163,22 +198,24 @@ export class CardMapper {
               retrievedAt: urlContent.metadata.retrievedAt.toISOString(),
             }
           : undefined,
-      };
+      } as UrlContentData;
     } else if (content.type === CardTypeEnum.NOTE) {
-      const noteContent = content.content as any;
+      const noteContent = content.noteContent!;
       contentData = {
         text: noteContent.text,
         title: noteContent.title,
-      };
+      } as NoteContentData;
     } else if (content.type === CardTypeEnum.HIGHLIGHT) {
-      const highlightContent = content.content as any;
+      const highlightContent = content.highlightContent!;
       contentData = {
         text: highlightContent.text,
         selectors: highlightContent.selectors,
         context: highlightContent.context,
         documentUrl: highlightContent.documentUrl,
         documentTitle: highlightContent.documentTitle,
-      };
+      } as HighlightContentData;
+    } else {
+      throw new Error(`Unknown card type: ${content.type}`);
     }
 
     // Create published record data if it exists

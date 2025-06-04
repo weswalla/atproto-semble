@@ -15,9 +15,15 @@ We need to:
 ### Value Objects
 
 **UrlMetadata**
-- Immutable value object containing all metadata fields
+- Immutable value object containing normalized metadata fields
+- Derived from raw API responses through transformation
+- Used by the domain layer for business logic
+
+**RawMetadataResponse**
+- Immutable value object containing the original API response
 - Includes `source` field to track which service provided the data
 - Includes `retrievedAt` timestamp for cache invalidation
+- Preserves the exact JSON structure returned by each API
 
 **MetadataSource**
 - Enumeration of available metadata sources (CITOID, IFRAMELY, etc.)
@@ -33,11 +39,18 @@ We need to:
 
 **IMetadataProvider** (Interface)
 - Contract for individual metadata sources
+- Returns raw API responses wrapped in RawMetadataResponse
 - Implemented by CitoidMetadataService, IframelyMetadataService, etc.
 
-**IMetadataRepository** (Interface)
-- Stores and retrieves cached metadata by URL and source
-- Enables querying for partial metadata to determine what's missing
+**IRawMetadataRepository** (Interface)
+- Stores and retrieves raw API responses by URL and source
+- Enables querying for existing raw data to determine what's missing
+- Preserves original API response structure for future reprocessing
+
+**IMetadataTransformer** (Interface)
+- Transforms raw API responses into domain UrlMetadata objects
+- Source-specific implementations handle different API response formats
+- Enables reprocessing of stored raw data as domain models evolve
 
 ## Architecture Pattern: Strategy + Repository + Aggregation
 
@@ -71,7 +84,7 @@ We need to:
 ```typescript
 export interface IMetadataProvider {
   readonly source: MetadataSource;
-  fetchMetadata(url: URL): Promise<Result<UrlMetadata>>;
+  fetchRawMetadata(url: URL): Promise<Result<RawMetadataResponse>>;
   isAvailable(): Promise<boolean>;
 }
 ```
@@ -79,40 +92,63 @@ export interface IMetadataProvider {
 ### 2. Repository Interface
 
 ```typescript
-export interface IMetadataRepository {
-  findByUrl(url: URL): Promise<Result<UrlMetadata[]>>; // All cached metadata for URL
-  findByUrlAndSource(url: URL, source: MetadataSource): Promise<Result<UrlMetadata | null>>;
-  save(metadata: UrlMetadata): Promise<Result<void>>;
-  isStale(metadata: UrlMetadata, maxAge: Duration): boolean;
+export interface IRawMetadataRepository {
+  findByUrl(url: URL): Promise<Result<RawMetadataResponse[]>>; // All cached raw responses for URL
+  findByUrlAndSource(url: URL, source: MetadataSource): Promise<Result<RawMetadataResponse | null>>;
+  save(rawResponse: RawMetadataResponse): Promise<Result<void>>;
+  isStale(rawResponse: RawMetadataResponse, maxAge: Duration): boolean;
 }
 ```
 
-### 3. Aggregation Service
+### 3. Transformer Interface
+
+```typescript
+export interface IMetadataTransformer {
+  readonly source: MetadataSource;
+  transform(rawResponse: RawMetadataResponse): Result<UrlMetadata>;
+}
+```
+
+### 4. Aggregation Service
 
 ```typescript
 export class MetadataAggregationService {
   constructor(
-    private readonly repository: IMetadataRepository,
+    private readonly rawRepository: IRawMetadataRepository,
     private readonly providers: IMetadataProvider[],
+    private readonly transformers: Map<MetadataSource, IMetadataTransformer>,
     private readonly maxCacheAge: Duration = Duration.days(7)
   ) {}
 
   async getMetadata(url: URL, sources?: MetadataSource[]): Promise<Result<UrlMetadata>> {
-    // 1. Check cache for existing metadata
-    const cached = await this.repository.findByUrl(url);
+    // 1. Check cache for existing raw responses
+    const cachedRaw = await this.rawRepository.findByUrl(url);
     
     // 2. Determine which sources need fresh data
-    const sourcesToFetch = this.determineSourcesToFetch(cached, sources);
+    const sourcesToFetch = this.determineSourcesToFetch(cachedRaw, sources);
     
-    // 3. Fetch from required sources in parallel
-    const freshResults = await this.fetchFromSources(url, sourcesToFetch);
+    // 3. Fetch raw responses from required sources in parallel
+    const freshRawResults = await this.fetchRawFromSources(url, sourcesToFetch);
     
-    // 4. Cache new results
-    await this.cacheResults(freshResults);
+    // 4. Cache new raw results
+    await this.cacheRawResults(freshRawResults);
     
-    // 5. Aggregate all available metadata
-    const allMetadata = [...(cached.isOk() ? cached.value : []), ...freshResults];
-    return this.aggregateMetadata(allMetadata);
+    // 5. Transform all available raw responses to domain objects
+    const allRawResponses = [...(cachedRaw.isOk() ? cachedRaw.value : []), ...freshRawResults];
+    const transformedMetadata = this.transformRawResponses(allRawResponses);
+    
+    // 6. Aggregate transformed metadata
+    return this.aggregateMetadata(transformedMetadata);
+  }
+
+  private transformRawResponses(rawResponses: RawMetadataResponse[]): UrlMetadata[] {
+    return rawResponses
+      .map(raw => {
+        const transformer = this.transformers.get(raw.source);
+        return transformer ? transformer.transform(raw) : null;
+      })
+      .filter(result => result?.isOk())
+      .map(result => result!.value);
   }
 
   private aggregateMetadata(metadataList: UrlMetadata[]): Result<UrlMetadata> {
@@ -124,7 +160,7 @@ export class MetadataAggregationService {
 }
 ```
 
-### 4. Use Case
+### 5. Use Case
 
 ```typescript
 export class GetUrlMetadataUseCase {
@@ -146,8 +182,8 @@ export class GetUrlMetadataUseCase {
 ## Caching Strategy
 
 ### Cache Key Structure
-- Primary: `url_metadata:{url_hash}`
-- Secondary: `url_metadata:{url_hash}:{source}`
+- Raw responses: `raw_metadata:{url_hash}:{source}`
+- Transformed metadata: `url_metadata:{url_hash}` (optional, for performance)
 
 ### Cache Invalidation
 - Time-based: 7 days default, configurable per source
@@ -189,12 +225,23 @@ export class GetUrlMetadataUseCase {
 4. **User Preferences**: Allow users to prefer certain sources
 5. **Metadata Enrichment**: Combine multiple sources for richer data
 
+## Raw Data Storage Benefits
+
+1. **Data Preservation**: Original API responses preserved exactly as returned
+2. **Reprocessing Capability**: Can re-transform data as domain models evolve
+3. **Debugging**: Easy to inspect what each API actually returned
+4. **Audit Trail**: Complete history of API interactions
+5. **Schema Evolution**: Domain objects can change without losing source data
+6. **Multi-version Support**: Can support multiple versions of transformers
+
 ## Implementation Order
 
-1. Define interfaces (`IMetadataProvider`, `IMetadataRepository`)
-2. Implement repository with caching
-3. Refactor existing `CitoidMetadataService` to implement `IMetadataProvider`
-4. Implement `MetadataAggregationService`
-5. Add additional providers (Iframely, OpenGraph)
-6. Implement intelligent aggregation logic
-7. Add monitoring and health checks
+1. Define interfaces (`IMetadataProvider`, `IRawMetadataRepository`, `IMetadataTransformer`)
+2. Implement raw metadata repository with caching
+3. Create `RawMetadataResponse` value object
+4. Refactor existing `CitoidMetadataService` to return raw responses
+5. Implement `CitoidMetadataTransformer` to convert raw to domain objects
+6. Implement `MetadataAggregationService`
+7. Add additional providers and transformers (Iframely, OpenGraph)
+8. Implement intelligent aggregation logic
+9. Add monitoring and health checks

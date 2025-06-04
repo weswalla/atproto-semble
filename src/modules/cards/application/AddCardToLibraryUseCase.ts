@@ -9,6 +9,7 @@ import { CollectionId } from "../domain/value-objects/CollectionId";
 import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
 import { Card, CardValidationError } from "../domain/Card";
 import { CollectionAccessError } from "../domain/Collection";
+import { IMetadataService } from "../domain/services/IMetadataService";
 
 export interface AddCardToLibraryDTO {
   curatorId: string;
@@ -55,7 +56,8 @@ export class AddCardToLibraryUseCase
 {
   constructor(
     private cardRepository: ICardRepository,
-    private collectionRepository: ICollectionRepository
+    private collectionRepository: ICollectionRepository,
+    private metadataService: IMetadataService
   ) {}
 
   async execute(
@@ -79,9 +81,10 @@ export class AddCardToLibraryUseCase
       const curatorId = curatorIdResult.value;
 
       // Create the card using CardFactory
-      const cardResult = CardFactory.create({
+      const cardResult = await CardFactory.create({
         curatorId: request.curatorId,
         cardInput: request.cardInput,
+        metadataService: this.metadataService,
       });
 
       if (cardResult.isErr()) {

@@ -69,6 +69,7 @@ describe("AddCardToLibraryUseCase", () => {
           type: CardTypeEnum.URL,
           url: testUrl,
         },
+        url: testUrl,
       };
 
       // Act
@@ -96,7 +97,7 @@ describe("AddCardToLibraryUseCase", () => {
         const urlContent = savedCards[0]!.content.urlContent;
         expect(urlContent?.url.value).toBe(testUrl);
         expect(urlContent?.metadata?.title).toBe("Test Article");
-        
+
         // Verify the card also has the URL property set
         expect(savedCards[0]!.url).toBeDefined();
         expect(savedCards[0]!.url?.value).toBe(testUrl);
@@ -113,6 +114,7 @@ describe("AddCardToLibraryUseCase", () => {
           type: CardTypeEnum.URL,
           url: "https://example.com/article",
         },
+        url: "https://example.com/article",
       };
 
       // Act
@@ -158,6 +160,7 @@ describe("AddCardToLibraryUseCase", () => {
           text: "This is a test note",
           title: "Test Note",
         },
+        url: "https://example.com/note",
       };
 
       // Act
@@ -205,6 +208,7 @@ describe("AddCardToLibraryUseCase", () => {
           type: CardTypeEnum.NOTE,
           text: "Test note for collection",
         },
+        url: "https://example.com/collection-note",
         collectionIds: [collection.collectionId.getStringValue()],
       };
 
@@ -253,6 +257,7 @@ describe("AddCardToLibraryUseCase", () => {
           type: CardTypeEnum.NOTE,
           text: "Test note",
         },
+        url: "https://example.com/non-existent-collection",
         collectionIds: ["non-existent-collection-id"],
       };
 

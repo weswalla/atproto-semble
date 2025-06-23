@@ -143,10 +143,20 @@ export class AddCardToLibraryUseCase
         };
       }
 
-      // Create the card using CardFactory
+      // Add optional URL to card input if provided
+      let finalCardInput = cardInput;
+      if (request.url && cardInput.type !== CardTypeEnum.URL) {
+        // For non-URL cards, add the optional URL field
+        finalCardInput = {
+          ...cardInput,
+          url: request.url,
+        } as CardCreationInput;
+      }
+
+      // Create the card using CardFactory with optional URL
       const cardResult = CardFactory.create({
         curatorId: request.curatorId,
-        cardInput: cardInput,
+        cardInput: finalCardInput,
       });
 
       if (cardResult.isErr()) {

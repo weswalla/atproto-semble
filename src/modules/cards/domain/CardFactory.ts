@@ -21,6 +21,7 @@ interface INoteCardInput {
   text: string;
   title?: string;
   parentCardId?: string;
+  url?: string;
 }
 
 interface IHighlightCardInput {
@@ -31,6 +32,7 @@ interface IHighlightCardInput {
   context?: string;
   documentUrl?: string;
   documentTitle?: string;
+  url?: string;
 }
 
 // Union type for all possible card creation inputs
@@ -92,11 +94,37 @@ export class CardFactory {
         parentCardId = parentCardIdResult.value;
       }
 
+      // Create URL if provided for URL cards (required) or optional for other card types
+      let url: URL | undefined;
+      if (props.cardInput.type === CardTypeEnum.URL) {
+        const urlResult = URL.create(props.cardInput.url);
+        if (urlResult.isErr()) {
+          return err(
+            new CardValidationError(
+              `Invalid URL: ${urlResult.error.message}`
+            )
+          );
+        }
+        url = urlResult.value;
+      } else if ('url' in props.cardInput && props.cardInput.url) {
+        // Handle optional URL for NOTE and HIGHLIGHT cards
+        const urlResult = URL.create(props.cardInput.url);
+        if (urlResult.isErr()) {
+          return err(
+            new CardValidationError(
+              `Invalid URL: ${urlResult.error.message}`
+            )
+          );
+        }
+        url = urlResult.value;
+      }
+
       // Create the card
       return Card.create({
         curatorId,
         type: cardType,
         content,
+        url,
         parentCardId,
       });
     } catch (error) {

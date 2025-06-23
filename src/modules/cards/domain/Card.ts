@@ -6,6 +6,7 @@ import { CardType, CardTypeEnum } from "./value-objects/CardType";
 import { CardContent } from "./value-objects/CardContent";
 import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
 import { PublishedRecordId } from "./value-objects/PublishedRecordId";
+import { URL } from "./value-objects/URL";
 
 export class CardValidationError extends Error {
   constructor(message: string) {
@@ -18,6 +19,7 @@ interface CardProps {
   curatorId: CuratorId;
   type: CardType;
   content: CardContent;
+  url?: URL;
   parentCardId?: CardId; // For NOTE and HIGHLIGHT cards that reference other cards
   publishedRecordId?: PublishedRecordId;
   createdAt: Date;
@@ -41,10 +43,13 @@ export class Card extends AggregateRoot<CardProps> {
     return this.props.content;
   }
 
+  get url(): URL | undefined {
+    return this.props.url;
+  }
+
   get parentCardId(): CardId | undefined {
     return this.props.parentCardId;
   }
-
 
   get createdAt(): Date {
     return this.props.createdAt;
@@ -117,9 +122,7 @@ export class Card extends AggregateRoot<CardProps> {
   ): Result<void, CardValidationError> {
     // URL cards should not have parent cards
     if (props.type.value === CardTypeEnum.URL && props.parentCardId) {
-      return err(
-        new CardValidationError("URL cards cannot have parent cards")
-      );
+      return err(new CardValidationError("URL cards cannot have parent cards"));
     }
 
     // HIGHLIGHT cards should have a parent card (the content being highlighted)

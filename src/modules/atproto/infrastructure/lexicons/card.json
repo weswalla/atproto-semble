@@ -25,6 +25,11 @@
               "#highlightContent"
             ]
           },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Optional URL associated with the card. Required for URL cards, optional for NOTE and HIGHLIGHT cards."
+          },
           "parentCard": {
             "type": "ref",
             "description": "Optional strong reference to a parent card (for NOTE and HIGHLIGHT cards).",

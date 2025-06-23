@@ -30,6 +30,26 @@ describe("Card", () => {
       expect(card.curatorId).toBe(validCuratorId);
       expect(card.type.value).toBe(CardTypeEnum.URL);
       expect(card.parentCardId).toBeUndefined();
+      expect(card.url).toBeUndefined();
+    });
+
+    it("should create a URL card with optional url field", () => {
+      const cardType = CardType.create(CardTypeEnum.URL).unwrap();
+      const cardContent = CardContent.createUrlContent(validUrl).unwrap();
+      const cardUrl = URL.create("https://example.org").unwrap();
+
+      const result = Card.create({
+        curatorId: validCuratorId,
+        type: cardType,
+        content: cardContent,
+        url: cardUrl,
+      });
+
+      expect(result.isOk()).toBe(true);
+      const card = result.unwrap();
+      expect(card.isUrlCard).toBe(true);
+      expect(card.url).toBe(cardUrl);
+      expect(card.url?.value).toBe("https://example.org");
     });
 
     it("should reject URL card with parent card", () => {
@@ -82,6 +102,26 @@ describe("Card", () => {
       expect(card.isStandaloneNote).toBe(true);
       expect(card.isLinkedNote).toBe(false);
       expect(card.parentCardId).toBeUndefined();
+      expect(card.url).toBeUndefined();
+    });
+
+    it("should create a note card with optional url field", () => {
+      const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
+      const cardContent = CardContent.createNoteContent("Test note about a URL").unwrap();
+      const noteUrl = URL.create("https://reference.example.com").unwrap();
+
+      const result = Card.create({
+        curatorId: validCuratorId,
+        type: cardType,
+        content: cardContent,
+        url: noteUrl,
+      });
+
+      expect(result.isOk()).toBe(true);
+      const card = result.unwrap();
+      expect(card.isNoteCard).toBe(true);
+      expect(card.url).toBe(noteUrl);
+      expect(card.url?.value).toBe("https://reference.example.com");
     });
 
     it("should create a linked note card", () => {
@@ -157,6 +197,32 @@ describe("Card", () => {
       const card = result.unwrap();
       expect(card.isHighlightCard).toBe(true);
       expect(card.parentCardId).toBe(parentCardId);
+      expect(card.url).toBeUndefined();
+    });
+
+    it("should create a highlight card with optional url field", () => {
+      const cardType = CardType.create(CardTypeEnum.HIGHLIGHT).unwrap();
+      const cardContent = CardContent.createHighlightContent(
+        "highlighted text from article",
+        [{ type: "TextQuoteSelector", exact: "highlighted text from article" }]
+      ).unwrap();
+      const parentCardId = CardId.create(new UniqueEntityID()).unwrap();
+      const highlightUrl = URL.create("https://article.example.com").unwrap();
+
+      const result = Card.create({
+        curatorId: validCuratorId,
+        type: cardType,
+        content: cardContent,
+        parentCardId,
+        url: highlightUrl,
+      });
+
+      expect(result.isOk()).toBe(true);
+      const card = result.unwrap();
+      expect(card.isHighlightCard).toBe(true);
+      expect(card.parentCardId).toBe(parentCardId);
+      expect(card.url).toBe(highlightUrl);
+      expect(card.url?.value).toBe("https://article.example.com");
     });
 
     it("should reject highlight card without parent", () => {

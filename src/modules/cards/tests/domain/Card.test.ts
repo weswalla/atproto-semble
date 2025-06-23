@@ -20,6 +20,7 @@ describe("Card", () => {
         curatorId: validCuratorId,
         type: cardType,
         content: cardContent,
+        url: validUrl,
       });
 
       expect(result.isOk()).toBe(true);
@@ -30,7 +31,7 @@ describe("Card", () => {
       expect(card.curatorId).toBe(validCuratorId);
       expect(card.type.value).toBe(CardTypeEnum.URL);
       expect(card.parentCardId).toBeUndefined();
-      expect(card.url).toBeUndefined();
+      expect(card.url).toBe(validUrl);
     });
 
     it("should create a URL card with optional url field", () => {
@@ -52,6 +53,21 @@ describe("Card", () => {
       expect(card.url?.value).toBe("https://example.org");
     });
 
+    it("should reject URL card without url property", () => {
+      const cardType = CardType.create(CardTypeEnum.URL).unwrap();
+      const cardContent = CardContent.createUrlContent(validUrl).unwrap();
+
+      const result = Card.create({
+        curatorId: validCuratorId,
+        type: cardType,
+        content: cardContent,
+      });
+
+      expect(result.isErr()).toBe(true);
+      expect((result as Err<Card, CardValidationError>).error).toBeInstanceOf(CardValidationError);
+      expect((result as Err<Card, CardValidationError>).error.message).toBe("URL cards must have a url property");
+    });
+
     it("should reject URL card with parent card", () => {
       const cardType = CardType.create(CardTypeEnum.URL).unwrap();
       const cardContent = CardContent.createUrlContent(validUrl).unwrap();
@@ -61,6 +77,7 @@ describe("Card", () => {
         curatorId: validCuratorId,
         type: cardType,
         content: cardContent,
+        url: validUrl,
         parentCardId,
       });
 
@@ -77,6 +94,7 @@ describe("Card", () => {
         curatorId: validCuratorId,
         type: cardType,
         content: cardContent,
+        url: validUrl,
       });
 
       expect(result.isErr()).toBe(true);

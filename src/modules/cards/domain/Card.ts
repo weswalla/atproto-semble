@@ -125,6 +125,11 @@ export class Card extends AggregateRoot<CardProps> {
       return err(new CardValidationError("URL cards cannot have parent cards"));
     }
 
+    // URL cards must have a URL property
+    if (props.type.value === CardTypeEnum.URL && !props.url) {
+      return err(new CardValidationError("URL cards must have a url property"));
+    }
+
     // HIGHLIGHT cards should have a parent card (the content being highlighted)
     if (props.type.value === CardTypeEnum.HIGHLIGHT && !props.parentCardId) {
       return err(

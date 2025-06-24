@@ -34,7 +34,7 @@ export class AnnotationFieldMapper {
   ): AnnotationFieldRecordDTO {
     AnnotationFieldMapper.toFieldDefinitionDTO(annotationField);
     return {
-      $type: "app.annos.annotationField",
+      $type: "network.cosmik.annotationField",
       name: annotationField.name.value,
       description: annotationField.description.value,
       createdAt: annotationField.createdAt.toISOString(),
@@ -51,14 +51,14 @@ export class AnnotationFieldMapper {
       case AnnotationType.DYAD.value:
         const dyadDef = def as DyadFieldDefValueObject;
         return {
-          $type: "app.annos.annotationField#dyadFieldDef",
+          $type: "network.cosmik.annotationField#dyadFieldDef",
           sideA: dyadDef.props.sideA,
           sideB: dyadDef.props.sideB,
         };
       case AnnotationType.TRIAD.value:
         const triadDef = def as TriadFieldDefValueObject;
         return {
-          $type: "app.annos.annotationField#triadFieldDef",
+          $type: "network.cosmik.annotationField#triadFieldDef",
           vertexA: triadDef.props.vertexA,
           vertexB: triadDef.props.vertexB,
           vertexC: triadDef.props.vertexC,
@@ -66,19 +66,19 @@ export class AnnotationFieldMapper {
       case AnnotationType.RATING.value:
         const ratingDef = def as RatingFieldDefValueObject;
         return {
-          $type: "app.annos.annotationField#ratingFieldDef",
+          $type: "network.cosmik.annotationField#ratingFieldDef",
           numberOfStars: ratingDef.props.numberOfStars,
         };
       case AnnotationType.SINGLE_SELECT.value:
         const singleSelectDef = def as SingleSelectFieldDefValueObject;
         return {
-          $type: "app.annos.annotationField#singleSelectFieldDef",
+          $type: "network.cosmik.annotationField#singleSelectFieldDef",
           options: singleSelectDef.props.options,
         };
       case AnnotationType.MULTI_SELECT.value:
         const multiSelectDef = def as MultiSelectFieldDefValueObject;
         return {
-          $type: "app.annos.annotationField#multiSelectFieldDef",
+          $type: "network.cosmik.annotationField#multiSelectFieldDef",
           options: multiSelectDef.props.options,
         };
       default:

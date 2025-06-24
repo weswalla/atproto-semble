@@ -24,7 +24,7 @@ export class AnnotationMapper {
     // Create the base record
     const fieldStrongRef = this.createFieldRef(annotation);
     const record: AnnotationRecordDTO = {
-      $type: "app.annos.annotation",
+      $type: "network.cosmik.annotation",
       url: annotation.url.value,
       field: fieldStrongRef,
       value: this.mapAnnotationValue(annotation.value),
@@ -94,30 +94,30 @@ export class AnnotationMapper {
   > {
     if (value instanceof DyadValueObject) {
       return {
-        $type: "app.annos.annotation#dyadValue",
+        $type: "network.cosmik.annotation#dyadValue",
         value: value.value,
       };
     } else if (value instanceof TriadValueObject) {
       const triadValue = value.props;
       return {
-        $type: "app.annos.annotation#triadValue",
+        $type: "network.cosmik.annotation#triadValue",
         vertexA: triadValue.vertexA,
         vertexB: triadValue.vertexB,
         vertexC: triadValue.vertexC,
       };
     } else if (value instanceof RatingValueObject) {
       return {
-        $type: "app.annos.annotation#ratingValue",
+        $type: "network.cosmik.annotation#ratingValue",
         rating: value.rating,
       };
     } else if (value instanceof SingleSelectValueObject) {
       return {
-        $type: "app.annos.annotation#singleSelectValue",
+        $type: "network.cosmik.annotation#singleSelectValue",
         option: value.option,
       };
     } else if (value instanceof MultiSelectValueObject) {
       return {
-        $type: "app.annos.annotation#multiSelectValue",
+        $type: "network.cosmik.annotation#multiSelectValue",
         options: value.options,
       };
     } else {

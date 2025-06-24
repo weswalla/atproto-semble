@@ -9,7 +9,7 @@ import { IAgentService } from "../../application/IAgentService";
 import { DID } from "../../domain/DID";
 
 export class ATProtoAnnotationPublisher implements IAnnotationPublisher {
-  private readonly COLLECTION = "app.annos.annotation";
+  private readonly COLLECTION = "network.cosmik.annotation";
 
   constructor(private readonly agentService: IAgentService) {}
 

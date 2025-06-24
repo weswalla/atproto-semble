@@ -10,7 +10,7 @@ export class AnnotationsFromTemplateMapper {
    */
   static toCreateOperations(
     annotationsFromTemplate: AnnotationsFromTemplate,
-    collection: string = "app.annos.annotation"
+    collection: string = "network.cosmik.annotation"
   ): $Typed<Create>[] {
     const annotations = annotationsFromTemplate.annotations;
     const operations: $Typed<Create>[] = [];

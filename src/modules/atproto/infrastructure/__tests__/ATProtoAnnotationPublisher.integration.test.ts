@@ -200,7 +200,7 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
       .withDyadDefinition({ sideA: "Agree", sideB: "Disagree" })
       .withCreatedAt(new Date())
       .withPublishedRecordId({
-        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/app.annos.annotationField/3lohln4bc672c",
+        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/network.cosmik.annotationField/3lohln4bc672c",
         cid: "bafyreienwqqnfegi2wtgd4rekdofrmthsey5eixnjwwp337cmj65enajla",
       })
       .buildOrThrow();
@@ -217,7 +217,7 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
       })
       .withCreatedAt(new Date())
       .withPublishedRecordId({
-        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/app.annos.annotationField/3lohln4bc672c",
+        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/network.cosmik.annotationField/3lohln4bc672c",
         cid: "bafyreienwqqnfegi2wtgd4rekdofrmthsey5eixnjwwp337cmj65enajla",
       })
       .buildOrThrow();
@@ -229,7 +229,7 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
       .withRatingDefinition()
       .withCreatedAt(new Date())
       .withPublishedRecordId({
-        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/app.annos.annotationField/3lohln4bc672c",
+        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/network.cosmik.annotationField/3lohln4bc672c",
         cid: "bafyreienwqqnfegi2wtgd4rekdofrmthsey5eixnjwwp337cmj65enajla",
       })
       .buildOrThrow();
@@ -243,7 +243,7 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
       })
       .withCreatedAt(new Date())
       .withPublishedRecordId({
-        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/app.annos.annotationField/3lohln4bc672c",
+        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/network.cosmik.annotationField/3lohln4bc672c",
         cid: "bafyreienwqqnfegi2wtgd4rekdofrmthsey5eixnjwwp337cmj65enajla",
       })
       .buildOrThrow();
@@ -257,7 +257,7 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
       })
       .withCreatedAt(new Date())
       .withPublishedRecordId({
-        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/app.annos.annotationField/3lohln4bc672c",
+        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/network.cosmik.annotationField/3lohln4bc672c",
         cid: "bafyreienwqqnfegi2wtgd4rekdofrmthsey5eixnjwwp337cmj65enajla",
       })
       .buildOrThrow();
@@ -279,7 +279,7 @@ describe.skip("ATProtoAnnotationsPublisher", () => {
       .withFields(fields, false) // Make fields optional
       .withCreatedAt(new Date())
       .withPublishedRecordId({
-        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/app.annos.annotationField/3lohln4bc672c",
+        uri: "at://did:plc:rlknsba2qldjkicxsmni3vyn/network.cosmik.annotationField/3lohln4bc672c",
         cid: "bafyreienwqqnfegi2wtgd4rekdofrmthsey5eixnjwwp337cmj65enajla",
       })
       .buildOrThrow();

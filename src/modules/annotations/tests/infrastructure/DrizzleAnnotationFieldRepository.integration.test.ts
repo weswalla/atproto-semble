@@ -164,7 +164,7 @@ describe("DrizzleAnnotationFieldRepository", () => {
       "Field with published ID"
     ).unwrap();
     const publishedRecordId = PublishedRecordId.create({
-      uri: "at://did:plc:testcurator/app.annos.annotationField/test-record",
+      uri: "at://did:plc:testcurator/network.cosmik.annotationField/test-record",
       cid: "test-cid",
     });
 

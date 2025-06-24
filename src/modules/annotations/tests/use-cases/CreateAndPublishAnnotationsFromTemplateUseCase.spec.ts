@@ -162,7 +162,7 @@ describe("CreateAndPublishAnnotationsFromTemplateUseCase", () => {
 
       // Check that annotations were saved
       for (const annotationId of annotationIds) {
-        const fakeUri = `at://fake-did/app.annos.annotation/${annotationId}`;
+        const fakeUri = `at://fake-did/network.cosmik.annotation/${annotationId}`;
         const fakeCid = `fake-cid-${annotationId}`;
         const publishedRecordId = PublishedRecordId.create({
           uri: fakeUri,

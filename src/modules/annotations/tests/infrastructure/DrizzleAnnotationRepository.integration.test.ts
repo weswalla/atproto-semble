@@ -380,7 +380,8 @@ describe("DrizzleAnnotationRepository", () => {
     // Create a test annotation with a published record ID
     const annotationId = new UniqueEntityID();
     const url = new URI("https://example.com/article5");
-    const publishedUri = "at://did:plc:testcurator/app.annos.annotation/1234";
+    const publishedUri =
+      "at://did:plc:testcurator/network.cosmik.annotation/1234";
     const publishedCid =
       "bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu";
     const publishedRecordId = PublishedRecordId.create({

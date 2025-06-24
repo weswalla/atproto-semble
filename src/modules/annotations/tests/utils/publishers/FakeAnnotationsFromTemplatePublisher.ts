@@ -24,7 +24,7 @@ export class FakeAnnotationsFromTemplatePublisher
     const publishedRecordIds = new Map<string, PublishedRecordId>();
 
     // Generate a fake URI for the template itself
-    const fakeTemplateUri = `at://fake-did/app.annos.template/${templateId}`;
+    const fakeTemplateUri = `at://fake-did/network.cosmik.template/${templateId}`;
     const fakeTemplateCid = `fake-cid-template-${templateId}`;
     const compositeTemplateKey = fakeTemplateUri + fakeTemplateCid;
 
@@ -37,7 +37,7 @@ export class FakeAnnotationsFromTemplatePublisher
       const annotationIdString = annotationId.getStringValue();
 
       // Simulate generating an AT URI based on DID and collection/rkey
-      const fakeUri = `at://fake-did/app.annos.annotation/${annotationIdString}`;
+      const fakeUri = `at://fake-did/network.cosmik.annotation/${annotationIdString}`;
       const fakeCid = `fake-cid-${annotationIdString}`;
       const publishedRecordId = PublishedRecordId.create({
         uri: fakeUri,

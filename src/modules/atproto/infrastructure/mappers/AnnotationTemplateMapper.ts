@@ -13,7 +13,7 @@ export class AnnotationTemplateMapper {
     template: AnnotationTemplate
   ): AnnotationTemplateRecordDTO {
     return {
-      $type: "app.annos.annotationTemplate",
+      $type: "network.cosmik.annotationTemplate",
       name: template.name.value,
       description: template.description.value,
       annotationFields: template
@@ -41,7 +41,7 @@ export class AnnotationTemplateMapper {
     const strongRef = new StrongRef(field.publishedRecordId!.getValue());
 
     return {
-      $type: "app.annos.annotationTemplate#annotationFieldRef",
+      $type: "network.cosmik.annotationTemplate#annotationFieldRef",
       subject: {
         uri: strongRef.getValue().uri,
         cid: strongRef.getValue().cid,

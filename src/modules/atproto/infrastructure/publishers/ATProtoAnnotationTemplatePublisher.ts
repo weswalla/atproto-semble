@@ -11,7 +11,7 @@ import { DID } from "../../domain/DID";
 export class ATProtoAnnotationTemplatePublisher
   implements IAnnotationTemplatePublisher
 {
-  private readonly COLLECTION = "app.annos.annotationTemplate";
+  private readonly COLLECTION = "network.cosmik.annotationTemplate";
 
   constructor(private readonly agentService: IAgentService) {}
 

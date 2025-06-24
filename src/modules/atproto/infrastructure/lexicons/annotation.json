@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "app.annos.annotation",
+  "id": "network.cosmik.annotation",
   "description": "A single record type for all annotations.",
   "defs": {
     "main": {
@@ -20,7 +20,7 @@
             "type": "array",
             "items": {
               "type": "ref",
-              "ref": "app.annos.defs#identifier"
+              "ref": "network.cosmik.defs#identifier"
             },
             "description": "Optional additional identifiers for the resource."
           },

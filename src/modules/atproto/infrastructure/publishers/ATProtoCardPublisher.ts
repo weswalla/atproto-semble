@@ -9,7 +9,7 @@ import { IAgentService } from "../../application/IAgentService";
 import { DID } from "../../domain/DID";
 
 export class ATProtoCardPublisher implements ICardPublisher {
-  private readonly COLLECTION = "app.cards.card";
+  private readonly COLLECTION = "network.cosmik.card";
 
   constructor(private readonly agentService: IAgentService) {}
 

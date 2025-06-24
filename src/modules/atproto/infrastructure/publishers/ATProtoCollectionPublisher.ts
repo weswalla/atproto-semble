@@ -13,8 +13,8 @@ import { IAgentService } from "../../application/IAgentService";
 import { DID } from "../../domain/DID";
 
 export class ATProtoCollectionPublisher implements ICollectionPublisher {
-  private readonly COLLECTION_COLLECTION = "app.cards.collection";
-  private readonly COLLECTION_LINK_COLLECTION = "app.cards.collectionLink";
+  private readonly COLLECTION_COLLECTION = "network.cosmik.collection";
+  private readonly COLLECTION_LINK_COLLECTION = "network.cosmik.collectionLink";
 
   constructor(private readonly agentService: IAgentService) {}
 

@@ -6,7 +6,7 @@ type CollectionRecordDTO = Record;
 export class CollectionMapper {
   static toCreateRecordDTO(collection: Collection): CollectionRecordDTO {
     return {
-      $type: "app.cards.collection",
+      $type: "network.cosmik.collection",
       name: collection.name.value,
       description: collection.description?.value,
       accessType: collection.accessType.value,

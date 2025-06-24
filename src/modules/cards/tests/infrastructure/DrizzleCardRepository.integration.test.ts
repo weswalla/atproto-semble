@@ -399,7 +399,7 @@ describe("DrizzleCardRepository", () => {
 
     // Mark as published
     const publishedRecordId = PublishedRecordId.create({
-      uri: "at://did:plc:testcurator/app.cards.card/1234",
+      uri: "at://did:plc:testcurator/network.cosmik.card/1234",
       cid: "bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu",
     });
 
@@ -416,7 +416,7 @@ describe("DrizzleCardRepository", () => {
     const retrievedCard = retrievedResult.unwrap();
     expect(retrievedCard).not.toBeNull();
     expect(retrievedCard?.publishedRecordId?.uri).toBe(
-      "at://did:plc:testcurator/app.cards.card/1234"
+      "at://did:plc:testcurator/network.cosmik.card/1234"
     );
     expect(retrievedCard?.publishedRecordId?.cid).toBe(
       "bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu"

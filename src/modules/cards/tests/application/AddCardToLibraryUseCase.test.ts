@@ -82,7 +82,7 @@ describe("AddCardToLibraryUseCase", () => {
         expect(response.cardId).toBeDefined();
         expect(response.publishedRecordId).toBeDefined();
         expect(response.publishedRecordId?.uri).toContain(
-          "at://fake-did/app.cards.card/"
+          "at://fake-did/network.cosmik.card/"
         );
         expect(response.addedToCollections).toEqual([]);
         expect(response.failedCollections).toEqual([]);

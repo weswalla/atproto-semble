@@ -10,7 +10,7 @@ export class FakeCardPublisher implements ICardPublisher {
   async publish(card: Card): Promise<Result<PublishedRecordId, UseCaseError>> {
     const cardId = card.cardId.getStringValue();
     // Simulate generating an AT URI based on DID and collection/rkey
-    const fakeUri = `at://fake-did/app.cards.card/${cardId}`;
+    const fakeUri = `at://fake-did/network.cosmik.card/${cardId}`;
     const fakeCid = `fake-cid-${cardId}`;
     const publishedRecordId = PublishedRecordId.create({
       uri: fakeUri,

@@ -330,7 +330,7 @@ describe.skip("ATProtoCardPublisher", () => {
       }
 
       const invalidRecordId = PublishedRecordId.create({
-        uri: "at://did:plc:invalid/app.cards.card/invalid",
+        uri: "at://did:plc:invalid/network.cosmik.card/invalid",
         cid: "bafyinvalid",
       });
 

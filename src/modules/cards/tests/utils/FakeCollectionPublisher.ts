@@ -17,7 +17,7 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     
     for (const link of unpublishedLinks) {
       const cardId = link.cardId.getStringValue();
-      const fakeLinkUri = `at://fake-did/app.cards.cardCollectionLink/${collectionId}-${cardId}`;
+      const fakeLinkUri = `at://fake-did/network.cosmik.cardCollectionLink/${collectionId}-${cardId}`;
       const fakeLinkCid = `fake-link-cid-${collectionId}-${cardId}`;
       
       const linkRecord = PublishedRecordId.create({
@@ -35,7 +35,7 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     this.publishedLinks.set(collectionId, publishedLinks);
     
     // Simulate publishing the collection record itself
-    const fakeCollectionUri = `at://fake-did/app.cards.collection/${collectionId}`;
+    const fakeCollectionUri = `at://fake-did/network.cosmik.collection/${collectionId}`;
     const fakeCollectionCid = `fake-collection-cid-${collectionId}`;
     
     const collectionRecord = PublishedRecordId.create({

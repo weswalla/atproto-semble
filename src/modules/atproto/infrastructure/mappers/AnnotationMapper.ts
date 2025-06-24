@@ -7,7 +7,7 @@ import {
   RatingValue,
   SingleSelectValue,
   MultiSelectValue,
-} from "./lexicon/types/app/annos/annotation";
+} from "../lexicon/types/app/annos/annotation";
 import {
   DyadValue as DyadValueObject,
   TriadValue as TriadValueObject,

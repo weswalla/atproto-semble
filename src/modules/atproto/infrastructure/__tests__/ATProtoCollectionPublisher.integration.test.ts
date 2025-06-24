@@ -1,5 +1,5 @@
-import { ATProtoCollectionPublisher } from "../ATProtoCollectionPublisher";
-import { ATProtoCardPublisher } from "../ATProtoCardPublisher";
+import { ATProtoCollectionPublisher } from "../publishers/ATProtoCollectionPublisher";
+import { ATProtoCardPublisher } from "../publishers/ATProtoCardPublisher";
 import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
 import { CollectionBuilder } from "src/modules/cards/tests/utils/builders/CollectionBuilder";
 import { CardBuilder } from "src/modules/cards/tests/utils/builders/CardBuilder";
@@ -93,9 +93,11 @@ describe.skip("ATProtoCollectionPublisher", () => {
 
         const collectionRecordId = result.collectionRecord!;
         publishedCollectionIds.push(collectionRecordId);
-        
-        console.log(`Published empty collection: ${collectionRecordId.getValue().uri}`);
-        
+
+        console.log(
+          `Published empty collection: ${collectionRecordId.getValue().uri}`
+        );
+
         // Mark collection as published
         collection.markAsPublished(collectionRecordId);
         expect(collection.isPublished()).toBe(true);
@@ -103,20 +105,25 @@ describe.skip("ATProtoCollectionPublisher", () => {
         // 2. Test updating the collection
         const updateResult = await collectionPublisher.publish(collection);
         expect(updateResult.isOk()).toBe(true);
-        
+
         if (updateResult.isOk()) {
           expect(updateResult.value.collectionRecord).toBe(collectionRecordId);
-          console.log(`Updated collection: ${collectionRecordId.getValue().uri}`);
+          console.log(
+            `Updated collection: ${collectionRecordId.getValue().uri}`
+          );
         }
 
         // 3. Unpublish the collection
-        const unpublishResult = await collectionPublisher.unpublish(collectionRecordId);
+        const unpublishResult =
+          await collectionPublisher.unpublish(collectionRecordId);
         expect(unpublishResult.isOk()).toBe(true);
-        
+
         console.log("Successfully unpublished empty collection");
-        
+
         // Remove from cleanup list since we've already unpublished it
-        publishedCollectionIds = publishedCollectionIds.filter(id => id !== collectionRecordId);
+        publishedCollectionIds = publishedCollectionIds.filter(
+          (id) => id !== collectionRecordId
+        );
       }
     }, 15000);
 
@@ -172,7 +179,9 @@ describe.skip("ATProtoCollectionPublisher", () => {
       publishedCardIds.push(card2RecordId);
       card2.markAsPublished(card2RecordId);
 
-      console.log(`Published cards: ${card1RecordId.getValue().uri}, ${card2RecordId.getValue().uri}`);
+      console.log(
+        `Published cards: ${card1RecordId.getValue().uri}, ${card2RecordId.getValue().uri}`
+      );
 
       // 2. Create a collection and add the cards
       const collection = new CollectionBuilder()
@@ -204,8 +213,10 @@ describe.skip("ATProtoCollectionPublisher", () => {
 
         const collectionRecordId = result.collectionRecord!;
         publishedCollectionIds.push(collectionRecordId);
-        
-        console.log(`Published collection with cards: ${collectionRecordId.getValue().uri}`);
+
+        console.log(
+          `Published collection with cards: ${collectionRecordId.getValue().uri}`
+        );
         console.log(`Published ${result.publishedLinks.length} card links`);
 
         // Mark collection and links as published
@@ -247,7 +258,8 @@ describe.skip("ATProtoCollectionPublisher", () => {
         expect(addCard3Result.isOk()).toBe(true);
 
         // Publish the collection again (should only publish the new link)
-        const updatePublishResult = await collectionPublisher.publish(collection);
+        const updatePublishResult =
+          await collectionPublisher.publish(collection);
         expect(updatePublishResult.isOk()).toBe(true);
 
         if (updatePublishResult.isOk()) {
@@ -259,13 +271,16 @@ describe.skip("ATProtoCollectionPublisher", () => {
         }
 
         // 6. Unpublish the collection
-        const unpublishResult = await collectionPublisher.unpublish(collectionRecordId);
+        const unpublishResult =
+          await collectionPublisher.unpublish(collectionRecordId);
         expect(unpublishResult.isOk()).toBe(true);
-        
+
         console.log("Successfully unpublished collection with cards");
-        
+
         // Remove from cleanup list since we've already unpublished it
-        publishedCollectionIds = publishedCollectionIds.filter(id => id !== collectionRecordId);
+        publishedCollectionIds = publishedCollectionIds.filter(
+          (id) => id !== collectionRecordId
+        );
       }
     }, 30000);
   });
@@ -300,25 +315,32 @@ describe.skip("ATProtoCollectionPublisher", () => {
 
         const collectionRecordId = result.collectionRecord!;
         publishedCollectionIds.push(collectionRecordId);
-        
-        console.log(`Published closed collection: ${collectionRecordId.getValue().uri}`);
-        
+
+        console.log(
+          `Published closed collection: ${collectionRecordId.getValue().uri}`
+        );
+
         // Mark collection as published
         collection.markAsPublished(collectionRecordId);
 
         // Verify collection properties
-        expect(collection.accessType.value).toBe(CollectionAccessType.CLOSED.value);
+        expect(collection.accessType.value).toBe(
+          CollectionAccessType.CLOSED.value
+        );
         expect(collection.collaborators).toHaveLength(1);
         expect(collection.collaborators[0].value).toBe(collaboratorDid);
 
         // 2. Unpublish the collection
-        const unpublishResult = await collectionPublisher.unpublish(collectionRecordId);
+        const unpublishResult =
+          await collectionPublisher.unpublish(collectionRecordId);
         expect(unpublishResult.isOk()).toBe(true);
-        
+
         console.log("Successfully unpublished closed collection");
-        
+
         // Remove from cleanup list since we've already unpublished it
-        publishedCollectionIds = publishedCollectionIds.filter(id => id !== collectionRecordId);
+        publishedCollectionIds = publishedCollectionIds.filter(
+          (id) => id !== collectionRecordId
+        );
       }
     }, 15000);
   });
@@ -331,7 +353,9 @@ describe.skip("ATProtoCollectionPublisher", () => {
         password: "invalid-password",
       });
 
-      const invalidPublisher = new ATProtoCollectionPublisher(invalidAgentService);
+      const invalidPublisher = new ATProtoCollectionPublisher(
+        invalidAgentService
+      );
 
       const testCollection = new CollectionBuilder()
         .withAuthorId("did:plc:invalid")
@@ -391,12 +415,15 @@ describe.skip("ATProtoCollectionPublisher", () => {
         .buildOrThrow();
 
       // Add unpublished card to collection
-      const addCardResult = collection.addCard(unpublishedCard.cardId, curatorIdObj);
+      const addCardResult = collection.addCard(
+        unpublishedCard.cardId,
+        curatorIdObj
+      );
       expect(addCardResult.isOk()).toBe(true);
 
       // Try to publish the collection
       const publishResult = await collectionPublisher.publish(collection);
-      
+
       // Should succeed for the collection but fail for the card link
       expect(publishResult.isOk()).toBe(true);
 
@@ -408,13 +435,18 @@ describe.skip("ATProtoCollectionPublisher", () => {
 
         const collectionRecordId = result.collectionRecord!;
         publishedCollectionIds.push(collectionRecordId);
-        
-        console.log(`Published collection despite unpublished card: ${collectionRecordId.getValue().uri}`);
-        
+
+        console.log(
+          `Published collection despite unpublished card: ${collectionRecordId.getValue().uri}`
+        );
+
         // Clean up
-        const unpublishResult = await collectionPublisher.unpublish(collectionRecordId);
+        const unpublishResult =
+          await collectionPublisher.unpublish(collectionRecordId);
         expect(unpublishResult.isOk()).toBe(true);
-        publishedCollectionIds = publishedCollectionIds.filter(id => id !== collectionRecordId);
+        publishedCollectionIds = publishedCollectionIds.filter(
+          (id) => id !== collectionRecordId
+        );
       }
     }, 15000);
   });

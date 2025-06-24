@@ -4,8 +4,8 @@ import { AnnotationField } from "src/modules/annotations/domain/aggregates";
 import {
   Record,
   AnnotationFieldRef,
-} from "./lexicon/types/app/annos/annotationTemplate";
-import { StrongRef } from "../domain";
+} from "../lexicon/types/app/annos/annotationTemplate";
+import { StrongRef } from "../../domain";
 
 type AnnotationTemplateRecordDTO = Record;
 export class AnnotationTemplateMapper {

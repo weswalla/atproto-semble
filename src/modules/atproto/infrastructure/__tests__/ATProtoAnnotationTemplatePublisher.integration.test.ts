@@ -1,5 +1,5 @@
-import { ATProtoAnnotationTemplatePublisher } from "../ATProtoAnnotationTemplatePublisher";
-import { ATProtoAnnotationFieldPublisher } from "../ATProtoAnnotationFieldPublisher";
+import { ATProtoAnnotationTemplatePublisher } from "../publishers/ATProtoAnnotationTemplatePublisher";
+import { ATProtoAnnotationFieldPublisher } from "../publishers/ATProtoAnnotationFieldPublisher";
 import { PublishedRecordId } from "src/modules/annotations/domain/value-objects/PublishedRecordId";
 import { AnnotationTemplateBuilder } from "src/modules/annotations/tests/utils/builders/AnnotationTemplateBuilder";
 import { AnnotationFieldBuilder } from "src/modules/annotations/tests/utils/builders/AnnotationFieldBuilder";

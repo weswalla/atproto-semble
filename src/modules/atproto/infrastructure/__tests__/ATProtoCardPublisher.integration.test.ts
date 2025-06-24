@@ -1,4 +1,4 @@
-import { ATProtoCardPublisher } from "../ATProtoCardPublisher";
+import { ATProtoCardPublisher } from "../publishers/ATProtoCardPublisher";
 import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
 import { CardBuilder } from "src/modules/cards/tests/utils/builders/CardBuilder";
 import { Card } from "src/modules/cards/domain/Card";
@@ -57,7 +57,7 @@ describe.skip("ATProtoCardPublisher", () => {
 
       const curatorId = process.env.BSKY_DID;
       const testUrl = URL.create("https://example.com/test-article").unwrap();
-      
+
       // Create URL metadata
       const metadata = UrlMetadata.create({
         url: testUrl.value,
@@ -83,9 +83,9 @@ describe.skip("ATProtoCardPublisher", () => {
       if (publishResult.isOk()) {
         const publishedRecordId = publishResult.value;
         publishedCardIds.push(publishedRecordId);
-        
+
         console.log(`Published URL card: ${publishedRecordId.getValue().uri}`);
-        
+
         // Mark card as published
         urlCard.markAsPublished(publishedRecordId);
         expect(urlCard.isPublished).toBe(true);
@@ -93,7 +93,7 @@ describe.skip("ATProtoCardPublisher", () => {
         // 2. Test updating the card
         const updateResult = await publisher.publish(urlCard);
         expect(updateResult.isOk()).toBe(true);
-        
+
         if (updateResult.isOk()) {
           expect(updateResult.value).toBe(publishedRecordId);
           console.log(`Updated URL card: ${publishedRecordId.getValue().uri}`);
@@ -102,11 +102,13 @@ describe.skip("ATProtoCardPublisher", () => {
         // 3. Unpublish the card
         const unpublishResult = await publisher.unpublish(publishedRecordId);
         expect(unpublishResult.isOk()).toBe(true);
-        
+
         console.log("Successfully unpublished URL card");
-        
+
         // Remove from cleanup list since we've already unpublished it
-        publishedCardIds = publishedCardIds.filter(id => id !== publishedRecordId);
+        publishedCardIds = publishedCardIds.filter(
+          (id) => id !== publishedRecordId
+        );
       }
     }, 15000);
   });
@@ -134,9 +136,9 @@ describe.skip("ATProtoCardPublisher", () => {
       if (publishResult.isOk()) {
         const publishedRecordId = publishResult.value;
         publishedCardIds.push(publishedRecordId);
-        
+
         console.log(`Published note card: ${publishedRecordId.getValue().uri}`);
-        
+
         // Mark card as published
         noteCard.markAsPublished(publishedRecordId);
         expect(noteCard.isPublished).toBe(true);
@@ -144,11 +146,13 @@ describe.skip("ATProtoCardPublisher", () => {
         // 2. Unpublish the card
         const unpublishResult = await publisher.unpublish(publishedRecordId);
         expect(unpublishResult.isOk()).toBe(true);
-        
+
         console.log("Successfully unpublished note card");
-        
+
         // Remove from cleanup list since we've already unpublished it
-        publishedCardIds = publishedCardIds.filter(id => id !== publishedRecordId);
+        publishedCardIds = publishedCardIds.filter(
+          (id) => id !== publishedRecordId
+        );
       }
     }, 15000);
   });
@@ -178,20 +182,24 @@ describe.skip("ATProtoCardPublisher", () => {
       if (publishResult.isOk()) {
         const publishedRecordId = publishResult.value;
         publishedCardIds.push(publishedRecordId);
-        
-        console.log(`Published note card with URL: ${publishedRecordId.getValue().uri}`);
-        
+
+        console.log(
+          `Published note card with URL: ${publishedRecordId.getValue().uri}`
+        );
+
         // Verify the card has the URL
         expect(noteCard.url).toBe(referenceUrl);
-        
+
         // 2. Unpublish the card
         const unpublishResult = await publisher.unpublish(publishedRecordId);
         expect(unpublishResult.isOk()).toBe(true);
-        
+
         console.log("Successfully unpublished note card with URL");
-        
+
         // Remove from cleanup list since we've already unpublished it
-        publishedCardIds = publishedCardIds.filter(id => id !== publishedRecordId);
+        publishedCardIds = publishedCardIds.filter(
+          (id) => id !== publishedRecordId
+        );
       }
     }, 15000);
   });
@@ -240,13 +248,13 @@ describe.skip("ATProtoCardPublisher", () => {
                 type: "TextQuoteSelector",
                 exact: "This is highlighted text",
                 prefix: "Before ",
-                suffix: " after"
-              }
+                suffix: " after",
+              },
             ],
             {
               context: "Before This is highlighted text after",
               documentUrl: parentUrl.value,
-              documentTitle: "Parent Article"
+              documentTitle: "Parent Article",
             }
           )
           .withParentCard(parentCard.cardId)
@@ -259,9 +267,11 @@ describe.skip("ATProtoCardPublisher", () => {
         if (publishResult.isOk()) {
           const publishedRecordId = publishResult.value;
           publishedCardIds.push(publishedRecordId);
-          
-          console.log(`Published highlight card: ${publishedRecordId.getValue().uri}`);
-          
+
+          console.log(
+            `Published highlight card: ${publishedRecordId.getValue().uri}`
+          );
+
           // Mark card as published
           highlightCard.markAsPublished(publishedRecordId);
           expect(highlightCard.isPublished).toBe(true);
@@ -269,17 +279,22 @@ describe.skip("ATProtoCardPublisher", () => {
           // 2. Unpublish the highlight card
           const unpublishResult = await publisher.unpublish(publishedRecordId);
           expect(unpublishResult.isOk()).toBe(true);
-          
+
           console.log("Successfully unpublished highlight card");
-          
+
           // Remove from cleanup list since we've already unpublished it
-          publishedCardIds = publishedCardIds.filter(id => id !== publishedRecordId);
+          publishedCardIds = publishedCardIds.filter(
+            (id) => id !== publishedRecordId
+          );
         }
 
         // Clean up parent card
-        const parentUnpublishResult = await publisher.unpublish(parentPublishedId);
+        const parentUnpublishResult =
+          await publisher.unpublish(parentPublishedId);
         expect(parentUnpublishResult.isOk()).toBe(true);
-        publishedCardIds = publishedCardIds.filter(id => id !== parentPublishedId);
+        publishedCardIds = publishedCardIds.filter(
+          (id) => id !== parentPublishedId
+        );
       }
     }, 20000);
   });

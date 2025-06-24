@@ -1,4 +1,4 @@
-import { ATProtoAnnotationFieldPublisher } from "../ATProtoAnnotationFieldPublisher";
+import { ATProtoAnnotationFieldPublisher } from "../publishers/ATProtoAnnotationFieldPublisher";
 import { PublishedRecordId } from "src/modules/annotations/domain/value-objects/PublishedRecordId";
 import { AnnotationFieldBuilder } from "src/modules/annotations/tests/utils/builders/AnnotationFieldBuilder";
 import dotenv from "dotenv";

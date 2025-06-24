@@ -3,10 +3,10 @@ import { AnnotationTemplate } from "src/modules/annotations/domain/aggregates/An
 import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 import { PublishedRecordId } from "src/modules/annotations/domain/value-objects/PublishedRecordId";
-import { AnnotationTemplateMapper } from "./AnnotationTemplateMapper";
-import { StrongRef } from "../domain";
-import { IAgentService } from "../application/IAgentService";
-import { DID } from "../domain/DID";
+import { AnnotationTemplateMapper } from "../mappers/AnnotationTemplateMapper";
+import { StrongRef } from "../../domain";
+import { IAgentService } from "../../application/IAgentService";
+import { DID } from "../../domain/DID";
 
 export class ATProtoAnnotationTemplatePublisher
   implements IAnnotationTemplatePublisher

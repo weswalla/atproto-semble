@@ -14,7 +14,7 @@ import {
   Record,
   SingleSelectFieldDef,
   TriadFieldDef,
-} from "./lexicon/types/app/annos/annotationField";
+} from "../lexicon/types/app/annos/annotationField";
 import { AnnotationType } from "src/modules/annotations/domain/value-objects/AnnotationType";
 
 ComAtprotoRepoCreateRecord;

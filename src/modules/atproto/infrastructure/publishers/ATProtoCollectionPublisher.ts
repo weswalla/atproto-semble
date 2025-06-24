@@ -1,13 +1,16 @@
-import { ICollectionPublisher, CollectionPublishResult } from "src/modules/cards/application/ports/ICollectionPublisher";
+import {
+  ICollectionPublisher,
+  CollectionPublishResult,
+} from "src/modules/cards/application/ports/ICollectionPublisher";
 import { Collection } from "src/modules/cards/domain/Collection";
 import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
-import { CollectionMapper } from "./CollectionMapper";
-import { CollectionLinkMapper } from "./CollectionLinkMapper";
-import { StrongRef } from "../domain";
-import { IAgentService } from "../application/IAgentService";
-import { DID } from "../domain/DID";
+import { CollectionMapper } from "../mappers/CollectionMapper";
+import { CollectionLinkMapper } from "../mappers/CollectionLinkMapper";
+import { StrongRef } from "../../domain";
+import { IAgentService } from "../../application/IAgentService";
+import { DID } from "../../domain/DID";
 
 export class ATProtoCollectionPublisher implements ICollectionPublisher {
   private readonly COLLECTION_COLLECTION = "app.cards.collection";
@@ -18,12 +21,15 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
   /**
    * Publishes a Collection aggregate, including unpublished card links
    */
-  async publish(collection: Collection): Promise<Result<CollectionPublishResult, UseCaseError>> {
+  async publish(
+    collection: Collection
+  ): Promise<Result<CollectionPublishResult, UseCaseError>> {
     try {
-      const curatorDid = new DID(collection.curatorId.value);
+      const curatorDid = new DID(collection.authorId.value);
 
       // Get an authenticated agent for this curator
-      const agentResult = await this.agentService.getAuthenticatedAgent(curatorDid);
+      const agentResult =
+        await this.agentService.getAuthenticatedAgent(curatorDid);
 
       if (agentResult.isErr()) {
         return err(
@@ -46,8 +52,9 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
       // 1. Publish or update the collection record if needed
       if (!collection.publishedRecordId) {
         // Create new collection record
-        const collectionRecordDTO = CollectionMapper.toCreateRecordDTO(collection);
-        
+        const collectionRecordDTO =
+          CollectionMapper.toCreateRecordDTO(collection);
+
         const createResult = await agent.com.atproto.repo.createRecord({
           repo: curatorDid.value,
           collection: this.COLLECTION_COLLECTION,
@@ -60,7 +67,8 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         });
       } else {
         // Update existing collection record
-        const collectionRecordDTO = CollectionMapper.toCreateRecordDTO(collection);
+        const collectionRecordDTO =
+          CollectionMapper.toCreateRecordDTO(collection);
         const publishedRecordId = collection.publishedRecordId.getValue();
         const strongRef = new StrongRef(publishedRecordId);
         const atUri = strongRef.atUri;
@@ -78,7 +86,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
       // 2. Publish unpublished card links
       const unpublishedLinks = collection.getUnpublishedCardLinks();
-      
+
       for (const link of unpublishedLinks) {
         const linkPublishResult = await this.publishCardInCollectionLink(
           link,
@@ -94,7 +102,9 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
           });
         } else {
           // Log error but continue with other links
-          console.error(`Failed to publish link for card ${link.cardId.getStringValue()}: ${linkPublishResult.error.message}`);
+          console.error(
+            `Failed to publish link for card ${link.cardId.getStringValue()}: ${linkPublishResult.error.message}`
+          );
         }
       }
 
@@ -123,9 +133,11 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
       // Note: This assumes the card is already published
       // In practice, you'd need to look up the card's published record ID
       const cardPublishedRecordId = collectionLink.getCardPublishedRecordId();
-      
+
       if (!cardPublishedRecordId) {
-        return err(new Error("Card must be published before adding to collection"));
+        return err(
+          new Error("Card must be published before adding to collection")
+        );
       }
 
       const linkRecordDTO = CollectionLinkMapper.toCreateRecordDTO(
@@ -156,7 +168,9 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
   /**
    * Unpublishes (deletes) a Collection record and all its links
    */
-  async unpublish(recordId: PublishedRecordId): Promise<Result<void, UseCaseError>> {
+  async unpublish(
+    recordId: PublishedRecordId
+  ): Promise<Result<void, UseCaseError>> {
     try {
       const publishedRecordId = recordId.getValue();
       const strongRef = new StrongRef(publishedRecordId);
@@ -166,7 +180,8 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
       const rkey = atUri.rkey;
 
       // Get an authenticated agent for this curator
-      const agentResult = await this.agentService.getAuthenticatedAgent(curatorDid);
+      const agentResult =
+        await this.agentService.getAuthenticatedAgent(curatorDid);
 
       if (agentResult.isErr()) {
         return err(

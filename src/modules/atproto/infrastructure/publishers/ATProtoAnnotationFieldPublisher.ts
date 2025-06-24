@@ -1,27 +1,27 @@
-import { IAnnotationPublisher } from "src/modules/annotations/application/ports/IAnnotationPublisher";
-import { Annotation } from "src/modules/annotations/domain/aggregates/Annotation";
+import { IAnnotationFieldPublisher } from "src/modules/annotations/application/ports/IAnnotationFieldPublisher";
+import { AnnotationField } from "src/modules/annotations/domain/AnnotationField";
 import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 import { PublishedRecordId } from "src/modules/annotations/domain/value-objects/PublishedRecordId";
-import { AnnotationMapper } from "./AnnotationMapper";
-import { StrongRef } from "../domain";
-import { IAgentService } from "../application/IAgentService";
-import { DID } from "../domain/DID";
+import { AnnotationFieldMapper } from "../mappers/AnnotationFieldMapper";
+import { StrongRef } from "../../domain";
+import { IAgentService } from "../../application/IAgentService";
+import { DID } from "../../domain/DID";
 
-export class ATProtoAnnotationPublisher implements IAnnotationPublisher {
-  private readonly COLLECTION = "app.annos.annotation";
+export class ATProtoAnnotationFieldPublisher
+  implements IAnnotationFieldPublisher
+{
+  private readonly COLLECTION = "app.annos.annotationField";
 
   constructor(private readonly agentService: IAgentService) {}
 
   /**
-   * Publishes an Annotation to the AT Protocol
+   * Publishes an AnnotationField to the AT Protocol
    */
-  async publish(
-    annotation: Annotation
-  ): Promise<Result<PublishedRecordId, UseCaseError>> {
+  async publish(field: AnnotationField): Promise<Result<PublishedRecordId>> {
     try {
-      const record = AnnotationMapper.toCreateRecordDTO(annotation);
-      const curatorDid = new DID(annotation.curatorId.value);
+      const record = AnnotationFieldMapper.toCreateRecordDTO(field);
+      const curatorDid = new DID(field.curatorId.value);
 
       // Get an authenticated agent for this curator
       const agentResult =
@@ -39,21 +39,24 @@ export class ATProtoAnnotationPublisher implements IAnnotationPublisher {
         return err(new Error("No authenticated session found for curator"));
       }
 
-      // If the annotation is already published, update it
-      if (annotation.publishedRecordId) {
-        const publishedRecordId = annotation.publishedRecordId.getValue();
+      // If the field is already published, update it
+      if (field.isPublished()) {
+        const publishedRecordId = field.publishedRecordId!.getValue();
         const strongRef = new StrongRef(publishedRecordId);
-        const atUri = strongRef.atUri;
-        const rkey = atUri.rkey;
 
-        await agent.com.atproto.repo.putRecord({
+        const updateResult = await agent.com.atproto.repo.putRecord({
           repo: curatorDid.value,
           collection: this.COLLECTION,
-          rkey: rkey,
+          rkey: strongRef.atUri.rkey,
           record,
         });
 
-        return ok(annotation.publishedRecordId);
+        return ok(
+          PublishedRecordId.create({
+            uri: updateResult.data.uri,
+            cid: updateResult.data.cid, // TODO: handle updates
+          })
+        );
       }
       // Otherwise create a new record
       else {
@@ -71,21 +74,18 @@ export class ATProtoAnnotationPublisher implements IAnnotationPublisher {
         );
       }
     } catch (error) {
-      return err(
-        new Error(error instanceof Error ? error.message : String(error))
-      );
+      return err(new Error(error as any));
     }
   }
 
   /**
-   * Unpublishes (deletes) an Annotation from the AT Protocol
+   * Unpublishes (deletes) an AnnotationField from the AT Protocol
    */
   async unpublish(
     recordId: PublishedRecordId
   ): Promise<Result<void, UseCaseError>> {
     try {
-      const publishedRecordId = recordId.getValue();
-      const strongRef = new StrongRef(publishedRecordId);
+      const strongRef = new StrongRef(recordId.getValue());
       const atUri = strongRef.atUri;
       const curatorDid = atUri.did;
       const repo = atUri.did.toString();
@@ -115,9 +115,7 @@ export class ATProtoAnnotationPublisher implements IAnnotationPublisher {
 
       return ok(undefined);
     } catch (error) {
-      return err(
-        new Error(error instanceof Error ? error.message : String(error))
-      );
+      return err(new Error(error as any));
     }
   }
 }

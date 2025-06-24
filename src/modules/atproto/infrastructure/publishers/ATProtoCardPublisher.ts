@@ -3,10 +3,10 @@ import { Card } from "src/modules/cards/domain/Card";
 import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
-import { CardMapper } from "./CardMapper";
-import { StrongRef } from "../domain";
-import { IAgentService } from "../application/IAgentService";
-import { DID } from "../domain/DID";
+import { CardMapper } from "../mappers/CardMapper";
+import { StrongRef } from "../../domain";
+import { IAgentService } from "../../application/IAgentService";
+import { DID } from "../../domain/DID";
 
 export class ATProtoCardPublisher implements ICardPublisher {
   private readonly COLLECTION = "app.cards.card";

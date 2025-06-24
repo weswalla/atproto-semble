@@ -4,11 +4,17 @@ import { ok, err, Result } from "../../../shared/core/Result";
 import { CollectionId } from "./value-objects/CollectionId";
 import { CardId } from "./value-objects/CardId";
 import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
-import { CollectionName, InvalidCollectionNameError } from "./value-objects/CollectionName";
-import { CollectionDescription, InvalidCollectionDescriptionError } from "./value-objects/CollectionDescription";
+import {
+  CollectionName,
+  InvalidCollectionNameError,
+} from "./value-objects/CollectionName";
+import {
+  CollectionDescription,
+  InvalidCollectionDescriptionError,
+} from "./value-objects/CollectionDescription";
 import { PublishedRecordId } from "./value-objects/PublishedRecordId";
 
-interface CardLink {
+export interface CardLink {
   cardId: CardId;
   addedBy: CuratorId;
   addedAt: Date;
@@ -17,20 +23,20 @@ interface CardLink {
 
 export enum CollectionAccessType {
   OPEN = "OPEN",
-  CLOSED = "CLOSED"
+  CLOSED = "CLOSED",
 }
 
 export class CollectionAccessError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'CollectionAccessError';
+    this.name = "CollectionAccessError";
   }
 }
 
 export class CollectionValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'CollectionValidationError';
+    this.name = "CollectionValidationError";
   }
 }
 
@@ -72,7 +78,7 @@ export class Collection extends AggregateRoot<CollectionProps> {
   }
 
   get cardIds(): CardId[] {
-    return this.props.cardLinks.map(link => link.cardId);
+    return this.props.cardLinks.map((link) => link.cardId);
   }
 
   get cardLinks(): CardLink[] {
@@ -80,7 +86,7 @@ export class Collection extends AggregateRoot<CollectionProps> {
   }
 
   get unpublishedCardLinks(): CardLink[] {
-    return this.props.cardLinks.filter(link => !link.publishedRecordId);
+    return this.props.cardLinks.filter((link) => !link.publishedRecordId);
   }
 
   get hasUnpublishedLinks(): boolean {
@@ -116,7 +122,7 @@ export class Collection extends AggregateRoot<CollectionProps> {
   }
 
   public static create(
-    props: Omit<CollectionProps, 'name' | 'description' | 'cardLinks'> & {
+    props: Omit<CollectionProps, "name" | "description" | "cardLinks"> & {
       name: string;
       description?: string;
       cardLinks?: CardLink[];
@@ -134,7 +140,9 @@ export class Collection extends AggregateRoot<CollectionProps> {
     if (props.description) {
       const descriptionResult = CollectionDescription.create(props.description);
       if (descriptionResult.isErr()) {
-        return err(new CollectionValidationError(descriptionResult.error.message));
+        return err(
+          new CollectionValidationError(descriptionResult.error.message)
+        );
       }
       description = descriptionResult.value;
     }
@@ -166,16 +174,27 @@ export class Collection extends AggregateRoot<CollectionProps> {
     }
 
     // If collection is closed, only collaborators can add cards
-    return this.props.collaboratorIds.some(collaboratorId => collaboratorId.equals(userId));
+    return this.props.collaboratorIds.some((collaboratorId) =>
+      collaboratorId.equals(userId)
+    );
   }
 
-  public addCard(cardId: CardId, userId: CuratorId): Result<CardLink, CollectionAccessError> {
+  public addCard(
+    cardId: CardId,
+    userId: CuratorId
+  ): Result<CardLink, CollectionAccessError> {
     if (!this.canAddCard(userId)) {
-      return err(new CollectionAccessError("User does not have permission to add cards to this collection"));
+      return err(
+        new CollectionAccessError(
+          "User does not have permission to add cards to this collection"
+        )
+      );
     }
 
     // Check if card is already in collection
-    const existingLink = this.props.cardLinks.find(link => link.cardId.equals(cardId));
+    const existingLink = this.props.cardLinks.find((link) =>
+      link.cardId.equals(cardId)
+    );
     if (existingLink) {
       return ok(existingLink); // Return existing link
     }
@@ -184,7 +203,7 @@ export class Collection extends AggregateRoot<CollectionProps> {
       cardId,
       addedBy: userId,
       addedAt: new Date(),
-      publishedRecordId: undefined // Will be set when published
+      publishedRecordId: undefined, // Will be set when published
     };
 
     this.props.cardLinks.push(newLink);
@@ -193,31 +212,50 @@ export class Collection extends AggregateRoot<CollectionProps> {
     return ok(newLink);
   }
 
-  public markCardLinkAsPublished(cardId: CardId, publishedRecordId: PublishedRecordId): void {
-    const link = this.props.cardLinks.find(link => link.cardId.equals(cardId));
+  public markCardLinkAsPublished(
+    cardId: CardId,
+    publishedRecordId: PublishedRecordId
+  ): void {
+    const link = this.props.cardLinks.find((link) =>
+      link.cardId.equals(cardId)
+    );
     if (link) {
       link.publishedRecordId = publishedRecordId;
       this.props.updatedAt = new Date();
     }
   }
 
-  public removeCard(cardId: CardId, userId: CuratorId): Result<void, CollectionAccessError> {
+  public removeCard(
+    cardId: CardId,
+    userId: CuratorId
+  ): Result<void, CollectionAccessError> {
     if (!this.canAddCard(userId)) {
-      return err(new CollectionAccessError("User does not have permission to remove cards from this collection"));
+      return err(
+        new CollectionAccessError(
+          "User does not have permission to remove cards from this collection"
+        )
+      );
     }
 
-    this.props.cardLinks = this.props.cardLinks.filter(link => !link.cardId.equals(cardId));
+    this.props.cardLinks = this.props.cardLinks.filter(
+      (link) => !link.cardId.equals(cardId)
+    );
     this.props.updatedAt = new Date();
 
     return ok(undefined);
   }
 
-  public addCollaborator(collaboratorId: CuratorId, userId: CuratorId): Result<void, CollectionAccessError> {
+  public addCollaborator(
+    collaboratorId: CuratorId,
+    userId: CuratorId
+  ): Result<void, CollectionAccessError> {
     if (!this.props.authorId.equals(userId)) {
-      return err(new CollectionAccessError("Only the author can add collaborators"));
+      return err(
+        new CollectionAccessError("Only the author can add collaborators")
+      );
     }
 
-    if (this.props.collaboratorIds.some(id => id.equals(collaboratorId))) {
+    if (this.props.collaboratorIds.some((id) => id.equals(collaboratorId))) {
       return ok(undefined); // Already a collaborator
     }
 
@@ -227,20 +265,34 @@ export class Collection extends AggregateRoot<CollectionProps> {
     return ok(undefined);
   }
 
-  public removeCollaborator(collaboratorId: CuratorId, userId: CuratorId): Result<void, CollectionAccessError> {
+  public removeCollaborator(
+    collaboratorId: CuratorId,
+    userId: CuratorId
+  ): Result<void, CollectionAccessError> {
     if (!this.props.authorId.equals(userId)) {
-      return err(new CollectionAccessError("Only the author can remove collaborators"));
+      return err(
+        new CollectionAccessError("Only the author can remove collaborators")
+      );
     }
 
-    this.props.collaboratorIds = this.props.collaboratorIds.filter(id => !id.equals(collaboratorId));
+    this.props.collaboratorIds = this.props.collaboratorIds.filter(
+      (id) => !id.equals(collaboratorId)
+    );
     this.props.updatedAt = new Date();
 
     return ok(undefined);
   }
 
-  public changeAccessType(accessType: CollectionAccessType, userId: CuratorId): Result<void, CollectionAccessError> {
+  public changeAccessType(
+    accessType: CollectionAccessType,
+    userId: CuratorId
+  ): Result<void, CollectionAccessError> {
     if (!this.props.authorId.equals(userId)) {
-      return err(new CollectionAccessError("Only the author can change collection access type"));
+      return err(
+        new CollectionAccessError(
+          "Only the author can change collection access type"
+        )
+      );
     }
 
     this.props.accessType = accessType;

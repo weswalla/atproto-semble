@@ -1,17 +1,16 @@
-import { CollectionLink } from "src/modules/cards/domain/CollectionLink";
-import { Record } from "./lexicon/types/app/cards/collectionLink";
-import { StrongRef } from "../domain";
+import { CardLink } from "src/modules/cards/domain/Collection";
+import { Record } from "../lexicon/types/network/cosmik/collectionLink";
 
 type CollectionLinkRecordDTO = Record;
 
 export class CollectionLinkMapper {
   static toCreateRecordDTO(
-    collectionLink: CollectionLink,
+    collectionLink: CardLink,
     collectionPublishedRecordId: { uri: string; cid: string },
     cardPublishedRecordId: { uri: string; cid: string }
   ): CollectionLinkRecordDTO {
     return {
-      $type: "app.cards.collectionLink",
+      $type: "network.cosmik.collectionLink",
       collection: {
         uri: collectionPublishedRecordId.uri,
         cid: collectionPublishedRecordId.cid,
@@ -22,7 +21,7 @@ export class CollectionLinkMapper {
       },
       addedBy: collectionLink.addedBy.value,
       addedAt: collectionLink.addedAt.toISOString(),
-      createdAt: collectionLink.createdAt.toISOString(),
+      createdAt: collectionLink.addedAt.toISOString(),
     };
   }
 }

@@ -7,11 +7,11 @@ import { AnnotationsFromTemplate } from "src/modules/annotations/domain/aggregat
 import { PublishedRecordId } from "src/modules/annotations/domain/value-objects";
 import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
-import { AnnotationsFromTemplateMapper } from "./AnnotationsFromTemplateMapper";
-import { StrongRef } from "../domain";
+import { AnnotationsFromTemplateMapper } from "../mappers/AnnotationsFromTemplateMapper";
+import { StrongRef } from "../../domain";
 import { Delete } from "@atproto/sync";
-import { IAgentService } from "../application/IAgentService";
-import { DID } from "../domain/DID";
+import { IAgentService } from "../../application/IAgentService";
+import { DID } from "../../domain/DID";
 
 export class ATProtoAnnotationsFromTemplatePublisher
   implements IAnnotationsFromTemplatePublisher
@@ -33,7 +33,7 @@ export class ATProtoAnnotationsFromTemplatePublisher
       if (!curatorDidValue) {
         return err(new Error("No curator DID found in annotations"));
       }
-      
+
       const curatorDid = new DID(curatorDidValue);
 
       // Get an authenticated agent for this curator

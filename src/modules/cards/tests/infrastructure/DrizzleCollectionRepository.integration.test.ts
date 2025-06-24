@@ -447,7 +447,7 @@ describe("DrizzleCollectionRepository", () => {
 
     // Mark as published
     const publishedRecordId = PublishedRecordId.create({
-      uri: "at://did:plc:testcurator/app.cards.collection/1234",
+      uri: "at://did:plc:testcurator/network.cosmik.collection/1234",
       cid: "bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu",
     });
 
@@ -466,7 +466,7 @@ describe("DrizzleCollectionRepository", () => {
     const retrievedCollection = retrievedResult.unwrap();
     expect(retrievedCollection).not.toBeNull();
     expect(retrievedCollection?.publishedRecordId?.uri).toBe(
-      "at://did:plc:testcurator/app.cards.collection/1234"
+      "at://did:plc:testcurator/network.cosmik.collection/1234"
     );
     expect(retrievedCollection?.publishedRecordId?.cid).toBe(
       "bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu"
@@ -505,7 +505,7 @@ describe("DrizzleCollectionRepository", () => {
 
     // Mark the card link as published
     const linkPublishedRecord = PublishedRecordId.create({
-      uri: "at://did:plc:testcurator/app.cards.collectionLink/5678",
+      uri: "at://did:plc:testcurator/network.cosmik.collectionLink/5678",
       cid: "bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu",
     });
 
@@ -525,7 +525,7 @@ describe("DrizzleCollectionRepository", () => {
     expect(retrievedCollection).not.toBeNull();
     expect(retrievedCollection?.cardLinks).toHaveLength(1);
     expect(retrievedCollection?.cardLinks[0]?.publishedRecordId?.uri).toBe(
-      "at://did:plc:testcurator/app.cards.collectionLink/5678"
+      "at://did:plc:testcurator/network.cosmik.collectionLink/5678"
     );
   });
 });

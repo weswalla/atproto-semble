@@ -2,6 +2,7 @@ import { Collection } from "../../domain/Collection";
 import { Result } from "../../../../shared/core/Result";
 import { UseCaseError } from "../../../../shared/core/UseCaseError";
 import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
+import { Cards } from "../../domain/Cards";
 
 export interface CollectionPublishResult {
   collectionRecord?: PublishedRecordId; // If collection itself was published/updated
@@ -21,7 +22,10 @@ export interface ICollectionPublisher {
    * @param collection The Collection aggregate to publish.
    * @returns A Result indicating success with CollectionPublishResult or a UseCaseError on failure.
    */
-  publish(collection: Collection): Promise<Result<CollectionPublishResult, UseCaseError>>;
+  publish(
+    collection: Collection,
+    publishedCards?: Cards
+  ): Promise<Result<CollectionPublishResult, UseCaseError>>;
 
   /**
    * Unpublishes (deletes) a Collection record.

@@ -2,7 +2,7 @@ import {
   ICollectionPublisher,
   CollectionPublishResult,
 } from "src/modules/cards/application/ports/ICollectionPublisher";
-import { Collection } from "src/modules/cards/domain/Collection";
+import { CardLink, Collection } from "src/modules/cards/domain/Collection";
 import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
@@ -11,6 +11,8 @@ import { CollectionLinkMapper } from "../mappers/CollectionLinkMapper";
 import { StrongRef } from "../../domain";
 import { IAgentService } from "../../application/IAgentService";
 import { DID } from "../../domain/DID";
+import { Agent } from "@atproto/api";
+import { Cards } from "src/modules/cards/domain/Cards";
 
 export class ATProtoCollectionPublisher implements ICollectionPublisher {
   private readonly COLLECTION_COLLECTION = "network.cosmik.collection";
@@ -22,7 +24,8 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
    * Publishes a Collection aggregate, including unpublished card links
    */
   async publish(
-    collection: Collection
+    collection: Collection,
+    publishedCards?: Cards
   ): Promise<Result<CollectionPublishResult, UseCaseError>> {
     try {
       const curatorDid = new DID(collection.authorId.value);
@@ -43,7 +46,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         return err(new Error("No authenticated session found for curator"));
       }
 
-      let collectionRecord: PublishedRecordId | undefined;
+      let collectionRecord: PublishedRecordId | undefined = undefined;
       const publishedLinks: Array<{
         cardId: string;
         linkRecord: PublishedRecordId;
@@ -65,32 +68,25 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
           uri: createResult.data.uri,
           cid: createResult.data.cid,
         });
-      } else {
-        // Update existing collection record
-        const collectionRecordDTO =
-          CollectionMapper.toCreateRecordDTO(collection);
-        const publishedRecordId = collection.publishedRecordId.getValue();
-        const strongRef = new StrongRef(publishedRecordId);
-        const atUri = strongRef.atUri;
-        const rkey = atUri.rkey;
-
-        await agent.com.atproto.repo.putRecord({
-          repo: curatorDid.value,
-          collection: this.COLLECTION_COLLECTION,
-          rkey: rkey,
-          record: collectionRecordDTO,
-        });
-
-        collectionRecord = collection.publishedRecordId;
       }
 
       // 2. Publish unpublished card links
       const unpublishedLinks = collection.getUnpublishedCardLinks();
 
       for (const link of unpublishedLinks) {
+        const card = publishedCards?.getCardById(link.cardId);
+        const cardRecord = card?.publishedRecordId;
+        if (!cardRecord) {
+          return err(
+            new Error(
+              `Card ${link.cardId.getStringValue()} is either not published yet or not provided`
+            )
+          );
+        }
         const linkPublishResult = await this.publishCardInCollectionLink(
           link,
-          collectionRecord,
+          cardRecord,
+          collectionRecord || collection.publishedRecordId!,
           agent,
           curatorDid.value
         );
@@ -109,7 +105,9 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
       }
 
       return ok({
-        collectionRecord,
+        collectionRecord: collection.publishedRecordId
+          ? undefined
+          : collectionRecord,
         publishedLinks,
       });
     } catch (error) {
@@ -123,25 +121,15 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
    * Publishes a single card-in-collection link
    */
   private async publishCardInCollectionLink(
-    collectionLink: any, // CollectionLink type
+    link: CardLink,
+    cardPublishedRecordId: PublishedRecordId,
     collectionPublishedRecordId: PublishedRecordId,
-    agent: any,
+    agent: Agent,
     repo: string
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
-      // Get the card's published record ID
-      // Note: This assumes the card is already published
-      // In practice, you'd need to look up the card's published record ID
-      const cardPublishedRecordId = collectionLink.getCardPublishedRecordId();
-
-      if (!cardPublishedRecordId) {
-        return err(
-          new Error("Card must be published before adding to collection")
-        );
-      }
-
       const linkRecordDTO = CollectionLinkMapper.toCreateRecordDTO(
-        collectionLink,
+        link,
         collectionPublishedRecordId.getValue(),
         cardPublishedRecordId.getValue()
       );

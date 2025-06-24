@@ -333,6 +333,235 @@ export const schemaDict = {
       },
     },
   },
+  NetworkCosmikCard: {
+    lexicon: 1,
+    id: 'network.cosmik.card',
+    description: 'A single record type for all cards.',
+    defs: {
+      main: {
+        type: 'record',
+        description: 'A record representing a card with content.',
+        key: 'tid',
+        record: {
+          type: 'object',
+          required: ['type', 'content'],
+          properties: {
+            type: {
+              type: 'string',
+              description: 'The type of card',
+              knownValues: ['URL', 'NOTE'],
+            },
+            content: {
+              type: 'union',
+              description:
+                'The specific content of the card, determined by the card type.',
+              refs: [
+                'lex:network.cosmik.card#urlContent',
+                'lex:network.cosmik.card#noteContent',
+              ],
+            },
+            url: {
+              type: 'string',
+              format: 'uri',
+              description:
+                'Optional URL associated with the card. Required for URL cards, optional for NOTE cards.',
+            },
+            parentCard: {
+              type: 'ref',
+              description:
+                'Optional strong reference to a parent card (for NOTE cards).',
+              ref: 'lex:com.atproto.repo.strongRef',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'datetime',
+              description:
+                'Timestamp when this card was created (usually set by PDS).',
+            },
+          },
+        },
+      },
+      urlContent: {
+        type: 'object',
+        description: 'Content structure for a URL card.',
+        required: ['url'],
+        properties: {
+          url: {
+            type: 'string',
+            format: 'uri',
+            description: 'The URL being saved',
+          },
+          metadata: {
+            type: 'ref',
+            ref: 'lex:network.cosmik.card#urlMetadata',
+            description: 'Optional metadata about the URL',
+          },
+        },
+      },
+      noteContent: {
+        type: 'object',
+        description: 'Content structure for a note card.',
+        required: ['text'],
+        properties: {
+          text: {
+            type: 'string',
+            description: 'The note text content',
+            maxLength: 10000,
+          },
+          title: {
+            type: 'string',
+            description: 'Optional title for the note',
+          },
+        },
+      },
+      urlMetadata: {
+        type: 'object',
+        description: 'Metadata about a URL.',
+        required: ['url'],
+        properties: {
+          url: {
+            type: 'string',
+            format: 'uri',
+            description: 'The URL',
+          },
+          title: {
+            type: 'string',
+            description: 'Title of the page',
+          },
+          description: {
+            type: 'string',
+            description: 'Description of the page',
+          },
+          author: {
+            type: 'string',
+            description: 'Author of the content',
+          },
+          publishedDate: {
+            type: 'string',
+            format: 'datetime',
+            description: 'When the content was published',
+          },
+          siteName: {
+            type: 'string',
+            description: 'Name of the site',
+          },
+          imageUrl: {
+            type: 'string',
+            format: 'uri',
+            description: 'URL of a representative image',
+          },
+          type: {
+            type: 'string',
+            description: "Type of content (e.g., 'video', 'article')",
+          },
+          retrievedAt: {
+            type: 'string',
+            format: 'datetime',
+            description: 'When the metadata was retrieved',
+          },
+        },
+      },
+    },
+  },
+  NetworkCosmikCollection: {
+    lexicon: 1,
+    id: 'network.cosmik.collection',
+    description: 'A single record type for collections of cards.',
+    defs: {
+      main: {
+        type: 'record',
+        description: 'A record representing a collection of cards.',
+        key: 'tid',
+        record: {
+          type: 'object',
+          required: ['name', 'accessType'],
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Name of the collection',
+              maxLength: 100,
+            },
+            description: {
+              type: 'string',
+              description: 'Description of the collection',
+              maxLength: 500,
+            },
+            accessType: {
+              type: 'string',
+              description: 'Access control for the collection',
+              knownValues: ['OPEN', 'CLOSED'],
+            },
+            collaborators: {
+              type: 'array',
+              description:
+                'List of collaborator DIDs who can add cards to closed collections',
+              items: {
+                type: 'string',
+                description: 'DID of a collaborator',
+              },
+            },
+            createdAt: {
+              type: 'string',
+              format: 'datetime',
+              description:
+                'Timestamp when this collection was created (usually set by PDS).',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'datetime',
+              description: 'Timestamp when this collection was last updated.',
+            },
+          },
+        },
+      },
+    },
+  },
+  NetworkCosmikCollectionLink: {
+    lexicon: 1,
+    id: 'network.cosmik.collectionLink',
+    description: 'A record that links a card to a collection.',
+    defs: {
+      main: {
+        type: 'record',
+        description:
+          'A record representing the relationship between a card and a collection.',
+        key: 'tid',
+        record: {
+          type: 'object',
+          required: ['collection', 'card', 'addedBy'],
+          properties: {
+            collection: {
+              type: 'ref',
+              description: 'Strong reference to the collection record.',
+              ref: 'lex:com.atproto.repo.strongRef',
+            },
+            card: {
+              type: 'ref',
+              description: 'Strong reference to the card record.',
+              ref: 'lex:com.atproto.repo.strongRef',
+            },
+            addedBy: {
+              type: 'string',
+              description:
+                'DID of the user who added the card to the collection',
+            },
+            addedAt: {
+              type: 'string',
+              format: 'datetime',
+              description:
+                'Timestamp when the card was added to the collection.',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'datetime',
+              description:
+                'Timestamp when this link record was created (usually set by PDS).',
+            },
+          },
+        },
+      },
+    },
+  },
   AppAnnosDefs: {
     lexicon: 1,
     id: 'app.annos.defs',
@@ -413,6 +642,9 @@ export const ids = {
   AppAnnosAnnotation: 'app.annos.annotation',
   AppAnnosAnnotationField: 'app.annos.annotationField',
   AppAnnosAnnotationTemplate: 'app.annos.annotationTemplate',
+  NetworkCosmikCard: 'network.cosmik.card',
+  NetworkCosmikCollection: 'network.cosmik.collection',
+  NetworkCosmikCollectionLink: 'network.cosmik.collectionLink',
   AppAnnosDefs: 'app.annos.defs',
   ComAtprotoRepoStrongRef: 'com.atproto.repo.strongRef',
 } as const

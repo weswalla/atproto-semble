@@ -153,7 +153,7 @@ export class AddCardToLibraryUseCase
         } as CardCreationInput;
       }
 
-      // Create the card using CardFactory with optional URL
+      // Create the card using CardFactory
       const cardResult = CardFactory.create({
         curatorId: request.curatorId,
         cardInput: finalCardInput,

@@ -1,0 +1,18 @@
+import { Collection } from "src/modules/cards/domain/Collection";
+import { Record } from "./lexicon/types/app/cards/collection";
+
+type CollectionRecordDTO = Record;
+
+export class CollectionMapper {
+  static toCreateRecordDTO(collection: Collection): CollectionRecordDTO {
+    return {
+      $type: "app.cards.collection",
+      name: collection.name.value,
+      description: collection.description?.value,
+      accessType: collection.accessType.value,
+      collaborators: collection.collaborators.map((collaborator) => collaborator.value),
+      createdAt: collection.createdAt.toISOString(),
+      updatedAt: collection.updatedAt.toISOString(),
+    };
+  }
+}

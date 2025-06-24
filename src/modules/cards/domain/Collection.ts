@@ -310,4 +310,8 @@ export class Collection extends AggregateRoot<CollectionProps> {
     this.props.publishedRecordId = undefined;
     this.props.updatedAt = new Date();
   }
+
+  public getUnpublishedCardLinks(): CardLink[] {
+    return this.props.cardLinks.filter((link) => !link.publishedRecordId);
+  }
 }

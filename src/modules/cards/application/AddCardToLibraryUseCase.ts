@@ -16,6 +16,7 @@ import {
   CreateAndPublishAnnotationsFromTemplateUseCase,
   AnnotationInput,
 } from "../../annotations/application/use-cases/CreateAndPublishAnnotationsFromTemplateUseCase";
+import { Cards } from "../domain/Cards";
 
 export interface AddCardToLibraryDTO {
   curatorId: string;
@@ -267,8 +268,19 @@ export class AddCardToLibraryUseCase
             }
 
             // Publish the collection (including new links)
+            const publishedCards = Cards.create([card]);
+            if (publishedCards.isErr()) {
+              failedCollections.push({
+                collectionId: collectionIdStr,
+                reason: `Failed to create published cards: ${publishedCards.error.message}`,
+              });
+            }
+
             const publishCollectionResult =
-              await this.collectionPublisher.publish(collection);
+              await this.collectionPublisher.publish(
+                collection,
+                publishedCards.unwrap()
+              );
             if (publishCollectionResult.isErr()) {
               failedCollections.push({
                 collectionId: collectionIdStr,

@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "app.cards.collection",
+  "id": "network.cosmik.collection",
   "description": "A single record type for collections of cards.",
   "defs": {
     "main": {

@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "app.cards.card",
+  "id": "network.cosmik.card",
   "description": "A single record type for all cards.",
   "defs": {
     "main": {
@@ -19,11 +19,7 @@
           "content": {
             "type": "union",
             "description": "The specific content of the card, determined by the card type.",
-            "refs": [
-              "#urlContent",
-              "#noteContent",
-              "#highlightContent"
-            ]
+            "refs": ["#urlContent", "#noteContent", "#highlightContent"]
           },
           "url": {
             "type": "string",
@@ -159,11 +155,7 @@
     "highlightSelector": {
       "type": "union",
       "description": "Different types of selectors for highlighting text.",
-      "refs": [
-        "#textQuoteSelector",
-        "#textPositionSelector",
-        "#rangeSelector"
-      ]
+      "refs": ["#textQuoteSelector", "#textPositionSelector", "#rangeSelector"]
     },
     "textQuoteSelector": {
       "type": "object",

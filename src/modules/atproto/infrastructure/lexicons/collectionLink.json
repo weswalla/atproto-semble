@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "app.cards.collectionLink",
+  "id": "network.cosmik.collectionLink",
   "description": "A record that links a card to a collection.",
   "defs": {
     "main": {

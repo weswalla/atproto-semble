@@ -15,7 +15,7 @@ export class FakeAnnotationPublisher implements IAnnotationPublisher {
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     const annotationId = annotation.annotationId.getStringValue();
     // Simulate generating an AT URI based on DID and collection/rkey
-    const fakeUri = `at://fake-did/app.annos.annotation/${annotationId}`;
+    const fakeUri = `at://fake-did/network.cosmik.annotation/${annotationId}`;
     const fakeCid = `fake-cid-${annotationId}`;
     const publishedRecordId = PublishedRecordId.create({
       uri: fakeUri,
@@ -38,7 +38,9 @@ export class FakeAnnotationPublisher implements IAnnotationPublisher {
     const compositeKey = recordId.uri + recordId.cid;
     if (this.publishedRecords.has(compositeKey)) {
       this.publishedRecords.delete(compositeKey);
-      console.log(`[FakeAnnotationPublisher] Unpublished record ${recordId.uri}`);
+      console.log(
+        `[FakeAnnotationPublisher] Unpublished record ${recordId.uri}`
+      );
       return ok(undefined); // Use ok(undefined) for void success
     } else {
       console.warn(

@@ -15,7 +15,7 @@ export class FakeAnnotationFieldPublisher implements IAnnotationFieldPublisher {
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     const fieldId = field.fieldId.getStringValue();
     // Simulate generating an AT URI based on DID and collection/rkey
-    const fakeUri = `at://fake-did/app.annos.field/${fieldId}`;
+    const fakeUri = `at://fake-did/network.cosmik.field/${fieldId}`;
     const fakeCid = `fake-cid-${fieldId}`;
     const publishedRecordId = PublishedRecordId.create({
       uri: fakeUri,
@@ -38,7 +38,9 @@ export class FakeAnnotationFieldPublisher implements IAnnotationFieldPublisher {
     const compositeKey = recordId.uri + recordId.cid;
     if (this.publishedRecords.has(compositeKey)) {
       this.publishedRecords.delete(compositeKey);
-      console.log(`[FakeAnnotationFieldPublisher] Unpublished record ${recordId.uri}`);
+      console.log(
+        `[FakeAnnotationFieldPublisher] Unpublished record ${recordId.uri}`
+      );
       return ok(undefined); // Use ok(undefined) for void success
     } else {
       console.warn(

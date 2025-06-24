@@ -6,7 +6,6 @@ module.exports = {
   // roots: ['<rootDir>/src', '<rootDir>/tests'],
   // Optional: Match test files (adjust if your naming convention differs)
   testMatch: [
-    '**/__tests__/**/*.+(ts|tsx)',
     '**/?(*.)+(spec|test).+(ts|tsx)',
   ],
   // Optional: Module file extensions for importing

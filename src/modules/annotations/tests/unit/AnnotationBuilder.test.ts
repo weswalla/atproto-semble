@@ -186,7 +186,7 @@ describe("AnnotationBuilder", () => {
       .buildOrThrow();
 
     const publishedRecordId = {
-      uri: "at://did:plc:testcurator123/app.annos.annotation/123",
+      uri: "at://did:plc:testcurator123/network.cosmik.annotation/123",
       cid: "bafyreihykqbv6tqzolnlvj5zlksndo6wd6earqaipnpfjazxmcnbzylnxe",
     };
 

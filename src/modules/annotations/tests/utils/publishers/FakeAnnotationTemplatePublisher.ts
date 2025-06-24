@@ -13,7 +13,7 @@ export class FakeAnnotationTemplatePublisher
   implements IAnnotationTemplatePublisher
 {
   private publishedRecords: Map<string, AnnotationTemplate> = new Map();
-  
+
   constructor(
     private readonly fieldPublisher?: FakeAnnotationFieldPublisher,
     private readonly fieldRepository?: IAnnotationFieldRepository
@@ -24,7 +24,7 @@ export class FakeAnnotationTemplatePublisher
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     const templateId = template.templateId.getStringValue();
     // Simulate generating an AT URI based on DID and collection/rkey
-    const fakeUri = `at://fake-did/app.annos.template/${templateId}`;
+    const fakeUri = `at://fake-did/network.cosmik.template/${templateId}`;
     const fakeCid = `fake-cid-${templateId}`;
     const publishedRecordId = PublishedRecordId.create({
       uri: fakeUri,
@@ -34,23 +34,23 @@ export class FakeAnnotationTemplatePublisher
     // Store the published template for inspection using composite key
     const compositeKey = fakeUri + fakeCid;
     this.publishedRecords.set(compositeKey, template);
-    
+
     // If we have a field publisher and repository, publish all fields in the template
     // and save them to the repository
     if (this.fieldPublisher && this.fieldRepository) {
       // Get all fields from the template
       const fields = template.getAnnotationFields();
-      
+
       // Publish each field and save to repository
       for (const field of fields) {
         const fieldPublishResult = await this.fieldPublisher.publish(field);
         if (fieldPublishResult.isOk()) {
           // Mark the field as published
           field.markAsPublished(fieldPublishResult.value);
-          
+
           // Save the field to the repository
           await this.fieldRepository.save(field);
-          
+
           console.log(
             `[FakeAnnotationTemplatePublisher] Published and saved field ${field.fieldId.getStringValue()}`
           );

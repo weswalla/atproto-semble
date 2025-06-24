@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "app.annos.defs",
+  "id": "network.cosmik.defs",
   "description": "Common definitions for annotation types and references",
   "defs": {
     "identifier": {

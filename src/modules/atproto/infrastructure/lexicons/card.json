@@ -14,21 +14,21 @@
           "type": {
             "type": "string",
             "description": "The type of card",
-            "knownValues": ["URL", "NOTE", "HIGHLIGHT"]
+            "knownValues": ["URL", "NOTE"]
           },
           "content": {
             "type": "union",
             "description": "The specific content of the card, determined by the card type.",
-            "refs": ["#urlContent", "#noteContent", "#highlightContent"]
+            "refs": ["#urlContent", "#noteContent"]
           },
           "url": {
             "type": "string",
             "format": "uri",
-            "description": "Optional URL associated with the card. Required for URL cards, optional for NOTE and HIGHLIGHT cards."
+            "description": "Optional URL associated with the card. Required for URL cards, optional for NOTE cards."
           },
           "parentCard": {
             "type": "ref",
-            "description": "Optional strong reference to a parent card (for NOTE and HIGHLIGHT cards).",
+            "description": "Optional strong reference to a parent card (for NOTE cards).",
             "ref": "com.atproto.repo.strongRef"
           },
           "createdAt": {
@@ -69,39 +69,6 @@
         "title": {
           "type": "string",
           "description": "Optional title for the note"
-        }
-      }
-    },
-    "highlightContent": {
-      "type": "object",
-      "description": "Content structure for a highlight card.",
-      "required": ["text", "selectors"],
-      "properties": {
-        "text": {
-          "type": "string",
-          "description": "The highlighted text",
-          "maxLength": 5000
-        },
-        "selectors": {
-          "type": "array",
-          "description": "Selectors for robust anchoring of the highlight",
-          "items": {
-            "type": "ref",
-            "ref": "#highlightSelector"
-          }
-        },
-        "context": {
-          "type": "string",
-          "description": "Additional surrounding text for context"
-        },
-        "documentUrl": {
-          "type": "string",
-          "format": "uri",
-          "description": "URL of the document where highlight was made"
-        },
-        "documentTitle": {
-          "type": "string",
-          "description": "Title of the document"
         }
       }
     },
@@ -149,76 +116,6 @@
           "type": "string",
           "format": "datetime",
           "description": "When the metadata was retrieved"
-        }
-      }
-    },
-    "highlightSelector": {
-      "type": "union",
-      "description": "Different types of selectors for highlighting text.",
-      "refs": ["#textQuoteSelector", "#textPositionSelector", "#rangeSelector"]
-    },
-    "textQuoteSelector": {
-      "type": "object",
-      "description": "Selector that identifies text by exact quote with context.",
-      "required": ["type", "exact"],
-      "properties": {
-        "type": {
-          "type": "string",
-          "const": "TextQuoteSelector"
-        },
-        "exact": {
-          "type": "string",
-          "description": "The exact text being selected"
-        },
-        "prefix": {
-          "type": "string",
-          "description": "Text immediately before the selection"
-        },
-        "suffix": {
-          "type": "string",
-          "description": "Text immediately after the selection"
-        }
-      }
-    },
-    "textPositionSelector": {
-      "type": "object",
-      "description": "Selector that identifies text by character positions.",
-      "required": ["type", "start", "end"],
-      "properties": {
-        "type": {
-          "type": "string",
-          "const": "TextPositionSelector"
-        },
-        "start": {
-          "type": "integer",
-          "description": "Start character position",
-          "minimum": 0
-        },
-        "end": {
-          "type": "integer",
-          "description": "End character position",
-          "minimum": 0
-        }
-      }
-    },
-    "rangeSelector": {
-      "type": "object",
-      "description": "Selector that identifies a range using start and end selectors.",
-      "required": ["type", "startSelector", "endSelector"],
-      "properties": {
-        "type": {
-          "type": "string",
-          "const": "RangeSelector"
-        },
-        "startSelector": {
-          "type": "ref",
-          "ref": "#highlightSelector",
-          "description": "Selector for the start of the range"
-        },
-        "endSelector": {
-          "type": "ref",
-          "ref": "#highlightSelector",
-          "description": "Selector for the end of the range"
         }
       }
     }

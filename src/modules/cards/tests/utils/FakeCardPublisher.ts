@@ -21,13 +21,13 @@ export class FakeCardPublisher implements ICardPublisher {
     const compositeKey = fakeUri + fakeCid;
     this.publishedRecords.set(compositeKey, card);
 
-    console.log(
-      `[FakeCardPublisher] Published card ${cardId} to ${fakeUri}`
-    );
+    console.log(`[FakeCardPublisher] Published card ${cardId} to ${fakeUri}`);
     return ok(publishedRecordId);
   }
 
-  async unpublish(recordId: PublishedRecordId): Promise<Result<void, UseCaseError>> {
+  async unpublish(
+    recordId: PublishedRecordId
+  ): Promise<Result<void, UseCaseError>> {
     const compositeKey = recordId.uri + recordId.cid;
     if (this.publishedRecords.has(compositeKey)) {
       this.publishedRecords.delete(compositeKey);

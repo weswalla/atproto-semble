@@ -75,7 +75,9 @@ describe("Collection", () => {
 
       expect(result.isErr()).toBe(true);
       expect(result.error).toBeInstanceOf(CollectionValidationError);
-      expect(result.error.message).toContain("Collection name cannot exceed 100 characters");
+      expect(result.error.message).toContain(
+        "Collection name cannot exceed 100 characters"
+      );
     });
 
     it("should fail to create collection with description too long", () => {
@@ -93,7 +95,9 @@ describe("Collection", () => {
 
       expect(result.isErr()).toBe(true);
       expect(result.error).toBeInstanceOf(CollectionValidationError);
-      expect(result.error.message).toContain("Collection description cannot exceed 500 characters");
+      expect(result.error.message).toContain(
+        "Collection description cannot exceed 500 characters"
+      );
     });
 
     it("should fail to create collection with invalid access type", () => {

@@ -1,6 +1,9 @@
 import { Card } from "../../../domain/Card";
 import { CardType, CardTypeEnum } from "../../../domain/value-objects/CardType";
-import { CardContent, HighlightSelector } from "../../../domain/value-objects/CardContent";
+import {
+  CardContent,
+  HighlightSelector,
+} from "../../../domain/value-objects/CardContent";
 import { CardId } from "../../../domain/value-objects/CardId";
 import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
 import { URL } from "../../../domain/value-objects/URL";
@@ -39,7 +42,10 @@ export class CardBuilder {
     return this;
   }
 
-  withPublishedRecordId(publishedRecordId: { uri: string; cid: string }): CardBuilder {
+  withPublishedRecordId(publishedRecordId: {
+    uri: string;
+    cid: string;
+  }): CardBuilder {
     this._publishedRecordId = PublishedRecordId.create(publishedRecordId);
     return this;
   }
@@ -60,7 +66,9 @@ export class CardBuilder {
     this._url = url; // URL cards require the URL property
     const contentResult = CardContent.createUrlContent(url, metadata);
     if (contentResult.isErr()) {
-      throw new Error(`Failed to create URL content: ${contentResult.error.message}`);
+      throw new Error(
+        `Failed to create URL content: ${contentResult.error.message}`
+      );
     }
     this._content = contentResult.value;
     return this;
@@ -70,7 +78,9 @@ export class CardBuilder {
     this._type = CardTypeEnum.NOTE;
     const contentResult = CardContent.createNoteContent(text, title);
     if (contentResult.isErr()) {
-      throw new Error(`Failed to create note content: ${contentResult.error.message}`);
+      throw new Error(
+        `Failed to create note content: ${contentResult.error.message}`
+      );
     }
     this._content = contentResult.value;
     return this;
@@ -86,9 +96,15 @@ export class CardBuilder {
     }
   ): CardBuilder {
     this._type = CardTypeEnum.HIGHLIGHT;
-    const contentResult = CardContent.createHighlightContent(text, selectors, options);
+    const contentResult = CardContent.createHighlightContent(
+      text,
+      selectors,
+      options
+    );
     if (contentResult.isErr()) {
-      throw new Error(`Failed to create highlight content: ${contentResult.error.message}`);
+      throw new Error(
+        `Failed to create highlight content: ${contentResult.error.message}`
+      );
     }
     this._content = contentResult.value;
     return this;
@@ -102,7 +118,9 @@ export class CardBuilder {
 
       const curatorIdResult = CuratorId.create(this._curatorId);
       if (curatorIdResult.isErr()) {
-        return new Error(`Invalid curator ID: ${curatorIdResult.error.message}`);
+        return new Error(
+          `Invalid curator ID: ${curatorIdResult.error.message}`
+        );
       }
 
       const cardTypeResult = CardType.create(this._type);
@@ -110,14 +128,17 @@ export class CardBuilder {
         return new Error(`Invalid card type: ${cardTypeResult.error.message}`);
       }
 
-      const cardResult = Card.create({
-        curatorId: curatorIdResult.value,
-        type: cardTypeResult.value,
-        content: this._content,
-        url: this._url,
-        parentCardId: this._parentCardId,
-        publishedRecordId: this._publishedRecordId,
-      }, this._id);
+      const cardResult = Card.create(
+        {
+          curatorId: curatorIdResult.value,
+          type: cardTypeResult.value,
+          content: this._content,
+          url: this._url,
+          parentCardId: this._parentCardId,
+          publishedRecordId: this._publishedRecordId,
+        },
+        this._id
+      );
 
       if (cardResult.isErr()) {
         return cardResult.error;

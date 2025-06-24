@@ -1,8 +1,6 @@
-import { Collection } from "../../../domain/Collection";
-import { CollectionId } from "../../../domain/value-objects/CollectionId";
+import { Collection, CollectionAccessType } from "../../../domain/Collection";
 import { CollectionName } from "../../../domain/value-objects/CollectionName";
 import { CollectionDescription } from "../../../domain/value-objects/CollectionDescription";
-import { CollectionAccessType } from "../../../domain/value-objects/CollectionAccessType";
 import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
 import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
 import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
@@ -48,7 +46,10 @@ export class CollectionBuilder {
     return this;
   }
 
-  withPublishedRecordId(publishedRecordId: { uri: string; cid: string }): CollectionBuilder {
+  withPublishedRecordId(publishedRecordId: {
+    uri: string;
+    cid: string;
+  }): CollectionBuilder {
     this._publishedRecordId = PublishedRecordId.create(publishedRecordId);
     return this;
   }
@@ -72,34 +73,47 @@ export class CollectionBuilder {
 
       const nameResult = CollectionName.create(this._name);
       if (nameResult.isErr()) {
-        return new Error(`Invalid collection name: ${nameResult.error.message}`);
+        return new Error(
+          `Invalid collection name: ${nameResult.error.message}`
+        );
       }
 
       let description: CollectionDescription | undefined;
       if (this._description) {
-        const descriptionResult = CollectionDescription.create(this._description);
+        const descriptionResult = CollectionDescription.create(
+          this._description
+        );
         if (descriptionResult.isErr()) {
-          return new Error(`Invalid collection description: ${descriptionResult.error.message}`);
+          return new Error(
+            `Invalid collection description: ${descriptionResult.error.message}`
+          );
         }
         description = descriptionResult.value;
       }
 
-      const collaboratorIds = this._collaborators.map(collaborator => {
+      const collaboratorIds = this._collaborators.map((collaborator) => {
         const collaboratorResult = CuratorId.create(collaborator);
         if (collaboratorResult.isErr()) {
-          throw new Error(`Invalid collaborator ID: ${collaboratorResult.error.message}`);
+          throw new Error(
+            `Invalid collaborator ID: ${collaboratorResult.error.message}`
+          );
         }
         return collaboratorResult.value;
       });
 
-      const collectionResult = Collection.create({
-        authorId: authorIdResult.value,
-        name: nameResult.value,
-        description,
-        accessType: this._accessType,
-        collaborators: collaboratorIds,
-        publishedRecordId: this._publishedRecordId,
-      }, this._id);
+      const collectionResult = Collection.create(
+        {
+          authorId: authorIdResult.value,
+          name: nameResult.value.toString(),
+          description: description?.toString(),
+          accessType: this._accessType,
+          collaboratorIds: collaboratorIds,
+          publishedRecordId: this._publishedRecordId,
+          createdAt: this._createdAt ?? new Date(),
+          updatedAt: this._updatedAt ?? new Date(),
+        },
+        this._id
+      );
 
       if (collectionResult.isErr()) {
         return collectionResult.error;

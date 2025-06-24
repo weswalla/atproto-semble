@@ -64,8 +64,12 @@ describe("Card", () => {
       });
 
       expect(result.isErr()).toBe(true);
-      expect((result as Err<Card, CardValidationError>).error).toBeInstanceOf(CardValidationError);
-      expect((result as Err<Card, CardValidationError>).error.message).toBe("URL cards must have a url property");
+      expect((result as Err<Card, CardValidationError>).error).toBeInstanceOf(
+        CardValidationError
+      );
+      expect((result as Err<Card, CardValidationError>).error.message).toBe(
+        "URL cards must have a url property"
+      );
     });
 
     it("should reject URL card with parent card", () => {
@@ -82,8 +86,12 @@ describe("Card", () => {
       });
 
       expect(result.isErr()).toBe(true);
-      expect((result as Err<Card, CardValidationError>).error).toBeInstanceOf(CardValidationError);
-      expect((result as Err<Card, CardValidationError>).error.message).toBe("URL cards cannot have parent cards");
+      expect((result as Err<Card, CardValidationError>).error).toBeInstanceOf(
+        CardValidationError
+      );
+      expect((result as Err<Card, CardValidationError>).error.message).toBe(
+        "URL cards cannot have parent cards"
+      );
     });
 
     it("should reject URL card with mismatched content type", () => {
@@ -98,15 +106,22 @@ describe("Card", () => {
       });
 
       expect(result.isErr()).toBe(true);
-      expect((result as Err<Card, CardValidationError>).error).toBeInstanceOf(CardValidationError);
-      expect((result as Err<Card, CardValidationError>).error.message).toBe("Card type must match content type");
+      expect((result as Err<Card, CardValidationError>).error).toBeInstanceOf(
+        CardValidationError
+      );
+      expect((result as Err<Card, CardValidationError>).error.message).toBe(
+        "Card type must match content type"
+      );
     });
   });
 
   describe("Note Card", () => {
     it("should create a standalone note card", () => {
       const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
-      const cardContent = CardContent.createNoteContent("Test note", "Test Title").unwrap();
+      const cardContent = CardContent.createNoteContent(
+        "Test note",
+        "Test Title"
+      ).unwrap();
 
       const result = Card.create({
         curatorId: validCuratorId,
@@ -125,7 +140,9 @@ describe("Card", () => {
 
     it("should create a note card with optional url field", () => {
       const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
-      const cardContent = CardContent.createNoteContent("Test note about a URL").unwrap();
+      const cardContent = CardContent.createNoteContent(
+        "Test note about a URL"
+      ).unwrap();
       const noteUrl = URL.create("https://reference.example.com").unwrap();
 
       const result = Card.create({
@@ -164,7 +181,8 @@ describe("Card", () => {
 
     it("should update note content", () => {
       const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
-      const cardContent = CardContent.createNoteContent("Original note").unwrap();
+      const cardContent =
+        CardContent.createNoteContent("Original note").unwrap();
       const card = Card.create({
         curatorId: validCuratorId,
         type: cardType,
@@ -191,7 +209,9 @@ describe("Card", () => {
       const updateResult = card.updateContent(urlContent);
 
       expect(updateResult.isErr()).toBe(true);
-      expect((updateResult as Err<void, CardValidationError>).error.message).toBe("Cannot change card content to different type");
+      expect(
+        (updateResult as Err<void, CardValidationError>).error.message
+      ).toBe("Cannot change card content to different type");
     });
   });
 
@@ -257,8 +277,12 @@ describe("Card", () => {
       });
 
       expect(result.isErr()).toBe(true);
-      expect((result as Err<Card, CardValidationError>).error).toBeInstanceOf(CardValidationError);
-      expect((result as Err<Card, CardValidationError>).error.message).toBe("Highlight cards must have a parent card");
+      expect((result as Err<Card, CardValidationError>).error).toBeInstanceOf(
+        CardValidationError
+      );
+      expect((result as Err<Card, CardValidationError>).error.message).toBe(
+        "Highlight cards must have a parent card"
+      );
     });
   });
 
@@ -276,15 +300,24 @@ describe("Card", () => {
 
       const afterCreate = new Date();
 
-      expect(card.createdAt.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
-      expect(card.createdAt.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
-      expect(card.updatedAt.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
-      expect(card.updatedAt.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
+      expect(card.createdAt.getTime()).toBeGreaterThanOrEqual(
+        beforeCreate.getTime()
+      );
+      expect(card.createdAt.getTime()).toBeLessThanOrEqual(
+        afterCreate.getTime()
+      );
+      expect(card.updatedAt.getTime()).toBeGreaterThanOrEqual(
+        beforeCreate.getTime()
+      );
+      expect(card.updatedAt.getTime()).toBeLessThanOrEqual(
+        afterCreate.getTime()
+      );
     });
 
     it("should update timestamp when content is updated", () => {
       const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
-      const cardContent = CardContent.createNoteContent("Original note").unwrap();
+      const cardContent =
+        CardContent.createNoteContent("Original note").unwrap();
       const card = Card.create({
         curatorId: validCuratorId,
         type: cardType,
@@ -292,13 +325,16 @@ describe("Card", () => {
       }).unwrap();
 
       const originalUpdatedAt = card.updatedAt;
-      
+
       // Wait a bit to ensure timestamp difference
       setTimeout(() => {
-        const newContent = CardContent.createNoteContent("Updated note").unwrap();
+        const newContent =
+          CardContent.createNoteContent("Updated note").unwrap();
         card.updateContent(newContent);
-        
-        expect(card.updatedAt.getTime()).toBeGreaterThan(originalUpdatedAt.getTime());
+
+        expect(card.updatedAt.getTime()).toBeGreaterThan(
+          originalUpdatedAt.getTime()
+        );
       }, 10);
     });
 
@@ -318,7 +354,9 @@ describe("Card", () => {
         content: cardContent,
       }).unwrap();
 
-      expect(card1.cardId.getStringValue()).not.toBe(card2.cardId.getStringValue());
+      expect(card1.cardId.getStringValue()).not.toBe(
+        card2.cardId.getStringValue()
+      );
     });
   });
 });

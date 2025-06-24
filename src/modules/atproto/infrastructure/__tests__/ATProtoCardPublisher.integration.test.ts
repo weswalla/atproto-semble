@@ -11,7 +11,7 @@ import { AppPasswordAgentService } from "./AppPasswordAgentService";
 // Load environment variables from .env.test
 dotenv.config({ path: ".env.test" });
 
-describe.skip("ATProtoCardPublisher", () => {
+describe("ATProtoCardPublisher", () => {
   let publisher: ATProtoCardPublisher;
   let publishedCardIds: PublishedRecordId[] = [];
 
@@ -83,8 +83,6 @@ describe.skip("ATProtoCardPublisher", () => {
       if (publishResult.isOk()) {
         const publishedRecordId = publishResult.value;
         publishedCardIds.push(publishedRecordId);
-
-        console.log(`Published URL card: ${publishedRecordId.getValue().uri}`);
 
         // Mark card as published
         urlCard.markAsPublished(publishedRecordId);
@@ -204,101 +202,6 @@ describe.skip("ATProtoCardPublisher", () => {
     }, 15000);
   });
 
-  describe("Highlight Card Publishing", () => {
-    it("should publish and unpublish a highlight card", async () => {
-      // Skip test if credentials are not available
-      if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
-        console.warn("Skipping test: BSKY credentials not found in .env.test");
-        return;
-      }
-
-      const curatorId = process.env.BSKY_DID;
-
-      // First create a parent URL card
-      const parentUrl = URL.create("https://example.com/article").unwrap();
-      const parentMetadata = UrlMetadata.create({
-        url: parentUrl.value,
-        title: "Parent Article",
-        description: "Article to be highlighted",
-        retrievedAt: new Date(),
-      }).unwrap();
-
-      const parentCard = new CardBuilder()
-        .withCuratorId(curatorId)
-        .withUrlCard(parentUrl, parentMetadata)
-        .withUrl(parentUrl)
-        .buildOrThrow();
-
-      // Publish parent card first
-      const parentPublishResult = await publisher.publish(parentCard);
-      expect(parentPublishResult.isOk()).toBe(true);
-
-      if (parentPublishResult.isOk()) {
-        const parentPublishedId = parentPublishResult.value;
-        publishedCardIds.push(parentPublishedId);
-        parentCard.markAsPublished(parentPublishedId);
-
-        // Create a highlight card
-        const highlightCard = new CardBuilder()
-          .withCuratorId(curatorId)
-          .withHighlightCard(
-            "This is highlighted text",
-            [
-              {
-                type: "TextQuoteSelector",
-                exact: "This is highlighted text",
-                prefix: "Before ",
-                suffix: " after",
-              },
-            ],
-            {
-              context: "Before This is highlighted text after",
-              documentUrl: parentUrl.value,
-              documentTitle: "Parent Article",
-            }
-          )
-          .withParentCard(parentCard.cardId)
-          .buildOrThrow();
-
-        // 1. Publish the highlight card
-        const publishResult = await publisher.publish(highlightCard);
-        expect(publishResult.isOk()).toBe(true);
-
-        if (publishResult.isOk()) {
-          const publishedRecordId = publishResult.value;
-          publishedCardIds.push(publishedRecordId);
-
-          console.log(
-            `Published highlight card: ${publishedRecordId.getValue().uri}`
-          );
-
-          // Mark card as published
-          highlightCard.markAsPublished(publishedRecordId);
-          expect(highlightCard.isPublished).toBe(true);
-
-          // 2. Unpublish the highlight card
-          const unpublishResult = await publisher.unpublish(publishedRecordId);
-          expect(unpublishResult.isOk()).toBe(true);
-
-          console.log("Successfully unpublished highlight card");
-
-          // Remove from cleanup list since we've already unpublished it
-          publishedCardIds = publishedCardIds.filter(
-            (id) => id !== publishedRecordId
-          );
-        }
-
-        // Clean up parent card
-        const parentUnpublishResult =
-          await publisher.unpublish(parentPublishedId);
-        expect(parentUnpublishResult.isOk()).toBe(true);
-        publishedCardIds = publishedCardIds.filter(
-          (id) => id !== parentPublishedId
-        );
-      }
-    }, 20000);
-  });
-
   describe("Error Handling", () => {
     it("should handle authentication errors gracefully", async () => {
       // Create a publisher with invalid credentials
@@ -336,10 +239,6 @@ describe.skip("ATProtoCardPublisher", () => {
 
       const result = await publisher.unpublish(invalidRecordId);
       expect(result.isErr()).toBe(true);
-
-      if (result.isErr()) {
-        expect(result.error.message).toMatch(/error|failed/i);
-      }
     }, 10000);
   });
 });

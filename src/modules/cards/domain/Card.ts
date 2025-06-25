@@ -171,7 +171,7 @@ export class Card extends AggregateRoot<CardProps> {
       return err(new CardValidationError("Card is not in user's library"));
     }
 
-    this.props.libraryMemberships.filter(
+    this.props.libraryMemberships = this.props.libraryMemberships.filter(
       (link) => !link.curatorId.equals(userId)
     );
     this.props.updatedAt = new Date();

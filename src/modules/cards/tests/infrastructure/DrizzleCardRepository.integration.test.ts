@@ -12,6 +12,7 @@ import { Card } from "../../domain/Card";
 import { CardType, CardTypeEnum } from "../../domain/value-objects/CardType";
 import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
 import { CardContent } from "../../domain/value-objects/CardContent";
+import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
 
 describe("DrizzleCardRepository", () => {
   let container: StartedPostgreSqlContainer;
@@ -301,7 +302,9 @@ describe("DrizzleCardRepository", () => {
 
   it("should handle originalPublishedRecordId when marking card as published", async () => {
     // Create a note card
-    const noteContent = CardContent.createNoteContent("Card for publishing test").unwrap();
+    const noteContent = CardContent.createNoteContent(
+      "Card for publishing test"
+    ).unwrap();
     const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
 
     const cardResult = Card.create({
@@ -324,14 +327,16 @@ describe("DrizzleCardRepository", () => {
     // Mark as published - this should set the originalPublishedRecordId
     const publishedRecordId = {
       uri: "at://did:plc:testcurator/network.cosmik.card/test123",
-      cid: "bafytest123"
+      cid: "bafytest123",
     };
 
     // We need to import PublishedRecordId
-    const { PublishedRecordId } = await import("../../domain/value-objects/PublishedRecordId");
     const publishedRecord = PublishedRecordId.create(publishedRecordId);
-    
-    const markResult = card.markCardInLibraryAsPublished(curatorId, publishedRecord);
+
+    const markResult = card.markCardInLibraryAsPublished(
+      curatorId,
+      publishedRecord
+    );
     expect(markResult.isOk()).toBe(true);
 
     // Verify originalPublishedRecordId is set
@@ -345,9 +350,13 @@ describe("DrizzleCardRepository", () => {
     // Retrieve and verify the originalPublishedRecordId persisted
     const retrievedResult = await cardRepository.findById(card.cardId);
     const retrievedCard = retrievedResult.unwrap();
-    
+
     expect(retrievedCard?.originalPublishedRecordId).toBeDefined();
-    expect(retrievedCard?.originalPublishedRecordId?.uri).toBe(publishedRecordId.uri);
-    expect(retrievedCard?.originalPublishedRecordId?.cid).toBe(publishedRecordId.cid);
+    expect(retrievedCard?.originalPublishedRecordId?.uri).toBe(
+      publishedRecordId.uri
+    );
+    expect(retrievedCard?.originalPublishedRecordId?.cid).toBe(
+      publishedRecordId.cid
+    );
   });
 });

@@ -7,7 +7,6 @@ import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorI
 import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
 import { URL } from "../../../domain/value-objects/URL";
 import { UrlMetadata } from "../../../domain/value-objects/UrlMetadata";
-import { HighlightSelector } from "../../../domain/value-objects/content/HighlightCardContent";
 import { PublishedRecordDTO, PublishedRecordRefDTO } from "./DTOTypes";
 import { err, ok, Result } from "../../../../../shared/core/Result";
 
@@ -32,15 +31,7 @@ interface NoteContentData {
   title?: string;
 }
 
-interface HighlightContentData {
-  text: string;
-  selectors: HighlightSelector[];
-  context?: string;
-  documentUrl?: string;
-  documentTitle?: string;
-}
-
-type CardContentData = UrlContentData | NoteContentData | HighlightContentData;
+type CardContentData = UrlContentData | NoteContentData;
 
 // Database representation of a card
 export interface CardDTO extends PublishedRecordRefDTO {
@@ -171,18 +162,6 @@ export class CardMapper {
           const noteData = data as NoteContentData;
           return CardContent.createNoteContent(noteData.text, noteData.title);
 
-        case CardTypeEnum.HIGHLIGHT:
-          const highlightData = data as HighlightContentData;
-          return CardContent.createHighlightContent(
-            highlightData.text,
-            highlightData.selectors,
-            {
-              context: highlightData.context,
-              documentUrl: highlightData.documentUrl,
-              documentTitle: highlightData.documentTitle,
-            }
-          );
-
         default:
           return err(new Error(`Unknown card type: ${type}`));
       }
@@ -235,17 +214,7 @@ export class CardMapper {
       const noteContent = content.noteContent!;
       contentData = {
         text: noteContent.text,
-        title: noteContent.title,
       } as NoteContentData;
-    } else if (content.type === CardTypeEnum.HIGHLIGHT) {
-      const highlightContent = content.highlightContent!;
-      contentData = {
-        text: highlightContent.text,
-        selectors: highlightContent.selectors,
-        context: highlightContent.context,
-        documentUrl: highlightContent.documentUrl,
-        documentTitle: highlightContent.documentTitle,
-      } as HighlightContentData;
     } else {
       throw new Error(`Unknown card type: ${content.type}`);
     }

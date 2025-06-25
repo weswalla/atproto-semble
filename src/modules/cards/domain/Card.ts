@@ -183,4 +183,21 @@ export class Card extends AggregateRoot<CardProps> {
       ) !== undefined
     );
   }
+
+  public markCardInLibraryAsPublished(
+    userId: CuratorId,
+    publishedRecordId: PublishedRecordId
+  ): Result<void, CardValidationError> {
+    const membership = this.props.libraryMemberships.find((link) =>
+      link.curatorId.equals(userId)
+    );
+    if (!membership) {
+      return err(new CardValidationError("Card is not in user's library"));
+    }
+
+    membership.publishedRecordId = publishedRecordId;
+    this.props.updatedAt = new Date();
+
+    return ok(undefined);
+  }
 }

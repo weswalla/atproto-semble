@@ -1,10 +1,11 @@
-import { eq } from "drizzle-orm";
+import { eq, leftJoin } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { ICardRepository } from "../../domain/ICardRepository";
 import { Card } from "../../domain/Card";
 import { CardId } from "../../domain/value-objects/CardId";
 import { cards } from "./schema/card.sql";
 import { libraryMemberships } from "./schema/libraryMembership.sql";
+import { publishedRecords } from "../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
 import { CardDTO, CardMapper } from "./mappers/CardMapper";
 import { Result, ok, err } from "../../../../shared/core/Result";
 
@@ -30,14 +31,19 @@ export class DrizzleCardRepository implements ICardRepository {
         return ok(null);
       }
 
-      // Get library memberships for this card
+      // Get library memberships for this card with published record details
       const membershipResults = await this.db
         .select({
           userId: libraryMemberships.userId,
           addedAt: libraryMemberships.addedAt,
-          publishedRecordId: libraryMemberships.publishedRecordId,
+          publishedRecordUri: publishedRecords.uri,
+          publishedRecordCid: publishedRecords.cid,
         })
         .from(libraryMemberships)
+        .leftJoin(
+          publishedRecords,
+          eq(libraryMemberships.publishedRecordId, publishedRecords.id)
+        )
         .where(eq(libraryMemberships.cardId, cardId));
 
       const cardDTO: CardDTO = {
@@ -49,9 +55,9 @@ export class DrizzleCardRepository implements ICardRepository {
         libraryMemberships: membershipResults.map(membership => ({
           userId: membership.userId,
           addedAt: membership.addedAt,
-          publishedRecordId: membership.publishedRecordId ? {
-            uri: membership.publishedRecordId,
-            cid: membership.publishedRecordId.split('/').pop() || ''
+          publishedRecordId: membership.publishedRecordUri && membership.publishedRecordCid ? {
+            uri: membership.publishedRecordUri,
+            cid: membership.publishedRecordCid,
           } : undefined,
         })),
         createdAt: result.createdAt,

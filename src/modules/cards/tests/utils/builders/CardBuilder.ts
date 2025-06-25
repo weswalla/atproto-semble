@@ -1,9 +1,6 @@
 import { Card } from "../../../domain/Card";
 import { CardType, CardTypeEnum } from "../../../domain/value-objects/CardType";
-import {
-  CardContent,
-  HighlightSelector,
-} from "../../../domain/value-objects/CardContent";
+import { CardContent } from "../../../domain/value-objects/CardContent";
 import { CardId } from "../../../domain/value-objects/CardId";
 import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
 import { URL } from "../../../domain/value-objects/URL";
@@ -18,7 +15,6 @@ export class CardBuilder {
   private _content?: CardContent;
   private _url?: URL;
   private _parentCardId?: CardId;
-  private _publishedRecordId?: PublishedRecordId;
   private _originalPublishedRecordId?: PublishedRecordId;
   private _createdAt?: Date;
   private _updatedAt?: Date;
@@ -43,19 +39,13 @@ export class CardBuilder {
     return this;
   }
 
-  withPublishedRecordId(publishedRecordId: {
-    uri: string;
-    cid: string;
-  }): CardBuilder {
-    this._publishedRecordId = PublishedRecordId.create(publishedRecordId);
-    return this;
-  }
-
   withOriginalPublishedRecordId(originalPublishedRecordId: {
     uri: string;
     cid: string;
   }): CardBuilder {
-    this._originalPublishedRecordId = PublishedRecordId.create(originalPublishedRecordId);
+    this._originalPublishedRecordId = PublishedRecordId.create(
+      originalPublishedRecordId
+    );
     return this;
   }
 
@@ -89,30 +79,6 @@ export class CardBuilder {
     if (contentResult.isErr()) {
       throw new Error(
         `Failed to create note content: ${contentResult.error.message}`
-      );
-    }
-    this._content = contentResult.value;
-    return this;
-  }
-
-  withHighlightCard(
-    text: string,
-    selectors: HighlightSelector[],
-    options?: {
-      context?: string;
-      documentUrl?: string;
-      documentTitle?: string;
-    }
-  ): CardBuilder {
-    this._type = CardTypeEnum.HIGHLIGHT;
-    const contentResult = CardContent.createHighlightContent(
-      text,
-      selectors,
-      options
-    );
-    if (contentResult.isErr()) {
-      throw new Error(
-        `Failed to create highlight content: ${contentResult.error.message}`
       );
     }
     this._content = contentResult.value;
@@ -153,11 +119,6 @@ export class CardBuilder {
       }
 
       const card = cardResult.value;
-
-      // Set published record ID if provided
-      if (this._publishedRecordId) {
-        card.markAsPublished(this._publishedRecordId);
-      }
 
       return card;
     } catch (error) {

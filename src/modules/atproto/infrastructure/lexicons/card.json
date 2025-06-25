@@ -66,9 +66,10 @@
           "description": "The note text content",
           "maxLength": 10000
         },
-        "title": {
-          "type": "string",
-          "description": "Optional title for the note"
+        "originalCard": {
+          "type": "ref",
+          "description": "Optional strong reference to the original card (for NOTE cards).",
+          "ref": "com.atproto.repo.strongRef"
         }
       }
     },

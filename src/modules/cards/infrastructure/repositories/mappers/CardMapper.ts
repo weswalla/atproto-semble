@@ -39,6 +39,10 @@ export interface CardDTO {
   contentData: CardContentData; // Type-safe JSON data for the content
   url?: string;
   parentCardId?: string;
+  originalPublishedRecordId?: {
+    uri: string;
+    cid: string;
+  };
   libraryMemberships: Array<{
     userId: string;
     addedAt: Date;
@@ -79,6 +83,15 @@ export class CardMapper {
         if (parentCardIdOrError.isErr()) return err(parentCardIdOrError.error);
         parentCardId = parentCardIdOrError.value;
       }
+
+      // Create optional original published record ID
+      let originalPublishedRecordId: PublishedRecordId | undefined;
+      if (dto.originalPublishedRecordId) {
+        originalPublishedRecordId = PublishedRecordId.create({
+          uri: dto.originalPublishedRecordId.uri,
+          cid: dto.originalPublishedRecordId.cid,
+        });
+      }
       const libraryMemberships = dto.libraryMemberships.map((membership) => {
         const curatorIdResult = CuratorId.create(membership.userId);
         if (curatorIdResult.isErr()) {
@@ -110,6 +123,7 @@ export class CardMapper {
           content: contentOrError.value,
           url,
           parentCardId,
+          originalPublishedRecordId,
           libraryMemberships,
         },
         new UniqueEntityID(dto.id)
@@ -181,6 +195,7 @@ export class CardMapper {
       contentData: CardContentData;
       url?: string;
       parentCardId?: string;
+      originalPublishedRecordId?: string;
       createdAt: Date;
       updatedAt: Date;
     };
@@ -240,6 +255,7 @@ export class CardMapper {
         contentData,
         url: card.url?.value,
         parentCardId: card.parentCardId?.getStringValue(),
+        originalPublishedRecordId: card.originalPublishedRecordId?.uri,
         createdAt: card.createdAt,
         updatedAt: card.updatedAt,
       },

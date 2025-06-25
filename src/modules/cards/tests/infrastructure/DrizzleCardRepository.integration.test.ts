@@ -10,8 +10,8 @@ import { URL } from "../../domain/value-objects/URL";
 import { sql } from "drizzle-orm";
 import { cards } from "../../infrastructure/repositories/schema/card.sql";
 import { libraryMemberships } from "../../infrastructure/repositories/schema/libraryMembership.sql";
-import { CardFactory } from "../../domain/CardFactory";
-import { CardTypeEnum } from "../../domain/value-objects/CardType";
+import { Card } from "../../domain/Card";
+import { CardType, CardTypeEnum } from "../../domain/value-objects/CardType";
 import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
 import { CardContent } from "../../domain/value-objects/CardContent";
 
@@ -40,8 +40,10 @@ describe("DrizzleCardRepository", () => {
 
     // Create schema using drizzle schema definitions
     await db.execute(sql`
+      CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+      
       CREATE TABLE IF NOT EXISTS cards (
-        id UUID PRIMARY KEY,
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         type TEXT NOT NULL,
         content_data JSONB NOT NULL,
         url TEXT,
@@ -50,16 +52,24 @@ describe("DrizzleCardRepository", () => {
         updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS published_records (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        uri TEXT NOT NULL,
+        cid TEXT NOT NULL,
+        recorded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        CONSTRAINT uri_cid_unique UNIQUE (uri, cid)
+      );
+
       CREATE TABLE IF NOT EXISTS library_memberships (
-        card_id TEXT NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+        card_id UUID NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
         user_id TEXT NOT NULL,
         added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        published_record_id UUID,
+        published_record_id UUID REFERENCES published_records(id),
         PRIMARY KEY (card_id, user_id)
       );
 
-      CREATE INDEX idx_user_cards ON library_memberships(user_id);
-      CREATE INDEX idx_card_users ON library_memberships(card_id);
+      CREATE INDEX IF NOT EXISTS idx_user_cards ON library_memberships(user_id);
+      CREATE INDEX IF NOT EXISTS idx_card_users ON library_memberships(card_id);
     `);
 
     // Create test data
@@ -75,8 +85,9 @@ describe("DrizzleCardRepository", () => {
 
   // Clear data between tests
   beforeEach(async () => {
-    await db.execute(sql`DELETE FROM library_memberships`);
-    await db.delete(cards);
+    await db.execute(sql`TRUNCATE TABLE library_memberships CASCADE`);
+    await db.execute(sql`TRUNCATE TABLE cards CASCADE`);
+    await db.execute(sql`TRUNCATE TABLE published_records CASCADE`);
   });
 
   it("should save and retrieve a URL card", async () => {

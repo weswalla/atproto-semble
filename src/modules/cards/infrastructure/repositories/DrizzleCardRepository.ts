@@ -1,4 +1,4 @@
-import { eq, leftJoin } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { ICardRepository } from "../../domain/ICardRepository";
 import { Card } from "../../domain/Card";
@@ -52,13 +52,16 @@ export class DrizzleCardRepository implements ICardRepository {
         contentData: result.contentData,
         url: result.url || undefined,
         parentCardId: result.parentCardId || undefined,
-        libraryMemberships: membershipResults.map(membership => ({
+        libraryMemberships: membershipResults.map((membership) => ({
           userId: membership.userId,
           addedAt: membership.addedAt,
-          publishedRecordId: membership.publishedRecordUri && membership.publishedRecordCid ? {
-            uri: membership.publishedRecordUri,
-            cid: membership.publishedRecordCid,
-          } : undefined,
+          publishedRecordId:
+            membership.publishedRecordUri && membership.publishedRecordCid
+              ? {
+                  uri: membership.publishedRecordUri,
+                  cid: membership.publishedRecordCid,
+                }
+              : undefined,
         })),
         createdAt: result.createdAt,
         updatedAt: result.updatedAt,
@@ -77,10 +80,8 @@ export class DrizzleCardRepository implements ICardRepository {
 
   async save(card: Card): Promise<Result<void>> {
     try {
-      const {
-        card: cardData,
-        libraryMemberships: membershipData,
-      } = CardMapper.toPersistence(card);
+      const { card: cardData, libraryMemberships: membershipData } =
+        CardMapper.toPersistence(card);
 
       await this.db.transaction(async (tx) => {
         // Upsert the card
@@ -104,12 +105,14 @@ export class DrizzleCardRepository implements ICardRepository {
           .where(eq(libraryMemberships.cardId, cardData.id));
 
         if (membershipData.length > 0) {
-          await tx.insert(libraryMemberships).values(membershipData.map(membership => ({
-            cardId: membership.cardId,
-            userId: membership.userId,
-            addedAt: membership.addedAt,
-            publishedRecordId: membership.publishedRecordId || null,
-          })));
+          await tx.insert(libraryMemberships).values(
+            membershipData.map((membership) => ({
+              cardId: membership.cardId,
+              userId: membership.userId,
+              addedAt: membership.addedAt,
+              publishedRecordId: membership.publishedRecordId || null,
+            }))
+          );
         }
       });
 

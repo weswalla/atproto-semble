@@ -28,15 +28,14 @@ interface UrlContentData {
 
 interface NoteContentData {
   text: string;
-  title?: string;
+  authorId: string;
 }
 
 type CardContentData = UrlContentData | NoteContentData;
 
 // Database representation of a card
-export interface CardDTO extends PublishedRecordRefDTO {
+export interface CardDTO {
   id: string;
-  curatorId: string;
   type: string;
   contentData: CardContentData; // Type-safe JSON data for the content
   url?: string;
@@ -53,10 +52,6 @@ export interface CardDTO extends PublishedRecordRefDTO {
 export class CardMapper {
   public static toDomain(dto: CardDTO): Result<Card> {
     try {
-      // Create value objects
-      const curatorIdOrError = CuratorId.create(dto.curatorId);
-      if (curatorIdOrError.isErr()) return err(curatorIdOrError.error);
-
       const cardTypeOrError = CardType.create(dto.type as CardTypeEnum);
       if (cardTypeOrError.isErr()) return err(cardTypeOrError.error);
 
@@ -83,24 +78,13 @@ export class CardMapper {
         parentCardId = parentCardIdOrError.value;
       }
 
-      // Create optional published record ID
-      let publishedRecordId: PublishedRecordId | undefined;
-      if (dto.publishedRecord) {
-        publishedRecordId = PublishedRecordId.create({
-          uri: dto.publishedRecord.uri,
-          cid: dto.publishedRecord.cid,
-        });
-      }
-
       // Create the card
       const cardOrError = Card.create(
         {
-          curatorId: curatorIdOrError.value,
           type: cardTypeOrError.value,
           content: contentOrError.value,
           url,
           parentCardId,
-          publishedRecordId,
         },
         new UniqueEntityID(dto.id)
       );
@@ -112,11 +96,22 @@ export class CardMapper {
       card.props.createdAt = dto.createdAt;
       card.props.updatedAt = dto.updatedAt;
 
-      // Set library memberships
+      // Set library memberships with published record IDs
       for (const membership of dto.libraryMemberships) {
         const curatorIdResult = CuratorId.create(membership.userId);
         if (curatorIdResult.isOk()) {
           card.addToLibrary(curatorIdResult.value);
+          
+          // If there's a published record ID for this membership, mark it as published
+          if (membership.publishedRecordId) {
+            // We need to parse the AT URI to get the CID - this is a simplified approach
+            // In practice, you might need a more robust URI parser
+            const publishedRecordId = PublishedRecordId.create({
+              uri: membership.publishedRecordId,
+              cid: membership.publishedRecordId.split('/').pop() || '', // Simplified CID extraction
+            });
+            card.markCardInLibraryAsPublished(curatorIdResult.value, publishedRecordId);
+          }
         }
       }
 
@@ -160,7 +155,9 @@ export class CardMapper {
 
         case CardTypeEnum.NOTE:
           const noteData = data as NoteContentData;
-          return CardContent.createNoteContent(noteData.text, noteData.title);
+          const authorIdResult = CuratorId.create(noteData.authorId);
+          if (authorIdResult.isErr()) return err(authorIdResult.error);
+          return CardContent.createNoteContent(noteData.text);
 
         default:
           return err(new Error(`Unknown card type: ${type}`));
@@ -180,7 +177,6 @@ export class CardMapper {
       createdAt: Date;
       updatedAt: Date;
     };
-    publishedRecord?: PublishedRecordDTO;
     libraryMemberships: Array<{
       cardId: string;
       userId: string;
@@ -212,15 +208,15 @@ export class CardMapper {
       } as UrlContentData;
     } else if (content.type === CardTypeEnum.NOTE) {
       const noteContent = content.noteContent!;
+      // For note content, we need to get the author ID from the content
+      // Since NoteCardContent now has authorId, we need to access it
       contentData = {
         text: noteContent.text,
+        authorId: (noteContent as any).props.authorId.value, // Access the authorId from props
       } as NoteContentData;
     } else {
       throw new Error(`Unknown card type: ${content.type}`);
     }
-
-    // Create published record data if it exists
-    let publishedRecord: PublishedRecordDTO | undefined;
 
     // Map library memberships
     const libraryMemberships = card.libraryMemberships.map(membership => ({
@@ -233,7 +229,6 @@ export class CardMapper {
     return {
       card: {
         id: card.cardId.getStringValue(),
-        curatorId: card.props.curatorId.value,
         type: card.type.value,
         contentData,
         url: card.url?.value,
@@ -241,7 +236,6 @@ export class CardMapper {
         createdAt: card.createdAt,
         updatedAt: card.updatedAt,
       },
-      publishedRecord,
       libraryMemberships,
     };
   }

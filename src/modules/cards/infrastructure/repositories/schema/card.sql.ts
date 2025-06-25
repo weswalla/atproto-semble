@@ -9,7 +9,6 @@ import {
 
 export const cards: PgTableWithColumns<any> = pgTable("cards", {
   id: uuid("id").primaryKey(),
-  curatorId: text("curator_id").notNull(),
   type: text("type").notNull(), // URL, NOTE, HIGHLIGHT
   contentData: jsonb("content_data").notNull(),
   url: text("url"), // Optional URL field for all card types

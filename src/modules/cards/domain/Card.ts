@@ -22,7 +22,6 @@ export interface CardInLibraryLink {
 }
 
 interface CardProps {
-  curatorId: CuratorId;
   type: CardType;
   content: CardContent;
   url?: URL;

@@ -15,14 +15,19 @@ export class CardValidationError extends Error {
   }
 }
 
+export interface CardInLibraryLink {
+  curatorId: CuratorId;
+  addedAt: Date;
+  publishedRecordId?: PublishedRecordId; // AT URI of the link record
+}
+
 interface CardProps {
   curatorId: CuratorId;
   type: CardType;
   content: CardContent;
   url?: URL;
   parentCardId?: CardId; // For NOTE and HIGHLIGHT cards that reference other cards
-  publishedRecordId?: PublishedRecordId;
-  libraryMemberships: Set<string>; // User IDs who have this card in their library
+  libraryMemberships: CardInLibraryLink[]; // Set of users who have this card in their library
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,10 +35,6 @@ interface CardProps {
 export class Card extends AggregateRoot<CardProps> {
   get cardId(): CardId {
     return CardId.create(this._id).unwrap();
-  }
-
-  get curatorId(): CuratorId {
-    return this.props.curatorId;
   }
 
   get type(): CardType {
@@ -60,20 +61,12 @@ export class Card extends AggregateRoot<CardProps> {
     return this.props.updatedAt;
   }
 
-  get publishedRecordId(): PublishedRecordId | undefined {
-    return this.props.publishedRecordId;
-  }
-
-  get isPublished(): boolean {
-    return this.props.publishedRecordId !== undefined;
-  }
-
-  get libraryMemberships(): string[] {
+  get libraryMemberships(): CardInLibraryLink[] {
     return Array.from(this.props.libraryMemberships);
   }
 
   get libraryMembershipCount(): number {
-    return this.props.libraryMemberships.size;
+    return this.props.libraryMemberships.length;
   }
 
   // Type-specific convenience getters
@@ -83,18 +76,6 @@ export class Card extends AggregateRoot<CardProps> {
 
   get isNoteCard(): boolean {
     return this.props.type.value === CardTypeEnum.NOTE;
-  }
-
-  get isHighlightCard(): boolean {
-    return this.props.type.value === CardTypeEnum.HIGHLIGHT;
-  }
-
-  get isStandaloneNote(): boolean {
-    return this.isNoteCard && !this.props.parentCardId;
-  }
-
-  get isLinkedNote(): boolean {
-    return this.isNoteCard && !!this.props.parentCardId;
   }
 
   private constructor(props: CardProps, id?: UniqueEntityID) {
@@ -119,7 +100,7 @@ export class Card extends AggregateRoot<CardProps> {
     const now = new Date();
     const cardProps: CardProps = {
       ...props,
-      libraryMemberships: new Set<string>(),
+      libraryMemberships: [],
       createdAt: now,
       updatedAt: now,
     };
@@ -140,13 +121,6 @@ export class Card extends AggregateRoot<CardProps> {
       return err(new CardValidationError("URL cards must have a url property"));
     }
 
-    // HIGHLIGHT cards should have a parent card (the content being highlighted)
-    if (props.type.value === CardTypeEnum.HIGHLIGHT && !props.parentCardId) {
-      return err(
-        new CardValidationError("Highlight cards must have a parent card")
-      );
-    }
-
     return ok(undefined);
   }
 
@@ -165,52 +139,48 @@ export class Card extends AggregateRoot<CardProps> {
     return ok(undefined);
   }
 
-  public markAsPublished(publishedRecordId: PublishedRecordId): void {
-    this.props.publishedRecordId = publishedRecordId;
-    this.props.updatedAt = new Date();
-  }
-
-  public markAsUnpublished(): void {
-    this.props.publishedRecordId = undefined;
-    this.props.updatedAt = new Date();
-  }
-
-  public addToLibrary(userId: string): Result<void, CardValidationError> {
-    if (!userId || userId.trim().length === 0) {
-      return err(new CardValidationError("User ID cannot be empty"));
-    }
-
-    if (this.props.libraryMemberships.has(userId)) {
+  public addToLibrary(userId: CuratorId): Result<void, CardValidationError> {
+    if (
+      this.props.libraryMemberships.find((link) =>
+        link.curatorId.equals(userId)
+      )
+    ) {
       return err(new CardValidationError("Card is already in user's library"));
     }
 
-    this.props.libraryMemberships.add(userId);
+    this.props.libraryMemberships.push({
+      curatorId: userId,
+      addedAt: new Date(),
+    });
     this.props.updatedAt = new Date();
 
     return ok(undefined);
   }
 
-  public removeFromLibrary(userId: string): Result<void, CardValidationError> {
-    if (!userId || userId.trim().length === 0) {
-      return err(new CardValidationError("User ID cannot be empty"));
-    }
-
-    if (!this.props.libraryMemberships.has(userId)) {
+  public removeFromLibrary(
+    userId: CuratorId
+  ): Result<void, CardValidationError> {
+    if (
+      !this.props.libraryMemberships.find((link) =>
+        link.curatorId.equals(userId)
+      )
+    ) {
       return err(new CardValidationError("Card is not in user's library"));
     }
 
-    this.props.libraryMemberships.delete(userId);
+    this.props.libraryMemberships.filter(
+      (link) => !link.curatorId.equals(userId)
+    );
     this.props.updatedAt = new Date();
 
     return ok(undefined);
   }
 
-  public isInLibrary(userId: string): boolean {
-    return this.props.libraryMemberships.has(userId);
-  }
-
-  public setLibraryMemberships(userIds: string[]): void {
-    this.props.libraryMemberships = new Set(userIds);
-    this.props.updatedAt = new Date();
+  public isInLibrary(userId: CuratorId): boolean {
+    return (
+      this.props.libraryMemberships.find((link) =>
+        link.curatorId.equals(userId)
+      ) !== undefined
+    );
   }
 }

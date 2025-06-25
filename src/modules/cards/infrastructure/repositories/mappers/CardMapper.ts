@@ -251,10 +251,28 @@ export class CardMapper {
       throw new Error(`Unknown card type: ${content.type}`);
     }
 
+    // Helper function to generate deterministic UUID from URI and CID
+    const generateDeterministicId = (uri: string, cid: string): string => {
+      // Create a deterministic UUID based on URI and CID
+      // This ensures the same URI/CID combination always gets the same temp ID
+      const combined = `${uri}:${cid}`;
+      const hash = combined.split('').reduce((a, b) => {
+        a = ((a << 5) - a) + b.charCodeAt(0);
+        return a & a;
+      }, 0);
+      
+      // Convert to a UUID-like format (this is just for temporary use)
+      const hex = Math.abs(hash).toString(16).padStart(8, '0');
+      return `temp-${hex}-${hex}-${hex}-${hex}`;
+    };
+
     // Collect all published records that need to be created
     const originalPublishedRecord = card.originalPublishedRecordId
       ? {
-          id: crypto.randomUUID(),
+          id: generateDeterministicId(
+            card.originalPublishedRecordId.uri,
+            card.originalPublishedRecordId.cid
+          ),
           uri: card.originalPublishedRecordId.uri,
           cid: card.originalPublishedRecordId.cid,
         }
@@ -271,7 +289,10 @@ export class CardMapper {
       let publishedRecordId: string | undefined;
       
       if (membership.publishedRecordId) {
-        publishedRecordId = crypto.randomUUID();
+        publishedRecordId = generateDeterministicId(
+          membership.publishedRecordId.uri,
+          membership.publishedRecordId.cid
+        );
         membershipPublishedRecords.push({
           id: publishedRecordId,
           uri: membership.publishedRecordId.uri,

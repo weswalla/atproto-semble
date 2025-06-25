@@ -2,35 +2,21 @@ import { Collection } from "../../domain/Collection";
 import { Result } from "../../../../shared/core/Result";
 import { UseCaseError } from "../../../../shared/core/UseCaseError";
 import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
-import { Cards } from "../../domain/Cards";
+import { CuratorId } from "src/modules/annotations/domain/value-objects";
+import { Card } from "../../domain/Card";
 
-export interface CollectionPublishResult {
-  collectionRecord?: PublishedRecordId; // If collection itself was published/updated
-  publishedLinks: Array<{
-    cardId: string;
-    linkRecord: PublishedRecordId;
-  }>; // Links that were published
-}
-
-/**
- * @description Interface for publishing Collection aggregates.
- * Defines the contract for how collections are made publicly available or updated.
- */
 export interface ICollectionPublisher {
-  /**
-   * Publishes a Collection aggregate, either creating a new record or updating an existing one.
-   * @param collection The Collection aggregate to publish.
-   * @returns A Result indicating success with CollectionPublishResult or a UseCaseError on failure.
-   */
   publish(
-    collection: Collection,
-    publishedCards?: Cards
-  ): Promise<Result<CollectionPublishResult, UseCaseError>>;
+    collection: Collection
+  ): Promise<Result<PublishedRecordId, UseCaseError>>;
 
-  /**
-   * Unpublishes (deletes) a Collection record.
-   * @param recordId The ID (e.g., AT URI) of the record to unpublish.
-   * @returns A Result indicating success (void) or a UseCaseError on failure.
-   */
   unpublish(recordId: PublishedRecordId): Promise<Result<void, UseCaseError>>;
+  publishCardAddedToCollection(
+    card: Card,
+    collection: Collection,
+    curatorId: CuratorId
+  ): Promise<Result<PublishedRecordId, UseCaseError>>;
+  unpublishCardAddedToCollection(
+    recordId: PublishedRecordId
+  ): Promise<Result<void, UseCaseError>>;
 }

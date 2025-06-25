@@ -12,10 +12,26 @@ import {
   TextPositionSelector,
   RangeSelector,
 } from "./content/HighlightCardContent";
+import { CuratorId } from "src/modules/annotations/domain/value-objects";
 
 // Union type for all card content types
 type CardContentUnion = UrlCardContent | NoteCardContent | HighlightCardContent;
 
+export type CreateCardPropsBase = {
+  type: CardTypeEnum;
+};
+interface CreateUrlCardProps extends CreateCardPropsBase {
+  type: CardTypeEnum.URL;
+  url: URL;
+  metadata: UrlMetadata;
+}
+interface CreateNoteCardProps extends CreateCardPropsBase {
+  type: CardTypeEnum.NOTE;
+  authorId: CuratorId;
+  text: string;
+}
+
+export type CreateCardProps = CreateUrlCardProps | CreateNoteCardProps;
 export class CardContentValidationError extends Error {
   constructor(message: string) {
     super(message);
@@ -91,10 +107,10 @@ export class CardContent extends ValueObject<{ content: CardContentUnion }> {
   }
 
   public static createNoteContent(
-    text: string,
-    title?: string
+    authorId: CuratorId,
+    text: string
   ): Result<CardContent, CardContentValidationError> {
-    const noteContentResult = NoteCardContent.create(text, title);
+    const noteContentResult = NoteCardContent.create(authorId, text);
     if (noteContentResult.isErr()) {
       return err(
         new CardContentValidationError(noteContentResult.error.message)
@@ -160,21 +176,14 @@ export class CardContent extends ValueObject<{ content: CardContentUnion }> {
 
   // Legacy create method for backward compatibility
   public static create(
-    props: any
+    props: CreateCardProps
   ): Result<CardContent, CardContentValidationError> {
     switch (props.type) {
       case CardTypeEnum.URL:
         return CardContent.createUrlContent(props.url, props.metadata);
 
       case CardTypeEnum.NOTE:
-        return CardContent.createNoteContent(props.text, props.title);
-
-      case CardTypeEnum.HIGHLIGHT:
-        return CardContent.createHighlightContent(props.text, props.selectors, {
-          context: props.context,
-          documentUrl: props.documentUrl,
-          documentTitle: props.documentTitle,
-        });
+        return CardContent.createNoteContent(props.authorId, props.text);
 
       default:
         return err(new CardContentValidationError("Invalid card content type"));

@@ -40,10 +40,10 @@ export class DrizzleCardRepository implements ICardRepository {
 
       // Get library memberships for this card
       const membershipResults = await this.db
-        .select({ 
+        .select({
           userId: libraryMemberships.userId,
           addedAt: libraryMemberships.addedAt,
-          publishedRecordId: libraryMemberships.publishedRecordId
+          publishedRecordId: libraryMemberships.publishedRecordId,
         })
         .from(libraryMemberships)
         .where(eq(libraryMemberships.cardId, cardId));
@@ -73,11 +73,13 @@ export class DrizzleCardRepository implements ICardRepository {
     }
   }
 
-
   async save(card: Card): Promise<Result<void>> {
     try {
-      const { card: cardData, publishedRecord, libraryMemberships: membershipData } =
-        CardMapper.toPersistence(card);
+      const {
+        card: cardData,
+        publishedRecord,
+        libraryMemberships: membershipData,
+      } = CardMapper.toPersistence(card);
 
       await this.db.transaction(async (tx) => {
         // Upsert the card (no published record handling for now since schema doesn't include it)

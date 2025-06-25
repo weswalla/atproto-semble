@@ -48,7 +48,9 @@ export interface CardDTO extends PublishedRecordRefDTO {
   curatorId: string;
   type: string;
   contentData: CardContentData; // Type-safe JSON data for the content
+  url?: string;
   parentCardId?: string;
+  libraryMemberships: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -69,6 +71,14 @@ export class CardMapper {
         dto.contentData
       );
       if (contentOrError.isErr()) return err(contentOrError.error);
+
+      // Create optional URL
+      let url: URL | undefined;
+      if (dto.url) {
+        const urlOrError = URL.create(dto.url);
+        if (urlOrError.isErr()) return err(urlOrError.error);
+        url = urlOrError.value;
+      }
 
       // Create optional parent card ID
       let parentCardId: CardId | undefined;
@@ -93,6 +103,7 @@ export class CardMapper {
           curatorId: curatorIdOrError.value,
           type: cardTypeOrError.value,
           content: contentOrError.value,
+          url,
           parentCardId,
           publishedRecordId,
         },
@@ -105,6 +116,9 @@ export class CardMapper {
       const card = cardOrError.value;
       card.props.createdAt = dto.createdAt;
       card.props.updatedAt = dto.updatedAt;
+
+      // Set library memberships
+      card.setLibraryMemberships(dto.libraryMemberships);
 
       return ok(card);
     } catch (error) {
@@ -174,6 +188,7 @@ export class CardMapper {
       curatorId: string;
       type: string;
       contentData: CardContentData;
+      url?: string;
       parentCardId?: string;
       createdAt: Date;
       updatedAt: Date;
@@ -243,6 +258,7 @@ export class CardMapper {
         curatorId: card.curatorId.value,
         type: card.type.value,
         contentData,
+        url: card.url?.value,
         parentCardId: card.parentCardId?.getStringValue(),
         createdAt: card.createdAt,
         updatedAt: card.updatedAt,

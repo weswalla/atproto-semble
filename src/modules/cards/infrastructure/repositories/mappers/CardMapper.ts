@@ -7,7 +7,6 @@ import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorI
 import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
 import { URL } from "../../../domain/value-objects/URL";
 import { UrlMetadata } from "../../../domain/value-objects/UrlMetadata";
-import { PublishedRecordDTO, PublishedRecordRefDTO } from "./DTOTypes";
 import { err, ok, Result } from "../../../../../shared/core/Result";
 
 // Type-safe content data interfaces
@@ -43,7 +42,10 @@ export interface CardDTO {
   libraryMemberships: Array<{
     userId: string;
     addedAt: Date;
-    publishedRecordId?: string | null;
+    publishedRecordId?: {
+      uri: string;
+      cid: string;
+    };
   }>;
   createdAt: Date;
   updatedAt: Date;
@@ -77,6 +79,29 @@ export class CardMapper {
         if (parentCardIdOrError.isErr()) return err(parentCardIdOrError.error);
         parentCardId = parentCardIdOrError.value;
       }
+      const libraryMemberships = dto.libraryMemberships.map((membership) => {
+        const curatorIdResult = CuratorId.create(membership.userId);
+        if (curatorIdResult.isErr()) {
+          throw new Error(
+            `Invalid curator ID in library membership: ${membership.userId}`
+          );
+        }
+        const curatorId = curatorIdResult.value;
+        let publishedRecordId: PublishedRecordId | undefined;
+        if (membership.publishedRecordId) {
+          // We need to parse the AT URI to get the CID - this is a simplified approach
+          // In practice, you might need a more robust URI parser
+          publishedRecordId = PublishedRecordId.create({
+            uri: membership.publishedRecordId.uri,
+            cid: membership.publishedRecordId.cid,
+          });
+        }
+        return {
+          curatorId,
+          addedAt: membership.addedAt,
+          publishedRecordId: publishedRecordId,
+        };
+      });
 
       // Create the card
       const cardOrError = Card.create(
@@ -85,6 +110,7 @@ export class CardMapper {
           content: contentOrError.value,
           url,
           parentCardId,
+          libraryMemberships,
         },
         new UniqueEntityID(dto.id)
       );
@@ -95,25 +121,6 @@ export class CardMapper {
       const card = cardOrError.value;
       card.props.createdAt = dto.createdAt;
       card.props.updatedAt = dto.updatedAt;
-
-      // Set library memberships with published record IDs
-      for (const membership of dto.libraryMemberships) {
-        const curatorIdResult = CuratorId.create(membership.userId);
-        if (curatorIdResult.isOk()) {
-          card.addToLibrary(curatorIdResult.value);
-          
-          // If there's a published record ID for this membership, mark it as published
-          if (membership.publishedRecordId) {
-            // We need to parse the AT URI to get the CID - this is a simplified approach
-            // In practice, you might need a more robust URI parser
-            const publishedRecordId = PublishedRecordId.create({
-              uri: membership.publishedRecordId,
-              cid: membership.publishedRecordId.split('/').pop() || '', // Simplified CID extraction
-            });
-            card.markCardInLibraryAsPublished(curatorIdResult.value, publishedRecordId);
-          }
-        }
-      }
 
       return ok(card);
     } catch (error) {
@@ -219,7 +226,7 @@ export class CardMapper {
     }
 
     // Map library memberships
-    const libraryMemberships = card.libraryMemberships.map(membership => ({
+    const libraryMemberships = card.libraryMemberships.map((membership) => ({
       cardId: card.cardId.getStringValue(),
       userId: membership.curatorId.value,
       addedAt: membership.addedAt,

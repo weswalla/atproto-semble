@@ -317,20 +317,12 @@ describe("DrizzleCardRepository", () => {
     // Add to library
     card.addToLibrary(curatorId);
 
-    // Create a published record in the database first
-    const publishedRecordResult = await db.execute(sql`
-      INSERT INTO published_records (uri, cid) 
-      VALUES ('at://did:plc:testcurator/network.cosmik.card/test123', 'bafytest123')
-      RETURNING id
-    `);
-
     // Mark as published - this should set the originalPublishedRecordId
     const publishedRecordId = {
       uri: "at://did:plc:testcurator/network.cosmik.card/test123",
       cid: "bafytest123",
     };
 
-    // We need to import PublishedRecordId
     const publishedRecord = PublishedRecordId.create(publishedRecordId);
 
     const markResult = card.markCardInLibraryAsPublished(
@@ -339,13 +331,14 @@ describe("DrizzleCardRepository", () => {
     );
     expect(markResult.isOk()).toBe(true);
 
-    // Verify originalPublishedRecordId is set
+    // Verify originalPublishedRecordId is set in memory
     expect(card.originalPublishedRecordId).toBeDefined();
     expect(card.originalPublishedRecordId?.uri).toBe(publishedRecordId.uri);
     expect(card.originalPublishedRecordId?.cid).toBe(publishedRecordId.cid);
 
-    // Save the card
-    await cardRepository.save(card);
+    // Save the card - this should persist the originalPublishedRecordId
+    const saveResult = await cardRepository.save(card);
+    expect(saveResult.isOk()).toBe(true);
 
     // Retrieve and verify the originalPublishedRecordId persisted
     const retrievedResult = await cardRepository.findById(card.cardId);

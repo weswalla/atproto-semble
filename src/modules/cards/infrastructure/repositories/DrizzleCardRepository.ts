@@ -6,6 +6,7 @@ import { CardId } from "../../domain/value-objects/CardId";
 import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
 import { URL } from "../../domain/value-objects/URL";
 import { cards } from "./schema/card.sql";
+import { libraryMemberships } from "./schema/libraryMembership.sql";
 import { publishedRecords } from "../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
 import { CardDTO, CardMapper } from "./mappers/CardMapper";
 import { Result, ok, err } from "../../../../shared/core/Result";
@@ -39,12 +40,20 @@ export class DrizzleCardRepository implements ICardRepository {
         return ok(null);
       }
 
+      // Get library memberships for this card
+      const membershipResults = await this.db
+        .select({ userId: libraryMemberships.userId })
+        .from(libraryMemberships)
+        .where(eq(libraryMemberships.cardId, cardId));
+
       const cardDTO: CardDTO = {
         id: result.card.id,
         curatorId: result.card.curatorId,
         type: result.card.type,
         contentData: result.card.contentData,
+        url: result.card.url || undefined,
         parentCardId: result.card.parentCardId || undefined,
+        libraryMemberships: membershipResults.map(m => m.userId),
         createdAt: result.card.createdAt,
         updatedAt: result.card.updatedAt,
         publishedRecordId: result.publishedRecord?.id || null,
@@ -85,12 +94,20 @@ export class DrizzleCardRepository implements ICardRepository {
           continue;
         }
 
+        // Get library memberships for this card
+        const membershipResults = await this.db
+          .select({ userId: libraryMemberships.userId })
+          .from(libraryMemberships)
+          .where(eq(libraryMemberships.cardId, result.card.id));
+
         const cardDTO: CardDTO = {
           id: result.card.id,
           curatorId: result.card.curatorId,
           type: result.card.type,
           contentData: result.card.contentData,
+          url: result.card.url || undefined,
           parentCardId: result.card.parentCardId || undefined,
+          libraryMemberships: membershipResults.map(m => m.userId),
           createdAt: result.card.createdAt,
           updatedAt: result.card.updatedAt,
           publishedRecordId: result.publishedRecord?.id || null,
@@ -134,12 +151,20 @@ export class DrizzleCardRepository implements ICardRepository {
           continue;
         }
 
+        // Get library memberships for this card
+        const membershipResults = await this.db
+          .select({ userId: libraryMemberships.userId })
+          .from(libraryMemberships)
+          .where(eq(libraryMemberships.cardId, result.card.id));
+
         const cardDTO: CardDTO = {
           id: result.card.id,
           curatorId: result.card.curatorId,
           type: result.card.type,
           contentData: result.card.contentData,
+          url: result.card.url || undefined,
           parentCardId: result.card.parentCardId || undefined,
+          libraryMemberships: membershipResults.map(m => m.userId),
           createdAt: result.card.createdAt,
           updatedAt: result.card.updatedAt,
           publishedRecordId: result.publishedRecord?.id || null,
@@ -184,12 +209,20 @@ export class DrizzleCardRepository implements ICardRepository {
 
         const contentData = result.card.contentData as any;
         if (contentData && contentData.url === urlString) {
+          // Get library memberships for this card
+          const membershipResults = await this.db
+            .select({ userId: libraryMemberships.userId })
+            .from(libraryMemberships)
+            .where(eq(libraryMemberships.cardId, result.card.id));
+
           const cardDTO: CardDTO = {
             id: result.card.id,
             curatorId: result.card.curatorId,
             type: result.card.type,
             contentData: result.card.contentData,
+            url: result.card.url || undefined,
             parentCardId: result.card.parentCardId || undefined,
+            libraryMemberships: membershipResults.map(m => m.userId),
             createdAt: result.card.createdAt,
             updatedAt: result.card.updatedAt,
             publishedRecordId: result.publishedRecord?.id || null,
@@ -267,11 +300,27 @@ export class DrizzleCardRepository implements ICardRepository {
               curatorId: cardData.curatorId,
               type: cardData.type,
               contentData: cardData.contentData,
+              url: cardData.url,
               parentCardId: cardData.parentCardId,
               updatedAt: cardData.updatedAt,
               publishedRecordId: publishedRecordId,
             },
           });
+
+        // Handle library memberships - replace all memberships
+        await tx
+          .delete(libraryMemberships)
+          .where(eq(libraryMemberships.cardId, cardData.id));
+
+        if (card.libraryMemberships.length > 0) {
+          await tx.insert(libraryMemberships).values(
+            card.libraryMemberships.map(userId => ({
+              cardId: cardData.id,
+              userId,
+              addedAt: new Date(),
+            }))
+          );
+        }
       });
 
       return ok(undefined);

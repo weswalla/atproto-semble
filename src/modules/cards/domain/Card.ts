@@ -22,6 +22,7 @@ interface CardProps {
   url?: URL;
   parentCardId?: CardId; // For NOTE and HIGHLIGHT cards that reference other cards
   publishedRecordId?: PublishedRecordId;
+  libraryMemberships: Set<string>; // User IDs who have this card in their library
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,6 +68,14 @@ export class Card extends AggregateRoot<CardProps> {
     return this.props.publishedRecordId !== undefined;
   }
 
+  get libraryMemberships(): string[] {
+    return Array.from(this.props.libraryMemberships);
+  }
+
+  get libraryMembershipCount(): number {
+    return this.props.libraryMemberships.size;
+  }
+
   // Type-specific convenience getters
   get isUrlCard(): boolean {
     return this.props.type.value === CardTypeEnum.URL;
@@ -110,6 +119,7 @@ export class Card extends AggregateRoot<CardProps> {
     const now = new Date();
     const cardProps: CardProps = {
       ...props,
+      libraryMemberships: new Set<string>(),
       createdAt: now,
       updatedAt: now,
     };
@@ -162,6 +172,45 @@ export class Card extends AggregateRoot<CardProps> {
 
   public markAsUnpublished(): void {
     this.props.publishedRecordId = undefined;
+    this.props.updatedAt = new Date();
+  }
+
+  public addToLibrary(userId: string): Result<void, CardValidationError> {
+    if (!userId || userId.trim().length === 0) {
+      return err(new CardValidationError("User ID cannot be empty"));
+    }
+
+    if (this.props.libraryMemberships.has(userId)) {
+      return err(new CardValidationError("Card is already in user's library"));
+    }
+
+    this.props.libraryMemberships.add(userId);
+    this.props.updatedAt = new Date();
+
+    return ok(undefined);
+  }
+
+  public removeFromLibrary(userId: string): Result<void, CardValidationError> {
+    if (!userId || userId.trim().length === 0) {
+      return err(new CardValidationError("User ID cannot be empty"));
+    }
+
+    if (!this.props.libraryMemberships.has(userId)) {
+      return err(new CardValidationError("Card is not in user's library"));
+    }
+
+    this.props.libraryMemberships.delete(userId);
+    this.props.updatedAt = new Date();
+
+    return ok(undefined);
+  }
+
+  public isInLibrary(userId: string): boolean {
+    return this.props.libraryMemberships.has(userId);
+  }
+
+  public setLibraryMemberships(userIds: string[]): void {
+    this.props.libraryMemberships = new Set(userIds);
     this.props.updatedAt = new Date();
   }
 }

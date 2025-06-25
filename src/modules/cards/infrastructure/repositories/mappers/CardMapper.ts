@@ -195,7 +195,6 @@ export class CardMapper {
       contentData: CardContentData;
       url?: string;
       parentCardId?: string;
-      originalPublishedRecordId?: string;
       createdAt: Date;
       updatedAt: Date;
     };
@@ -204,6 +203,18 @@ export class CardMapper {
       userId: string;
       addedAt: Date;
       publishedRecordId?: string;
+    }>;
+    originalPublishedRecord?: {
+      id: string;
+      uri: string;
+      cid: string;
+      recordedAt?: Date;
+    };
+    membershipPublishedRecords?: Array<{
+      id: string;
+      uri: string;
+      cid: string;
+      recordedAt?: Date;
     }>;
   } {
     const content = card.content;
@@ -240,13 +251,41 @@ export class CardMapper {
       throw new Error(`Unknown card type: ${content.type}`);
     }
 
-    // Map library memberships
-    const libraryMemberships = card.libraryMemberships.map((membership) => ({
-      cardId: card.cardId.getStringValue(),
-      userId: membership.curatorId.value,
-      addedAt: membership.addedAt,
-      publishedRecordId: membership.publishedRecordId?.uri,
-    }));
+    // Collect all published records that need to be created
+    const originalPublishedRecord = card.originalPublishedRecordId
+      ? {
+          id: crypto.randomUUID(),
+          uri: card.originalPublishedRecordId.uri,
+          cid: card.originalPublishedRecordId.cid,
+        }
+      : undefined;
+
+    const membershipPublishedRecords: Array<{
+      id: string;
+      uri: string;
+      cid: string;
+    }> = [];
+
+    // Map library memberships and collect their published records
+    const libraryMemberships = card.libraryMemberships.map((membership) => {
+      let publishedRecordId: string | undefined;
+      
+      if (membership.publishedRecordId) {
+        publishedRecordId = crypto.randomUUID();
+        membershipPublishedRecords.push({
+          id: publishedRecordId,
+          uri: membership.publishedRecordId.uri,
+          cid: membership.publishedRecordId.cid,
+        });
+      }
+
+      return {
+        cardId: card.cardId.getStringValue(),
+        userId: membership.curatorId.value,
+        addedAt: membership.addedAt,
+        publishedRecordId,
+      };
+    });
 
     return {
       card: {
@@ -255,11 +294,12 @@ export class CardMapper {
         contentData,
         url: card.url?.value,
         parentCardId: card.parentCardId?.getStringValue(),
-        originalPublishedRecordId: card.originalPublishedRecordId?.uri,
         createdAt: card.createdAt,
         updatedAt: card.updatedAt,
       },
       libraryMemberships,
+      originalPublishedRecord,
+      membershipPublishedRecords: membershipPublishedRecords.length > 0 ? membershipPublishedRecords : undefined,
     };
   }
 }

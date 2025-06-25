@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { ICardRepository } from "../../domain/ICardRepository";
 import { Card } from "../../domain/Card";
@@ -101,14 +101,101 @@ export class DrizzleCardRepository implements ICardRepository {
 
   async save(card: Card): Promise<Result<void>> {
     try {
-      const { card: cardData, libraryMemberships: membershipData } =
-        CardMapper.toPersistence(card);
+      const {
+        card: cardData,
+        libraryMemberships: membershipData,
+        originalPublishedRecord,
+        membershipPublishedRecords,
+      } = CardMapper.toPersistence(card);
 
       await this.db.transaction(async (tx) => {
+        // Handle original published record if it exists
+        let originalPublishedRecordId: string | undefined = undefined;
+
+        if (originalPublishedRecord) {
+          const originalRecordResult = await tx
+            .insert(publishedRecords)
+            .values({
+              id: originalPublishedRecord.id,
+              uri: originalPublishedRecord.uri,
+              cid: originalPublishedRecord.cid,
+              recordedAt: originalPublishedRecord.recordedAt || new Date(),
+            })
+            .onConflictDoNothing({
+              target: [publishedRecords.uri, publishedRecords.cid],
+            })
+            .returning({ id: publishedRecords.id });
+
+          if (originalRecordResult.length === 0) {
+            const existingRecord = await tx
+              .select()
+              .from(publishedRecords)
+              .where(
+                and(
+                  eq(publishedRecords.uri, originalPublishedRecord.uri),
+                  eq(publishedRecords.cid, originalPublishedRecord.cid)
+                )
+              )
+              .limit(1);
+
+            if (existingRecord.length > 0) {
+              originalPublishedRecordId = existingRecord[0]!.id;
+            }
+          } else {
+            originalPublishedRecordId = originalRecordResult[0]!.id;
+          }
+        }
+
+        // Handle membership published records
+        const membershipPublishedRecordMap = new Map<string, string>();
+        if (membershipPublishedRecords) {
+          for (const membershipRecord of membershipPublishedRecords) {
+            const membershipRecordResult = await tx
+              .insert(publishedRecords)
+              .values({
+                id: membershipRecord.id,
+                uri: membershipRecord.uri,
+                cid: membershipRecord.cid,
+                recordedAt: membershipRecord.recordedAt || new Date(),
+              })
+              .onConflictDoNothing({
+                target: [publishedRecords.uri, publishedRecords.cid],
+              })
+              .returning({ id: publishedRecords.id });
+
+            let actualRecordId: string;
+            if (membershipRecordResult.length === 0) {
+              const existingRecord = await tx
+                .select()
+                .from(publishedRecords)
+                .where(
+                  and(
+                    eq(publishedRecords.uri, membershipRecord.uri),
+                    eq(publishedRecords.cid, membershipRecord.cid)
+                  )
+                )
+                .limit(1);
+
+              if (existingRecord.length > 0) {
+                actualRecordId = existingRecord[0]!.id;
+              } else {
+                actualRecordId = membershipRecord.id;
+              }
+            } else {
+              actualRecordId = membershipRecordResult[0]!.id;
+            }
+
+            membershipPublishedRecordMap.set(membershipRecord.id, actualRecordId);
+          }
+        }
+
         // Upsert the card
         await tx
           .insert(cards)
-          .values(cardData)
+          .values({
+            ...cardData,
+            originalPublishedRecordId: originalPublishedRecordId,
+          })
           .onConflictDoUpdate({
             target: cards.id,
             set: {
@@ -116,7 +203,7 @@ export class DrizzleCardRepository implements ICardRepository {
               contentData: cardData.contentData,
               url: cardData.url,
               parentCardId: cardData.parentCardId,
-              originalPublishedRecordId: cardData.originalPublishedRecordId,
+              originalPublishedRecordId: originalPublishedRecordId,
               updatedAt: cardData.updatedAt,
             },
           });
@@ -127,14 +214,17 @@ export class DrizzleCardRepository implements ICardRepository {
           .where(eq(libraryMemberships.cardId, cardData.id));
 
         if (membershipData.length > 0) {
-          await tx.insert(libraryMemberships).values(
-            membershipData.map((membership) => ({
-              cardId: membership.cardId,
-              userId: membership.userId,
-              addedAt: membership.addedAt,
-              publishedRecordId: membership.publishedRecordId || null,
-            }))
-          );
+          const membershipDataWithMappedRecords = membershipData.map((membership) => ({
+            cardId: membership.cardId,
+            userId: membership.userId,
+            addedAt: membership.addedAt,
+            publishedRecordId: membership.publishedRecordId
+              ? membershipPublishedRecordMap.get(membership.publishedRecordId) ||
+                membership.publishedRecordId
+              : null,
+          }));
+
+          await tx.insert(libraryMemberships).values(membershipDataWithMappedRecords);
         }
       });
 

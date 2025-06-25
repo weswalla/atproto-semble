@@ -47,7 +47,7 @@ describe("DrizzleCardRepository", () => {
         content_data JSONB NOT NULL,
         url TEXT,
         parent_card_id UUID REFERENCES cards(id),
-        original_published_record_id UUID,
+        original_published_record_id UUID REFERENCES published_records(id),
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );

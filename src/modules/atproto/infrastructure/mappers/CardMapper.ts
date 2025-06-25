@@ -56,8 +56,11 @@ export class CardMapper {
           text: noteContent.text,
         };
 
-        if (noteContent.title) {
-          noteContentDTO.title = noteContent.title;
+        // Add originalCard reference if this note references another card
+        if (card.parentCardId) {
+          // Note: This assumes the parent card is already published
+          // In practice, you'd need to look up the parent card's published record ID
+          throw new Error("Parent card publishing not yet implemented");
         }
 
         return noteContentDTO;

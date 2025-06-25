@@ -60,11 +60,12 @@ export class CardContent extends ValueObject<{ content: CardContentUnion }> {
 
   public static createNoteContent(
     text: string,
-    title?: string
+    title?: string,
+    curatorId?: CuratorId
   ): Result<CardContent, CardContentValidationError> {
-    // Create a dummy curator ID for backward compatibility
-    const dummyCuratorId = CuratorId.create("did:plc:dummy").unwrap();
-    const noteContentResult = NoteCardContent.create(dummyCuratorId, text);
+    // Use provided curatorId or create a dummy one for backward compatibility
+    const authorId = curatorId || CuratorId.create("did:plc:dummy").unwrap();
+    const noteContentResult = NoteCardContent.create(authorId, text);
     if (noteContentResult.isErr()) {
       return err(
         new CardContentValidationError(noteContentResult.error.message)

@@ -82,7 +82,9 @@ export class Card extends AggregateRoot<CardProps> {
   }
 
   public static create(
-    props: Omit<CardProps, "createdAt" | "updatedAt">,
+    props: Omit<CardProps, "createdAt" | "updatedAt" | "libraryMemberships"> & {
+      libraryMemberships?: CardInLibraryLink[];
+    },
     id?: UniqueEntityID
   ): Result<Card, CardValidationError> {
     // Validate content type matches card type
@@ -99,7 +101,7 @@ export class Card extends AggregateRoot<CardProps> {
     const now = new Date();
     const cardProps: CardProps = {
       ...props,
-      libraryMemberships: [],
+      libraryMemberships: props.libraryMemberships || [],
       createdAt: now,
       updatedAt: now,
     };
@@ -108,7 +110,9 @@ export class Card extends AggregateRoot<CardProps> {
   }
 
   private static validateCardRelationships(
-    props: Omit<CardProps, "createdAt" | "updatedAt">
+    props: Omit<CardProps, "createdAt" | "updatedAt" | "libraryMemberships"> & {
+      libraryMemberships?: CardInLibraryLink[];
+    }
   ): Result<void, CardValidationError> {
     // URL cards should not have parent cards
     if (props.type.value === CardTypeEnum.URL && props.parentCardId) {

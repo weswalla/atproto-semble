@@ -41,6 +41,14 @@ describe("DrizzleCardRepository", () => {
     await db.execute(sql`
       CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
       
+      CREATE TABLE IF NOT EXISTS published_records (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        uri TEXT NOT NULL,
+        cid TEXT NOT NULL,
+        recorded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        CONSTRAINT uri_cid_unique UNIQUE (uri, cid)
+      );
+
       CREATE TABLE IF NOT EXISTS cards (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         type TEXT NOT NULL,
@@ -50,14 +58,6 @@ describe("DrizzleCardRepository", () => {
         original_published_record_id UUID REFERENCES published_records(id),
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-      );
-
-      CREATE TABLE IF NOT EXISTS published_records (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        uri TEXT NOT NULL,
-        cid TEXT NOT NULL,
-        recorded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        CONSTRAINT uri_cid_unique UNIQUE (uri, cid)
       );
 
       CREATE TABLE IF NOT EXISTS library_memberships (

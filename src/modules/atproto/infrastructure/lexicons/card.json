@@ -35,6 +35,11 @@
             "type": "string",
             "format": "datetime",
             "description": "Timestamp when this card was created (usually set by PDS)."
+          },
+          "originalCard": {
+            "type": "ref",
+            "description": "Optional strong reference to the original card (for NOTE cards).",
+            "ref": "com.atproto.repo.strongRef"
           }
         }
       }
@@ -65,11 +70,6 @@
           "type": "string",
           "description": "The note text content",
           "maxLength": 10000
-        },
-        "originalCard": {
-          "type": "ref",
-          "description": "Optional strong reference to the original card (for NOTE cards).",
-          "ref": "com.atproto.repo.strongRef"
         }
       }
     },

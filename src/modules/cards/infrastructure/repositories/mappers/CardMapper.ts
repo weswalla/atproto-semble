@@ -264,6 +264,7 @@ export class CardMapper {
     return {
       card: {
         id: card.cardId.getStringValue(),
+        curatorId: card.props.curatorId.value,
         type: card.type.value,
         contentData,
         url: card.url?.value,

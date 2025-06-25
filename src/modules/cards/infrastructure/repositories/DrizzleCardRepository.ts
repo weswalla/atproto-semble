@@ -5,7 +5,6 @@ import { Card } from "../../domain/Card";
 import { CardId } from "../../domain/value-objects/CardId";
 import { cards } from "./schema/card.sql";
 import { libraryMemberships } from "./schema/libraryMembership.sql";
-import { publishedRecords } from "../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
 import { CardDTO, CardMapper } from "./mappers/CardMapper";
 import { Result, ok, err } from "../../../../shared/core/Result";
 
@@ -17,15 +16,8 @@ export class DrizzleCardRepository implements ICardRepository {
       const cardId = id.getStringValue();
 
       const cardResult = await this.db
-        .select({
-          card: cards,
-          publishedRecord: publishedRecords,
-        })
+        .select()
         .from(cards)
-        .leftJoin(
-          publishedRecords,
-          eq(cards.publishedRecordId, publishedRecords.id)
-        )
         .where(eq(cards.id, cardId))
         .limit(1);
 
@@ -34,7 +26,7 @@ export class DrizzleCardRepository implements ICardRepository {
       }
 
       const result = cardResult[0];
-      if (!result || !result.card) {
+      if (!result) {
         return ok(null);
       }
 
@@ -49,17 +41,17 @@ export class DrizzleCardRepository implements ICardRepository {
         .where(eq(libraryMemberships.cardId, cardId));
 
       const cardDTO: CardDTO = {
-        id: result.card.id,
-        curatorId: result.card.curatorId,
-        type: result.card.type,
-        contentData: result.card.contentData,
-        url: result.card.url || undefined,
-        parentCardId: result.card.parentCardId || undefined,
+        id: result.id,
+        curatorId: result.curatorId,
+        type: result.type,
+        contentData: result.contentData,
+        url: result.url || undefined,
+        parentCardId: result.parentCardId || undefined,
         libraryMemberships: membershipResults,
-        createdAt: result.card.createdAt,
-        updatedAt: result.card.updatedAt,
-        publishedRecordId: result.publishedRecord?.id || null,
-        publishedRecord: result.publishedRecord || undefined,
+        createdAt: result.createdAt,
+        updatedAt: result.updatedAt,
+        publishedRecordId: null,
+        publishedRecord: undefined,
       };
 
       const domainResult = CardMapper.toDomain(cardDTO);
@@ -82,13 +74,14 @@ export class DrizzleCardRepository implements ICardRepository {
       } = CardMapper.toPersistence(card);
 
       await this.db.transaction(async (tx) => {
-        // Upsert the card (no published record handling for now since schema doesn't include it)
+        // Upsert the card
         await tx
           .insert(cards)
           .values(cardData)
           .onConflictDoUpdate({
             target: cards.id,
             set: {
+              curatorId: cardData.curatorId,
               type: cardData.type,
               contentData: cardData.contentData,
               url: cardData.url,

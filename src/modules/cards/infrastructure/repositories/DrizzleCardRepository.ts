@@ -42,16 +42,20 @@ export class DrizzleCardRepository implements ICardRepository {
 
       const cardDTO: CardDTO = {
         id: result.id,
-        curatorId: result.curatorId,
         type: result.type,
         contentData: result.contentData,
         url: result.url || undefined,
         parentCardId: result.parentCardId || undefined,
-        libraryMemberships: membershipResults,
+        libraryMemberships: membershipResults.map(membership => ({
+          userId: membership.userId,
+          addedAt: membership.addedAt,
+          publishedRecordId: membership.publishedRecordId ? {
+            uri: membership.publishedRecordId,
+            cid: membership.publishedRecordId.split('/').pop() || ''
+          } : undefined,
+        })),
         createdAt: result.createdAt,
         updatedAt: result.updatedAt,
-        publishedRecordId: null,
-        publishedRecord: undefined,
       };
 
       const domainResult = CardMapper.toDomain(cardDTO);
@@ -69,7 +73,6 @@ export class DrizzleCardRepository implements ICardRepository {
     try {
       const {
         card: cardData,
-        publishedRecord,
         libraryMemberships: membershipData,
       } = CardMapper.toPersistence(card);
 
@@ -81,7 +84,6 @@ export class DrizzleCardRepository implements ICardRepository {
           .onConflictDoUpdate({
             target: cards.id,
             set: {
-              curatorId: cardData.curatorId,
               type: cardData.type,
               contentData: cardData.contentData,
               url: cardData.url,
@@ -96,7 +98,12 @@ export class DrizzleCardRepository implements ICardRepository {
           .where(eq(libraryMemberships.cardId, cardData.id));
 
         if (membershipData.length > 0) {
-          await tx.insert(libraryMemberships).values(membershipData);
+          await tx.insert(libraryMemberships).values(membershipData.map(membership => ({
+            cardId: membership.cardId,
+            userId: membership.userId,
+            addedAt: membership.addedAt,
+            publishedRecordId: membership.publishedRecordId || null,
+          })));
         }
       });
 

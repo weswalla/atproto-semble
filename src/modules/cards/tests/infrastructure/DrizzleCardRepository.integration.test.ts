@@ -42,7 +42,6 @@ describe("DrizzleCardRepository", () => {
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS cards (
         id UUID PRIMARY KEY,
-        curator_id TEXT NOT NULL,
         type TEXT NOT NULL,
         content_data JSONB NOT NULL,
         url TEXT,
@@ -92,13 +91,13 @@ describe("DrizzleCardRepository", () => {
       retrievedAt: new Date(),
     }).unwrap();
 
-    const cardResult = CardFactory.create({
-      curatorId: curatorId.value,
-      cardInput: {
-        type: CardTypeEnum.URL,
-        url: url.value,
-        metadata,
-      },
+    const urlContent = CardContent.createUrlContent(url, metadata).unwrap();
+    const cardType = CardType.create(CardTypeEnum.URL).unwrap();
+
+    const cardResult = Card.create({
+      type: cardType,
+      content: urlContent,
+      url,
     });
 
     expect(cardResult.isOk()).toBe(true);
@@ -126,13 +125,12 @@ describe("DrizzleCardRepository", () => {
 
   it("should save and retrieve a note card", async () => {
     // Create a note card
-    const cardResult = CardFactory.create({
-      curatorId: curatorId.value,
-      cardInput: {
-        type: CardTypeEnum.NOTE,
-        text: "This is a test note",
-        title: "Test Note",
-      },
+    const noteContent = CardContent.createNoteContent("This is a test note").unwrap();
+    const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
+
+    const cardResult = Card.create({
+      type: cardType,
+      content: noteContent,
     });
 
     expect(cardResult.isOk()).toBe(true);
@@ -152,18 +150,17 @@ describe("DrizzleCardRepository", () => {
     expect(retrievedCard?.content.noteContent?.text).toBe(
       "This is a test note"
     );
-    expect(retrievedCard?.content.noteContent?.title).toBe("Test Note");
+    expect(retrievedCard?.content.noteContent?.title).toBeUndefined();
   });
 
   it("should save and retrieve a card with library memberships", async () => {
     // Create a note card
-    const cardResult = CardFactory.create({
-      curatorId: curatorId.value,
-      cardInput: {
-        type: CardTypeEnum.NOTE,
-        text: "Card with library memberships",
-        title: "Library Test Card",
-      },
+    const noteContent = CardContent.createNoteContent("Card with library memberships").unwrap();
+    const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
+
+    const cardResult = Card.create({
+      type: cardType,
+      content: noteContent,
     });
 
     expect(cardResult.isOk()).toBe(true);
@@ -197,13 +194,12 @@ describe("DrizzleCardRepository", () => {
 
   it("should update library memberships when card is saved", async () => {
     // Create a note card
-    const cardResult = CardFactory.create({
-      curatorId: curatorId.value,
-      cardInput: {
-        type: CardTypeEnum.NOTE,
-        text: "Card for membership updates",
-        title: "Membership Test Card",
-      },
+    const noteContent = CardContent.createNoteContent("Card for membership updates").unwrap();
+    const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
+
+    const cardResult = Card.create({
+      type: cardType,
+      content: noteContent,
     });
 
     const card = cardResult.unwrap();
@@ -241,12 +237,12 @@ describe("DrizzleCardRepository", () => {
 
   it("should delete a card and its library memberships", async () => {
     // Create a card
-    const cardResult = CardFactory.create({
-      curatorId: curatorId.value,
-      cardInput: {
-        type: CardTypeEnum.NOTE,
-        text: "Card to delete",
-      },
+    const noteContent = CardContent.createNoteContent("Card to delete").unwrap();
+    const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
+
+    const cardResult = Card.create({
+      type: cardType,
+      content: noteContent,
     });
 
     const card = cardResult.unwrap();
@@ -272,12 +268,12 @@ describe("DrizzleCardRepository", () => {
   });
 
   it("should return null when card is not found", async () => {
-    const nonExistentCardId = CardFactory.create({
-      curatorId: curatorId.value,
-      cardInput: {
-        type: CardTypeEnum.NOTE,
-        text: "Non-existent card",
-      },
+    const noteContent = CardContent.createNoteContent("Non-existent card").unwrap();
+    const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
+
+    const nonExistentCardId = Card.create({
+      type: cardType,
+      content: noteContent,
     }).unwrap().cardId;
 
     const result = await cardRepository.findById(nonExistentCardId);

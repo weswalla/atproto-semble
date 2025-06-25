@@ -9,7 +9,13 @@
       "key": "tid",
       "record": {
         "type": "object",
-        "required": ["collection", "card", "addedBy"],
+        "required": [
+          "collection",
+          "card",
+          "originalCard",
+          "addedBy",
+          "addedAt"
+        ],
         "properties": {
           "collection": {
             "type": "ref",
@@ -18,7 +24,12 @@
           },
           "card": {
             "type": "ref",
-            "description": "Strong reference to the card record.",
+            "description": "Strong reference to the card record in the users library.",
+            "ref": "com.atproto.repo.strongRef"
+          },
+          "originalCard": {
+            "type": "ref",
+            "description": "Strong reference to the original card record (may be in another library).",
             "ref": "com.atproto.repo.strongRef"
           },
           "addedBy": {

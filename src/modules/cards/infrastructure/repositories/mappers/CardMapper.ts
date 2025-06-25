@@ -50,7 +50,11 @@ export interface CardDTO extends PublishedRecordRefDTO {
   contentData: CardContentData; // Type-safe JSON data for the content
   url?: string;
   parentCardId?: string;
-  libraryMemberships: string[];
+  libraryMemberships: Array<{
+    userId: string;
+    addedAt: Date;
+    publishedRecordId?: string | null;
+  }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -118,7 +122,12 @@ export class CardMapper {
       card.props.updatedAt = dto.updatedAt;
 
       // Set library memberships
-      card.setLibraryMemberships(dto.libraryMemberships);
+      for (const membership of dto.libraryMemberships) {
+        const curatorIdResult = CuratorId.create(membership.userId);
+        if (curatorIdResult.isOk()) {
+          card.addToLibrary(curatorIdResult.value);
+        }
+      }
 
       return ok(card);
     } catch (error) {
@@ -185,16 +194,20 @@ export class CardMapper {
   public static toPersistence(card: Card): {
     card: {
       id: string;
-      curatorId: string;
       type: string;
       contentData: CardContentData;
       url?: string;
       parentCardId?: string;
       createdAt: Date;
       updatedAt: Date;
-      publishedRecordId?: string;
     };
     publishedRecord?: PublishedRecordDTO;
+    libraryMemberships: Array<{
+      cardId: string;
+      userId: string;
+      addedAt: Date;
+      publishedRecordId?: string;
+    }>;
   } {
     const content = card.content;
     let contentData: CardContentData;
@@ -239,32 +252,27 @@ export class CardMapper {
 
     // Create published record data if it exists
     let publishedRecord: PublishedRecordDTO | undefined;
-    let publishedRecordId: string | undefined;
 
-    if (card.publishedRecordId) {
-      const recordId = new UniqueEntityID().toString();
-      publishedRecord = {
-        id: recordId,
-        uri: card.publishedRecordId.uri,
-        cid: card.publishedRecordId.cid,
-        recordedAt: new Date(),
-      };
-      publishedRecordId = recordId;
-    }
+    // Map library memberships
+    const libraryMemberships = card.libraryMemberships.map(membership => ({
+      cardId: card.cardId.getStringValue(),
+      userId: membership.curatorId.value,
+      addedAt: membership.addedAt,
+      publishedRecordId: membership.publishedRecordId?.uri,
+    }));
 
     return {
       card: {
         id: card.cardId.getStringValue(),
-        curatorId: card.curatorId.value,
         type: card.type.value,
         contentData,
         url: card.url?.value,
         parentCardId: card.parentCardId?.getStringValue(),
         createdAt: card.createdAt,
         updatedAt: card.updatedAt,
-        publishedRecordId,
       },
       publishedRecord,
+      libraryMemberships,
     };
   }
 }

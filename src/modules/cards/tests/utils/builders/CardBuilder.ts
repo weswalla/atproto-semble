@@ -19,6 +19,7 @@ export class CardBuilder {
   private _url?: URL;
   private _parentCardId?: CardId;
   private _publishedRecordId?: PublishedRecordId;
+  private _originalPublishedRecordId?: PublishedRecordId;
   private _createdAt?: Date;
   private _updatedAt?: Date;
 
@@ -47,6 +48,14 @@ export class CardBuilder {
     cid: string;
   }): CardBuilder {
     this._publishedRecordId = PublishedRecordId.create(publishedRecordId);
+    return this;
+  }
+
+  withOriginalPublishedRecordId(originalPublishedRecordId: {
+    uri: string;
+    cid: string;
+  }): CardBuilder {
+    this._originalPublishedRecordId = PublishedRecordId.create(originalPublishedRecordId);
     return this;
   }
 
@@ -130,12 +139,11 @@ export class CardBuilder {
 
       const cardResult = Card.create(
         {
-          curatorId: curatorIdResult.value,
           type: cardTypeResult.value,
           content: this._content,
           url: this._url,
           parentCardId: this._parentCardId,
-          publishedRecordId: this._publishedRecordId,
+          originalPublishedRecordId: this._originalPublishedRecordId,
         },
         this._id
       );

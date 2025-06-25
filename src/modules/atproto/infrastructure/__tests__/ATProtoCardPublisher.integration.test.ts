@@ -210,6 +210,76 @@ describe("ATProtoCardPublisher", () => {
     }, 15000);
   });
 
+  describe("Card with Original Published Record ID", () => {
+    it("should publish a card that references an original published record", async () => {
+      // Skip test if credentials are not available
+      if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
+        console.warn("Skipping test: BSKY credentials not found in .env.test");
+        return;
+      }
+
+      const testUrl = URL.create("https://example.com/original-article").unwrap();
+
+      // Create URL metadata
+      const metadata = UrlMetadata.create({
+        url: testUrl.value,
+        title: "Original Article",
+        description: "An original article that will be referenced",
+        author: "Original Author",
+        siteName: "Example.com",
+        type: "article",
+        retrievedAt: new Date(),
+      }).unwrap();
+
+      // Create a card with an original published record ID (simulating a card that references another published card)
+      const originalRecordId = {
+        uri: "at://did:plc:example/network.cosmik.card/original123",
+        cid: "bafyoriginal123"
+      };
+
+      const cardWithOriginal = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(testUrl, metadata)
+        .withUrl(testUrl)
+        .withOriginalPublishedRecordId(originalRecordId)
+        .buildOrThrow();
+
+      // Add card to curator's library first
+      cardWithOriginal.addToLibrary(curatorId);
+
+      // 1. Publish the card
+      const publishResult = await publisher.publishCardToLibrary(cardWithOriginal, curatorId);
+      expect(publishResult.isOk()).toBe(true);
+
+      if (publishResult.isOk()) {
+        const publishedRecordId = publishResult.value;
+        publishedCardIds.push(publishedRecordId);
+
+        console.log(`Published card with original record ID: ${publishedRecordId.getValue().uri}`);
+
+        // Verify the card has the original published record ID
+        expect(cardWithOriginal.originalPublishedRecordId).toBeDefined();
+        expect(cardWithOriginal.originalPublishedRecordId!.getValue().uri).toBe(originalRecordId.uri);
+        expect(cardWithOriginal.originalPublishedRecordId!.getValue().cid).toBe(originalRecordId.cid);
+
+        // Mark card as published in library
+        cardWithOriginal.markCardInLibraryAsPublished(curatorId, publishedRecordId);
+        expect(cardWithOriginal.isInLibrary(curatorId)).toBe(true);
+
+        // 2. Unpublish the card
+        const unpublishResult = await publisher.unpublishCardFromLibrary(publishedRecordId, curatorId);
+        expect(unpublishResult.isOk()).toBe(true);
+
+        console.log("Successfully unpublished card with original record ID");
+
+        // Remove from cleanup list since we've already unpublished it
+        publishedCardIds = publishedCardIds.filter(
+          (id) => id !== publishedRecordId
+        );
+      }
+    }, 15000);
+  });
+
   describe("Error Handling", () => {
     it("should handle authentication errors gracefully", async () => {
       // Create a publisher with invalid credentials

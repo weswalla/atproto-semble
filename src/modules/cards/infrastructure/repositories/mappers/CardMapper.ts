@@ -8,6 +8,7 @@ import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecord
 import { URL } from "../../../domain/value-objects/URL";
 import { UrlMetadata } from "../../../domain/value-objects/UrlMetadata";
 import { err, ok, Result } from "../../../../../shared/core/Result";
+import { v4 as uuid } from "uuid";
 
 // Type-safe content data interfaces
 interface UrlContentData {
@@ -251,28 +252,10 @@ export class CardMapper {
       throw new Error(`Unknown card type: ${content.type}`);
     }
 
-    // Helper function to generate deterministic UUID from URI and CID
-    const generateDeterministicId = (uri: string, cid: string): string => {
-      // Create a deterministic UUID based on URI and CID
-      // This ensures the same URI/CID combination always gets the same temp ID
-      const combined = `${uri}:${cid}`;
-      const hash = combined.split('').reduce((a, b) => {
-        a = ((a << 5) - a) + b.charCodeAt(0);
-        return a & a;
-      }, 0);
-      
-      // Convert to a UUID-like format (this is just for temporary use)
-      const hex = Math.abs(hash).toString(16).padStart(8, '0');
-      return `temp-${hex}-${hex}-${hex}-${hex}`;
-    };
-
     // Collect all published records that need to be created
     const originalPublishedRecord = card.originalPublishedRecordId
       ? {
-          id: generateDeterministicId(
-            card.originalPublishedRecordId.uri,
-            card.originalPublishedRecordId.cid
-          ),
+          id: uuid(),
           uri: card.originalPublishedRecordId.uri,
           cid: card.originalPublishedRecordId.cid,
         }
@@ -287,12 +270,9 @@ export class CardMapper {
     // Map library memberships and collect their published records
     const libraryMemberships = card.libraryMemberships.map((membership) => {
       let publishedRecordId: string | undefined;
-      
+
       if (membership.publishedRecordId) {
-        publishedRecordId = generateDeterministicId(
-          membership.publishedRecordId.uri,
-          membership.publishedRecordId.cid
-        );
+        publishedRecordId = uuid();
         membershipPublishedRecords.push({
           id: publishedRecordId,
           uri: membership.publishedRecordId.uri,
@@ -320,7 +300,10 @@ export class CardMapper {
       },
       libraryMemberships,
       originalPublishedRecord,
-      membershipPublishedRecords: membershipPublishedRecords.length > 0 ? membershipPublishedRecords : undefined,
+      membershipPublishedRecords:
+        membershipPublishedRecords.length > 0
+          ? membershipPublishedRecords
+          : undefined,
     };
   }
 }

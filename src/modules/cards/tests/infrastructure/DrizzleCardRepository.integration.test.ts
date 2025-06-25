@@ -46,6 +46,7 @@ describe("DrizzleCardRepository", () => {
         content_data JSONB NOT NULL,
         url TEXT,
         parent_card_id UUID REFERENCES cards(id),
+        original_published_record_id UUID,
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
@@ -296,5 +297,57 @@ describe("DrizzleCardRepository", () => {
     const result = await cardRepository.findById(nonExistentCardId);
     expect(result.isOk()).toBe(true);
     expect(result.unwrap()).toBeNull();
+  });
+
+  it("should handle originalPublishedRecordId when marking card as published", async () => {
+    // Create a note card
+    const noteContent = CardContent.createNoteContent("Card for publishing test").unwrap();
+    const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
+
+    const cardResult = Card.create({
+      type: cardType,
+      content: noteContent,
+    });
+
+    const card = cardResult.unwrap();
+
+    // Add to library
+    card.addToLibrary(curatorId);
+
+    // Create a published record in the database first
+    const publishedRecordResult = await db.execute(sql`
+      INSERT INTO published_records (uri, cid) 
+      VALUES ('at://did:plc:testcurator/network.cosmik.card/test123', 'bafytest123')
+      RETURNING id
+    `);
+
+    // Mark as published - this should set the originalPublishedRecordId
+    const publishedRecordId = {
+      uri: "at://did:plc:testcurator/network.cosmik.card/test123",
+      cid: "bafytest123"
+    };
+
+    // We need to import PublishedRecordId
+    const { PublishedRecordId } = await import("../../domain/value-objects/PublishedRecordId");
+    const publishedRecord = PublishedRecordId.create(publishedRecordId);
+    
+    const markResult = card.markCardInLibraryAsPublished(curatorId, publishedRecord);
+    expect(markResult.isOk()).toBe(true);
+
+    // Verify originalPublishedRecordId is set
+    expect(card.originalPublishedRecordId).toBeDefined();
+    expect(card.originalPublishedRecordId?.uri).toBe(publishedRecordId.uri);
+    expect(card.originalPublishedRecordId?.cid).toBe(publishedRecordId.cid);
+
+    // Save the card
+    await cardRepository.save(card);
+
+    // Retrieve and verify the originalPublishedRecordId persisted
+    const retrievedResult = await cardRepository.findById(card.cardId);
+    const retrievedCard = retrievedResult.unwrap();
+    
+    expect(retrievedCard?.originalPublishedRecordId).toBeDefined();
+    expect(retrievedCard?.originalPublishedRecordId?.uri).toBe(publishedRecordId.uri);
+    expect(retrievedCard?.originalPublishedRecordId?.cid).toBe(publishedRecordId.cid);
   });
 });

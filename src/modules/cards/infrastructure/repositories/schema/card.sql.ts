@@ -13,6 +13,7 @@ export const cards: PgTableWithColumns<any> = pgTable("cards", {
   contentData: jsonb("content_data").notNull(),
   url: text("url"), // Optional URL field for all card types
   parentCardId: uuid("parent_card_id").references(() => cards.id),
+  originalPublishedRecordId: uuid("original_published_record_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

@@ -46,12 +46,33 @@ export class DrizzleCardRepository implements ICardRepository {
         )
         .where(eq(libraryMemberships.cardId, cardId));
 
+      // Get original published record if it exists
+      let originalPublishedRecord = null;
+      if (result.originalPublishedRecordId) {
+        const originalRecordResult = await this.db
+          .select({
+            uri: publishedRecords.uri,
+            cid: publishedRecords.cid,
+          })
+          .from(publishedRecords)
+          .where(eq(publishedRecords.id, result.originalPublishedRecordId))
+          .limit(1);
+        
+        if (originalRecordResult.length > 0) {
+          originalPublishedRecord = originalRecordResult[0];
+        }
+      }
+
       const cardDTO: CardDTO = {
         id: result.id,
         type: result.type,
         contentData: result.contentData,
         url: result.url || undefined,
         parentCardId: result.parentCardId || undefined,
+        originalPublishedRecordId: originalPublishedRecord ? {
+          uri: originalPublishedRecord.uri,
+          cid: originalPublishedRecord.cid,
+        } : undefined,
         libraryMemberships: membershipResults.map((membership) => ({
           userId: membership.userId,
           addedAt: membership.addedAt,
@@ -95,6 +116,7 @@ export class DrizzleCardRepository implements ICardRepository {
               contentData: cardData.contentData,
               url: cardData.url,
               parentCardId: cardData.parentCardId,
+              originalPublishedRecordId: cardData.originalPublishedRecordId,
               updatedAt: cardData.updatedAt,
             },
           });

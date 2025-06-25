@@ -21,6 +21,7 @@ export interface Record {
   parentCard?: ComAtprotoRepoStrongRef.Main
   /** Timestamp when this card was created (usually set by PDS). */
   createdAt?: string
+  originalCard?: ComAtprotoRepoStrongRef.Main
   [k: string]: unknown
 }
 
@@ -57,8 +58,6 @@ export interface NoteContent {
   $type?: 'network.cosmik.card#noteContent'
   /** The note text content */
   text: string
-  /** Optional title for the note */
-  title?: string
 }
 
 const hashNoteContent = 'noteContent'

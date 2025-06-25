@@ -16,33 +16,13 @@ export function createServer(options?: XrpcOptions): Server {
 
 export class Server {
   xrpc: XrpcServer
-  app: AppNS
   network: NetworkNS
   com: ComNS
 
   constructor(options?: XrpcOptions) {
     this.xrpc = createXrpcServer(schemas, options)
-    this.app = new AppNS(this)
     this.network = new NetworkNS(this)
     this.com = new ComNS(this)
-  }
-}
-
-export class AppNS {
-  _server: Server
-  annos: AppAnnosNS
-
-  constructor(server: Server) {
-    this._server = server
-    this.annos = new AppAnnosNS(server)
-  }
-}
-
-export class AppAnnosNS {
-  _server: Server
-
-  constructor(server: Server) {
-    this._server = server
   }
 }
 

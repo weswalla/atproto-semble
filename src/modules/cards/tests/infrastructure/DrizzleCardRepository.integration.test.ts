@@ -187,8 +187,10 @@ describe("DrizzleCardRepository", () => {
     const retrievedCard = retrievedResult.unwrap();
     expect(retrievedCard).not.toBeNull();
     expect(retrievedCard?.libraryMemberships).toHaveLength(2);
-    
-    const membershipUserIds = retrievedCard?.libraryMemberships.map(m => m.curatorId.value);
+
+    const membershipUserIds = retrievedCard?.libraryMemberships.map(
+      (m) => m.curatorId.value
+    );
     expect(membershipUserIds).toContain(curatorId.value);
     expect(membershipUserIds).toContain(anotherCuratorId.value);
   });
@@ -232,7 +234,9 @@ describe("DrizzleCardRepository", () => {
     retrievedResult = await cardRepository.findById(card.cardId);
     retrievedCard = retrievedResult.unwrap();
     expect(retrievedCard?.libraryMemberships).toHaveLength(1);
-    expect(retrievedCard?.libraryMemberships[0].curatorId.value).toBe(anotherCuratorId.value);
+    expect(retrievedCard?.libraryMemberships[0].curatorId.value).toBe(
+      anotherCuratorId.value
+    );
   });
 
   it("should delete a card and its library memberships", async () => {
@@ -246,11 +250,11 @@ describe("DrizzleCardRepository", () => {
     });
 
     const card = cardResult.unwrap();
-    
+
     // Add to libraries
     card.addToLibrary(curatorId);
     card.addToLibrary(anotherCuratorId);
-    
+
     await cardRepository.save(card);
 
     // Verify card and memberships exist

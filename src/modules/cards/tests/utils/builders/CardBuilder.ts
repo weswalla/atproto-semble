@@ -87,8 +87,32 @@ export class CardBuilder {
 
   build(): Card | Error {
     try {
+      // Create default content if not set
       if (!this._content) {
-        return new Error("Card content is required");
+        const curatorIdResult = CuratorId.create(this._curatorId);
+        if (curatorIdResult.isErr()) {
+          return new Error(
+            `Invalid curator ID: ${curatorIdResult.error.message}`
+          );
+        }
+
+        if (this._type === CardTypeEnum.URL) {
+          const defaultUrl = this._url || URL.create("https://example.com").unwrap();
+          this._url = defaultUrl;
+          const contentResult = CardContent.createUrlContent(defaultUrl);
+          if (contentResult.isErr()) {
+            return new Error(`Failed to create URL content: ${contentResult.error.message}`);
+          }
+          this._content = contentResult.value;
+        } else if (this._type === CardTypeEnum.NOTE) {
+          const contentResult = CardContent.createNoteContent("Default note text", undefined, curatorIdResult.value);
+          if (contentResult.isErr()) {
+            return new Error(`Failed to create note content: ${contentResult.error.message}`);
+          }
+          this._content = contentResult.value;
+        } else {
+          return new Error("Card content is required for this card type");
+        }
       }
 
       const curatorIdResult = CuratorId.create(this._curatorId);

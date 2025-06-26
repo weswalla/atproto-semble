@@ -21,10 +21,16 @@ describe("RemoveCardFromCollectionUseCase", () => {
     cardRepository = new InMemoryCardRepository();
     collectionRepository = new InMemoryCollectionRepository();
     collectionPublisher = new FakeCollectionPublisher();
-    cardCollectionService = new CardCollectionService(collectionRepository, collectionPublisher);
-    
-    useCase = new RemoveCardFromCollectionUseCase(cardRepository, cardCollectionService);
-    
+    cardCollectionService = new CardCollectionService(
+      collectionRepository,
+      collectionPublisher
+    );
+
+    useCase = new RemoveCardFromCollectionUseCase(
+      cardRepository,
+      cardCollectionService
+    );
+
     curatorId = CuratorId.create("did:plc:testcurator").unwrap();
     otherCuratorId = CuratorId.create("did:plc:othercurator").unwrap();
   });
@@ -36,9 +42,7 @@ describe("RemoveCardFromCollectionUseCase", () => {
   });
 
   const createCard = async (type: CardTypeEnum = CardTypeEnum.URL) => {
-    const card = new CardBuilder()
-      .withType(type)
-      .build();
+    const card = new CardBuilder().withType(type).build();
 
     if (card instanceof Error) {
       throw new Error(`Failed to create card: ${card.message}`);
@@ -63,14 +67,20 @@ describe("RemoveCardFromCollectionUseCase", () => {
     return collection;
   };
 
-  const addCardToCollection = async (card: any, collection: any, curatorId: CuratorId) => {
+  const addCardToCollection = async (
+    card: any,
+    collection: any,
+    curatorId: CuratorId
+  ) => {
     const addResult = await cardCollectionService.addCardToCollection(
       card,
       collection.collectionId,
       curatorId
     );
     if (addResult.isErr()) {
-      throw new Error(`Failed to add card to collection: ${addResult.error.message}`);
+      throw new Error(
+        `Failed to add card to collection: ${addResult.error.message}`
+      );
     }
   };
 
@@ -78,7 +88,7 @@ describe("RemoveCardFromCollectionUseCase", () => {
     it("should successfully remove card from collection", async () => {
       const card = await createCard();
       const collection = await createCollection(curatorId, "Test Collection");
-      
+
       // Add card to collection first
       await addCardToCollection(card, collection, curatorId);
 
@@ -106,7 +116,7 @@ describe("RemoveCardFromCollectionUseCase", () => {
       const card = await createCard();
       const collection1 = await createCollection(curatorId, "Collection 1");
       const collection2 = await createCollection(curatorId, "Collection 2");
-      
+
       // Add card to both collections
       await addCardToCollection(card, collection1, curatorId);
       await addCardToCollection(card, collection2, curatorId);
@@ -115,7 +125,7 @@ describe("RemoveCardFromCollectionUseCase", () => {
         cardId: card.cardId.getStringValue(),
         collectionIds: [
           collection1.collectionId.getStringValue(),
-          collection2.collectionId.getStringValue()
+          collection2.collectionId.getStringValue(),
         ],
         curatorId: curatorId.value,
       };
@@ -131,7 +141,7 @@ describe("RemoveCardFromCollectionUseCase", () => {
       const removedLinks2 = collectionPublisher.getRemovedLinksForCollection(
         collection2.collectionId.getStringValue()
       );
-      
+
       expect(removedLinks1).toHaveLength(1);
       expect(removedLinks2).toHaveLength(1);
       expect(removedLinks1[0]?.cardId).toBe(card.cardId.getStringValue());
@@ -142,7 +152,7 @@ describe("RemoveCardFromCollectionUseCase", () => {
       const card = await createCard();
       const collection1 = await createCollection(curatorId, "Collection 1");
       const collection2 = await createCollection(curatorId, "Collection 2");
-      
+
       // Add card to only one collection
       await addCardToCollection(card, collection1, curatorId);
 
@@ -150,7 +160,7 @@ describe("RemoveCardFromCollectionUseCase", () => {
         cardId: card.cardId.getStringValue(),
         collectionIds: [
           collection1.collectionId.getStringValue(),
-          collection2.collectionId.getStringValue()
+          collection2.collectionId.getStringValue(),
         ],
         curatorId: curatorId.value,
       };
@@ -166,7 +176,7 @@ describe("RemoveCardFromCollectionUseCase", () => {
       const removedLinks2 = collectionPublisher.getRemovedLinksForCollection(
         collection2.collectionId.getStringValue()
       );
-      
+
       expect(removedLinks1).toHaveLength(1);
       expect(removedLinks2).toHaveLength(0);
     });
@@ -185,6 +195,7 @@ describe("RemoveCardFromCollectionUseCase", () => {
       if (collection instanceof Error) {
         throw new Error(`Failed to create collection: ${collection.message}`);
       }
+      collection.addCard(card.cardId, otherCuratorId);
 
       await collectionRepository.save(collection);
 
@@ -198,7 +209,7 @@ describe("RemoveCardFromCollectionUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("access");
+        expect(result.error.message).toContain("does not have permission");
       }
     });
 
@@ -216,7 +227,7 @@ describe("RemoveCardFromCollectionUseCase", () => {
       }
 
       await collectionRepository.save(collection);
-      
+
       // Add card to collection first (as collection owner)
       await addCardToCollection(card, collection, otherCuratorId);
 
@@ -233,8 +244,11 @@ describe("RemoveCardFromCollectionUseCase", () => {
 
     it("should allow collection author to remove any card", async () => {
       const card = await createCard();
-      const collection = await createCollection(curatorId, "Author's Collection");
-      
+      const collection = await createCollection(
+        curatorId,
+        "Author's Collection"
+      );
+
       await addCardToCollection(card, collection, curatorId);
 
       const request = {
@@ -380,7 +394,7 @@ describe("RemoveCardFromCollectionUseCase", () => {
     it("should handle removing card from same collection multiple times", async () => {
       const card = await createCard();
       const collection = await createCollection(curatorId, "Test Collection");
-      
+
       await addCardToCollection(card, collection, curatorId);
 
       const request = {
@@ -408,7 +422,7 @@ describe("RemoveCardFromCollectionUseCase", () => {
       const urlCard = await createCard(CardTypeEnum.URL);
       const noteCard = await createCard(CardTypeEnum.NOTE);
       const collection = await createCollection(curatorId, "Mixed Collection");
-      
+
       await addCardToCollection(urlCard, collection, curatorId);
       await addCardToCollection(noteCard, collection, curatorId);
 
@@ -433,7 +447,7 @@ describe("RemoveCardFromCollectionUseCase", () => {
     it("should handle repository errors gracefully", async () => {
       const card = await createCard();
       const collection = await createCollection(curatorId, "Test Collection");
-      
+
       // Configure repository to fail
       cardRepository.setShouldFail(true);
 

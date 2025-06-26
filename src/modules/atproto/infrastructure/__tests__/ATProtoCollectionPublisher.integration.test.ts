@@ -158,7 +158,7 @@ describe("ATProtoCollectionPublisher", () => {
         .withUrl(testUrl1)
         .withOriginalPublishedRecordId({
           uri: "at://did:plc:original/network.cosmik.card/original1",
-          cid: "bafyoriginal1"
+          cid: "bafyoriginal1",
         })
         .buildOrThrow();
 
@@ -176,7 +176,7 @@ describe("ATProtoCollectionPublisher", () => {
         .withUrl(testUrl2)
         .withOriginalPublishedRecordId({
           uri: "at://did:plc:original/network.cosmik.card/original2",
-          cid: "bafyoriginal2"
+          cid: "bafyoriginal2",
         })
         .buildOrThrow();
 
@@ -184,13 +184,19 @@ describe("ATProtoCollectionPublisher", () => {
       card1.addToLibrary(curatorId);
       card2.addToLibrary(curatorId);
 
-      const card1PublishResult = await cardPublisher.publishCardToLibrary(card1, curatorId);
+      const card1PublishResult = await cardPublisher.publishCardToLibrary(
+        card1,
+        curatorId
+      );
       expect(card1PublishResult.isOk()).toBe(true);
       const card1RecordId = card1PublishResult.unwrap();
       publishedCardIds.push(card1RecordId);
       card1.markCardInLibraryAsPublished(curatorId, card1RecordId);
 
-      const card2PublishResult = await cardPublisher.publishCardToLibrary(card2, curatorId);
+      const card2PublishResult = await cardPublisher.publishCardToLibrary(
+        card2,
+        curatorId
+      );
       expect(card2PublishResult.isOk()).toBe(true);
       const card2RecordId = card2PublishResult.unwrap();
       publishedCardIds.push(card2RecordId);
@@ -231,23 +237,31 @@ describe("ATProtoCollectionPublisher", () => {
         collection.markAsPublished(collectionRecordId);
 
         // 4. Publish the card links separately
-        const link1PublishResult = await collectionPublisher.publishCardAddedToCollection(
-          card1, collection, curatorId
-        );
+        const link1PublishResult =
+          await collectionPublisher.publishCardAddedToCollection(
+            card1,
+            collection,
+            curatorId
+          );
         expect(link1PublishResult.isOk()).toBe(true);
         const link1RecordId = link1PublishResult.unwrap();
         publishedLinkIds.push(link1RecordId);
         collection.markCardLinkAsPublished(card1.cardId, link1RecordId);
 
-        const link2PublishResult = await collectionPublisher.publishCardAddedToCollection(
-          card2, collection, curatorId
-        );
+        const link2PublishResult =
+          await collectionPublisher.publishCardAddedToCollection(
+            card2,
+            collection,
+            curatorId
+          );
         expect(link2PublishResult.isOk()).toBe(true);
         const link2RecordId = link2PublishResult.unwrap();
         publishedLinkIds.push(link2RecordId);
         collection.markCardLinkAsPublished(card2.cardId, link2RecordId);
 
-        console.log(`Published card links: ${link1RecordId.getValue().uri}, ${link2RecordId.getValue().uri}`);
+        console.log(
+          `Published card links: ${link1RecordId.getValue().uri}, ${link2RecordId.getValue().uri}`
+        );
 
         // 5. Test adding another card to the existing collection
         const testUrl3 = URL.create("https://example.com/article3").unwrap();
@@ -264,12 +278,15 @@ describe("ATProtoCollectionPublisher", () => {
           .withUrl(testUrl3)
           .withOriginalPublishedRecordId({
             uri: "at://did:plc:original/network.cosmik.card/original3",
-            cid: "bafyoriginal3"
+            cid: "bafyoriginal3",
           })
           .buildOrThrow();
 
         card3.addToLibrary(curatorId);
-        const card3PublishResult = await cardPublisher.publishCardToLibrary(card3, curatorId);
+        const card3PublishResult = await cardPublisher.publishCardToLibrary(
+          card3,
+          curatorId
+        );
         expect(card3PublishResult.isOk()).toBe(true);
         const card3RecordId = card3PublishResult.unwrap();
         publishedCardIds.push(card3RecordId);
@@ -280,14 +297,19 @@ describe("ATProtoCollectionPublisher", () => {
         expect(addCard3Result.isOk()).toBe(true);
 
         // Publish the new card link
-        const link3PublishResult = await collectionPublisher.publishCardAddedToCollection(
-          card3, collection, curatorId
-        );
+        const link3PublishResult =
+          await collectionPublisher.publishCardAddedToCollection(
+            card3,
+            collection,
+            curatorId
+          );
         expect(link3PublishResult.isOk()).toBe(true);
         const link3RecordId = link3PublishResult.unwrap();
         publishedLinkIds.push(link3RecordId);
 
-        console.log(`Published additional card link for card 3: ${link3RecordId.getValue().uri}`);
+        console.log(
+          `Published additional card link for card 3: ${link3RecordId.getValue().uri}`
+        );
 
         // 6. Unpublish the collection
         const unpublishResult =
@@ -442,13 +464,18 @@ describe("ATProtoCollectionPublisher", () => {
         collection.markAsPublished(collectionRecordId);
 
         // Try to publish the card link (should fail because card is not published)
-        const linkPublishResult = await collectionPublisher.publishCardAddedToCollection(
-          unpublishedCard, collection, curatorId
-        );
+        const linkPublishResult =
+          await collectionPublisher.publishCardAddedToCollection(
+            unpublishedCard,
+            collection,
+            curatorId
+          );
         expect(linkPublishResult.isErr()).toBe(true);
 
         if (linkPublishResult.isErr()) {
-          expect(linkPublishResult.error.message).toMatch(/published in curator's library/i);
+          expect(linkPublishResult.error.message).toMatch(
+            /published in curator's library/i
+          );
         }
 
         // Clean up

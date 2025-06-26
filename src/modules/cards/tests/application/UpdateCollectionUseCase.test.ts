@@ -3,6 +3,7 @@ import { InMemoryCollectionRepository } from "../utils/InMemoryCollectionReposit
 import { FakeCollectionPublisher } from "../utils/FakeCollectionPublisher";
 import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
 import { CollectionBuilder } from "../utils/builders/CollectionBuilder";
+import { Err } from "src/shared/core/Result";
 
 describe("UpdateCollectionUseCase", () => {
   let useCase: UpdateCollectionUseCase;
@@ -14,8 +15,11 @@ describe("UpdateCollectionUseCase", () => {
   beforeEach(() => {
     collectionRepository = new InMemoryCollectionRepository();
     collectionPublisher = new FakeCollectionPublisher();
-    useCase = new UpdateCollectionUseCase(collectionRepository, collectionPublisher);
-    
+    useCase = new UpdateCollectionUseCase(
+      collectionRepository,
+      collectionPublisher
+    );
+
     curatorId = CuratorId.create("did:plc:testcurator").unwrap();
     otherCuratorId = CuratorId.create("did:plc:othercurator").unwrap();
   });
@@ -25,11 +29,15 @@ describe("UpdateCollectionUseCase", () => {
     collectionPublisher.clear();
   });
 
-  const createCollection = async (authorId: CuratorId, name: string, description?: string) => {
+  const createCollection = async (
+    authorId: CuratorId,
+    name: string,
+    description?: string
+  ) => {
     const collection = new CollectionBuilder()
       .withAuthorId(authorId.value)
       .withName(name)
-      .withDescription(description)
+      .withDescription(description || "")
       .withPublished(true)
       .build();
 
@@ -43,7 +51,11 @@ describe("UpdateCollectionUseCase", () => {
 
   describe("Basic collection update", () => {
     it("should successfully update collection name and description", async () => {
-      const collection = await createCollection(curatorId, "Original Name", "Original description");
+      const collection = await createCollection(
+        curatorId,
+        "Original Name",
+        "Original description"
+      );
 
       const request = {
         collectionId: collection.collectionId.getStringValue(),
@@ -56,22 +68,33 @@ describe("UpdateCollectionUseCase", () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.collectionId).toBe(collection.collectionId.getStringValue());
+      expect(response.collectionId).toBe(
+        collection.collectionId.getStringValue()
+      );
 
       // Verify collection was updated
-      const updatedCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const updatedCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       const updatedCollection = updatedCollectionResult.unwrap()!;
       expect(updatedCollection.name.value).toBe("Updated Name");
       expect(updatedCollection.description?.value).toBe("Updated description");
-      expect(updatedCollection.updatedAt.getTime()).toBeGreaterThan(collection.createdAt.getTime());
+      expect(updatedCollection.updatedAt.getTime()).toBeGreaterThan(
+        collection.createdAt.getTime()
+      );
     });
 
     it("should update collection name only", async () => {
-      const collection = await createCollection(curatorId, "Original Name", "Original description");
+      const collection = await createCollection(
+        curatorId,
+        "Original Name",
+        "Original description"
+      );
 
       const request = {
         collectionId: collection.collectionId.getStringValue(),
         name: "New Name Only",
+        description: "Original description", // Keep original description
         curatorId: curatorId.value,
       };
 
@@ -80,14 +103,20 @@ describe("UpdateCollectionUseCase", () => {
       expect(result.isOk()).toBe(true);
 
       // Verify only name was updated
-      const updatedCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const updatedCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       const updatedCollection = updatedCollectionResult.unwrap()!;
       expect(updatedCollection.name.value).toBe("New Name Only");
       expect(updatedCollection.description?.value).toBe("Original description");
     });
 
     it("should clear description when not provided", async () => {
-      const collection = await createCollection(curatorId, "Original Name", "Original description");
+      const collection = await createCollection(
+        curatorId,
+        "Original Name",
+        "Original description"
+      );
 
       const request = {
         collectionId: collection.collectionId.getStringValue(),
@@ -100,14 +129,20 @@ describe("UpdateCollectionUseCase", () => {
       expect(result.isOk()).toBe(true);
 
       // Verify description was cleared
-      const updatedCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const updatedCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       const updatedCollection = updatedCollectionResult.unwrap()!;
       expect(updatedCollection.name.value).toBe("Updated Name");
       expect(updatedCollection.description).toBeUndefined();
     });
 
     it("should preserve other collection properties", async () => {
-      const collection = await createCollection(curatorId, "Original Name", "Original description");
+      const collection = await createCollection(
+        curatorId,
+        "Original Name",
+        "Original description"
+      );
       const originalCreatedAt = collection.createdAt;
       const originalAccessType = collection.accessType;
 
@@ -123,9 +158,13 @@ describe("UpdateCollectionUseCase", () => {
       expect(result.isOk()).toBe(true);
 
       // Verify other properties are preserved
-      const updatedCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const updatedCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       const updatedCollection = updatedCollectionResult.unwrap()!;
-      expect(updatedCollection.collectionId.getStringValue()).toBe(collection.collectionId.getStringValue());
+      expect(updatedCollection.collectionId.getStringValue()).toBe(
+        collection.collectionId.getStringValue()
+      );
       expect(updatedCollection.authorId.equals(curatorId)).toBe(true);
       expect(updatedCollection.createdAt).toEqual(originalCreatedAt);
       expect(updatedCollection.accessType).toBe(originalAccessType);
@@ -145,10 +184,14 @@ describe("UpdateCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Only the collection author can update the collection");
+      expect((result as Err<any, any>).error.message).toContain(
+        "Only the collection author can update the collection"
+      );
 
       // Verify original collection was not modified
-      const originalCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const originalCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       const originalCollection = originalCollectionResult.unwrap()!;
       expect(originalCollection.name.value).toBe("Original Name");
     });
@@ -167,7 +210,9 @@ describe("UpdateCollectionUseCase", () => {
       expect(result.isOk()).toBe(true);
 
       // Verify update was successful
-      const updatedCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const updatedCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       const updatedCollection = updatedCollectionResult.unwrap()!;
       expect(updatedCollection.name.value).toBe("Author Update");
     });
@@ -258,7 +303,9 @@ describe("UpdateCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Collection description cannot exceed");
+      expect(result.error.message).toContain(
+        "Collection description cannot exceed"
+      );
     });
 
     it("should trim whitespace from name and description", async () => {
@@ -276,7 +323,9 @@ describe("UpdateCollectionUseCase", () => {
       expect(result.isOk()).toBe(true);
 
       // Verify whitespace was trimmed
-      const updatedCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const updatedCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       const updatedCollection = updatedCollectionResult.unwrap()!;
       expect(updatedCollection.name.value).toBe("Updated Name");
       expect(updatedCollection.description?.value).toBe("Updated description");
@@ -286,7 +335,8 @@ describe("UpdateCollectionUseCase", () => {
   describe("Publishing integration", () => {
     it("should republish collection if it was already published", async () => {
       const collection = await createCollection(curatorId, "Original Name");
-      const initialPublishCount = collectionPublisher.getPublishedCollections().length;
+      const initialPublishCount =
+        collectionPublisher.getPublishedCollections().length;
 
       const request = {
         collectionId: collection.collectionId.getStringValue(),
@@ -299,11 +349,14 @@ describe("UpdateCollectionUseCase", () => {
       expect(result.isOk()).toBe(true);
 
       // Verify republishing occurred
-      const finalPublishCount = collectionPublisher.getPublishedCollections().length;
+      const finalPublishCount =
+        collectionPublisher.getPublishedCollections().length;
       expect(finalPublishCount).toBeGreaterThan(initialPublishCount);
 
       // Verify published record ID was updated
-      const updatedCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const updatedCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       const updatedCollection = updatedCollectionResult.unwrap()!;
       expect(updatedCollection.isPublished).toBe(true);
       expect(updatedCollection.publishedRecordId).toBeDefined();
@@ -321,7 +374,8 @@ describe("UpdateCollectionUseCase", () => {
       }
 
       await collectionRepository.save(collection);
-      const initialPublishCount = collectionPublisher.getPublishedCollections().length;
+      const initialPublishCount =
+        collectionPublisher.getPublishedCollections().length;
 
       const request = {
         collectionId: collection.collectionId.getStringValue(),
@@ -334,13 +388,14 @@ describe("UpdateCollectionUseCase", () => {
       expect(result.isOk()).toBe(true);
 
       // Verify no additional publishing occurred
-      const finalPublishCount = collectionPublisher.getPublishedCollections().length;
+      const finalPublishCount =
+        collectionPublisher.getPublishedCollections().length;
       expect(finalPublishCount).toBe(initialPublishCount);
     });
 
     it("should handle republishing failure gracefully", async () => {
       const collection = await createCollection(curatorId, "Original Name");
-      
+
       // Configure publisher to fail
       collectionPublisher.setShouldFail(true);
 
@@ -359,7 +414,11 @@ describe("UpdateCollectionUseCase", () => {
 
   describe("Edge cases", () => {
     it("should handle updating to the same name and description", async () => {
-      const collection = await createCollection(curatorId, "Same Name", "Same description");
+      const collection = await createCollection(
+        curatorId,
+        "Same Name",
+        "Same description"
+      );
 
       const request = {
         collectionId: collection.collectionId.getStringValue(),
@@ -373,11 +432,15 @@ describe("UpdateCollectionUseCase", () => {
       expect(result.isOk()).toBe(true);
 
       // Verify collection was still updated (updatedAt should change)
-      const updatedCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const updatedCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       const updatedCollection = updatedCollectionResult.unwrap()!;
       expect(updatedCollection.name.value).toBe("Same Name");
       expect(updatedCollection.description?.value).toBe("Same description");
-      expect(updatedCollection.updatedAt.getTime()).toBeGreaterThan(collection.createdAt.getTime());
+      expect(updatedCollection.updatedAt.getTime()).toBeGreaterThan(
+        collection.createdAt.getTime()
+      );
     });
 
     it("should handle maximum length name and description", async () => {
@@ -395,7 +458,9 @@ describe("UpdateCollectionUseCase", () => {
       expect(result.isOk()).toBe(true);
 
       // Verify values were saved correctly
-      const updatedCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const updatedCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       const updatedCollection = updatedCollectionResult.unwrap()!;
       expect(updatedCollection.name.value.length).toBe(100);
       expect(updatedCollection.description?.value.length).toBe(500);

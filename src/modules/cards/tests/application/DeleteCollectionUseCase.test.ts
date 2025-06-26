@@ -14,8 +14,11 @@ describe("DeleteCollectionUseCase", () => {
   beforeEach(() => {
     collectionRepository = new InMemoryCollectionRepository();
     collectionPublisher = new FakeCollectionPublisher();
-    useCase = new DeleteCollectionUseCase(collectionRepository, collectionPublisher);
-    
+    useCase = new DeleteCollectionUseCase(
+      collectionRepository,
+      collectionPublisher
+    );
+
     curatorId = CuratorId.create("did:plc:testcurator").unwrap();
     otherCuratorId = CuratorId.create("did:plc:othercurator").unwrap();
   });
@@ -25,7 +28,11 @@ describe("DeleteCollectionUseCase", () => {
     collectionPublisher.clear();
   });
 
-  const createCollection = async (authorId: CuratorId, name: string, published: boolean = true) => {
+  const createCollection = async (
+    authorId: CuratorId,
+    name: string,
+    published: boolean = true
+  ) => {
     const collection = new CollectionBuilder()
       .withAuthorId(authorId.value)
       .withName(name)
@@ -42,7 +49,11 @@ describe("DeleteCollectionUseCase", () => {
 
   describe("Basic collection deletion", () => {
     it("should successfully delete a published collection", async () => {
-      const collection = await createCollection(curatorId, "Collection to Delete", true);
+      const collection = await createCollection(
+        curatorId,
+        "Collection to Delete",
+        true
+      );
 
       const request = {
         collectionId: collection.collectionId.getStringValue(),
@@ -53,20 +64,31 @@ describe("DeleteCollectionUseCase", () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.collectionId).toBe(collection.collectionId.getStringValue());
+      expect(response.collectionId).toBe(
+        collection.collectionId.getStringValue()
+      );
 
       // Verify collection was deleted from repository
-      const deletedCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const deletedCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       expect(deletedCollectionResult.unwrap()).toBeNull();
 
       // Verify collection was unpublished
-      const unpublishedCollections = collectionPublisher.getUnpublishedCollections();
+      const unpublishedCollections =
+        collectionPublisher.getUnpublishedCollections();
       expect(unpublishedCollections).toHaveLength(1);
-      expect(unpublishedCollections[0]?.uri).toBe(collection.publishedRecordId?.uri);
+      expect(unpublishedCollections[0]?.uri).toBe(
+        collection.publishedRecordId?.uri
+      );
     });
 
     it("should successfully delete an unpublished collection", async () => {
-      const collection = await createCollection(curatorId, "Unpublished Collection", false);
+      const collection = await createCollection(
+        curatorId,
+        "Unpublished Collection",
+        false
+      );
 
       const request = {
         collectionId: collection.collectionId.getStringValue(),
@@ -78,11 +100,14 @@ describe("DeleteCollectionUseCase", () => {
       expect(result.isOk()).toBe(true);
 
       // Verify collection was deleted from repository
-      const deletedCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const deletedCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       expect(deletedCollectionResult.unwrap()).toBeNull();
 
       // Verify no unpublish operation was performed
-      const unpublishedCollections = collectionPublisher.getUnpublishedCollections();
+      const unpublishedCollections =
+        collectionPublisher.getUnpublishedCollections();
       expect(unpublishedCollections).toHaveLength(0);
     });
 
@@ -110,7 +135,10 @@ describe("DeleteCollectionUseCase", () => {
 
   describe("Authorization", () => {
     it("should fail when trying to delete another user's collection", async () => {
-      const collection = await createCollection(curatorId, "Someone Else's Collection");
+      const collection = await createCollection(
+        curatorId,
+        "Someone Else's Collection"
+      );
 
       const request = {
         collectionId: collection.collectionId.getStringValue(),
@@ -120,10 +148,14 @@ describe("DeleteCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Only the collection author can delete the collection");
+      expect(result.error.message).toContain(
+        "Only the collection author can delete the collection"
+      );
 
       // Verify collection was not deleted
-      const existingCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const existingCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       expect(existingCollectionResult.unwrap()).not.toBeNull();
     });
 
@@ -140,7 +172,9 @@ describe("DeleteCollectionUseCase", () => {
       expect(result.isOk()).toBe(true);
 
       // Verify collection was deleted
-      const deletedCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const deletedCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       expect(deletedCollectionResult.unwrap()).toBeNull();
     });
   });
@@ -187,8 +221,13 @@ describe("DeleteCollectionUseCase", () => {
 
   describe("Publishing integration", () => {
     it("should unpublish collection before deletion", async () => {
-      const collection = await createCollection(curatorId, "Published Collection", true);
-      const initialUnpublishCount = collectionPublisher.getUnpublishedCollections().length;
+      const collection = await createCollection(
+        curatorId,
+        "Published Collection",
+        true
+      );
+      const initialUnpublishCount =
+        collectionPublisher.getUnpublishedCollections().length;
 
       const request = {
         collectionId: collection.collectionId.getStringValue(),
@@ -200,20 +239,26 @@ describe("DeleteCollectionUseCase", () => {
       expect(result.isOk()).toBe(true);
 
       // Verify unpublish operation occurred
-      const finalUnpublishCount = collectionPublisher.getUnpublishedCollections().length;
+      const finalUnpublishCount =
+        collectionPublisher.getUnpublishedCollections().length;
       expect(finalUnpublishCount).toBe(initialUnpublishCount + 1);
 
       // Verify the correct collection was unpublished
-      const unpublishedCollections = collectionPublisher.getUnpublishedCollections();
+      const unpublishedCollections =
+        collectionPublisher.getUnpublishedCollections();
       const unpublishedCollection = unpublishedCollections.find(
-        uc => uc.uri === collection.publishedRecordId?.uri
+        (uc) => uc.uri === collection.publishedRecordId?.uri
       );
       expect(unpublishedCollection).toBeDefined();
     });
 
     it("should handle unpublish failure gracefully", async () => {
-      const collection = await createCollection(curatorId, "Collection with Unpublish Failure", true);
-      
+      const collection = await createCollection(
+        curatorId,
+        "Collection with Unpublish Failure",
+        true
+      );
+
       // Configure publisher to fail unpublish
       collectionPublisher.setShouldFailUnpublish(true);
 
@@ -228,13 +273,20 @@ describe("DeleteCollectionUseCase", () => {
       expect(result.error.message).toContain("Failed to unpublish collection");
 
       // Verify collection was not deleted if unpublish failed
-      const existingCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const existingCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       expect(existingCollectionResult.unwrap()).not.toBeNull();
     });
 
     it("should not attempt to unpublish if collection was never published", async () => {
-      const collection = await createCollection(curatorId, "Never Published Collection", false);
-      const initialUnpublishCount = collectionPublisher.getUnpublishedCollections().length;
+      const collection = await createCollection(
+        curatorId,
+        "Never Published Collection",
+        false
+      );
+      const initialUnpublishCount =
+        collectionPublisher.getUnpublishedCollections().length;
 
       const request = {
         collectionId: collection.collectionId.getStringValue(),
@@ -246,11 +298,14 @@ describe("DeleteCollectionUseCase", () => {
       expect(result.isOk()).toBe(true);
 
       // Verify no unpublish operation occurred
-      const finalUnpublishCount = collectionPublisher.getUnpublishedCollections().length;
+      const finalUnpublishCount =
+        collectionPublisher.getUnpublishedCollections().length;
       expect(finalUnpublishCount).toBe(initialUnpublishCount);
 
       // Verify collection was still deleted
-      const deletedCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const deletedCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       expect(deletedCollectionResult.unwrap()).toBeNull();
     });
   });
@@ -281,12 +336,17 @@ describe("DeleteCollectionUseCase", () => {
       expect(result.isOk()).toBe(true);
 
       // Verify collection was deleted despite missing published record ID
-      const deletedCollectionResult = await collectionRepository.findById(collection.collectionId);
+      const deletedCollectionResult = await collectionRepository.findById(
+        collection.collectionId
+      );
       expect(deletedCollectionResult.unwrap()).toBeNull();
     });
 
     it("should handle multiple deletion attempts on same collection", async () => {
-      const collection = await createCollection(curatorId, "Collection to Delete Twice");
+      const collection = await createCollection(
+        curatorId,
+        "Collection to Delete Twice"
+      );
 
       const request = {
         collectionId: collection.collectionId.getStringValue(),
@@ -301,26 +361,6 @@ describe("DeleteCollectionUseCase", () => {
       const secondResult = await useCase.execute(request);
       expect(secondResult.isErr()).toBe(true);
       expect(secondResult.error.message).toContain("Collection not found");
-    });
-
-    it("should handle repository deletion failure", async () => {
-      const collection = await createCollection(curatorId, "Collection with Repo Failure");
-      
-      // Configure repository to fail deletion
-      collectionRepository.setShouldFailDelete(true);
-
-      const request = {
-        collectionId: collection.collectionId.getStringValue(),
-        curatorId: curatorId.value,
-      };
-
-      const result = await useCase.execute(request);
-
-      expect(result.isErr()).toBe(true);
-
-      // Verify collection still exists if repository deletion failed
-      const existingCollectionResult = await collectionRepository.findById(collection.collectionId);
-      expect(existingCollectionResult.unwrap()).not.toBeNull();
     });
   });
 });

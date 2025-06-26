@@ -29,6 +29,30 @@ export class CardBuilder {
     return this;
   }
 
+  withType(type: CardTypeEnum): CardBuilder {
+    this._type = type;
+    // Create default content based on type if not already set
+    if (!this._content) {
+      if (type === CardTypeEnum.URL) {
+        const defaultUrl = URL.create("https://example.com").unwrap();
+        this._url = defaultUrl;
+        const contentResult = CardContent.createUrlContent(defaultUrl);
+        if (contentResult.isOk()) {
+          this._content = contentResult.value;
+        }
+      } else if (type === CardTypeEnum.NOTE) {
+        const curatorIdResult = CuratorId.create(this._curatorId);
+        if (curatorIdResult.isOk()) {
+          const contentResult = CardContent.createNoteContent("Default note text", undefined, curatorIdResult.value);
+          if (contentResult.isOk()) {
+            this._content = contentResult.value;
+          }
+        }
+      }
+    }
+    return this;
+  }
+
   withUrl(url: URL): CardBuilder {
     this._url = url;
     return this;

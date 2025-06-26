@@ -32,6 +32,10 @@ export class NoteCardContent extends ValueObject<NoteCardContentProps> {
     return undefined;
   }
 
+  get authorId(): CuratorId {
+    return this.props.authorId;
+  }
+
   private constructor(props: NoteCardContentProps) {
     super(props);
   }

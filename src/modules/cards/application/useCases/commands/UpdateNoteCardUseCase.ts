@@ -132,6 +132,15 @@ export class UpdateNoteCardUseCase
         return err(AppError.UnexpectedError.create(publishResult.error));
       }
 
+      // Mark the card in library as published with the new record ID
+      const markPublishedResult = card.markCardInLibraryAsPublished(
+        curatorId,
+        publishResult.value
+      );
+      if (markPublishedResult.isErr()) {
+        return err(new ValidationError(markPublishedResult.error.message));
+      }
+
       // Save the updated card to repository
       const saveResult = await this.cardRepository.save(card);
       if (saveResult.isErr()) {

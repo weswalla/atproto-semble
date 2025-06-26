@@ -6,6 +6,8 @@ import { URL } from "../../domain/value-objects/URL";
 
 export class InMemoryCardRepository implements ICardRepository {
   private cards: Map<string, Card> = new Map();
+  private shouldFail: boolean = false;
+  private shouldFailSave: boolean = false;
 
   private clone(card: Card): Card {
     // Simple clone - in a real implementation you'd want proper deep cloning
@@ -31,6 +33,9 @@ export class InMemoryCardRepository implements ICardRepository {
   }
 
   async findById(id: CardId): Promise<Result<Card | null>> {
+    if (this.shouldFail) {
+      return err(new Error("Simulated find failure"));
+    }
     try {
       const card = this.cards.get(id.getStringValue());
       return ok(card ? this.clone(card) : null);
@@ -65,6 +70,9 @@ export class InMemoryCardRepository implements ICardRepository {
   }
 
   async save(card: Card): Promise<Result<void>> {
+    if (this.shouldFailSave || this.shouldFail) {
+      return err(new Error("Simulated save failure"));
+    }
     try {
       this.cards.set(card.cardId.getStringValue(), this.clone(card));
       return ok(undefined);
@@ -82,9 +90,19 @@ export class InMemoryCardRepository implements ICardRepository {
     }
   }
 
+  setShouldFail(shouldFail: boolean): void {
+    this.shouldFail = shouldFail;
+  }
+
+  setShouldFailSave(shouldFailSave: boolean): void {
+    this.shouldFailSave = shouldFailSave;
+  }
+
   // Helper methods for testing
   public clear(): void {
     this.cards.clear();
+    this.shouldFail = false;
+    this.shouldFailSave = false;
   }
 
   public getStoredCard(id: CardId): Card | undefined {

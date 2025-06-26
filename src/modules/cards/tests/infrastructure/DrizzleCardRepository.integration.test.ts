@@ -352,4 +352,68 @@ describe("DrizzleCardRepository", () => {
       publishedRecordId.cid
     );
   });
+
+  it("should find URL card by URL", async () => {
+    // Create a URL card
+    const url = URL.create("https://example.com/findme").unwrap();
+    const metadata = UrlMetadata.create({
+      url: "https://example.com/findme",
+      title: "Findable Article",
+      description: "An article that can be found",
+      retrievedAt: new Date(),
+    }).unwrap();
+
+    const urlContent = CardContent.createUrlContent(url, metadata).unwrap();
+    const cardType = CardType.create(CardTypeEnum.URL).unwrap();
+
+    const cardResult = Card.create({
+      type: cardType,
+      content: urlContent,
+      url,
+    });
+
+    const card = cardResult.unwrap();
+
+    // Save the card
+    await cardRepository.save(card);
+
+    // Find the card by URL
+    const foundResult = await cardRepository.findUrlCardByUrl(url);
+    expect(foundResult.isOk()).toBe(true);
+
+    const foundCard = foundResult.unwrap();
+    expect(foundCard).not.toBeNull();
+    expect(foundCard?.cardId.getStringValue()).toBe(card.cardId.getStringValue());
+    expect(foundCard?.content.type).toBe(CardTypeEnum.URL);
+    expect(foundCard?.content.urlContent?.url.value).toBe(url.value);
+  });
+
+  it("should return null when URL card is not found", async () => {
+    const nonExistentUrl = URL.create("https://example.com/notfound").unwrap();
+
+    const result = await cardRepository.findUrlCardByUrl(nonExistentUrl);
+    expect(result.isOk()).toBe(true);
+    expect(result.unwrap()).toBeNull();
+  });
+
+  it("should not find note cards when searching by URL", async () => {
+    // Create a note card with a URL (but it's not a URL card type)
+    const url = URL.create("https://example.com/note-url").unwrap();
+    const noteContent = CardContent.createNoteContent("Note about a URL").unwrap();
+    const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
+
+    const cardResult = Card.create({
+      type: cardType,
+      content: noteContent,
+      url, // Note cards can have URLs too
+    });
+
+    const card = cardResult.unwrap();
+    await cardRepository.save(card);
+
+    // Try to find it as a URL card - should return null because it's a NOTE type
+    const foundResult = await cardRepository.findUrlCardByUrl(url);
+    expect(foundResult.isOk()).toBe(true);
+    expect(foundResult.unwrap()).toBeNull();
+  });
 });

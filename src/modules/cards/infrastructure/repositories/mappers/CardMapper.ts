@@ -126,6 +126,8 @@ export class CardMapper {
           parentCardId,
           originalPublishedRecordId,
           libraryMemberships,
+          createdAt: dto.createdAt,
+          updatedAt: dto.updatedAt,
         },
         new UniqueEntityID(dto.id)
       );

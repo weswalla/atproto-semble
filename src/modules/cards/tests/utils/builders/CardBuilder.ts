@@ -110,6 +110,8 @@ export class CardBuilder {
           url: this._url,
           parentCardId: this._parentCardId,
           originalPublishedRecordId: this._originalPublishedRecordId,
+          createdAt: this._createdAt,
+          updatedAt: this._updatedAt,
         },
         this._id
       );

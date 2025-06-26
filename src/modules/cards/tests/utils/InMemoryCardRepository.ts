@@ -17,6 +17,8 @@ export class InMemoryCardRepository implements ICardRepository {
         url: card.url,
         originalPublishedRecordId: card.originalPublishedRecordId,
         libraryMemberships: card.libraryMemberships,
+        createdAt: card.createdAt,
+        updatedAt: card.updatedAt,
       },
       card.id
     );

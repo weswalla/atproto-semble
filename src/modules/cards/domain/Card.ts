@@ -89,6 +89,8 @@ export class Card extends AggregateRoot<CardProps> {
   public static create(
     props: Omit<CardProps, "createdAt" | "updatedAt" | "libraryMemberships"> & {
       libraryMemberships?: CardInLibraryLink[];
+      createdAt?: Date;
+      updatedAt?: Date;
     },
     id?: UniqueEntityID
   ): Result<Card, CardValidationError> {
@@ -107,8 +109,8 @@ export class Card extends AggregateRoot<CardProps> {
     const cardProps: CardProps = {
       ...props,
       libraryMemberships: props.libraryMemberships || [],
-      createdAt: now,
-      updatedAt: now,
+      createdAt: props.createdAt || now,
+      updatedAt: props.updatedAt || now,
     };
 
     return ok(new Card(cardProps, id));

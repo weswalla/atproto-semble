@@ -148,9 +148,11 @@ describe("DeleteCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain(
-        "Only the collection author can delete the collection"
-      );
+      if (result.isErr()) {
+        expect(result.error.message).toContain(
+          "Only the collection author can delete the collection"
+        );
+      }
 
       // Verify collection was not deleted
       const existingCollectionResult = await collectionRepository.findById(
@@ -189,7 +191,9 @@ describe("DeleteCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Collection not found");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Collection not found");
+      }
     });
 
     it("should fail with invalid curator ID", async () => {
@@ -203,7 +207,9 @@ describe("DeleteCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Invalid curator ID");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Invalid curator ID");
+      }
     });
 
     it("should fail when collection does not exist", async () => {
@@ -215,7 +221,9 @@ describe("DeleteCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Collection not found");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Collection not found");
+      }
     });
   });
 
@@ -270,7 +278,9 @@ describe("DeleteCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Failed to unpublish collection");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Failed to unpublish collection");
+      }
 
       // Verify collection was not deleted if unpublish failed
       const existingCollectionResult = await collectionRepository.findById(
@@ -360,7 +370,9 @@ describe("DeleteCollectionUseCase", () => {
       // Second deletion should fail
       const secondResult = await useCase.execute(request);
       expect(secondResult.isErr()).toBe(true);
-      expect(secondResult.error.message).toContain("Collection not found");
+      if (secondResult.isErr()) {
+        expect(secondResult.error.message).toContain("Collection not found");
+      }
     });
   });
 });

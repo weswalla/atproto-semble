@@ -197,7 +197,9 @@ describe("RemoveCardFromCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("access");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("access");
+      }
     });
 
     it("should allow removal from open collection by any user", async () => {
@@ -260,7 +262,9 @@ describe("RemoveCardFromCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Card not found");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Card not found");
+      }
     });
 
     it("should fail with invalid curator ID", async () => {
@@ -276,7 +280,9 @@ describe("RemoveCardFromCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Invalid curator ID");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Invalid curator ID");
+      }
     });
 
     it("should fail with invalid collection ID", async () => {
@@ -291,7 +297,9 @@ describe("RemoveCardFromCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Collection not found");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Collection not found");
+      }
     });
 
     it("should fail when card does not exist", async () => {
@@ -306,7 +314,9 @@ describe("RemoveCardFromCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Card not found");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Card not found");
+      }
     });
 
     it("should fail when collection does not exist", async () => {
@@ -321,7 +331,9 @@ describe("RemoveCardFromCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Collection not found");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Collection not found");
+      }
     });
 
     it("should handle empty collection IDs array", async () => {

@@ -162,7 +162,9 @@ describe("RemoveCardFromLibraryUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Card not found");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Card not found");
+      }
     });
 
     it("should fail with invalid curator ID", async () => {
@@ -176,7 +178,9 @@ describe("RemoveCardFromLibraryUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Invalid curator ID");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Invalid curator ID");
+      }
     });
 
     it("should fail when card does not exist", async () => {
@@ -188,7 +192,9 @@ describe("RemoveCardFromLibraryUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Card not found");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Card not found");
+      }
     });
   });
 

@@ -184,9 +184,11 @@ describe("UpdateCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect((result as Err<any, any>).error.message).toContain(
-        "Only the collection author can update the collection"
-      );
+      if (result.isErr()) {
+        expect(result.error.message).toContain(
+          "Only the collection author can update the collection"
+        );
+      }
 
       // Verify original collection was not modified
       const originalCollectionResult = await collectionRepository.findById(
@@ -229,7 +231,9 @@ describe("UpdateCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Collection not found");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Collection not found");
+      }
     });
 
     it("should fail with invalid curator ID", async () => {
@@ -244,7 +248,9 @@ describe("UpdateCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Invalid curator ID");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Invalid curator ID");
+      }
     });
 
     it("should fail when collection does not exist", async () => {
@@ -257,7 +263,9 @@ describe("UpdateCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Collection not found");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Collection not found");
+      }
     });
 
     it("should fail with empty collection name", async () => {
@@ -272,7 +280,9 @@ describe("UpdateCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Collection name cannot be empty");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Collection name cannot be empty");
+      }
     });
 
     it("should fail with collection name that is too long", async () => {
@@ -287,7 +297,9 @@ describe("UpdateCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Collection name cannot exceed");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Collection name cannot exceed");
+      }
     });
 
     it("should fail with description that is too long", async () => {
@@ -303,9 +315,11 @@ describe("UpdateCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain(
-        "Collection description cannot exceed"
-      );
+      if (result.isErr()) {
+        expect(result.error.message).toContain(
+          "Collection description cannot exceed"
+        );
+      }
     });
 
     it("should trim whitespace from name and description", async () => {
@@ -408,7 +422,9 @@ describe("UpdateCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Failed to republish collection");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Failed to republish collection");
+      }
     });
   });
 

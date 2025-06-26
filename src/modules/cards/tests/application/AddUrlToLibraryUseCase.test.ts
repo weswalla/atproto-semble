@@ -253,7 +253,9 @@ describe("AddUrlToLibraryUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Collection not found");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Collection not found");
+      }
     });
   });
 
@@ -267,7 +269,9 @@ describe("AddUrlToLibraryUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Invalid URL");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Invalid URL");
+      }
     });
 
     it("should fail with invalid curator ID", async () => {
@@ -279,7 +283,9 @@ describe("AddUrlToLibraryUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Invalid curator ID");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Invalid curator ID");
+      }
     });
 
     it("should fail with invalid collection ID", async () => {
@@ -292,7 +298,9 @@ describe("AddUrlToLibraryUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Collection not found");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Collection not found");
+      }
     });
   });
 
@@ -309,7 +317,9 @@ describe("AddUrlToLibraryUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Failed to fetch metadata");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Failed to fetch metadata");
+      }
     });
   });
 });

@@ -123,19 +123,19 @@ export class UpdateNoteCardUseCase
         return err(new ValidationError(updateResult.error.message));
       }
 
-      // Save the updated card
-      const saveResult = await this.cardRepository.save(card);
-      if (saveResult.isErr()) {
-        return err(AppError.UnexpectedError.create(saveResult.error));
-      }
-
-      // Publish the updated card to library
+      // Publish the updated card to library first
       const publishResult = await this.cardPublisher.publishCardToLibrary(
         card,
         curatorId
       );
       if (publishResult.isErr()) {
         return err(AppError.UnexpectedError.create(publishResult.error));
+      }
+
+      // Save the updated card to repository
+      const saveResult = await this.cardRepository.save(card);
+      if (saveResult.isErr()) {
+        return err(AppError.UnexpectedError.create(saveResult.error));
       }
 
       return ok({

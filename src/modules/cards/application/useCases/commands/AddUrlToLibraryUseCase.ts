@@ -28,26 +28,6 @@ export interface AddUrlToLibraryDTO {
 export interface AddUrlToLibraryResponseDTO {
   urlCardId: string;
   noteCardId?: string;
-  publishedUrlCardRecordId?: {
-    uri: string;
-    cid: string;
-  };
-  publishedNoteCardRecordId?: {
-    uri: string;
-    cid: string;
-  };
-  addedToCollections: Array<{
-    collectionId: string;
-    collectionRecord?: { uri: string; cid: string };
-    publishedLinks: Array<{
-      cardId: string;
-      linkRecord: { uri: string; cid: string };
-    }>;
-  }>;
-  failedCollections: Array<{
-    collectionId: string;
-    reason: string;
-  }>;
 }
 
 export class ValidationError extends UseCaseError {
@@ -113,8 +93,6 @@ export class AddUrlToLibraryUseCase
       }
 
       let urlCard = existingUrlCardResult.value;
-      let publishedUrlCardRecordId;
-
       if (!urlCard) {
         // Fetch metadata for URL
         const metadataResult = await this.metadataService.fetchMetadata(url);
@@ -181,23 +159,9 @@ export class AddUrlToLibraryUseCase
           );
         }
 
-        publishedUrlCardRecordId = {
-          uri: publishUrlCardResult.value.uri,
-          cid: publishUrlCardResult.value.cid,
-        };
-      } else {
-        // Card is already in library, get existing published record if available
-        const libraryMembership = urlCard.getLibraryInfo(curatorId);
-        if (libraryMembership?.publishedRecordId) {
-          publishedUrlCardRecordId = {
-            uri: libraryMembership.publishedRecordId.uri,
-            cid: libraryMembership.publishedRecordId.cid,
-          };
-        }
       }
 
       let noteCard;
-      let publishedNoteCardRecordId;
 
       // Create note card if note is provided
       if (request.note) {
@@ -251,117 +215,81 @@ export class AddUrlToLibraryUseCase
           );
         }
 
-        publishedNoteCardRecordId = {
-          uri: publishNoteCardResult.value.uri,
-          cid: publishNoteCardResult.value.cid,
-        };
       }
 
       // Handle collection additions if specified
-      const addedToCollections: AddUrlToLibraryResponseDTO["addedToCollections"] =
-        [];
-      const failedCollections: Array<{ collectionId: string; reason: string }> =
-        [];
-
       if (request.collectionIds && request.collectionIds.length > 0) {
-        // always add the URL card to collections
+        // Always add the URL card to collections
         const cardToAdd = urlCard;
 
         for (const collectionIdStr of request.collectionIds) {
-          try {
-            // Validate collection ID
-            const collectionIdResult =
-              CollectionId.createFromString(collectionIdStr);
-            if (collectionIdResult.isErr()) {
-              failedCollections.push({
-                collectionId: collectionIdStr,
-                reason: `Invalid collection ID: ${collectionIdResult.error.message}`,
-              });
-              continue;
-            }
+          // Validate collection ID
+          const collectionIdResult =
+            CollectionId.createFromString(collectionIdStr);
+          if (collectionIdResult.isErr()) {
+            return err(
+              new ValidationError(
+                `Invalid collection ID: ${collectionIdResult.error.message}`
+              )
+            );
+          }
 
-            const collectionId = collectionIdResult.value;
+          const collectionId = collectionIdResult.value;
 
-            // Find the collection
-            const collectionResult =
-              await this.collectionRepository.findById(collectionId);
-            if (collectionResult.isErr()) {
-              return err(
-                AppError.UnexpectedError.create(collectionResult.error)
-              );
-            }
+          // Find the collection
+          const collectionResult =
+            await this.collectionRepository.findById(collectionId);
+          if (collectionResult.isErr()) {
+            return err(
+              AppError.UnexpectedError.create(collectionResult.error)
+            );
+          }
 
-            const collection = collectionResult.value;
-            if (!collection) {
-              failedCollections.push({
-                collectionId: collectionIdStr,
-                reason: "Collection not found",
-              });
-              continue;
-            }
+          const collection = collectionResult.value;
+          if (!collection) {
+            return err(
+              new ValidationError(`Collection not found: ${collectionIdStr}`)
+            );
+          }
 
-            // Add card to collection
-            const addCardResult = collection.addCard(
-              cardToAdd.cardId,
+          // Add card to collection
+          const addCardResult = collection.addCard(cardToAdd.cardId, curatorId);
+          if (addCardResult.isErr()) {
+            return err(
+              new ValidationError(
+                `Failed to add card to collection: ${addCardResult.error.message}`
+              )
+            );
+          }
+
+          // Publish the collection link
+          const publishLinkResult =
+            await this.collectionPublisher.publishCardAddedToCollection(
+              cardToAdd,
+              collection,
               curatorId
             );
-            if (addCardResult.isErr()) {
-              failedCollections.push({
-                collectionId: collectionIdStr,
-                reason: addCardResult.error.message,
-              });
-              continue;
-            }
-
-            // Publish the collection link
-            const publishLinkResult =
-              await this.collectionPublisher.publishCardAddedToCollection(
-                cardToAdd,
-                collection,
-                curatorId
-              );
-            if (publishLinkResult.isErr()) {
-              failedCollections.push({
-                collectionId: collectionIdStr,
-                reason: `Failed to publish collection link: ${publishLinkResult.error.message}`,
-              });
-              continue;
-            }
-
-            // Mark the card link as published in the collection
-            collection.markCardLinkAsPublished(
-              cardToAdd.cardId,
-              publishLinkResult.value
+          if (publishLinkResult.isErr()) {
+            return err(
+              new ValidationError(
+                `Failed to publish collection link: ${publishLinkResult.error.message}`
+              )
             );
+          }
 
-            // Save the updated collection
-            const saveCollectionResult =
-              await this.collectionRepository.save(collection);
-            if (saveCollectionResult.isErr()) {
-              failedCollections.push({
-                collectionId: collectionIdStr,
-                reason: "Failed to save collection",
-              });
-              continue;
-            }
+          // Mark the card link as published in the collection
+          collection.markCardLinkAsPublished(
+            cardToAdd.cardId,
+            publishLinkResult.value
+          );
 
-            addedToCollections.push({
-              collectionId: collectionIdStr,
-              publishedLinks: [
-                {
-                  cardId: cardToAdd.cardId.getStringValue(),
-                  linkRecord: {
-                    uri: publishLinkResult.value.uri,
-                    cid: publishLinkResult.value.cid,
-                  },
-                },
-              ],
-            });
-          } catch (error) {
-            failedCollections.push({
-              collectionId: collectionIdStr,
-              reason: error instanceof Error ? error.message : "Unknown error",
-            });
+          // Save the updated collection
+          const saveCollectionResult =
+            await this.collectionRepository.save(collection);
+          if (saveCollectionResult.isErr()) {
+            return err(
+              AppError.UnexpectedError.create(saveCollectionResult.error)
+            );
           }
         }
       }
@@ -369,10 +297,6 @@ export class AddUrlToLibraryUseCase
       return ok({
         urlCardId: urlCard.cardId.getStringValue(),
         noteCardId: noteCard?.cardId.getStringValue(),
-        publishedUrlCardRecordId,
-        publishedNoteCardRecordId,
-        addedToCollections,
-        failedCollections,
       });
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));

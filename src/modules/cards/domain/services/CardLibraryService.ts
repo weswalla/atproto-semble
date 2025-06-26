@@ -58,4 +58,53 @@ export class CardLibraryService implements DomainService {
       return err(AppError.UnexpectedError.create(error));
     }
   }
+
+  async removeCardFromLibrary(
+    card: Card,
+    curatorId: CuratorId
+  ): Promise<Result<void, CardLibraryValidationError | AppError.UnexpectedError>> {
+    try {
+      // Check if card is in curator's library
+      const isInLibrary = card.isInLibrary(curatorId);
+      
+      if (!isInLibrary) {
+        // Card is not in library, nothing to do
+        return ok(undefined);
+      }
+
+      // Get library info to check if it was published
+      const libraryInfo = card.getLibraryInfo(curatorId);
+      if (libraryInfo?.publishedRecordId) {
+        // Unpublish card from library
+        const unpublishResult = await this.cardPublisher.unpublishCardFromLibrary(card, curatorId);
+        if (unpublishResult.isErr()) {
+          return err(
+            new CardLibraryValidationError(
+              `Failed to unpublish card from library: ${unpublishResult.error.message}`
+            )
+          );
+        }
+      }
+
+      // Remove card from library
+      const removeResult = card.removeFromLibrary(curatorId);
+      if (removeResult.isErr()) {
+        return err(
+          new CardLibraryValidationError(
+            `Failed to remove card from library: ${removeResult.error.message}`
+          )
+        );
+      }
+
+      // Save updated card
+      const saveResult = await this.cardRepository.save(card);
+      if (saveResult.isErr()) {
+        return err(AppError.UnexpectedError.create(saveResult.error));
+      }
+
+      return ok(undefined);
+    } catch (error) {
+      return err(AppError.UnexpectedError.create(error));
+    }
+  }
 }

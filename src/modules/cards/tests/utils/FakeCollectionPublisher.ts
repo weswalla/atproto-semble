@@ -1,11 +1,10 @@
-import {
-  ICollectionPublisher,
-  CollectionPublishResult,
-} from "../../application/ports/ICollectionPublisher";
+import { ICollectionPublisher } from "../../application/ports/ICollectionPublisher";
 import { Collection } from "../../domain/Collection";
+import { Card } from "../../domain/Card";
 import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
 import { ok, Result } from "../../../../shared/core/Result";
 import { UseCaseError } from "../../../../shared/core/UseCaseError";
+import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
 
 export class FakeCollectionPublisher implements ICollectionPublisher {
   private publishedCollections: Map<string, Collection> = new Map();
@@ -16,34 +15,8 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
 
   async publish(
     collection: Collection
-  ): Promise<Result<CollectionPublishResult, UseCaseError>> {
+  ): Promise<Result<PublishedRecordId, UseCaseError>> {
     const collectionId = collection.collectionId.getStringValue();
-
-    // Simulate publishing unpublished card links
-    const unpublishedLinks = collection.unpublishedCardLinks;
-    const publishedLinks: Array<{
-      cardId: string;
-      linkRecord: PublishedRecordId;
-    }> = [];
-
-    for (const link of unpublishedLinks) {
-      const cardId = link.cardId.getStringValue();
-      const fakeLinkUri = `at://fake-did/network.cosmik.cardCollectionLink/${collectionId}-${cardId}`;
-      const fakeLinkCid = `fake-link-cid-${collectionId}-${cardId}`;
-
-      const linkRecord = PublishedRecordId.create({
-        uri: fakeLinkUri,
-        cid: fakeLinkCid,
-      });
-
-      publishedLinks.push({
-        cardId,
-        linkRecord,
-      });
-    }
-
-    // Store published links for inspection
-    this.publishedLinks.set(collectionId, publishedLinks);
 
     // Simulate publishing the collection record itself
     const fakeCollectionUri = `at://fake-did/network.cosmik.collection/${collectionId}`;
@@ -57,16 +30,66 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     // Store the published collection for inspection
     this.publishedCollections.set(collectionId, collection);
 
-    const result: CollectionPublishResult = {
-      collectionRecord,
-      publishedLinks,
-    };
-
     console.log(
-      `[FakeCollectionPublisher] Published collection ${collectionId} with ${publishedLinks.length} links`
+      `[FakeCollectionPublisher] Published collection ${collectionId}`
     );
 
-    return ok(result);
+    return ok(collectionRecord);
+  }
+
+  async publishCardAddedToCollection(
+    card: Card,
+    collection: Collection,
+    curatorId: CuratorId
+  ): Promise<Result<PublishedRecordId, UseCaseError>> {
+    const collectionId = collection.collectionId.getStringValue();
+    const cardId = card.cardId.getStringValue();
+
+    // Simulate publishing a card-collection link
+    const fakeLinkUri = `at://${curatorId.value}/network.cosmik.cardCollectionLink/${collectionId}-${cardId}`;
+    const fakeLinkCid = `fake-link-cid-${collectionId}-${cardId}`;
+
+    const linkRecord = PublishedRecordId.create({
+      uri: fakeLinkUri,
+      cid: fakeLinkCid,
+    });
+
+    // Store published link for inspection
+    const existingLinks = this.publishedLinks.get(collectionId) || [];
+    existingLinks.push({
+      cardId,
+      linkRecord,
+    });
+    this.publishedLinks.set(collectionId, existingLinks);
+
+    console.log(
+      `[FakeCollectionPublisher] Published card ${cardId} added to collection ${collectionId} link at ${fakeLinkUri}`
+    );
+
+    return ok(linkRecord);
+  }
+
+  async unpublishCardAddedToCollection(
+    recordId: PublishedRecordId
+  ): Promise<Result<void, UseCaseError>> {
+    // Find and remove the link by its published record ID
+    for (const [collectionId, links] of this.publishedLinks.entries()) {
+      const linkIndex = links.findIndex(
+        (link) => link.linkRecord.uri === recordId.uri
+      );
+      if (linkIndex !== -1) {
+        links.splice(linkIndex, 1);
+        console.log(
+          `[FakeCollectionPublisher] Unpublished card-collection link ${recordId.uri}`
+        );
+        return ok(undefined);
+      }
+    }
+
+    console.warn(
+      `[FakeCollectionPublisher] Card-collection link not found for unpublishing: ${recordId.uri}`
+    );
+    return ok(undefined);
   }
 
   async unpublish(

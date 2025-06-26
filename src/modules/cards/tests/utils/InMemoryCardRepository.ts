@@ -2,7 +2,6 @@ import { Result, ok, err } from "../../../../shared/core/Result";
 import { ICardRepository } from "../../domain/ICardRepository";
 import { Card } from "../../domain/Card";
 import { CardId } from "../../domain/value-objects/CardId";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
 import { URL } from "../../domain/value-objects/URL";
 
 export class InMemoryCardRepository implements ICardRepository {
@@ -12,12 +11,12 @@ export class InMemoryCardRepository implements ICardRepository {
     // Simple clone - in a real implementation you'd want proper deep cloning
     const cardResult = Card.create(
       {
-        curatorId: card.curatorId,
         type: card.type,
         content: card.content,
         parentCardId: card.parentCardId,
-        publishedRecordId: card.publishedRecordId,
         url: card.url,
+        originalPublishedRecordId: card.originalPublishedRecordId,
+        libraryMemberships: card.libraryMemberships,
       },
       card.id
     );
@@ -50,18 +49,7 @@ export class InMemoryCardRepository implements ICardRepository {
     }
   }
 
-  async findByCuratorId(curatorId: CuratorId): Promise<Result<Card[]>> {
-    try {
-      const cards = Array.from(this.cards.values()).filter(
-        (card) => card.curatorId.value === curatorId.value
-      );
-      return ok(cards.map((card) => this.clone(card)));
-    } catch (error) {
-      return err(error as Error);
-    }
-  }
-
-  async findByUrl(url: URL): Promise<Result<Card | null>> {
+  async findUrlCardByUrl(url: URL): Promise<Result<Card | null>> {
     try {
       const card = Array.from(this.cards.values()).find(
         (card) =>

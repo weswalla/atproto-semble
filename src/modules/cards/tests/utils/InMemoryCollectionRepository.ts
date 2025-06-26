@@ -10,29 +10,34 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
 
   private clone(collection: Collection): Collection {
     // Simple clone - in a real implementation you'd want proper deep cloning
-    const collectionResult = Collection.create({
-      authorId: collection.authorId,
-      name: collection.name.value,
-      description: collection.description?.value,
-      accessType: collection.accessType,
-      collaboratorIds: collection.collaboratorIds,
-      cardLinks: collection.cardLinks,
-      publishedRecordId: collection.publishedRecordId,
-      createdAt: collection.createdAt,
-      updatedAt: collection.updatedAt,
-    }, collection.id);
-    
+    const collectionResult = Collection.create(
+      {
+        authorId: collection.authorId,
+        name: collection.name.value,
+        description: collection.description?.value,
+        accessType: collection.accessType,
+        collaboratorIds: collection.collaboratorIds,
+        cardLinks: collection.cardLinks,
+        publishedRecordId: collection.publishedRecordId,
+        createdAt: collection.createdAt,
+        updatedAt: collection.updatedAt,
+      },
+      collection.id
+    );
+
     if (collectionResult.isErr()) {
-      throw new Error(`Failed to clone collection: ${collectionResult.error.message}`);
+      throw new Error(
+        `Failed to clone collection: ${collectionResult.error.message}`
+      );
     }
-    
+
     const clonedCollection = collectionResult.value;
-    
+
     // Set the published record ID if it exists
     if (collection.publishedRecordId) {
       clonedCollection.markAsPublished(collection.publishedRecordId);
     }
-    
+
     return clonedCollection;
   }
 
@@ -48,10 +53,11 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
   async findByCuratorId(curatorId: CuratorId): Promise<Result<Collection[]>> {
     try {
       const collections = Array.from(this.collections.values()).filter(
-        collection => collection.authorId.value === curatorId.value ||
-                     collection.collaboratorIds.some(id => id.value === curatorId.value)
+        (collection) =>
+          collection.authorId.value === curatorId.value ||
+          collection.collaboratorIds.some((id) => id.value === curatorId.value)
       );
-      return ok(collections.map(collection => this.clone(collection)));
+      return ok(collections.map((collection) => this.clone(collection)));
     } catch (error) {
       return err(error as Error);
     }
@@ -60,9 +66,12 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
   async findByCardId(cardId: CardId): Promise<Result<Collection[]>> {
     try {
       const collections = Array.from(this.collections.values()).filter(
-        collection => collection.cardIds.some(id => id.getStringValue() === cardId.getStringValue())
+        (collection) =>
+          collection.cardIds.some(
+            (id) => id.getStringValue() === cardId.getStringValue()
+          )
       );
-      return ok(collections.map(collection => this.clone(collection)));
+      return ok(collections.map((collection) => this.clone(collection)));
     } catch (error) {
       return err(error as Error);
     }
@@ -70,7 +79,10 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
 
   async save(collection: Collection): Promise<Result<void>> {
     try {
-      this.collections.set(collection.collectionId.getStringValue(), this.clone(collection));
+      this.collections.set(
+        collection.collectionId.getStringValue(),
+        this.clone(collection)
+      );
       return ok(undefined);
     } catch (error) {
       return err(error as Error);
@@ -96,6 +108,8 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
   }
 
   public getAllCollections(): Collection[] {
-    return Array.from(this.collections.values()).map(collection => this.clone(collection));
+    return Array.from(this.collections.values()).map((collection) =>
+      this.clone(collection)
+    );
   }
 }

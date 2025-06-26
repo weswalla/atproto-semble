@@ -30,6 +30,7 @@ export class FakeMetadataService implements IMetadataService {
       description: `Fake description for ${url.value}`,
       author: "Fake Author",
       siteName: "Fake Site",
+      retrievedAt: new Date(),
     });
 
     if (metadataResult.isErr()) {

@@ -11,7 +11,7 @@ import { DomainService } from "../../../../shared/domain/DomainService";
 export class CardCollectionValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'CardCollectionValidationError';
+    this.name = "CardCollectionValidationError";
   }
 }
 
@@ -25,10 +25,13 @@ export class CardCollectionService implements DomainService {
     card: Card,
     collectionId: CollectionId,
     curatorId: CuratorId
-  ): Promise<Result<void, CardCollectionValidationError | AppError.UnexpectedError>> {
+  ): Promise<
+    Result<void, CardCollectionValidationError | AppError.UnexpectedError>
+  > {
     try {
       // Find the collection
-      const collectionResult = await this.collectionRepository.findById(collectionId);
+      const collectionResult =
+        await this.collectionRepository.findById(collectionId);
       if (collectionResult.isErr()) {
         return err(AppError.UnexpectedError.create(collectionResult.error));
       }
@@ -53,11 +56,12 @@ export class CardCollectionService implements DomainService {
       }
 
       // Publish the collection link
-      const publishLinkResult = await this.collectionPublisher.publishCardAddedToCollection(
-        card,
-        collection,
-        curatorId
-      );
+      const publishLinkResult =
+        await this.collectionPublisher.publishCardAddedToCollection(
+          card,
+          collection,
+          curatorId
+        );
       if (publishLinkResult.isErr()) {
         return err(
           new CardCollectionValidationError(
@@ -70,7 +74,8 @@ export class CardCollectionService implements DomainService {
       collection.markCardLinkAsPublished(card.cardId, publishLinkResult.value);
 
       // Save the updated collection
-      const saveCollectionResult = await this.collectionRepository.save(collection);
+      const saveCollectionResult =
+        await this.collectionRepository.save(collection);
       if (saveCollectionResult.isErr()) {
         return err(AppError.UnexpectedError.create(saveCollectionResult.error));
       }
@@ -85,9 +90,15 @@ export class CardCollectionService implements DomainService {
     card: Card,
     collectionIds: CollectionId[],
     curatorId: CuratorId
-  ): Promise<Result<void, CardCollectionValidationError | AppError.UnexpectedError>> {
+  ): Promise<
+    Result<void, CardCollectionValidationError | AppError.UnexpectedError>
+  > {
     for (const collectionId of collectionIds) {
-      const result = await this.addCardToCollection(card, collectionId, curatorId);
+      const result = await this.addCardToCollection(
+        card,
+        collectionId,
+        curatorId
+      );
       if (result.isErr()) {
         return result;
       }
@@ -99,10 +110,13 @@ export class CardCollectionService implements DomainService {
     card: Card,
     collectionId: CollectionId,
     curatorId: CuratorId
-  ): Promise<Result<void, CardCollectionValidationError | AppError.UnexpectedError>> {
+  ): Promise<
+    Result<void, CardCollectionValidationError | AppError.UnexpectedError>
+  > {
     try {
       // Find the collection
-      const collectionResult = await this.collectionRepository.findById(collectionId);
+      const collectionResult =
+        await this.collectionRepository.findById(collectionId);
       if (collectionResult.isErr()) {
         return err(AppError.UnexpectedError.create(collectionResult.error));
       }
@@ -117,7 +131,9 @@ export class CardCollectionService implements DomainService {
       }
 
       // Check if card is in collection
-      const cardLink = collection.cardLinks.find(link => link.cardId.equals(card.cardId));
+      const cardLink = collection.cardLinks.find((link) =>
+        link.cardId.equals(card.cardId)
+      );
       if (!cardLink) {
         // Card is not in collection, nothing to do
         return ok(undefined);
@@ -125,11 +141,10 @@ export class CardCollectionService implements DomainService {
 
       // If the card link was published, unpublish it
       if (cardLink.publishedRecordId) {
-        const unpublishLinkResult = await this.collectionPublisher.unpublishCardRemovedFromCollection(
-          card,
-          collection,
-          curatorId
-        );
+        const unpublishLinkResult =
+          await this.collectionPublisher.unpublishCardAddedToCollection(
+            cardLink.publishedRecordId
+          );
         if (unpublishLinkResult.isErr()) {
           return err(
             new CardCollectionValidationError(
@@ -150,7 +165,8 @@ export class CardCollectionService implements DomainService {
       }
 
       // Save the updated collection
-      const saveCollectionResult = await this.collectionRepository.save(collection);
+      const saveCollectionResult =
+        await this.collectionRepository.save(collection);
       if (saveCollectionResult.isErr()) {
         return err(AppError.UnexpectedError.create(saveCollectionResult.error));
       }
@@ -165,9 +181,15 @@ export class CardCollectionService implements DomainService {
     card: Card,
     collectionIds: CollectionId[],
     curatorId: CuratorId
-  ): Promise<Result<void, CardCollectionValidationError | AppError.UnexpectedError>> {
+  ): Promise<
+    Result<void, CardCollectionValidationError | AppError.UnexpectedError>
+  > {
     for (const collectionId of collectionIds) {
-      const result = await this.removeCardFromCollection(card, collectionId, curatorId);
+      const result = await this.removeCardFromCollection(
+        card,
+        collectionId,
+        curatorId
+      );
       if (result.isErr()) {
         return result;
       }

@@ -10,7 +10,7 @@ import { DomainService } from "../../../../shared/domain/DomainService";
 export class CardLibraryValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'CardLibraryValidationError';
+    this.name = "CardLibraryValidationError";
   }
 }
 
@@ -23,18 +23,23 @@ export class CardLibraryService implements DomainService {
   async addCardToLibrary(
     card: Card,
     curatorId: CuratorId
-  ): Promise<Result<void, CardLibraryValidationError | AppError.UnexpectedError>> {
+  ): Promise<
+    Result<void, CardLibraryValidationError | AppError.UnexpectedError>
+  > {
     try {
       // Check if card is already in curator's library
       const isInLibrary = card.isInLibrary(curatorId);
-      
+
       if (isInLibrary) {
         // Card is already in library, nothing to do
         return ok(undefined);
       }
 
       // Publish card to library
-      const publishResult = await this.cardPublisher.publishCardToLibrary(card, curatorId);
+      const publishResult = await this.cardPublisher.publishCardToLibrary(
+        card,
+        curatorId
+      );
       if (publishResult.isErr()) {
         return err(
           new CardLibraryValidationError(
@@ -62,11 +67,13 @@ export class CardLibraryService implements DomainService {
   async removeCardFromLibrary(
     card: Card,
     curatorId: CuratorId
-  ): Promise<Result<void, CardLibraryValidationError | AppError.UnexpectedError>> {
+  ): Promise<
+    Result<void, CardLibraryValidationError | AppError.UnexpectedError>
+  > {
     try {
       // Check if card is in curator's library
       const isInLibrary = card.isInLibrary(curatorId);
-      
+
       if (!isInLibrary) {
         // Card is not in library, nothing to do
         return ok(undefined);
@@ -76,7 +83,11 @@ export class CardLibraryService implements DomainService {
       const libraryInfo = card.getLibraryInfo(curatorId);
       if (libraryInfo?.publishedRecordId) {
         // Unpublish card from library
-        const unpublishResult = await this.cardPublisher.unpublishCardFromLibrary(card, curatorId);
+        const unpublishResult =
+          await this.cardPublisher.unpublishCardFromLibrary(
+            libraryInfo.publishedRecordId,
+            libraryInfo.curatorId
+          );
         if (unpublishResult.isErr()) {
           return err(
             new CardLibraryValidationError(

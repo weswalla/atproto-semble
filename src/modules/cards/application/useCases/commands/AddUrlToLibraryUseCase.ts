@@ -99,61 +99,91 @@ export class AddUrlToLibraryUseCase
       }
       const url = urlResult.value;
 
-      // Fetch metadata for URL
-      const metadataResult = await this.metadataService.fetchMetadata(url);
-      if (metadataResult.isErr()) {
-        return err(
-          new ValidationError(
-            `Failed to fetch metadata: ${metadataResult.error.message}`
-          )
+      // Check if URL card already exists
+      const existingUrlCardResult = await this.cardRepository.findUrlCardByUrl(url);
+      if (existingUrlCardResult.isErr()) {
+        return err(AppError.UnexpectedError.create(existingUrlCardResult.error));
+      }
+
+      let urlCard = existingUrlCardResult.value;
+      let publishedUrlCardRecordId;
+
+      if (!urlCard) {
+        // Fetch metadata for URL
+        const metadataResult = await this.metadataService.fetchMetadata(url);
+        if (metadataResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Failed to fetch metadata: ${metadataResult.error.message}`
+            )
+          );
+        }
+
+        // Create URL card
+        const urlCardInput: IUrlCardInput = {
+          type: CardTypeEnum.URL,
+          url: request.url,
+          metadata: metadataResult.value,
+        };
+
+        const urlCardResult = CardFactory.create({
+          curatorId: request.curatorId,
+          cardInput: urlCardInput,
+        });
+
+        if (urlCardResult.isErr()) {
+          return err(new ValidationError(urlCardResult.error.message));
+        }
+
+        urlCard = urlCardResult.value;
+
+        // Save URL card
+        const saveUrlCardResult = await this.cardRepository.save(urlCard);
+        if (saveUrlCardResult.isErr()) {
+          return err(AppError.UnexpectedError.create(saveUrlCardResult.error));
+        }
+      }
+
+      // Check if URL card is already in curator's library
+      const isInLibrary = urlCard.isInLibrary(curatorId);
+      
+      if (!isInLibrary) {
+        // Publish URL card to library
+        const publishUrlCardResult = await this.cardPublisher.publishCardToLibrary(
+          urlCard,
+          curatorId
         );
-      }
+        if (publishUrlCardResult.isErr()) {
+          return err(
+            new ValidationError(
+              `Failed to publish URL card: ${publishUrlCardResult.error.message}`
+            )
+          );
+        }
 
-      // Create URL card
-      const urlCardInput: IUrlCardInput = {
-        type: CardTypeEnum.URL,
-        url: request.url,
-        metadata: metadataResult.value,
-      };
+        // Mark URL card as published
+        urlCard.addToLibrary(curatorId);
+        urlCard.markCardInLibraryAsPublished(curatorId, publishUrlCardResult.value);
 
-      const urlCardResult = CardFactory.create({
-        curatorId: request.curatorId,
-        cardInput: urlCardInput,
-      });
+        // Update URL card in repository
+        const updateUrlCardResult = await this.cardRepository.save(urlCard);
+        if (updateUrlCardResult.isErr()) {
+          return err(AppError.UnexpectedError.create(updateUrlCardResult.error));
+        }
 
-      if (urlCardResult.isErr()) {
-        return err(new ValidationError(urlCardResult.error.message));
-      }
-
-      const urlCard = urlCardResult.value;
-
-      // Save URL card
-      const saveUrlCardResult = await this.cardRepository.save(urlCard);
-      if (saveUrlCardResult.isErr()) {
-        return err(AppError.UnexpectedError.create(saveUrlCardResult.error));
-      }
-
-      // Publish URL card to library
-      const publishUrlCardResult = await this.cardPublisher.publishCardToLibrary(
-        urlCard,
-        curatorId
-      );
-      if (publishUrlCardResult.isErr()) {
-        return err(
-          new ValidationError(
-            `Failed to publish URL card: ${publishUrlCardResult.error.message}`
-          )
-        );
-      }
-
-      // Mark URL card as published
-      urlCard.addToLibrary(curatorId);
-      urlCard.markCardInLibraryAsPublished(curatorId, publishUrlCardResult.value);
-
-      // Update URL card in repository
-      const updateUrlCardResult = await this.cardRepository.save(urlCard);
-      if (updateUrlCardResult.isErr()) {
-        return err(AppError.UnexpectedError.create(updateUrlCardResult.error));
+        publishedUrlCardRecordId = {
+          uri: publishUrlCardResult.value.uri,
+          cid: publishUrlCardResult.value.cid,
+        };
+      } else {
+        // Card is already in library, get existing published record if available
+        const libraryMembership = urlCard.getLibraryMembership(curatorId);
+        if (libraryMembership?.publishedRecordId) {
+          publishedUrlCardRecordId = {
+            uri: libraryMembership.publishedRecordId.uri,
+            cid: libraryMembership.publishedRecordId.cid,
+          };
+        }
       }
 
       let noteCard;
@@ -310,10 +340,7 @@ export class AddUrlToLibraryUseCase
       return ok({
         urlCardId: urlCard.cardId.getStringValue(),
         noteCardId: noteCard?.cardId.getStringValue(),
-        publishedUrlCardRecordId: {
-          uri: publishUrlCardResult.value.uri,
-          cid: publishUrlCardResult.value.cid,
-        },
+        publishedUrlCardRecordId,
         publishedNoteCardRecordId,
         addedToCollections,
         failedCollections,

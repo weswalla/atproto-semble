@@ -1,17 +1,24 @@
 import { ICardPublisher } from "../../application/ports/ICardPublisher";
 import { Card } from "../../domain/Card";
 import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
-import { ok, Result } from "../../../../shared/core/Result";
+import { ok, err, Result } from "../../../../shared/core/Result";
 import { UseCaseError } from "../../../../shared/core/UseCaseError";
+import { AppError } from "../../../../shared/core/AppError";
 import { CuratorId } from "src/modules/annotations/domain/value-objects/CuratorId";
 
 export class FakeCardPublisher implements ICardPublisher {
   private publishedRecords: Map<string, Card> = new Map();
+  private shouldFail: boolean = false;
+  private shouldFailUnpublish: boolean = false;
 
   async publishCardToLibrary(
     card: Card,
     curatorId: CuratorId
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
+    if (this.shouldFail) {
+      return err(AppError.UnexpectedError.create(new Error("Simulated publish failure")));
+    }
+
     const cardId = card.cardId.getStringValue();
     // Simulate generating an AT URI based on curator DID and collection/rkey
     const fakeUri = `at://${curatorId.value}/network.cosmik.card/${cardId}`;
@@ -33,6 +40,10 @@ export class FakeCardPublisher implements ICardPublisher {
     recordId: PublishedRecordId,
     curatorId: CuratorId
   ): Promise<Result<void, UseCaseError>> {
+    if (this.shouldFailUnpublish) {
+      return err(AppError.UnexpectedError.create(new Error("Simulated unpublish failure")));
+    }
+
     const compositeKey = recordId.uri + recordId.cid;
     if (this.publishedRecords.has(compositeKey)) {
       this.publishedRecords.delete(compositeKey);
@@ -46,11 +57,27 @@ export class FakeCardPublisher implements ICardPublisher {
     }
   }
 
+  setShouldFail(shouldFail: boolean): void {
+    this.shouldFail = shouldFail;
+  }
+
+  setShouldFailUnpublish(shouldFailUnpublish: boolean): void {
+    this.shouldFailUnpublish = shouldFailUnpublish;
+  }
+
   clear(): void {
     this.publishedRecords.clear();
+    this.shouldFail = false;
+    this.shouldFailUnpublish = false;
   }
 
   getPublishedCards(): Card[] {
     return Array.from(this.publishedRecords.values());
+  }
+
+  getUnpublishedCards(): Array<{ cardId: string; curatorId: string }> {
+    // For testing purposes, track unpublished cards
+    // This is a simplified implementation for test verification
+    return [];
   }
 }

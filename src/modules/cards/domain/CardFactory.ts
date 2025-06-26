@@ -6,13 +6,12 @@ import { CardId } from "./value-objects/CardId";
 import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
 import { URL } from "./value-objects/URL";
 import { UrlMetadata } from "./value-objects/UrlMetadata";
-import { HighlightSelector } from "./value-objects/content/HighlightCardContent";
 
 // Define interfaces for the different card creation inputs
 export interface IUrlCardInput {
   type: CardTypeEnum.URL;
   url: string;
-  metadata?: UrlMetadata;
+  metadata: UrlMetadata;
 }
 
 export interface INoteCardInput {
@@ -23,22 +22,8 @@ export interface INoteCardInput {
   url?: string;
 }
 
-interface IHighlightCardInput {
-  type: CardTypeEnum.HIGHLIGHT;
-  text: string;
-  selectors: HighlightSelector[];
-  parentCardId: string;
-  context?: string;
-  documentUrl?: string;
-  documentTitle?: string;
-  url?: string;
-}
-
 // Union type for all possible card creation inputs
-export type CardCreationInput =
-  | IUrlCardInput
-  | INoteCardInput
-  | IHighlightCardInput;
+export type CardCreationInput = IUrlCardInput | INoteCardInput;
 
 interface CreateCardProps {
   curatorId: string;
@@ -181,7 +166,7 @@ export class CardFactory {
   // Type guards
   private static hasParentCardId(
     input: CardCreationInput
-  ): input is INoteCardInput | IHighlightCardInput {
+  ): input is INoteCardInput {
     return "parentCardId" in input && input.parentCardId !== undefined;
   }
 }

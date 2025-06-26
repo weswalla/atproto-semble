@@ -146,9 +146,11 @@ describe("UpdateNoteCardUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain(
-        "Only the author can update this note card"
-      );
+      if (result.isErr()) {
+        expect(result.error.message).toContain(
+          "Only the author can update this note card"
+        );
+      }
 
       // Verify original card was not modified
       const originalCardResult = await cardRepository.findById(noteCard.cardId);
@@ -193,7 +195,9 @@ describe("UpdateNoteCardUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Invalid curator ID");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Invalid curator ID");
+      }
     });
 
     it("should fail when card does not exist", async () => {
@@ -206,7 +210,9 @@ describe("UpdateNoteCardUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Card not found");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Card not found");
+      }
     });
 
     it("should fail when trying to update a non-note card", async () => {
@@ -250,9 +256,11 @@ describe("UpdateNoteCardUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain(
-        "Card is not a note card and cannot be updated"
-      );
+      if (result.isErr()) {
+        expect(result.error.message).toContain(
+          "Card is not a note card and cannot be updated"
+        );
+      }
     });
 
     it("should fail with empty note text", async () => {
@@ -267,7 +275,9 @@ describe("UpdateNoteCardUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Note text cannot be empty");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Note text cannot be empty");
+      }
     });
 
     it("should fail with note text that is too long", async () => {
@@ -283,7 +293,9 @@ describe("UpdateNoteCardUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Note text cannot exceed");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Note text cannot exceed");
+      }
     });
 
     it("should trim whitespace from note text", async () => {

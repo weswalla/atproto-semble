@@ -1,27 +1,33 @@
 import { CardLink } from "src/modules/cards/domain/Collection";
 import { Record } from "../lexicon/types/network/cosmik/collectionLink";
+import { PublishedRecordIdProps } from "src/modules/cards/domain/value-objects/PublishedRecordId";
 
 type CollectionLinkRecordDTO = Record;
 
 export class CollectionLinkMapper {
   static toCreateRecordDTO(
-    collectionLink: CardLink,
-    collectionPublishedRecordId: { uri: string; cid: string },
-    cardPublishedRecordId: { uri: string; cid: string }
+    link: CardLink,
+    collectionRecord: PublishedRecordIdProps,
+    cardRecord: PublishedRecordIdProps,
+    originalCardRecord: PublishedRecordIdProps
   ): CollectionLinkRecordDTO {
     return {
       $type: "network.cosmik.collectionLink",
       collection: {
-        uri: collectionPublishedRecordId.uri,
-        cid: collectionPublishedRecordId.cid,
+        uri: collectionRecord.uri,
+        cid: collectionRecord.cid,
       },
       card: {
-        uri: cardPublishedRecordId.uri,
-        cid: cardPublishedRecordId.cid,
+        uri: cardRecord.uri,
+        cid: cardRecord.cid,
       },
-      addedBy: collectionLink.addedBy.value,
-      addedAt: collectionLink.addedAt.toISOString(),
-      createdAt: collectionLink.addedAt.toISOString(),
+      originalCard: {
+        uri: originalCardRecord.uri,
+        cid: originalCardRecord.cid,
+      },
+      addedBy: link.addedBy.value,
+      addedAt: link.addedAt.toISOString(),
+      createdAt: new Date().toISOString(),
     };
   }
 }

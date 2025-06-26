@@ -3,6 +3,7 @@ import { Card } from "src/modules/cards/domain/Card";
 import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
+import { CuratorId } from "src/modules/annotations/domain/value-objects/CuratorId";
 import { CardMapper } from "../mappers/CardMapper";
 import { StrongRef } from "../../domain";
 import { IAgentService } from "../../application/IAgentService";
@@ -14,12 +15,15 @@ export class ATProtoCardPublisher implements ICardPublisher {
   constructor(private readonly agentService: IAgentService) {}
 
   /**
-   * Publishes a Card to the AT Protocol
+   * Publishes a Card to the curator's library in the AT Protocol
    */
-  async publish(card: Card): Promise<Result<PublishedRecordId, UseCaseError>> {
+  async publishCardToLibrary(
+    card: Card,
+    curatorId: CuratorId
+  ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
       const record = CardMapper.toCreateRecordDTO(card);
-      const curatorDid = new DID(card.curatorId.value);
+      const curatorDid = new DID(curatorId.value);
 
       // Get an authenticated agent for this curator
       const agentResult =
@@ -37,9 +41,14 @@ export class ATProtoCardPublisher implements ICardPublisher {
         return err(new Error("No authenticated session found for curator"));
       }
 
-      // If the card is already published, update it
-      if (card.publishedRecordId) {
-        const publishedRecordId = card.publishedRecordId.getValue();
+      // Check if this card is already published in this curator's library
+      const existingMembership = card.libraryMemberships.find(membership => 
+        membership.curatorId.equals(curatorId) && membership.publishedRecordId
+      );
+
+      if (existingMembership && existingMembership.publishedRecordId) {
+        // Update existing record
+        const publishedRecordId = existingMembership.publishedRecordId.getValue();
         const strongRef = new StrongRef(publishedRecordId);
         const atUri = strongRef.atUri;
         const rkey = atUri.rkey;
@@ -51,22 +60,21 @@ export class ATProtoCardPublisher implements ICardPublisher {
           record,
         });
 
-        return ok(card.publishedRecordId);
-      }
-      // Otherwise create a new record
-      else {
+        return ok(existingMembership.publishedRecordId);
+      } else {
+        // Create new record
         const createResult = await agent.com.atproto.repo.createRecord({
           repo: curatorDid.value,
           collection: this.COLLECTION,
           record,
         });
 
-        return ok(
-          PublishedRecordId.create({
-            uri: createResult.data.uri,
-            cid: createResult.data.cid,
-          })
-        );
+        const publishedRecordId = PublishedRecordId.create({
+          uri: createResult.data.uri,
+          cid: createResult.data.cid,
+        });
+
+        return ok(publishedRecordId);
       }
     } catch (error) {
       return err(
@@ -76,17 +84,18 @@ export class ATProtoCardPublisher implements ICardPublisher {
   }
 
   /**
-   * Unpublishes (deletes) a Card from the AT Protocol
+   * Unpublishes (deletes) a Card from the curator's library in the AT Protocol
    */
-  async unpublish(
-    recordId: PublishedRecordId
+  async unpublishCardFromLibrary(
+    recordId: PublishedRecordId,
+    curatorId: CuratorId
   ): Promise<Result<void, UseCaseError>> {
     try {
       const publishedRecordId = recordId.getValue();
       const strongRef = new StrongRef(publishedRecordId);
       const atUri = strongRef.atUri;
-      const curatorDid = atUri.did;
-      const repo = atUri.did.toString();
+      const curatorDid = new DID(curatorId.value);
+      const repo = curatorDid.value;
       const rkey = atUri.rkey;
 
       // Get an authenticated agent for this curator

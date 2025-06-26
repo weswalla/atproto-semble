@@ -2,22 +2,25 @@ import { Result, ok, err } from "../../../../shared/core/Result";
 import { ICardRepository } from "../../domain/ICardRepository";
 import { Card } from "../../domain/Card";
 import { CardId } from "../../domain/value-objects/CardId";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
 import { URL } from "../../domain/value-objects/URL";
 
 export class InMemoryCardRepository implements ICardRepository {
   private cards: Map<string, Card> = new Map();
+  private shouldFail: boolean = false;
+  private shouldFailSave: boolean = false;
 
   private clone(card: Card): Card {
     // Simple clone - in a real implementation you'd want proper deep cloning
     const cardResult = Card.create(
       {
-        curatorId: card.curatorId,
         type: card.type,
         content: card.content,
         parentCardId: card.parentCardId,
-        publishedRecordId: card.publishedRecordId,
         url: card.url,
+        originalPublishedRecordId: card.originalPublishedRecordId,
+        libraryMemberships: card.libraryMemberships,
+        createdAt: card.createdAt,
+        updatedAt: card.updatedAt,
       },
       card.id
     );
@@ -30,6 +33,9 @@ export class InMemoryCardRepository implements ICardRepository {
   }
 
   async findById(id: CardId): Promise<Result<Card | null>> {
+    if (this.shouldFail) {
+      return err(new Error("Simulated find failure"));
+    }
     try {
       const card = this.cards.get(id.getStringValue());
       return ok(card ? this.clone(card) : null);
@@ -50,18 +56,7 @@ export class InMemoryCardRepository implements ICardRepository {
     }
   }
 
-  async findByCuratorId(curatorId: CuratorId): Promise<Result<Card[]>> {
-    try {
-      const cards = Array.from(this.cards.values()).filter(
-        (card) => card.curatorId.value === curatorId.value
-      );
-      return ok(cards.map((card) => this.clone(card)));
-    } catch (error) {
-      return err(error as Error);
-    }
-  }
-
-  async findByUrl(url: URL): Promise<Result<Card | null>> {
+  async findUrlCardByUrl(url: URL): Promise<Result<Card | null>> {
     try {
       const card = Array.from(this.cards.values()).find(
         (card) =>
@@ -75,6 +70,9 @@ export class InMemoryCardRepository implements ICardRepository {
   }
 
   async save(card: Card): Promise<Result<void>> {
+    if (this.shouldFailSave || this.shouldFail) {
+      return err(new Error("Simulated save failure"));
+    }
     try {
       this.cards.set(card.cardId.getStringValue(), this.clone(card));
       return ok(undefined);
@@ -92,9 +90,19 @@ export class InMemoryCardRepository implements ICardRepository {
     }
   }
 
+  setShouldFail(shouldFail: boolean): void {
+    this.shouldFail = shouldFail;
+  }
+
+  setShouldFailSave(shouldFailSave: boolean): void {
+    this.shouldFailSave = shouldFailSave;
+  }
+
   // Helper methods for testing
   public clear(): void {
     this.cards.clear();
+    this.shouldFail = false;
+    this.shouldFailSave = false;
   }
 
   public getStoredCard(id: CardId): Card | undefined {

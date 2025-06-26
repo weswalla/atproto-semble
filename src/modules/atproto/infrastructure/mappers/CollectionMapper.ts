@@ -10,7 +10,7 @@ export class CollectionMapper {
       name: collection.name.value,
       description: collection.description?.value,
       accessType: collection.accessType,
-      collaboratorIds: collection.collaboratorIds.map(
+      collaborators: collection.collaboratorIds.map(
         (collaborator) => collaborator.value
       ),
       createdAt: collection.createdAt.toISOString(),

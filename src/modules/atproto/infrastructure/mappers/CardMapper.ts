@@ -7,6 +7,7 @@ import {
   NoteContent,
   UrlMetadata,
 } from "../lexicon/types/network/cosmik/card";
+import { StrongRef } from "../../domain";
 
 type CardRecordDTO = Record;
 
@@ -29,6 +30,17 @@ export class CardMapper {
       // Note: This assumes the parent card is already published
       // In practice, you'd need to look up the parent card's published record ID
       throw new Error("Parent card publishing not yet implemented");
+    }
+
+    // Add optional original card reference
+    if (card.originalPublishedRecordId) {
+      const strongRef = new StrongRef(
+        card.originalPublishedRecordId.getValue()
+      );
+      record.originalCard = {
+        uri: strongRef.getValue().uri,
+        cid: strongRef.getValue().cid,
+      };
     }
 
     return record;
@@ -56,8 +68,11 @@ export class CardMapper {
           text: noteContent.text,
         };
 
-        if (noteContent.title) {
-          noteContentDTO.title = noteContent.title;
+        // Add originalCard reference if this note references another card
+        if (card.parentCardId) {
+          // Note: This assumes the parent card is already published
+          // In practice, you'd need to look up the parent card's published record ID
+          throw new Error("Parent card publishing not yet implemented");
         }
 
         return noteContentDTO;

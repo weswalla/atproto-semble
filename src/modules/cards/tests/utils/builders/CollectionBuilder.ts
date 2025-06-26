@@ -36,13 +36,33 @@ export class CollectionBuilder {
     return this;
   }
 
-  withAccessType(accessType: CollectionAccessType): CollectionBuilder {
-    this._accessType = accessType;
+  withAccessType(accessType: CollectionAccessType | string): CollectionBuilder {
+    if (typeof accessType === 'string') {
+      // Handle string values like "OPEN", "CLOSED"
+      this._accessType = accessType === 'OPEN' ? CollectionAccessType.OPEN : CollectionAccessType.CLOSED;
+    } else {
+      this._accessType = accessType;
+    }
     return this;
   }
 
   withCollaborators(collaborators: string[]): CollectionBuilder {
     this._collaborators = collaborators;
+    return this;
+  }
+
+  withPublished(published: boolean): CollectionBuilder {
+    if (published) {
+      // Create a fake published record ID when marking as published
+      const fakeUri = `at://fake-did/network.cosmik.collection/${this._id?.toString() || 'fake-id'}`;
+      const fakeCid = `fake-collection-cid-${this._id?.toString() || 'fake-id'}`;
+      this._publishedRecordId = PublishedRecordId.create({
+        uri: fakeUri,
+        cid: fakeCid,
+      });
+    } else {
+      this._publishedRecordId = undefined;
+    }
     return this;
   }
 

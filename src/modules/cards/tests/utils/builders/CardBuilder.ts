@@ -1,9 +1,6 @@
 import { Card } from "../../../domain/Card";
 import { CardType, CardTypeEnum } from "../../../domain/value-objects/CardType";
-import {
-  CardContent,
-  HighlightSelector,
-} from "../../../domain/value-objects/CardContent";
+import { CardContent } from "../../../domain/value-objects/CardContent";
 import { CardId } from "../../../domain/value-objects/CardId";
 import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
 import { URL } from "../../../domain/value-objects/URL";
@@ -18,7 +15,7 @@ export class CardBuilder {
   private _content?: CardContent;
   private _url?: URL;
   private _parentCardId?: CardId;
-  private _publishedRecordId?: PublishedRecordId;
+  private _originalPublishedRecordId?: PublishedRecordId;
   private _createdAt?: Date;
   private _updatedAt?: Date;
 
@@ -32,6 +29,30 @@ export class CardBuilder {
     return this;
   }
 
+  withType(type: CardTypeEnum): CardBuilder {
+    this._type = type;
+    // Create default content based on type if not already set
+    if (!this._content) {
+      if (type === CardTypeEnum.URL) {
+        const defaultUrl = URL.create("https://example.com").unwrap();
+        this._url = defaultUrl;
+        const contentResult = CardContent.createUrlContent(defaultUrl);
+        if (contentResult.isOk()) {
+          this._content = contentResult.value;
+        }
+      } else if (type === CardTypeEnum.NOTE) {
+        const curatorIdResult = CuratorId.create(this._curatorId);
+        if (curatorIdResult.isOk()) {
+          const contentResult = CardContent.createNoteContent("Default note text", undefined, curatorIdResult.value);
+          if (contentResult.isOk()) {
+            this._content = contentResult.value;
+          }
+        }
+      }
+    }
+    return this;
+  }
+
   withUrl(url: URL): CardBuilder {
     this._url = url;
     return this;
@@ -42,11 +63,13 @@ export class CardBuilder {
     return this;
   }
 
-  withPublishedRecordId(publishedRecordId: {
+  withOriginalPublishedRecordId(originalPublishedRecordId: {
     uri: string;
     cid: string;
   }): CardBuilder {
-    this._publishedRecordId = PublishedRecordId.create(publishedRecordId);
+    this._originalPublishedRecordId = PublishedRecordId.create(
+      originalPublishedRecordId
+    );
     return this;
   }
 
@@ -86,34 +109,34 @@ export class CardBuilder {
     return this;
   }
 
-  withHighlightCard(
-    text: string,
-    selectors: HighlightSelector[],
-    options?: {
-      context?: string;
-      documentUrl?: string;
-      documentTitle?: string;
-    }
-  ): CardBuilder {
-    this._type = CardTypeEnum.HIGHLIGHT;
-    const contentResult = CardContent.createHighlightContent(
-      text,
-      selectors,
-      options
-    );
-    if (contentResult.isErr()) {
-      throw new Error(
-        `Failed to create highlight content: ${contentResult.error.message}`
-      );
-    }
-    this._content = contentResult.value;
-    return this;
-  }
-
   build(): Card | Error {
     try {
+      // Create default content if not set
       if (!this._content) {
-        return new Error("Card content is required");
+        const curatorIdResult = CuratorId.create(this._curatorId);
+        if (curatorIdResult.isErr()) {
+          return new Error(
+            `Invalid curator ID: ${curatorIdResult.error.message}`
+          );
+        }
+
+        if (this._type === CardTypeEnum.URL) {
+          const defaultUrl = this._url || URL.create("https://example.com").unwrap();
+          this._url = defaultUrl;
+          const contentResult = CardContent.createUrlContent(defaultUrl);
+          if (contentResult.isErr()) {
+            return new Error(`Failed to create URL content: ${contentResult.error.message}`);
+          }
+          this._content = contentResult.value;
+        } else if (this._type === CardTypeEnum.NOTE) {
+          const contentResult = CardContent.createNoteContent("Default note text", undefined, curatorIdResult.value);
+          if (contentResult.isErr()) {
+            return new Error(`Failed to create note content: ${contentResult.error.message}`);
+          }
+          this._content = contentResult.value;
+        } else {
+          return new Error("Card content is required for this card type");
+        }
       }
 
       const curatorIdResult = CuratorId.create(this._curatorId);
@@ -130,12 +153,13 @@ export class CardBuilder {
 
       const cardResult = Card.create(
         {
-          curatorId: curatorIdResult.value,
           type: cardTypeResult.value,
           content: this._content,
           url: this._url,
           parentCardId: this._parentCardId,
-          publishedRecordId: this._publishedRecordId,
+          originalPublishedRecordId: this._originalPublishedRecordId,
+          createdAt: this._createdAt,
+          updatedAt: this._updatedAt,
         },
         this._id
       );
@@ -145,11 +169,6 @@ export class CardBuilder {
       }
 
       const card = cardResult.value;
-
-      // Set published record ID if provided
-      if (this._publishedRecordId) {
-        card.markAsPublished(this._publishedRecordId);
-      }
 
       return card;
     } catch (error) {

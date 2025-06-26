@@ -10,13 +10,13 @@ import { publishedRecords } from "../../../../annotations/infrastructure/reposit
 
 export const cards: PgTableWithColumns<any> = pgTable("cards", {
   id: uuid("id").primaryKey(),
-  curatorId: text("curator_id").notNull(),
   type: text("type").notNull(), // URL, NOTE, HIGHLIGHT
   contentData: jsonb("content_data").notNull(),
+  url: text("url"), // Optional URL field for all card types
   parentCardId: uuid("parent_card_id").references(() => cards.id),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  publishedRecordId: uuid("published_record_id").references(
+  originalPublishedRecordId: uuid("original_published_record_id").references(
     () => publishedRecords.id
   ),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

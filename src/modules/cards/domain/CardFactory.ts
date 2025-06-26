@@ -1,4 +1,4 @@
-import { err, ok, Result } from "../../../shared/core/Result";
+import { err, Result } from "../../../shared/core/Result";
 import { Card, CardValidationError } from "./Card";
 import { CardType, CardTypeEnum } from "./value-objects/CardType";
 import { CardContent } from "./value-objects/CardContent";
@@ -6,17 +6,15 @@ import { CardId } from "./value-objects/CardId";
 import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
 import { URL } from "./value-objects/URL";
 import { UrlMetadata } from "./value-objects/UrlMetadata";
-import { HighlightSelector } from "./value-objects/content/HighlightCardContent";
-import { IMetadataService } from "./services/IMetadataService";
 
 // Define interfaces for the different card creation inputs
-interface IUrlCardInput {
+export interface IUrlCardInput {
   type: CardTypeEnum.URL;
   url: string;
-  metadata?: UrlMetadata;
+  metadata: UrlMetadata;
 }
 
-interface INoteCardInput {
+export interface INoteCardInput {
   type: CardTypeEnum.NOTE;
   text: string;
   title?: string;
@@ -24,22 +22,8 @@ interface INoteCardInput {
   url?: string;
 }
 
-interface IHighlightCardInput {
-  type: CardTypeEnum.HIGHLIGHT;
-  text: string;
-  selectors: HighlightSelector[];
-  parentCardId: string;
-  context?: string;
-  documentUrl?: string;
-  documentTitle?: string;
-  url?: string;
-}
-
 // Union type for all possible card creation inputs
-export type CardCreationInput =
-  | IUrlCardInput
-  | INoteCardInput
-  | IHighlightCardInput;
+export type CardCreationInput = IUrlCardInput | INoteCardInput;
 
 interface CreateCardProps {
   curatorId: string;
@@ -72,7 +56,7 @@ export class CardFactory {
       const cardType = cardTypeResult.value;
 
       // Create CardContent based on type
-      const contentResult = this.createCardContent(props.cardInput);
+      const contentResult = this.createCardContent(props.cardInput, curatorId);
       if (contentResult.isErr()) {
         return err(contentResult.error);
       }
@@ -100,20 +84,16 @@ export class CardFactory {
         const urlResult = URL.create(props.cardInput.url);
         if (urlResult.isErr()) {
           return err(
-            new CardValidationError(
-              `Invalid URL: ${urlResult.error.message}`
-            )
+            new CardValidationError(`Invalid URL: ${urlResult.error.message}`)
           );
         }
         url = urlResult.value;
-      } else if ('url' in props.cardInput && props.cardInput.url) {
+      } else if ("url" in props.cardInput && props.cardInput.url) {
         // Handle optional URL for NOTE and HIGHLIGHT cards
         const urlResult = URL.create(props.cardInput.url);
         if (urlResult.isErr()) {
           return err(
-            new CardValidationError(
-              `Invalid URL: ${urlResult.error.message}`
-            )
+            new CardValidationError(`Invalid URL: ${urlResult.error.message}`)
           );
         }
         url = urlResult.value;
@@ -121,7 +101,6 @@ export class CardFactory {
 
       // Create the card
       return Card.create({
-        curatorId,
         type: cardType,
         content,
         url,
@@ -137,17 +116,15 @@ export class CardFactory {
   }
 
   private static createCardContent(
-    cardInput: CardCreationInput
+    cardInput: CardCreationInput,
+    curatorId: CuratorId
   ): Result<CardContent, CardValidationError> {
     switch (cardInput.type) {
       case CardTypeEnum.URL:
         return this.createUrlContent(cardInput);
 
       case CardTypeEnum.NOTE:
-        return this.createNoteContent(cardInput);
-
-      case CardTypeEnum.HIGHLIGHT:
-        return this.createHighlightContent(cardInput);
+        return this.createNoteContent(cardInput, curatorId);
 
       default:
         return err(new CardValidationError("Invalid card type"));
@@ -170,7 +147,9 @@ export class CardFactory {
     // Require metadata for URL cards
     if (!input.metadata) {
       return err(
-        new CardValidationError("URL metadata is required for creating URL cards")
+        new CardValidationError(
+          "URL metadata is required for creating URL cards"
+        )
       );
     }
 
@@ -178,45 +157,16 @@ export class CardFactory {
   }
 
   private static createNoteContent(
-    input: INoteCardInput
+    input: INoteCardInput,
+    curatorId: CuratorId
   ): Result<CardContent, CardValidationError> {
-    return CardContent.createNoteContent(input.text, input.title);
-  }
-
-  private static createHighlightContent(
-    input: IHighlightCardInput
-  ): Result<CardContent, CardValidationError> {
-    return CardContent.createHighlightContent(input.text, input.selectors, {
-      context: input.context,
-      documentUrl: input.documentUrl,
-      documentTitle: input.documentTitle,
-    });
+    return CardContent.createNoteContent(input.text, input.title, curatorId);
   }
 
   // Type guards
   private static hasParentCardId(
     input: CardCreationInput
-  ): input is INoteCardInput | IHighlightCardInput {
+  ): input is INoteCardInput {
     return "parentCardId" in input && input.parentCardId !== undefined;
-  }
-
-  // Type guards for each card input type
-  private static isUrlCardInput(input: any): input is IUrlCardInput {
-    return input.type === CardTypeEnum.URL && typeof input.url === "string";
-  }
-
-  private static isNoteCardInput(input: any): input is INoteCardInput {
-    return input.type === CardTypeEnum.NOTE && typeof input.text === "string";
-  }
-
-  private static isHighlightCardInput(
-    input: any
-  ): input is IHighlightCardInput {
-    return (
-      input.type === CardTypeEnum.HIGHLIGHT &&
-      typeof input.text === "string" &&
-      Array.isArray(input.selectors) &&
-      typeof input.parentCardId === "string"
-    );
   }
 }

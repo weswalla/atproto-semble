@@ -1,5 +1,5 @@
 import { ATProtoCollectionPublisher } from "../publishers/ATProtoCollectionPublisher";
-import { ATProtoCardPublisher } from "../publishers/ATProtoCardPublisher";
+import { FakeCardPublisher } from "src/modules/cards/tests/utils/FakeCardPublisher";
 import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
 import { CollectionBuilder } from "src/modules/cards/tests/utils/builders/CollectionBuilder";
 import { CardBuilder } from "src/modules/cards/tests/utils/builders/CardBuilder";
@@ -19,10 +19,9 @@ dotenv.config({ path: ".env.test" });
 
 describe("ATProtoCollectionPublisher", () => {
   let collectionPublisher: ATProtoCollectionPublisher;
-  let cardPublisher: ATProtoCardPublisher;
+  let cardPublisher: FakeCardPublisher;
   let curatorId: CuratorId;
   let publishedCollectionIds: PublishedRecordId[] = [];
-  let publishedCardIds: PublishedRecordId[] = [];
   let publishedLinkIds: PublishedRecordId[] = [];
 
   beforeAll(async () => {
@@ -38,7 +37,7 @@ describe("ATProtoCollectionPublisher", () => {
     });
 
     collectionPublisher = new ATProtoCollectionPublisher(agentService);
-    cardPublisher = new ATProtoCardPublisher(agentService);
+    cardPublisher = new FakeCardPublisher();
     curatorId = CuratorId.create(process.env.BSKY_DID).unwrap();
   });
 
@@ -68,15 +67,8 @@ describe("ATProtoCollectionPublisher", () => {
       }
     }
 
-    // Clean up all published cards
-    for (const cardId of publishedCardIds) {
-      try {
-        await cardPublisher.unpublishCardFromLibrary(cardId, curatorId);
-        console.log(`Cleaned up card: ${cardId.getValue().uri}`);
-      } catch (error) {
-        console.warn(`Failed to clean up card: ${error}`);
-      }
-    }
+    // Clear fake card publisher
+    cardPublisher.clear();
   });
 
   describe("Collection Publishing", () => {
@@ -190,7 +182,6 @@ describe("ATProtoCollectionPublisher", () => {
       );
       expect(card1PublishResult.isOk()).toBe(true);
       const card1RecordId = card1PublishResult.unwrap();
-      publishedCardIds.push(card1RecordId);
       card1.markCardInLibraryAsPublished(curatorId, card1RecordId);
 
       const card2PublishResult = await cardPublisher.publishCardToLibrary(
@@ -199,7 +190,6 @@ describe("ATProtoCollectionPublisher", () => {
       );
       expect(card2PublishResult.isOk()).toBe(true);
       const card2RecordId = card2PublishResult.unwrap();
-      publishedCardIds.push(card2RecordId);
       card2.markCardInLibraryAsPublished(curatorId, card2RecordId);
 
       console.log(
@@ -289,7 +279,6 @@ describe("ATProtoCollectionPublisher", () => {
         );
         expect(card3PublishResult.isOk()).toBe(true);
         const card3RecordId = card3PublishResult.unwrap();
-        publishedCardIds.push(card3RecordId);
         card3.markCardInLibraryAsPublished(curatorId, card3RecordId);
 
         // Add the new card to the collection

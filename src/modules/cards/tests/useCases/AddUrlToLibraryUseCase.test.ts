@@ -184,6 +184,65 @@ describe("AddUrlToLibraryUseCase", () => {
       expect(publishedLinks).toHaveLength(1);
     });
 
+    it("should add URL card (not note card) to collections when note is provided", async () => {
+      // Create a test collection
+      const collection = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName("Test Collection")
+        .build();
+
+      if (collection instanceof Error) {
+        throw new Error(`Failed to create collection: ${collection.message}`);
+      }
+
+      await collectionRepository.save(collection);
+
+      const request = {
+        url: "https://example.com/article",
+        note: "This is my note about the article",
+        collectionIds: [collection.collectionId.getStringValue()],
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+
+      // Verify both URL and note cards were created
+      expect(response.urlCardId).toBeDefined();
+      expect(response.noteCardId).toBeDefined();
+
+      // Verify both cards were saved
+      const savedCards = cardRepository.getAllCards();
+      expect(savedCards).toHaveLength(2);
+
+      const urlCard = savedCards.find(
+        (card) => card.content.type === CardTypeEnum.URL
+      );
+      const noteCard = savedCards.find(
+        (card) => card.content.type === CardTypeEnum.NOTE
+      );
+
+      expect(urlCard).toBeDefined();
+      expect(noteCard).toBeDefined();
+
+      // Verify collection link was published for URL card only
+      const publishedLinks = collectionPublisher.getPublishedLinksForCollection(
+        collection.collectionId.getStringValue()
+      );
+      expect(publishedLinks).toHaveLength(1);
+
+      // Verify the published link is for the URL card, not the note card
+      const publishedLink = publishedLinks[0];
+      expect(publishedLink?.cardId).toBe(urlCard?.cardId.getStringValue());
+      expect(publishedLink?.cardId).not.toBe(noteCard?.cardId.getStringValue());
+
+      // Verify both cards are in the library
+      const publishedCards = cardPublisher.getPublishedCards();
+      expect(publishedCards).toHaveLength(2);
+    });
+
     it("should fail when collection does not exist", async () => {
       const request = {
         url: "https://example.com/article",

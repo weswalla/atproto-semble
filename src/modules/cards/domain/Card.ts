@@ -204,14 +204,20 @@ export class Card extends AggregateRoot<CardProps> {
     }
 
     membership.publishedRecordId = publishedRecordId;
-    
+
     // Set the original published record ID if it hasn't been set yet
     if (!this.props.originalPublishedRecordId) {
       this.props.originalPublishedRecordId = publishedRecordId;
     }
-    
+
     this.props.updatedAt = new Date();
 
     return ok(undefined);
+  }
+
+  public getLibraryInfo(userId: CuratorId): CardInLibraryLink | undefined {
+    return this.props.libraryMemberships.find((link) =>
+      link.curatorId.equals(userId)
+    );
   }
 }

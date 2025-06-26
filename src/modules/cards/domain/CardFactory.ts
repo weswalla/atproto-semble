@@ -9,13 +9,13 @@ import { UrlMetadata } from "./value-objects/UrlMetadata";
 import { HighlightSelector } from "./value-objects/content/HighlightCardContent";
 
 // Define interfaces for the different card creation inputs
-interface IUrlCardInput {
+export interface IUrlCardInput {
   type: CardTypeEnum.URL;
   url: string;
   metadata?: UrlMetadata;
 }
 
-interface INoteCardInput {
+export interface INoteCardInput {
   type: CardTypeEnum.NOTE;
   text: string;
   title?: string;

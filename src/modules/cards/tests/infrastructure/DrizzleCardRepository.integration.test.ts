@@ -383,7 +383,9 @@ describe("DrizzleCardRepository", () => {
 
     const foundCard = foundResult.unwrap();
     expect(foundCard).not.toBeNull();
-    expect(foundCard?.cardId.getStringValue()).toBe(card.cardId.getStringValue());
+    expect(foundCard?.cardId.getStringValue()).toBe(
+      card.cardId.getStringValue()
+    );
     expect(foundCard?.content.type).toBe(CardTypeEnum.URL);
     expect(foundCard?.content.urlContent?.url.value).toBe(url.value);
   });
@@ -399,7 +401,8 @@ describe("DrizzleCardRepository", () => {
   it("should not find note cards when searching by URL", async () => {
     // Create a note card with a URL (but it's not a URL card type)
     const url = URL.create("https://example.com/note-url").unwrap();
-    const noteContent = CardContent.createNoteContent("Note about a URL").unwrap();
+    const noteContent =
+      CardContent.createNoteContent("Note about a URL").unwrap();
     const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
 
     const cardResult = Card.create({

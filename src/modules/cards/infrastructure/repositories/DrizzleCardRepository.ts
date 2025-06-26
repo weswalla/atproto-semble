@@ -8,6 +8,7 @@ import { libraryMemberships } from "./schema/libraryMembership.sql";
 import { publishedRecords } from "../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
 import { CardDTO, CardMapper } from "./mappers/CardMapper";
 import { Result, ok, err } from "../../../../shared/core/Result";
+import { URL } from "../../domain/value-objects/URL";
 
 export class DrizzleCardRepository implements ICardRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -57,7 +58,7 @@ export class DrizzleCardRepository implements ICardRepository {
           .from(publishedRecords)
           .where(eq(publishedRecords.id, result.originalPublishedRecordId))
           .limit(1);
-        
+
         if (originalRecordResult.length > 0) {
           originalPublishedRecord = originalRecordResult[0];
         }
@@ -69,10 +70,12 @@ export class DrizzleCardRepository implements ICardRepository {
         contentData: result.contentData,
         url: result.url || undefined,
         parentCardId: result.parentCardId || undefined,
-        originalPublishedRecordId: originalPublishedRecord ? {
-          uri: originalPublishedRecord.uri,
-          cid: originalPublishedRecord.cid,
-        } : undefined,
+        originalPublishedRecordId: originalPublishedRecord
+          ? {
+              uri: originalPublishedRecord.uri,
+              cid: originalPublishedRecord.cid,
+            }
+          : undefined,
         libraryMemberships: membershipResults.map((membership) => ({
           userId: membership.userId,
           addedAt: membership.addedAt,
@@ -185,7 +188,10 @@ export class DrizzleCardRepository implements ICardRepository {
               actualRecordId = membershipRecordResult[0]!.id;
             }
 
-            membershipPublishedRecordMap.set(membershipRecord.id, actualRecordId);
+            membershipPublishedRecordMap.set(
+              membershipRecord.id,
+              actualRecordId
+            );
           }
         }
 
@@ -214,17 +220,22 @@ export class DrizzleCardRepository implements ICardRepository {
           .where(eq(libraryMemberships.cardId, cardData.id));
 
         if (membershipData.length > 0) {
-          const membershipDataWithMappedRecords = membershipData.map((membership) => ({
-            cardId: membership.cardId,
-            userId: membership.userId,
-            addedAt: membership.addedAt,
-            publishedRecordId: membership.publishedRecordId
-              ? membershipPublishedRecordMap.get(membership.publishedRecordId) ||
-                membership.publishedRecordId
-              : null,
-          }));
+          const membershipDataWithMappedRecords = membershipData.map(
+            (membership) => ({
+              cardId: membership.cardId,
+              userId: membership.userId,
+              addedAt: membership.addedAt,
+              publishedRecordId: membership.publishedRecordId
+                ? membershipPublishedRecordMap.get(
+                    membership.publishedRecordId
+                  ) || membership.publishedRecordId
+                : null,
+            })
+          );
 
-          await tx.insert(libraryMemberships).values(membershipDataWithMappedRecords);
+          await tx
+            .insert(libraryMemberships)
+            .values(membershipDataWithMappedRecords);
         }
       });
 
@@ -289,7 +300,7 @@ export class DrizzleCardRepository implements ICardRepository {
           .from(publishedRecords)
           .where(eq(publishedRecords.id, result.originalPublishedRecordId))
           .limit(1);
-        
+
         if (originalRecordResult.length > 0) {
           originalPublishedRecord = originalRecordResult[0];
         }
@@ -301,10 +312,12 @@ export class DrizzleCardRepository implements ICardRepository {
         contentData: result.contentData,
         url: result.url || undefined,
         parentCardId: result.parentCardId || undefined,
-        originalPublishedRecordId: originalPublishedRecord ? {
-          uri: originalPublishedRecord.uri,
-          cid: originalPublishedRecord.cid,
-        } : undefined,
+        originalPublishedRecordId: originalPublishedRecord
+          ? {
+              uri: originalPublishedRecord.uri,
+              cid: originalPublishedRecord.cid,
+            }
+          : undefined,
         libraryMemberships: membershipResults.map((membership) => ({
           userId: membership.userId,
           addedAt: membership.addedAt,

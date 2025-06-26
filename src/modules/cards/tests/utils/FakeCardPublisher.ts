@@ -10,13 +10,20 @@ export class FakeCardPublisher implements ICardPublisher {
   private publishedRecords: Map<string, Card> = new Map();
   private shouldFail: boolean = false;
   private shouldFailUnpublish: boolean = false;
+  private unpublishedRecords: Array<{
+    cardId: string;
+    uri: string;
+    cid: string;
+  }> = [];
 
   async publishCardToLibrary(
     card: Card,
     curatorId: CuratorId
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     if (this.shouldFail) {
-      return err(AppError.UnexpectedError.create(new Error("Simulated publish failure")));
+      return err(
+        AppError.UnexpectedError.create(new Error("Simulated publish failure"))
+      );
     }
 
     const cardId = card.cardId.getStringValue();
@@ -32,7 +39,9 @@ export class FakeCardPublisher implements ICardPublisher {
     const compositeKey = fakeUri + fakeCid;
     this.publishedRecords.set(compositeKey, card);
 
-    console.log(`[FakeCardPublisher] Published card ${cardId} to curator ${curatorId.value} library at ${fakeUri}`);
+    console.log(
+      `[FakeCardPublisher] Published card ${cardId} to curator ${curatorId.value} library at ${fakeUri}`
+    );
     return ok(publishedRecordId);
   }
 
@@ -41,20 +50,28 @@ export class FakeCardPublisher implements ICardPublisher {
     curatorId: CuratorId
   ): Promise<Result<void, UseCaseError>> {
     if (this.shouldFailUnpublish) {
-      return err(AppError.UnexpectedError.create(new Error("Simulated unpublish failure")));
+      return err(
+        AppError.UnexpectedError.create(
+          new Error("Simulated unpublish failure")
+        )
+      );
     }
 
     const compositeKey = recordId.uri + recordId.cid;
+    let card: Card | undefined;
     if (this.publishedRecords.has(compositeKey)) {
+      card = this.publishedRecords.get(compositeKey);
       this.publishedRecords.delete(compositeKey);
-      console.log(`[FakeCardPublisher] Unpublished record ${recordId.uri} from curator ${curatorId.value} library`);
-      return ok(undefined);
-    } else {
-      console.warn(
-        `[FakeCardPublisher] Record not found for unpublishing: ${recordId.uri}`
+      console.log(
+        `[FakeCardPublisher] Unpublished record ${recordId.uri} from curator ${curatorId.value} library`
       );
-      return ok(undefined);
     }
+    this.unpublishedRecords.push({
+      cardId: card?.cardId.getStringValue() || "",
+      uri: recordId.uri,
+      cid: recordId.cid,
+    });
+    return ok(undefined);
   }
 
   setShouldFail(shouldFail: boolean): void {
@@ -75,9 +92,9 @@ export class FakeCardPublisher implements ICardPublisher {
     return Array.from(this.publishedRecords.values());
   }
 
-  getUnpublishedCards(): Array<{ cardId: string; curatorId: string }> {
+  getUnpublishedCards(): Array<{ cardId: string; uri: string; cid: string }> {
     // For testing purposes, track unpublished cards
     // This is a simplified implementation for test verification
-    return [];
+    return this.unpublishedRecords;
   }
 }

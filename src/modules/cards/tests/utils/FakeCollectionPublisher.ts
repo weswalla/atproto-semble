@@ -22,7 +22,11 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     collection: Collection
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     if (this.shouldFail) {
-      return err(AppError.UnexpectedError.create(new Error("Simulated collection publish failure")));
+      return err(
+        AppError.UnexpectedError.create(
+          new Error("Simulated collection publish failure")
+        )
+      );
     }
 
     const collectionId = collection.collectionId.getStringValue();
@@ -52,7 +56,11 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     curatorId: CuratorId
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     if (this.shouldFail) {
-      return err(AppError.UnexpectedError.create(new Error("Simulated card-collection link publish failure")));
+      return err(
+        AppError.UnexpectedError.create(
+          new Error("Simulated card-collection link publish failure")
+        )
+      );
     }
 
     const collectionId = collection.collectionId.getStringValue();
@@ -86,7 +94,11 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     recordId: PublishedRecordId
   ): Promise<Result<void, UseCaseError>> {
     if (this.shouldFailUnpublish) {
-      return err(AppError.UnexpectedError.create(new Error("Simulated card-collection link unpublish failure")));
+      return err(
+        AppError.UnexpectedError.create(
+          new Error("Simulated card-collection link unpublish failure")
+        )
+      );
     }
 
     // Find and remove the link by its published record ID
@@ -117,7 +129,11 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     recordId: PublishedRecordId
   ): Promise<Result<void, UseCaseError>> {
     if (this.shouldFailUnpublish) {
-      return err(AppError.UnexpectedError.create(new Error("Simulated collection unpublish failure")));
+      return err(
+        AppError.UnexpectedError.create(
+          new Error("Simulated collection unpublish failure")
+        )
+      );
     }
 
     // Find and remove the collection by its published record ID
@@ -137,6 +153,16 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
         );
         return ok(undefined);
       }
+    }
+    if (this.publishedCollections.size === 0) {
+      this.unpublishedCollections.push({
+        uri: recordId.uri,
+        cid: recordId.cid,
+      });
+      console.log(
+        `[FakeCollectionPublisher] Unpublished collection ${recordId.uri} (not found in published collections)`
+      );
+      return ok(undefined);
     }
 
     console.warn(
@@ -176,8 +202,12 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     return this.unpublishedCollections;
   }
 
-  getRemovedLinksForCollection(collectionId: string): Array<{ cardId: string; collectionId: string }> {
-    return this.removedLinks.filter(link => link.collectionId === collectionId);
+  getRemovedLinksForCollection(
+    collectionId: string
+  ): Array<{ cardId: string; collectionId: string }> {
+    return this.removedLinks.filter(
+      (link) => link.collectionId === collectionId
+    );
   }
 
   getAllRemovedLinks(): Array<{ cardId: string; collectionId: string }> {

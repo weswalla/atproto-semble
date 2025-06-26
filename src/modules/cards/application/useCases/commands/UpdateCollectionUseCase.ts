@@ -90,26 +90,11 @@ export class UpdateCollectionUseCase
         );
       }
 
-      // Validate and create new name
-      const nameResult = CollectionName.create(request.name);
-      if (nameResult.isErr()) {
-        return err(new ValidationError(nameResult.error.message));
+      // Update collection details using domain method
+      const updateResult = collection.updateDetails(request.name, request.description);
+      if (updateResult.isErr()) {
+        return err(new ValidationError(updateResult.error.message));
       }
-
-      // Validate and create new description if provided
-      let description: CollectionDescription | undefined;
-      if (request.description) {
-        const descriptionResult = CollectionDescription.create(request.description);
-        if (descriptionResult.isErr()) {
-          return err(new ValidationError(descriptionResult.error.message));
-        }
-        description = descriptionResult.value;
-      }
-
-      // Update collection properties
-      (collection as any).props.name = nameResult.value;
-      (collection as any).props.description = description;
-      (collection as any).props.updatedAt = new Date();
 
       // Save updated collection
       const saveResult = await this.collectionRepository.save(collection);

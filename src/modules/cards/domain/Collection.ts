@@ -311,6 +311,36 @@ export class Collection extends AggregateRoot<CollectionProps> {
     this.props.updatedAt = new Date();
   }
 
+  public updateDetails(
+    name: string,
+    description?: string
+  ): Result<void, CollectionValidationError> {
+    // Validate and create CollectionName
+    const nameResult = CollectionName.create(name);
+    if (nameResult.isErr()) {
+      return err(new CollectionValidationError(nameResult.error.message));
+    }
+
+    // Validate and create CollectionDescription if provided
+    let newDescription: CollectionDescription | undefined;
+    if (description) {
+      const descriptionResult = CollectionDescription.create(description);
+      if (descriptionResult.isErr()) {
+        return err(
+          new CollectionValidationError(descriptionResult.error.message)
+        );
+      }
+      newDescription = descriptionResult.value;
+    }
+
+    // Update properties
+    this.props.name = nameResult.value;
+    this.props.description = newDescription;
+    this.props.updatedAt = new Date();
+
+    return ok(undefined);
+  }
+
   public getUnpublishedCardLinks(): CardLink[] {
     return this.props.cardLinks.filter((link) => !link.publishedRecordId);
   }

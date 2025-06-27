@@ -4,12 +4,15 @@ import { UseCaseError } from "../../../../../shared/core/UseCaseError";
 import { AppError } from "../../../../../shared/core/AppError";
 import { ICardRepository } from "../../../domain/ICardRepository";
 import { CardId } from "../../../domain/value-objects/CardId";
+import { CollectionId } from "../../../domain/value-objects/CollectionId";
 import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
 import { CardLibraryService } from "../../../domain/services/CardLibraryService";
+import { CardCollectionService } from "../../../domain/services/CardCollectionService";
 
 export interface AddCardToLibraryDTO {
   cardId: string;
   curatorId: string;
+  collectionIds?: string[];
 }
 
 export interface AddCardToLibraryResponseDTO {
@@ -34,7 +37,8 @@ export class AddCardToLibraryUseCase
 {
   constructor(
     private cardRepository: ICardRepository,
-    private cardLibraryService: CardLibraryService
+    private cardLibraryService: CardLibraryService,
+    private cardCollectionService: CardCollectionService
   ) {}
 
   async execute(
@@ -89,6 +93,36 @@ export class AddCardToLibraryUseCase
           return err(addToLibraryResult.error);
         }
         return err(new ValidationError(addToLibraryResult.error.message));
+      }
+
+      // Handle collection additions if specified
+      if (request.collectionIds && request.collectionIds.length > 0) {
+        // Validate and create CollectionIds
+        const collectionIds: CollectionId[] = [];
+        for (const collectionIdStr of request.collectionIds) {
+          const collectionIdResult = CollectionId.createFromString(collectionIdStr);
+          if (collectionIdResult.isErr()) {
+            return err(
+              new ValidationError(
+                `Invalid collection ID: ${collectionIdResult.error.message}`
+              )
+            );
+          }
+          collectionIds.push(collectionIdResult.value);
+        }
+
+        // Add card to collections using domain service
+        const addToCollectionsResult = await this.cardCollectionService.addCardToCollections(
+          card,
+          collectionIds,
+          curatorId
+        );
+        if (addToCollectionsResult.isErr()) {
+          if (addToCollectionsResult.error instanceof AppError.UnexpectedError) {
+            return err(addToCollectionsResult.error);
+          }
+          return err(new ValidationError(addToCollectionsResult.error.message));
+        }
       }
 
       return ok({

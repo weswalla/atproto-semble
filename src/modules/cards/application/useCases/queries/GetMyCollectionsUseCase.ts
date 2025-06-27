@@ -15,11 +15,6 @@ export interface GetMyCollectionsQuery {
   sortOrder?: SortOrder;
 }
 
-export interface CollectionContributorDTO {
-  name: string;
-  userId: string;
-}
-
 export interface CollectionListItemDTO {
   id: string;
   name: string;
@@ -27,7 +22,11 @@ export interface CollectionListItemDTO {
   updatedAt: Date;
   createdAt: Date;
   cardCount: number;
-  contributors: CollectionContributorDTO[];
+  createdBy: {
+    id: string;
+    name: string;
+    avatarUrl?: string;
+  };
 }
 
 export interface GetMyCollectionsResult {

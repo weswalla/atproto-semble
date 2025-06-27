@@ -2,6 +2,8 @@ import { Router } from "express";
 import { createCardRoutes } from "./cardRoutes";
 import { createCollectionRoutes } from "./collectionRoutes";
 import { AddUrlToLibraryController } from "../controllers/AddUrlToLibraryController";
+import { AddCardToLibraryController } from "../controllers/AddCardToLibraryController";
+import { AddCardToCollectionController } from "../controllers/AddCardToCollectionController";
 import { UpdateNoteCardController } from "../controllers/UpdateNoteCardController";
 import { RemoveCardFromLibraryController } from "../controllers/RemoveCardFromLibraryController";
 import { RemoveCardFromCollectionController } from "../controllers/RemoveCardFromCollectionController";
@@ -14,6 +16,8 @@ export function createCardsModuleRoutes(
   authMiddleware: AuthMiddleware,
   // Card controllers
   addUrlToLibraryController: AddUrlToLibraryController,
+  addCardToLibraryController: AddCardToLibraryController,
+  addCardToCollectionController: AddCardToCollectionController,
   updateNoteCardController: UpdateNoteCardController,
   removeCardFromLibraryController: RemoveCardFromLibraryController,
   removeCardFromCollectionController: RemoveCardFromCollectionController,
@@ -30,6 +34,8 @@ export function createCardsModuleRoutes(
     createCardRoutes(
       authMiddleware,
       addUrlToLibraryController,
+      addCardToLibraryController,
+      addCardToCollectionController,
       updateNoteCardController,
       removeCardFromLibraryController,
       removeCardFromCollectionController

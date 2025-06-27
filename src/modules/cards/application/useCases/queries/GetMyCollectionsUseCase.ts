@@ -1,6 +1,11 @@
 import { CuratorId } from "src/modules/annotations/domain/value-objects";
 import { err, ok, Result } from "src/shared/core/Result";
 import { UseCase } from "src/shared/core/UseCase";
+import {
+  ICollectionQueryRepository,
+  CollectionSortField,
+  SortOrder,
+} from "../../repositories/ICollectionQueryRepository";
 
 export interface GetMyCollectionsQuery {
   curatorId: string;
@@ -8,18 +13,6 @@ export interface GetMyCollectionsQuery {
   limit?: number;
   sortBy?: CollectionSortField;
   sortOrder?: SortOrder;
-}
-
-export enum CollectionSortField {
-  NAME = "name",
-  CREATED_AT = "createdAt",
-  UPDATED_AT = "updatedAt",
-  CARD_COUNT = "cardCount",
-}
-
-export enum SortOrder {
-  ASC = "asc",
-  DESC = "desc",
 }
 
 export interface CollectionContributorDTO {
@@ -50,26 +43,6 @@ export interface GetMyCollectionsResult {
     sortBy: CollectionSortField;
     sortOrder: SortOrder;
   };
-}
-
-export interface CollectionQueryOptions {
-  page: number;
-  limit: number;
-  sortBy: CollectionSortField;
-  sortOrder: SortOrder;
-}
-
-export interface PaginatedQueryResult<T> {
-  items: T[];
-  totalCount: number;
-  hasMore: boolean;
-}
-
-export interface ICollectionQueryRepository {
-  findByOwner(
-    curatorId: string,
-    options: CollectionQueryOptions
-  ): Promise<PaginatedQueryResult<CollectionListItemDTO>>;
 }
 
 export class ValidationError extends Error {

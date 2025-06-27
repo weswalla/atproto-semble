@@ -193,12 +193,14 @@ describe("AddCardToLibraryUseCase", () => {
       expect(publishedCards).toHaveLength(1);
 
       // Verify collection links were published for both collections
-      const publishedLinks1 = collectionPublisher.getPublishedLinksForCollection(
-        collection1.collectionId.getStringValue()
-      );
-      const publishedLinks2 = collectionPublisher.getPublishedLinksForCollection(
-        collection2.collectionId.getStringValue()
-      );
+      const publishedLinks1 =
+        collectionPublisher.getPublishedLinksForCollection(
+          collection1.collectionId.getStringValue()
+        );
+      const publishedLinks2 =
+        collectionPublisher.getPublishedLinksForCollection(
+          collection2.collectionId.getStringValue()
+        );
 
       expect(publishedLinks1).toHaveLength(1);
       expect(publishedLinks2).toHaveLength(1);
@@ -277,7 +279,7 @@ describe("AddCardToLibraryUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Invalid card ID");
+        expect(result.error.message).toContain("invalid-card-id");
       }
     });
 
@@ -330,7 +332,7 @@ describe("AddCardToLibraryUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Invalid collection ID");
+        expect(result.error.message).toContain("invalid-collection-id");
       }
     });
   });

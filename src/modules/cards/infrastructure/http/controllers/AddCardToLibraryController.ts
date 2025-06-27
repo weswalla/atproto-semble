@@ -10,7 +10,7 @@ export class AddCardToLibraryController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { cardId } = req.body;
+      const { cardId, collectionIds } = req.body;
       const curatorId = req.did;
       
       if (!curatorId) {
@@ -21,8 +21,14 @@ export class AddCardToLibraryController extends Controller {
         return this.badRequest(res, "Card ID is required");
       }
 
+      // collectionIds is optional, but if provided should be an array
+      if (collectionIds !== undefined && !Array.isArray(collectionIds)) {
+        return this.badRequest(res, "Collection IDs must be an array");
+      }
+
       const result = await this.addCardToLibraryUseCase.execute({
         cardId,
+        collectionIds,
         curatorId,
       });
 

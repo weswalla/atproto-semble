@@ -213,4 +213,12 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
   getAllRemovedLinks(): Array<{ cardId: string; collectionId: string }> {
     return this.removedLinks;
   }
+  getAllPublishedLinks() {
+    const allLinks: Array<{ cardId: string; linkRecord: PublishedRecordId }> =
+      [];
+    for (const links of this.publishedLinks.values()) {
+      allLinks.push(...links);
+    }
+    return allLinks;
+  }
 }

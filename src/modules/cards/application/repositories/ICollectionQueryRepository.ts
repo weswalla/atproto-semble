@@ -1,5 +1,3 @@
-import { CollectionListItemDTO } from "../useCases/queries/GetMyCollectionsUseCase";
-
 export interface CollectionQueryOptions {
   page: number;
   limit: number;
@@ -25,9 +23,20 @@ export enum SortOrder {
   DESC = "desc",
 }
 
+// Raw data from repository - minimal, just what's stored
+export interface CollectionQueryResultDTO {
+  id: string;
+  name: string;
+  description?: string;
+  updatedAt: Date;
+  createdAt: Date;
+  cardCount: number;
+  authorId: string; // Just the curator ID, not enriched data
+}
+
 export interface ICollectionQueryRepository {
   findByOwner(
     curatorId: string,
     options: CollectionQueryOptions
-  ): Promise<PaginatedQueryResult<CollectionListItemDTO>>;
+  ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>>;
 }

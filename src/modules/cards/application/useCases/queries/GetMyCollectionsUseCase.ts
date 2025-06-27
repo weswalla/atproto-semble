@@ -3,6 +3,7 @@ import { err, ok, Result } from "src/shared/core/Result";
 import { UseCase } from "src/shared/core/UseCase";
 import {
   ICollectionQueryRepository,
+  CollectionQueryResultDTO,
   CollectionSortField,
   SortOrder,
 } from "../../repositories/ICollectionQueryRepository";
@@ -15,6 +16,7 @@ export interface GetMyCollectionsQuery {
   sortOrder?: SortOrder;
 }
 
+// Enriched data for the final use case result
 export interface CollectionListItemDTO {
   id: string;
   name: string;
@@ -27,6 +29,17 @@ export interface CollectionListItemDTO {
     name: string;
     avatarUrl?: string;
   };
+}
+
+// Service interface for enriching curator data
+export interface ICuratorEnrichmentService {
+  enrichCurators(curatorIds: string[]): Promise<Map<string, CuratorInfo>>;
+}
+
+export interface CuratorInfo {
+  id: string;
+  name: string;
+  avatarUrl?: string;
 }
 
 export interface GetMyCollectionsResult {
@@ -54,7 +67,10 @@ export class ValidationError extends Error {
 export class GetMyCollectionsUseCase
   implements UseCase<GetMyCollectionsQuery, Result<GetMyCollectionsResult>>
 {
-  constructor(private collectionQueryRepo: ICollectionQueryRepository) {}
+  constructor(
+    private collectionQueryRepo: ICollectionQueryRepository,
+    private curatorEnrichmentService: ICuratorEnrichmentService
+  ) {}
 
   async execute(
     query: GetMyCollectionsQuery
@@ -72,7 +88,7 @@ export class GetMyCollectionsUseCase
     }
 
     try {
-      // Execute query
+      // Execute query to get raw collection data
       const result = await this.collectionQueryRepo.findByOwner(
         query.curatorId,
         {
@@ -83,8 +99,28 @@ export class GetMyCollectionsUseCase
         }
       );
 
+      // Extract unique curator IDs for enrichment
+      const curatorIds = [...new Set(result.items.map(item => item.authorId))];
+      
+      // Enrich curator data
+      const curatorInfoMap = await this.curatorEnrichmentService.enrichCurators(curatorIds);
+
+      // Transform raw data to enriched DTOs
+      const enrichedCollections: CollectionListItemDTO[] = result.items.map(item => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        updatedAt: item.updatedAt,
+        createdAt: item.createdAt,
+        cardCount: item.cardCount,
+        createdBy: curatorInfoMap.get(item.authorId) || {
+          id: item.authorId,
+          name: "Unknown User", // Fallback
+        },
+      }));
+
       return ok({
-        collections: result.items,
+        collections: enrichedCollections,
         pagination: {
           currentPage: page,
           totalPages: Math.ceil(result.totalCount / limit),

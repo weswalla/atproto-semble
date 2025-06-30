@@ -5,6 +5,7 @@ import { CardId } from "../../../domain/value-objects/CardId";
 import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
 import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
 import { PublishedRecordDTO, PublishedRecordRefDTO } from "./DTOTypes";
+import { CollectionQueryResultDTO } from "../../../domain/ICollectionQueryRepository";
 import { err, ok, Result } from "../../../../../shared/core/Result";
 
 // Database representation of a collection
@@ -27,6 +28,26 @@ export interface CollectionDTO extends PublishedRecordRefDTO {
 }
 
 export class CollectionMapper {
+  public static toQueryResult(raw: {
+    id: string;
+    name: string;
+    description?: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    authorId: string;
+    cardCount: number;
+  }): CollectionQueryResultDTO {
+    return {
+      id: raw.id,
+      name: raw.name,
+      description: raw.description || undefined,
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+      authorId: raw.authorId,
+      cardCount: raw.cardCount,
+    };
+  }
+
   public static toDomain(dto: CollectionDTO): Result<Collection> {
     try {
       // Create value objects

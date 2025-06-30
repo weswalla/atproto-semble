@@ -95,23 +95,36 @@ export class GetMyCollectionsUseCase
       ];
 
       // Enrich curator data
-      const curatorInfoMap =
+      const curatorInfoResult =
         await this.curatorEnrichmentService.enrichCurators(curatorIds);
+
+      if (curatorInfoResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to enrich curator data: ${curatorInfoResult.error instanceof Error ? curatorInfoResult.error.message : "Unknown error"}`
+          )
+        );
+      }
+
+      const curatorInfoMap = curatorInfoResult.value;
 
       // Transform raw data to enriched DTOs
       const enrichedCollections: CollectionListItemDTO[] = result.items.map(
-        (item) => ({
-          id: item.id,
-          name: item.name,
-          description: item.description,
-          updatedAt: item.updatedAt,
-          createdAt: item.createdAt,
-          cardCount: item.cardCount,
-          createdBy: curatorInfoMap.get(item.authorId) || {
-            id: item.authorId,
-            name: "Unknown User", // Fallback
-          },
-        })
+        (item) => {
+          const curatorInfo = curatorInfoMap.get(item.authorId);
+          if (!curatorInfo) {
+            throw new Error(`Curator info not found for ID: ${item.authorId}`);
+          }
+          return {
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            updatedAt: item.updatedAt,
+            createdAt: item.createdAt,
+            cardCount: item.cardCount,
+            createdBy: curatorInfo,
+          };
+        }
       );
 
       return ok({

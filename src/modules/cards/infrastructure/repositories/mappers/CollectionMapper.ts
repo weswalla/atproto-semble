@@ -137,6 +137,7 @@ export class CollectionMapper {
       accessType: string;
       createdAt: Date;
       updatedAt: Date;
+      cardCount: number;
       publishedRecordId?: string;
     };
     collaborators: {

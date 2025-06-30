@@ -4,14 +4,12 @@ import {
 } from "@testcontainers/postgresql";
 import postgres from "postgres";
 import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { DrizzleCollectionRepository } from "../../infrastructure/repositories/DrizzleCollectionRepository";
 import { DrizzleCardRepository } from "../../infrastructure/repositories/DrizzleCardRepository";
 import { CollectionId } from "../../domain/value-objects/CollectionId";
 import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
 import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
-import { sql } from "drizzle-orm";
 import {
   collections,
   collectionCollaborators,
@@ -23,6 +21,7 @@ import { publishedRecords } from "../../../annotations/infrastructure/repositori
 import { Collection, CollectionAccessType } from "../../domain/Collection";
 import { CardFactory } from "../../domain/CardFactory";
 import { CardTypeEnum } from "../../domain/value-objects/CardType";
+import { createTestSchema } from "../test-utils/createTestSchema";
 
 describe("DrizzleCollectionRepository", () => {
   let container: StartedPostgreSqlContainer;
@@ -49,80 +48,8 @@ describe("DrizzleCollectionRepository", () => {
     collectionRepository = new DrizzleCollectionRepository(db);
     cardRepository = new DrizzleCardRepository(db);
 
-    // Create schema using drizzle schema definitions
-    await db.execute(sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
-    
-    // Create tables in dependency order
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${publishedRecords} (
-        ${sql.identifier(publishedRecords.id.name)} UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        ${sql.identifier(publishedRecords.uri.name)} TEXT NOT NULL,
-        ${sql.identifier(publishedRecords.cid.name)} TEXT NOT NULL,
-        ${sql.identifier(publishedRecords.recordedAt.name)} TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        CONSTRAINT uri_cid_unique UNIQUE (${sql.identifier(publishedRecords.uri.name)}, ${sql.identifier(publishedRecords.cid.name)})
-      )
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${cards} (
-        ${sql.identifier(cards.id.name)} UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        ${sql.identifier(cards.type.name)} TEXT NOT NULL,
-        ${sql.identifier(cards.contentData.name)} JSONB NOT NULL,
-        ${sql.identifier(cards.url.name)} TEXT,
-        ${sql.identifier(cards.parentCardId.name)} UUID REFERENCES ${cards}(${sql.identifier(cards.id.name)}),
-        ${sql.identifier(cards.originalPublishedRecordId.name)} UUID REFERENCES ${publishedRecords}(${sql.identifier(publishedRecords.id.name)}),
-        ${sql.identifier(cards.createdAt.name)} TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        ${sql.identifier(cards.updatedAt.name)} TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-      )
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${libraryMemberships} (
-        ${sql.identifier(libraryMemberships.cardId.name)} UUID NOT NULL REFERENCES ${cards}(${sql.identifier(cards.id.name)}) ON DELETE CASCADE,
-        ${sql.identifier(libraryMemberships.userId.name)} TEXT NOT NULL,
-        ${sql.identifier(libraryMemberships.addedAt.name)} TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        ${sql.identifier(libraryMemberships.publishedRecordId.name)} UUID REFERENCES ${publishedRecords}(${sql.identifier(publishedRecords.id.name)}),
-        PRIMARY KEY (${sql.identifier(libraryMemberships.cardId.name)}, ${sql.identifier(libraryMemberships.userId.name)})
-      )
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${collections} (
-        ${sql.identifier(collections.id.name)} UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        ${sql.identifier(collections.authorId.name)} TEXT NOT NULL,
-        ${sql.identifier(collections.name.name)} TEXT NOT NULL,
-        ${sql.identifier(collections.description.name)} TEXT,
-        ${sql.identifier(collections.accessType.name)} TEXT NOT NULL,
-        ${sql.identifier(collections.cardCount.name)} INTEGER NOT NULL DEFAULT 0,
-        ${sql.identifier(collections.createdAt.name)} TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        ${sql.identifier(collections.updatedAt.name)} TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        ${sql.identifier(collections.publishedRecordId.name)} UUID REFERENCES ${publishedRecords}(${sql.identifier(publishedRecords.id.name)})
-      )
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${collectionCollaborators} (
-        ${sql.identifier(collectionCollaborators.id.name)} UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        ${sql.identifier(collectionCollaborators.collectionId.name)} UUID NOT NULL REFERENCES ${collections}(${sql.identifier(collections.id.name)}) ON DELETE CASCADE,
-        ${sql.identifier(collectionCollaborators.collaboratorId.name)} TEXT NOT NULL,
-        UNIQUE(${sql.identifier(collectionCollaborators.collectionId.name)}, ${sql.identifier(collectionCollaborators.collaboratorId.name)})
-      )
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${collectionCards} (
-        ${sql.identifier(collectionCards.id.name)} UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        ${sql.identifier(collectionCards.collectionId.name)} UUID NOT NULL REFERENCES ${collections}(${sql.identifier(collections.id.name)}) ON DELETE CASCADE,
-        ${sql.identifier(collectionCards.cardId.name)} UUID NOT NULL REFERENCES ${cards}(${sql.identifier(cards.id.name)}) ON DELETE CASCADE,
-        ${sql.identifier(collectionCards.addedBy.name)} TEXT NOT NULL,
-        ${sql.identifier(collectionCards.addedAt.name)} TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        ${sql.identifier(collectionCards.publishedRecordId.name)} UUID REFERENCES ${publishedRecords}(${sql.identifier(publishedRecords.id.name)}),
-        UNIQUE(${sql.identifier(collectionCards.collectionId.name)}, ${sql.identifier(collectionCards.cardId.name)})
-      )
-    `);
-
-    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_user_cards ON ${libraryMemberships}(${sql.identifier(libraryMemberships.userId.name)})`);
-    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_card_users ON ${libraryMemberships}(${sql.identifier(libraryMemberships.cardId.name)})`);
+    // Create schema using helper function
+    await createTestSchema(db);
 
     // Create test data
     curatorId = CuratorId.create("did:plc:testcurator").unwrap();

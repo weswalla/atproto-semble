@@ -27,11 +27,18 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
 
       // Build the sort order
       const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
-      
-      // Define the card count expression that we'll reuse
-      const cardCountExpression = sql<number>`COALESCE(${count(collectionCards.id)}, 0)`;
 
-      // Get collections with card count
+      // First, get card counts for all collections using a subquery
+      const cardCountSubquery = this.db
+        .select({
+          collectionId: collectionCards.collectionId,
+          cardCount: count(collectionCards.id).as('cardCount'),
+        })
+        .from(collectionCards)
+        .groupBy(collectionCards.collectionId)
+        .as('cardCounts');
+
+      // Main query: get collections with card counts
       const collectionsQuery = this.db
         .select({
           id: collections.id,
@@ -40,23 +47,12 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           createdAt: collections.createdAt,
           updatedAt: collections.updatedAt,
           authorId: collections.authorId,
-          cardCount: cardCountExpression.as('cardCount'),
+          cardCount: sql<number>`COALESCE(${cardCountSubquery.cardCount}, 0)`.as('cardCount'),
         })
         .from(collections)
-        .leftJoin(
-          collectionCards,
-          eq(collections.id, collectionCards.collectionId)
-        )
+        .leftJoin(cardCountSubquery, eq(collections.id, cardCountSubquery.collectionId))
         .where(eq(collections.authorId, curatorId))
-        .groupBy(
-          collections.id,
-          collections.name,
-          collections.description,
-          collections.createdAt,
-          collections.updatedAt,
-          collections.authorId
-        )
-        .orderBy(orderDirection(this.getSortColumn(sortBy, cardCountExpression)))
+        .orderBy(orderDirection(this.getSortColumn(sortBy, sql`COALESCE(${cardCountSubquery.cardCount}, 0)`)))
         .limit(limit)
         .offset(offset);
 
@@ -104,7 +100,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
       case CollectionSortField.UPDATED_AT:
         return collections.updatedAt;
       case CollectionSortField.CARD_COUNT:
-        return cardCountExpression || sql`COALESCE(${count(collectionCards.id)}, 0)`;
+        return cardCountExpression;
       default:
         return collections.updatedAt;
     }

@@ -3,10 +3,10 @@ import { err, ok, Result } from "src/shared/core/Result";
 import { UseCase } from "src/shared/core/UseCase";
 import {
   ICollectionQueryRepository,
-  CollectionQueryResultDTO,
   CollectionSortField,
   SortOrder,
 } from "../../repositories/ICollectionQueryRepository";
+import { ICuratorEnrichmentService } from "src/modules/cards/domain/services/ICuratorEnrichmentService";
 
 export interface GetMyCollectionsQuery {
   curatorId: string;
@@ -32,16 +32,6 @@ export interface CollectionListItemDTO {
 }
 
 // Service interface for enriching curator data
-export interface ICuratorEnrichmentService {
-  enrichCurators(curatorIds: string[]): Promise<Map<string, CuratorInfo>>;
-}
-
-export interface CuratorInfo {
-  id: string;
-  name: string;
-  avatarUrl?: string;
-}
-
 export interface GetMyCollectionsResult {
   collections: CollectionListItemDTO[];
   pagination: {
@@ -100,24 +90,29 @@ export class GetMyCollectionsUseCase
       );
 
       // Extract unique curator IDs for enrichment
-      const curatorIds = [...new Set(result.items.map(item => item.authorId))];
-      
+      const curatorIds = [
+        ...new Set(result.items.map((item) => item.authorId)),
+      ];
+
       // Enrich curator data
-      const curatorInfoMap = await this.curatorEnrichmentService.enrichCurators(curatorIds);
+      const curatorInfoMap =
+        await this.curatorEnrichmentService.enrichCurators(curatorIds);
 
       // Transform raw data to enriched DTOs
-      const enrichedCollections: CollectionListItemDTO[] = result.items.map(item => ({
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        updatedAt: item.updatedAt,
-        createdAt: item.createdAt,
-        cardCount: item.cardCount,
-        createdBy: curatorInfoMap.get(item.authorId) || {
-          id: item.authorId,
-          name: "Unknown User", // Fallback
-        },
-      }));
+      const enrichedCollections: CollectionListItemDTO[] = result.items.map(
+        (item) => ({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          updatedAt: item.updatedAt,
+          createdAt: item.createdAt,
+          cardCount: item.cardCount,
+          createdBy: curatorInfoMap.get(item.authorId) || {
+            id: item.authorId,
+            name: "Unknown User", // Fallback
+          },
+        })
+      );
 
       return ok({
         collections: enrichedCollections,

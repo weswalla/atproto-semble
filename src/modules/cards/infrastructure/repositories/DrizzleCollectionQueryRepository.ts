@@ -28,17 +28,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
       // Build the sort order
       const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
 
-      // First, get card counts for all collections using a subquery
-      const cardCountSubquery = this.db
-        .select({
-          collectionId: collectionCards.collectionId,
-          cardCount: count(collectionCards.id).as('cardCount'),
-        })
-        .from(collectionCards)
-        .groupBy(collectionCards.collectionId)
-        .as('cardCounts');
-
-      // Main query: get collections with card counts
+      // Simple query: get collections with their stored card counts
       const collectionsQuery = this.db
         .select({
           id: collections.id,
@@ -47,12 +37,11 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           createdAt: collections.createdAt,
           updatedAt: collections.updatedAt,
           authorId: collections.authorId,
-          cardCount: sql<number>`COALESCE(${cardCountSubquery.cardCount}, 0)`.as('cardCount'),
+          cardCount: collections.cardCount,
         })
         .from(collections)
-        .leftJoin(cardCountSubquery, eq(collections.id, cardCountSubquery.collectionId))
         .where(eq(collections.authorId, curatorId))
-        .orderBy(orderDirection(this.getSortColumn(sortBy, sql`COALESCE(${cardCountSubquery.cardCount}, 0)`)))
+        .orderBy(orderDirection(this.getSortColumn(sortBy)))
         .limit(limit)
         .offset(offset);
 
@@ -91,7 +80,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
     }
   }
 
-  private getSortColumn(sortBy: CollectionSortField, cardCountExpression?: any) {
+  private getSortColumn(sortBy: CollectionSortField) {
     switch (sortBy) {
       case CollectionSortField.NAME:
         return collections.name;
@@ -100,7 +89,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
       case CollectionSortField.UPDATED_AT:
         return collections.updatedAt;
       case CollectionSortField.CARD_COUNT:
-        return cardCountExpression;
+        return collections.cardCount;
       default:
         return collections.updatedAt;
     }

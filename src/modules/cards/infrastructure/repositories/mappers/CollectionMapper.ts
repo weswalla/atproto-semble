@@ -15,6 +15,7 @@ export interface CollectionDTO extends PublishedRecordRefDTO {
   name: string;
   description?: string;
   accessType: string;
+  cardCount: number;
   createdAt: Date;
   updatedAt: Date;
   collaborators?: string[];
@@ -109,6 +110,7 @@ export class CollectionMapper {
           accessType: dto.accessType as CollectionAccessType,
           collaboratorIds,
           cardLinks,
+          cardCount: dto.cardCount,
           publishedRecordId,
           createdAt: dto.createdAt,
           updatedAt: dto.updatedAt,
@@ -208,6 +210,7 @@ export class CollectionMapper {
         name: collection.name.value,
         description: collection.description?.value,
         accessType: collection.accessType,
+        cardCount: collection.cardCount,
         createdAt: collection.createdAt,
         updatedAt: collection.updatedAt,
         publishedRecordId,

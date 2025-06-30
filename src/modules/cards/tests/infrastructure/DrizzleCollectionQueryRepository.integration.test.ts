@@ -9,13 +9,14 @@ import { DrizzleCardRepository } from "../../infrastructure/repositories/Drizzle
 import { DrizzleCollectionRepository } from "../../infrastructure/repositories/DrizzleCollectionRepository";
 import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
-import { sql } from "drizzle-orm";
 import {
   collections,
   collectionCollaborators,
   collectionCards,
 } from "../../infrastructure/repositories/schema/collection.sql";
 import { cards } from "../../infrastructure/repositories/schema/card.sql";
+import { libraryMemberships } from "../../infrastructure/repositories/schema/libraryMembership.sql";
+import { publishedRecords } from "../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
 import { Collection, CollectionAccessType } from "../../domain/Collection";
 import { CardFactory } from "../../domain/CardFactory";
 import { CardTypeEnum } from "../../domain/value-objects/CardType";
@@ -23,6 +24,7 @@ import {
   CollectionSortField,
   SortOrder,
 } from "../../domain/ICollectionQueryRepository";
+import { createTestSchema } from "../test-utils/createTestSchema";
 
 describe("DrizzleCollectionQueryRepository", () => {
   let container: StartedPostgreSqlContainer;
@@ -51,56 +53,8 @@ describe("DrizzleCollectionQueryRepository", () => {
     collectionRepository = new DrizzleCollectionRepository(db);
     cardRepository = new DrizzleCardRepository(db);
 
-    // Create schema using drizzle schema definitions
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS published_records (
-        id UUID PRIMARY KEY,
-        uri TEXT NOT NULL,
-        cid TEXT NOT NULL,
-        recorded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        UNIQUE(uri, cid)
-      );
-
-      CREATE TABLE IF NOT EXISTS cards (
-        id UUID PRIMARY KEY,
-        curator_id TEXT NOT NULL,
-        type TEXT NOT NULL,
-        content_data JSONB NOT NULL,
-        parent_card_id UUID REFERENCES cards(id),
-        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        published_record_id UUID REFERENCES published_records(id)
-      );
-
-      CREATE TABLE IF NOT EXISTS collections (
-        id UUID PRIMARY KEY,
-        author_id TEXT NOT NULL,
-        name TEXT NOT NULL,
-        description TEXT,
-        access_type TEXT NOT NULL,
-        card_count INTEGER NOT NULL DEFAULT 0,
-        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        published_record_id UUID REFERENCES published_records(id)
-      );
-
-      CREATE TABLE IF NOT EXISTS collection_collaborators (
-        id UUID PRIMARY KEY,
-        collection_id UUID NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
-        collaborator_id TEXT NOT NULL,
-        UNIQUE(collection_id, collaborator_id)
-      );
-
-      CREATE TABLE IF NOT EXISTS collection_cards (
-        id UUID PRIMARY KEY,
-        collection_id UUID NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
-        card_id UUID NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
-        added_by TEXT NOT NULL,
-        added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        published_record_id UUID REFERENCES published_records(id),
-        UNIQUE(collection_id, card_id)
-      );
-    `);
+    // Create schema using helper function
+    await createTestSchema(db);
 
     // Create test data
     curatorId = CuratorId.create("did:plc:testcurator").unwrap();
@@ -118,7 +72,9 @@ describe("DrizzleCollectionQueryRepository", () => {
     await db.delete(collectionCards);
     await db.delete(collectionCollaborators);
     await db.delete(collections);
+    await db.delete(libraryMemberships);
     await db.delete(cards);
+    await db.delete(publishedRecords);
   });
 
   describe("findByCreator", () => {

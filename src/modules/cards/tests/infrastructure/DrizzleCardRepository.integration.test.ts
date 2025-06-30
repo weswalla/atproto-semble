@@ -8,6 +8,9 @@ import { DrizzleCardRepository } from "../../infrastructure/repositories/Drizzle
 import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
 import { URL } from "../../domain/value-objects/URL";
 import { sql } from "drizzle-orm";
+import { cards } from "../../infrastructure/repositories/schema/card.sql";
+import { libraryMemberships } from "../../infrastructure/repositories/schema/libraryMembership.sql";
+import { publishedRecords } from "../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
 import { Card } from "../../domain/Card";
 import { CardType, CardTypeEnum } from "../../domain/value-objects/CardType";
 import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
@@ -38,39 +41,44 @@ describe("DrizzleCardRepository", () => {
     cardRepository = new DrizzleCardRepository(db);
 
     // Create schema using drizzle schema definitions
+    await db.execute(sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
+    
+    // Create tables in dependency order
     await db.execute(sql`
-      CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-      
-      CREATE TABLE IF NOT EXISTS published_records (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        uri TEXT NOT NULL,
-        cid TEXT NOT NULL,
-        recorded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        CONSTRAINT uri_cid_unique UNIQUE (uri, cid)
-      );
-
-      CREATE TABLE IF NOT EXISTS cards (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        type TEXT NOT NULL,
-        content_data JSONB NOT NULL,
-        url TEXT,
-        parent_card_id UUID REFERENCES cards(id),
-        original_published_record_id UUID REFERENCES published_records(id),
-        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-      );
-
-      CREATE TABLE IF NOT EXISTS library_memberships (
-        card_id UUID NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
-        user_id TEXT NOT NULL,
-        added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        published_record_id UUID REFERENCES published_records(id),
-        PRIMARY KEY (card_id, user_id)
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_user_cards ON library_memberships(user_id);
-      CREATE INDEX IF NOT EXISTS idx_card_users ON library_memberships(card_id);
+      CREATE TABLE IF NOT EXISTS ${publishedRecords} (
+        ${sql.identifier(publishedRecords.id.name)} UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        ${sql.identifier(publishedRecords.uri.name)} TEXT NOT NULL,
+        ${sql.identifier(publishedRecords.cid.name)} TEXT NOT NULL,
+        ${sql.identifier(publishedRecords.recordedAt.name)} TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        CONSTRAINT uri_cid_unique UNIQUE (${sql.identifier(publishedRecords.uri.name)}, ${sql.identifier(publishedRecords.cid.name)})
+      )
     `);
+
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS ${cards} (
+        ${sql.identifier(cards.id.name)} UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        ${sql.identifier(cards.type.name)} TEXT NOT NULL,
+        ${sql.identifier(cards.contentData.name)} JSONB NOT NULL,
+        ${sql.identifier(cards.url.name)} TEXT,
+        ${sql.identifier(cards.parentCardId.name)} UUID REFERENCES ${cards}(${sql.identifier(cards.id.name)}),
+        ${sql.identifier(cards.originalPublishedRecordId.name)} UUID REFERENCES ${publishedRecords}(${sql.identifier(publishedRecords.id.name)}),
+        ${sql.identifier(cards.createdAt.name)} TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        ${sql.identifier(cards.updatedAt.name)} TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS ${libraryMemberships} (
+        ${sql.identifier(libraryMemberships.cardId.name)} UUID NOT NULL REFERENCES ${cards}(${sql.identifier(cards.id.name)}) ON DELETE CASCADE,
+        ${sql.identifier(libraryMemberships.userId.name)} TEXT NOT NULL,
+        ${sql.identifier(libraryMemberships.addedAt.name)} TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        ${sql.identifier(libraryMemberships.publishedRecordId.name)} UUID REFERENCES ${publishedRecords}(${sql.identifier(publishedRecords.id.name)}),
+        PRIMARY KEY (${sql.identifier(libraryMemberships.cardId.name)}, ${sql.identifier(libraryMemberships.userId.name)})
+      )
+    `);
+
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_user_cards ON ${libraryMemberships}(${sql.identifier(libraryMemberships.userId.name)})`);
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_card_users ON ${libraryMemberships}(${sql.identifier(libraryMemberships.cardId.name)})`);
 
     // Create test data
     curatorId = CuratorId.create("did:plc:testcurator").unwrap();
@@ -85,9 +93,9 @@ describe("DrizzleCardRepository", () => {
 
   // Clear data between tests
   beforeEach(async () => {
-    await db.execute(sql`TRUNCATE TABLE library_memberships CASCADE`);
-    await db.execute(sql`TRUNCATE TABLE cards CASCADE`);
-    await db.execute(sql`TRUNCATE TABLE published_records CASCADE`);
+    await db.delete(libraryMemberships);
+    await db.delete(cards);
+    await db.delete(publishedRecords);
   });
 
   it("should save and retrieve a URL card", async () => {

@@ -35,7 +35,7 @@ export interface CollectionQueryResultDTO {
 }
 
 export interface ICollectionQueryRepository {
-  findByOwner(
+  findByCreator(
     curatorId: string,
     options: CollectionQueryOptions
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>>;

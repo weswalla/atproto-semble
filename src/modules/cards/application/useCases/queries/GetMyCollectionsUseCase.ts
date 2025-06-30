@@ -5,7 +5,7 @@ import {
   ICollectionQueryRepository,
   CollectionSortField,
   SortOrder,
-} from "../../repositories/ICollectionQueryRepository";
+} from "../../../domain/ICollectionQueryRepository";
 import { ICuratorEnrichmentService } from "src/modules/cards/domain/services/ICuratorEnrichmentService";
 
 export interface GetMyCollectionsQuery {
@@ -79,7 +79,7 @@ export class GetMyCollectionsUseCase
 
     try {
       // Execute query to get raw collection data
-      const result = await this.collectionQueryRepo.findByOwner(
+      const result = await this.collectionQueryRepo.findByCreator(
         query.curatorId,
         {
           page,

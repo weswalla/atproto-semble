@@ -4,7 +4,7 @@ import { AnnotationField } from "src/modules/annotations/domain/aggregates";
 import {
   Record,
   AnnotationFieldRef,
-} from "../lexicon/types/app/annos/annotationTemplate";
+} from "../lexicon/types/network/cosmik/annotationTemplate";
 import { StrongRef } from "../../domain";
 
 type AnnotationTemplateRecordDTO = Record;

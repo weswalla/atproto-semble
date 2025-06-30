@@ -77,7 +77,7 @@ export class AnnotationMapper {
       // Create optional note if it exists
       let note: AnnotationNote | undefined;
       if (dto.note) {
-        note = AnnotationNote.create(dto.note);
+        note = AnnotationNote.create(dto.note).unwrap();
       }
 
       // Create optional published record ID if it exists

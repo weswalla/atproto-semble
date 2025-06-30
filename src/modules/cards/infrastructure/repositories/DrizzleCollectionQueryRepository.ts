@@ -26,8 +26,10 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
       const offset = (page - 1) * limit;
 
       // Build the sort order
-      const sortColumn = this.getSortColumn(sortBy);
       const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
+      
+      // Define the card count expression that we'll reuse
+      const cardCountExpression = sql<number>`COALESCE(${count(collectionCards.id)}, 0)`;
 
       // Get collections with card count
       const collectionsQuery = this.db
@@ -38,7 +40,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           createdAt: collections.createdAt,
           updatedAt: collections.updatedAt,
           authorId: collections.authorId,
-          cardCount: sql<number>`COALESCE(${count(collectionCards.id)}, 0)`.as('cardCount'),
+          cardCount: cardCountExpression.as('cardCount'),
         })
         .from(collections)
         .leftJoin(
@@ -54,7 +56,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           collections.updatedAt,
           collections.authorId
         )
-        .orderBy(orderDirection(sortColumn))
+        .orderBy(orderDirection(this.getSortColumn(sortBy, cardCountExpression)))
         .limit(limit)
         .offset(offset);
 
@@ -93,7 +95,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
     }
   }
 
-  private getSortColumn(sortBy: CollectionSortField) {
+  private getSortColumn(sortBy: CollectionSortField, cardCountExpression?: any) {
     switch (sortBy) {
       case CollectionSortField.NAME:
         return collections.name;
@@ -102,7 +104,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
       case CollectionSortField.UPDATED_AT:
         return collections.updatedAt;
       case CollectionSortField.CARD_COUNT:
-        return sql`COALESCE(${count(collectionCards.id)}, 0)`;
+        return cardCountExpression || sql`COALESCE(${count(collectionCards.id)}, 0)`;
       default:
         return collections.updatedAt;
     }

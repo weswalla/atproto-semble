@@ -6,7 +6,7 @@ import {
   CollectionSortField,
   SortOrder,
 } from "../../../domain/ICollectionQueryRepository";
-import { ICuratorEnrichmentService } from "src/modules/cards/domain/services/ICuratorEnrichmentService";
+import { IProfileService } from "src/modules/cards/domain/services/IProfileService";
 
 export interface GetMyCollectionsQuery {
   curatorId: string;
@@ -27,11 +27,10 @@ export interface CollectionListItemDTO {
   createdBy: {
     id: string;
     name: string;
+    handle: string;
     avatarUrl?: string;
   };
 }
-
-// Service interface for enriching curator data
 export interface GetMyCollectionsResult {
   collections: CollectionListItemDTO[];
   pagination: {
@@ -59,7 +58,7 @@ export class GetMyCollectionsUseCase
 {
   constructor(
     private collectionQueryRepo: ICollectionQueryRepository,
-    private curatorEnrichmentService: ICuratorEnrichmentService
+    private profileService: IProfileService
   ) {}
 
   async execute(
@@ -89,32 +88,28 @@ export class GetMyCollectionsUseCase
         }
       );
 
-      // Extract unique curator IDs for enrichment
+      // Extract unique curator IDs for profile fetching
       const curatorIds = [
         ...new Set(result.items.map((item) => item.authorId)),
       ];
 
-      // Enrich curator data
-      const curatorInfoResult =
-        await this.curatorEnrichmentService.enrichCurators(curatorIds);
+      // Get user profiles
+      const profilesResult = await this.profileService.getProfile(
+        query.curatorId
+      );
 
-      if (curatorInfoResult.isErr()) {
+      if (profilesResult.isErr()) {
         return err(
           new Error(
-            `Failed to enrich curator data: ${curatorInfoResult.error instanceof Error ? curatorInfoResult.error.message : "Unknown error"}`
+            `Failed to fetch user profiles: ${profilesResult.error instanceof Error ? profilesResult.error.message : "Unknown error"}`
           )
         );
       }
-
-      const curatorInfoMap = curatorInfoResult.value;
+      const profile = profilesResult.value;
 
       // Transform raw data to enriched DTOs
       const enrichedCollections: CollectionListItemDTO[] = result.items.map(
         (item) => {
-          const curatorInfo = curatorInfoMap.get(item.authorId);
-          if (!curatorInfo) {
-            throw new Error(`Curator info not found for ID: ${item.authorId}`);
-          }
           return {
             id: item.id,
             name: item.name,
@@ -122,7 +117,12 @@ export class GetMyCollectionsUseCase
             updatedAt: item.updatedAt,
             createdAt: item.createdAt,
             cardCount: item.cardCount,
-            createdBy: curatorInfo,
+            createdBy: {
+              id: profile.id,
+              name: profile.name,
+              handle: profile.handle,
+              avatarUrl: profile.avatarUrl,
+            },
           };
         }
       );

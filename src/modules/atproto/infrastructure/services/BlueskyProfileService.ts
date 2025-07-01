@@ -5,7 +5,7 @@ import {
 import { Result, ok, err } from "src/shared/core/Result";
 import { IAgentService } from "../../application/IAgentService";
 
-export class ATProtoProfileService implements IProfileService {
+export class BlueskyProfileService implements IProfileService {
   constructor(private readonly agentService: IAgentService) {}
 
   async getProfile(userId: string): Promise<Result<UserProfile>> {

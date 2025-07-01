@@ -88,11 +88,6 @@ export class GetMyCollectionsUseCase
         }
       );
 
-      // Extract unique curator IDs for profile fetching
-      const curatorIds = [
-        ...new Set(result.items.map((item) => item.authorId)),
-      ];
-
       // Get user profile for the curator
       const profileResult = await this.profileService.getProfile(
         query.curatorId

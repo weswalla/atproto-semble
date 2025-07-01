@@ -93,19 +93,19 @@ export class GetMyCollectionsUseCase
         ...new Set(result.items.map((item) => item.authorId)),
       ];
 
-      // Get user profiles
-      const profilesResult = await this.profileService.getProfile(
+      // Get user profile for the curator
+      const profileResult = await this.profileService.getProfile(
         query.curatorId
       );
 
-      if (profilesResult.isErr()) {
+      if (profileResult.isErr()) {
         return err(
           new Error(
-            `Failed to fetch user profiles: ${profilesResult.error instanceof Error ? profilesResult.error.message : "Unknown error"}`
+            `Failed to fetch user profile: ${profileResult.error instanceof Error ? profileResult.error.message : "Unknown error"}`
           )
         );
       }
-      const profile = profilesResult.value;
+      const profile = profileResult.value;
 
       // Transform raw data to enriched DTOs
       const enrichedCollections: CollectionListItemDTO[] = result.items.map(

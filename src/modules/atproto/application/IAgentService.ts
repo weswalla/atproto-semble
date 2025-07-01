@@ -3,5 +3,6 @@ import { DID } from "../domain/DID";
 import { Agent } from "@atproto/api";
 
 export interface IAgentService {
+  getUnauthenticatedAgent(): Result<Agent, Error>;
   getAuthenticatedAgent(did: DID): Promise<Result<Agent, Error>>;
 }

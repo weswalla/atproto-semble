@@ -6,7 +6,13 @@ import { DID } from "../../domain/DID";
 
 export class ATProtoAgentService implements IAgentService {
   constructor(private readonly oauthClient: NodeOAuthClient) {}
-
+  getUnauthenticatedAgent(): Result<Agent, Error> {
+    return ok(
+      new Agent({
+        service: "https://bsky.social",
+      })
+    );
+  }
   async getAuthenticatedAgent(did: DID): Promise<Result<Agent, Error>> {
     try {
       // Try to restore the session for the DID

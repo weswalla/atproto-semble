@@ -27,6 +27,7 @@ interface CardProps {
   url?: URL;
   parentCardId?: CardId; // For NOTE and HIGHLIGHT cards that reference other cards
   libraryMemberships: CardInLibraryLink[]; // Set of users who have this card in their library
+  libraryCount: number; // Cached count of library memberships
   originalPublishedRecordId?: PublishedRecordId; // The first published record ID for this card
   createdAt: Date;
   updatedAt: Date;
@@ -69,6 +70,10 @@ export class Card extends AggregateRoot<CardProps> {
     return this.props.libraryMemberships.length;
   }
 
+  get libraryCount(): number {
+    return this.props.libraryCount;
+  }
+
   get originalPublishedRecordId(): PublishedRecordId | undefined {
     return this.props.originalPublishedRecordId;
   }
@@ -87,8 +92,9 @@ export class Card extends AggregateRoot<CardProps> {
   }
 
   public static create(
-    props: Omit<CardProps, "createdAt" | "updatedAt" | "libraryMemberships"> & {
+    props: Omit<CardProps, "createdAt" | "updatedAt" | "libraryMemberships" | "libraryCount"> & {
       libraryMemberships?: CardInLibraryLink[];
+      libraryCount?: number;
       createdAt?: Date;
       updatedAt?: Date;
     },
@@ -106,9 +112,11 @@ export class Card extends AggregateRoot<CardProps> {
     }
 
     const now = new Date();
+    const libraryMemberships = props.libraryMemberships || [];
     const cardProps: CardProps = {
       ...props,
-      libraryMemberships: props.libraryMemberships || [],
+      libraryMemberships,
+      libraryCount: props.libraryCount ?? libraryMemberships.length,
       createdAt: props.createdAt || now,
       updatedAt: props.updatedAt || now,
     };
@@ -162,6 +170,7 @@ export class Card extends AggregateRoot<CardProps> {
       curatorId: userId,
       addedAt: new Date(),
     });
+    this.props.libraryCount = this.props.libraryMemberships.length;
     this.props.updatedAt = new Date();
 
     return ok(undefined);
@@ -181,6 +190,7 @@ export class Card extends AggregateRoot<CardProps> {
     this.props.libraryMemberships = this.props.libraryMemberships.filter(
       (link) => !link.curatorId.equals(userId)
     );
+    this.props.libraryCount = this.props.libraryMemberships.length;
     this.props.updatedAt = new Date();
 
     return ok(undefined);

@@ -390,4 +390,97 @@ describe("DrizzleCardRepository", () => {
     expect(foundResult.isOk()).toBe(true);
     expect(foundResult.unwrap()).toBeNull();
   });
+
+  it("should maintain accurate libraryCount when adding and removing from libraries", async () => {
+    // Create a note card
+    const noteContent = CardContent.createNoteContent(
+      "Card for library count test"
+    ).unwrap();
+    const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
+
+    const cardResult = Card.create({
+      type: cardType,
+      content: noteContent,
+    });
+
+    const card = cardResult.unwrap();
+
+    // Initially should have 0 library count
+    expect(card.libraryCount).toBe(0);
+
+    // Add to one library
+    card.addToLibrary(curatorId);
+    expect(card.libraryCount).toBe(1);
+    await cardRepository.save(card);
+
+    // Retrieve and verify library count persisted
+    let retrievedResult = await cardRepository.findById(card.cardId);
+    let retrievedCard = retrievedResult.unwrap();
+    expect(retrievedCard?.libraryCount).toBe(1);
+    expect(retrievedCard?.libraryMemberships).toHaveLength(1);
+
+    // Add to another library
+    card.addToLibrary(anotherCuratorId);
+    expect(card.libraryCount).toBe(2);
+    await cardRepository.save(card);
+
+    // Retrieve and verify library count updated
+    retrievedResult = await cardRepository.findById(card.cardId);
+    retrievedCard = retrievedResult.unwrap();
+    expect(retrievedCard?.libraryCount).toBe(2);
+    expect(retrievedCard?.libraryMemberships).toHaveLength(2);
+
+    // Remove from one library
+    card.removeFromLibrary(curatorId);
+    expect(card.libraryCount).toBe(1);
+    await cardRepository.save(card);
+
+    // Retrieve and verify library count decreased
+    retrievedResult = await cardRepository.findById(card.cardId);
+    retrievedCard = retrievedResult.unwrap();
+    expect(retrievedCard?.libraryCount).toBe(1);
+    expect(retrievedCard?.libraryMemberships).toHaveLength(1);
+    expect(retrievedCard?.libraryMemberships[0]!.curatorId.value).toBe(
+      anotherCuratorId.value
+    );
+  });
+
+  it("should initialize libraryCount correctly when creating card with existing memberships", async () => {
+    // Create a note card with initial library memberships
+    const noteContent = CardContent.createNoteContent(
+      "Card with initial memberships"
+    ).unwrap();
+    const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
+
+    const initialMemberships = [
+      {
+        curatorId: curatorId,
+        addedAt: new Date(),
+      },
+      {
+        curatorId: anotherCuratorId,
+        addedAt: new Date(),
+      },
+    ];
+
+    const cardResult = Card.create({
+      type: cardType,
+      content: noteContent,
+      libraryMemberships: initialMemberships,
+    });
+
+    const card = cardResult.unwrap();
+
+    // Should automatically set libraryCount to match memberships length
+    expect(card.libraryCount).toBe(2);
+    expect(card.libraryMemberships).toHaveLength(2);
+
+    // Save and retrieve to verify persistence
+    await cardRepository.save(card);
+    const retrievedResult = await cardRepository.findById(card.cardId);
+    const retrievedCard = retrievedResult.unwrap();
+
+    expect(retrievedCard?.libraryCount).toBe(2);
+    expect(retrievedCard?.libraryMemberships).toHaveLength(2);
+  });
 });

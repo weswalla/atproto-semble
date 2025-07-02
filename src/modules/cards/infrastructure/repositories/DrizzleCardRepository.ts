@@ -76,6 +76,7 @@ export class DrizzleCardRepository implements ICardRepository {
               cid: originalPublishedRecord.cid,
             }
           : undefined,
+        libraryCount: result.libraryCount,
         libraryMemberships: membershipResults.map((membership) => ({
           userId: membership.userId,
           addedAt: membership.addedAt,
@@ -210,6 +211,7 @@ export class DrizzleCardRepository implements ICardRepository {
               url: cardData.url,
               parentCardId: cardData.parentCardId,
               originalPublishedRecordId: originalPublishedRecordId,
+              libraryCount: cardData.libraryCount,
               updatedAt: cardData.updatedAt,
             },
           });
@@ -318,6 +320,7 @@ export class DrizzleCardRepository implements ICardRepository {
               cid: originalPublishedRecord.cid,
             }
           : undefined,
+        libraryCount: result.libraryCount,
         libraryMemberships: membershipResults.map((membership) => ({
           userId: membership.userId,
           addedAt: membership.addedAt,

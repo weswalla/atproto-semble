@@ -44,6 +44,7 @@ export interface CardDTO {
     uri: string;
     cid: string;
   };
+  libraryCount: number;
   libraryMemberships: Array<{
     userId: string;
     addedAt: Date;
@@ -126,6 +127,7 @@ export class CardMapper {
           parentCardId,
           originalPublishedRecordId,
           libraryMemberships,
+          libraryCount: dto.libraryCount,
           createdAt: dto.createdAt,
           updatedAt: dto.updatedAt,
         },
@@ -198,6 +200,7 @@ export class CardMapper {
       contentData: CardContentData;
       url?: string;
       parentCardId?: string;
+      libraryCount: number;
       createdAt: Date;
       updatedAt: Date;
     };
@@ -297,6 +300,7 @@ export class CardMapper {
         contentData,
         url: card.url?.value,
         parentCardId: card.parentCardId?.getStringValue(),
+        libraryCount: card.libraryCount,
         createdAt: card.createdAt,
         updatedAt: card.updatedAt,
       },

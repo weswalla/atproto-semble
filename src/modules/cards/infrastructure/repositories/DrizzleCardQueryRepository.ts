@@ -82,9 +82,8 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .from(cards)
         .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
         .where(
-          sql`${libraryMemberships.userId} = ${userId} AND ${cards.type} = 'NOTE'`
-        )
-        .where(inArray(cards.parentCardId, cardIds));
+          sql`${libraryMemberships.userId} = ${userId} AND ${cards.type} = 'NOTE' AND ${cards.parentCardId} = ANY(${cardIds})`
+        );
 
       const notesResult = await notesQuery;
 

@@ -1,3 +1,5 @@
+import { CardTypeEnum } from "./value-objects/CardType";
+
 export interface CardQueryOptions {
   page: number;
   limit: number;
@@ -50,6 +52,30 @@ export type UrlCardQueryResultDTO = CollectionCardQueryResultDTO & {
   }[];
 };
 
+// DTO for single URL card view with library and collection info
+export interface UrlCardViewDTO {
+  id: string;
+  type: CardTypeEnum.NOTE;
+  urlMeta: {
+    title?: string;
+    description?: string;
+    url: string;
+    author?: string;
+    thumbnailUrl?: string;
+  };
+  inLibraries: {
+    userId: string;
+    name: string;
+    handle: string;
+    avatarUrl?: string;
+  }[];
+  inCollections: {
+    id: string;
+    name: string;
+    authorId: string;
+  }[];
+}
+
 export interface ICardQueryRepository {
   getUrlCardsOfUser(
     userId: string,
@@ -60,4 +86,6 @@ export interface ICardQueryRepository {
     collectionId: string,
     options: CardQueryOptions
   ): Promise<PaginatedQueryResult<CollectionCardQueryResultDTO>>;
+
+  getUrlCardView(cardId: string): Promise<UrlCardViewDTO | null>;
 }

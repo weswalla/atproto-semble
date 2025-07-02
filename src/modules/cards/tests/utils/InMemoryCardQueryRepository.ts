@@ -20,12 +20,16 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     try {
       // Get cards in user's library
       const userCardIds = this.userLibraries.get(userId) || new Set();
-      const userCards = Array.from(this.urlCards.values()).filter(card =>
+      const userCards = Array.from(this.urlCards.values()).filter((card) =>
         userCardIds.has(card.id)
       );
 
       // Sort cards
-      const sortedCards = this.sortCards(userCards, options.sortBy, options.sortOrder);
+      const sortedCards = this.sortCards(
+        userCards,
+        options.sortBy,
+        options.sortOrder
+      );
 
       // Apply pagination
       const startIndex = (options.page - 1) * options.limit;
@@ -84,11 +88,6 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     this.userLibraries.get(userId)!.add(cardId);
   }
 
-  clear(): void {
-    this.urlCards.clear();
-    this.userLibraries.clear();
-  }
-
   getStoredCard(id: string): UrlCardQueryResultDTO | undefined {
     return this.urlCards.get(id);
   }
@@ -107,13 +106,18 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   ): Promise<PaginatedQueryResult<CollectionCardQueryResultDTO>> {
     try {
       // Get cards in collection
-      const collectionCardIds = this.collectionCards.get(collectionId) || new Set();
+      const collectionCardIds =
+        this.collectionCards.get(collectionId) || new Set();
       const collectionCards = Array.from(this.urlCards.values())
-        .filter(card => collectionCardIds.has(card.id))
-        .map(card => this.toCollectionCardQueryResult(card));
+        .filter((card) => collectionCardIds.has(card.id))
+        .map((card) => this.toCollectionCardQueryResult(card));
 
       // Sort cards
-      const sortedCards = this.sortCollectionCards(collectionCards, options.sortBy, options.sortOrder);
+      const sortedCards = this.sortCollectionCards(
+        collectionCards,
+        options.sortBy,
+        options.sortOrder
+      );
 
       // Apply pagination
       const startIndex = (options.page - 1) * options.limit;
@@ -160,7 +164,9 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return sorted;
   }
 
-  private toCollectionCardQueryResult(card: UrlCardQueryResultDTO): CollectionCardQueryResultDTO {
+  private toCollectionCardQueryResult(
+    card: UrlCardQueryResultDTO
+  ): CollectionCardQueryResultDTO {
     return {
       id: card.id,
       url: card.url,

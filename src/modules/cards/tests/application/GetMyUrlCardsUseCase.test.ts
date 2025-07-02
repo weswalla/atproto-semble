@@ -1,7 +1,11 @@
 import { GetMyUrlCardsUseCase } from "../../application/useCases/queries/GetMyUrlCardsUseCase";
 import { InMemoryCardQueryRepository } from "../utils/InMemoryCardQueryRepository";
 import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
-import { CardSortField, SortOrder, UrlCardQueryResultDTO } from "../../domain/ICardQueryRepository";
+import {
+  CardSortField,
+  SortOrder,
+  UrlCardQueryResultDTO,
+} from "../../domain/ICardQueryRepository";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
 
 describe("GetMyUrlCardsUseCase", () => {
@@ -86,8 +90,12 @@ describe("GetMyUrlCardsUseCase", () => {
       expect(response.pagination.totalCount).toBe(2);
 
       // Verify card data
-      const firstCard = response.cards.find(card => card.url === urlCard1.url);
-      const secondCard = response.cards.find(card => card.url === urlCard2.url);
+      const firstCard = response.cards.find(
+        (card) => card.url === urlCard1.url
+      );
+      const secondCard = response.cards.find(
+        (card) => card.url === urlCard2.url
+      );
 
       expect(firstCard).toBeDefined();
       expect(firstCard?.urlMeta.title).toBe("First Article");
@@ -418,7 +426,12 @@ describe("GetMyUrlCardsUseCase", () => {
     it("should handle repository errors gracefully", async () => {
       // Create a mock repository that throws an error
       const errorRepo = {
-        getUrlCardsOfUser: jest.fn().mockRejectedValue(new Error("Database connection failed")),
+        getUrlCardsOfUser: jest
+          .fn()
+          .mockRejectedValue(new Error("Database connection failed")),
+        getCardsInCollection: jest
+          .fn()
+          .mockRejectedValue(new Error("Database connection failed")),
       };
 
       const errorUseCase = new GetMyUrlCardsUseCase(errorRepo);

@@ -10,20 +10,19 @@ import { DrizzleCollectionRepository } from "../../infrastructure/repositories/D
 import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
 import { cards } from "../../infrastructure/repositories/schema/card.sql";
-import { collections, collectionCards } from "../../infrastructure/repositories/schema/collection.sql";
+import {
+  collections,
+  collectionCards,
+} from "../../infrastructure/repositories/schema/collection.sql";
 import { libraryMemberships } from "../../infrastructure/repositories/schema/libraryMembership.sql";
 import { publishedRecords } from "../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
 import { Collection, CollectionAccessType } from "../../domain/Collection";
 import { CardBuilder } from "../utils/builders/CardBuilder";
-import { CardTypeEnum } from "../../domain/value-objects/CardType";
 import { URL } from "../../domain/value-objects/URL";
 import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
-import {
-  CardSortField,
-  SortOrder,
-} from "../../domain/ICardQueryRepository";
+import { CardSortField, SortOrder } from "../../domain/ICardQueryRepository";
 import { createTestSchema } from "../test-utils/createTestSchema";
-import { eq } from "drizzle-orm";
+import { Card } from "../../domain/Card";
 
 describe("DrizzleCardQueryRepository", () => {
   let container: StartedPostgreSqlContainer;
@@ -122,7 +121,7 @@ describe("DrizzleCardQueryRepository", () => {
       // Add cards to user's library using domain logic
       urlCard1.addToLibrary(curatorId);
       urlCard2.addToLibrary(curatorId);
-      
+
       // Save the updated cards
       await cardRepository.save(urlCard1);
       await cardRepository.save(urlCard2);
@@ -140,14 +139,18 @@ describe("DrizzleCardQueryRepository", () => {
       expect(result.hasMore).toBe(false);
 
       // Check URL card data
-      const card1Result = result.items.find(item => item.url === url1.value);
-      const card2Result = result.items.find(item => item.url === url2.value);
+      const card1Result = result.items.find((item) => item.url === url1.value);
+      const card2Result = result.items.find((item) => item.url === url2.value);
 
       expect(card1Result).toBeDefined();
       expect(card1Result?.urlMeta.title).toBe("Example Article 1");
-      expect(card1Result?.urlMeta.description).toBe("A great article about testing");
+      expect(card1Result?.urlMeta.description).toBe(
+        "A great article about testing"
+      );
       expect(card1Result?.urlMeta.author).toBe("John Doe");
-      expect(card1Result?.urlMeta.thumbnailUrl).toBe("https://example.com/image1.jpg");
+      expect(card1Result?.urlMeta.thumbnailUrl).toBe(
+        "https://example.com/image1.jpg"
+      );
 
       expect(card2Result).toBeDefined();
       expect(card2Result?.urlMeta.title).toBeUndefined(); // No metadata provided
@@ -175,7 +178,7 @@ describe("DrizzleCardQueryRepository", () => {
       // Add both cards to user's library using domain logic
       urlCard.addToLibrary(curatorId);
       noteCard.addToLibrary(curatorId);
-      
+
       // Save the updated cards
       await cardRepository.save(urlCard);
       await cardRepository.save(noteCard);
@@ -193,7 +196,9 @@ describe("DrizzleCardQueryRepository", () => {
 
       expect(urlCardResult?.note).toBeDefined();
       expect(urlCardResult?.note?.id).toBe(noteCard.cardId.getStringValue());
-      expect(urlCardResult?.note?.text).toBe("This is my note about the article");
+      expect(urlCardResult?.note?.text).toBe(
+        "This is my note about the article"
+      );
     });
 
     it("should include collections that contain the URL cards", async () => {
@@ -241,7 +246,7 @@ describe("DrizzleCardQueryRepository", () => {
 
       // Add card to user's library using domain logic
       urlCard.addToLibrary(curatorId);
-      
+
       // Save the updated card
       await cardRepository.save(urlCard);
 
@@ -257,14 +262,20 @@ describe("DrizzleCardQueryRepository", () => {
       const urlCardResult = result.items[0];
 
       expect(urlCardResult?.collections).toHaveLength(2);
-      
-      const collectionNames = urlCardResult?.collections.map(c => c.name).sort();
+
+      const collectionNames = urlCardResult?.collections
+        .map((c) => c.name)
+        .sort();
       expect(collectionNames).toEqual(["Favorites", "Reading List"]);
 
       // Check collection details
-      const readingListCollection = urlCardResult?.collections.find(c => c.name === "Reading List");
+      const readingListCollection = urlCardResult?.collections.find(
+        (c) => c.name === "Reading List"
+      );
       expect(readingListCollection?.authorId).toBe(curatorId.value);
-      expect(readingListCollection?.id).toBe(collection1.collectionId.getStringValue());
+      expect(readingListCollection?.id).toBe(
+        collection1.collectionId.getStringValue()
+      );
     });
 
     it("should handle multiple users with library memberships", async () => {
@@ -280,7 +291,7 @@ describe("DrizzleCardQueryRepository", () => {
       // Add card to both users' libraries using domain logic
       urlCard.addToLibrary(curatorId);
       urlCard.addToLibrary(otherCuratorId);
-      
+
       // Save the updated card (library count will be automatically updated)
       await cardRepository.save(urlCard);
 
@@ -293,12 +304,15 @@ describe("DrizzleCardQueryRepository", () => {
       });
 
       // Query URL cards for second user
-      const result2 = await queryRepository.getUrlCardsOfUser(otherCuratorId.value, {
-        page: 1,
-        limit: 10,
-        sortBy: CardSortField.UPDATED_AT,
-        sortOrder: SortOrder.DESC,
-      });
+      const result2 = await queryRepository.getUrlCardsOfUser(
+        otherCuratorId.value,
+        {
+          page: 1,
+          limit: 10,
+          sortBy: CardSortField.UPDATED_AT,
+          sortOrder: SortOrder.DESC,
+        }
+      );
 
       // Both users should see the card
       expect(result1.items).toHaveLength(1);
@@ -321,7 +335,7 @@ describe("DrizzleCardQueryRepository", () => {
 
       // Add card only to other user's library using domain logic
       urlCard.addToLibrary(otherCuratorId);
-      
+
       // Save the updated card
       await cardRepository.save(urlCard);
 
@@ -348,7 +362,7 @@ describe("DrizzleCardQueryRepository", () => {
 
       // Add note card to user's library using domain logic
       noteCard.addToLibrary(curatorId);
-      
+
       // Save the updated card
       await cardRepository.save(noteCard);
 
@@ -430,7 +444,7 @@ describe("DrizzleCardQueryRepository", () => {
       urlCard.addToLibrary(curatorId);
       noteCard.addToLibrary(curatorId);
       urlCard.addToLibrary(otherCuratorId);
-      
+
       // Save the updated cards (library counts will be automatically updated)
       await cardRepository.save(urlCard);
       await cardRepository.save(noteCard);
@@ -449,9 +463,13 @@ describe("DrizzleCardQueryRepository", () => {
       // Check URL metadata
       expect(urlCardResult?.url).toBe(url.value);
       expect(urlCardResult?.urlMeta.title).toBe("Complex Article");
-      expect(urlCardResult?.urlMeta.description).toBe("An article with notes and collections");
+      expect(urlCardResult?.urlMeta.description).toBe(
+        "An article with notes and collections"
+      );
       expect(urlCardResult?.urlMeta.author).toBe("Jane Smith");
-      expect(urlCardResult?.urlMeta.thumbnailUrl).toBe("https://example.com/complex.jpg");
+      expect(urlCardResult?.urlMeta.thumbnailUrl).toBe(
+        "https://example.com/complex.jpg"
+      );
 
       // Check library count
       expect(urlCardResult?.libraryCount).toBe(2);
@@ -459,15 +477,21 @@ describe("DrizzleCardQueryRepository", () => {
       // Check connected note
       expect(urlCardResult?.note).toBeDefined();
       expect(urlCardResult?.note?.id).toBe(noteCard.cardId.getStringValue());
-      expect(urlCardResult?.note?.text).toBe("Detailed analysis of the complex article");
+      expect(urlCardResult?.note?.text).toBe(
+        "Detailed analysis of the complex article"
+      );
 
       // Check collections
       expect(urlCardResult?.collections).toHaveLength(2);
-      const collectionNames = urlCardResult?.collections.map(c => c.name).sort();
+      const collectionNames = urlCardResult?.collections
+        .map((c) => c.name)
+        .sort();
       expect(collectionNames).toEqual(["Personal Reading", "Work Research"]);
 
       // Verify collection details
-      const workColl = urlCardResult?.collections.find(c => c.name === "Work Research");
+      const workColl = urlCardResult?.collections.find(
+        (c) => c.name === "Work Research"
+      );
       expect(workColl?.authorId).toBe(curatorId.value);
       expect(workColl?.id).toBe(workCollection.collectionId.getStringValue());
     });
@@ -477,9 +501,21 @@ describe("DrizzleCardQueryRepository", () => {
     beforeEach(async () => {
       // Create URL cards with different properties for sorting
       const urls = [
-        { url: "https://example.com/alpha", libraryCount: 1, date: "2023-01-01" },
-        { url: "https://example.com/beta", libraryCount: 3, date: "2023-01-03" },
-        { url: "https://example.com/gamma", libraryCount: 2, date: "2023-01-02" },
+        {
+          url: "https://example.com/alpha",
+          libraryCount: 1,
+          date: "2023-01-01",
+        },
+        {
+          url: "https://example.com/beta",
+          libraryCount: 3,
+          date: "2023-01-03",
+        },
+        {
+          url: "https://example.com/gamma",
+          libraryCount: 2,
+          date: "2023-01-02",
+        },
       ];
 
       for (const urlData of urls) {
@@ -495,21 +531,24 @@ describe("DrizzleCardQueryRepository", () => {
 
         // Add to library using domain logic
         urlCard.addToLibrary(curatorId);
-        
+
         // For testing purposes, we need to manually set the library count to match test data
         // In a real scenario, this would be handled by other users adding the card to their libraries
-        const cardWithUpdatedCount = Card.create({
-          type: urlCard.type,
-          content: urlCard.content,
-          url: urlCard.url,
-          parentCardId: urlCard.parentCardId,
-          libraryMemberships: urlCard.libraryMemberships,
-          libraryCount: urlData.libraryCount,
-          originalPublishedRecordId: urlCard.originalPublishedRecordId,
-          createdAt: urlCard.createdAt,
-          updatedAt: urlCard.updatedAt,
-        }, new UniqueEntityID(urlCard.cardId.getStringValue())).unwrap();
-        
+        const cardWithUpdatedCount = Card.create(
+          {
+            type: urlCard.type,
+            content: urlCard.content,
+            url: urlCard.url,
+            parentCardId: urlCard.parentCardId,
+            libraryMemberships: urlCard.libraryMemberships,
+            libraryCount: urlData.libraryCount,
+            originalPublishedRecordId: urlCard.originalPublishedRecordId,
+            createdAt: urlCard.createdAt,
+            updatedAt: urlCard.updatedAt,
+          },
+          new UniqueEntityID(urlCard.cardId.getStringValue())
+        ).unwrap();
+
         await cardRepository.save(cardWithUpdatedCount);
       }
     });
@@ -573,7 +612,7 @@ describe("DrizzleCardQueryRepository", () => {
 
         // Add to library using domain logic
         urlCard.addToLibrary(curatorId);
-        
+
         await cardRepository.save(urlCard);
       }
     });

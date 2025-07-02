@@ -32,6 +32,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       url TEXT,
       parent_card_id UUID REFERENCES cards(id),
       original_published_record_id UUID REFERENCES published_records(id),
+      library_count INTEGER NOT NULL DEFAULT 0,
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
     )`,

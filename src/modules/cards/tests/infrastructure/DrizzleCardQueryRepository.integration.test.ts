@@ -119,21 +119,13 @@ describe("DrizzleCardQueryRepository", () => {
       await cardRepository.save(urlCard1);
       await cardRepository.save(urlCard2);
 
-      // Add cards to user's library
-      await db.insert(libraryMemberships).values([
-        {
-          id: new UniqueEntityID().toString(),
-          userId: curatorId.value,
-          cardId: urlCard1.cardId.getStringValue(),
-          addedAt: new Date(),
-        },
-        {
-          id: new UniqueEntityID().toString(),
-          userId: curatorId.value,
-          cardId: urlCard2.cardId.getStringValue(),
-          addedAt: new Date(),
-        },
-      ]);
+      // Add cards to user's library using domain logic
+      urlCard1.addToLibrary(curatorId);
+      urlCard2.addToLibrary(curatorId);
+      
+      // Save the updated cards
+      await cardRepository.save(urlCard1);
+      await cardRepository.save(urlCard2);
 
       // Query URL cards
       const result = await queryRepository.getUrlCardsOfUser(curatorId.value, {
@@ -180,21 +172,13 @@ describe("DrizzleCardQueryRepository", () => {
 
       await cardRepository.save(noteCard);
 
-      // Add both cards to user's library
-      await db.insert(libraryMemberships).values([
-        {
-          id: new UniqueEntityID().toString(),
-          userId: curatorId.value,
-          cardId: urlCard.cardId.getStringValue(),
-          addedAt: new Date(),
-        },
-        {
-          id: new UniqueEntityID().toString(),
-          userId: curatorId.value,
-          cardId: noteCard.cardId.getStringValue(),
-          addedAt: new Date(),
-        },
-      ]);
+      // Add both cards to user's library using domain logic
+      urlCard.addToLibrary(curatorId);
+      noteCard.addToLibrary(curatorId);
+      
+      // Save the updated cards
+      await cardRepository.save(urlCard);
+      await cardRepository.save(noteCard);
 
       // Query URL cards
       const result = await queryRepository.getUrlCardsOfUser(curatorId.value, {
@@ -255,15 +239,11 @@ describe("DrizzleCardQueryRepository", () => {
       await collectionRepository.save(collection1);
       await collectionRepository.save(collection2);
 
-      // Add card to user's library
-      await db.insert(libraryMemberships).values([
-        {
-          id: new UniqueEntityID().toString(),
-          userId: curatorId.value,
-          cardId: urlCard.cardId.getStringValue(),
-          addedAt: new Date(),
-        },
-      ]);
+      // Add card to user's library using domain logic
+      urlCard.addToLibrary(curatorId);
+      
+      // Save the updated card
+      await cardRepository.save(urlCard);
 
       // Query URL cards
       const result = await queryRepository.getUrlCardsOfUser(curatorId.value, {
@@ -297,26 +277,12 @@ describe("DrizzleCardQueryRepository", () => {
 
       await cardRepository.save(urlCard);
 
-      // Add card to both users' libraries
-      await db.insert(libraryMemberships).values([
-        {
-          id: new UniqueEntityID().toString(),
-          userId: curatorId.value,
-          cardId: urlCard.cardId.getStringValue(),
-          addedAt: new Date(),
-        },
-        {
-          id: new UniqueEntityID().toString(),
-          userId: otherCuratorId.value,
-          cardId: urlCard.cardId.getStringValue(),
-          addedAt: new Date(),
-        },
-      ]);
-
-      // Update library count to reflect multiple memberships
-      await db.update(cards)
-        .set({ libraryCount: 2 })
-        .where(eq(cards.id, urlCard.cardId.getStringValue()));
+      // Add card to both users' libraries using domain logic
+      urlCard.addToLibrary(curatorId);
+      urlCard.addToLibrary(otherCuratorId);
+      
+      // Save the updated card (library count will be automatically updated)
+      await cardRepository.save(urlCard);
 
       // Query URL cards for first user
       const result1 = await queryRepository.getUrlCardsOfUser(curatorId.value, {
@@ -353,15 +319,11 @@ describe("DrizzleCardQueryRepository", () => {
 
       await cardRepository.save(urlCard);
 
-      // Add card only to other user's library
-      await db.insert(libraryMemberships).values([
-        {
-          id: new UniqueEntityID().toString(),
-          userId: otherCuratorId.value,
-          cardId: urlCard.cardId.getStringValue(),
-          addedAt: new Date(),
-        },
-      ]);
+      // Add card only to other user's library using domain logic
+      urlCard.addToLibrary(otherCuratorId);
+      
+      // Save the updated card
+      await cardRepository.save(urlCard);
 
       // Query URL cards for our user
       const result = await queryRepository.getUrlCardsOfUser(curatorId.value, {
@@ -384,15 +346,11 @@ describe("DrizzleCardQueryRepository", () => {
 
       await cardRepository.save(noteCard);
 
-      // Add note card to user's library
-      await db.insert(libraryMemberships).values([
-        {
-          id: new UniqueEntityID().toString(),
-          userId: curatorId.value,
-          cardId: noteCard.cardId.getStringValue(),
-          addedAt: new Date(),
-        },
-      ]);
+      // Add note card to user's library using domain logic
+      noteCard.addToLibrary(curatorId);
+      
+      // Save the updated card
+      await cardRepository.save(noteCard);
 
       // Query URL cards
       const result = await queryRepository.getUrlCardsOfUser(curatorId.value, {
@@ -468,32 +426,14 @@ describe("DrizzleCardQueryRepository", () => {
       await collectionRepository.save(workCollection);
       await collectionRepository.save(personalCollection);
 
-      // Add both cards to user's library with multiple memberships
-      await db.insert(libraryMemberships).values([
-        {
-          id: new UniqueEntityID().toString(),
-          userId: curatorId.value,
-          cardId: urlCard.cardId.getStringValue(),
-          addedAt: new Date(),
-        },
-        {
-          id: new UniqueEntityID().toString(),
-          userId: curatorId.value,
-          cardId: noteCard.cardId.getStringValue(),
-          addedAt: new Date(),
-        },
-        {
-          id: new UniqueEntityID().toString(),
-          userId: otherCuratorId.value,
-          cardId: urlCard.cardId.getStringValue(),
-          addedAt: new Date(),
-        },
-      ]);
-
-      // Update library count
-      await db.update(cards)
-        .set({ libraryCount: 2 })
-        .where(eq(cards.id, urlCard.cardId.getStringValue()));
+      // Add both cards to user's library with multiple memberships using domain logic
+      urlCard.addToLibrary(curatorId);
+      noteCard.addToLibrary(curatorId);
+      urlCard.addToLibrary(otherCuratorId);
+      
+      // Save the updated cards (library counts will be automatically updated)
+      await cardRepository.save(urlCard);
+      await cardRepository.save(noteCard);
 
       // Query URL cards
       const result = await queryRepository.getUrlCardsOfUser(curatorId.value, {
@@ -553,20 +493,24 @@ describe("DrizzleCardQueryRepository", () => {
 
         await cardRepository.save(urlCard);
 
-        // Add to library
-        await db.insert(libraryMemberships).values([
-          {
-            id: new UniqueEntityID().toString(),
-            userId: curatorId.value,
-            cardId: urlCard.cardId.getStringValue(),
-            addedAt: new Date(),
-          },
-        ]);
-
-        // Update library count
-        await db.update(cards)
-          .set({ libraryCount: urlData.libraryCount })
-          .where(eq(cards.id, urlCard.cardId.getStringValue()));
+        // Add to library using domain logic
+        urlCard.addToLibrary(curatorId);
+        
+        // For testing purposes, we need to manually set the library count to match test data
+        // In a real scenario, this would be handled by other users adding the card to their libraries
+        const cardWithUpdatedCount = Card.create({
+          type: urlCard.type,
+          content: urlCard.content,
+          url: urlCard.url,
+          parentCardId: urlCard.parentCardId,
+          libraryMemberships: urlCard.libraryMemberships,
+          libraryCount: urlData.libraryCount,
+          originalPublishedRecordId: urlCard.originalPublishedRecordId,
+          createdAt: urlCard.createdAt,
+          updatedAt: urlCard.updatedAt,
+        }, new UniqueEntityID(urlCard.cardId.getStringValue())).unwrap();
+        
+        await cardRepository.save(cardWithUpdatedCount);
       }
     });
 
@@ -627,14 +571,10 @@ describe("DrizzleCardQueryRepository", () => {
 
         await cardRepository.save(urlCard);
 
-        await db.insert(libraryMemberships).values([
-          {
-            id: new UniqueEntityID().toString(),
-            userId: curatorId.value,
-            cardId: urlCard.cardId.getStringValue(),
-            addedAt: new Date(),
-          },
-        ]);
+        // Add to library using domain logic
+        urlCard.addToLibrary(curatorId);
+        
+        await cardRepository.save(urlCard);
       }
     });
 

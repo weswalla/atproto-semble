@@ -2,6 +2,7 @@ import {
   ICardQueryRepository,
   CardQueryOptions,
   UrlCardQueryResultDTO,
+  CollectionCardQueryResultDTO,
   PaginatedQueryResult,
   CardSortField,
   SortOrder,
@@ -10,6 +11,7 @@ import {
 export class InMemoryCardQueryRepository implements ICardQueryRepository {
   private urlCards: Map<string, UrlCardQueryResultDTO> = new Map();
   private userLibraries: Map<string, Set<string>> = new Map(); // userId -> Set of cardIds
+  private collectionCards: Map<string, Set<string>> = new Map(); // collectionId -> Set of cardIds
 
   async getUrlCardsOfUser(
     userId: string,
@@ -97,5 +99,94 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
   getUserLibrary(userId: string): string[] {
     return Array.from(this.userLibraries.get(userId) || new Set());
+  }
+
+  async getCardsInCollection(
+    collectionId: string,
+    options: CardQueryOptions
+  ): Promise<PaginatedQueryResult<CollectionCardQueryResultDTO>> {
+    try {
+      // Get cards in collection
+      const collectionCardIds = this.collectionCards.get(collectionId) || new Set();
+      const collectionCards = Array.from(this.urlCards.values())
+        .filter(card => collectionCardIds.has(card.id))
+        .map(card => this.toCollectionCardQueryResult(card));
+
+      // Sort cards
+      const sortedCards = this.sortCollectionCards(collectionCards, options.sortBy, options.sortOrder);
+
+      // Apply pagination
+      const startIndex = (options.page - 1) * options.limit;
+      const endIndex = startIndex + options.limit;
+      const paginatedCards = sortedCards.slice(startIndex, endIndex);
+
+      return {
+        items: paginatedCards,
+        totalCount: collectionCards.length,
+        hasMore: endIndex < collectionCards.length,
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to query collection cards: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  private sortCollectionCards(
+    cards: CollectionCardQueryResultDTO[],
+    sortBy: CardSortField,
+    sortOrder: SortOrder
+  ): CollectionCardQueryResultDTO[] {
+    const sorted = [...cards].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortBy) {
+        case CardSortField.CREATED_AT:
+          comparison = a.createdAt.getTime() - b.createdAt.getTime();
+          break;
+        case CardSortField.UPDATED_AT:
+          comparison = a.updatedAt.getTime() - b.updatedAt.getTime();
+          break;
+        case CardSortField.LIBRARY_COUNT:
+          comparison = a.libraryCount - b.libraryCount;
+          break;
+        default:
+          comparison = 0;
+      }
+
+      return sortOrder === SortOrder.DESC ? -comparison : comparison;
+    });
+
+    return sorted;
+  }
+
+  private toCollectionCardQueryResult(card: UrlCardQueryResultDTO): CollectionCardQueryResultDTO {
+    return {
+      id: card.id,
+      url: card.url,
+      urlMeta: card.urlMeta,
+      libraryCount: card.libraryCount,
+      createdAt: card.createdAt,
+      updatedAt: card.updatedAt,
+      note: card.note,
+    };
+  }
+
+  // Additional test helper methods for collections
+  addCardToCollection(collectionId: string, cardId: string): void {
+    if (!this.collectionCards.has(collectionId)) {
+      this.collectionCards.set(collectionId, new Set());
+    }
+    this.collectionCards.get(collectionId)!.add(cardId);
+  }
+
+  getCollectionCards(collectionId: string): string[] {
+    return Array.from(this.collectionCards.get(collectionId) || new Set());
+  }
+
+  clear(): void {
+    this.urlCards.clear();
+    this.userLibraries.clear();
+    this.collectionCards.clear();
   }
 }

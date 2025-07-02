@@ -9,6 +9,7 @@ import { URL } from "../../../domain/value-objects/URL";
 import { UrlMetadata } from "../../../domain/value-objects/UrlMetadata";
 import { err, ok, Result } from "../../../../../shared/core/Result";
 import { v4 as uuid } from "uuid";
+import { UrlCardQueryResultDTO } from "../../../domain/ICardQueryRepository";
 
 // Type-safe content data interfaces
 interface UrlContentData {
@@ -32,6 +33,25 @@ interface NoteContentData {
 }
 
 type CardContentData = UrlContentData | NoteContentData;
+
+// Raw data for URL card queries
+export interface RawUrlCardData {
+  id: string;
+  url: string;
+  contentData: any;
+  libraryCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+  collections: {
+    id: string;
+    name: string;
+    authorId: string;
+  }[];
+  note?: {
+    id: string;
+    contentData: any;
+  };
+}
 
 // Database representation of a card
 export interface CardDTO {
@@ -310,6 +330,33 @@ export class CardMapper {
         membershipPublishedRecords.length > 0
           ? membershipPublishedRecords
           : undefined,
+    };
+  }
+
+  public static toUrlCardQueryResult(raw: RawUrlCardData): UrlCardQueryResultDTO {
+    // Extract URL metadata from contentData
+    const urlMeta = {
+      title: raw.contentData?.metadata?.title,
+      description: raw.contentData?.metadata?.description,
+      author: raw.contentData?.metadata?.author,
+      thumbnailUrl: raw.contentData?.metadata?.imageUrl,
+    };
+
+    // Extract note text from note's contentData
+    const note = raw.note ? {
+      id: raw.note.id,
+      text: raw.note.contentData?.text || "",
+    } : undefined;
+
+    return {
+      id: raw.id,
+      url: raw.url,
+      urlMeta,
+      libraryCount: raw.libraryCount,
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+      collections: raw.collections,
+      note,
     };
   }
 }

@@ -34,6 +34,7 @@ describe("DrizzleCardQueryRepository", () => {
   // Test data
   let curatorId: CuratorId;
   let otherCuratorId: CuratorId;
+  let thirdCuratorId: CuratorId;
 
   // Setup before all tests
   beforeAll(async () => {
@@ -57,6 +58,7 @@ describe("DrizzleCardQueryRepository", () => {
     // Create test data
     curatorId = CuratorId.create("did:plc:testcurator").unwrap();
     otherCuratorId = CuratorId.create("did:plc:othercurator").unwrap();
+    thirdCuratorId = CuratorId.create("did:plc:thirdcurator").unwrap();
   }, 60000); // Increase timeout for container startup
 
   // Cleanup after all tests
@@ -288,11 +290,16 @@ describe("DrizzleCardQueryRepository", () => {
 
       await cardRepository.save(urlCard);
 
-      // Add card to both users' libraries using domain logic
+      // Add card to first user's library
       urlCard.addToLibrary(curatorId);
-      urlCard.addToLibrary(otherCuratorId);
+      await cardRepository.save(urlCard);
 
-      // Save the updated card (library count will be automatically updated)
+      // Add card to second user's library
+      urlCard.addToLibrary(otherCuratorId);
+      await cardRepository.save(urlCard);
+
+      // Add card to third user's library
+      urlCard.addToLibrary(thirdCuratorId);
       await cardRepository.save(urlCard);
 
       // Query URL cards for first user
@@ -314,13 +321,26 @@ describe("DrizzleCardQueryRepository", () => {
         }
       );
 
-      // Both users should see the card
+      // Query URL cards for third user
+      const result3 = await queryRepository.getUrlCardsOfUser(
+        thirdCuratorId.value,
+        {
+          page: 1,
+          limit: 10,
+          sortBy: CardSortField.UPDATED_AT,
+          sortOrder: SortOrder.DESC,
+        }
+      );
+
+      // All users should see the card
       expect(result1.items).toHaveLength(1);
       expect(result2.items).toHaveLength(1);
+      expect(result3.items).toHaveLength(1);
 
-      // Library count should be 2 for both
-      expect(result1.items[0]?.libraryCount).toBe(2);
-      expect(result2.items[0]?.libraryCount).toBe(2);
+      // Library count should be 3 for all users
+      expect(result1.items[0]?.libraryCount).toBe(3);
+      expect(result2.items[0]?.libraryCount).toBe(3);
+      expect(result3.items[0]?.libraryCount).toBe(3);
     });
 
     it("should not return URL cards from other users' libraries", async () => {
@@ -442,12 +462,16 @@ describe("DrizzleCardQueryRepository", () => {
 
       // Add both cards to user's library with multiple memberships using domain logic
       urlCard.addToLibrary(curatorId);
-      noteCard.addToLibrary(curatorId);
-      urlCard.addToLibrary(otherCuratorId);
-
-      // Save the updated cards (library counts will be automatically updated)
       await cardRepository.save(urlCard);
+      
+      noteCard.addToLibrary(curatorId);
       await cardRepository.save(noteCard);
+      
+      urlCard.addToLibrary(otherCuratorId);
+      await cardRepository.save(urlCard);
+      
+      urlCard.addToLibrary(thirdCuratorId);
+      await cardRepository.save(urlCard);
 
       // Query URL cards
       const result = await queryRepository.getUrlCardsOfUser(curatorId.value, {
@@ -472,7 +496,7 @@ describe("DrizzleCardQueryRepository", () => {
       );
 
       // Check library count
-      expect(urlCardResult?.libraryCount).toBe(2);
+      expect(urlCardResult?.libraryCount).toBe(3);
 
       // Check connected note
       expect(urlCardResult?.note).toBeDefined();
@@ -529,27 +553,19 @@ describe("DrizzleCardQueryRepository", () => {
 
         await cardRepository.save(urlCard);
 
-        // Add to library using domain logic
+        // Add to library using domain logic - add multiple users to reach the desired library count
         urlCard.addToLibrary(curatorId);
-
-        // For testing purposes, we need to manually set the library count to match test data
-        // In a real scenario, this would be handled by other users adding the card to their libraries
-        const cardWithUpdatedCount = Card.create(
-          {
-            type: urlCard.type,
-            content: urlCard.content,
-            url: urlCard.url,
-            parentCardId: urlCard.parentCardId,
-            libraryMemberships: urlCard.libraryMemberships,
-            libraryCount: urlData.libraryCount,
-            originalPublishedRecordId: urlCard.originalPublishedRecordId,
-            createdAt: urlCard.createdAt,
-            updatedAt: urlCard.updatedAt,
-          },
-          new UniqueEntityID(urlCard.cardId.getStringValue())
-        ).unwrap();
-
-        await cardRepository.save(cardWithUpdatedCount);
+        await cardRepository.save(urlCard);
+        
+        // Add additional users to reach the test library count
+        if (urlData.libraryCount > 1) {
+          urlCard.addToLibrary(otherCuratorId);
+          await cardRepository.save(urlCard);
+        }
+        if (urlData.libraryCount > 2) {
+          urlCard.addToLibrary(thirdCuratorId);
+          await cardRepository.save(urlCard);
+        }
       }
     });
 

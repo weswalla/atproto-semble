@@ -91,7 +91,9 @@ export class GetCollectionPageUseCase
     const sortOrder = query.sortOrder || SortOrder.DESC;
 
     // Validate collection ID
-    const collectionIdResult = CollectionId.create(query.collectionId);
+    const collectionIdResult = CollectionId.createFromString(
+      query.collectionId
+    );
     if (collectionIdResult.isErr()) {
       return err(new ValidationError("Invalid collection ID"));
     }

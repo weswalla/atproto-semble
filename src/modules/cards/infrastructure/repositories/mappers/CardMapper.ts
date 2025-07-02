@@ -9,7 +9,7 @@ import { URL } from "../../../domain/value-objects/URL";
 import { UrlMetadata } from "../../../domain/value-objects/UrlMetadata";
 import { err, ok, Result } from "../../../../../shared/core/Result";
 import { v4 as uuid } from "uuid";
-import { UrlCardQueryResultDTO } from "../../../domain/ICardQueryRepository";
+import { UrlCardQueryResultDTO, CollectionCardQueryResultDTO } from "../../../domain/ICardQueryRepository";
 
 // Type-safe content data interfaces
 interface UrlContentData {
@@ -356,6 +356,43 @@ export class CardMapper {
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       collections: raw.collections,
+      note,
+    };
+  }
+
+  public static toCollectionCardQueryResult(raw: {
+    id: string;
+    url: string;
+    contentData: any;
+    libraryCount: number;
+    createdAt: Date;
+    updatedAt: Date;
+    note?: {
+      id: string;
+      contentData: any;
+    };
+  }): CollectionCardQueryResultDTO {
+    // Extract URL metadata from contentData
+    const urlMeta = {
+      title: raw.contentData?.metadata?.title,
+      description: raw.contentData?.metadata?.description,
+      author: raw.contentData?.metadata?.author,
+      thumbnailUrl: raw.contentData?.metadata?.imageUrl,
+    };
+
+    // Extract note text from note's contentData
+    const note = raw.note ? {
+      id: raw.note.id,
+      text: raw.note.contentData?.text || "",
+    } : undefined;
+
+    return {
+      id: raw.id,
+      url: raw.url,
+      urlMeta,
+      libraryCount: raw.libraryCount,
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
       note,
     };
   }

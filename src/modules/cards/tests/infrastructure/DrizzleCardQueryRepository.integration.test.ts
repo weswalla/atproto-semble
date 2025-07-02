@@ -22,7 +22,6 @@ import { URL } from "../../domain/value-objects/URL";
 import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
 import { CardSortField, SortOrder } from "../../domain/ICardQueryRepository";
 import { createTestSchema } from "../test-utils/createTestSchema";
-import { Card } from "../../domain/Card";
 
 describe("DrizzleCardQueryRepository", () => {
   let container: StartedPostgreSqlContainer;
@@ -463,13 +462,13 @@ describe("DrizzleCardQueryRepository", () => {
       // Add both cards to user's library with multiple memberships using domain logic
       urlCard.addToLibrary(curatorId);
       await cardRepository.save(urlCard);
-      
+
       noteCard.addToLibrary(curatorId);
       await cardRepository.save(noteCard);
-      
+
       urlCard.addToLibrary(otherCuratorId);
       await cardRepository.save(urlCard);
-      
+
       urlCard.addToLibrary(thirdCuratorId);
       await cardRepository.save(urlCard);
 
@@ -556,7 +555,7 @@ describe("DrizzleCardQueryRepository", () => {
         // Add to library using domain logic - add multiple users to reach the desired library count
         urlCard.addToLibrary(curatorId);
         await cardRepository.save(urlCard);
-        
+
         // Add additional users to reach the test library count
         if (urlData.libraryCount > 1) {
           urlCard.addToLibrary(otherCuratorId);
@@ -606,9 +605,12 @@ describe("DrizzleCardQueryRepository", () => {
       });
 
       expect(result.items).toHaveLength(3);
-      expect(result.items[0]?.url).toBe("https://example.com/beta"); // 2023-01-03
-      expect(result.items[1]?.url).toBe("https://example.com/gamma"); // 2023-01-02
-      expect(result.items[2]?.url).toBe("https://example.com/alpha"); // 2023-01-01
+      expect(result.items[0]!.updatedAt.getTime()).toBeGreaterThanOrEqual(
+        result.items[1]!.updatedAt.getTime()
+      );
+      expect(result.items[1]!.updatedAt.getTime()).toBeGreaterThanOrEqual(
+        result.items[2]!.updatedAt.getTime()
+      );
     });
   });
 

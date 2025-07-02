@@ -125,8 +125,9 @@ export class Card extends AggregateRoot<CardProps> {
   }
 
   private static validateCardRelationships(
-    props: Omit<CardProps, "createdAt" | "updatedAt" | "libraryMemberships"> & {
+    props: Omit<CardProps, "createdAt" | "updatedAt" | "libraryMemberships" | "libraryCount"> & {
       libraryMemberships?: CardInLibraryLink[];
+      libraryCount?: number;
     }
   ): Result<void, CardValidationError> {
     // URL cards should not have parent cards
@@ -137,6 +138,14 @@ export class Card extends AggregateRoot<CardProps> {
     // URL cards must have a URL property
     if (props.type.value === CardTypeEnum.URL && !props.url) {
       return err(new CardValidationError("URL cards must have a url property"));
+    }
+
+    // Validate libraryCount matches libraryMemberships length when both are provided
+    const libraryMemberships = props.libraryMemberships || [];
+    if (props.libraryCount !== undefined && props.libraryCount !== libraryMemberships.length) {
+      return err(new CardValidationError(
+        `Library count (${props.libraryCount}) does not match library memberships length (${libraryMemberships.length})`
+      ));
     }
 
     return ok(undefined);

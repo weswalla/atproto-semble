@@ -1,6 +1,6 @@
-import { Result, ok, err } from "../../../../shared/core/Result";
-import { UseCase } from "../../../../shared/core/UseCase";
+import { UseCase } from "src/shared/core/UseCase";
 import { IProfileService } from "../../../domain/services/IProfileService";
+import { err, ok, Result } from "src/shared/core/Result";
 
 export interface GetMyProfileQuery {
   userId: string;
@@ -26,9 +26,7 @@ export class GetMyProfileUseCase
 {
   constructor(private profileService: IProfileService) {}
 
-  async execute(
-    query: GetMyProfileQuery
-  ): Promise<Result<GetMyProfileResult>> {
+  async execute(query: GetMyProfileQuery): Promise<Result<GetMyProfileResult>> {
     // Validate user ID
     if (!query.userId || query.userId.trim().length === 0) {
       return err(new ValidationError("User ID is required"));
@@ -37,7 +35,7 @@ export class GetMyProfileUseCase
     try {
       // Fetch user profile
       const profileResult = await this.profileService.getProfile(query.userId);
-      
+
       if (profileResult.isErr()) {
         return err(
           new Error(

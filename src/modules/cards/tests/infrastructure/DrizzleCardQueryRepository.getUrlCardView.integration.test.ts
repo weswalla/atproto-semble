@@ -654,4 +654,177 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       expect(result?.note).toBeUndefined();
     });
   });
+
+  describe("getLibrariesForCard", () => {
+    it("should return empty array when card has no library memberships", async () => {
+      // Create URL card but don't add to any libraries
+      const url = URL.create("https://example.com/no-libraries").unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      const result = await queryRepository.getLibrariesForCard(
+        urlCard.cardId.getStringValue()
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it("should return single user ID when card is in one library", async () => {
+      // Create URL card
+      const url = URL.create("https://example.com/single-library").unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      // Add to one user's library
+      urlCard.addToLibrary(curatorId);
+      await cardRepository.save(urlCard);
+
+      const result = await queryRepository.getLibrariesForCard(
+        urlCard.cardId.getStringValue()
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result).toContain(curatorId.value);
+    });
+
+    it("should return multiple user IDs when card is in multiple libraries", async () => {
+      // Create URL card
+      const url = URL.create("https://example.com/multiple-libraries").unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      // Add to multiple users' libraries
+      urlCard.addToLibrary(curatorId);
+      await cardRepository.save(urlCard);
+
+      urlCard.addToLibrary(otherCuratorId);
+      await cardRepository.save(urlCard);
+
+      urlCard.addToLibrary(thirdCuratorId);
+      await cardRepository.save(urlCard);
+
+      const result = await queryRepository.getLibrariesForCard(
+        urlCard.cardId.getStringValue()
+      );
+
+      expect(result).toHaveLength(3);
+      expect(result.sort()).toEqual(
+        [curatorId.value, otherCuratorId.value, thirdCuratorId.value].sort()
+      );
+    });
+
+    it("should return empty array for non-existent card", async () => {
+      const nonExistentCardId = new UniqueEntityID().toString();
+
+      const result = await queryRepository.getLibrariesForCard(nonExistentCardId);
+
+      expect(result).toEqual([]);
+    });
+
+    it("should handle duplicate library memberships gracefully", async () => {
+      // Create URL card
+      const url = URL.create("https://example.com/duplicate-test").unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      // Add to library multiple times (domain logic should prevent duplicates)
+      urlCard.addToLibrary(curatorId);
+      await cardRepository.save(urlCard);
+
+      urlCard.addToLibrary(curatorId);
+      await cardRepository.save(urlCard);
+
+      const result = await queryRepository.getLibrariesForCard(
+        urlCard.cardId.getStringValue()
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result).toContain(curatorId.value);
+    });
+
+    it("should work with both URL and NOTE cards", async () => {
+      // Create URL card
+      const url = URL.create("https://example.com/with-note").unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      // Create note card
+      const noteCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withNoteCard("Test note", "Note Title")
+        .buildOrThrow();
+
+      await cardRepository.save(noteCard);
+
+      // Add both cards to libraries
+      urlCard.addToLibrary(curatorId);
+      await cardRepository.save(urlCard);
+
+      noteCard.addToLibrary(otherCuratorId);
+      await cardRepository.save(noteCard);
+
+      // Test URL card libraries
+      const urlResult = await queryRepository.getLibrariesForCard(
+        urlCard.cardId.getStringValue()
+      );
+      expect(urlResult).toEqual([curatorId.value]);
+
+      // Test note card libraries
+      const noteResult = await queryRepository.getLibrariesForCard(
+        noteCard.cardId.getStringValue()
+      );
+      expect(noteResult).toEqual([otherCuratorId.value]);
+    });
+
+    it("should return libraries in consistent order", async () => {
+      // Create URL card
+      const url = URL.create("https://example.com/order-test").unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      // Add to libraries in specific order
+      urlCard.addToLibrary(thirdCuratorId);
+      await cardRepository.save(urlCard);
+
+      urlCard.addToLibrary(curatorId);
+      await cardRepository.save(urlCard);
+
+      urlCard.addToLibrary(otherCuratorId);
+      await cardRepository.save(urlCard);
+
+      const result = await queryRepository.getLibrariesForCard(
+        urlCard.cardId.getStringValue()
+      );
+
+      expect(result).toHaveLength(3);
+      // Should contain all three users regardless of order
+      expect(result).toContain(curatorId.value);
+      expect(result).toContain(otherCuratorId.value);
+      expect(result).toContain(thirdCuratorId.value);
+    });
+  });
 });

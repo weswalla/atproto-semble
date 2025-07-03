@@ -342,6 +342,7 @@ export class CardMapper {
   ): UrlCardQueryResultDTO {
     // Extract URL metadata from contentData
     const cardContent = {
+      url: raw.contentData?.url,
       title: raw.contentData?.metadata?.title,
       description: raw.contentData?.metadata?.description,
       author: raw.contentData?.metadata?.author,
@@ -383,6 +384,7 @@ export class CardMapper {
   }): CollectionCardQueryResultDTO {
     // Extract URL metadata from contentData
     const cardContent = {
+      url: raw.contentData.url,
       title: raw.contentData?.metadata?.title,
       description: raw.contentData?.metadata?.description,
       author: raw.contentData?.metadata?.author,
@@ -428,6 +430,7 @@ export class CardMapper {
   }): UrlCardViewDTO {
     // Extract URL metadata from contentData
     const cardContent = {
+      url: raw.contentData.url,
       title: raw.contentData?.metadata?.title,
       description: raw.contentData?.metadata?.description,
       author: raw.contentData?.metadata?.author,

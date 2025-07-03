@@ -30,6 +30,7 @@ export interface UrlCardView {
   type: CardTypeEnum.URL;
   url: string;
   cardContent: {
+    url: string;
     title?: string;
     description?: string;
     author?: string;

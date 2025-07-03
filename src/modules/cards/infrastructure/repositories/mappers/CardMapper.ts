@@ -9,8 +9,11 @@ import { URL } from "../../../domain/value-objects/URL";
 import { UrlMetadata } from "../../../domain/value-objects/UrlMetadata";
 import { err, ok, Result } from "../../../../../shared/core/Result";
 import { v4 as uuid } from "uuid";
-import { UrlCardQueryResultDTO, CollectionCardQueryResultDTO, UrlCardViewDTO } from "../../../domain/ICardQueryRepository";
-import { CardTypeEnum } from "../../../domain/value-objects/CardType";
+import {
+  UrlCardQueryResultDTO,
+  CollectionCardQueryResultDTO,
+  UrlCardViewDTO,
+} from "../../../domain/ICardQueryRepository";
 
 // Type-safe content data interfaces
 interface UrlContentData {
@@ -334,7 +337,9 @@ export class CardMapper {
     };
   }
 
-  public static toUrlCardQueryResult(raw: RawUrlCardData): UrlCardQueryResultDTO {
+  public static toUrlCardQueryResult(
+    raw: RawUrlCardData
+  ): UrlCardQueryResultDTO {
     // Extract URL metadata from contentData
     const urlMeta = {
       title: raw.contentData?.metadata?.title,
@@ -344,10 +349,12 @@ export class CardMapper {
     };
 
     // Extract note text from note's contentData
-    const note = raw.note ? {
-      id: raw.note.id,
-      text: raw.note.contentData?.text || "",
-    } : undefined;
+    const note = raw.note
+      ? {
+          id: raw.note.id,
+          text: raw.note.contentData?.text || "",
+        }
+      : undefined;
 
     return {
       id: raw.id,
@@ -382,10 +389,12 @@ export class CardMapper {
     };
 
     // Extract note text from note's contentData
-    const note = raw.note ? {
-      id: raw.note.id,
-      text: raw.note.contentData?.text || "",
-    } : undefined;
+    const note = raw.note
+      ? {
+          id: raw.note.id,
+          text: raw.note.contentData?.text || "",
+        }
+      : undefined;
 
     return {
       id: raw.id,

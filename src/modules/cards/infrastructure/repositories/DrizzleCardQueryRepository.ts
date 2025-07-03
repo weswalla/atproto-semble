@@ -14,6 +14,7 @@ import { cards } from "./schema/card.sql";
 import { collections, collectionCards } from "./schema/collection.sql";
 import { libraryMemberships } from "./schema/libraryMembership.sql";
 import { CardMapper, RawUrlCardData } from "./mappers/CardMapper";
+import { CardTypeEnum } from "../../domain/value-objects/CardType";
 
 export class DrizzleCardQueryRepository implements ICardQueryRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -42,7 +43,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .from(cards)
         .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
         .where(
-          sql`${libraryMemberships.userId} = ${userId} AND ${cards.type} = 'URL'`
+          sql`${libraryMemberships.userId} = ${userId} AND ${cards.type} = '${CardTypeEnum.URL}'`
         )
         .orderBy(orderDirection(this.getSortColumn(sortBy)))
         .limit(limit)
@@ -58,7 +59,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         };
       }
 
-      const cardIds = urlCardsResult.map(card => card.id);
+      const cardIds = urlCardsResult.map((card) => card.id);
 
       // Get collections for these cards
       const collectionsQuery = this.db
@@ -69,7 +70,10 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
           authorId: collections.authorId,
         })
         .from(collectionCards)
-        .innerJoin(collections, eq(collectionCards.collectionId, collections.id))
+        .innerJoin(
+          collections,
+          eq(collectionCards.collectionId, collections.id)
+        )
         .where(inArray(collectionCards.cardId, cardIds));
 
       const collectionsResult = await collectionsQuery;
@@ -86,7 +90,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .where(
           and(
             eq(libraryMemberships.userId, userId),
-            eq(cards.type, 'NOTE'),
+            eq(cards.type, CardTypeEnum.NOTE),
             inArray(cards.parentCardId, cardIds)
           )
         );
@@ -99,25 +103,25 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .from(cards)
         .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
         .where(
-          sql`${libraryMemberships.userId} = ${userId} AND ${cards.type} = 'URL'`
+          sql`${libraryMemberships.userId} = ${userId} AND ${cards.type} = '${CardTypeEnum.URL}'`
         );
 
       const totalCount = totalCountResult[0]?.count || 0;
       const hasMore = offset + urlCardsResult.length < totalCount;
 
       // Combine the data
-      const rawCardData: RawUrlCardData[] = urlCardsResult.map(card => {
+      const rawCardData: RawUrlCardData[] = urlCardsResult.map((card) => {
         // Find collections for this card
         const cardCollections = collectionsResult
-          .filter(c => c.cardId === card.id)
-          .map(c => ({
+          .filter((c) => c.cardId === card.id)
+          .map((c) => ({
             id: c.collectionId,
             name: c.collectionName,
             authorId: c.authorId,
           }));
 
         // Find note for this card
-        const note = notesResult.find(n => n.parentCardId === card.id);
+        const note = notesResult.find((n) => n.parentCardId === card.id);
 
         return {
           id: card.id,
@@ -127,15 +131,19 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
           createdAt: card.createdAt,
           updatedAt: card.updatedAt,
           collections: cardCollections,
-          note: note ? {
-            id: note.id,
-            contentData: note.contentData,
-          } : undefined,
+          note: note
+            ? {
+                id: note.id,
+                contentData: note.contentData,
+              }
+            : undefined,
         };
       });
 
       // Map to DTOs
-      const items = rawCardData.map(raw => CardMapper.toUrlCardQueryResult(raw));
+      const items = rawCardData.map((raw) =>
+        CardMapper.toUrlCardQueryResult(raw)
+      );
 
       return {
         items,
@@ -174,7 +182,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .where(
           and(
             eq(collectionCards.collectionId, collectionId),
-            eq(cards.type, 'URL')
+            eq(cards.type, "URL")
           )
         )
         .orderBy(orderDirection(this.getSortColumn(sortBy)))
@@ -191,7 +199,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         };
       }
 
-      const cardIds = cardsResult.map(card => card.id);
+      const cardIds = cardsResult.map((card) => card.id);
 
       // Get note cards for these URL cards (parentCardId matches, type = NOTE)
       const notesQuery = this.db
@@ -202,10 +210,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         })
         .from(cards)
         .where(
-          and(
-            eq(cards.type, 'NOTE'),
-            inArray(cards.parentCardId, cardIds)
-          )
+          and(eq(cards.type, "NOTE"), inArray(cards.parentCardId, cardIds))
         );
 
       const notesResult = await notesQuery;
@@ -218,7 +223,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .where(
           and(
             eq(collectionCards.collectionId, collectionId),
-            eq(cards.type, 'URL')
+            eq(cards.type, "URL")
           )
         );
 
@@ -226,9 +231,9 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
       const hasMore = offset + cardsResult.length < totalCount;
 
       // Combine the data
-      const rawCardData = cardsResult.map(card => {
+      const rawCardData = cardsResult.map((card) => {
         // Find note for this card
-        const note = notesResult.find(n => n.parentCardId === card.id);
+        const note = notesResult.find((n) => n.parentCardId === card.id);
 
         return {
           id: card.id,
@@ -237,15 +242,19 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
           libraryCount: card.libraryCount,
           createdAt: card.createdAt,
           updatedAt: card.updatedAt,
-          note: note ? {
-            id: note.id,
-            contentData: note.contentData,
-          } : undefined,
+          note: note
+            ? {
+                id: note.id,
+                contentData: note.contentData,
+              }
+            : undefined,
         };
       });
 
       // Map to DTOs
-      const items = rawCardData.map(raw => CardMapper.toCollectionCardQueryResult(raw));
+      const items = rawCardData.map((raw) =>
+        CardMapper.toCollectionCardQueryResult(raw)
+      );
 
       return {
         items,
@@ -269,12 +278,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
           contentData: cards.contentData,
         })
         .from(cards)
-        .where(
-          and(
-            eq(cards.id, cardId),
-            eq(cards.type, 'URL')
-          )
-        );
+        .where(and(eq(cards.id, cardId), eq(cards.type, "URL")));
 
       const cardResult = await cardQuery;
 
@@ -302,7 +306,10 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
           authorId: collections.authorId,
         })
         .from(collectionCards)
-        .innerJoin(collections, eq(collectionCards.collectionId, collections.id))
+        .innerJoin(
+          collections,
+          eq(collectionCards.collectionId, collections.id)
+        )
         .where(eq(collectionCards.cardId, cardId));
 
       const collectionsResult = await collectionsQuery;
@@ -313,8 +320,8 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         type: card.type,
         url: card.url || "",
         contentData: card.contentData,
-        inLibraries: libraryResult.map(lib => ({ userId: lib.userId })),
-        inCollections: collectionsResult.map(coll => ({
+        inLibraries: libraryResult.map((lib) => ({ userId: lib.userId })),
+        inCollections: collectionsResult.map((coll) => ({
           id: coll.collectionId,
           name: coll.collectionName,
           authorId: coll.authorId,

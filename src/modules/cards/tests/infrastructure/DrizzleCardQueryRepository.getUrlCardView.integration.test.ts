@@ -1,0 +1,541 @@
+import {
+  PostgreSqlContainer,
+  StartedPostgreSqlContainer,
+} from "@testcontainers/postgresql";
+import postgres from "postgres";
+import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { DrizzleCardQueryRepository } from "../../infrastructure/repositories/DrizzleCardQueryRepository";
+import { DrizzleCardRepository } from "../../infrastructure/repositories/DrizzleCardRepository";
+import { DrizzleCollectionRepository } from "../../infrastructure/repositories/DrizzleCollectionRepository";
+import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
+import { cards } from "../../infrastructure/repositories/schema/card.sql";
+import {
+  collections,
+  collectionCards,
+} from "../../infrastructure/repositories/schema/collection.sql";
+import { libraryMemberships } from "../../infrastructure/repositories/schema/libraryMembership.sql";
+import { publishedRecords } from "../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
+import { Collection, CollectionAccessType } from "../../domain/Collection";
+import { CardBuilder } from "../utils/builders/CardBuilder";
+import { URL } from "../../domain/value-objects/URL";
+import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
+import { createTestSchema } from "../test-utils/createTestSchema";
+
+describe("DrizzleCardQueryRepository - getUrlCardView", () => {
+  let container: StartedPostgreSqlContainer;
+  let db: PostgresJsDatabase;
+  let queryRepository: DrizzleCardQueryRepository;
+  let cardRepository: DrizzleCardRepository;
+  let collectionRepository: DrizzleCollectionRepository;
+
+  // Test data
+  let curatorId: CuratorId;
+  let otherCuratorId: CuratorId;
+  let thirdCuratorId: CuratorId;
+
+  // Setup before all tests
+  beforeAll(async () => {
+    // Start PostgreSQL container
+    container = await new PostgreSqlContainer().start();
+
+    // Create database connection
+    const connectionString = container.getConnectionUri();
+    process.env.DATABASE_URL = connectionString;
+    const client = postgres(connectionString);
+    db = drizzle(client);
+
+    // Create repositories
+    queryRepository = new DrizzleCardQueryRepository(db);
+    cardRepository = new DrizzleCardRepository(db);
+    collectionRepository = new DrizzleCollectionRepository(db);
+
+    // Create schema using helper function
+    await createTestSchema(db);
+
+    // Create test data
+    curatorId = CuratorId.create("did:plc:testcurator").unwrap();
+    otherCuratorId = CuratorId.create("did:plc:othercurator").unwrap();
+    thirdCuratorId = CuratorId.create("did:plc:thirdcurator").unwrap();
+  }, 60000); // Increase timeout for container startup
+
+  // Cleanup after all tests
+  afterAll(async () => {
+    // Stop container
+    await container.stop();
+  });
+
+  // Clear data between tests
+  beforeEach(async () => {
+    await db.delete(collectionCards);
+    await db.delete(collections);
+    await db.delete(libraryMemberships);
+    await db.delete(cards);
+    await db.delete(publishedRecords);
+  });
+
+  describe("getUrlCardView", () => {
+    it("should return null when card does not exist", async () => {
+      const nonExistentCardId = new UniqueEntityID().toString();
+
+      const result = await queryRepository.getUrlCardView(nonExistentCardId);
+
+      expect(result).toBeNull();
+    });
+
+    it("should return null when card exists but is not a URL card", async () => {
+      // Create a note card
+      const noteCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withNoteCard("This is a note", "Note Title")
+        .buildOrThrow();
+
+      await cardRepository.save(noteCard);
+
+      const result = await queryRepository.getUrlCardView(
+        noteCard.cardId.getStringValue()
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it("should return URL card view with basic metadata", async () => {
+      // Create URL card with metadata
+      const url = URL.create("https://example.com/article").unwrap();
+      const urlMetadata = UrlMetadata.create({
+        url: url.value,
+        title: "Test Article",
+        description: "A test article description",
+        author: "John Doe",
+        imageUrl: "https://example.com/image.jpg",
+      }).unwrap();
+
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url, urlMetadata)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      const result = await queryRepository.getUrlCardView(
+        urlCard.cardId.getStringValue()
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.id).toBe(urlCard.cardId.getStringValue());
+      expect(result?.type).toBe("url");
+      expect(result?.urlMeta.url).toBe(url.value);
+      expect(result?.urlMeta.title).toBe("Test Article");
+      expect(result?.urlMeta.description).toBe("A test article description");
+      expect(result?.urlMeta.author).toBe("John Doe");
+      expect(result?.urlMeta.thumbnailUrl).toBe("https://example.com/image.jpg");
+      expect(result?.inLibraries).toEqual([]);
+      expect(result?.inCollections).toEqual([]);
+    });
+
+    it("should return URL card view with minimal metadata", async () => {
+      // Create URL card without metadata
+      const url = URL.create("https://example.com/minimal").unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      const result = await queryRepository.getUrlCardView(
+        urlCard.cardId.getStringValue()
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.id).toBe(urlCard.cardId.getStringValue());
+      expect(result?.type).toBe("url");
+      expect(result?.urlMeta.url).toBe(url.value);
+      expect(result?.urlMeta.title).toBeUndefined();
+      expect(result?.urlMeta.description).toBeUndefined();
+      expect(result?.urlMeta.author).toBeUndefined();
+      expect(result?.urlMeta.thumbnailUrl).toBeUndefined();
+    });
+
+    it("should include users who have the card in their libraries", async () => {
+      // Create URL card
+      const url = URL.create("https://example.com/shared-article").unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      // Add card to multiple users' libraries
+      urlCard.addToLibrary(curatorId);
+      await cardRepository.save(urlCard);
+
+      urlCard.addToLibrary(otherCuratorId);
+      await cardRepository.save(urlCard);
+
+      urlCard.addToLibrary(thirdCuratorId);
+      await cardRepository.save(urlCard);
+
+      const result = await queryRepository.getUrlCardView(
+        urlCard.cardId.getStringValue()
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.inLibraries).toHaveLength(3);
+
+      const userIds = result?.inLibraries.map((lib) => lib.userId).sort();
+      expect(userIds).toEqual([
+        curatorId.value,
+        otherCuratorId.value,
+        thirdCuratorId.value,
+      ].sort());
+    });
+
+    it("should include collections that contain the card", async () => {
+      // Create URL card
+      const url = URL.create("https://example.com/collection-article").unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      // Create collections
+      const collection1 = Collection.create(
+        {
+          authorId: curatorId,
+          name: "Reading List",
+          description: "Articles to read",
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID()
+      ).unwrap();
+
+      const collection2 = Collection.create(
+        {
+          authorId: otherCuratorId,
+          name: "Favorites",
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID()
+      ).unwrap();
+
+      // Add card to collections
+      collection1.addCard(urlCard.cardId, curatorId);
+      collection2.addCard(urlCard.cardId, otherCuratorId);
+
+      await collectionRepository.save(collection1);
+      await collectionRepository.save(collection2);
+
+      const result = await queryRepository.getUrlCardView(
+        urlCard.cardId.getStringValue()
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.inCollections).toHaveLength(2);
+
+      // Check collection details
+      const collectionNames = result?.inCollections.map((c) => c.name).sort();
+      expect(collectionNames).toEqual(["Favorites", "Reading List"]);
+
+      const readingListCollection = result?.inCollections.find(
+        (c) => c.name === "Reading List"
+      );
+      expect(readingListCollection?.id).toBe(
+        collection1.collectionId.getStringValue()
+      );
+      expect(readingListCollection?.authorId).toBe(curatorId.value);
+
+      const favoritesCollection = result?.inCollections.find(
+        (c) => c.name === "Favorites"
+      );
+      expect(favoritesCollection?.id).toBe(
+        collection2.collectionId.getStringValue()
+      );
+      expect(favoritesCollection?.authorId).toBe(otherCuratorId.value);
+    });
+
+    it("should handle card with both libraries and collections", async () => {
+      // Create URL card with full metadata
+      const url = URL.create("https://example.com/comprehensive").unwrap();
+      const urlMetadata = UrlMetadata.create({
+        url: url.value,
+        title: "Comprehensive Article",
+        description: "An article with everything",
+        author: "Jane Smith",
+        imageUrl: "https://example.com/comprehensive.jpg",
+        siteName: "Example Site",
+      }).unwrap();
+
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url, urlMetadata)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      // Add to multiple libraries
+      urlCard.addToLibrary(curatorId);
+      await cardRepository.save(urlCard);
+
+      urlCard.addToLibrary(otherCuratorId);
+      await cardRepository.save(urlCard);
+
+      // Create multiple collections
+      const workCollection = Collection.create(
+        {
+          authorId: curatorId,
+          name: "Work Research",
+          accessType: CollectionAccessType.CLOSED,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID()
+      ).unwrap();
+
+      const personalCollection = Collection.create(
+        {
+          authorId: curatorId,
+          name: "Personal Reading",
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID()
+      ).unwrap();
+
+      const sharedCollection = Collection.create(
+        {
+          authorId: otherCuratorId,
+          name: "Shared Articles",
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID()
+      ).unwrap();
+
+      // Add card to collections
+      workCollection.addCard(urlCard.cardId, curatorId);
+      personalCollection.addCard(urlCard.cardId, curatorId);
+      sharedCollection.addCard(urlCard.cardId, otherCuratorId);
+
+      await collectionRepository.save(workCollection);
+      await collectionRepository.save(personalCollection);
+      await collectionRepository.save(sharedCollection);
+
+      const result = await queryRepository.getUrlCardView(
+        urlCard.cardId.getStringValue()
+      );
+
+      expect(result).toBeDefined();
+
+      // Check URL metadata
+      expect(result?.urlMeta.title).toBe("Comprehensive Article");
+      expect(result?.urlMeta.description).toBe("An article with everything");
+      expect(result?.urlMeta.author).toBe("Jane Smith");
+      expect(result?.urlMeta.thumbnailUrl).toBe(
+        "https://example.com/comprehensive.jpg"
+      );
+
+      // Check libraries
+      expect(result?.inLibraries).toHaveLength(2);
+      const libraryUserIds = result?.inLibraries.map((lib) => lib.userId).sort();
+      expect(libraryUserIds).toEqual([curatorId.value, otherCuratorId.value].sort());
+
+      // Check collections
+      expect(result?.inCollections).toHaveLength(3);
+      const collectionNames = result?.inCollections.map((c) => c.name).sort();
+      expect(collectionNames).toEqual([
+        "Personal Reading",
+        "Shared Articles",
+        "Work Research",
+      ]);
+
+      // Verify collection authors
+      const workColl = result?.inCollections.find((c) => c.name === "Work Research");
+      expect(workColl?.authorId).toBe(curatorId.value);
+
+      const sharedColl = result?.inCollections.find(
+        (c) => c.name === "Shared Articles"
+      );
+      expect(sharedColl?.authorId).toBe(otherCuratorId.value);
+    });
+
+    it("should handle card with no libraries or collections", async () => {
+      // Create URL card that's not in any libraries or collections
+      const url = URL.create("https://example.com/orphaned").unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      const result = await queryRepository.getUrlCardView(
+        urlCard.cardId.getStringValue()
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.id).toBe(urlCard.cardId.getStringValue());
+      expect(result?.type).toBe("url");
+      expect(result?.urlMeta.url).toBe(url.value);
+      expect(result?.inLibraries).toEqual([]);
+      expect(result?.inCollections).toEqual([]);
+    });
+
+    it("should handle card in library but not in any collections", async () => {
+      // Create URL card
+      const url = URL.create("https://example.com/library-only").unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      // Add to library only
+      urlCard.addToLibrary(curatorId);
+      await cardRepository.save(urlCard);
+
+      const result = await queryRepository.getUrlCardView(
+        urlCard.cardId.getStringValue()
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.inLibraries).toHaveLength(1);
+      expect(result?.inLibraries[0]?.userId).toBe(curatorId.value);
+      expect(result?.inCollections).toEqual([]);
+    });
+
+    it("should handle card in collections but not in any libraries", async () => {
+      // Create URL card
+      const url = URL.create("https://example.com/collection-only").unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      // Create collection and add card
+      const collection = Collection.create(
+        {
+          authorId: curatorId,
+          name: "Collection Only",
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID()
+      ).unwrap();
+
+      collection.addCard(urlCard.cardId, curatorId);
+      await collectionRepository.save(collection);
+
+      const result = await queryRepository.getUrlCardView(
+        urlCard.cardId.getStringValue()
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.inLibraries).toEqual([]);
+      expect(result?.inCollections).toHaveLength(1);
+      expect(result?.inCollections[0]?.name).toBe("Collection Only");
+      expect(result?.inCollections[0]?.authorId).toBe(curatorId.value);
+    });
+
+    it("should handle duplicate library memberships gracefully", async () => {
+      // Create URL card
+      const url = URL.create("https://example.com/duplicate-test").unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      // Add to library multiple times (should be handled by domain logic)
+      urlCard.addToLibrary(curatorId);
+      await cardRepository.save(urlCard);
+
+      // Try to add again (should not create duplicate)
+      urlCard.addToLibrary(curatorId);
+      await cardRepository.save(urlCard);
+
+      const result = await queryRepository.getUrlCardView(
+        urlCard.cardId.getStringValue()
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.inLibraries).toHaveLength(1);
+      expect(result?.inLibraries[0]?.userId).toBe(curatorId.value);
+    });
+
+    it("should handle large numbers of libraries and collections", async () => {
+      // Create URL card
+      const url = URL.create("https://example.com/popular-article").unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      // Add to multiple libraries
+      urlCard.addToLibrary(curatorId);
+      urlCard.addToLibrary(otherCuratorId);
+      urlCard.addToLibrary(thirdCuratorId);
+      await cardRepository.save(urlCard);
+
+      // Create multiple collections
+      const collections = [];
+      for (let i = 1; i <= 5; i++) {
+        const collection = Collection.create(
+          {
+            authorId: curatorId,
+            name: `Collection ${i}`,
+            accessType: CollectionAccessType.OPEN,
+            collaboratorIds: [],
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          new UniqueEntityID()
+        ).unwrap();
+
+        collection.addCard(urlCard.cardId, curatorId);
+        await collectionRepository.save(collection);
+        collections.push(collection);
+      }
+
+      const result = await queryRepository.getUrlCardView(
+        urlCard.cardId.getStringValue()
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.inLibraries).toHaveLength(3);
+      expect(result?.inCollections).toHaveLength(5);
+
+      // Verify all collections are present
+      const collectionNames = result?.inCollections.map((c) => c.name).sort();
+      expect(collectionNames).toEqual([
+        "Collection 1",
+        "Collection 2",
+        "Collection 3",
+        "Collection 4",
+        "Collection 5",
+      ]);
+    });
+  });
+});

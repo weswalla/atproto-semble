@@ -55,7 +55,7 @@ export type UrlCardQueryResultDTO = CollectionCardQueryResultDTO & {
 // DTO for single URL card view with library and collection info
 export interface UrlCardViewDTO {
   id: string;
-  type: CardTypeEnum.NOTE;
+  type: CardTypeEnum.URL;
   urlMeta: {
     title?: string;
     description?: string;
@@ -65,9 +65,6 @@ export interface UrlCardViewDTO {
   };
   inLibraries: {
     userId: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
   }[];
   inCollections: {
     id: string;

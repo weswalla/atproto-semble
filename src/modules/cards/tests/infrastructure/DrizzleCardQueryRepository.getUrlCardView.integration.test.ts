@@ -544,5 +544,114 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
         "Collection 5",
       ]);
     });
+
+    it("should include connected note card in URL card view", async () => {
+      // Create URL card with metadata
+      const url = URL.create("https://example.com/article-with-note").unwrap();
+      const urlMetadata = UrlMetadata.create({
+        url: url.value,
+        title: "Article with Note",
+        description: "An article that has a connected note",
+        author: "Jane Doe",
+        imageUrl: "https://example.com/note-article.jpg",
+      }).unwrap();
+
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url, urlMetadata)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      // Create connected note card
+      const noteCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withNoteCard("This is my detailed analysis of the article. It covers several key points and provides additional insights.", "My Analysis")
+        .withParentCard(urlCard.cardId)
+        .buildOrThrow();
+
+      await cardRepository.save(noteCard);
+
+      // Add both cards to user's library
+      urlCard.addToLibrary(curatorId);
+      await cardRepository.save(urlCard);
+
+      noteCard.addToLibrary(curatorId);
+      await cardRepository.save(noteCard);
+
+      const result = await queryRepository.getUrlCardView(
+        urlCard.cardId.getStringValue()
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.id).toBe(urlCard.cardId.getStringValue());
+      expect(result?.type).toBe(CardTypeEnum.URL);
+      expect(result?.url).toBe(url.value);
+      
+      // Check URL metadata
+      expect(result?.cardContent.title).toBe("Article with Note");
+      expect(result?.cardContent.description).toBe("An article that has a connected note");
+      expect(result?.cardContent.author).toBe("Jane Doe");
+      expect(result?.cardContent.thumbnailUrl).toBe("https://example.com/note-article.jpg");
+
+      // Check that the connected note is included
+      expect(result?.note).toBeDefined();
+      expect(result?.note?.id).toBe(noteCard.cardId.getStringValue());
+      expect(result?.note?.text).toBe("This is my detailed analysis of the article. It covers several key points and provides additional insights.");
+
+      // Check libraries
+      expect(result?.libraries).toHaveLength(1);
+      expect(result?.libraries[0]?.userId).toBe(curatorId.value);
+    });
+
+    it("should not include note cards that belong to different URL cards", async () => {
+      // Create first URL card
+      const url1 = URL.create("https://example.com/article1").unwrap();
+      const urlCard1 = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url1)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard1);
+
+      // Create second URL card
+      const url2 = URL.create("https://example.com/article2").unwrap();
+      const urlCard2 = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url2)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard2);
+
+      // Create note card connected to the SECOND URL card
+      const noteCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withNoteCard("This note is for article 2", "Article 2 Notes")
+        .withParentCard(urlCard2.cardId)
+        .buildOrThrow();
+
+      await cardRepository.save(noteCard);
+
+      // Add cards to libraries
+      urlCard1.addToLibrary(curatorId);
+      await cardRepository.save(urlCard1);
+
+      urlCard2.addToLibrary(curatorId);
+      await cardRepository.save(urlCard2);
+
+      noteCard.addToLibrary(curatorId);
+      await cardRepository.save(noteCard);
+
+      // Query the FIRST URL card
+      const result = await queryRepository.getUrlCardView(
+        urlCard1.cardId.getStringValue()
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.id).toBe(urlCard1.cardId.getStringValue());
+      
+      // Should NOT have a note since the note belongs to urlCard2
+      expect(result?.note).toBeUndefined();
+    });
   });
 });

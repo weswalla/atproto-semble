@@ -42,8 +42,4 @@ export class LibraryService {
 
     return await this.collectionRepository.save(collection);
   }
-
-  async getLibraryForUser(curatorId: CuratorId): Promise<Result<Card[]>> {
-    return await this.cardRepository.findByCuratorId(curatorId);
-  }
 }

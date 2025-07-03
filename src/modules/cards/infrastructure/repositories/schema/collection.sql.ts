@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, boolean, integer } from "drizzle-orm/pg-core";
 import { publishedRecords } from "../../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
 import { cards } from "./card.sql";
 
@@ -8,6 +8,7 @@ export const collections = pgTable("collections", {
   name: text("name").notNull(),
   description: text("description"),
   accessType: text("access_type").notNull(), // OPEN, CLOSED
+  cardCount: integer("card_count").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   publishedRecordId: uuid("published_record_id").references(

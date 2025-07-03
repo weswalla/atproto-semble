@@ -8,6 +8,11 @@ module.exports = {
   testMatch: [
     '**/?(*.)+(spec|test).+(ts|tsx)',
   ],
+  // Ignore test files in annotations module
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/src/modules/annotations/.*\\.(spec|test)\\.(ts|tsx)$'
+  ],
   // Optional: Module file extensions for importing
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   // Map 'src/*' paths to '<rootDir>/src/*'

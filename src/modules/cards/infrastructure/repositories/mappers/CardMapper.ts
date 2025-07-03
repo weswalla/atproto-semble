@@ -9,6 +9,11 @@ import { URL } from "../../../domain/value-objects/URL";
 import { UrlMetadata } from "../../../domain/value-objects/UrlMetadata";
 import { err, ok, Result } from "../../../../../shared/core/Result";
 import { v4 as uuid } from "uuid";
+import {
+  UrlCardQueryResultDTO,
+  CollectionCardQueryResultDTO,
+  UrlCardViewDTO,
+} from "../../../domain/ICardQueryRepository";
 
 // Type-safe content data interfaces
 interface UrlContentData {
@@ -33,6 +38,25 @@ interface NoteContentData {
 
 type CardContentData = UrlContentData | NoteContentData;
 
+// Raw data for URL card queries
+export interface RawUrlCardData {
+  id: string;
+  url: string;
+  contentData: any;
+  libraryCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+  collections: {
+    id: string;
+    name: string;
+    authorId: string;
+  }[];
+  note?: {
+    id: string;
+    contentData: any;
+  };
+}
+
 // Database representation of a card
 export interface CardDTO {
   id: string;
@@ -44,6 +68,7 @@ export interface CardDTO {
     uri: string;
     cid: string;
   };
+  libraryCount: number;
   libraryMemberships: Array<{
     userId: string;
     addedAt: Date;
@@ -126,6 +151,7 @@ export class CardMapper {
           parentCardId,
           originalPublishedRecordId,
           libraryMemberships,
+          libraryCount: dto.libraryCount,
           createdAt: dto.createdAt,
           updatedAt: dto.updatedAt,
         },
@@ -198,6 +224,7 @@ export class CardMapper {
       contentData: CardContentData;
       url?: string;
       parentCardId?: string;
+      libraryCount: number;
       createdAt: Date;
       updatedAt: Date;
     };
@@ -297,6 +324,7 @@ export class CardMapper {
         contentData,
         url: card.url?.value,
         parentCardId: card.parentCardId?.getStringValue(),
+        libraryCount: card.libraryCount,
         createdAt: card.createdAt,
         updatedAt: card.updatedAt,
       },
@@ -306,6 +334,132 @@ export class CardMapper {
         membershipPublishedRecords.length > 0
           ? membershipPublishedRecords
           : undefined,
+    };
+  }
+
+  public static toUrlCardQueryResult(
+    raw: RawUrlCardData
+  ): UrlCardQueryResultDTO {
+    // Extract URL metadata from contentData
+    const cardContent = {
+      url: raw.contentData?.url,
+      title: raw.contentData?.metadata?.title,
+      description: raw.contentData?.metadata?.description,
+      author: raw.contentData?.metadata?.author,
+      thumbnailUrl: raw.contentData?.metadata?.imageUrl,
+    };
+
+    // Extract note text from note's contentData
+    const note = raw.note
+      ? {
+          id: raw.note.id,
+          text: raw.note.contentData?.text || "",
+        }
+      : undefined;
+
+    return {
+      id: raw.id,
+      type: CardTypeEnum.URL,
+      url: raw.url,
+      cardContent,
+      libraryCount: raw.libraryCount,
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+      collections: raw.collections,
+      note,
+    };
+  }
+
+  public static toCollectionCardQueryResult(raw: {
+    id: string;
+    url: string;
+    contentData: any;
+    libraryCount: number;
+    createdAt: Date;
+    updatedAt: Date;
+    note?: {
+      id: string;
+      contentData: any;
+    };
+  }): CollectionCardQueryResultDTO {
+    // Extract URL metadata from contentData
+    const cardContent = {
+      url: raw.contentData.url,
+      title: raw.contentData?.metadata?.title,
+      description: raw.contentData?.metadata?.description,
+      author: raw.contentData?.metadata?.author,
+      thumbnailUrl: raw.contentData?.metadata?.imageUrl,
+    };
+
+    // Extract note text from note's contentData
+    const note = raw.note
+      ? {
+          id: raw.note.id,
+          text: raw.note.contentData?.text || "",
+        }
+      : undefined;
+
+    return {
+      id: raw.id,
+      type: CardTypeEnum.URL,
+      url: raw.url,
+      cardContent,
+      libraryCount: raw.libraryCount,
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+      note,
+    };
+  }
+
+  public static toUrlCardViewDTO(raw: {
+    id: string;
+    type: string;
+    url: string;
+    contentData: UrlContentData;
+    libraryCount: number;
+    createdAt: Date;
+    updatedAt: Date;
+    inLibraries: {
+      userId: string;
+    }[];
+    inCollections: {
+      id: string;
+      name: string;
+      authorId: string;
+    }[];
+    note?: {
+      id: string;
+      contentData: any;
+    };
+  }): UrlCardViewDTO {
+    // Extract URL metadata from contentData
+    const cardContent = {
+      url: raw.contentData.url,
+      title: raw.contentData?.metadata?.title,
+      description: raw.contentData?.metadata?.description,
+      author: raw.contentData?.metadata?.author,
+      thumbnailUrl: raw.contentData?.metadata?.imageUrl,
+    };
+
+    // Extract note text from note's contentData
+    const note = raw.note
+      ? {
+          id: raw.note.id,
+          text: raw.note.contentData?.text || "",
+        }
+      : undefined;
+
+    return {
+      id: raw.id,
+      type: CardTypeEnum.URL,
+      url: raw.url,
+      cardContent,
+      libraryCount: raw.libraryCount,
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+      collections: raw.inCollections,
+      libraries: raw.inLibraries,
+      note,
     };
   }
 }

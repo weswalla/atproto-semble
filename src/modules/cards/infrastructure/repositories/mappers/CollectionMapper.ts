@@ -5,6 +5,7 @@ import { CardId } from "../../../domain/value-objects/CardId";
 import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
 import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
 import { PublishedRecordDTO, PublishedRecordRefDTO } from "./DTOTypes";
+import { CollectionQueryResultDTO } from "../../../domain/ICollectionQueryRepository";
 import { err, ok, Result } from "../../../../../shared/core/Result";
 
 // Database representation of a collection
@@ -14,6 +15,7 @@ export interface CollectionDTO extends PublishedRecordRefDTO {
   name: string;
   description?: string;
   accessType: string;
+  cardCount: number;
   createdAt: Date;
   updatedAt: Date;
   collaborators?: string[];
@@ -27,6 +29,26 @@ export interface CollectionDTO extends PublishedRecordRefDTO {
 }
 
 export class CollectionMapper {
+  public static toQueryResult(raw: {
+    id: string;
+    name: string;
+    description?: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    authorId: string;
+    cardCount: number;
+  }): CollectionQueryResultDTO {
+    return {
+      id: raw.id,
+      name: raw.name,
+      description: raw.description || undefined,
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+      authorId: raw.authorId,
+      cardCount: raw.cardCount,
+    };
+  }
+
   public static toDomain(dto: CollectionDTO): Result<Collection> {
     try {
       // Create value objects
@@ -88,17 +110,17 @@ export class CollectionMapper {
           accessType: dto.accessType as CollectionAccessType,
           collaboratorIds,
           cardLinks,
+          cardCount: dto.cardCount,
           publishedRecordId,
+          createdAt: dto.createdAt,
+          updatedAt: dto.updatedAt,
         },
         new UniqueEntityID(dto.id)
       );
 
       if (collectionOrError.isErr()) return err(collectionOrError.error);
 
-      // Set timestamps manually since Collection.create sets them to now
       const collection = collectionOrError.value;
-      (collection as any).props.createdAt = dto.createdAt;
-      (collection as any).props.updatedAt = dto.updatedAt;
 
       return ok(collection);
     } catch (error) {
@@ -115,6 +137,7 @@ export class CollectionMapper {
       accessType: string;
       createdAt: Date;
       updatedAt: Date;
+      cardCount: number;
       publishedRecordId?: string;
     };
     collaborators: {
@@ -149,7 +172,7 @@ export class CollectionMapper {
     }
 
     // Create collaborators data
-    const collaborators = collection.collaboratorIds.map(collaboratorId => ({
+    const collaborators = collection.collaboratorIds.map((collaboratorId) => ({
       id: new UniqueEntityID().toString(),
       collectionId: collection.collectionId.getStringValue(),
       collaboratorId: collaboratorId.value,
@@ -157,7 +180,7 @@ export class CollectionMapper {
 
     // Create card links data
     const linkPublishedRecords: PublishedRecordDTO[] = [];
-    const cardLinks = collection.cardLinks.map(link => {
+    const cardLinks = collection.cardLinks.map((link) => {
       let linkPublishedRecordId: string | undefined;
 
       if (link.publishedRecordId) {
@@ -188,6 +211,7 @@ export class CollectionMapper {
         name: collection.name.value,
         description: collection.description?.value,
         accessType: collection.accessType,
+        cardCount: collection.cardCount,
         createdAt: collection.createdAt,
         updatedAt: collection.updatedAt,
         publishedRecordId,
@@ -195,7 +219,8 @@ export class CollectionMapper {
       collaborators,
       cardLinks,
       publishedRecord,
-      linkPublishedRecords: linkPublishedRecords.length > 0 ? linkPublishedRecords : undefined,
+      linkPublishedRecords:
+        linkPublishedRecords.length > 0 ? linkPublishedRecords : undefined,
     };
   }
 }

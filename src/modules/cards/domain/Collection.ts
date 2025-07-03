@@ -47,6 +47,7 @@ interface CollectionProps {
   accessType: CollectionAccessType;
   collaboratorIds: CuratorId[];
   cardLinks: CardLink[]; // Instead of cardIds: CardId[]
+  cardCount: number;
   publishedRecordId?: PublishedRecordId; // Collection's own published record
   createdAt: Date;
   updatedAt: Date;
@@ -83,6 +84,10 @@ export class Collection extends AggregateRoot<CollectionProps> {
 
   get cardLinks(): CardLink[] {
     return [...this.props.cardLinks];
+  }
+
+  get cardCount(): number {
+    return this.props.cardCount;
   }
 
   get unpublishedCardLinks(): CardLink[] {
@@ -122,10 +127,11 @@ export class Collection extends AggregateRoot<CollectionProps> {
   }
 
   public static create(
-    props: Omit<CollectionProps, "name" | "description" | "cardLinks"> & {
+    props: Omit<CollectionProps, "name" | "description" | "cardLinks" | "cardCount"> & {
       name: string;
       description?: string;
       cardLinks?: CardLink[];
+      cardCount?: number;
     },
     id?: UniqueEntityID
   ): Result<Collection, CollectionValidationError> {
@@ -157,6 +163,7 @@ export class Collection extends AggregateRoot<CollectionProps> {
       name: nameResult.value,
       description,
       cardLinks: props.cardLinks || [],
+      cardCount: props.cardCount ?? (props.cardLinks || []).length,
     };
 
     return ok(new Collection(collectionProps, id));
@@ -207,6 +214,7 @@ export class Collection extends AggregateRoot<CollectionProps> {
     };
 
     this.props.cardLinks.push(newLink);
+    this.props.cardCount = this.props.cardLinks.length;
     this.props.updatedAt = new Date();
 
     return ok(newLink);
@@ -240,6 +248,7 @@ export class Collection extends AggregateRoot<CollectionProps> {
     this.props.cardLinks = this.props.cardLinks.filter(
       (link) => !link.cardId.equals(cardId)
     );
+    this.props.cardCount = this.props.cardLinks.length;
     this.props.updatedAt = new Date();
 
     return ok(undefined);

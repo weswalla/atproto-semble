@@ -4,6 +4,7 @@ import {
   timestamp,
   jsonb,
   uuid,
+  integer,
   type PgTableWithColumns,
 } from "drizzle-orm/pg-core";
 import { publishedRecords } from "../../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
@@ -17,6 +18,7 @@ export const cards: PgTableWithColumns<any> = pgTable("cards", {
   originalPublishedRecordId: uuid("original_published_record_id").references(
     () => publishedRecords.id
   ),
+  libraryCount: integer("library_count").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

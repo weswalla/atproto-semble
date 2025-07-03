@@ -13,7 +13,10 @@ describe("CreateCollectionUseCase", () => {
   beforeEach(() => {
     collectionRepository = new InMemoryCollectionRepository();
     collectionPublisher = new FakeCollectionPublisher();
-    useCase = new CreateCollectionUseCase(collectionRepository, collectionPublisher);
+    useCase = new CreateCollectionUseCase(
+      collectionRepository,
+      collectionPublisher
+    );
     curatorId = CuratorId.create("did:plc:testcurator").unwrap();
   });
 
@@ -39,10 +42,12 @@ describe("CreateCollectionUseCase", () => {
       // Verify collection was saved
       const savedCollections = collectionRepository.getAllCollections();
       expect(savedCollections).toHaveLength(1);
-      
+
       const savedCollection = savedCollections[0]!;
       expect(savedCollection.name.value).toBe("My Test Collection");
-      expect(savedCollection.description?.value).toBe("A collection for testing purposes");
+      expect(savedCollection.description?.value).toBe(
+        "A collection for testing purposes"
+      );
       expect(savedCollection.authorId.equals(curatorId)).toBe(true);
       expect(savedCollection.accessType).toBe(CollectionAccessType.OPEN);
       expect(savedCollection.isPublished).toBe(true);
@@ -64,7 +69,7 @@ describe("CreateCollectionUseCase", () => {
       // Verify collection was saved
       const savedCollections = collectionRepository.getAllCollections();
       expect(savedCollections).toHaveLength(1);
-      
+
       const savedCollection = savedCollections[0]!;
       expect(savedCollection.name.value).toBe("Collection Without Description");
       expect(savedCollection.description).toBeUndefined();
@@ -81,9 +86,10 @@ describe("CreateCollectionUseCase", () => {
       expect(result.isOk()).toBe(true);
 
       // Verify collection was published
-      const publishedCollections = collectionPublisher.getPublishedCollections();
+      const publishedCollections =
+        collectionPublisher.getPublishedCollections();
       expect(publishedCollections).toHaveLength(1);
-      
+
       const publishedCollection = publishedCollections[0]!;
       expect(publishedCollection.name.value).toBe("Published Collection");
     });
@@ -99,7 +105,9 @@ describe("CreateCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Invalid curator ID");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Invalid curator ID");
+      }
     });
 
     it("should fail with empty collection name", async () => {
@@ -111,7 +119,11 @@ describe("CreateCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Collection name cannot be empty");
+      if (result.isErr()) {
+        expect(result.error.message).toContain(
+          "Collection name cannot be empty"
+        );
+      }
     });
 
     it("should fail with collection name that is too long", async () => {
@@ -123,7 +135,9 @@ describe("CreateCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Collection name cannot exceed");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Collection name cannot exceed");
+      }
     });
 
     it("should fail with description that is too long", async () => {
@@ -136,7 +150,11 @@ describe("CreateCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Collection description cannot exceed");
+      if (result.isErr()) {
+        expect(result.error.message).toContain(
+          "Collection description cannot exceed"
+        );
+      }
     });
 
     it("should trim whitespace from collection name", async () => {
@@ -169,7 +187,9 @@ describe("CreateCollectionUseCase", () => {
       // Verify description was trimmed
       const savedCollections = collectionRepository.getAllCollections();
       const savedCollection = savedCollections[0]!;
-      expect(savedCollection.description?.value).toBe("Description with whitespace");
+      expect(savedCollection.description?.value).toBe(
+        "Description with whitespace"
+      );
     });
   });
 
@@ -186,7 +206,9 @@ describe("CreateCollectionUseCase", () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toContain("Failed to publish collection");
+      if (result.isErr()) {
+        expect(result.error.message).toContain("Failed to publish collection");
+      }
 
       // Verify collection was not saved if publishing failed
       const savedCollections = collectionRepository.getAllCollections();
@@ -268,7 +290,7 @@ describe("CreateCollectionUseCase", () => {
       const savedCollections = collectionRepository.getAllCollections();
       expect(savedCollections).toHaveLength(2);
 
-      const collectionNames = savedCollections.map(c => c.name.value);
+      const collectionNames = savedCollections.map((c) => c.name.value);
       expect(collectionNames).toContain("First Collection");
       expect(collectionNames).toContain("Second Collection");
     });

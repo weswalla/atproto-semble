@@ -22,6 +22,7 @@ import { URL } from "../../domain/value-objects/URL";
 import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
 import { CardSortField, SortOrder } from "../../domain/ICardQueryRepository";
 import { createTestSchema } from "../test-utils/createTestSchema";
+import { CardTypeEnum } from "../../domain/value-objects/CardType";
 
 describe("DrizzleCardQueryRepository - getUrlCardsOfUser", () => {
   let container: StartedPostgreSqlContainer;

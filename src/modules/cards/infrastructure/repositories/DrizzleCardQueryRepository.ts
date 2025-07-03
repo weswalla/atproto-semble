@@ -1,4 +1,4 @@
-import { eq, desc, asc, count, sql, inArray, and } from "drizzle-orm";
+import { eq, desc, asc, count, inArray, and } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import {
   ICardQueryRepository,
@@ -43,7 +43,10 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .from(cards)
         .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
         .where(
-          sql`${libraryMemberships.userId} = ${userId} AND ${cards.type} = '${CardTypeEnum.URL}'`
+          and(
+            eq(libraryMemberships.userId, userId),
+            eq(cards.type, CardTypeEnum.URL)
+          )
         )
         .orderBy(orderDirection(this.getSortColumn(sortBy)))
         .limit(limit)
@@ -103,7 +106,10 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .from(cards)
         .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
         .where(
-          sql`${libraryMemberships.userId} = ${userId} AND ${cards.type} = '${CardTypeEnum.URL}'`
+          and(
+            eq(libraryMemberships.userId, userId),
+            eq(cards.type, CardTypeEnum.URL)
+          )
         );
 
       const totalCount = totalCountResult[0]?.count || 0;
@@ -182,7 +188,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .where(
           and(
             eq(collectionCards.collectionId, collectionId),
-            eq(cards.type, "URL")
+            eq(cards.type, CardTypeEnum.URL)
           )
         )
         .orderBy(orderDirection(this.getSortColumn(sortBy)))
@@ -210,7 +216,10 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         })
         .from(cards)
         .where(
-          and(eq(cards.type, "NOTE"), inArray(cards.parentCardId, cardIds))
+          and(
+            eq(cards.type, CardTypeEnum.NOTE),
+            inArray(cards.parentCardId, cardIds)
+          )
         );
 
       const notesResult = await notesQuery;
@@ -223,7 +232,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .where(
           and(
             eq(collectionCards.collectionId, collectionId),
-            eq(cards.type, "URL")
+            eq(cards.type, CardTypeEnum.URL)
           )
         );
 
@@ -281,7 +290,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
           updatedAt: cards.updatedAt,
         })
         .from(cards)
-        .where(and(eq(cards.id, cardId), eq(cards.type, "URL")));
+        .where(and(eq(cards.id, cardId), eq(cards.type, CardTypeEnum.URL)));
 
       const cardResult = await cardQuery;
 

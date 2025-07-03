@@ -20,6 +20,9 @@ export interface EnvironmentConfig {
   app: {
     appUrl: string;
   };
+  iframely: {
+    apiKey: string;
+  };
 }
 
 export class EnvironmentConfigService {
@@ -62,6 +65,9 @@ export class EnvironmentConfigService {
       },
       app: {
         appUrl: process.env.APP_URL || "http://127.0.0.1:4000",
+      },
+      iframely: {
+        apiKey: process.env.IFRAMELY_API_KEY || "",
       },
     };
 
@@ -109,5 +115,9 @@ export class EnvironmentConfigService {
   }
   public getAppConfig() {
     return this.config.app;
+  }
+
+  public getIFramelyApiKey(): string {
+    return this.config.iframely.apiKey;
   }
 }

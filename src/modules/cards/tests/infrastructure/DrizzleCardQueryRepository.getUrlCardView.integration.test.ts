@@ -125,15 +125,15 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       expect(result).toBeDefined();
       expect(result?.id).toBe(urlCard.cardId.getStringValue());
       expect(result?.type).toBe(CardTypeEnum.URL);
-      expect(result?.urlMeta.url).toBe(url.value);
-      expect(result?.urlMeta.title).toBe("Test Article");
-      expect(result?.urlMeta.description).toBe("A test article description");
-      expect(result?.urlMeta.author).toBe("John Doe");
-      expect(result?.urlMeta.thumbnailUrl).toBe(
+      expect(result?.url).toBe(url.value);
+      expect(result?.cardContent.title).toBe("Test Article");
+      expect(result?.cardContent.description).toBe("A test article description");
+      expect(result?.cardContent.author).toBe("John Doe");
+      expect(result?.cardContent.thumbnailUrl).toBe(
         "https://example.com/image.jpg"
       );
-      expect(result?.inLibraries).toEqual([]);
-      expect(result?.inCollections).toEqual([]);
+      expect(result?.libraries).toEqual([]);
+      expect(result?.collections).toEqual([]);
     });
 
     it("should return URL card view with minimal metadata", async () => {
@@ -153,11 +153,11 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       expect(result).toBeDefined();
       expect(result?.id).toBe(urlCard.cardId.getStringValue());
       expect(result?.type).toBe(CardTypeEnum.URL);
-      expect(result?.urlMeta.url).toBe(url.value);
-      expect(result?.urlMeta.title).toBeUndefined();
-      expect(result?.urlMeta.description).toBeUndefined();
-      expect(result?.urlMeta.author).toBeUndefined();
-      expect(result?.urlMeta.thumbnailUrl).toBeUndefined();
+      expect(result?.url).toBe(url.value);
+      expect(result?.cardContent.title).toBeUndefined();
+      expect(result?.cardContent.description).toBeUndefined();
+      expect(result?.cardContent.author).toBeUndefined();
+      expect(result?.cardContent.thumbnailUrl).toBeUndefined();
     });
 
     it("should include users who have the card in their libraries", async () => {
@@ -185,9 +185,9 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       );
 
       expect(result).toBeDefined();
-      expect(result?.inLibraries).toHaveLength(3);
+      expect(result?.libraries).toHaveLength(3);
 
-      const userIds = result?.inLibraries.map((lib) => lib.userId).sort();
+      const userIds = result?.libraries.map((lib) => lib.userId).sort();
       expect(userIds).toEqual(
         [curatorId.value, otherCuratorId.value, thirdCuratorId.value].sort()
       );
@@ -241,13 +241,13 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       );
 
       expect(result).toBeDefined();
-      expect(result?.inCollections).toHaveLength(2);
+      expect(result?.collections).toHaveLength(2);
 
       // Check collection details
-      const collectionNames = result?.inCollections.map((c) => c.name).sort();
+      const collectionNames = result?.collections.map((c) => c.name).sort();
       expect(collectionNames).toEqual(["Favorites", "Reading List"]);
 
-      const readingListCollection = result?.inCollections.find(
+      const readingListCollection = result?.collections.find(
         (c) => c.name === "Reading List"
       );
       expect(readingListCollection?.id).toBe(
@@ -255,7 +255,7 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       );
       expect(readingListCollection?.authorId).toBe(curatorId.value);
 
-      const favoritesCollection = result?.inCollections.find(
+      const favoritesCollection = result?.collections.find(
         (c) => c.name === "Favorites"
       );
       expect(favoritesCollection?.id).toBe(
@@ -343,16 +343,16 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       expect(result).toBeDefined();
 
       // Check URL metadata
-      expect(result?.urlMeta.title).toBe("Comprehensive Article");
-      expect(result?.urlMeta.description).toBe("An article with everything");
-      expect(result?.urlMeta.author).toBe("Jane Smith");
-      expect(result?.urlMeta.thumbnailUrl).toBe(
+      expect(result?.cardContent.title).toBe("Comprehensive Article");
+      expect(result?.cardContent.description).toBe("An article with everything");
+      expect(result?.cardContent.author).toBe("Jane Smith");
+      expect(result?.cardContent.thumbnailUrl).toBe(
         "https://example.com/comprehensive.jpg"
       );
 
       // Check libraries
-      expect(result?.inLibraries).toHaveLength(2);
-      const libraryUserIds = result?.inLibraries
+      expect(result?.libraries).toHaveLength(2);
+      const libraryUserIds = result?.libraries
         .map((lib) => lib.userId)
         .sort();
       expect(libraryUserIds).toEqual(
@@ -360,8 +360,8 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       );
 
       // Check collections
-      expect(result?.inCollections).toHaveLength(3);
-      const collectionNames = result?.inCollections.map((c) => c.name).sort();
+      expect(result?.collections).toHaveLength(3);
+      const collectionNames = result?.collections.map((c) => c.name).sort();
       expect(collectionNames).toEqual([
         "Personal Reading",
         "Shared Articles",
@@ -369,12 +369,12 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       ]);
 
       // Verify collection authors
-      const workColl = result?.inCollections.find(
+      const workColl = result?.collections.find(
         (c) => c.name === "Work Research"
       );
       expect(workColl?.authorId).toBe(curatorId.value);
 
-      const sharedColl = result?.inCollections.find(
+      const sharedColl = result?.collections.find(
         (c) => c.name === "Shared Articles"
       );
       expect(sharedColl?.authorId).toBe(otherCuratorId.value);
@@ -397,9 +397,9 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       expect(result).toBeDefined();
       expect(result?.id).toBe(urlCard.cardId.getStringValue());
       expect(result?.type).toBe(CardTypeEnum.URL);
-      expect(result?.urlMeta.url).toBe(url.value);
-      expect(result?.inLibraries).toEqual([]);
-      expect(result?.inCollections).toEqual([]);
+      expect(result?.url).toBe(url.value);
+      expect(result?.libraries).toEqual([]);
+      expect(result?.collections).toEqual([]);
     });
 
     it("should handle card in library but not in any collections", async () => {
@@ -421,9 +421,9 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       );
 
       expect(result).toBeDefined();
-      expect(result?.inLibraries).toHaveLength(1);
-      expect(result?.inLibraries[0]?.userId).toBe(curatorId.value);
-      expect(result?.inCollections).toEqual([]);
+      expect(result?.libraries).toHaveLength(1);
+      expect(result?.libraries[0]?.userId).toBe(curatorId.value);
+      expect(result?.collections).toEqual([]);
     });
 
     it("should handle card in collections but not in any libraries", async () => {
@@ -457,10 +457,10 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       );
 
       expect(result).toBeDefined();
-      expect(result?.inLibraries).toEqual([]);
-      expect(result?.inCollections).toHaveLength(1);
-      expect(result?.inCollections[0]?.name).toBe("Collection Only");
-      expect(result?.inCollections[0]?.authorId).toBe(curatorId.value);
+      expect(result?.libraries).toEqual([]);
+      expect(result?.collections).toHaveLength(1);
+      expect(result?.collections[0]?.name).toBe("Collection Only");
+      expect(result?.collections[0]?.authorId).toBe(curatorId.value);
     });
 
     it("should handle duplicate library memberships gracefully", async () => {
@@ -486,8 +486,8 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       );
 
       expect(result).toBeDefined();
-      expect(result?.inLibraries).toHaveLength(1);
-      expect(result?.inLibraries[0]?.userId).toBe(curatorId.value);
+      expect(result?.libraries).toHaveLength(1);
+      expect(result?.libraries[0]?.userId).toBe(curatorId.value);
     });
 
     it("should handle large numbers of libraries and collections", async () => {
@@ -531,11 +531,11 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       );
 
       expect(result).toBeDefined();
-      expect(result?.inLibraries).toHaveLength(3);
-      expect(result?.inCollections).toHaveLength(5);
+      expect(result?.libraries).toHaveLength(3);
+      expect(result?.collections).toHaveLength(5);
 
       // Verify all collections are present
-      const collectionNames = result?.inCollections.map((c) => c.name).sort();
+      const collectionNames = result?.collections.map((c) => c.name).sort();
       expect(collectionNames).toEqual([
         "Collection 1",
         "Collection 2",

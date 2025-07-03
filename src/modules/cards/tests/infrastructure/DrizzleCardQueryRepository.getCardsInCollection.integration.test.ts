@@ -22,6 +22,7 @@ import { URL } from "../../domain/value-objects/URL";
 import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
 import { CardSortField, SortOrder } from "../../domain/ICardQueryRepository";
 import { createTestSchema } from "../test-utils/createTestSchema";
+import { CardTypeEnum } from "../../domain/value-objects/CardType";
 
 describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
   let container: StartedPostgreSqlContainer;
@@ -175,13 +176,15 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       const card2Result = result.items.find((item) => item.url === url2.value);
 
       expect(card1Result).toBeDefined();
-      expect(card1Result?.urlMeta.title).toBe("Collection Article 1");
-      expect(card1Result?.urlMeta.description).toBe("First article in collection");
-      expect(card1Result?.urlMeta.author).toBe("John Doe");
-      expect(card1Result?.urlMeta.thumbnailUrl).toBe("https://example.com/image1.jpg");
+      expect(card1Result?.type).toBe(CardTypeEnum.URL);
+      expect(card1Result?.cardContent.title).toBe("Collection Article 1");
+      expect(card1Result?.cardContent.description).toBe("First article in collection");
+      expect(card1Result?.cardContent.author).toBe("John Doe");
+      expect(card1Result?.cardContent.thumbnailUrl).toBe("https://example.com/image1.jpg");
 
       expect(card2Result).toBeDefined();
-      expect(card2Result?.urlMeta.title).toBeUndefined(); // No metadata provided
+      expect(card2Result?.type).toBe(CardTypeEnum.URL);
+      expect(card2Result?.cardContent.title).toBeUndefined(); // No metadata provided
     });
 
     it("should include connected note cards for collection cards", async () => {

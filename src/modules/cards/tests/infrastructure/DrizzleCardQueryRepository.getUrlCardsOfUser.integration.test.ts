@@ -144,17 +144,19 @@ describe("DrizzleCardQueryRepository - getUrlCardsOfUser", () => {
       const card2Result = result.items.find((item) => item.url === url2.value);
 
       expect(card1Result).toBeDefined();
-      expect(card1Result?.urlMeta.title).toBe("Example Article 1");
-      expect(card1Result?.urlMeta.description).toBe(
+      expect(card1Result?.type).toBe(CardTypeEnum.URL);
+      expect(card1Result?.cardContent.title).toBe("Example Article 1");
+      expect(card1Result?.cardContent.description).toBe(
         "A great article about testing"
       );
-      expect(card1Result?.urlMeta.author).toBe("John Doe");
-      expect(card1Result?.urlMeta.thumbnailUrl).toBe(
+      expect(card1Result?.cardContent.author).toBe("John Doe");
+      expect(card1Result?.cardContent.thumbnailUrl).toBe(
         "https://example.com/image1.jpg"
       );
 
       expect(card2Result).toBeDefined();
-      expect(card2Result?.urlMeta.title).toBeUndefined(); // No metadata provided
+      expect(card2Result?.type).toBe(CardTypeEnum.URL);
+      expect(card2Result?.cardContent.title).toBeUndefined(); // No metadata provided
     });
 
     it("should include connected note cards", async () => {
@@ -485,12 +487,13 @@ describe("DrizzleCardQueryRepository - getUrlCardsOfUser", () => {
 
       // Check URL metadata
       expect(urlCardResult?.url).toBe(url.value);
-      expect(urlCardResult?.urlMeta.title).toBe("Complex Article");
-      expect(urlCardResult?.urlMeta.description).toBe(
+      expect(urlCardResult?.type).toBe(CardTypeEnum.URL);
+      expect(urlCardResult?.cardContent.title).toBe("Complex Article");
+      expect(urlCardResult?.cardContent.description).toBe(
         "An article with notes and collections"
       );
-      expect(urlCardResult?.urlMeta.author).toBe("Jane Smith");
-      expect(urlCardResult?.urlMeta.thumbnailUrl).toBe(
+      expect(urlCardResult?.cardContent.author).toBe("Jane Smith");
+      expect(urlCardResult?.cardContent.thumbnailUrl).toBe(
         "https://example.com/complex.jpg"
       );
 

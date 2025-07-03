@@ -1,4 +1,3 @@
-import { CuratorId } from "src/modules/annotations/domain/value-objects";
 import { err, ok, Result } from "src/shared/core/Result";
 import { UseCase } from "src/shared/core/UseCase";
 import {
@@ -7,6 +6,7 @@ import {
   SortOrder,
 } from "../../../domain/ICollectionQueryRepository";
 import { IProfileService } from "src/modules/cards/domain/services/IProfileService";
+import { CuratorId } from "src/modules/cards/domain/value-objects/CuratorId";
 
 export interface GetMyCollectionsQuery {
   curatorId: string;

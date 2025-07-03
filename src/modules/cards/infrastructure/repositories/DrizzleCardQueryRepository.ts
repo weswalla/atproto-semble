@@ -6,6 +6,7 @@ import {
   PaginatedQueryResult,
   UrlCardQueryResultDTO,
   CollectionCardQueryResultDTO,
+  UrlCardViewDTO,
   CardSortField,
   SortOrder,
 } from "../../domain/ICardQueryRepository";
@@ -253,6 +254,76 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
       };
     } catch (error) {
       console.error("Error in getCardsInCollection:", error);
+      throw error;
+    }
+  }
+
+  async getUrlCardView(cardId: string): Promise<UrlCardViewDTO | null> {
+    try {
+      // Get the URL card
+      const cardQuery = this.db
+        .select({
+          id: cards.id,
+          type: cards.type,
+          url: cards.url,
+          contentData: cards.contentData,
+        })
+        .from(cards)
+        .where(
+          and(
+            eq(cards.id, cardId),
+            eq(cards.type, 'URL')
+          )
+        );
+
+      const cardResult = await cardQuery;
+
+      if (cardResult.length === 0) {
+        return null;
+      }
+
+      const card = cardResult[0]!;
+
+      // Get users who have this card in their libraries
+      const libraryQuery = this.db
+        .select({
+          userId: libraryMemberships.userId,
+        })
+        .from(libraryMemberships)
+        .where(eq(libraryMemberships.cardId, cardId));
+
+      const libraryResult = await libraryQuery;
+
+      // Get collections that contain this card
+      const collectionsQuery = this.db
+        .select({
+          collectionId: collections.id,
+          collectionName: collections.name,
+          authorId: collections.authorId,
+        })
+        .from(collectionCards)
+        .innerJoin(collections, eq(collectionCards.collectionId, collections.id))
+        .where(eq(collectionCards.cardId, cardId));
+
+      const collectionsResult = await collectionsQuery;
+
+      // Map to DTO
+      const urlCardView = CardMapper.toUrlCardViewDTO({
+        id: card.id,
+        type: card.type,
+        url: card.url || "",
+        contentData: card.contentData,
+        inLibraries: libraryResult.map(lib => ({ userId: lib.userId })),
+        inCollections: collectionsResult.map(coll => ({
+          id: coll.collectionId,
+          name: coll.collectionName,
+          authorId: coll.authorId,
+        })),
+      });
+
+      return urlCardView;
+    } catch (error) {
+      console.error("Error in getUrlCardView:", error);
       throw error;
     }
   }

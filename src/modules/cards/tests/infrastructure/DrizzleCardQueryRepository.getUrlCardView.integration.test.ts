@@ -38,7 +38,7 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
   // Setup before all tests
   beforeAll(async () => {
     // Start PostgreSQL container
-    container = await new PostgreSqlContainer().start();
+    container = await new PostgreSqlContainer("postgres:14").start();
 
     // Create database connection
     const connectionString = container.getConnectionUri();
@@ -127,7 +127,9 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       expect(result?.type).toBe(CardTypeEnum.URL);
       expect(result?.url).toBe(url.value);
       expect(result?.cardContent.title).toBe("Test Article");
-      expect(result?.cardContent.description).toBe("A test article description");
+      expect(result?.cardContent.description).toBe(
+        "A test article description"
+      );
       expect(result?.cardContent.author).toBe("John Doe");
       expect(result?.cardContent.thumbnailUrl).toBe(
         "https://example.com/image.jpg"
@@ -344,7 +346,9 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
 
       // Check URL metadata
       expect(result?.cardContent.title).toBe("Comprehensive Article");
-      expect(result?.cardContent.description).toBe("An article with everything");
+      expect(result?.cardContent.description).toBe(
+        "An article with everything"
+      );
       expect(result?.cardContent.author).toBe("Jane Smith");
       expect(result?.cardContent.thumbnailUrl).toBe(
         "https://example.com/comprehensive.jpg"
@@ -352,9 +356,7 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
 
       // Check libraries
       expect(result?.libraries).toHaveLength(2);
-      const libraryUserIds = result?.libraries
-        .map((lib) => lib.userId)
-        .sort();
+      const libraryUserIds = result?.libraries.map((lib) => lib.userId).sort();
       expect(libraryUserIds).toEqual(
         [curatorId.value, otherCuratorId.value].sort()
       );
@@ -566,7 +568,10 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       // Create connected note card
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard("This is my detailed analysis of the article. It covers several key points and provides additional insights.", "My Analysis")
+        .withNoteCard(
+          "This is my detailed analysis of the article. It covers several key points and provides additional insights.",
+          "My Analysis"
+        )
         .withParentCard(urlCard.cardId)
         .buildOrThrow();
 
@@ -587,17 +592,23 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
       expect(result?.id).toBe(urlCard.cardId.getStringValue());
       expect(result?.type).toBe(CardTypeEnum.URL);
       expect(result?.url).toBe(url.value);
-      
+
       // Check URL metadata
       expect(result?.cardContent.title).toBe("Article with Note");
-      expect(result?.cardContent.description).toBe("An article that has a connected note");
+      expect(result?.cardContent.description).toBe(
+        "An article that has a connected note"
+      );
       expect(result?.cardContent.author).toBe("Jane Doe");
-      expect(result?.cardContent.thumbnailUrl).toBe("https://example.com/note-article.jpg");
+      expect(result?.cardContent.thumbnailUrl).toBe(
+        "https://example.com/note-article.jpg"
+      );
 
       // Check that the connected note is included
       expect(result?.note).toBeDefined();
       expect(result?.note?.id).toBe(noteCard.cardId.getStringValue());
-      expect(result?.note?.text).toBe("This is my detailed analysis of the article. It covers several key points and provides additional insights.");
+      expect(result?.note?.text).toBe(
+        "This is my detailed analysis of the article. It covers several key points and provides additional insights."
+      );
 
       // Check libraries
       expect(result?.libraries).toHaveLength(1);
@@ -649,7 +660,7 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
 
       expect(result).toBeDefined();
       expect(result?.id).toBe(urlCard1.cardId.getStringValue());
-      
+
       // Should NOT have a note since the note belongs to urlCard2
       expect(result?.note).toBeUndefined();
     });
@@ -728,7 +739,8 @@ describe("DrizzleCardQueryRepository - getUrlCardView", () => {
     it("should return empty array for non-existent card", async () => {
       const nonExistentCardId = new UniqueEntityID().toString();
 
-      const result = await queryRepository.getLibrariesForCard(nonExistentCardId);
+      const result =
+        await queryRepository.getLibrariesForCard(nonExistentCardId);
 
       expect(result).toEqual([]);
     });

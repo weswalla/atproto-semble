@@ -39,7 +39,7 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
   // Setup before all tests
   beforeAll(async () => {
     // Start PostgreSQL container
-    container = await new PostgreSqlContainer().start();
+    container = await new PostgreSqlContainer("postgres:14").start();
 
     // Create database connection
     const connectionString = container.getConnectionUri();
@@ -178,9 +178,13 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       expect(card1Result).toBeDefined();
       expect(card1Result?.type).toBe(CardTypeEnum.URL);
       expect(card1Result?.cardContent.title).toBe("Collection Article 1");
-      expect(card1Result?.cardContent.description).toBe("First article in collection");
+      expect(card1Result?.cardContent.description).toBe(
+        "First article in collection"
+      );
       expect(card1Result?.cardContent.author).toBe("John Doe");
-      expect(card1Result?.cardContent.thumbnailUrl).toBe("https://example.com/image1.jpg");
+      expect(card1Result?.cardContent.thumbnailUrl).toBe(
+        "https://example.com/image1.jpg"
+      );
 
       expect(card2Result).toBeDefined();
       expect(card2Result?.type).toBe(CardTypeEnum.URL);
@@ -200,7 +204,10 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       // Create note card connected to URL card
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard("This is my note about the collection article", "Collection Note")
+        .withNoteCard(
+          "This is my note about the collection article",
+          "Collection Note"
+        )
         .withParentCard(urlCard.cardId)
         .buildOrThrow();
 
@@ -238,7 +245,9 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
 
       expect(urlCardResult?.note).toBeDefined();
       expect(urlCardResult?.note?.id).toBe(noteCard.cardId.getStringValue());
-      expect(urlCardResult?.note?.text).toBe("This is my note about the collection article");
+      expect(urlCardResult?.note?.text).toBe(
+        "This is my note about the collection article"
+      );
     });
 
     it("should not include note cards that are not connected to collection URL cards", async () => {
@@ -349,8 +358,8 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       );
 
       expect(result.items).toHaveLength(2);
-      
-      const urls = result.items.map(item => item.url);
+
+      const urls = result.items.map((item) => item.url);
       expect(urls).toContain(url1.value);
       expect(urls).toContain(url2.value);
     });
@@ -461,7 +470,9 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       // Create multiple URL cards
       const urlCards = [];
       for (let i = 1; i <= 5; i++) {
-        const url = URL.create(`https://example.com/collection-article${i}`).unwrap();
+        const url = URL.create(
+          `https://example.com/collection-article${i}`
+        ).unwrap();
         const urlCard = new CardBuilder()
           .withCuratorId(curatorId.value)
           .withUrlCard(url)

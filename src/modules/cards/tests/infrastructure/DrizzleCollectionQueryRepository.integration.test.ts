@@ -40,7 +40,7 @@ describe("DrizzleCollectionQueryRepository", () => {
   // Setup before all tests
   beforeAll(async () => {
     // Start PostgreSQL container
-    container = await new PostgreSqlContainer().start();
+    container = await new PostgreSqlContainer("postgres:14").start();
 
     // Create database connection
     const connectionString = container.getConnectionUri();

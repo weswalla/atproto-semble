@@ -16,32 +16,30 @@ import {
 
 export class CardClient extends BaseClient {
   async addUrlToLibrary(request: AddUrlToLibraryRequest): Promise<AddUrlToLibraryResponse> {
-    // TODO: Implement
-    throw new Error('Not implemented');
+    return this.request<AddUrlToLibraryResponse>('POST', '/cards/library/urls', request);
   }
 
   async addCardToLibrary(request: AddCardToLibraryRequest): Promise<AddCardToLibraryResponse> {
-    // TODO: Implement
-    throw new Error('Not implemented');
+    return this.request<AddCardToLibraryResponse>('POST', '/cards/library', request);
   }
 
   async addCardToCollection(request: AddCardToCollectionRequest): Promise<AddCardToCollectionResponse> {
-    // TODO: Implement
-    throw new Error('Not implemented');
+    return this.request<AddCardToCollectionResponse>('POST', '/cards/collections', request);
   }
 
   async updateNoteCard(request: UpdateNoteCardRequest): Promise<UpdateNoteCardResponse> {
-    // TODO: Implement
-    throw new Error('Not implemented');
+    return this.request<UpdateNoteCardResponse>('PUT', `/cards/${request.cardId}/note`, {
+      note: request.note
+    });
   }
 
   async removeCardFromLibrary(request: RemoveCardFromLibraryRequest): Promise<RemoveCardFromLibraryResponse> {
-    // TODO: Implement
-    throw new Error('Not implemented');
+    return this.request<RemoveCardFromLibraryResponse>('DELETE', `/cards/${request.cardId}/library`);
   }
 
   async removeCardFromCollection(request: RemoveCardFromCollectionRequest): Promise<RemoveCardFromCollectionResponse> {
-    // TODO: Implement
-    throw new Error('Not implemented');
+    return this.request<RemoveCardFromCollectionResponse>('DELETE', `/cards/${request.cardId}/collections`, {
+      collectionIds: request.collectionIds
+    });
   }
 }

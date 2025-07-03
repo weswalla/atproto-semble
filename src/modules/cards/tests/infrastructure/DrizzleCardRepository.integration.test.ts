@@ -9,7 +9,7 @@ import { CuratorId } from "../../domain/value-objects/CuratorId";
 import { URL } from "../../domain/value-objects/URL";
 import { cards } from "../../infrastructure/repositories/schema/card.sql";
 import { libraryMemberships } from "../../infrastructure/repositories/schema/libraryMembership.sql";
-import { publishedRecords } from "../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
+import { publishedRecords } from "../../infrastructure/repositories/schema/publishedRecord.sql";
 import { Card } from "../../domain/Card";
 import { CardType, CardTypeEnum } from "../../domain/value-objects/CardType";
 import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";

@@ -1,5 +1,12 @@
-import { pgTable, text, timestamp, uuid, boolean, integer } from "drizzle-orm/pg-core";
-import { publishedRecords } from "../../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
+import {
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  boolean,
+  integer,
+} from "drizzle-orm/pg-core";
+import { publishedRecords } from "./publishedRecord.sql";
 import { cards } from "./card.sql";
 
 export const collections = pgTable("collections", {

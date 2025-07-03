@@ -1,5 +1,5 @@
 import { pgTable, text, timestamp, uuid, boolean } from "drizzle-orm/pg-core";
-import { publishedRecords } from "./publishedRecord.sql";
+import { publishedRecords } from "../../../../cards/infrastructure/repositories/schema/publishedRecord.sql";
 
 // Define the annotation template table schema
 export const annotationTemplates = pgTable("annotation_templates", {

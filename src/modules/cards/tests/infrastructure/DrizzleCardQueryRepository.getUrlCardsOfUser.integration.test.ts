@@ -15,7 +15,7 @@ import {
   collectionCards,
 } from "../../infrastructure/repositories/schema/collection.sql";
 import { libraryMemberships } from "../../infrastructure/repositories/schema/libraryMembership.sql";
-import { publishedRecords } from "../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
+import { publishedRecords } from "../../infrastructure/repositories/schema/publishedRecord.sql";
 import { Collection, CollectionAccessType } from "../../domain/Collection";
 import { CardBuilder } from "../utils/builders/CardBuilder";
 import { URL } from "../../domain/value-objects/URL";

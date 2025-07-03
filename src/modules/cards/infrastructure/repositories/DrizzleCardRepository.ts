@@ -5,7 +5,7 @@ import { Card } from "../../domain/Card";
 import { CardId } from "../../domain/value-objects/CardId";
 import { cards } from "./schema/card.sql";
 import { libraryMemberships } from "./schema/libraryMembership.sql";
-import { publishedRecords } from "../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
+import { publishedRecords } from "./schema/publishedRecord.sql";
 import { CardDTO, CardMapper } from "./mappers/CardMapper";
 import { Result, ok, err } from "../../../../shared/core/Result";
 import { URL } from "../../domain/value-objects/URL";

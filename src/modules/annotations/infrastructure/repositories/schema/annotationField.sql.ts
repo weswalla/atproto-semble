@@ -1,5 +1,5 @@
 import { pgTable, text, timestamp, jsonb, uuid } from "drizzle-orm/pg-core";
-import { publishedRecords } from "./publishedRecord.sql";
+import { publishedRecords } from "../../../../cards/infrastructure/repositories/schema/publishedRecord.sql";
 
 export const annotationFields = pgTable("annotation_fields", {
   id: uuid("id").primaryKey(),

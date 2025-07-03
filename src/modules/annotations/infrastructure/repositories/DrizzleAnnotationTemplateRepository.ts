@@ -12,7 +12,7 @@ import {
   annotationTemplates,
   annotationTemplateFields,
 } from "./schema/annotationTemplate.sql";
-import { publishedRecords } from "./schema/publishedRecord.sql";
+import { publishedRecords } from "../../../cards/infrastructure/repositories/schema/publishedRecord.sql";
 import {
   AnnotationTemplateMapper,
   AnnotationTemplateDTO,

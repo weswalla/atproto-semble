@@ -11,7 +11,7 @@ import {
 } from "../../domain/value-objects";
 import { URI } from "../../domain/value-objects/URI";
 import { annotations, annotationToTemplates } from "./schema/annotation.sql";
-import { publishedRecords } from "./schema/publishedRecord.sql";
+import { publishedRecords } from "../../../cards/infrastructure/repositories/schema/publishedRecord.sql";
 import { AnnotationDTO, AnnotationMapper } from "./mappers/AnnotationMapper";
 import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
 import { AnnotationFieldMapper } from "./mappers/AnnotationFieldMapper";

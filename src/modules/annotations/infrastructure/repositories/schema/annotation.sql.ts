@@ -1,7 +1,7 @@
 import { pgTable, text, timestamp, jsonb, uuid } from "drizzle-orm/pg-core";
 import { annotationFields } from "./annotationField.sql";
 import { annotationTemplates } from "./annotationTemplate.sql";
-import { publishedRecords } from "./publishedRecord.sql";
+import { publishedRecords } from "../../../../cards/infrastructure/repositories/schema/publishedRecord.sql";
 
 export const annotations = pgTable("annotations", {
   id: uuid("id").primaryKey(),

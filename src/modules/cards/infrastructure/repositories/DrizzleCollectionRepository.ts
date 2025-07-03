@@ -10,7 +10,7 @@ import {
   collectionCollaborators,
   collectionCards,
 } from "./schema/collection.sql";
-import { publishedRecords } from "../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
+import { publishedRecords } from "./schema/publishedRecord.sql";
 import { CollectionDTO, CollectionMapper } from "./mappers/CollectionMapper";
 import { Result, ok, err } from "../../../../shared/core/Result";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";

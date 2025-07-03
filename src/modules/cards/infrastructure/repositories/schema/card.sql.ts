@@ -7,7 +7,7 @@ import {
   integer,
   type PgTableWithColumns,
 } from "drizzle-orm/pg-core";
-import { publishedRecords } from "../../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
+import { publishedRecords } from "./publishedRecord.sql";
 
 export const cards: PgTableWithColumns<any> = pgTable("cards", {
   id: uuid("id").primaryKey(),

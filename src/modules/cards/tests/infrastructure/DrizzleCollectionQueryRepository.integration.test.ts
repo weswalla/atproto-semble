@@ -16,7 +16,7 @@ import {
 } from "../../infrastructure/repositories/schema/collection.sql";
 import { cards } from "../../infrastructure/repositories/schema/card.sql";
 import { libraryMemberships } from "../../infrastructure/repositories/schema/libraryMembership.sql";
-import { publishedRecords } from "../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
+import { publishedRecords } from "../../infrastructure/repositories/schema/publishedRecord.sql";
 import { Collection, CollectionAccessType } from "../../domain/Collection";
 import { CardFactory } from "../../domain/CardFactory";
 import { CardTypeEnum } from "../../domain/value-objects/CardType";

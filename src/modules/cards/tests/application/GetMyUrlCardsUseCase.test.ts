@@ -6,6 +6,7 @@ import {
   SortOrder,
   UrlCardQueryResultDTO,
 } from "../../domain/ICardQueryRepository";
+import { CardTypeEnum } from "../../domain/value-objects/CardType";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
 
 describe("GetMyUrlCardsUseCase", () => {
@@ -44,8 +45,10 @@ describe("GetMyUrlCardsUseCase", () => {
       // Create test URL cards
       const urlCard1: UrlCardQueryResultDTO = {
         id: new UniqueEntityID().toString(),
+        type: CardTypeEnum.URL,
         url: "https://example.com/article1",
-        urlMeta: {
+        cardContent: {
+          url: "https://example.com/article1",
           title: "First Article",
           description: "Description of first article",
           author: "John Doe",
@@ -60,8 +63,10 @@ describe("GetMyUrlCardsUseCase", () => {
 
       const urlCard2: UrlCardQueryResultDTO = {
         id: new UniqueEntityID().toString(),
+        type: CardTypeEnum.URL,
         url: "https://example.com/article2",
-        urlMeta: {
+        cardContent: {
+          url: "https://example.com/article2",
           title: "Second Article",
           description: "Description of second article",
           author: "Jane Smith",
@@ -98,20 +103,22 @@ describe("GetMyUrlCardsUseCase", () => {
       );
 
       expect(firstCard).toBeDefined();
-      expect(firstCard?.urlMeta.title).toBe("First Article");
-      expect(firstCard?.urlMeta.author).toBe("John Doe");
+      expect(firstCard?.cardContent.title).toBe("First Article");
+      expect(firstCard?.cardContent.author).toBe("John Doe");
       expect(firstCard?.libraryCount).toBe(1);
 
       expect(secondCard).toBeDefined();
-      expect(secondCard?.urlMeta.title).toBe("Second Article");
+      expect(secondCard?.cardContent.title).toBe("Second Article");
       expect(secondCard?.libraryCount).toBe(2);
     });
 
     it("should include collections and notes in URL cards", async () => {
       const urlCard: UrlCardQueryResultDTO = {
         id: new UniqueEntityID().toString(),
+        type: CardTypeEnum.URL,
         url: "https://example.com/article-with-extras",
-        urlMeta: {
+        cardContent: {
+          url: "https://example.com/article-with-extras",
           title: "Article with Collections and Note",
           description: "An article with associated data",
         },
@@ -162,8 +169,12 @@ describe("GetMyUrlCardsUseCase", () => {
 
       const myCard: UrlCardQueryResultDTO = {
         id: new UniqueEntityID().toString(),
+        type: CardTypeEnum.URL,
         url: "https://example.com/my-article",
-        urlMeta: { title: "My Article" },
+        cardContent: {
+          url: "https://example.com/my-article",
+          title: "My Article",
+        },
         libraryCount: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -172,8 +183,12 @@ describe("GetMyUrlCardsUseCase", () => {
 
       const otherCard: UrlCardQueryResultDTO = {
         id: new UniqueEntityID().toString(),
+        type: CardTypeEnum.URL,
         url: "https://example.com/other-article",
-        urlMeta: { title: "Other Article" },
+        cardContent: {
+          url: "https://example.com/other-article",
+          title: "Other Article",
+        },
         libraryCount: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -194,7 +209,7 @@ describe("GetMyUrlCardsUseCase", () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.cards).toHaveLength(1);
-      expect(response.cards[0]?.urlMeta.title).toBe("My Article");
+      expect(response.cards[0]?.cardContent.title).toBe("My Article");
     });
   });
 
@@ -204,8 +219,10 @@ describe("GetMyUrlCardsUseCase", () => {
       for (let i = 1; i <= 5; i++) {
         const urlCard: UrlCardQueryResultDTO = {
           id: new UniqueEntityID().toString(),
+          type: CardTypeEnum.URL,
           url: `https://example.com/article${i}`,
-          urlMeta: {
+          cardContent: {
+            url: `https://example.com/article${i}`,
             title: `Article ${i}`,
             description: `Description of article ${i}`,
           },
@@ -292,8 +309,12 @@ describe("GetMyUrlCardsUseCase", () => {
 
       const card1: UrlCardQueryResultDTO = {
         id: new UniqueEntityID().toString(),
+        type: CardTypeEnum.URL,
         url: "https://example.com/alpha",
-        urlMeta: { title: "Alpha Article" },
+        cardContent: {
+          url: "https://example.com/alpha",
+          title: "Alpha Article",
+        },
         libraryCount: 1,
         createdAt: new Date(now.getTime() - 2000),
         updatedAt: new Date(now.getTime() - 1000),
@@ -302,8 +323,12 @@ describe("GetMyUrlCardsUseCase", () => {
 
       const card2: UrlCardQueryResultDTO = {
         id: new UniqueEntityID().toString(),
+        type: CardTypeEnum.URL,
         url: "https://example.com/beta",
-        urlMeta: { title: "Beta Article" },
+        cardContent: {
+          url: "https://example.com/beta",
+          title: "Beta Article",
+        },
         libraryCount: 3,
         createdAt: new Date(now.getTime() - 1000),
         updatedAt: new Date(now.getTime() - 2000),
@@ -312,8 +337,12 @@ describe("GetMyUrlCardsUseCase", () => {
 
       const card3: UrlCardQueryResultDTO = {
         id: new UniqueEntityID().toString(),
+        type: CardTypeEnum.URL,
         url: "https://example.com/gamma",
-        urlMeta: { title: "Gamma Article" },
+        cardContent: {
+          url: "https://example.com/gamma",
+          title: "Gamma Article",
+        },
         libraryCount: 2,
         createdAt: new Date(now.getTime()),
         updatedAt: new Date(now.getTime()),
@@ -374,9 +403,9 @@ describe("GetMyUrlCardsUseCase", () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.cards[0]?.urlMeta.title).toBe("Gamma Article"); // most recent
-      expect(response.cards[1]?.urlMeta.title).toBe("Alpha Article");
-      expect(response.cards[2]?.urlMeta.title).toBe("Beta Article"); // oldest
+      expect(response.cards[0]?.cardContent.title).toBe("Gamma Article"); // most recent
+      expect(response.cards[1]?.cardContent.title).toBe("Alpha Article");
+      expect(response.cards[2]?.cardContent.title).toBe("Beta Article"); // oldest
     });
 
     it("should sort by created date ascending", async () => {
@@ -390,9 +419,9 @@ describe("GetMyUrlCardsUseCase", () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.cards[0]?.urlMeta.title).toBe("Alpha Article"); // oldest
-      expect(response.cards[1]?.urlMeta.title).toBe("Beta Article");
-      expect(response.cards[2]?.urlMeta.title).toBe("Gamma Article"); // newest
+      expect(response.cards[0]?.cardContent.title).toBe("Alpha Article"); // oldest
+      expect(response.cards[1]?.cardContent.title).toBe("Beta Article");
+      expect(response.cards[2]?.cardContent.title).toBe("Gamma Article"); // newest
     });
 
     it("should use default sorting when not specified", async () => {
@@ -432,6 +461,9 @@ describe("GetMyUrlCardsUseCase", () => {
         getCardsInCollection: jest
           .fn()
           .mockRejectedValue(new Error("Database connection failed")),
+        getUrlCardView: jest
+          .fn()
+          .mockRejectedValue(new Error("Database connection failed")),
       };
 
       const errorUseCase = new GetMyUrlCardsUseCase(errorRepo);
@@ -454,8 +486,11 @@ describe("GetMyUrlCardsUseCase", () => {
     it("should handle URL cards with minimal metadata", async () => {
       const urlCard: UrlCardQueryResultDTO = {
         id: new UniqueEntityID().toString(),
+        type: CardTypeEnum.URL,
         url: "https://example.com/minimal",
-        urlMeta: {}, // No metadata
+        cardContent: {
+          url: "https://example.com/minimal",
+        }, // Minimal metadata
         libraryCount: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -474,17 +509,21 @@ describe("GetMyUrlCardsUseCase", () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.cards).toHaveLength(1);
-      expect(response.cards[0]?.urlMeta.title).toBeUndefined();
-      expect(response.cards[0]?.urlMeta.description).toBeUndefined();
-      expect(response.cards[0]?.urlMeta.author).toBeUndefined();
-      expect(response.cards[0]?.urlMeta.thumbnailUrl).toBeUndefined();
+      expect(response.cards[0]?.cardContent.title).toBeUndefined();
+      expect(response.cards[0]?.cardContent.description).toBeUndefined();
+      expect(response.cards[0]?.cardContent.author).toBeUndefined();
+      expect(response.cards[0]?.cardContent.thumbnailUrl).toBeUndefined();
     });
 
     it("should handle URL cards with high library counts", async () => {
       const urlCard: UrlCardQueryResultDTO = {
         id: new UniqueEntityID().toString(),
+        type: CardTypeEnum.URL,
         url: "https://example.com/popular",
-        urlMeta: { title: "Very Popular Article" },
+        cardContent: {
+          url: "https://example.com/popular",
+          title: "Very Popular Article",
+        },
         libraryCount: 9999,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -509,8 +548,12 @@ describe("GetMyUrlCardsUseCase", () => {
     it("should handle empty collections array", async () => {
       const urlCard: UrlCardQueryResultDTO = {
         id: new UniqueEntityID().toString(),
+        type: CardTypeEnum.URL,
         url: "https://example.com/no-collections",
-        urlMeta: { title: "Article with No Collections" },
+        cardContent: {
+          url: "https://example.com/no-collections",
+          title: "Article with No Collections",
+        },
         libraryCount: 1,
         createdAt: new Date(),
         updatedAt: new Date(),

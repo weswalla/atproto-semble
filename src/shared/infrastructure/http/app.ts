@@ -51,20 +51,6 @@ import { DeleteCollectionController } from "../../../modules/cards/infrastructur
 import { GetCollectionPageController } from "../../../modules/cards/infrastructure/http/controllers/GetCollectionPageController";
 
 // Cards use cases
-import { AddUrlToLibraryUseCase } from "../../../modules/cards/application/use-cases/AddUrlToLibraryUseCase";
-import { AddCardToLibraryUseCase } from "../../../modules/cards/application/use-cases/AddCardToLibraryUseCase";
-import { AddCardToCollectionUseCase } from "../../../modules/cards/application/use-cases/AddCardToCollectionUseCase";
-import { UpdateNoteCardUseCase } from "../../../modules/cards/application/use-cases/UpdateNoteCardUseCase";
-import { RemoveCardFromLibraryUseCase } from "../../../modules/cards/application/use-cases/RemoveCardFromLibraryUseCase";
-import { RemoveCardFromCollectionUseCase } from "../../../modules/cards/application/use-cases/RemoveCardFromCollectionUseCase";
-import { GetUrlMetadataUseCase } from "../../../modules/cards/application/use-cases/GetUrlMetadataUseCase";
-import { GetUrlCardViewUseCase } from "../../../modules/cards/application/use-cases/GetUrlCardViewUseCase";
-import { GetLibrariesForCardUseCase } from "../../../modules/cards/application/use-cases/GetLibrariesForCardUseCase";
-import { GetMyUrlCardsUseCase } from "../../../modules/cards/application/use-cases/GetMyUrlCardsUseCase";
-import { CreateCollectionUseCase } from "../../../modules/cards/application/use-cases/CreateCollectionUseCase";
-import { UpdateCollectionUseCase } from "../../../modules/cards/application/use-cases/UpdateCollectionUseCase";
-import { DeleteCollectionUseCase } from "../../../modules/cards/application/use-cases/DeleteCollectionUseCase";
-import { GetCollectionPageUseCase } from "../../../modules/cards/application/use-cases/GetCollectionPageUseCase";
 
 // Cards repositories and services
 import { DrizzleCardRepository } from "../../../modules/cards/infrastructure/repositories/DrizzleCardRepository";
@@ -72,8 +58,27 @@ import { DrizzleCardQueryRepository } from "../../../modules/cards/infrastructur
 import { DrizzleCollectionRepository } from "../../../modules/cards/infrastructure/repositories/DrizzleCollectionRepository";
 import { DrizzleCollectionQueryRepository } from "../../../modules/cards/infrastructure/repositories/DrizzleCollectionQueryRepository";
 import { IFramelyMetadataService } from "../../../modules/cards/infrastructure/IFramelyMetadataService";
-import { ATProtoProfileService } from "../../../modules/cards/infrastructure/services/ATProtoProfileService";
-import { ATProtoCollectionPublisher } from "../../../modules/cards/infrastructure/publishers/ATProtoCollectionPublisher";
+import { BlueskyProfileService } from "src/modules/atproto/infrastructure/services/BlueskyProfileService";
+import { ATProtoCollectionPublisher } from "src/modules/atproto/infrastructure/publishers/ATProtoCollectionPublisher";
+import { AddUrlToLibraryUseCase } from "src/modules/cards/application/useCases/commands/AddUrlToLibraryUseCase";
+import { CardLibraryService } from "src/modules/cards/domain/services/CardLibraryService";
+import { ATProtoCardPublisher } from "src/modules/atproto/infrastructure/publishers/ATProtoCardPublisher";
+import { CardCollectionService } from "src/modules/cards/domain/services/CardCollectionService";
+import { AddCardToLibraryUseCase } from "src/modules/cards/application/useCases/commands/AddCardToLibraryUseCase";
+import { AddCardToCollectionUseCase } from "src/modules/cards/application/useCases/commands/AddCardToCollectionUseCase";
+import { UpdateNoteCardUseCase } from "src/modules/cards/application/useCases/commands/UpdateNoteCardUseCase";
+import { RemoveCardFromLibraryUseCase } from "src/modules/cards/application/useCases/commands/RemoveCardFromLibraryUseCase";
+import { RemoveCardFromCollectionUseCase } from "src/modules/cards/application/useCases/commands/RemoveCardFromCollectionUseCase";
+import { GetUrlMetadataUseCase } from "src/modules/cards/application/useCases/queries/GetUrlMetadataUseCase";
+import { GetUrlCardViewUseCase } from "src/modules/cards/application/useCases/queries/GetUrlCardViewUseCase";
+import { GetLibrariesForCardUseCase } from "src/modules/cards/application/useCases/queries/GetLibrariesForCardUseCase";
+import { GetMyUrlCardsUseCase } from "src/modules/cards/application/useCases/queries/GetMyUrlCardsUseCase";
+import { CreateCollectionUseCase } from "src/modules/cards/application/useCases/commands/CreateCollectionUseCase";
+import { UpdateCollectionUseCase } from "src/modules/cards/application/useCases/commands/UpdateCollectionUseCase";
+import { DeleteCollectionUseCase } from "src/modules/cards/application/useCases/commands/DeleteCollectionUseCase";
+import { GetCollectionPageUseCase } from "src/modules/cards/application/useCases/queries/GetCollectionPageUseCase";
+import { GetMyCollectionsUseCase } from "src/modules/cards/application/useCases/queries/GetMyCollectionsUseCase";
+import { GetMyCollectionsController } from "src/modules/cards/infrastructure/http/controllers/GetMyCollectionsController";
 
 export const createExpressApp = (
   configService: EnvironmentConfigService
@@ -114,18 +119,24 @@ export const createExpressApp = (
   const oauthProcessor = new AtProtoOAuthProcessor(nodeOauthClient);
   const userAuthService = new UserAuthenticationService(userRepository);
   const atProtoAgentService = new ATProtoAgentService(nodeOauthClient);
-  
+
   // Cards repositories
   const cardRepository = new DrizzleCardRepository(db);
   const cardQueryRepository = new DrizzleCardQueryRepository(db);
   const collectionRepository = new DrizzleCollectionRepository(db);
   const collectionQueryRepository = new DrizzleCollectionQueryRepository(db);
-  
+
   // Cards services
-  const metadataService = new IFramelyMetadataService(configService.getIFramelyApiKey());
-  const profileService = new ATProtoProfileService(atProtoAgentService);
-  const collectionPublisher = new ATProtoCollectionPublisher(atProtoAgentService);
-  
+  const metadataService = new IFramelyMetadataService(
+    configService.getIFramelyApiKey()
+  );
+  const profileService = new BlueskyProfileService(atProtoAgentService);
+  const collectionPublisher = new ATProtoCollectionPublisher(
+    atProtoAgentService
+  );
+
+  const cardPublisher = new ATProtoCardPublisher(atProtoAgentService);
+
   // Auth middleware
   const authMiddleware = new AuthMiddleware(tokenService);
 
@@ -141,32 +152,54 @@ export const createExpressApp = (
   );
   const getCurrentUserUseCase = new GetCurrentUserUseCase(userRepository);
   const refreshAccessTokenUseCase = new RefreshAccessTokenUseCase(tokenService);
+  const cardLibraryService = new CardLibraryService(
+    cardRepository,
+    cardPublisher
+  );
+  const cardCollectionService = new CardCollectionService(
+    collectionRepository,
+    collectionPublisher
+  );
 
   // Cards use cases
   const addUrlToLibraryUseCase = new AddUrlToLibraryUseCase(
     cardRepository,
-    metadataService
+    metadataService,
+    cardLibraryService,
+    cardCollectionService
   );
-  const addCardToLibraryUseCase = new AddCardToLibraryUseCase(cardRepository);
+  const addCardToLibraryUseCase = new AddCardToLibraryUseCase(
+    cardRepository,
+    cardLibraryService,
+    cardCollectionService
+  );
   const addCardToCollectionUseCase = new AddCardToCollectionUseCase(
     cardRepository,
-    collectionRepository
+    cardCollectionService
   );
-  const updateNoteCardUseCase = new UpdateNoteCardUseCase(cardRepository);
+  const updateNoteCardUseCase = new UpdateNoteCardUseCase(
+    cardRepository,
+    cardPublisher
+  );
   const removeCardFromLibraryUseCase = new RemoveCardFromLibraryUseCase(
-    cardRepository
+    cardRepository,
+    cardLibraryService
   );
   const removeCardFromCollectionUseCase = new RemoveCardFromCollectionUseCase(
     cardRepository,
-    collectionRepository
+    cardCollectionService
   );
-  const getUrlMetadataUseCase = new GetUrlMetadataUseCase(metadataService);
+  const getUrlMetadataUseCase = new GetUrlMetadataUseCase(
+    metadataService,
+    cardRepository
+  );
   const getUrlCardViewUseCase = new GetUrlCardViewUseCase(
     cardQueryRepository,
     profileService
   );
   const getLibrariesForCardUseCase = new GetLibrariesForCardUseCase(
-    cardQueryRepository
+    cardQueryRepository,
+    profileService
   );
   const getMyUrlCardsUseCase = new GetMyUrlCardsUseCase(cardQueryRepository);
   const createCollectionUseCase = new CreateCollectionUseCase(
@@ -182,6 +215,11 @@ export const createExpressApp = (
     collectionPublisher
   );
   const getCollectionPageUseCase = new GetCollectionPageUseCase(
+    collectionRepository,
+    cardQueryRepository,
+    profileService
+  );
+  const getMyCollectionsUseCase = new GetMyCollectionsUseCase(
     collectionQueryRepository,
     profileService
   );
@@ -216,9 +254,8 @@ export const createExpressApp = (
   const removeCardFromLibraryController = new RemoveCardFromLibraryController(
     removeCardFromLibraryUseCase
   );
-  const removeCardFromCollectionController = new RemoveCardFromCollectionController(
-    removeCardFromCollectionUseCase
-  );
+  const removeCardFromCollectionController =
+    new RemoveCardFromCollectionController(removeCardFromCollectionUseCase);
   const getUrlMetadataController = new GetUrlMetadataController(
     getUrlMetadataUseCase
   );
@@ -242,6 +279,9 @@ export const createExpressApp = (
   );
   const getCollectionPageController = new GetCollectionPageController(
     getCollectionPageUseCase
+  );
+  const getMyCollectionsController = new GetMyCollectionsController(
+    getMyCollectionsUseCase
   );
 
   // Routes
@@ -276,7 +316,8 @@ export const createExpressApp = (
     createCollectionController,
     updateCollectionController,
     deleteCollectionController,
-    getCollectionPageController
+    getCollectionPageController,
+    getMyCollectionsController
   );
 
   // Register routes

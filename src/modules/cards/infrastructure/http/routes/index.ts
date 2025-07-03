@@ -7,9 +7,14 @@ import { AddCardToCollectionController } from "../controllers/AddCardToCollectio
 import { UpdateNoteCardController } from "../controllers/UpdateNoteCardController";
 import { RemoveCardFromLibraryController } from "../controllers/RemoveCardFromLibraryController";
 import { RemoveCardFromCollectionController } from "../controllers/RemoveCardFromCollectionController";
+import { GetUrlMetadataController } from "../controllers/GetUrlMetadataController";
+import { GetUrlCardViewController } from "../controllers/GetUrlCardViewController";
+import { GetLibrariesForCardController } from "../controllers/GetLibrariesForCardController";
+import { GetMyUrlCardsController } from "../controllers/GetMyUrlCardsController";
 import { CreateCollectionController } from "../controllers/CreateCollectionController";
 import { UpdateCollectionController } from "../controllers/UpdateCollectionController";
 import { DeleteCollectionController } from "../controllers/DeleteCollectionController";
+import { GetCollectionPageController } from "../controllers/GetCollectionPageController";
 import { AuthMiddleware } from "src/shared/infrastructure/http/middleware";
 
 export function createCardsModuleRoutes(
@@ -21,10 +26,15 @@ export function createCardsModuleRoutes(
   updateNoteCardController: UpdateNoteCardController,
   removeCardFromLibraryController: RemoveCardFromLibraryController,
   removeCardFromCollectionController: RemoveCardFromCollectionController,
+  getUrlMetadataController: GetUrlMetadataController,
+  getUrlCardViewController: GetUrlCardViewController,
+  getLibrariesForCardController: GetLibrariesForCardController,
+  getMyUrlCardsController: GetMyUrlCardsController,
   // Collection controllers
   createCollectionController: CreateCollectionController,
   updateCollectionController: UpdateCollectionController,
-  deleteCollectionController: DeleteCollectionController
+  deleteCollectionController: DeleteCollectionController,
+  getCollectionPageController: GetCollectionPageController
 ): Router {
   const router = Router();
 
@@ -38,7 +48,11 @@ export function createCardsModuleRoutes(
       addCardToCollectionController,
       updateNoteCardController,
       removeCardFromLibraryController,
-      removeCardFromCollectionController
+      removeCardFromCollectionController,
+      getUrlMetadataController,
+      getUrlCardViewController,
+      getLibrariesForCardController,
+      getMyUrlCardsController
     )
   );
 
@@ -49,7 +63,8 @@ export function createCardsModuleRoutes(
       authMiddleware,
       createCollectionController,
       updateCollectionController,
-      deleteCollectionController
+      deleteCollectionController,
+      getCollectionPageController
     )
   );
 

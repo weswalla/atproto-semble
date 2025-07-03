@@ -341,7 +341,7 @@ export class CardMapper {
     raw: RawUrlCardData
   ): UrlCardQueryResultDTO {
     // Extract URL metadata from contentData
-    const urlMeta = {
+    const cardContent = {
       title: raw.contentData?.metadata?.title,
       description: raw.contentData?.metadata?.description,
       author: raw.contentData?.metadata?.author,
@@ -358,8 +358,9 @@ export class CardMapper {
 
     return {
       id: raw.id,
+      type: CardTypeEnum.URL,
       url: raw.url,
-      urlMeta,
+      cardContent,
       libraryCount: raw.libraryCount,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
@@ -381,7 +382,7 @@ export class CardMapper {
     };
   }): CollectionCardQueryResultDTO {
     // Extract URL metadata from contentData
-    const urlMeta = {
+    const cardContent = {
       title: raw.contentData?.metadata?.title,
       description: raw.contentData?.metadata?.description,
       author: raw.contentData?.metadata?.author,
@@ -398,8 +399,9 @@ export class CardMapper {
 
     return {
       id: raw.id,
+      type: CardTypeEnum.URL,
       url: raw.url,
-      urlMeta,
+      cardContent,
       libraryCount: raw.libraryCount,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
@@ -412,6 +414,9 @@ export class CardMapper {
     type: string;
     url: string;
     contentData: UrlContentData;
+    libraryCount: number;
+    createdAt: Date;
+    updatedAt: Date;
     inLibraries: {
       userId: string;
     }[];
@@ -422,10 +427,9 @@ export class CardMapper {
     }[];
   }): UrlCardViewDTO {
     // Extract URL metadata from contentData
-    const urlMeta = {
+    const cardContent = {
       title: raw.contentData?.metadata?.title,
       description: raw.contentData?.metadata?.description,
-      url: raw.url,
       author: raw.contentData?.metadata?.author,
       thumbnailUrl: raw.contentData?.metadata?.imageUrl,
     };
@@ -433,9 +437,13 @@ export class CardMapper {
     return {
       id: raw.id,
       type: CardTypeEnum.URL,
-      urlMeta,
-      inLibraries: raw.inLibraries,
-      inCollections: raw.inCollections,
+      url: raw.url,
+      cardContent,
+      libraryCount: raw.libraryCount,
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+      collections: raw.inCollections,
+      libraries: raw.inLibraries,
     };
   }
 }

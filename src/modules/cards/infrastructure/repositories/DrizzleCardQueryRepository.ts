@@ -276,6 +276,9 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
           type: cards.type,
           url: cards.url,
           contentData: cards.contentData,
+          libraryCount: cards.libraryCount,
+          createdAt: cards.createdAt,
+          updatedAt: cards.updatedAt,
         })
         .from(cards)
         .where(and(eq(cards.id, cardId), eq(cards.type, "URL")));
@@ -320,6 +323,9 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         type: card.type,
         url: card.url || "",
         contentData: card.contentData,
+        libraryCount: card.libraryCount,
+        createdAt: card.createdAt,
+        updatedAt: card.updatedAt,
         inLibraries: libraryResult.map((lib) => ({ userId: lib.userId })),
         inCollections: collectionsResult.map((coll) => ({
           id: coll.collectionId,

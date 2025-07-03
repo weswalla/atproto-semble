@@ -411,7 +411,7 @@ export class CardMapper {
     id: string;
     type: string;
     url: string;
-    contentData: any;
+    contentData: UrlContentData;
     inLibraries: {
       userId: string;
     }[];

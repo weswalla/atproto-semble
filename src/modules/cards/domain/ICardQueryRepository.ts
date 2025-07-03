@@ -46,11 +46,11 @@ export interface UrlCardView {
 
 export type CollectionCardQueryResultDTO = UrlCardView;
 // Raw data from repository - minimal, just what's stored
-interface WithCollections {
+export interface WithCollections {
   collections: { id: string; name: string; authorId: string }[];
 }
 
-interface WithLibraries {
+export interface WithLibraries {
   libraries: { userId: string }[];
 }
 export type UrlCardQueryResultDTO = UrlCardView & WithCollections;

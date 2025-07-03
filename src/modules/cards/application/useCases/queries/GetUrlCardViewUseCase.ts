@@ -1,8 +1,11 @@
 import { CardId } from "src/modules/cards/domain/value-objects/CardId";
 import { err, ok, Result } from "src/shared/core/Result";
 import { UseCase } from "src/shared/core/UseCase";
-import { ICardQueryRepository } from "../../../domain/ICardQueryRepository";
-import { CardTypeEnum } from "src/modules/cards/domain/value-objects/CardType";
+import {
+  ICardQueryRepository,
+  UrlCardView,
+  WithCollections,
+} from "../../../domain/ICardQueryRepository";
 import { IProfileService } from "../../../domain/services/IProfileService";
 
 export interface GetUrlCardViewQuery {
@@ -10,28 +13,15 @@ export interface GetUrlCardViewQuery {
 }
 
 // Enriched data for the final use case result
-export interface UrlCardViewResult {
-  id: string;
-  type: CardTypeEnum.URL;
-  urlMeta: {
-    title?: string;
-    description?: string;
-    url: string;
-    author?: string;
-    thumbnailUrl?: string;
+export type UrlCardViewResult = UrlCardView &
+  WithCollections & {
+    libraries: {
+      userId: string;
+      name: string;
+      handle: string;
+      avatarUrl?: string;
+    }[];
   };
-  inLibraries: {
-    userId: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
-  }[];
-  inCollections: {
-    id: string;
-    name: string;
-    authorId: string;
-  }[];
-}
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -73,7 +63,7 @@ export class GetUrlCardViewUseCase
       }
 
       // Get profiles for all users in libraries
-      const userIds = cardView.inLibraries.map((lib) => lib.userId);
+      const userIds = cardView.libraries.map((lib) => lib.userId);
       const profilePromises = userIds.map((userId) =>
         this.profileService.getProfile(userId)
       );
@@ -92,7 +82,7 @@ export class GetUrlCardViewUseCase
       }
 
       // Transform to result format with enriched profile data
-      const enrichedLibraries = cardView.inLibraries.map((lib, index) => {
+      const enrichedLibraries = cardView.libraries.map((lib, index) => {
         const profileResult = profileResults[index]!;
         if (profileResult.isErr()) {
           throw new Error(
@@ -110,11 +100,8 @@ export class GetUrlCardViewUseCase
       });
 
       const result: UrlCardViewResult = {
-        id: cardView.id,
-        type: cardView.type,
-        urlMeta: cardView.urlMeta,
-        inLibraries: enrichedLibraries,
-        inCollections: cardView.inCollections,
+        ...cardView,
+        libraries: enrichedLibraries,
       };
 
       return ok(result);

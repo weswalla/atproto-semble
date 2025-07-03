@@ -5,6 +5,7 @@ import {
   ICardQueryRepository,
   CardSortField,
   SortOrder,
+  UrlCardView,
 } from "../../../domain/ICardQueryRepository";
 import { ICollectionRepository } from "../../../domain/ICollectionRepository";
 import { IProfileService } from "../../../domain/services/IProfileService";
@@ -17,23 +18,7 @@ export interface GetCollectionPageQuery {
   sortOrder?: SortOrder;
 }
 
-// Enriched data for the final use case result
-export interface CollectionPageUrlCardDTO {
-  id: string;
-  url: string;
-  urlMeta: {
-    title?: string;
-    description?: string;
-    author?: string;
-    thumbnailUrl?: string;
-  };
-  libraryCount: number;
-  note?: {
-    id: string;
-    text: string;
-  };
-}
-
+export type CollectionPageUrlCardDTO = UrlCardView;
 export interface GetCollectionPageResult {
   id: string;
   name: string;
@@ -144,17 +129,7 @@ export class GetCollectionPageUseCase
       );
 
       // Transform raw card data to enriched DTOs
-      const enrichedCards: CollectionPageUrlCardDTO[] = cardsResult.items.map(
-        (item) => {
-          return {
-            id: item.id,
-            url: item.url,
-            urlMeta: item.urlMeta,
-            libraryCount: item.libraryCount,
-            note: item.note,
-          };
-        }
-      );
+      const enrichedCards: CollectionPageUrlCardDTO[] = cardsResult.items;
 
       return ok({
         id: collection.collectionId.getStringValue(),

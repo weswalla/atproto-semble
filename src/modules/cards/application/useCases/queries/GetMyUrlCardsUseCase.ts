@@ -5,6 +5,8 @@ import {
   ICardQueryRepository,
   CardSortField,
   SortOrder,
+  WithCollections,
+  UrlCardView,
 } from "../../../domain/ICardQueryRepository";
 
 export interface GetMyUrlCardsQuery {
@@ -16,27 +18,7 @@ export interface GetMyUrlCardsQuery {
 }
 
 // Enriched data for the final use case result
-export interface UrlCardListItemDTO {
-  id: string;
-  url: string;
-  urlMeta: {
-    title?: string;
-    description?: string;
-    author?: string;
-    thumbnailUrl?: string;
-  };
-  libraryCount: number;
-  collections: {
-    id: string;
-    name: string;
-    authorId: string;
-  }[];
-  note?: {
-    id: string;
-    text: string;
-  };
-}
-
+export type UrlCardListItemDTO = UrlCardView & WithCollections;
 export interface GetMyUrlCardsResult {
   cards: UrlCardListItemDTO[];
   pagination: {
@@ -81,29 +63,15 @@ export class GetMyUrlCardsUseCase
 
     try {
       // Execute query to get raw card data
-      const result = await this.cardQueryRepo.getUrlCardsOfUser(
-        query.userId,
-        {
-          page,
-          limit,
-          sortBy,
-          sortOrder,
-        }
-      );
+      const result = await this.cardQueryRepo.getUrlCardsOfUser(query.userId, {
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+      });
 
       // Transform raw data to enriched DTOs
-      const enrichedCards: UrlCardListItemDTO[] = result.items.map(
-        (item) => {
-          return {
-            id: item.id,
-            url: item.url,
-            urlMeta: item.urlMeta,
-            libraryCount: item.libraryCount,
-            collections: item.collections,
-            note: item.note,
-          };
-        }
-      );
+      const enrichedCards: UrlCardListItemDTO[] = result.items;
 
       return ok({
         cards: enrichedCards,

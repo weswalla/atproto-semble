@@ -25,10 +25,11 @@ export enum SortOrder {
 }
 
 // Simplified DTO for cards in a collection (no collections array to avoid circular data)
-export interface CollectionCardQueryResultDTO {
+export interface UrlCardView {
   id: string;
+  type: CardTypeEnum.URL;
   url: string;
-  urlMeta: {
+  cardContent: {
     title?: string;
     description?: string;
     author?: string;
@@ -43,35 +44,19 @@ export interface CollectionCardQueryResultDTO {
   };
 }
 
+export type CollectionCardQueryResultDTO = UrlCardView;
 // Raw data from repository - minimal, just what's stored
-export type UrlCardQueryResultDTO = CollectionCardQueryResultDTO & {
-  collections: {
-    id: string;
-    name: string;
-    authorId: string;
-  }[];
-};
+interface WithCollections {
+  collections: { id: string; name: string; authorId: string }[];
+}
+
+interface WithLibraries {
+  libraries: { userId: string }[];
+}
+export type UrlCardQueryResultDTO = UrlCardView & WithCollections;
 
 // DTO for single URL card view with library and collection info
-export interface UrlCardViewDTO {
-  id: string;
-  type: CardTypeEnum.URL;
-  urlMeta: {
-    title?: string;
-    description?: string;
-    url: string;
-    author?: string;
-    thumbnailUrl?: string;
-  };
-  inLibraries: {
-    userId: string;
-  }[];
-  inCollections: {
-    id: string;
-    name: string;
-    authorId: string;
-  }[];
-}
+export type UrlCardViewDTO = UrlCardView & WithCollections & WithLibraries;
 
 export interface ICardQueryRepository {
   getUrlCardsOfUser(

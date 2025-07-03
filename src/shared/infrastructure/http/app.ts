@@ -22,7 +22,7 @@ export const createExpressApp = (
       credentials: false,
     })
   );
-  
+
   // Middleware setup
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
@@ -42,7 +42,7 @@ export const createExpressApp = (
     services.authMiddleware,
     controllers.initiateOAuthSignInController,
     controllers.completeOAuthSignInController,
-    controllers.getCurrentUserController,
+    controllers.getMyProfileController,
     controllers.refreshAccessTokenController
   );
 

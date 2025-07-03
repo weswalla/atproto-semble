@@ -1,6 +1,5 @@
 import { InitiateOAuthSignInController } from "../../../../modules/user/infrastructure/http/controllers/InitiateOAuthSignInController";
 import { CompleteOAuthSignInController } from "../../../../modules/user/infrastructure/http/controllers/CompleteOAuthSignInController";
-import { GetCurrentUserController } from "../../../../modules/user/infrastructure/http/controllers/GetCurrentUserController";
 import { RefreshAccessTokenController } from "../../../../modules/user/infrastructure/http/controllers/RefreshAccessTokenController";
 import { AddUrlToLibraryController } from "../../../../modules/cards/infrastructure/http/controllers/AddUrlToLibraryController";
 import { AddCardToLibraryController } from "../../../../modules/cards/infrastructure/http/controllers/AddCardToLibraryController";
@@ -18,12 +17,13 @@ import { DeleteCollectionController } from "../../../../modules/cards/infrastruc
 import { GetCollectionPageController } from "../../../../modules/cards/infrastructure/http/controllers/GetCollectionPageController";
 import { GetMyCollectionsController } from "../../../../modules/cards/infrastructure/http/controllers/GetMyCollectionsController";
 import { UseCases } from "./UseCaseFactory";
+import { GetMyProfileController } from "src/modules/cards/infrastructure/http/controllers/GetMyProfileController";
 
 export interface Controllers {
   // User controllers
   initiateOAuthSignInController: InitiateOAuthSignInController;
   completeOAuthSignInController: CompleteOAuthSignInController;
-  getCurrentUserController: GetCurrentUserController;
+  getMyProfileController: GetMyProfileController;
   refreshAccessTokenController: RefreshAccessTokenController;
   // Card controllers
   addUrlToLibraryController: AddUrlToLibraryController;
@@ -53,13 +53,13 @@ export class ControllerFactory {
       completeOAuthSignInController: new CompleteOAuthSignInController(
         useCases.completeOAuthSignInUseCase
       ),
-      getCurrentUserController: new GetCurrentUserController(
-        useCases.getCurrentUserUseCase
+      getMyProfileController: new GetMyProfileController(
+        useCases.getMyProfileUseCase
       ),
       refreshAccessTokenController: new RefreshAccessTokenController(
         useCases.refreshAccessTokenUseCase
       ),
-      
+
       // Card controllers
       addUrlToLibraryController: new AddUrlToLibraryController(
         useCases.addUrlToLibraryUseCase
@@ -76,9 +76,10 @@ export class ControllerFactory {
       removeCardFromLibraryController: new RemoveCardFromLibraryController(
         useCases.removeCardFromLibraryUseCase
       ),
-      removeCardFromCollectionController: new RemoveCardFromCollectionController(
-        useCases.removeCardFromCollectionUseCase
-      ),
+      removeCardFromCollectionController:
+        new RemoveCardFromCollectionController(
+          useCases.removeCardFromCollectionUseCase
+        ),
       getUrlMetadataController: new GetUrlMetadataController(
         useCases.getUrlMetadataUseCase
       ),

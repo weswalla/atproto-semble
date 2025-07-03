@@ -19,12 +19,13 @@ import { GetCollectionPageUseCase } from "../../../../modules/cards/application/
 import { GetMyCollectionsUseCase } from "../../../../modules/cards/application/useCases/queries/GetMyCollectionsUseCase";
 import { Repositories } from "./RepositoryFactory";
 import { Services } from "./ServiceFactory";
+import { GetMyProfileUseCase } from "src/modules/cards/application/useCases/queries/GetMyProfileUseCase";
 
 export interface UseCases {
   // User use cases
   initiateOAuthSignInUseCase: InitiateOAuthSignInUseCase;
   completeOAuthSignInUseCase: CompleteOAuthSignInUseCase;
-  getCurrentUserUseCase: GetCurrentUserUseCase;
+  getMyProfileUseCase: GetMyProfileUseCase;
   refreshAccessTokenUseCase: RefreshAccessTokenUseCase;
   // Card use cases
   addUrlToLibraryUseCase: AddUrlToLibraryUseCase;
@@ -57,9 +58,11 @@ export class UseCaseFactory {
         repositories.userRepository,
         services.userAuthService
       ),
-      getCurrentUserUseCase: new GetCurrentUserUseCase(repositories.userRepository),
-      refreshAccessTokenUseCase: new RefreshAccessTokenUseCase(services.tokenService),
-      
+      getMyProfileUseCase: new GetMyProfileUseCase(services.profileService),
+      refreshAccessTokenUseCase: new RefreshAccessTokenUseCase(
+        services.tokenService
+      ),
+
       // Card use cases
       addUrlToLibraryUseCase: new AddUrlToLibraryUseCase(
         repositories.cardRepository,
@@ -100,7 +103,9 @@ export class UseCaseFactory {
         repositories.cardQueryRepository,
         services.profileService
       ),
-      getMyUrlCardsUseCase: new GetMyUrlCardsUseCase(repositories.cardQueryRepository),
+      getMyUrlCardsUseCase: new GetMyUrlCardsUseCase(
+        repositories.cardQueryRepository
+      ),
       createCollectionUseCase: new CreateCollectionUseCase(
         repositories.collectionRepository,
         services.collectionPublisher

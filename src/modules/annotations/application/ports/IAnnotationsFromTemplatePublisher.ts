@@ -2,7 +2,7 @@ import { Result } from "../../../../shared/core/Result";
 import { UseCaseError } from "../../../../shared/core/UseCaseError";
 import { AnnotationsFromTemplate } from "../../domain/aggregates/AnnotationsFromTemplate";
 import { AnnotationId } from "../../domain/value-objects";
-import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
+import { PublishedRecordId } from "../../../cards/domain/value-objects/PublishedRecordId";
 
 export type PublishedAnnotationsFromTemplateResult = Map<
   string,

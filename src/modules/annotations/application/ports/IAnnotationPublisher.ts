@@ -1,7 +1,7 @@
 import { Annotation } from "../../domain/aggregates/Annotation";
 import { Result } from "../../../../shared/core/Result";
 import { UseCaseError } from "../../../../shared/core/UseCaseError";
-import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
+import { PublishedRecordId } from "../../../cards/domain/value-objects/PublishedRecordId";
 
 /**
  * @description Interface for publishing Annotation aggregates.

@@ -2,7 +2,7 @@ import { IAnnotationPublisher } from "src/modules/annotations/application/ports/
 import { Annotation } from "src/modules/annotations/domain/aggregates/Annotation";
 import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
-import { PublishedRecordId } from "src/modules/annotations/domain/value-objects/PublishedRecordId";
+import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
 import { AnnotationMapper } from "../mappers/AnnotationMapper";
 import { StrongRef } from "../../domain";
 import { IAgentService } from "../../application/IAgentService";

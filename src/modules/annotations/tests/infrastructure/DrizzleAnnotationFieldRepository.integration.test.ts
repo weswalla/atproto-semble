@@ -14,7 +14,7 @@ import { sql } from "drizzle-orm";
 import { annotationFields } from "../../infrastructure/repositories/schema/annotationField.sql";
 import { AnnotationFieldDefinitionFactory } from "src/modules/annotations/domain/AnnotationFieldDefinitionFactory";
 import { AnnotationType } from "src/modules/annotations/domain/value-objects/AnnotationType";
-import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
+import { PublishedRecordId } from "../../../cards/domain/value-objects/PublishedRecordId";
 import { assertDockerIsRunning } from "../../infrastructure/repositories/assertDockerDaemon";
 
 describe("DrizzleAnnotationFieldRepository", () => {

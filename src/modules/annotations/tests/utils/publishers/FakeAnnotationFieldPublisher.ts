@@ -3,7 +3,7 @@ import { AnnotationField } from "../../../domain/AnnotationField";
 import {
   PublishedRecordId,
   PublishedRecordIdProps,
-} from "../../../domain/value-objects/PublishedRecordId";
+} from "../../../../cards/domain/value-objects/PublishedRecordId";
 import { Result, ok } from "../../../../../shared/core/Result";
 import { UseCaseError } from "../../../../../shared/core/UseCaseError";
 

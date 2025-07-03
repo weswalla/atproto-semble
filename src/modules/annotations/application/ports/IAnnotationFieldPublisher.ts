@@ -1,7 +1,7 @@
 import { AnnotationField } from "../../domain/AnnotationField";
 import { Result } from "../../../../shared/core/Result";
 import { UseCaseError } from "../../../../shared/core/UseCaseError";
-import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
+import { PublishedRecordId } from "../../../cards/domain/value-objects/PublishedRecordId";
 
 /**
  * @description Interface for publishing AnnotationField aggregates.

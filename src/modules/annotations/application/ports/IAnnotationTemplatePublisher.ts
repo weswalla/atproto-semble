@@ -1,7 +1,7 @@
-import { AnnotationTemplate } from '../../domain/aggregates/AnnotationTemplate';
-import { Result } from '../../../../shared/core/Result';
-import { UseCaseError } from '../../../../shared/core/UseCaseError';
-import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
+import { AnnotationTemplate } from "../../domain/aggregates/AnnotationTemplate";
+import { Result } from "../../../../shared/core/Result";
+import { UseCaseError } from "../../../../shared/core/UseCaseError";
+import { PublishedRecordId } from "../../../cards/domain/value-objects/PublishedRecordId";
 
 /**
  * @description Interface for publishing AnnotationTemplate aggregates.
@@ -14,7 +14,7 @@ export interface IAnnotationTemplatePublisher {
    * @returns A Result indicating success (void) or a UseCaseError on failure.
    */
   publish(
-    template: AnnotationTemplate,
+    template: AnnotationTemplate
   ): Promise<Result<PublishedRecordId, UseCaseError>>;
 
   /**

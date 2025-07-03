@@ -193,6 +193,26 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return Array.from(this.collectionCards.get(collectionId) || new Set());
   }
 
+  async getUrlCardView(cardId: string): Promise<UrlCardViewDTO | null> {
+    const card = this.urlCards.get(cardId);
+    if (!card) {
+      return null;
+    }
+
+    // Find which users have this card in their library
+    const libraries: { userId: string }[] = [];
+    for (const [userId, cardIds] of this.userLibraries.entries()) {
+      if (cardIds.has(cardId)) {
+        libraries.push({ userId });
+      }
+    }
+
+    return {
+      ...card,
+      libraries,
+    };
+  }
+
   clear(): void {
     this.urlCards.clear();
     this.userLibraries.clear();

@@ -3,10 +3,12 @@ import {
   CardQueryOptions,
   UrlCardQueryResultDTO,
   CollectionCardQueryResultDTO,
+  UrlCardViewDTO,
   PaginatedQueryResult,
   CardSortField,
   SortOrder,
 } from "../../domain/ICardQueryRepository";
+import { CardTypeEnum } from "../../domain/value-objects/CardType";
 
 export class InMemoryCardQueryRepository implements ICardQueryRepository {
   private urlCards: Map<string, UrlCardQueryResultDTO> = new Map();
@@ -169,8 +171,9 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   ): CollectionCardQueryResultDTO {
     return {
       id: card.id,
+      type: CardTypeEnum.URL,
       url: card.url,
-      urlMeta: card.urlMeta,
+      cardContent: card.cardContent,
       libraryCount: card.libraryCount,
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,

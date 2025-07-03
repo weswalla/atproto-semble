@@ -379,6 +379,7 @@ describe("GetUrlCardViewUseCase", () => {
         getUrlCardView: jest
           .fn()
           .mockRejectedValue(new Error("Database connection failed")),
+        getLibrariesForCard: jest.fn(),
       };
 
       const errorUseCase = new GetUrlCardViewUseCase(errorRepo, profileService);

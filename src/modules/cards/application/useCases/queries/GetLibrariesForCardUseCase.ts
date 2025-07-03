@@ -1,7 +1,7 @@
-import { Result, ok, err } from "../../../../shared/core/Result";
-import { UseCase } from "../../../../shared/core/UseCase";
+import { UseCase } from "src/shared/core/UseCase";
 import { ICardQueryRepository } from "../../../domain/ICardQueryRepository";
-import { IProfileService, UserProfile } from "../../../domain/services/IProfileService";
+import { IProfileService } from "../../../domain/services/IProfileService";
+import { err, ok, Result } from "src/shared/core/Result";
 
 export interface GetLibrariesForCardQuery {
   cardId: string;
@@ -28,7 +28,8 @@ export class ValidationError extends Error {
 }
 
 export class GetLibrariesForCardUseCase
-  implements UseCase<GetLibrariesForCardQuery, Result<GetLibrariesForCardResult>>
+  implements
+    UseCase<GetLibrariesForCardQuery, Result<GetLibrariesForCardResult>>
 {
   constructor(
     private cardQueryRepo: ICardQueryRepository,
@@ -45,10 +46,12 @@ export class GetLibrariesForCardUseCase
 
     try {
       // Get user IDs who have this card in their library
-      const userIds = await this.cardQueryRepo.getLibrariesForCard(query.cardId);
+      const userIds = await this.cardQueryRepo.getLibrariesForCard(
+        query.cardId
+      );
 
       // Fetch profiles for all users
-      const profilePromises = userIds.map(userId => 
+      const profilePromises = userIds.map((userId) =>
         this.profileService.getProfile(userId)
       );
 
@@ -60,6 +63,10 @@ export class GetLibrariesForCardUseCase
 
       for (let i = 0; i < profileResults.length; i++) {
         const result = profileResults[i];
+        if (!result) {
+          errors.push(`No profile found for user ${userIds[i]}`);
+          continue;
+        }
         if (result.isOk()) {
           const profile = result.value;
           users.push({
@@ -69,7 +76,9 @@ export class GetLibrariesForCardUseCase
             avatarUrl: profile.avatarUrl,
           });
         } else {
-          errors.push(`Failed to fetch profile for user ${userIds[i]}: ${result.error.message}`);
+          errors.push(
+            `Failed to fetch profile for user ${userIds[i]}: ${result.error.message}`
+          );
         }
       }
 

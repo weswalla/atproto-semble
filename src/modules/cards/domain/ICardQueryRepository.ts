@@ -71,4 +71,6 @@ export interface ICardQueryRepository {
   ): Promise<PaginatedQueryResult<CollectionCardQueryResultDTO>>;
 
   getUrlCardView(cardId: string): Promise<UrlCardViewDTO | null>;
+
+  getLibrariesForCard(cardId: string): Promise<string[]>;
 }

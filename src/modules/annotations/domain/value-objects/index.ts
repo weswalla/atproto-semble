@@ -8,7 +8,7 @@ export * from "./AnnotationTemplateId";
 export * from "./AnnotationNote";
 export * from "./AnnotationId";
 export * from "./PublishedRecordId";
-export * from "./CuratorId";
+export * from "../../../cards/domain/value-objects/CuratorId";
 export * from "./AnnotationTemplateName";
 export * from "./AnnotationTemplateDescription";
 export * from "./AnnotationTemplateField";

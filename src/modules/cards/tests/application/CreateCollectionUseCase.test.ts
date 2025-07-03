@@ -1,7 +1,7 @@
 import { CreateCollectionUseCase } from "../../application/useCases/commands/CreateCollectionUseCase";
 import { InMemoryCollectionRepository } from "../utils/InMemoryCollectionRepository";
 import { FakeCollectionPublisher } from "../utils/FakeCollectionPublisher";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 import { CollectionAccessType } from "../../domain/Collection";
 
 describe("CreateCollectionUseCase", () => {

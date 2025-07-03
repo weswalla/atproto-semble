@@ -7,7 +7,7 @@ import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { DrizzleCollectionQueryRepository } from "../../infrastructure/repositories/DrizzleCollectionQueryRepository";
 import { DrizzleCardRepository } from "../../infrastructure/repositories/DrizzleCardRepository";
 import { DrizzleCollectionRepository } from "../../infrastructure/repositories/DrizzleCollectionRepository";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
 import {
   collections,

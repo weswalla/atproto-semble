@@ -4,7 +4,7 @@ import { ok, err, Result } from "../../../shared/core/Result";
 import { CardId } from "./value-objects/CardId";
 import { CardType, CardTypeEnum } from "./value-objects/CardType";
 import { CardContent } from "./value-objects/CardContent";
-import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "./value-objects/CuratorId";
 import { PublishedRecordId } from "./value-objects/PublishedRecordId";
 import { URL } from "./value-objects/URL";
 
@@ -92,7 +92,10 @@ export class Card extends AggregateRoot<CardProps> {
   }
 
   public static create(
-    props: Omit<CardProps, "createdAt" | "updatedAt" | "libraryMemberships" | "libraryCount"> & {
+    props: Omit<
+      CardProps,
+      "createdAt" | "updatedAt" | "libraryMemberships" | "libraryCount"
+    > & {
       libraryMemberships?: CardInLibraryLink[];
       libraryCount?: number;
       createdAt?: Date;
@@ -125,7 +128,10 @@ export class Card extends AggregateRoot<CardProps> {
   }
 
   private static validateCardRelationships(
-    props: Omit<CardProps, "createdAt" | "updatedAt" | "libraryMemberships" | "libraryCount"> & {
+    props: Omit<
+      CardProps,
+      "createdAt" | "updatedAt" | "libraryMemberships" | "libraryCount"
+    > & {
       libraryMemberships?: CardInLibraryLink[];
       libraryCount?: number;
     }
@@ -142,10 +148,15 @@ export class Card extends AggregateRoot<CardProps> {
 
     // Validate libraryCount matches libraryMemberships length when both are provided
     const libraryMemberships = props.libraryMemberships || [];
-    if (props.libraryCount !== undefined && props.libraryCount !== libraryMemberships.length) {
-      return err(new CardValidationError(
-        `Library count (${props.libraryCount}) does not match library memberships length (${libraryMemberships.length})`
-      ));
+    if (
+      props.libraryCount !== undefined &&
+      props.libraryCount !== libraryMemberships.length
+    ) {
+      return err(
+        new CardValidationError(
+          `Library count (${props.libraryCount}) does not match library memberships length (${libraryMemberships.length})`
+        )
+      );
     }
 
     return ok(undefined);

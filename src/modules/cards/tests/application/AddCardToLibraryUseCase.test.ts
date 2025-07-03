@@ -5,7 +5,7 @@ import { FakeCardPublisher } from "../utils/FakeCardPublisher";
 import { FakeCollectionPublisher } from "../utils/FakeCollectionPublisher";
 import { CardLibraryService } from "../../domain/services/CardLibraryService";
 import { CardCollectionService } from "../../domain/services/CardCollectionService";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 import { CollectionBuilder } from "../utils/builders/CollectionBuilder";
 import { CardBuilder } from "../utils/builders/CardBuilder";
 import { CardTypeEnum } from "../../domain/value-objects/CardType";

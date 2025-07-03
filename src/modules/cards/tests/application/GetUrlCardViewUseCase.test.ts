@@ -1,7 +1,7 @@
 import { GetUrlCardViewUseCase } from "../../application/useCases/queries/GetUrlCardViewUseCase";
 import { InMemoryCardQueryRepository } from "../utils/InMemoryCardQueryRepository";
 import { FakeProfileService } from "../utils/FakeProfileService";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 import { CardId } from "../../domain/value-objects/CardId";
 import {
   UrlCardQueryResultDTO,

@@ -5,7 +5,7 @@ import { AppError } from "../../../../../shared/core/AppError";
 import { ICardRepository } from "../../../domain/ICardRepository";
 import { CardId } from "../../../domain/value-objects/CardId";
 import { CollectionId } from "../../../domain/value-objects/CollectionId";
-import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../../domain/value-objects/CuratorId";
 import { CardLibraryService } from "../../../domain/services/CardLibraryService";
 import { CardCollectionService } from "../../../domain/services/CardCollectionService";
 
@@ -65,9 +65,7 @@ export class AddCardToLibraryUseCase
       const cardIdResult = CardId.createFromString(request.cardId);
       if (cardIdResult.isErr()) {
         return err(
-          new ValidationError(
-            `Invalid card ID: ${cardIdResult.error.message}`
-          )
+          new ValidationError(`Invalid card ID: ${cardIdResult.error.message}`)
         );
       }
       const cardId = cardIdResult.value;
@@ -100,7 +98,8 @@ export class AddCardToLibraryUseCase
         // Validate and create CollectionIds
         const collectionIds: CollectionId[] = [];
         for (const collectionIdStr of request.collectionIds) {
-          const collectionIdResult = CollectionId.createFromString(collectionIdStr);
+          const collectionIdResult =
+            CollectionId.createFromString(collectionIdStr);
           if (collectionIdResult.isErr()) {
             return err(
               new ValidationError(
@@ -112,13 +111,16 @@ export class AddCardToLibraryUseCase
         }
 
         // Add card to collections using domain service
-        const addToCollectionsResult = await this.cardCollectionService.addCardToCollections(
-          card,
-          collectionIds,
-          curatorId
-        );
+        const addToCollectionsResult =
+          await this.cardCollectionService.addCardToCollections(
+            card,
+            collectionIds,
+            curatorId
+          );
         if (addToCollectionsResult.isErr()) {
-          if (addToCollectionsResult.error instanceof AppError.UnexpectedError) {
+          if (
+            addToCollectionsResult.error instanceof AppError.UnexpectedError
+          ) {
             return err(addToCollectionsResult.error);
           }
           return err(new ValidationError(addToCollectionsResult.error.message));

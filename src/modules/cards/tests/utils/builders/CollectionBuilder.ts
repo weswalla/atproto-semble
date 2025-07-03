@@ -1,7 +1,7 @@
 import { Collection, CollectionAccessType } from "../../../domain/Collection";
 import { CollectionName } from "../../../domain/value-objects/CollectionName";
 import { CollectionDescription } from "../../../domain/value-objects/CollectionDescription";
-import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../../domain/value-objects/CuratorId";
 import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
 import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
 
@@ -37,9 +37,12 @@ export class CollectionBuilder {
   }
 
   withAccessType(accessType: CollectionAccessType | string): CollectionBuilder {
-    if (typeof accessType === 'string') {
+    if (typeof accessType === "string") {
       // Handle string values like "OPEN", "CLOSED"
-      this._accessType = accessType === 'OPEN' ? CollectionAccessType.OPEN : CollectionAccessType.CLOSED;
+      this._accessType =
+        accessType === "OPEN"
+          ? CollectionAccessType.OPEN
+          : CollectionAccessType.CLOSED;
     } else {
       this._accessType = accessType;
     }
@@ -54,8 +57,8 @@ export class CollectionBuilder {
   withPublished(published: boolean): CollectionBuilder {
     if (published) {
       // Create a fake published record ID when marking as published
-      const fakeUri = `at://fake-did/network.cosmik.collection/${this._id?.toString() || 'fake-id'}`;
-      const fakeCid = `fake-collection-cid-${this._id?.toString() || 'fake-id'}`;
+      const fakeUri = `at://fake-did/network.cosmik.collection/${this._id?.toString() || "fake-id"}`;
+      const fakeCid = `fake-collection-cid-${this._id?.toString() || "fake-id"}`;
       this._publishedRecordId = PublishedRecordId.create({
         uri: fakeUri,
         cid: fakeCid,

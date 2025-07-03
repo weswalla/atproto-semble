@@ -4,7 +4,7 @@ import { UseCaseError } from "../../../../../shared/core/UseCaseError";
 import { AppError } from "../../../../../shared/core/AppError";
 import { ICardRepository } from "../../../domain/ICardRepository";
 import { CardId } from "../../../domain/value-objects/CardId";
-import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../../domain/value-objects/CuratorId";
 import { CardLibraryService } from "../../../domain/services/CardLibraryService";
 
 export interface RemoveCardFromLibraryDTO {
@@ -61,9 +61,7 @@ export class RemoveCardFromLibraryUseCase
       const cardIdResult = CardId.createFromString(request.cardId);
       if (cardIdResult.isErr()) {
         return err(
-          new ValidationError(
-            `Invalid card ID: ${cardIdResult.error.message}`
-          )
+          new ValidationError(`Invalid card ID: ${cardIdResult.error.message}`)
         );
       }
       const cardId = cardIdResult.value;
@@ -80,10 +78,8 @@ export class RemoveCardFromLibraryUseCase
       }
 
       // Remove card from library using domain service
-      const removeFromLibraryResult = await this.cardLibraryService.removeCardFromLibrary(
-        card,
-        curatorId
-      );
+      const removeFromLibraryResult =
+        await this.cardLibraryService.removeCardFromLibrary(card, curatorId);
       if (removeFromLibraryResult.isErr()) {
         if (removeFromLibraryResult.error instanceof AppError.UnexpectedError) {
           return err(removeFromLibraryResult.error);

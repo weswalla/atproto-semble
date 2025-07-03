@@ -4,7 +4,7 @@ import { ICollectionRepository } from "./ICollectionRepository";
 import { Card } from "./Card";
 import { CardId } from "./value-objects/CardId";
 import { CollectionId } from "./value-objects/CollectionId";
-import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "./value-objects/CuratorId";
 
 export class LibraryService {
   constructor(

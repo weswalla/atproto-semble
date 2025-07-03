@@ -1,9 +1,12 @@
 import { GetMyCollectionsUseCase } from "../../application/useCases/queries/GetMyCollectionsUseCase";
 import { InMemoryCollectionQueryRepository } from "../utils/InMemoryCollectionQueryRepository";
 import { FakeProfileService } from "../utils/FakeProfileService";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 import { CollectionBuilder } from "../utils/builders/CollectionBuilder";
-import { CollectionSortField, SortOrder } from "../../domain/ICollectionQueryRepository";
+import {
+  CollectionSortField,
+  SortOrder,
+} from "../../domain/ICollectionQueryRepository";
 import { UserProfile } from "../../domain/services/IProfileService";
 
 describe("GetMyCollectionsUseCase", () => {
@@ -211,7 +214,7 @@ describe("GetMyCollectionsUseCase", () => {
     beforeEach(() => {
       // Create collections with different properties for sorting
       const now = new Date();
-      
+
       const collection1 = new CollectionBuilder()
         .withAuthorId(curatorId.value)
         .withName("Alpha Collection")

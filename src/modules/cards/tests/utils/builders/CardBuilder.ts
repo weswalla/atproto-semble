@@ -2,7 +2,7 @@ import { Card } from "../../../domain/Card";
 import { CardType, CardTypeEnum } from "../../../domain/value-objects/CardType";
 import { CardContent } from "../../../domain/value-objects/CardContent";
 import { CardId } from "../../../domain/value-objects/CardId";
-import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../../domain/value-objects/CuratorId";
 import { URL } from "../../../domain/value-objects/URL";
 import { UrlMetadata } from "../../../domain/value-objects/UrlMetadata";
 import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
@@ -43,7 +43,11 @@ export class CardBuilder {
       } else if (type === CardTypeEnum.NOTE) {
         const curatorIdResult = CuratorId.create(this._curatorId);
         if (curatorIdResult.isOk()) {
-          const contentResult = CardContent.createNoteContent("Default note text", undefined, curatorIdResult.value);
+          const contentResult = CardContent.createNoteContent(
+            "Default note text",
+            undefined,
+            curatorIdResult.value
+          );
           if (contentResult.isOk()) {
             this._content = contentResult.value;
           }
@@ -121,17 +125,26 @@ export class CardBuilder {
         }
 
         if (this._type === CardTypeEnum.URL) {
-          const defaultUrl = this._url || URL.create("https://example.com").unwrap();
+          const defaultUrl =
+            this._url || URL.create("https://example.com").unwrap();
           this._url = defaultUrl;
           const contentResult = CardContent.createUrlContent(defaultUrl);
           if (contentResult.isErr()) {
-            return new Error(`Failed to create URL content: ${contentResult.error.message}`);
+            return new Error(
+              `Failed to create URL content: ${contentResult.error.message}`
+            );
           }
           this._content = contentResult.value;
         } else if (this._type === CardTypeEnum.NOTE) {
-          const contentResult = CardContent.createNoteContent("Default note text", undefined, curatorIdResult.value);
+          const contentResult = CardContent.createNoteContent(
+            "Default note text",
+            undefined,
+            curatorIdResult.value
+          );
           if (contentResult.isErr()) {
-            return new Error(`Failed to create note content: ${contentResult.error.message}`);
+            return new Error(
+              `Failed to create note content: ${contentResult.error.message}`
+            );
           }
           this._content = contentResult.value;
         } else {

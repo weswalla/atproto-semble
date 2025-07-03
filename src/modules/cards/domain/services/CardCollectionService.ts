@@ -1,7 +1,7 @@
 import { Result, ok, err } from "../../../../shared/core/Result";
 import { Card } from "../Card";
 import { Collection } from "../Collection";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../value-objects/CuratorId";
 import { CollectionId } from "../value-objects/CollectionId";
 import { ICollectionRepository } from "../ICollectionRepository";
 import { ICollectionPublisher } from "../../application/ports/ICollectionPublisher";

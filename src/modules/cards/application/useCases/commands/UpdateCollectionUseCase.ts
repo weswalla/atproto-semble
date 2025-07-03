@@ -4,7 +4,7 @@ import { UseCaseError } from "../../../../../shared/core/UseCaseError";
 import { AppError } from "../../../../../shared/core/AppError";
 import { ICollectionRepository } from "../../../domain/ICollectionRepository";
 import { CollectionId } from "../../../domain/value-objects/CollectionId";
-import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../../domain/value-objects/CuratorId";
 import { CollectionName } from "../../../domain/value-objects/CollectionName";
 import { CollectionDescription } from "../../../domain/value-objects/CollectionDescription";
 import { ICollectionPublisher } from "../../ports/ICollectionPublisher";
@@ -62,7 +62,9 @@ export class UpdateCollectionUseCase
       const curatorId = curatorIdResult.value;
 
       // Validate and create CollectionId
-      const collectionIdResult = CollectionId.createFromString(request.collectionId);
+      const collectionIdResult = CollectionId.createFromString(
+        request.collectionId
+      );
       if (collectionIdResult.isErr()) {
         return err(
           new ValidationError(
@@ -73,25 +75,33 @@ export class UpdateCollectionUseCase
       const collectionId = collectionIdResult.value;
 
       // Find the collection
-      const collectionResult = await this.collectionRepository.findById(collectionId);
+      const collectionResult =
+        await this.collectionRepository.findById(collectionId);
       if (collectionResult.isErr()) {
         return err(AppError.UnexpectedError.create(collectionResult.error));
       }
 
       const collection = collectionResult.value;
       if (!collection) {
-        return err(new ValidationError(`Collection not found: ${request.collectionId}`));
+        return err(
+          new ValidationError(`Collection not found: ${request.collectionId}`)
+        );
       }
 
       // Check if user is the author
       if (!collection.authorId.equals(curatorId)) {
         return err(
-          new ValidationError("Only the collection author can update the collection")
+          new ValidationError(
+            "Only the collection author can update the collection"
+          )
         );
       }
 
       // Update collection details using domain method
-      const updateResult = collection.updateDetails(request.name, request.description);
+      const updateResult = collection.updateDetails(
+        request.name,
+        request.description
+      );
       if (updateResult.isErr()) {
         return err(new ValidationError(updateResult.error.message));
       }
@@ -104,7 +114,8 @@ export class UpdateCollectionUseCase
 
       // Republish collection if it was already published
       if (collection.isPublished) {
-        const republishResult = await this.collectionPublisher.publish(collection);
+        const republishResult =
+          await this.collectionPublisher.publish(collection);
         if (republishResult.isErr()) {
           return err(
             new ValidationError(
@@ -117,7 +128,8 @@ export class UpdateCollectionUseCase
         collection.markAsPublished(republishResult.value);
 
         // Save collection with updated published record ID
-        const saveUpdatedResult = await this.collectionRepository.save(collection);
+        const saveUpdatedResult =
+          await this.collectionRepository.save(collection);
         if (saveUpdatedResult.isErr()) {
           return err(AppError.UnexpectedError.create(saveUpdatedResult.error));
         }

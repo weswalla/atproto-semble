@@ -9,7 +9,7 @@ import {
   INoteCardInput,
 } from "../../../domain/CardFactory";
 import { CollectionId } from "../../../domain/value-objects/CollectionId";
-import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../../domain/value-objects/CuratorId";
 import { IMetadataService } from "../../../domain/services/IMetadataService";
 import { CardTypeEnum } from "../../../domain/value-objects/CardType";
 import { URL } from "../../../domain/value-objects/URL";
@@ -127,15 +127,17 @@ export class AddUrlToLibraryUseCase
       }
 
       // Add URL card to library using domain service
-      const addUrlCardToLibraryResult = await this.cardLibraryService.addCardToLibrary(
-        urlCard,
-        curatorId
-      );
+      const addUrlCardToLibraryResult =
+        await this.cardLibraryService.addCardToLibrary(urlCard, curatorId);
       if (addUrlCardToLibraryResult.isErr()) {
-        if (addUrlCardToLibraryResult.error instanceof AppError.UnexpectedError) {
+        if (
+          addUrlCardToLibraryResult.error instanceof AppError.UnexpectedError
+        ) {
           return err(addUrlCardToLibraryResult.error);
         }
-        return err(new ValidationError(addUrlCardToLibraryResult.error.message));
+        return err(
+          new ValidationError(addUrlCardToLibraryResult.error.message)
+        );
       }
 
       let noteCard;
@@ -167,15 +169,17 @@ export class AddUrlToLibraryUseCase
         }
 
         // Add note card to library using domain service
-        const addNoteCardToLibraryResult = await this.cardLibraryService.addCardToLibrary(
-          noteCard,
-          curatorId
-        );
+        const addNoteCardToLibraryResult =
+          await this.cardLibraryService.addCardToLibrary(noteCard, curatorId);
         if (addNoteCardToLibraryResult.isErr()) {
-          if (addNoteCardToLibraryResult.error instanceof AppError.UnexpectedError) {
+          if (
+            addNoteCardToLibraryResult.error instanceof AppError.UnexpectedError
+          ) {
             return err(addNoteCardToLibraryResult.error);
           }
-          return err(new ValidationError(addNoteCardToLibraryResult.error.message));
+          return err(
+            new ValidationError(addNoteCardToLibraryResult.error.message)
+          );
         }
       }
 
@@ -187,7 +191,8 @@ export class AddUrlToLibraryUseCase
         // Validate and create CollectionIds
         const collectionIds: CollectionId[] = [];
         for (const collectionIdStr of request.collectionIds) {
-          const collectionIdResult = CollectionId.createFromString(collectionIdStr);
+          const collectionIdResult =
+            CollectionId.createFromString(collectionIdStr);
           if (collectionIdResult.isErr()) {
             return err(
               new ValidationError(
@@ -199,13 +204,16 @@ export class AddUrlToLibraryUseCase
         }
 
         // Add card to collections using domain service
-        const addToCollectionsResult = await this.cardCollectionService.addCardToCollections(
-          cardToAdd,
-          collectionIds,
-          curatorId
-        );
+        const addToCollectionsResult =
+          await this.cardCollectionService.addCardToCollections(
+            cardToAdd,
+            collectionIds,
+            curatorId
+          );
         if (addToCollectionsResult.isErr()) {
-          if (addToCollectionsResult.error instanceof AppError.UnexpectedError) {
+          if (
+            addToCollectionsResult.error instanceof AppError.UnexpectedError
+          ) {
             return err(addToCollectionsResult.error);
           }
           return err(new ValidationError(addToCollectionsResult.error.message));

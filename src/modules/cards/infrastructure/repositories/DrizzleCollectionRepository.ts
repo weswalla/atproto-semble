@@ -4,7 +4,7 @@ import { ICollectionRepository } from "../../domain/ICollectionRepository";
 import { Collection } from "../../domain/Collection";
 import { CollectionId } from "../../domain/value-objects/CollectionId";
 import { CardId } from "../../domain/value-objects/CardId";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 import {
   collections,
   collectionCollaborators,

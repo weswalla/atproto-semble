@@ -4,7 +4,7 @@ import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId"
 import { ok, err, Result } from "../../../../shared/core/Result";
 import { UseCaseError } from "../../../../shared/core/UseCaseError";
 import { AppError } from "../../../../shared/core/AppError";
-import { CuratorId } from "src/modules/annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "src/modules/cards/domain/value-objects/CuratorId";
 
 export class FakeCardPublisher implements ICardPublisher {
   private publishedRecords: Map<string, Card> = new Map();

@@ -3,7 +3,7 @@ import { UniqueEntityID } from "../../../shared/domain/UniqueEntityID";
 import { ok, err, Result } from "../../../shared/core/Result";
 import { CollectionId } from "./value-objects/CollectionId";
 import { CardId } from "./value-objects/CardId";
-import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "./value-objects/CuratorId";
 import {
   CollectionName,
   InvalidCollectionNameError,
@@ -127,7 +127,10 @@ export class Collection extends AggregateRoot<CollectionProps> {
   }
 
   public static create(
-    props: Omit<CollectionProps, "name" | "description" | "cardLinks" | "cardCount"> & {
+    props: Omit<
+      CollectionProps,
+      "name" | "description" | "cardLinks" | "cardCount"
+    > & {
       name: string;
       description?: string;
       cardLinks?: CardLink[];

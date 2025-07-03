@@ -11,7 +11,7 @@ import { AnnotationTemplate } from "src/modules/annotations/domain/aggregates/An
 import { URI } from "src/modules/annotations/domain/value-objects/URI";
 import { AnnotationType } from "src/modules/annotations/domain/value-objects/AnnotationType";
 import { AnnotationValueFactory } from "src/modules/annotations/domain/AnnotationValueFactory";
-import { CuratorId } from "src/modules/annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "src/modules/cards/domain/value-objects/CuratorId";
 import { AnnotationsFromTemplate } from "src/modules/annotations/domain/aggregates/AnnotationsFromTemplate";
 import dotenv from "dotenv";
 import { AppPasswordAgentService } from "./AppPasswordAgentService";

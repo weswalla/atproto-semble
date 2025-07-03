@@ -4,7 +4,7 @@ import { UseCaseError } from "../../../../../shared/core/UseCaseError";
 import { AppError } from "../../../../../shared/core/AppError";
 import { ICollectionRepository } from "../../../domain/ICollectionRepository";
 import { CollectionId } from "../../../domain/value-objects/CollectionId";
-import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../../domain/value-objects/CuratorId";
 import { ICollectionPublisher } from "../../ports/ICollectionPublisher";
 
 export interface DeleteCollectionDTO {
@@ -58,7 +58,9 @@ export class DeleteCollectionUseCase
       const curatorId = curatorIdResult.value;
 
       // Validate and create CollectionId
-      const collectionIdResult = CollectionId.createFromString(request.collectionId);
+      const collectionIdResult = CollectionId.createFromString(
+        request.collectionId
+      );
       if (collectionIdResult.isErr()) {
         return err(
           new ValidationError(
@@ -69,20 +71,25 @@ export class DeleteCollectionUseCase
       const collectionId = collectionIdResult.value;
 
       // Find the collection
-      const collectionResult = await this.collectionRepository.findById(collectionId);
+      const collectionResult =
+        await this.collectionRepository.findById(collectionId);
       if (collectionResult.isErr()) {
         return err(AppError.UnexpectedError.create(collectionResult.error));
       }
 
       const collection = collectionResult.value;
       if (!collection) {
-        return err(new ValidationError(`Collection not found: ${request.collectionId}`));
+        return err(
+          new ValidationError(`Collection not found: ${request.collectionId}`)
+        );
       }
 
       // Check if user is the author
       if (!collection.authorId.equals(curatorId)) {
         return err(
-          new ValidationError("Only the collection author can delete the collection")
+          new ValidationError(
+            "Only the collection author can delete the collection"
+          )
         );
       }
 

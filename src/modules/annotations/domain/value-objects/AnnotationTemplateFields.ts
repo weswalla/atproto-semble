@@ -8,7 +8,7 @@ import { AnnotationType } from "./AnnotationType";
 import { AnnotationFieldName } from "./AnnotationFieldName";
 import { AnnotationFieldDescription } from "./AnnotationFieldDescription";
 import { AnnotationFieldDefinitionFactory } from "../AnnotationFieldDefinitionFactory";
-import { CuratorId } from "./CuratorId";
+import { CuratorId } from "../../../cards/domain/value-objects/CuratorId";
 import { AnnotationFieldId } from "./AnnotationFieldId";
 
 export interface AnnotationTemplateFieldInputDTO {

@@ -326,6 +326,24 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
 
       const collectionsResult = await collectionsQuery;
 
+      // Get note card for this URL card (parentCardId matches, type = NOTE)
+      const noteQuery = this.db
+        .select({
+          id: cards.id,
+          parentCardId: cards.parentCardId,
+          contentData: cards.contentData,
+        })
+        .from(cards)
+        .where(
+          and(
+            eq(cards.type, CardTypeEnum.NOTE),
+            eq(cards.parentCardId, cardId)
+          )
+        );
+
+      const noteResult = await noteQuery;
+      const note = noteResult.length > 0 ? noteResult[0] : undefined;
+
       // Map to DTO
       const urlCardView = CardMapper.toUrlCardViewDTO({
         id: card.id,
@@ -341,6 +359,12 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
           name: coll.collectionName,
           authorId: coll.authorId,
         })),
+        note: note
+          ? {
+              id: note.id,
+              contentData: note.contentData,
+            }
+          : undefined,
       });
 
       return urlCardView;

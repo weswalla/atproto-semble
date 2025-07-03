@@ -427,6 +427,10 @@ export class CardMapper {
       name: string;
       authorId: string;
     }[];
+    note?: {
+      id: string;
+      contentData: any;
+    };
   }): UrlCardViewDTO {
     // Extract URL metadata from contentData
     const cardContent = {
@@ -436,6 +440,14 @@ export class CardMapper {
       author: raw.contentData?.metadata?.author,
       thumbnailUrl: raw.contentData?.metadata?.imageUrl,
     };
+
+    // Extract note text from note's contentData
+    const note = raw.note
+      ? {
+          id: raw.note.id,
+          text: raw.note.contentData?.text || "",
+        }
+      : undefined;
 
     return {
       id: raw.id,
@@ -447,6 +459,7 @@ export class CardMapper {
       updatedAt: raw.updatedAt,
       collections: raw.inCollections,
       libraries: raw.inLibraries,
+      note,
     };
   }
 }

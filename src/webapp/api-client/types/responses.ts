@@ -168,3 +168,36 @@ export interface GetCollectionPageResponse {
   pagination: Pagination;
   sorting: Sorting;
 }
+
+export interface GetMyCollectionsResponse {
+  collections: Array<{
+    id: string;
+    name: string;
+    description?: string;
+    cardCount: number;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  pagination: Pagination;
+  sorting: Sorting;
+}
+
+// User authentication response types
+export interface LoginWithAppPasswordResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface InitiateOAuthSignInResponse {
+  authUrl: string;
+}
+
+export interface CompleteOAuthSignInResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface RefreshAccessTokenResponse {
+  accessToken: string;
+  refreshToken: string;
+}

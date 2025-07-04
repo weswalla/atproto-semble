@@ -1,4 +1,4 @@
-import { QueryClient, CardClient, CollectionClient } from './clients';
+import { QueryClient, CardClient, CollectionClient, UserClient } from './clients';
 import type {
   // Request types
   AddUrlToLibraryRequest,
@@ -10,8 +10,13 @@ import type {
   CreateCollectionRequest,
   UpdateCollectionRequest,
   DeleteCollectionRequest,
+  LoginWithAppPasswordRequest,
+  InitiateOAuthSignInRequest,
+  CompleteOAuthSignInRequest,
+  RefreshAccessTokenRequest,
   GetMyUrlCardsParams,
   GetCollectionPageParams,
+  GetMyCollectionsParams,
   // Response types
   AddUrlToLibraryResponse,
   AddCardToLibraryResponse,
@@ -22,12 +27,17 @@ import type {
   CreateCollectionResponse,
   UpdateCollectionResponse,
   DeleteCollectionResponse,
+  LoginWithAppPasswordResponse,
+  InitiateOAuthSignInResponse,
+  CompleteOAuthSignInResponse,
+  RefreshAccessTokenResponse,
   GetUrlMetadataResponse,
   GetMyUrlCardsResponse,
   GetUrlCardViewResponse,
   GetLibrariesForCardResponse,
   GetMyProfileResponse,
   GetCollectionPageResponse,
+  GetMyCollectionsResponse,
 } from './types';
 
 // Main API Client class using composition
@@ -35,6 +45,7 @@ export class ApiClient {
   private queryClient: QueryClient;
   private cardClient: CardClient;
   private collectionClient: CollectionClient;
+  private userClient: UserClient;
 
   constructor(
     private baseUrl: string,
@@ -43,6 +54,7 @@ export class ApiClient {
     this.queryClient = new QueryClient(baseUrl, getAuthToken);
     this.cardClient = new CardClient(baseUrl, getAuthToken);
     this.collectionClient = new CollectionClient(baseUrl, getAuthToken);
+    this.userClient = new UserClient(baseUrl, getAuthToken);
   }
 
   // Query operations - delegate to QueryClient
@@ -68,6 +80,10 @@ export class ApiClient {
 
   async getCollectionPage(collectionId: string, params?: GetCollectionPageParams): Promise<GetCollectionPageResponse> {
     return this.queryClient.getCollectionPage(collectionId, params);
+  }
+
+  async getMyCollections(params?: GetMyCollectionsParams): Promise<GetMyCollectionsResponse> {
+    return this.queryClient.getMyCollections(params);
   }
 
   // Card operations - delegate to CardClient
@@ -106,6 +122,23 @@ export class ApiClient {
 
   async deleteCollection(request: DeleteCollectionRequest): Promise<DeleteCollectionResponse> {
     return this.collectionClient.deleteCollection(request);
+  }
+
+  // User operations - delegate to UserClient
+  async loginWithAppPassword(request: LoginWithAppPasswordRequest): Promise<LoginWithAppPasswordResponse> {
+    return this.userClient.loginWithAppPassword(request);
+  }
+
+  async initiateOAuthSignIn(request?: InitiateOAuthSignInRequest): Promise<InitiateOAuthSignInResponse> {
+    return this.userClient.initiateOAuthSignIn(request);
+  }
+
+  async completeOAuthSignIn(request: CompleteOAuthSignInRequest): Promise<CompleteOAuthSignInResponse> {
+    return this.userClient.completeOAuthSignIn(request);
+  }
+
+  async refreshAccessToken(request: RefreshAccessTokenRequest): Promise<RefreshAccessTokenResponse> {
+    return this.userClient.refreshAccessToken(request);
   }
 }
 

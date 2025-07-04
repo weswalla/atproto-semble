@@ -2,9 +2,11 @@ import { BaseClient } from './BaseClient';
 import {
   LoginWithAppPasswordRequest,
   InitiateOAuthSignInRequest,
+  CompleteOAuthSignInRequest,
   RefreshAccessTokenRequest,
   LoginWithAppPasswordResponse,
   InitiateOAuthSignInResponse,
+  CompleteOAuthSignInResponse,
   RefreshAccessTokenResponse,
 } from '../types';
 
@@ -21,6 +23,15 @@ export class UserClient extends BaseClient {
     const queryString = params.toString();
     const endpoint = queryString ? `/api/users/login?${queryString}` : '/api/users/login';
     return this.request<InitiateOAuthSignInResponse>('GET', endpoint);
+  }
+
+  async completeOAuthSignIn(request: CompleteOAuthSignInRequest): Promise<CompleteOAuthSignInResponse> {
+    const params = new URLSearchParams({
+      code: request.code,
+      state: request.state,
+      iss: request.iss,
+    });
+    return this.request<CompleteOAuthSignInResponse>('GET', `/api/users/oauth/callback?${params}`);
   }
 
   async refreshAccessToken(request: RefreshAccessTokenRequest): Promise<RefreshAccessTokenResponse> {

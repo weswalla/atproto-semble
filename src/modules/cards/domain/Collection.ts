@@ -4,14 +4,8 @@ import { ok, err, Result } from "../../../shared/core/Result";
 import { CollectionId } from "./value-objects/CollectionId";
 import { CardId } from "./value-objects/CardId";
 import { CuratorId } from "./value-objects/CuratorId";
-import {
-  CollectionName,
-  InvalidCollectionNameError,
-} from "./value-objects/CollectionName";
-import {
-  CollectionDescription,
-  InvalidCollectionDescriptionError,
-} from "./value-objects/CollectionDescription";
+import { CollectionName } from "./value-objects/CollectionName";
+import { CollectionDescription } from "./value-objects/CollectionDescription";
 import { PublishedRecordId } from "./value-objects/PublishedRecordId";
 
 export interface CardLink {

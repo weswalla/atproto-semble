@@ -42,6 +42,7 @@ export const createExpressApp = (
     services.authMiddleware,
     controllers.initiateOAuthSignInController,
     controllers.completeOAuthSignInController,
+    controllers.loginWithAppPasswordController,
     controllers.getMyProfileController,
     controllers.refreshAccessTokenController
   );

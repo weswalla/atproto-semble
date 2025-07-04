@@ -18,9 +18,11 @@ import { GetCollectionPageController } from "../../../../modules/cards/infrastru
 import { GetMyCollectionsController } from "../../../../modules/cards/infrastructure/http/controllers/GetMyCollectionsController";
 import { UseCases } from "./UseCaseFactory";
 import { GetMyProfileController } from "src/modules/cards/infrastructure/http/controllers/GetMyProfileController";
+import { LoginWithAppPasswordController } from "src/modules/user/infrastructure/http/controllers/LoginWithAppPasswordController";
 
 export interface Controllers {
   // User controllers
+  loginWithAppPasswordController: LoginWithAppPasswordController;
   initiateOAuthSignInController: InitiateOAuthSignInController;
   completeOAuthSignInController: CompleteOAuthSignInController;
   getMyProfileController: GetMyProfileController;
@@ -47,6 +49,9 @@ export class ControllerFactory {
   static create(useCases: UseCases): Controllers {
     return {
       // User controllers
+      loginWithAppPasswordController: new LoginWithAppPasswordController(
+        useCases.loginWithAppPasswordUseCase
+      ),
       initiateOAuthSignInController: new InitiateOAuthSignInController(
         useCases.initiateOAuthSignInUseCase
       ),

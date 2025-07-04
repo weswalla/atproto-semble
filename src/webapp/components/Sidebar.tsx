@@ -14,7 +14,7 @@ export function Sidebar({ className }: SidebarProps) {
   const navItems = [
     {
       name: "My Cards",
-      href: "/cards",
+      href: "/library",
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -51,7 +51,9 @@ export function Sidebar({ className }: SidebarProps) {
   ];
 
   return (
-    <div className={cn("pb-12 w-64 bg-gray-50 h-screen flex flex-col", className)}>
+    <div
+      className={cn("pb-12 w-64 bg-gray-50 h-screen flex flex-col", className)}
+    >
       <div className="flex-1 space-y-4 py-4">
         <div className="px-4 py-2">
           <h2 className="mb-2 px-2 text-xl font-semibold tracking-tight">
@@ -76,7 +78,7 @@ export function Sidebar({ className }: SidebarProps) {
           </div>
         </div>
       </div>
-      
+
       {/* User Profile Section at Bottom */}
       <div className="px-4 py-2 border-t border-gray-200">
         <Link

@@ -76,7 +76,9 @@ export default function CardPage() {
               </CardTitle>
               <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
                 <Badge variant="secondary">{card.type}</Badge>
-                <span>Added {new Date(card.createdAt).toLocaleDateString()}</span>
+                <span>
+                  Added {new Date(card.createdAt).toLocaleDateString()}
+                </span>
               </div>
             </div>
             {card.cardContent.thumbnailUrl && (
@@ -120,20 +122,14 @@ export default function CardPage() {
             </div>
           )}
 
-          {/* Site Name */}
-          {card.cardContent.siteName && (
-            <div>
-              <h3 className="font-semibold mb-2">Site</h3>
-              <p className="text-gray-700">{card.cardContent.siteName}</p>
-            </div>
-          )}
-
           {/* Note */}
           {card.note && (
             <div>
               <h3 className="font-semibold mb-2">Note</h3>
               <div className="bg-gray-50 p-4 rounded-md">
-                <p className="text-gray-700 leading-relaxed">{card.note.text}</p>
+                <p className="text-gray-700 leading-relaxed">
+                  {card.note.text}
+                </p>
               </div>
             </div>
           )}

@@ -1,13 +1,19 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken } from "@/services/auth";
 import { ApiClient } from "@/api-client/ApiClient";
-import { useAuth } from "@/contexts/AuthContext";
 import type { GetMyProfileResponse } from "@/api-client/types";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<GetMyProfileResponse | null>(null);
@@ -87,13 +93,17 @@ export default function ProfilePage() {
             )}
             <div>
               <CardTitle className="text-2xl">{profile.name}</CardTitle>
-              <CardDescription className="text-lg">@{profile.handle}</CardDescription>
+              <CardDescription className="text-lg">
+                @{profile.handle}
+              </CardDescription>
             </div>
           </div>
         </CardHeader>
         {profile.description && (
           <CardContent>
-            <p className="text-gray-700 leading-relaxed">{profile.description}</p>
+            <p className="text-gray-700 leading-relaxed">
+              {profile.description}
+            </p>
           </CardContent>
         )}
       </Card>
@@ -106,19 +116,25 @@ export default function ProfilePage() {
         <CardContent className="space-y-4">
           <div>
             <label className="text-sm font-medium text-gray-500">User ID</label>
-            <p className="text-sm font-mono bg-gray-100 p-2 rounded">{profile.id}</p>
+            <p className="text-sm font-mono bg-gray-100 p-2 rounded">
+              {profile.id}
+            </p>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-500">Handle</label>
             <p className="text-sm">@{profile.handle}</p>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-500">Display Name</label>
+            <label className="text-sm font-medium text-gray-500">
+              Display Name
+            </label>
             <p className="text-sm">{profile.name}</p>
           </div>
           {profile.description && (
             <div>
-              <label className="text-sm font-medium text-gray-500">Description</label>
+              <label className="text-sm font-medium text-gray-500">
+                Description
+              </label>
               <p className="text-sm">{profile.description}</p>
             </div>
           )}

@@ -25,7 +25,7 @@ export default function AddCardPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!url.trim()) {
       setError("URL is required");
       return;
@@ -49,7 +49,7 @@ export default function AddCardPage() {
       });
 
       // Redirect to dashboard or cards page on success
-      router.push("/dashboard");
+      router.push("/library");
     } catch (error: any) {
       console.error("Error adding card:", error);
       setError(error.message || "Failed to add card. Please try again.");

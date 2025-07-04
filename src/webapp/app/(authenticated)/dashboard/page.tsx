@@ -11,7 +11,7 @@ import type { GetMyUrlCardsResponse } from "@/api-client/types";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
-  const [urlCards, setUrlCards] = useState<GetMyUrlCardsResponse['cards']>([]);
+  const [urlCards, setUrlCards] = useState<GetMyUrlCardsResponse["cards"]>([]);
   const [loading, setLoading] = useState(true);
   const [cardsLoading, setCardsLoading] = useState(true);
   const router = useRouter();
@@ -26,11 +26,11 @@ export default function DashboardPage() {
     const fetchData = async () => {
       try {
         const accessToken = getAccessToken();
-        
+
         // Fetch user data
         const userData = await authService.getCurrentUser(accessToken!);
         setUser(userData);
-        
+
         // Fetch URL cards
         setCardsLoading(true);
         const cardsResponse = await apiClient.getMyUrlCards({ limit: 10 });
@@ -42,10 +42,10 @@ export default function DashboardPage() {
         setCardsLoading(false);
       }
     };
-    
+
     fetchData();
   }, []);
-  
+
   const handleLogout = async () => {
     try {
       const refreshToken = localStorage.getItem("refreshToken");
@@ -77,15 +77,19 @@ export default function DashboardPage() {
           Sign Out
         </Button>
       </div>
-      
+
       <div className="space-y-8">
         {/* Welcome Section */}
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">Welcome back!</h2>
           {user && (
             <div className="text-sm text-gray-600">
-              <p><strong>Handle:</strong> {user.handle}</p>
-              <p><strong>DID:</strong> {user.did}</p>
+              <p>
+                <strong>Handle:</strong> {user.handle}
+              </p>
+              <p>
+                <strong>DID:</strong> {user.did}
+              </p>
             </div>
           )}
         </div>
@@ -94,14 +98,11 @@ export default function DashboardPage() {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-semibold">Recent Cards</h2>
-            <Button 
-              variant="outline" 
-              onClick={() => router.push('/cards')}
-            >
+            <Button variant="outline" onClick={() => router.push("/cards")}>
               View All Cards
             </Button>
           </div>
-          
+
           {cardsLoading ? (
             <div className="flex justify-center items-center h-32">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -110,23 +111,22 @@ export default function DashboardPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {urlCards.map((card) => (
                 <UrlCard
-                  key={card.cardId}
-                  cardId={card.cardId}
+                  key={card.id}
+                  cardId={card.id}
                   url={card.url}
-                  title={card.title}
-                  description={card.description}
-                  author={card.author}
-                  siteName={card.siteName}
-                  imageUrl={card.imageUrl}
-                  addedAt={card.addedAt}
-                  note={card.note}
+                  title={card.cardContent.title}
+                  description={card.cardContent.description}
+                  author={card.cardContent.author}
+                  imageUrl={card.cardContent.thumbnailUrl}
+                  addedAt={card.createdAt}
+                  note={card.note?.text}
                 />
               ))}
             </div>
           ) : (
             <div className="text-center py-12 bg-gray-50 rounded-lg">
               <p className="text-gray-500 mb-4">No cards yet</p>
-              <Button onClick={() => router.push('/cards')}>
+              <Button onClick={() => router.push("/cards")}>
                 Add Your First Card
               </Button>
             </div>

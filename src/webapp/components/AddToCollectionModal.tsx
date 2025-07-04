@@ -68,12 +68,11 @@ export function AddToCollectionModal({ cardId, isOpen, onClose, onSuccess }: Add
     setError("");
 
     try {
-      // Add card to each selected collection
-      const promises = Array.from(selectedCollections).map(collectionId =>
-        apiClient.addCardToCollection({ cardId, collectionId })
-      );
-
-      await Promise.all(promises);
+      // Add card to all selected collections in a single request
+      await apiClient.addCardToCollection({ 
+        cardId, 
+        collectionIds: Array.from(selectedCollections) 
+      });
 
       // Success
       onSuccess?.();

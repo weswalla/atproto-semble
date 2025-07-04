@@ -241,7 +241,7 @@ export interface AddCardToLibraryRequest {
 
 export interface AddCardToCollectionRequest {
   cardId: string;
-  collectionId: string;
+  collectionIds: string[];
 }
 
 export interface UpdateNoteCardRequest {

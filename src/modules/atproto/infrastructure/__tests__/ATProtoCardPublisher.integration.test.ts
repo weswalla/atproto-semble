@@ -227,6 +227,126 @@ describe("ATProtoCardPublisher", () => {
         );
       }
     }, 15000);
+
+    it("should publish a note card that references a parent URL card", async () => {
+      // Skip test if credentials are not available
+      if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
+        console.warn("Skipping test: BSKY credentials not found in .env.test");
+        return;
+      }
+
+      const parentUrl = URL.create(
+        "https://example.com/parent-article"
+      ).unwrap();
+
+      // Create URL metadata for parent card
+      const metadata = UrlMetadata.create({
+        url: parentUrl.value,
+        title: "Parent Article",
+        description: "An article that will be referenced by a note",
+        author: "Parent Author",
+        siteName: "Example.com",
+        type: "article",
+        retrievedAt: new Date(),
+      }).unwrap();
+
+      // 1. Create and publish the parent URL card first
+      const parentUrlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(parentUrl, metadata)
+        .withUrl(parentUrl)
+        .buildOrThrow();
+
+      // Add parent card to curator's library
+      parentUrlCard.addToLibrary(curatorId);
+
+      // Publish the parent URL card
+      const parentPublishResult = await publisher.publishCardToLibrary(
+        parentUrlCard,
+        curatorId
+      );
+      expect(parentPublishResult.isOk()).toBe(true);
+
+      if (parentPublishResult.isOk()) {
+        const parentPublishedRecordId = parentPublishResult.value;
+        publishedCardIds.push(parentPublishedRecordId);
+
+        // Mark parent card as published in library
+        parentUrlCard.markCardInLibraryAsPublished(
+          curatorId,
+          parentPublishedRecordId
+        );
+
+        console.log(
+          `Published parent URL card: ${parentPublishedRecordId.getValue().uri}`
+        );
+
+        // 2. Create a note card that references the parent URL card
+        const noteCard = new CardBuilder()
+          .withCuratorId(curatorId.value)
+          .withNoteCard("This is my note about the parent article", "My Notes")
+          .withParentCard(parentUrlCard.cardId)
+          .withUrl(parentUrl) // Optional: include the same URL as reference
+          .buildOrThrow();
+
+        // Add note card to curator's library
+        noteCard.addToLibrary(curatorId);
+
+        // 3. Publish the note card
+        const notePublishResult = await publisher.publishCardToLibrary(
+          noteCard,
+          curatorId
+        );
+        expect(notePublishResult.isOk()).toBe(true);
+
+        if (notePublishResult.isOk()) {
+          const notePublishedRecordId = notePublishResult.value;
+          publishedCardIds.push(notePublishedRecordId);
+
+          console.log(
+            `Published note card with parent reference: ${notePublishedRecordId.getValue().uri}`
+          );
+
+          // Verify the note card has the parent card ID
+          expect(noteCard.parentCardId).toBe(parentUrlCard.cardId);
+
+          // Mark note card as published in library
+          noteCard.markCardInLibraryAsPublished(
+            curatorId,
+            notePublishedRecordId
+          );
+          expect(noteCard.isInLibrary(curatorId)).toBe(true);
+
+          // 4. Unpublish both cards (note card first, then parent)
+          const noteUnpublishResult = await publisher.unpublishCardFromLibrary(
+            notePublishedRecordId,
+            curatorId
+          );
+          expect(noteUnpublishResult.isOk()).toBe(true);
+
+          console.log("Successfully unpublished note card");
+
+          // Remove from cleanup list since we've already unpublished it
+          publishedCardIds = publishedCardIds.filter(
+            (id) => id !== notePublishedRecordId
+          );
+        }
+
+        // Unpublish the parent URL card
+        const parentUnpublishResult = await publisher.unpublishCardFromLibrary(
+          parentPublishedRecordId,
+          curatorId
+        );
+        expect(parentUnpublishResult.isOk()).toBe(true);
+
+        console.log("Successfully unpublished parent URL card");
+
+        // Remove from cleanup list since we've already unpublished it
+        publishedCardIds = publishedCardIds.filter(
+          (id) => id !== parentPublishedRecordId
+        );
+      }
+    }, 20000);
   });
 
   describe("Card with Original Published Record ID", () => {

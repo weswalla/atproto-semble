@@ -4,6 +4,7 @@ import {
 } from "src/modules/cards/domain/services/IProfileService";
 import { Result, ok, err } from "src/shared/core/Result";
 import { IAgentService } from "../../application/IAgentService";
+import { DID } from "../../domain/DID";
 
 export class BlueskyProfileService implements IProfileService {
   constructor(private readonly agentService: IAgentService) {}
@@ -11,7 +12,9 @@ export class BlueskyProfileService implements IProfileService {
   async getProfile(userId: string): Promise<Result<UserProfile>> {
     try {
       // Get an authenticated agent - we can use any available agent for public profile data
-      const agentResult = this.agentService.getUnauthenticatedAgent();
+      const agentResult = await this.agentService.getAuthenticatedAgent(
+        new DID(userId)
+      );
 
       if (agentResult.isErr()) {
         return err(

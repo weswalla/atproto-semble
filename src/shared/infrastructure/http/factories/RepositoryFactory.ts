@@ -6,6 +6,7 @@ import { DrizzleCardRepository } from "../../../../modules/cards/infrastructure/
 import { DrizzleCardQueryRepository } from "../../../../modules/cards/infrastructure/repositories/DrizzleCardQueryRepository";
 import { DrizzleCollectionRepository } from "../../../../modules/cards/infrastructure/repositories/DrizzleCollectionRepository";
 import { DrizzleCollectionQueryRepository } from "../../../../modules/cards/infrastructure/repositories/DrizzleCollectionQueryRepository";
+import { DrizzleAppPasswordSessionRepository } from "src/modules/atproto/infrastructure/repositories/DrizzleAppPasswordSessionRepository";
 
 export interface Repositories {
   userRepository: DrizzleUserRepository;
@@ -14,6 +15,7 @@ export interface Repositories {
   cardQueryRepository: DrizzleCardQueryRepository;
   collectionRepository: DrizzleCollectionRepository;
   collectionQueryRepository: DrizzleCollectionQueryRepository;
+  appPasswordSessionRepository: DrizzleAppPasswordSessionRepository;
 }
 
 export class RepositoryFactory {
@@ -29,6 +31,7 @@ export class RepositoryFactory {
       cardQueryRepository: new DrizzleCardQueryRepository(db),
       collectionRepository: new DrizzleCollectionRepository(db),
       collectionQueryRepository: new DrizzleCollectionQueryRepository(db),
+      appPasswordSessionRepository: new DrizzleAppPasswordSessionRepository(db),
     };
   }
 }

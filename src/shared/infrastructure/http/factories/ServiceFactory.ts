@@ -17,6 +17,7 @@ import { CardCollectionService } from "../../../../modules/cards/domain/services
 import { AuthMiddleware } from "../middleware/AuthMiddleware";
 import { Repositories } from "./RepositoryFactory";
 import { NodeOAuthClient } from "@atproto/oauth-client-node";
+import { AppPasswordSessionService } from "src/modules/atproto/infrastructure/services/AppPasswordSessionService";
 
 export interface Services {
   tokenService: JwtTokenService;
@@ -55,11 +56,18 @@ export class ServiceFactory {
       oauthConfig.baseUrl
     );
 
+    const appPasswordSessionService = new AppPasswordSessionService(
+      repositories.appPasswordSessionRepository
+    );
+
     const oauthProcessor = new AtProtoOAuthProcessor(nodeOauthClient);
     const userAuthService = new UserAuthenticationService(
       repositories.userRepository
     );
-    const atProtoAgentService = new ATProtoAgentService(nodeOauthClient);
+    const atProtoAgentService = new ATProtoAgentService(
+      nodeOauthClient,
+      appPasswordSessionService
+    );
 
     const metadataService = new IFramelyMetadataService(
       configService.getIFramelyApiKey()

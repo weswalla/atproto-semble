@@ -1,8 +1,9 @@
 import { err, ok, Result } from "src/shared/core/Result";
 import { IAppPasswordSessionRepository } from "../repositories/IAppPasswordSessionRepository";
 import { AtpAgent, AtpSessionData } from "@atproto/api";
+import { IAppPasswordSessionService } from "../../application/IAppPasswordSessionService";
 
-export class AppPasswordSessionService {
+export class AppPasswordSessionService implements IAppPasswordSessionService {
   constructor(
     private readonly appPasswordSessionRepository: IAppPasswordSessionRepository
   ) {}
@@ -63,6 +64,47 @@ export class AppPasswordSessionService {
           )
         );
       }
+    }
+  }
+  async createSession(
+    identifier: string,
+    appPassword: string
+  ): Promise<Result<AtpSessionData>> {
+    const agent = new AtpAgent({
+      service: "https://bsky.social",
+    });
+
+    try {
+      await agent.login({
+        identifier,
+        password: appPassword,
+      });
+      const session = agent.session;
+      if (!session) {
+        return err(
+          new Error(`Failed to create session for identifier: ${identifier}`)
+        );
+      }
+      const saveResult = await this.appPasswordSessionRepository.saveSession(
+        session.did,
+        { session, appPassword }
+      );
+      if (saveResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to save session after login for identifier: ${identifier}, error: ${saveResult.error.message}`
+          )
+        );
+      }
+      return ok(session);
+    } catch (error) {
+      return err(
+        new Error(
+          `Failed to create session for identifier: ${identifier}, error: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        )
+      );
     }
   }
 }

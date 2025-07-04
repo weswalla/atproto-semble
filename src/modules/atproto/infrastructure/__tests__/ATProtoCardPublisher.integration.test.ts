@@ -5,7 +5,7 @@ import { Card } from "src/modules/cards/domain/Card";
 import { CardTypeEnum } from "src/modules/cards/domain/value-objects/CardType";
 import { URL } from "src/modules/cards/domain/value-objects/URL";
 import { UrlMetadata } from "src/modules/cards/domain/value-objects/UrlMetadata";
-import { CuratorId } from "src/modules/annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "src/modules/cards/domain/value-objects/CuratorId";
 import dotenv from "dotenv";
 import { AppPasswordAgentService } from "./AppPasswordAgentService";
 
@@ -82,7 +82,10 @@ describe("ATProtoCardPublisher", () => {
       urlCard.addToLibrary(curatorId);
 
       // 1. Publish the card
-      const publishResult = await publisher.publishCardToLibrary(urlCard, curatorId);
+      const publishResult = await publisher.publishCardToLibrary(
+        urlCard,
+        curatorId
+      );
       expect(publishResult.isOk()).toBe(true);
 
       if (publishResult.isOk()) {
@@ -94,7 +97,10 @@ describe("ATProtoCardPublisher", () => {
         expect(urlCard.isInLibrary(curatorId)).toBe(true);
 
         // 2. Test updating the card
-        const updateResult = await publisher.publishCardToLibrary(urlCard, curatorId);
+        const updateResult = await publisher.publishCardToLibrary(
+          urlCard,
+          curatorId
+        );
         expect(updateResult.isOk()).toBe(true);
 
         if (updateResult.isOk()) {
@@ -103,7 +109,10 @@ describe("ATProtoCardPublisher", () => {
         }
 
         // 3. Unpublish the card
-        const unpublishResult = await publisher.unpublishCardFromLibrary(publishedRecordId, curatorId);
+        const unpublishResult = await publisher.unpublishCardFromLibrary(
+          publishedRecordId,
+          curatorId
+        );
         expect(unpublishResult.isOk()).toBe(true);
 
         console.log("Successfully unpublished URL card");
@@ -134,7 +143,10 @@ describe("ATProtoCardPublisher", () => {
       noteCard.addToLibrary(curatorId);
 
       // 1. Publish the card
-      const publishResult = await publisher.publishCardToLibrary(noteCard, curatorId);
+      const publishResult = await publisher.publishCardToLibrary(
+        noteCard,
+        curatorId
+      );
       expect(publishResult.isOk()).toBe(true);
 
       if (publishResult.isOk()) {
@@ -148,7 +160,10 @@ describe("ATProtoCardPublisher", () => {
         expect(noteCard.isInLibrary(curatorId)).toBe(true);
 
         // 2. Unpublish the card
-        const unpublishResult = await publisher.unpublishCardFromLibrary(publishedRecordId, curatorId);
+        const unpublishResult = await publisher.unpublishCardFromLibrary(
+          publishedRecordId,
+          curatorId
+        );
         expect(unpublishResult.isOk()).toBe(true);
 
         console.log("Successfully unpublished note card");
@@ -182,7 +197,10 @@ describe("ATProtoCardPublisher", () => {
       noteCard.addToLibrary(curatorId);
 
       // 1. Publish the card
-      const publishResult = await publisher.publishCardToLibrary(noteCard, curatorId);
+      const publishResult = await publisher.publishCardToLibrary(
+        noteCard,
+        curatorId
+      );
       expect(publishResult.isOk()).toBe(true);
 
       if (publishResult.isOk()) {
@@ -197,7 +215,10 @@ describe("ATProtoCardPublisher", () => {
         expect(noteCard.url).toBe(referenceUrl);
 
         // 2. Unpublish the card
-        const unpublishResult = await publisher.unpublishCardFromLibrary(publishedRecordId, curatorId);
+        const unpublishResult = await publisher.unpublishCardFromLibrary(
+          publishedRecordId,
+          curatorId
+        );
         expect(unpublishResult.isOk()).toBe(true);
 
         console.log("Successfully unpublished note card with URL");
@@ -218,7 +239,9 @@ describe("ATProtoCardPublisher", () => {
         return;
       }
 
-      const testUrl = URL.create("https://example.com/original-article").unwrap();
+      const testUrl = URL.create(
+        "https://example.com/original-article"
+      ).unwrap();
 
       // Create URL metadata
       const metadata = UrlMetadata.create({
@@ -234,7 +257,7 @@ describe("ATProtoCardPublisher", () => {
       // Create a card with an original published record ID (simulating a card that references another published card)
       const originalRecordId = {
         uri: "at://did:plc:example/network.cosmik.card/original123",
-        cid: "bafyoriginal123"
+        cid: "bafyoriginal123",
       };
 
       const cardWithOriginal = new CardBuilder()
@@ -248,26 +271,41 @@ describe("ATProtoCardPublisher", () => {
       cardWithOriginal.addToLibrary(curatorId);
 
       // 1. Publish the card
-      const publishResult = await publisher.publishCardToLibrary(cardWithOriginal, curatorId);
+      const publishResult = await publisher.publishCardToLibrary(
+        cardWithOriginal,
+        curatorId
+      );
       expect(publishResult.isOk()).toBe(true);
 
       if (publishResult.isOk()) {
         const publishedRecordId = publishResult.value;
         publishedCardIds.push(publishedRecordId);
 
-        console.log(`Published card with original record ID: ${publishedRecordId.getValue().uri}`);
+        console.log(
+          `Published card with original record ID: ${publishedRecordId.getValue().uri}`
+        );
 
         // Verify the card has the original published record ID
         expect(cardWithOriginal.originalPublishedRecordId).toBeDefined();
-        expect(cardWithOriginal.originalPublishedRecordId!.getValue().uri).toBe(originalRecordId.uri);
-        expect(cardWithOriginal.originalPublishedRecordId!.getValue().cid).toBe(originalRecordId.cid);
+        expect(cardWithOriginal.originalPublishedRecordId!.getValue().uri).toBe(
+          originalRecordId.uri
+        );
+        expect(cardWithOriginal.originalPublishedRecordId!.getValue().cid).toBe(
+          originalRecordId.cid
+        );
 
         // Mark card as published in library
-        cardWithOriginal.markCardInLibraryAsPublished(curatorId, publishedRecordId);
+        cardWithOriginal.markCardInLibraryAsPublished(
+          curatorId,
+          publishedRecordId
+        );
         expect(cardWithOriginal.isInLibrary(curatorId)).toBe(true);
 
         // 2. Unpublish the card
-        const unpublishResult = await publisher.unpublishCardFromLibrary(publishedRecordId, curatorId);
+        const unpublishResult = await publisher.unpublishCardFromLibrary(
+          publishedRecordId,
+          curatorId
+        );
         expect(unpublishResult.isOk()).toBe(true);
 
         console.log("Successfully unpublished card with original record ID");
@@ -299,7 +337,10 @@ describe("ATProtoCardPublisher", () => {
       // Add card to curator's library first
       testCard.addToLibrary(invalidCuratorId);
 
-      const result = await invalidPublisher.publishCardToLibrary(testCard, invalidCuratorId);
+      const result = await invalidPublisher.publishCardToLibrary(
+        testCard,
+        invalidCuratorId
+      );
       expect(result.isErr()).toBe(true);
 
       if (result.isErr()) {
@@ -319,7 +360,10 @@ describe("ATProtoCardPublisher", () => {
         cid: "bafyinvalid",
       });
 
-      const result = await publisher.unpublishCardFromLibrary(invalidRecordId, curatorId);
+      const result = await publisher.unpublishCardFromLibrary(
+        invalidRecordId,
+        curatorId
+      );
       expect(result.isErr()).toBe(true);
     }, 10000);
   });

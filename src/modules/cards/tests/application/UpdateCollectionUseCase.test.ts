@@ -1,7 +1,7 @@
 import { UpdateCollectionUseCase } from "../../application/useCases/commands/UpdateCollectionUseCase";
 import { InMemoryCollectionRepository } from "../utils/InMemoryCollectionRepository";
 import { FakeCollectionPublisher } from "../utils/FakeCollectionPublisher";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 import { CollectionBuilder } from "../utils/builders/CollectionBuilder";
 import { Err } from "src/shared/core/Result";
 
@@ -281,7 +281,9 @@ describe("UpdateCollectionUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Collection name cannot be empty");
+        expect(result.error.message).toContain(
+          "Collection name cannot be empty"
+        );
       }
     });
 
@@ -423,7 +425,9 @@ describe("UpdateCollectionUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Failed to republish collection");
+        expect(result.error.message).toContain(
+          "Failed to republish collection"
+        );
       }
     });
   });

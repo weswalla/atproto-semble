@@ -1,16 +1,16 @@
 import { Router } from "express";
 import { InitiateOAuthSignInController } from "../controllers/InitiateOAuthSignInController";
 import { CompleteOAuthSignInController } from "../controllers/CompleteOAuthSignInController";
-import { GetCurrentUserController } from "../controllers/GetCurrentUserController";
 import { RefreshAccessTokenController } from "../controllers/RefreshAccessTokenController";
 import { AuthMiddleware } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
+import { GetMyProfileController } from "src/modules/cards/infrastructure/http/controllers/GetMyProfileController";
 
 export const createUserRoutes = (
   router: Router,
   authMiddleware: AuthMiddleware,
   initiateOAuthSignInController: InitiateOAuthSignInController,
   completeOAuthSignInController: CompleteOAuthSignInController,
-  getCurrentUserController: GetCurrentUserController,
+  getMyProfileController: GetMyProfileController,
   refreshAccessTokenController: RefreshAccessTokenController
 ) => {
   // Public routes
@@ -26,7 +26,7 @@ export const createUserRoutes = (
 
   // Protected routes
   router.get("/me", authMiddleware.ensureAuthenticated(), (req, res) =>
-    getCurrentUserController.execute(req, res)
+    getMyProfileController.execute(req, res)
   );
 
   return router;

@@ -1,7 +1,7 @@
 import { ValueObject } from "../../../../../shared/domain/ValueObject";
 import { ok, err, Result } from "../../../../../shared/core/Result";
 import { CardTypeEnum } from "../CardType";
-import { CuratorId } from "src/modules/annotations/domain/value-objects";
+import { CuratorId } from "../CuratorId";
 
 export class NoteCardContentValidationError extends Error {
   constructor(message: string) {

@@ -4,7 +4,7 @@ import { UseCaseError } from "../../../../../shared/core/UseCaseError";
 import { AppError } from "../../../../../shared/core/AppError";
 import { ICardRepository } from "../../../domain/ICardRepository";
 import { CardId } from "../../../domain/value-objects/CardId";
-import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../../domain/value-objects/CuratorId";
 import { CardTypeEnum } from "../../../domain/value-objects/CardType";
 import { CardContent } from "../../../domain/value-objects/CardContent";
 import { ICardPublisher } from "../../ports/ICardPublisher";

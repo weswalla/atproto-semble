@@ -3,7 +3,7 @@ import { InMemoryCardRepository } from "../utils/InMemoryCardRepository";
 import { InMemoryCollectionRepository } from "../utils/InMemoryCollectionRepository";
 import { FakeCollectionPublisher } from "../utils/FakeCollectionPublisher";
 import { CardCollectionService } from "../../domain/services/CardCollectionService";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 import { CardBuilder } from "../utils/builders/CardBuilder";
 import { CollectionBuilder } from "../utils/builders/CollectionBuilder";
 import { CardTypeEnum } from "../../domain/value-objects/CardType";

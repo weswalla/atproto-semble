@@ -3,7 +3,7 @@ import { Card } from "../../../domain/Card";
 import { CardId } from "../../../domain/value-objects/CardId";
 import { CardType, CardTypeEnum } from "../../../domain/value-objects/CardType";
 import { CardContent } from "../../../domain/value-objects/CardContent";
-import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../../domain/value-objects/CuratorId";
 import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
 import { URL } from "../../../domain/value-objects/URL";
 import { UrlMetadata } from "../../../domain/value-objects/UrlMetadata";

@@ -1,172 +1,113 @@
-// Request types - cleaned up from backend DTOs
-export interface AddUrlToLibraryRequest {
-  url: string;
-  note?: string;
-  collectionIds?: string[];
-}
+import { QueryClient, CardClient, CollectionClient } from './clients';
+import type {
+  // Request types
+  AddUrlToLibraryRequest,
+  AddCardToLibraryRequest,
+  AddCardToCollectionRequest,
+  UpdateNoteCardRequest,
+  RemoveCardFromLibraryRequest,
+  RemoveCardFromCollectionRequest,
+  CreateCollectionRequest,
+  UpdateCollectionRequest,
+  DeleteCollectionRequest,
+  GetMyUrlCardsParams,
+  GetCollectionPageParams,
+  // Response types
+  AddUrlToLibraryResponse,
+  AddCardToLibraryResponse,
+  AddCardToCollectionResponse,
+  UpdateNoteCardResponse,
+  RemoveCardFromLibraryResponse,
+  RemoveCardFromCollectionResponse,
+  CreateCollectionResponse,
+  UpdateCollectionResponse,
+  DeleteCollectionResponse,
+  GetUrlMetadataResponse,
+  GetMyUrlCardsResponse,
+  GetUrlCardViewResponse,
+  GetLibrariesForCardResponse,
+  GetMyProfileResponse,
+  GetCollectionPageResponse,
+} from './types';
 
-export interface AddCardToLibraryRequest {
-  cardId: string;
-  collectionIds?: string[];
-}
-
-export interface AddCardToCollectionRequest {
-  cardId: string;
-  collectionIds: string[];
-}
-
-export interface UpdateNoteCardRequest {
-  cardId: string;
-  note: string;
-}
-
-export interface RemoveCardFromLibraryRequest {
-  cardId: string;
-}
-
-export interface RemoveCardFromCollectionRequest {
-  cardId: string;
-  collectionIds: string[];
-}
-
-export interface CreateCollectionRequest {
-  name: string;
-  description?: string;
-}
-
-export interface UpdateCollectionRequest {
-  collectionId: string;
-  name: string;
-  description?: string;
-}
-
-export interface DeleteCollectionRequest {
-  collectionId: string;
-}
-
-// Response types
-export interface AddUrlToLibraryResponse {
-  urlCardId: string;
-  noteCardId?: string;
-}
-
-export interface AddCardToLibraryResponse {
-  cardId: string;
-}
-
-export interface AddCardToCollectionResponse {
-  cardId: string;
-}
-
-export interface UpdateNoteCardResponse {
-  cardId: string;
-}
-
-export interface RemoveCardFromLibraryResponse {
-  cardId: string;
-}
-
-export interface RemoveCardFromCollectionResponse {
-  cardId: string;
-}
-
-export interface CreateCollectionResponse {
-  collectionId: string;
-}
-
-export interface UpdateCollectionResponse {
-  collectionId: string;
-}
-
-export interface DeleteCollectionResponse {
-  collectionId: string;
-}
-
-// Error types
-export interface ApiErrorResponse {
-  message: string;
-  code?: string;
-  details?: any;
-}
-
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public code?: string,
-    public details?: any
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
-}
-
-// Main API Client class
+// Main API Client class using composition
 export class ApiClient {
+  private queryClient: QueryClient;
+  private cardClient: CardClient;
+  private collectionClient: CollectionClient;
+
   constructor(
     private baseUrl: string,
     private getAuthToken: () => string | null
-  ) {}
+  ) {
+    this.queryClient = new QueryClient(baseUrl, getAuthToken);
+    this.cardClient = new CardClient(baseUrl, getAuthToken);
+    this.collectionClient = new CollectionClient(baseUrl, getAuthToken);
+  }
 
-  // Card operations
+  // Query operations - delegate to QueryClient
+  async getUrlMetadata(url: string): Promise<GetUrlMetadataResponse> {
+    return this.queryClient.getUrlMetadata(url);
+  }
+
+  async getMyUrlCards(params?: GetMyUrlCardsParams): Promise<GetMyUrlCardsResponse> {
+    return this.queryClient.getMyUrlCards(params);
+  }
+
+  async getUrlCardView(cardId: string): Promise<GetUrlCardViewResponse> {
+    return this.queryClient.getUrlCardView(cardId);
+  }
+
+  async getLibrariesForCard(cardId: string): Promise<GetLibrariesForCardResponse> {
+    return this.queryClient.getLibrariesForCard(cardId);
+  }
+
+  async getMyProfile(): Promise<GetMyProfileResponse> {
+    return this.queryClient.getMyProfile();
+  }
+
+  async getCollectionPage(collectionId: string, params?: GetCollectionPageParams): Promise<GetCollectionPageResponse> {
+    return this.queryClient.getCollectionPage(collectionId, params);
+  }
+
+  // Card operations - delegate to CardClient
   async addUrlToLibrary(request: AddUrlToLibraryRequest): Promise<AddUrlToLibraryResponse> {
-    // TODO: Implement
-    throw new Error('Not implemented');
+    return this.cardClient.addUrlToLibrary(request);
   }
 
   async addCardToLibrary(request: AddCardToLibraryRequest): Promise<AddCardToLibraryResponse> {
-    // TODO: Implement
-    throw new Error('Not implemented');
+    return this.cardClient.addCardToLibrary(request);
   }
 
   async addCardToCollection(request: AddCardToCollectionRequest): Promise<AddCardToCollectionResponse> {
-    // TODO: Implement
-    throw new Error('Not implemented');
+    return this.cardClient.addCardToCollection(request);
   }
 
   async updateNoteCard(request: UpdateNoteCardRequest): Promise<UpdateNoteCardResponse> {
-    // TODO: Implement
-    throw new Error('Not implemented');
+    return this.cardClient.updateNoteCard(request);
   }
 
   async removeCardFromLibrary(request: RemoveCardFromLibraryRequest): Promise<RemoveCardFromLibraryResponse> {
-    // TODO: Implement
-    throw new Error('Not implemented');
+    return this.cardClient.removeCardFromLibrary(request);
   }
 
   async removeCardFromCollection(request: RemoveCardFromCollectionRequest): Promise<RemoveCardFromCollectionResponse> {
-    // TODO: Implement
-    throw new Error('Not implemented');
+    return this.cardClient.removeCardFromCollection(request);
   }
 
-  // Collection operations
+  // Collection operations - delegate to CollectionClient
   async createCollection(request: CreateCollectionRequest): Promise<CreateCollectionResponse> {
-    // TODO: Implement
-    throw new Error('Not implemented');
+    return this.collectionClient.createCollection(request);
   }
 
   async updateCollection(request: UpdateCollectionRequest): Promise<UpdateCollectionResponse> {
-    // TODO: Implement
-    throw new Error('Not implemented');
+    return this.collectionClient.updateCollection(request);
   }
 
   async deleteCollection(request: DeleteCollectionRequest): Promise<DeleteCollectionResponse> {
-    // TODO: Implement
-    throw new Error('Not implemented');
-  }
-
-  // Private helper methods (to be implemented)
-  private async request<T>(
-    method: string,
-    endpoint: string,
-    data?: any
-  ): Promise<T> {
-    // TODO: Implement HTTP request logic
-    throw new Error('Not implemented');
-  }
-
-  private async handleResponse<T>(response: Response): Promise<T> {
-    // TODO: Implement response handling and error parsing
-    throw new Error('Not implemented');
+    return this.collectionClient.deleteCollection(request);
   }
 }
+
+// Re-export types for convenience
+export * from './types';

@@ -10,7 +10,7 @@ import {
 import { Card } from "src/modules/cards/domain/Card";
 import { URL } from "src/modules/cards/domain/value-objects/URL";
 import { UrlMetadata } from "src/modules/cards/domain/value-objects/UrlMetadata";
-import { CuratorId } from "src/modules/annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "src/modules/cards/domain/value-objects/CuratorId";
 import dotenv from "dotenv";
 import { AppPasswordAgentService } from "./AppPasswordAgentService";
 

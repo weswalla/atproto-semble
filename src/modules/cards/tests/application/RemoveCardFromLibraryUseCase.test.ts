@@ -2,7 +2,7 @@ import { RemoveCardFromLibraryUseCase } from "../../application/useCases/command
 import { InMemoryCardRepository } from "../utils/InMemoryCardRepository";
 import { FakeCardPublisher } from "../utils/FakeCardPublisher";
 import { CardLibraryService } from "../../domain/services/CardLibraryService";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 import { CardBuilder } from "../utils/builders/CardBuilder";
 import { CardTypeEnum } from "../../domain/value-objects/CardType";
 

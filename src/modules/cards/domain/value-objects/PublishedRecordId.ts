@@ -1,19 +1,16 @@
-import { ValueObject } from "../../../../shared/domain/ValueObject";
+import { ValueObject } from "src/shared/domain/ValueObject";
 
 export interface PublishedRecordIdProps {
   uri: string;
   cid: string;
 }
-
 export class PublishedRecordId extends ValueObject<PublishedRecordIdProps> {
   get uri(): string {
     return this.props.uri;
   }
-
   get cid(): string {
     return this.props.cid;
   }
-
   getValue(): PublishedRecordIdProps {
     return this.props;
   }
@@ -24,11 +21,10 @@ export class PublishedRecordId extends ValueObject<PublishedRecordIdProps> {
 
   public static create(value: PublishedRecordIdProps): PublishedRecordId {
     if (!value.uri.startsWith("at://")) {
-      throw new Error(`Invalid AT URI format: ${value.uri}`);
+      throw new Error(`Invalid AT URI format: ${value}`);
     }
     return new PublishedRecordId(value);
   }
-
   public equals(vo?: ValueObject<PublishedRecordIdProps> | undefined): boolean {
     if (vo === null || vo === undefined) {
       return false;

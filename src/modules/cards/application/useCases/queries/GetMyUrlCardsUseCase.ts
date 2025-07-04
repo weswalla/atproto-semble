@@ -1,4 +1,3 @@
-import { CuratorId } from "src/modules/annotations/domain/value-objects";
 import { err, ok, Result } from "src/shared/core/Result";
 import { UseCase } from "src/shared/core/UseCase";
 import {
@@ -8,6 +7,7 @@ import {
   WithCollections,
   UrlCardView,
 } from "../../../domain/ICardQueryRepository";
+import { CuratorId } from "src/modules/cards/domain/value-objects/CuratorId";
 
 export interface GetMyUrlCardsQuery {
   userId: string;

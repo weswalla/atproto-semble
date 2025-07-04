@@ -1,6 +1,6 @@
 import { GetMyUrlCardsUseCase } from "../../application/useCases/queries/GetMyUrlCardsUseCase";
 import { InMemoryCardQueryRepository } from "../utils/InMemoryCardQueryRepository";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 import {
   CardSortField,
   SortOrder,

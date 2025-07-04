@@ -5,7 +5,7 @@ import { AppError } from "../../../../../shared/core/AppError";
 import { ICardRepository } from "../../../domain/ICardRepository";
 import { CardId } from "../../../domain/value-objects/CardId";
 import { CollectionId } from "../../../domain/value-objects/CollectionId";
-import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../../domain/value-objects/CuratorId";
 import { CardCollectionService } from "../../../domain/services/CardCollectionService";
 
 export interface AddCardToCollectionDTO {
@@ -63,9 +63,7 @@ export class AddCardToCollectionUseCase
       const cardIdResult = CardId.createFromString(request.cardId);
       if (cardIdResult.isErr()) {
         return err(
-          new ValidationError(
-            `Invalid card ID: ${cardIdResult.error.message}`
-          )
+          new ValidationError(`Invalid card ID: ${cardIdResult.error.message}`)
         );
       }
       const cardId = cardIdResult.value;
@@ -73,7 +71,8 @@ export class AddCardToCollectionUseCase
       // Validate and create CollectionIds
       const collectionIds: CollectionId[] = [];
       for (const collectionIdStr of request.collectionIds) {
-        const collectionIdResult = CollectionId.createFromString(collectionIdStr);
+        const collectionIdResult =
+          CollectionId.createFromString(collectionIdStr);
         if (collectionIdResult.isErr()) {
           return err(
             new ValidationError(
@@ -96,11 +95,12 @@ export class AddCardToCollectionUseCase
       }
 
       // Add card to collections using domain service
-      const addToCollectionsResult = await this.cardCollectionService.addCardToCollections(
-        card,
-        collectionIds,
-        curatorId
-      );
+      const addToCollectionsResult =
+        await this.cardCollectionService.addCardToCollections(
+          card,
+          collectionIds,
+          curatorId
+        );
       if (addToCollectionsResult.isErr()) {
         if (addToCollectionsResult.error instanceof AppError.UnexpectedError) {
           return err(addToCollectionsResult.error);

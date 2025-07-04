@@ -1,7 +1,7 @@
 import { UpdateNoteCardUseCase } from "../../application/useCases/commands/UpdateNoteCardUseCase";
 import { InMemoryCardRepository } from "../utils/InMemoryCardRepository";
 import { FakeCardPublisher } from "../utils/FakeCardPublisher";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 import {
   CardFactory,
   INoteCardInput,

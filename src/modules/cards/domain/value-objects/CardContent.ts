@@ -5,7 +5,7 @@ import { UrlMetadata } from "./UrlMetadata";
 import { URL } from "./URL";
 import { UrlCardContent } from "./content/UrlCardContent";
 import { NoteCardContent } from "./content/NoteCardContent";
-import { CuratorId } from "src/modules/annotations/domain/value-objects";
+import { CuratorId } from "./CuratorId";
 
 // Union type for all card content types
 type CardContentUnion = UrlCardContent | NoteCardContent;
@@ -38,7 +38,6 @@ export class CardContent extends ValueObject<{ content: CardContentUnion }> {
       ? this.props.content
       : null;
   }
-
 
   private constructor(content: CardContentUnion) {
     super({ content });

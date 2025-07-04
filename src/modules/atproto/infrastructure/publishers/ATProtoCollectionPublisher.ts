@@ -4,7 +4,7 @@ import { Card } from "src/modules/cards/domain/Card";
 import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
-import { CuratorId } from "src/modules/annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "src/modules/cards/domain/value-objects/CuratorId";
 import { CollectionMapper } from "../mappers/CollectionMapper";
 import { CollectionLinkMapper } from "../mappers/CollectionLinkMapper";
 import { StrongRef } from "../../domain";
@@ -46,7 +46,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         // Update existing collection record
         const collectionRecordDTO =
           CollectionMapper.toCreateRecordDTO(collection);
-        
+
         const publishedRecordId = collection.publishedRecordId.getValue();
         const strongRef = new StrongRef(publishedRecordId);
         const atUri = strongRef.atUri;
@@ -120,32 +120,30 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
       }
 
       // Get the card's library membership for this curator
-      const libraryMembership = card.libraryMemberships.find(membership =>
+      const libraryMembership = card.libraryMemberships.find((membership) =>
         membership.curatorId.equals(curatorId)
       );
 
       if (!libraryMembership?.publishedRecordId) {
         return err(
-          new Error("Card must be published in curator's library before adding to collection")
+          new Error(
+            "Card must be published in curator's library before adding to collection"
+          )
         );
       }
 
       // Get the original published record ID
       if (!card.originalPublishedRecordId) {
-        return err(
-          new Error("Card must have an original published record ID")
-        );
+        return err(new Error("Card must have an original published record ID"));
       }
 
       // Find the card link in the collection
-      const cardLink = collection.cardLinks.find(link =>
+      const cardLink = collection.cardLinks.find((link) =>
         link.cardId.equals(card.cardId)
       );
 
       if (!cardLink) {
-        return err(
-          new Error("Card is not linked to this collection")
-        );
+        return err(new Error("Card is not linked to this collection"));
       }
 
       const linkRecordDTO = CollectionLinkMapper.toCreateRecordDTO(

@@ -1,9 +1,9 @@
 import { Collection } from "../../domain/Collection";
 import { Result } from "../../../../shared/core/Result";
 import { UseCaseError } from "../../../../shared/core/UseCaseError";
-import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
-import { CuratorId } from "src/modules/annotations/domain/value-objects";
 import { Card } from "../../domain/Card";
+import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 
 export interface ICollectionPublisher {
   publish(

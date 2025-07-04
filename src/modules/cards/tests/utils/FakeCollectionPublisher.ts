@@ -5,7 +5,7 @@ import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId"
 import { ok, err, Result } from "../../../../shared/core/Result";
 import { UseCaseError } from "../../../../shared/core/UseCaseError";
 import { AppError } from "../../../../shared/core/AppError";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 
 export class FakeCollectionPublisher implements ICollectionPublisher {
   private publishedCollections: Map<string, Collection> = new Map();

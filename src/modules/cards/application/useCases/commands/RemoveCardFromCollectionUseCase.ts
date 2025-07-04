@@ -5,7 +5,7 @@ import { AppError } from "../../../../../shared/core/AppError";
 import { ICardRepository } from "../../../domain/ICardRepository";
 import { CardId } from "../../../domain/value-objects/CardId";
 import { CollectionId } from "../../../domain/value-objects/CollectionId";
-import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../../domain/value-objects/CuratorId";
 import { CardCollectionService } from "../../../domain/services/CardCollectionService";
 
 export interface RemoveCardFromCollectionDTO {
@@ -63,9 +63,7 @@ export class RemoveCardFromCollectionUseCase
       const cardIdResult = CardId.createFromString(request.cardId);
       if (cardIdResult.isErr()) {
         return err(
-          new ValidationError(
-            `Invalid card ID: ${cardIdResult.error.message}`
-          )
+          new ValidationError(`Invalid card ID: ${cardIdResult.error.message}`)
         );
       }
       const cardId = cardIdResult.value;
@@ -73,7 +71,8 @@ export class RemoveCardFromCollectionUseCase
       // Validate and create CollectionIds
       const collectionIds: CollectionId[] = [];
       for (const collectionIdStr of request.collectionIds) {
-        const collectionIdResult = CollectionId.createFromString(collectionIdStr);
+        const collectionIdResult =
+          CollectionId.createFromString(collectionIdStr);
         if (collectionIdResult.isErr()) {
           return err(
             new ValidationError(
@@ -96,16 +95,21 @@ export class RemoveCardFromCollectionUseCase
       }
 
       // Remove card from collections using domain service
-      const removeFromCollectionsResult = await this.cardCollectionService.removeCardFromCollections(
-        card,
-        collectionIds,
-        curatorId
-      );
+      const removeFromCollectionsResult =
+        await this.cardCollectionService.removeCardFromCollections(
+          card,
+          collectionIds,
+          curatorId
+        );
       if (removeFromCollectionsResult.isErr()) {
-        if (removeFromCollectionsResult.error instanceof AppError.UnexpectedError) {
+        if (
+          removeFromCollectionsResult.error instanceof AppError.UnexpectedError
+        ) {
           return err(removeFromCollectionsResult.error);
         }
-        return err(new ValidationError(removeFromCollectionsResult.error.message));
+        return err(
+          new ValidationError(removeFromCollectionsResult.error.message)
+        );
       }
 
       return ok({

@@ -1,7 +1,7 @@
 import { DeleteCollectionUseCase } from "../../application/useCases/commands/DeleteCollectionUseCase";
 import { InMemoryCollectionRepository } from "../utils/InMemoryCollectionRepository";
 import { FakeCollectionPublisher } from "../utils/FakeCollectionPublisher";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 import { CollectionBuilder } from "../utils/builders/CollectionBuilder";
 
 describe("DeleteCollectionUseCase", () => {
@@ -279,7 +279,9 @@ describe("DeleteCollectionUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Failed to unpublish collection");
+        expect(result.error.message).toContain(
+          "Failed to unpublish collection"
+        );
       }
 
       // Verify collection was not deleted if unpublish failed

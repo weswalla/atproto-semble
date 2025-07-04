@@ -2,7 +2,7 @@ import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
 import { Collection, CollectionAccessType } from "../../../domain/Collection";
 import { CollectionId } from "../../../domain/value-objects/CollectionId";
 import { CardId } from "../../../domain/value-objects/CardId";
-import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../../domain/value-objects/CuratorId";
 import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
 import { PublishedRecordDTO, PublishedRecordRefDTO } from "./DTOTypes";
 import { CollectionQueryResultDTO } from "../../../domain/ICollectionQueryRepository";

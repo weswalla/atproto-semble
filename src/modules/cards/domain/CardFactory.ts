@@ -3,7 +3,7 @@ import { Card, CardValidationError } from "./Card";
 import { CardType, CardTypeEnum } from "./value-objects/CardType";
 import { CardContent } from "./value-objects/CardContent";
 import { CardId } from "./value-objects/CardId";
-import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "./value-objects/CuratorId";
 import { URL } from "./value-objects/URL";
 import { UrlMetadata } from "./value-objects/UrlMetadata";
 

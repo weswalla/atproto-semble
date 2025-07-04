@@ -7,7 +7,7 @@ import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { DrizzleCollectionQueryRepository } from "../../infrastructure/repositories/DrizzleCollectionQueryRepository";
 import { DrizzleCardRepository } from "../../infrastructure/repositories/DrizzleCardRepository";
 import { DrizzleCollectionRepository } from "../../infrastructure/repositories/DrizzleCollectionRepository";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
 import {
   collections,
@@ -16,7 +16,7 @@ import {
 } from "../../infrastructure/repositories/schema/collection.sql";
 import { cards } from "../../infrastructure/repositories/schema/card.sql";
 import { libraryMemberships } from "../../infrastructure/repositories/schema/libraryMembership.sql";
-import { publishedRecords } from "../../../annotations/infrastructure/repositories/schema/publishedRecord.sql";
+import { publishedRecords } from "../../infrastructure/repositories/schema/publishedRecord.sql";
 import { Collection, CollectionAccessType } from "../../domain/Collection";
 import { CardFactory } from "../../domain/CardFactory";
 import { CardTypeEnum } from "../../domain/value-objects/CardType";

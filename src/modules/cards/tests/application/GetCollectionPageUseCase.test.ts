@@ -2,7 +2,7 @@ import { GetCollectionPageUseCase } from "../../application/useCases/queries/Get
 import { InMemoryCardQueryRepository } from "../utils/InMemoryCardQueryRepository";
 import { InMemoryCollectionRepository } from "../utils/InMemoryCollectionRepository";
 import { FakeProfileService } from "../utils/FakeProfileService";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 import { CollectionId } from "../../domain/value-objects/CollectionId";
 import { Collection, CollectionAccessType } from "../../domain/Collection";
 import {

@@ -2,7 +2,7 @@ import { Result } from "../../../shared/core/Result";
 import { Collection } from "./Collection";
 import { CollectionId } from "./value-objects/CollectionId";
 import { CardId } from "./value-objects/CardId";
-import { CuratorId } from "../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "./value-objects/CuratorId";
 
 export interface ICollectionRepository {
   findById(id: CollectionId): Promise<Result<Collection | null>>;

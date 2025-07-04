@@ -7,7 +7,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { cards } from "./card.sql";
-import { publishedRecords } from "src/modules/annotations/infrastructure/repositories/schema/publishedRecord.sql";
+import { publishedRecords } from "src/modules/cards/infrastructure/repositories/schema/publishedRecord.sql";
 
 export const libraryMemberships = pgTable(
   "library_memberships",

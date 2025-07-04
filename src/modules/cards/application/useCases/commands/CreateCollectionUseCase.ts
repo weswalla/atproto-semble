@@ -4,7 +4,7 @@ import { UseCaseError } from "../../../../../shared/core/UseCaseError";
 import { AppError } from "../../../../../shared/core/AppError";
 import { ICollectionRepository } from "../../../domain/ICollectionRepository";
 import { Collection, CollectionAccessType } from "../../../domain/Collection";
-import { CuratorId } from "../../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../../../domain/value-objects/CuratorId";
 import { ICollectionPublisher } from "../../ports/ICollectionPublisher";
 
 export interface CreateCollectionDTO {
@@ -95,7 +95,8 @@ export class CreateCollectionUseCase
       collection.markAsPublished(publishResult.value);
 
       // Save updated collection with published record ID
-      const saveUpdatedResult = await this.collectionRepository.save(collection);
+      const saveUpdatedResult =
+        await this.collectionRepository.save(collection);
       if (saveUpdatedResult.isErr()) {
         return err(AppError.UnexpectedError.create(saveUpdatedResult.error));
       }

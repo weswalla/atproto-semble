@@ -3,7 +3,7 @@ import { Card } from "src/modules/cards/domain/Card";
 import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
 import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
-import { CuratorId } from "src/modules/annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "src/modules/cards/domain/value-objects/CuratorId";
 import { CardMapper } from "../mappers/CardMapper";
 import { StrongRef } from "../../domain";
 import { IAgentService } from "../../application/IAgentService";
@@ -42,13 +42,15 @@ export class ATProtoCardPublisher implements ICardPublisher {
       }
 
       // Check if this card is already published in this curator's library
-      const existingMembership = card.libraryMemberships.find(membership => 
-        membership.curatorId.equals(curatorId) && membership.publishedRecordId
+      const existingMembership = card.libraryMemberships.find(
+        (membership) =>
+          membership.curatorId.equals(curatorId) && membership.publishedRecordId
       );
 
       if (existingMembership && existingMembership.publishedRecordId) {
         // Update existing record
-        const publishedRecordId = existingMembership.publishedRecordId.getValue();
+        const publishedRecordId =
+          existingMembership.publishedRecordId.getValue();
         const strongRef = new StrongRef(publishedRecordId);
         const atUri = strongRef.atUri;
         const rkey = atUri.rkey;

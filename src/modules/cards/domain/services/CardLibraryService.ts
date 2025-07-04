@@ -1,6 +1,6 @@
 import { Result, ok, err } from "../../../../shared/core/Result";
 import { Card } from "../Card";
-import { CuratorId } from "../../../annotations/domain/value-objects/CuratorId";
+import { CuratorId } from "../value-objects/CuratorId";
 import { ICardPublisher } from "../../application/ports/ICardPublisher";
 import { ICardRepository } from "../ICardRepository";
 import { AppError } from "../../../../shared/core/AppError";

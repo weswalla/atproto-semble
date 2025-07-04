@@ -1,4 +1,4 @@
-import AtpAgent, { Agent } from "@atproto/api";
+import { AtpAgent, Agent } from "@atproto/api";
 import { err, ok, Result } from "src/shared/core/Result";
 import { IAgentService } from "../../application/IAgentService";
 import { DID } from "../../domain/DID";

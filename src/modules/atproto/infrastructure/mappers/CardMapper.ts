@@ -25,13 +25,6 @@ export class CardMapper {
       record.url = card.url.value;
     }
 
-    // Add optional parent card reference
-    if (card.parentCardId) {
-      // Note: This assumes the parent card is already published
-      // In practice, you'd need to look up the parent card's published record ID
-      throw new Error("Parent card publishing not yet implemented");
-    }
-
     // Add optional original card reference
     if (card.originalPublishedRecordId) {
       const strongRef = new StrongRef(
@@ -67,13 +60,6 @@ export class CardMapper {
           $type: "network.cosmik.card#noteContent",
           text: noteContent.text,
         };
-
-        // Add originalCard reference if this note references another card
-        if (card.parentCardId) {
-          // Note: This assumes the parent card is already published
-          // In practice, you'd need to look up the parent card's published record ID
-          throw new Error("Parent card publishing not yet implemented");
-        }
 
         return noteContentDTO;
 

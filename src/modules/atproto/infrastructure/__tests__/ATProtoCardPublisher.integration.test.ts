@@ -326,7 +326,9 @@ describe("ATProtoCardPublisher", () => {
           );
 
           // Verify the note card has the parent card ID
-          expect(noteCard.parentCardId).toBe(parentUrlCard.cardId);
+          expect(noteCard.parentCardId!.equals(parentUrlCard.cardId)).toBe(
+            true
+          );
 
           // Mark note card as published in library
           noteCard.markCardInLibraryAsPublished(

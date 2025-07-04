@@ -83,9 +83,6 @@ export default function CollectionPage() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <CardTitle className="text-3xl">{collection.name}</CardTitle>
-                <Badge variant={collection.accessType === "OPEN" ? "default" : "secondary"}>
-                  {collection.accessType}
-                </Badge>
               </div>
               {collection.description && (
                 <CardDescription className="text-base leading-relaxed">
@@ -98,16 +95,11 @@ export default function CollectionPage() {
         <CardContent>
           <div className="flex items-center gap-6 text-sm text-gray-500">
             <div>
-              <span className="font-medium">{collection.cardCount}</span> cards
+              <span className="font-medium">{collection.urlCards.length}</span> cards
             </div>
             <div>
-              Created {new Date(collection.createdAt).toLocaleDateString()}
+              By {collection.author.name} (@{collection.author.handle})
             </div>
-            {collection.collaboratorCount > 0 && (
-              <div>
-                <span className="font-medium">{collection.collaboratorCount}</span> collaborator{collection.collaboratorCount !== 1 ? 's' : ''}
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
@@ -118,15 +110,15 @@ export default function CollectionPage() {
           <h2 className="text-2xl font-semibold">Cards</h2>
           {collection.pagination && collection.pagination.totalCount > 0 && (
             <p className="text-sm text-gray-500">
-              Showing {collection.cards.length} of {collection.pagination.totalCount} cards
+              Showing {collection.urlCards.length} of {collection.pagination.totalCount} cards
             </p>
           )}
         </div>
 
-        {collection.cards.length > 0 ? (
+        {collection.urlCards.length > 0 ? (
           <>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {collection.cards.map((card) => (
+              {collection.urlCards.map((card) => (
                 <UrlCard
                   key={card.id}
                   cardId={card.id}

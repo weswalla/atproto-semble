@@ -2,13 +2,12 @@ import { ICardPublisher } from "src/modules/cards/application/ports/ICardPublish
 import { Card } from "src/modules/cards/domain/Card";
 import { Result, ok, err } from "src/shared/core/Result";
 import { UseCaseError } from "src/shared/core/UseCaseError";
-import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
 import { CuratorId } from "src/modules/cards/domain/value-objects/CuratorId";
 import { CardMapper } from "../mappers/CardMapper";
 import { StrongRef } from "../../domain";
 import { IAgentService } from "../../application/IAgentService";
 import { DID } from "../../domain/DID";
-
+import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
 export class ATProtoCardPublisher implements ICardPublisher {
   private readonly COLLECTION = "network.cosmik.card";
 

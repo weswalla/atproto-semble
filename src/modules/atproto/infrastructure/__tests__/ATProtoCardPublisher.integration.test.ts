@@ -10,6 +10,9 @@ import { PublishedRecordId } from "src/modules/cards/domain/value-objects/Publis
 // Load environment variables from .env.test
 dotenv.config({ path: ".env.test" });
 
+// Set to false to skip unpublishing (useful for debugging published records)
+const UNPUBLISH = false;
+
 describe("ATProtoCardPublisher", () => {
   let publisher: ATProtoCardPublisher;
   let curatorId: CuratorId;
@@ -32,8 +35,11 @@ describe("ATProtoCardPublisher", () => {
   });
 
   afterAll(async () => {
-    // Skip cleanup if credentials are not available
-    if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
+    // Skip cleanup if credentials are not available or UNPUBLISH is false
+    if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD || !UNPUBLISH) {
+      if (!UNPUBLISH) {
+        console.log("Skipping cleanup: UNPUBLISH is set to false");
+      }
       return;
     }
 
@@ -107,18 +113,22 @@ describe("ATProtoCardPublisher", () => {
         }
 
         // 3. Unpublish the card
-        const unpublishResult = await publisher.unpublishCardFromLibrary(
-          publishedRecordId,
-          curatorId
-        );
-        expect(unpublishResult.isOk()).toBe(true);
+        if (UNPUBLISH) {
+          const unpublishResult = await publisher.unpublishCardFromLibrary(
+            publishedRecordId,
+            curatorId
+          );
+          expect(unpublishResult.isOk()).toBe(true);
 
-        console.log("Successfully unpublished URL card");
+          console.log("Successfully unpublished URL card");
 
-        // Remove from cleanup list since we've already unpublished it
-        publishedCardIds = publishedCardIds.filter(
-          (id) => id !== publishedRecordId
-        );
+          // Remove from cleanup list since we've already unpublished it
+          publishedCardIds = publishedCardIds.filter(
+            (id) => id !== publishedRecordId
+          );
+        } else {
+          console.log("Skipping unpublish: UNPUBLISH is set to false");
+        }
       }
     }, 15000);
   });
@@ -158,18 +168,22 @@ describe("ATProtoCardPublisher", () => {
         expect(noteCard.isInLibrary(curatorId)).toBe(true);
 
         // 2. Unpublish the card
-        const unpublishResult = await publisher.unpublishCardFromLibrary(
-          publishedRecordId,
-          curatorId
-        );
-        expect(unpublishResult.isOk()).toBe(true);
+        if (UNPUBLISH) {
+          const unpublishResult = await publisher.unpublishCardFromLibrary(
+            publishedRecordId,
+            curatorId
+          );
+          expect(unpublishResult.isOk()).toBe(true);
 
-        console.log("Successfully unpublished note card");
+          console.log("Successfully unpublished note card");
 
-        // Remove from cleanup list since we've already unpublished it
-        publishedCardIds = publishedCardIds.filter(
-          (id) => id !== publishedRecordId
-        );
+          // Remove from cleanup list since we've already unpublished it
+          publishedCardIds = publishedCardIds.filter(
+            (id) => id !== publishedRecordId
+          );
+        } else {
+          console.log("Skipping unpublish: UNPUBLISH is set to false");
+        }
       }
     }, 15000);
   });
@@ -213,18 +227,22 @@ describe("ATProtoCardPublisher", () => {
         expect(noteCard.url).toBe(referenceUrl);
 
         // 2. Unpublish the card
-        const unpublishResult = await publisher.unpublishCardFromLibrary(
-          publishedRecordId,
-          curatorId
-        );
-        expect(unpublishResult.isOk()).toBe(true);
+        if (UNPUBLISH) {
+          const unpublishResult = await publisher.unpublishCardFromLibrary(
+            publishedRecordId,
+            curatorId
+          );
+          expect(unpublishResult.isOk()).toBe(true);
 
-        console.log("Successfully unpublished note card with URL");
+          console.log("Successfully unpublished note card with URL");
 
-        // Remove from cleanup list since we've already unpublished it
-        publishedCardIds = publishedCardIds.filter(
-          (id) => id !== publishedRecordId
-        );
+          // Remove from cleanup list since we've already unpublished it
+          publishedCardIds = publishedCardIds.filter(
+            (id) => id !== publishedRecordId
+          );
+        } else {
+          console.log("Skipping unpublish: UNPUBLISH is set to false");
+        }
       }
     }, 15000);
 
@@ -318,33 +336,47 @@ describe("ATProtoCardPublisher", () => {
           expect(noteCard.isInLibrary(curatorId)).toBe(true);
 
           // 4. Unpublish both cards (note card first, then parent)
-          const noteUnpublishResult = await publisher.unpublishCardFromLibrary(
-            notePublishedRecordId,
-            curatorId
-          );
-          expect(noteUnpublishResult.isOk()).toBe(true);
+          if (UNPUBLISH) {
+            const noteUnpublishResult =
+              await publisher.unpublishCardFromLibrary(
+                notePublishedRecordId,
+                curatorId
+              );
+            expect(noteUnpublishResult.isOk()).toBe(true);
 
-          console.log("Successfully unpublished note card");
+            console.log("Successfully unpublished note card");
 
-          // Remove from cleanup list since we've already unpublished it
-          publishedCardIds = publishedCardIds.filter(
-            (id) => id !== notePublishedRecordId
-          );
+            // Remove from cleanup list since we've already unpublished it
+            publishedCardIds = publishedCardIds.filter(
+              (id) => id !== notePublishedRecordId
+            );
+          } else {
+            console.log(
+              "Skipping note card unpublish: UNPUBLISH is set to false"
+            );
+          }
         }
 
         // Unpublish the parent URL card
-        const parentUnpublishResult = await publisher.unpublishCardFromLibrary(
-          parentPublishedRecordId,
-          curatorId
-        );
-        expect(parentUnpublishResult.isOk()).toBe(true);
+        if (UNPUBLISH) {
+          const parentUnpublishResult =
+            await publisher.unpublishCardFromLibrary(
+              parentPublishedRecordId,
+              curatorId
+            );
+          expect(parentUnpublishResult.isOk()).toBe(true);
 
-        console.log("Successfully unpublished parent URL card");
+          console.log("Successfully unpublished parent URL card");
 
-        // Remove from cleanup list since we've already unpublished it
-        publishedCardIds = publishedCardIds.filter(
-          (id) => id !== parentPublishedRecordId
-        );
+          // Remove from cleanup list since we've already unpublished it
+          publishedCardIds = publishedCardIds.filter(
+            (id) => id !== parentPublishedRecordId
+          );
+        } else {
+          console.log(
+            "Skipping parent card unpublish: UNPUBLISH is set to false"
+          );
+        }
       }
     }, 20000);
   });
@@ -420,18 +452,22 @@ describe("ATProtoCardPublisher", () => {
         expect(cardWithOriginal.isInLibrary(curatorId)).toBe(true);
 
         // 2. Unpublish the card
-        const unpublishResult = await publisher.unpublishCardFromLibrary(
-          publishedRecordId,
-          curatorId
-        );
-        expect(unpublishResult.isOk()).toBe(true);
+        if (UNPUBLISH) {
+          const unpublishResult = await publisher.unpublishCardFromLibrary(
+            publishedRecordId,
+            curatorId
+          );
+          expect(unpublishResult.isOk()).toBe(true);
 
-        console.log("Successfully unpublished card with original record ID");
+          console.log("Successfully unpublished card with original record ID");
 
-        // Remove from cleanup list since we've already unpublished it
-        publishedCardIds = publishedCardIds.filter(
-          (id) => id !== publishedRecordId
-        );
+          // Remove from cleanup list since we've already unpublished it
+          publishedCardIds = publishedCardIds.filter(
+            (id) => id !== publishedRecordId
+          );
+        } else {
+          console.log("Skipping unpublish: UNPUBLISH is set to false");
+        }
       }
     }, 15000);
   });

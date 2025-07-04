@@ -16,10 +16,11 @@ import { CardLibraryService } from "../../../../modules/cards/domain/services/Ca
 import { CardCollectionService } from "../../../../modules/cards/domain/services/CardCollectionService";
 import { AuthMiddleware } from "../middleware/AuthMiddleware";
 import { Repositories } from "./RepositoryFactory";
+import { NodeOAuthClient } from "@atproto/oauth-client-node";
 
 export interface Services {
   tokenService: JwtTokenService;
-  nodeOauthClient: any;
+  nodeOauthClient: NodeOAuthClient;
   oauthProcessor: AtProtoOAuthProcessor;
   userAuthService: UserAuthenticationService;
   atProtoAgentService: ATProtoAgentService;

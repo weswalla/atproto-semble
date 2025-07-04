@@ -104,7 +104,7 @@ export default function DashboardPage() {
           ) : (
             <div className="text-center py-12 bg-gray-50 rounded-lg">
               <p className="text-gray-500 mb-4">No cards yet</p>
-              <Button onClick={() => router.push("/cards")}>
+              <Button onClick={() => router.push("/cards/add")}>
                 Add Your First Card
               </Button>
             </div>

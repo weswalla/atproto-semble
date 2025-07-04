@@ -63,7 +63,7 @@ export class CreateCollectionUseCase
         authorId: curatorId,
         name: request.name,
         description: request.description,
-        accessType: CollectionAccessType.OPEN,
+        accessType: CollectionAccessType.CLOSED,
         collaboratorIds: [],
         createdAt: new Date(),
         updatedAt: new Date(),

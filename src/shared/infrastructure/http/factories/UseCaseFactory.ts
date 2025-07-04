@@ -1,6 +1,5 @@
 import { InitiateOAuthSignInUseCase } from "../../../../modules/user/application/use-cases/InitiateOAuthSignInUseCase";
 import { CompleteOAuthSignInUseCase } from "../../../../modules/user/application/use-cases/CompleteOAuthSignInUseCase";
-import { GetCurrentUserUseCase } from "../../../../modules/user/application/use-cases/GetCurrentUserUseCase";
 import { RefreshAccessTokenUseCase } from "../../../../modules/user/application/use-cases/RefreshAccessTokenUseCase";
 import { AddUrlToLibraryUseCase } from "../../../../modules/cards/application/useCases/commands/AddUrlToLibraryUseCase";
 import { AddCardToLibraryUseCase } from "../../../../modules/cards/application/useCases/commands/AddCardToLibraryUseCase";
@@ -20,9 +19,11 @@ import { GetMyCollectionsUseCase } from "../../../../modules/cards/application/u
 import { Repositories } from "./RepositoryFactory";
 import { Services } from "./ServiceFactory";
 import { GetMyProfileUseCase } from "src/modules/cards/application/useCases/queries/GetMyProfileUseCase";
+import { LoginWithAppPasswordUseCase } from "src/modules/user/application/use-cases/LoginWithAppPasswordUseCase";
 
 export interface UseCases {
   // User use cases
+  loginWithAppPasswordUseCase: LoginWithAppPasswordUseCase;
   initiateOAuthSignInUseCase: InitiateOAuthSignInUseCase;
   completeOAuthSignInUseCase: CompleteOAuthSignInUseCase;
   getMyProfileUseCase: GetMyProfileUseCase;
@@ -49,6 +50,12 @@ export class UseCaseFactory {
   static create(repositories: Repositories, services: Services): UseCases {
     return {
       // User use cases
+      loginWithAppPasswordUseCase: new LoginWithAppPasswordUseCase(
+        services.appPasswordProcessor,
+        services.tokenService,
+        repositories.userRepository,
+        services.userAuthService
+      ),
       initiateOAuthSignInUseCase: new InitiateOAuthSignInUseCase(
         services.oauthProcessor
       ),

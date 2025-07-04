@@ -71,29 +71,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <Button onClick={handleLogout} variant="outline">
-          Sign Out
-        </Button>
-      </div>
-
       <div className="space-y-8">
-        {/* Welcome Section */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Welcome back!</h2>
-          {user && (
-            <div className="text-sm text-gray-600">
-              <p>
-                <strong>Handle:</strong> {user.handle}
-              </p>
-              <p>
-                <strong>DID:</strong> {user.did}
-              </p>
-            </div>
-          )}
-        </div>
-
         {/* Recent Cards Section */}
         <div>
           <div className="flex justify-between items-center mb-6">

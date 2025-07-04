@@ -1,13 +1,11 @@
 import { ATProtoCardPublisher } from "../publishers/ATProtoCardPublisher";
-import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
 import { CardBuilder } from "src/modules/cards/tests/utils/builders/CardBuilder";
-import { Card } from "src/modules/cards/domain/Card";
-import { CardTypeEnum } from "src/modules/cards/domain/value-objects/CardType";
 import { URL } from "src/modules/cards/domain/value-objects/URL";
 import { UrlMetadata } from "src/modules/cards/domain/value-objects/UrlMetadata";
 import { CuratorId } from "src/modules/cards/domain/value-objects/CuratorId";
 import dotenv from "dotenv";
 import { AppPasswordAgentService } from "./AppPasswordAgentService";
+import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
 
 // Load environment variables from .env.test
 dotenv.config({ path: ".env.test" });

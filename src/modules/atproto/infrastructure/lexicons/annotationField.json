@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "app.annos.annotationField",
+  "id": "network.cosmik.annotationField",
   "description": "A single record type for all annotation fields.",
   "defs": {
     "main": {

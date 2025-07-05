@@ -1,0 +1,744 @@
+import {
+  PostgreSqlContainer,
+  StartedPostgreSqlContainer,
+} from "@testcontainers/postgresql";
+import postgres from "postgres";
+import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { DrizzleCollectionQueryRepository } from "../../infrastructure/repositories/DrizzleCollectionQueryRepository";
+import { DrizzleCardRepository } from "../../infrastructure/repositories/DrizzleCardRepository";
+import { DrizzleCollectionRepository } from "../../infrastructure/repositories/DrizzleCollectionRepository";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
+import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
+import {
+  collections,
+  collectionCollaborators,
+  collectionCards,
+} from "../../infrastructure/repositories/schema/collection.sql";
+import { cards } from "../../infrastructure/repositories/schema/card.sql";
+import { libraryMemberships } from "../../infrastructure/repositories/schema/libraryMembership.sql";
+import { publishedRecords } from "../../infrastructure/repositories/schema/publishedRecord.sql";
+import { Collection, CollectionAccessType } from "../../domain/Collection";
+import { CardFactory } from "../../domain/CardFactory";
+import { CardTypeEnum } from "../../domain/value-objects/CardType";
+import {
+  CollectionSortField,
+  SortOrder,
+} from "../../domain/ICollectionQueryRepository";
+import { createTestSchema } from "../test-utils/createTestSchema";
+
+describe("DrizzleCollectionQueryRepository", () => {
+  let container: StartedPostgreSqlContainer;
+  let db: PostgresJsDatabase;
+  let queryRepository: DrizzleCollectionQueryRepository;
+  let collectionRepository: DrizzleCollectionRepository;
+  let cardRepository: DrizzleCardRepository;
+
+  // Test data
+  let curatorId: CuratorId;
+  let otherCuratorId: CuratorId;
+
+  // Setup before all tests
+  beforeAll(async () => {
+    // Start PostgreSQL container
+    container = await new PostgreSqlContainer("postgres:14").start();
+
+    // Create database connection
+    const connectionString = container.getConnectionUri();
+    process.env.DATABASE_URL = connectionString;
+    const client = postgres(connectionString);
+    db = drizzle(client);
+
+    // Create repositories
+    queryRepository = new DrizzleCollectionQueryRepository(db);
+    collectionRepository = new DrizzleCollectionRepository(db);
+    cardRepository = new DrizzleCardRepository(db);
+
+    // Create schema using helper function
+    await createTestSchema(db);
+
+    // Create test data
+    curatorId = CuratorId.create("did:plc:testcurator").unwrap();
+    otherCuratorId = CuratorId.create("did:plc:othercurator").unwrap();
+  }, 60000); // Increase timeout for container startup
+
+  // Cleanup after all tests
+  afterAll(async () => {
+    // Stop container
+    await container.stop();
+  });
+
+  // Clear data between tests
+  beforeEach(async () => {
+    await db.delete(collectionCards);
+    await db.delete(collectionCollaborators);
+    await db.delete(collections);
+    await db.delete(libraryMemberships);
+    await db.delete(cards);
+    await db.delete(publishedRecords);
+  });
+
+  describe("findByCreator", () => {
+    it("should return empty result when curator has no collections", async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(0);
+      expect(result.totalCount).toBe(0);
+      expect(result.hasMore).toBe(false);
+    });
+
+    it("should return collections for a curator", async () => {
+      // Create test collections
+      const collection1 = Collection.create(
+        {
+          authorId: curatorId,
+          name: "First Collection",
+          description: "First description",
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date("2023-01-01"),
+          updatedAt: new Date("2023-01-01"),
+        },
+        new UniqueEntityID()
+      ).unwrap();
+
+      const collection2 = Collection.create(
+        {
+          authorId: curatorId,
+          name: "Second Collection",
+          accessType: CollectionAccessType.CLOSED,
+          collaboratorIds: [],
+          createdAt: new Date("2023-01-02"),
+          updatedAt: new Date("2023-01-02"),
+        },
+        new UniqueEntityID()
+      ).unwrap();
+
+      // Save collections
+      await collectionRepository.save(collection1);
+      await collectionRepository.save(collection2);
+
+      // Query collections
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(2);
+      expect(result.totalCount).toBe(2);
+      expect(result.hasMore).toBe(false);
+
+      // Check collection data
+      const names = result.items.map((item) => item.name);
+      expect(names).toContain("First Collection");
+      expect(names).toContain("Second Collection");
+
+      // Check that all items have the correct curator
+      result.items.forEach((item) => {
+        expect(item.authorId).toBe(curatorId.value);
+      });
+    });
+
+    it("should not return collections from other curators", async () => {
+      // Create collection for other curator
+      const otherCollection = Collection.create(
+        {
+          authorId: otherCuratorId,
+          name: "Other's Collection",
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID()
+      ).unwrap();
+
+      await collectionRepository.save(otherCollection);
+
+      // Query collections for our curator
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(0);
+      expect(result.totalCount).toBe(0);
+    });
+
+    it("should include card count for collections", async () => {
+      // Create a card
+      const cardResult = CardFactory.create({
+        curatorId: curatorId.value,
+        cardInput: {
+          type: CardTypeEnum.NOTE,
+          text: "Test card",
+        },
+      });
+      const card = cardResult.unwrap();
+      await cardRepository.save(card);
+
+      // Create collection with cards
+      const collection = Collection.create(
+        {
+          authorId: curatorId,
+          name: "Collection with Cards",
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID()
+      ).unwrap();
+
+      // Add card to collection
+      collection.addCard(card.cardId, curatorId);
+      await collectionRepository.save(collection);
+
+      // Create collection without cards
+      const emptyCollection = Collection.create(
+        {
+          authorId: curatorId,
+          name: "Empty Collection",
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID()
+      ).unwrap();
+
+      await collectionRepository.save(emptyCollection);
+
+      // Query collections
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(2);
+
+      // Find the collections by name and check card counts
+      const collectionWithCards = result.items.find(
+        (item) => item.name === "Collection with Cards"
+      );
+      const collectionWithoutCards = result.items.find(
+        (item) => item.name === "Empty Collection"
+      );
+
+      expect(collectionWithCards?.cardCount).toBe(1);
+      expect(collectionWithoutCards?.cardCount).toBe(0);
+    });
+  });
+
+  describe("sorting", () => {
+    beforeEach(async () => {
+      // Create test collections with different properties for sorting
+      const collection1 = Collection.create(
+        {
+          authorId: curatorId,
+          name: "Alpha Collection",
+          description: "First alphabetically",
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date("2023-01-01T10:00:00Z"),
+          updatedAt: new Date("2023-01-03T10:00:00Z"), // Most recently updated
+        },
+        new UniqueEntityID()
+      ).unwrap();
+
+      const collection2 = Collection.create(
+        {
+          authorId: curatorId,
+          name: "Beta Collection",
+          description: "Second alphabetically",
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date("2023-01-02T10:00:00Z"), // Most recently created
+          updatedAt: new Date("2023-01-02T10:00:00Z"),
+        },
+        new UniqueEntityID()
+      ).unwrap();
+
+      const collection3 = Collection.create(
+        {
+          authorId: curatorId,
+          name: "Gamma Collection",
+          description: "Third alphabetically",
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date("2023-01-01T09:00:00Z"), // Oldest created
+          updatedAt: new Date("2023-01-01T09:00:00Z"), // Oldest updated
+        },
+        new UniqueEntityID()
+      ).unwrap();
+
+      // Save collections
+      await collectionRepository.save(collection1);
+      await collectionRepository.save(collection2);
+      await collectionRepository.save(collection3);
+
+      // Create cards and add different numbers to collections for card count sorting
+      const card1 = CardFactory.create({
+        curatorId: curatorId.value,
+        cardInput: { type: CardTypeEnum.NOTE, text: "Card 1" },
+      }).unwrap();
+      const card2 = CardFactory.create({
+        curatorId: curatorId.value,
+        cardInput: { type: CardTypeEnum.NOTE, text: "Card 2" },
+      }).unwrap();
+      const card3 = CardFactory.create({
+        curatorId: curatorId.value,
+        cardInput: { type: CardTypeEnum.NOTE, text: "Card 3" },
+      }).unwrap();
+
+      await cardRepository.save(card1);
+      await cardRepository.save(card2);
+      await cardRepository.save(card3);
+
+      // Add cards to collections: Gamma gets 3 cards, Beta gets 1, Alpha gets 0
+      collection3.addCard(card1.cardId, curatorId);
+      collection3.addCard(card2.cardId, curatorId);
+      collection3.addCard(card3.cardId, curatorId);
+      collection2.addCard(card1.cardId, curatorId);
+
+      await collectionRepository.save(collection2);
+      await collectionRepository.save(collection3);
+    });
+
+    it("should sort by name ascending", async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+      });
+
+      expect(result.items).toHaveLength(3);
+      expect(result.items[0]?.name).toBe("Alpha Collection");
+      expect(result.items[1]?.name).toBe("Beta Collection");
+      expect(result.items[2]?.name).toBe("Gamma Collection");
+    });
+
+    it("should sort by name descending", async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(3);
+      expect(result.items[0]?.name).toBe("Gamma Collection");
+      expect(result.items[1]?.name).toBe("Beta Collection");
+      expect(result.items[2]?.name).toBe("Alpha Collection");
+    });
+
+    it("should sort by created date ascending", async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.CREATED_AT,
+        sortOrder: SortOrder.ASC,
+      });
+
+      expect(result.items).toHaveLength(3);
+      expect(result.items[0]?.name).toBe("Gamma Collection"); // Oldest
+      expect(result.items[1]?.name).toBe("Alpha Collection");
+      expect(result.items[2]?.name).toBe("Beta Collection"); // Newest
+    });
+
+    it("should sort by created date descending", async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.CREATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(3);
+      expect(result.items[0]?.name).toBe("Beta Collection"); // Newest
+      expect(result.items[1]?.name).toBe("Alpha Collection");
+      expect(result.items[2]?.name).toBe("Gamma Collection"); // Oldest
+    });
+
+    it("should sort by updated date ascending", async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.UPDATED_AT,
+        sortOrder: SortOrder.ASC,
+      });
+
+      expect(result.items).toHaveLength(3);
+      expect(result.items[0]!.updatedAt.getTime()).toBeLessThanOrEqual(
+        result.items[1]!.updatedAt.getTime()
+      );
+      expect(result.items[1]!.updatedAt.getTime()).toBeLessThanOrEqual(
+        result.items[2]!.updatedAt.getTime()
+      );
+    });
+
+    it("should sort by updated date descending (default)", async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(3);
+      expect(result.items[0]!.updatedAt.getTime()).toBeGreaterThanOrEqual(
+        result.items[1]!.updatedAt.getTime()
+      );
+      expect(result.items[1]!.updatedAt.getTime()).toBeGreaterThanOrEqual(
+        result.items[2]!.updatedAt.getTime()
+      );
+    });
+
+    it("should sort by card count ascending", async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.CARD_COUNT,
+        sortOrder: SortOrder.ASC,
+      });
+
+      expect(result.items).toHaveLength(3);
+      expect(result.items[0]?.name).toBe("Alpha Collection"); // 0 cards
+      expect(result.items[0]?.cardCount).toBe(0);
+      expect(result.items[1]?.name).toBe("Beta Collection"); // 1 card
+      expect(result.items[1]?.cardCount).toBe(1);
+      expect(result.items[2]?.name).toBe("Gamma Collection"); // 3 cards
+      expect(result.items[2]?.cardCount).toBe(3);
+    });
+
+    it("should sort by card count descending", async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.CARD_COUNT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(3);
+      expect(result.items[0]?.name).toBe("Gamma Collection"); // 3 cards
+      expect(result.items[0]?.cardCount).toBe(3);
+      expect(result.items[1]?.name).toBe("Beta Collection"); // 1 card
+      expect(result.items[1]?.cardCount).toBe(1);
+      expect(result.items[2]?.name).toBe("Alpha Collection"); // 0 cards
+      expect(result.items[2]?.cardCount).toBe(0);
+    });
+  });
+
+  describe("pagination", () => {
+    beforeEach(async () => {
+      // Create 5 test collections for pagination testing
+      for (let i = 1; i <= 5; i++) {
+        const collection = Collection.create(
+          {
+            authorId: curatorId,
+            name: `Collection ${i.toString().padStart(2, "0")}`,
+            description: `Description ${i}`,
+            accessType: CollectionAccessType.OPEN,
+            collaboratorIds: [],
+            createdAt: new Date(`2023-01-${i.toString().padStart(2, "0")}`),
+            updatedAt: new Date(`2023-01-${i.toString().padStart(2, "0")}`),
+          },
+          new UniqueEntityID()
+        ).unwrap();
+
+        await collectionRepository.save(collection);
+      }
+    });
+
+    it("should handle first page with limit", async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 2,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+      });
+
+      expect(result.items).toHaveLength(2);
+      expect(result.totalCount).toBe(5);
+      expect(result.hasMore).toBe(true);
+      expect(result.items[0]?.name).toBe("Collection 01");
+      expect(result.items[1]?.name).toBe("Collection 02");
+    });
+
+    it("should handle second page", async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 2,
+        limit: 2,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+      });
+
+      expect(result.items).toHaveLength(2);
+      expect(result.totalCount).toBe(5);
+      expect(result.hasMore).toBe(true);
+      expect(result.items[0]?.name).toBe("Collection 03");
+      expect(result.items[1]?.name).toBe("Collection 04");
+    });
+
+    it("should handle last page with remaining items", async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 3,
+        limit: 2,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.totalCount).toBe(5);
+      expect(result.hasMore).toBe(false);
+      expect(result.items[0]?.name).toBe("Collection 05");
+    });
+
+    it("should handle page beyond available data", async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 10,
+        limit: 2,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+      });
+
+      expect(result.items).toHaveLength(0);
+      expect(result.totalCount).toBe(5);
+      expect(result.hasMore).toBe(false);
+    });
+
+    it("should handle large limit that exceeds total items", async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 100,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+      });
+
+      expect(result.items).toHaveLength(5);
+      expect(result.totalCount).toBe(5);
+      expect(result.hasMore).toBe(false);
+    });
+
+    it("should calculate hasMore correctly for exact page boundaries", async () => {
+      // Test when items exactly fill pages
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 5, // Exactly matches total count
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+      });
+
+      expect(result.items).toHaveLength(5);
+      expect(result.totalCount).toBe(5);
+      expect(result.hasMore).toBe(false);
+    });
+  });
+
+  describe("combined sorting and pagination", () => {
+    beforeEach(async () => {
+      // Create collections with different update times and card counts
+      const collections = [
+        {
+          name: "Alpha",
+          updatedAt: new Date("2023-01-01"),
+          cardCount: 3,
+        },
+        {
+          name: "Beta",
+          updatedAt: new Date("2023-01-03"),
+          cardCount: 1,
+        },
+        {
+          name: "Gamma",
+          updatedAt: new Date("2023-01-02"),
+          cardCount: 2,
+        },
+        {
+          name: "Delta",
+          updatedAt: new Date("2023-01-04"),
+          cardCount: 0,
+        },
+      ];
+
+      for (const collectionData of collections) {
+        const collection = Collection.create(
+          {
+            authorId: curatorId,
+            name: collectionData.name,
+            accessType: CollectionAccessType.OPEN,
+            collaboratorIds: [],
+            createdAt: new Date(),
+            updatedAt: collectionData.updatedAt,
+          },
+          new UniqueEntityID()
+        ).unwrap();
+
+        await collectionRepository.save(collection);
+
+        // Add cards to match expected card count
+        for (let i = 0; i < collectionData.cardCount; i++) {
+          const card = CardFactory.create({
+            curatorId: curatorId.value,
+            cardInput: {
+              type: CardTypeEnum.NOTE,
+              text: `Card ${i} for ${collectionData.name}`,
+            },
+          }).unwrap();
+
+          await cardRepository.save(card);
+          collection.addCard(card.cardId, curatorId);
+        }
+
+        if (collectionData.cardCount > 0) {
+          await collectionRepository.save(collection);
+        }
+      }
+    });
+
+    it("should combine sorting by updated date desc with pagination", async () => {
+      // First page - should get Delta (newest) and Beta
+      const page1 = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 2,
+        sortBy: CollectionSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(page1.items).toHaveLength(2);
+      expect(page1.items[0]!.updatedAt.getTime()).toBeGreaterThanOrEqual(
+        page1.items[1]!.updatedAt.getTime()
+      );
+      expect(page1.hasMore).toBe(true);
+
+      // Second page - should get Gamma and Alpha
+      const page2 = await queryRepository.findByCreator(curatorId.value, {
+        page: 2,
+        limit: 2,
+        sortBy: CollectionSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(page2.items).toHaveLength(2);
+      expect(page2.items[0]!.updatedAt.getTime()).toBeGreaterThanOrEqual(
+        page2.items[1]!.updatedAt.getTime()
+      );
+      expect(page2.hasMore).toBe(false);
+    });
+
+    it("should combine sorting by card count desc with pagination", async () => {
+      // First page - should get Alpha (3 cards) and Gamma (2 cards)
+      const page1 = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 2,
+        sortBy: CollectionSortField.CARD_COUNT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(page1.items).toHaveLength(2);
+      expect(page1.items[0]?.name).toBe("Alpha");
+      expect(page1.items[0]?.cardCount).toBe(3);
+      expect(page1.items[1]?.name).toBe("Gamma");
+      expect(page1.items[1]?.cardCount).toBe(2);
+      expect(page1.hasMore).toBe(true);
+
+      // Second page - should get Beta (1 card) and Delta (0 cards)
+      const page2 = await queryRepository.findByCreator(curatorId.value, {
+        page: 2,
+        limit: 2,
+        sortBy: CollectionSortField.CARD_COUNT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(page2.items).toHaveLength(2);
+      expect(page2.items[0]?.name).toBe("Beta");
+      expect(page2.items[0]?.cardCount).toBe(1);
+      expect(page2.items[1]?.name).toBe("Delta");
+      expect(page2.items[1]?.cardCount).toBe(0);
+      expect(page2.hasMore).toBe(false);
+    });
+  });
+
+  describe("edge cases", () => {
+    it("should handle curator with no collections gracefully", async () => {
+      const result = await queryRepository.findByCreator(
+        "did:plc:nonexistent",
+        {
+          page: 1,
+          limit: 10,
+          sortBy: CollectionSortField.UPDATED_AT,
+          sortOrder: SortOrder.DESC,
+        }
+      );
+
+      expect(result.items).toHaveLength(0);
+      expect(result.totalCount).toBe(0);
+      expect(result.hasMore).toBe(false);
+    });
+
+    it("should handle collections with null descriptions", async () => {
+      const collection = Collection.create(
+        {
+          authorId: curatorId,
+          name: "No Description Collection",
+          // No description provided
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID()
+      ).unwrap();
+
+      await collectionRepository.save(collection);
+
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]?.description).toBeUndefined();
+    });
+
+    it("should handle very large page numbers", async () => {
+      const collection = Collection.create(
+        {
+          authorId: curatorId,
+          name: "Single Collection",
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID()
+      ).unwrap();
+
+      await collectionRepository.save(collection);
+
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 999999,
+        limit: 10,
+        sortBy: CollectionSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(0);
+      expect(result.totalCount).toBe(1);
+      expect(result.hasMore).toBe(false);
+    });
+  });
+});

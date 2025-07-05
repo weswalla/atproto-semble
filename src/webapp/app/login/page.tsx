@@ -34,7 +34,7 @@ export default function LoginPage() {
 
     try {
       const { authUrl } = await apiClient.initiateOAuthSignIn({ handle });
-      
+
       // Redirect to the auth URL from the API
       window.location.href = authUrl;
     } catch (err: any) {
@@ -56,14 +56,15 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const { accessToken, refreshToken } = await apiClient.loginWithAppPassword({
-        identifier: handle,
-        appPassword: appPassword
-      });
-      
+      const { accessToken, refreshToken } =
+        await apiClient.loginWithAppPassword({
+          identifier: handle,
+          appPassword: appPassword,
+        });
+
       // Set tokens and redirect to dashboard
       setTokens(accessToken, refreshToken);
-      router.push("/dashboard");
+      router.push("/library");
     } catch (err: any) {
       setError(err.message || "Invalid credentials");
     } finally {
@@ -97,7 +98,11 @@ export default function LoginPage() {
                 {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
               </div>
 
-              <Button type="submit" className="w-full mb-4" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full mb-4"
+                disabled={isLoading}
+              >
                 {isLoading ? "Connecting..." : "Continue"}
               </Button>
 
@@ -148,7 +153,11 @@ export default function LoginPage() {
                 {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
               </div>
 
-              <Button type="submit" className="w-full mb-4" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full mb-4"
+                disabled={isLoading}
+              >
                 {isLoading ? "Signing in..." : "Sign in"}
               </Button>
 

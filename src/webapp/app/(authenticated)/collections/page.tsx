@@ -1,7 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -10,7 +16,9 @@ import { ApiClient } from "@/api-client/ApiClient";
 import type { GetMyCollectionsResponse } from "@/api-client/types";
 
 export default function CollectionsPage() {
-  const [collections, setCollections] = useState<GetMyCollectionsResponse["collections"]>([]);
+  const [collections, setCollections] = useState<
+    GetMyCollectionsResponse["collections"]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -69,17 +77,14 @@ export default function CollectionsPage() {
       {collections.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {collections.map((collection) => (
-            <Card 
-              key={collection.id} 
+            <Card
+              key={collection.id}
               className="cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => router.push(`/collections/${collection.id}`)}
             >
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-lg">{collection.name}</CardTitle>
-                  <Badge variant={collection.accessType === "OPEN" ? "default" : "secondary"}>
-                    {collection.accessType}
-                  </Badge>
                 </div>
                 {collection.description && (
                   <CardDescription className="line-clamp-2">
@@ -91,14 +96,10 @@ export default function CollectionsPage() {
                 <div className="flex justify-between items-center text-sm text-gray-500">
                   <span>{collection.cardCount} cards</span>
                   <span>
-                    Created {new Date(collection.createdAt).toLocaleDateString()}
+                    Created{" "}
+                    {new Date(collection.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-                {collection.collaboratorCount > 0 && (
-                  <div className="mt-2 text-sm text-gray-500">
-                    {collection.collaboratorCount} collaborator{collection.collaboratorCount !== 1 ? 's' : ''}
-                  </div>
-                )}
               </CardContent>
             </Card>
           ))}

@@ -11,7 +11,7 @@ export abstract class BaseClient {
     endpoint: string,
     data?: any
   ): Promise<T> {
-    const url = `${this.baseUrl}/api${endpoint}`;
+    const url = `${this.baseUrl}${endpoint}`;
     const token = this.getAuthToken();
     
     const headers: Record<string, string> = {

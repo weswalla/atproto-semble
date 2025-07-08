@@ -54,16 +54,22 @@ export interface GetUrlMetadataResponse {
 
 export interface UrlCardView {
   id: string;
+  type: 'URL';
   url: string;
-  title?: string;
-  description?: string;
-  author?: string;
-  siteName?: string;
-  imageUrl?: string;
-  type?: string;
+  cardContent: {
+    url: string;
+    title?: string;
+    description?: string;
+    author?: string;
+    thumbnailUrl?: string;
+  };
+  libraryCount: number;
   createdAt: string;
   updatedAt: string;
-  libraryCount: number;
+  note?: {
+    id: string;
+    text: string;
+  };
   collections: {
     id: string;
     name: string;
@@ -104,16 +110,22 @@ export interface GetMyProfileResponse extends UserProfile {}
 
 export interface UrlCardListItem {
   id: string;
+  type: 'URL';
   url: string;
-  title?: string;
-  description?: string;
-  author?: string;
-  siteName?: string;
-  imageUrl?: string;
-  type?: string;
+  cardContent: {
+    url: string;
+    title?: string;
+    description?: string;
+    author?: string;
+    thumbnailUrl?: string;
+  };
+  libraryCount: number;
   createdAt: string;
   updatedAt: string;
-  libraryCount: number;
+  note?: {
+    id: string;
+    text: string;
+  };
   collections: {
     id: string;
     name: string;
@@ -130,7 +142,7 @@ export interface Pagination {
 }
 
 export interface Sorting {
-  sortBy: string;
+  sortBy: 'createdAt' | 'updatedAt' | 'libraryCount';
   sortOrder: 'asc' | 'desc';
 }
 
@@ -142,16 +154,22 @@ export interface GetMyUrlCardsResponse {
 
 export interface CollectionPageUrlCard {
   id: string;
+  type: 'URL';
   url: string;
-  title?: string;
-  description?: string;
-  author?: string;
-  siteName?: string;
-  imageUrl?: string;
-  type?: string;
+  cardContent: {
+    url: string;
+    title?: string;
+    description?: string;
+    author?: string;
+    thumbnailUrl?: string;
+  };
+  libraryCount: number;
   createdAt: string;
   updatedAt: string;
-  libraryCount: number;
+  note?: {
+    id: string;
+    text: string;
+  };
 }
 
 export interface GetCollectionPageResponse {
@@ -168,3 +186,46 @@ export interface GetCollectionPageResponse {
   pagination: Pagination;
   sorting: Sorting;
 }
+
+export interface GetMyCollectionsResponse {
+  collections: Array<{
+    id: string;
+    name: string;
+    description?: string;
+    cardCount: number;
+    createdAt: string;
+    updatedAt: string;
+    createdBy: {
+      id: string;
+      name: string;
+      handle: string;
+      avatarUrl?: string;
+    };
+  }>;
+  pagination: Pagination;
+  sorting: {
+    sortBy: 'name' | 'createdAt' | 'updatedAt' | 'cardCount';
+    sortOrder: 'asc' | 'desc';
+  };
+}
+
+// User authentication response types
+export interface LoginWithAppPasswordResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface InitiateOAuthSignInResponse {
+  authUrl: string;
+}
+
+export interface CompleteOAuthSignInResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface RefreshAccessTokenResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+

@@ -58,3 +58,30 @@ export interface GetCollectionPageParams {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
+
+export interface GetMyCollectionsParams {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+// User authentication request types
+export interface LoginWithAppPasswordRequest {
+  identifier: string;
+  appPassword: string;
+}
+
+export interface InitiateOAuthSignInRequest {
+  handle?: string;
+}
+
+export interface CompleteOAuthSignInRequest {
+  code: string;
+  state: string;
+  iss: string;
+}
+
+export interface RefreshAccessTokenRequest {
+  refreshToken: string;
+}

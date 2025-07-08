@@ -156,7 +156,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Redirect to dashboard after a short delay
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push("/library");
       }, 1000);
     } catch (error) {
       console.error("OAuth completion error:", error);

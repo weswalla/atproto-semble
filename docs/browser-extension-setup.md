@@ -20,7 +20,9 @@ cd src/webapp
 pnpm add -D plasmo
 ```
 
-### 2. Restructure Your Directory
+### 2. File Structure
+
+Plasmo uses convention over configuration. Extension files go directly in the webapp root:
 
 ```
 src/
@@ -29,13 +31,11 @@ src/
     components/       # Keep existing components
     hooks/            # Keep existing hooks
     api-client/       # Keep existing API client
-    extension/        # NEW: Extension-specific code
-      popup.tsx       # Extension popup
-      options.tsx     # Extension options page
-      content.ts      # Content scripts
-      background.ts   # Background script
+    popup.tsx         # Extension popup (root level)
+    options.tsx       # Extension options page (root level)
+    content.ts        # Content scripts (root level)
+    background.ts     # Background script (root level)
     package.json      # Update this
-    plasmo.config.ts  # NEW: Plasmo config
 ```
 
 ### 3. Update package.json Scripts
@@ -52,34 +52,31 @@ src/
 }
 ```
 
-### 4. Create plasmo.config.ts
+### 4. File Structure
 
-```typescript
-import { PlasmoConfig } from "plasmo"
+Plasmo uses convention over configuration. Extension files go directly in the webapp root:
 
-const config: PlasmoConfig = {
-  srcDir: "extension",
-  assetsDir: "assets",
-  outDir: "build-extension",
-  manifest: {
-    permissions: [
-      "activeTab",
-      "storage",
-      "https://your-api-domain.com/*"
-    ]
-  }
-}
-
-export default config
+```
+src/
+  webapp/
+    app/              # Keep existing Next.js app
+    components/       # Keep existing components
+    hooks/            # Keep existing hooks
+    api-client/       # Keep existing API client
+    popup.tsx         # Extension popup (root level)
+    options.tsx       # Extension options page (root level)
+    content.ts        # Content scripts (root level)
+    background.ts     # Background script (root level)
+    package.json      # Update this
 ```
 
 ### 5. Create Extension Entry Points
 
-**extension/popup.tsx:**
+**popup.tsx:**
 ```typescript
-import { useAuth } from "../hooks/useAuth"
-import { Button } from "../components/ui/button"
-import "../app/globals.css" // Reuse your styles
+import { useAuth } from "./hooks/useAuth"
+import { Button } from "./components/ui/button"
+import "./app/globals.css" // Reuse your styles
 
 function IndexPopup() {
   const { isAuthenticated, login } = useAuth()
@@ -99,7 +96,7 @@ function IndexPopup() {
 export default IndexPopup
 ```
 
-**extension/content.ts:**
+**content.ts:**
 ```typescript
 import type { PlasmoCSConfig } from "plasmo"
 
@@ -162,9 +159,9 @@ pnpm dev:extension
 
 ### 10. Handle Extension-Specific APIs
 
-**extension/background.ts:**
+**background.ts:**
 ```typescript
-import { ApiClient } from "../api-client/ApiClient"
+import { ApiClient } from "./api-client/ApiClient"
 
 // Handle extension-specific functionality
 chrome.action.onClicked.addListener((tab) => {

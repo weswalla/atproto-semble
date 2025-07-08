@@ -1,10 +1,10 @@
 import { useState } from "react"
-import { useAuth } from "./hooks/useAuth"
+import { useAuth, AuthProvider } from "./hooks/useAuth"
 import { Button } from "./components/ui/button"
 import { Input } from "./components/ui/input"
 import "./app/globals.css" // Reuse your styles
 
-function IndexPopup() {
+function PopupContent() {
   const { isAuthenticated, login } = useAuth()
   const [handle, setHandle] = useState("")
   
@@ -37,6 +37,14 @@ function IndexPopup() {
         </div>
       )}
     </div>
+  )
+}
+
+function IndexPopup() {
+  return (
+    <AuthProvider>
+      <PopupContent />
+    </AuthProvider>
   )
 }
 

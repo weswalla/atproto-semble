@@ -1,6 +1,6 @@
-import { PlasmoConfig } from "plasmo"
+import type { PlasmoCSConfig } from "plasmo"
 
-const config: PlasmoConfig = {
+const config = {
   srcDir: "./extension",
   outDir: "./build-extension",
   manifest: {

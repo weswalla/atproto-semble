@@ -2,6 +2,11 @@
   "name": "annos-webapp",
   "version": "0.1.0",
   "private": true,
+  "manifest": {
+    "permissions": [
+      "activeTab"
+    ]
+  },
   "scripts": {
     "dev": "PORT=4000 next dev",
     "dev:prod": "NODE_ENV=production PORT=4000 next dev",

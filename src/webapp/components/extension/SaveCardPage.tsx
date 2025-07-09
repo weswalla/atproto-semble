@@ -31,23 +31,38 @@ export function SaveCardPage() {
   useEffect(() => {
     if (typeof chrome !== "undefined" && chrome.tabs) {
       chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-        if (tabs[0]?.url) {
-          const url = tabs[0].url;
-          setCurrentUrl(url);
+        console.log("Tab info:", tabs[0]); // Debug log
+        
+        if (tabs[0]) {
+          const tab = tabs[0];
           
-          // Fetch metadata for the current URL
-          setIsLoadingMetadata(true);
-          try {
-            const urlMetadata = await apiClient.getUrlMetadata(url);
-            setMetadata(urlMetadata);
-          } catch (error) {
-            console.error("Failed to fetch URL metadata:", error);
-            setError("Failed to load page information");
-          } finally {
-            setIsLoadingMetadata(false);
+          if (tab.url) {
+            const url = tab.url;
+            setCurrentUrl(url);
+            
+            // Fetch metadata for the current URL
+            setIsLoadingMetadata(true);
+            try {
+              const urlMetadata = await apiClient.getUrlMetadata(url);
+              setMetadata(urlMetadata);
+            } catch (error) {
+              console.error("Failed to fetch URL metadata:", error);
+              setError("Failed to load page information");
+            } finally {
+              setIsLoadingMetadata(false);
+            }
+          } else {
+            console.error("No URL found in tab:", tab);
+            setError("Cannot access this page's URL. Make sure the extension has proper permissions.");
           }
+        } else {
+          console.error("No active tab found");
+          setError("No active tab found");
         }
       });
+    } else {
+      console.error("Chrome tabs API not available");
+      setError("Extension API not available");
     }
   }, []);
 

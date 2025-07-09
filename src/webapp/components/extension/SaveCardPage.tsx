@@ -23,7 +23,7 @@ export function SaveCardPage() {
   const [success, setSuccess] = useState(false);
 
   const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
     () => accessToken
   );
 

@@ -33,10 +33,12 @@ export const ExtensionAuthProvider = ({
   const [user, setUser] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
-    () => accessToken
-  );
+  const createApiClient = useCallback((token: string | null) => {
+    return new ApiClient(
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+      () => token
+    );
+  }, []);
 
   // Use chrome.storage instead of localStorage
   const getStoredToken = useCallback(async (): Promise<string | null> => {
@@ -76,6 +78,7 @@ export const ExtensionAuthProvider = ({
         const token = await getStoredToken();
         if (token) {
           setAccessToken(token);
+          const apiClient = createApiClient(token);
           const userData = await apiClient.getMyProfile();
           setUser(userData);
           setIsAuthenticated(true);
@@ -91,7 +94,7 @@ export const ExtensionAuthProvider = ({
     };
 
     initAuth();
-  }, [getStoredToken, setStoredToken]);
+  }, [getStoredToken, setStoredToken, createApiClient]);
 
   const loginWithAppPassword = async (
     identifier: string,
@@ -101,7 +104,9 @@ export const ExtensionAuthProvider = ({
       setError(null);
       setIsLoading(true);
 
-      const response = await apiClient.loginWithAppPassword({
+      // Use unauthenticated client for login
+      const unauthenticatedClient = createApiClient(null);
+      const response = await unauthenticatedClient.loginWithAppPassword({
         identifier,
         appPassword,
       });
@@ -110,7 +115,9 @@ export const ExtensionAuthProvider = ({
       setAccessToken(newToken);
       await setStoredToken(newToken);
 
-      const userData = await apiClient.getMyProfile();
+      // Create new authenticated client for profile fetch
+      const authenticatedClient = createApiClient(newToken);
+      const userData = await authenticatedClient.getMyProfile();
       setUser(userData);
       setIsAuthenticated(true);
     } catch (error: any) {

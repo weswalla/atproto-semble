@@ -1,4 +1,11 @@
-import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  createContext,
+  useContext,
+  ReactNode,
+  useCallback,
+} from "react";
 import { ApiClient } from "@/api-client/ApiClient";
 
 interface ExtensionAuthContextType {
@@ -11,9 +18,15 @@ interface ExtensionAuthContextType {
   error: string | null;
 }
 
-const ExtensionAuthContext = createContext<ExtensionAuthContextType | undefined>(undefined);
+const ExtensionAuthContext = createContext<
+  ExtensionAuthContextType | undefined
+>(undefined);
 
-export const ExtensionAuthProvider = ({ children }: { children: ReactNode }) => {
+export const ExtensionAuthProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -21,7 +34,7 @@ export const ExtensionAuthProvider = ({ children }: { children: ReactNode }) => 
   const [error, setError] = useState<string | null>(null);
 
   const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
     () => accessToken
   );
 
@@ -29,12 +42,12 @@ export const ExtensionAuthProvider = ({ children }: { children: ReactNode }) => 
   const getStoredToken = useCallback(async (): Promise<string | null> => {
     return new Promise((resolve) => {
       if (typeof chrome !== "undefined" && chrome.storage) {
-        chrome.storage.local.get(['accessToken'], (result) => {
+        chrome.storage.local.get(["accessToken"], (result) => {
           resolve(result.accessToken || null);
         });
       } else {
         // Fallback to localStorage for development
-        resolve(localStorage.getItem('accessToken'));
+        resolve(localStorage.getItem("accessToken"));
       }
     });
   }, []);
@@ -44,14 +57,14 @@ export const ExtensionAuthProvider = ({ children }: { children: ReactNode }) => 
       if (token) {
         chrome.storage.local.set({ accessToken: token });
       } else {
-        chrome.storage.local.remove(['accessToken']);
+        chrome.storage.local.remove(["accessToken"]);
       }
     } else {
       // Fallback to localStorage for development
       if (token) {
-        localStorage.setItem('accessToken', token);
+        localStorage.setItem("accessToken", token);
       } else {
-        localStorage.removeItem('accessToken');
+        localStorage.removeItem("accessToken");
       }
     }
   }, []);
@@ -80,17 +93,23 @@ export const ExtensionAuthProvider = ({ children }: { children: ReactNode }) => 
     initAuth();
   }, [getStoredToken, setStoredToken]);
 
-  const loginWithAppPassword = async (handle: string, password: string) => {
+  const loginWithAppPassword = async (
+    identifier: string,
+    appPassword: string
+  ) => {
     try {
       setError(null);
       setIsLoading(true);
-      
-      const response = await apiClient.loginWithAppPassword({ handle, password });
+
+      const response = await apiClient.loginWithAppPassword({
+        identifier,
+        appPassword,
+      });
       const { accessToken: newToken } = response;
-      
+
       setAccessToken(newToken);
       await setStoredToken(newToken);
-      
+
       const userData = await apiClient.getMyProfile();
       setUser(userData);
       setIsAuthenticated(true);
@@ -116,15 +135,17 @@ export const ExtensionAuthProvider = ({ children }: { children: ReactNode }) => 
   };
 
   return (
-    <ExtensionAuthContext.Provider value={{
-      isAuthenticated,
-      isLoading,
-      accessToken,
-      user,
-      loginWithAppPassword,
-      logout,
-      error,
-    }}>
+    <ExtensionAuthContext.Provider
+      value={{
+        isAuthenticated,
+        isLoading,
+        accessToken,
+        user,
+        loginWithAppPassword,
+        logout,
+        error,
+      }}
+    >
       {children}
     </ExtensionAuthContext.Provider>
   );
@@ -133,7 +154,9 @@ export const ExtensionAuthProvider = ({ children }: { children: ReactNode }) => 
 export const useExtensionAuth = () => {
   const context = useContext(ExtensionAuthContext);
   if (!context) {
-    throw new Error("useExtensionAuth must be used within ExtensionAuthProvider");
+    throw new Error(
+      "useExtensionAuth must be used within ExtensionAuthProvider"
+    );
   }
   return context;
 };

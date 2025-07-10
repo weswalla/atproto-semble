@@ -32,19 +32,19 @@ export function SaveCardPage() {
     if (typeof chrome !== "undefined" && chrome.tabs) {
       chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
         console.log("Tab info:", tabs[0]); // Debug log
-        
+
         if (tabs[0]) {
           const tab = tabs[0];
-          
+
           if (tab.url) {
             const url = tab.url;
             setCurrentUrl(url);
-            
+
             // Fetch metadata for the current URL
             setIsLoadingMetadata(true);
             try {
               const urlMetadata = await apiClient.getUrlMetadata(url);
-              setMetadata(urlMetadata);
+              setMetadata(urlMetadata.metadata);
             } catch (error) {
               console.error("Failed to fetch URL metadata:", error);
               setError("Failed to load page information");
@@ -53,7 +53,9 @@ export function SaveCardPage() {
             }
           } else {
             console.error("No URL found in tab:", tab);
-            setError("Cannot access this page's URL. Make sure the extension has proper permissions.");
+            setError(
+              "Cannot access this page's URL. Make sure the extension has proper permissions."
+            );
           }
         } else {
           console.error("No active tab found");
@@ -71,13 +73,13 @@ export function SaveCardPage() {
 
     setIsSaving(true);
     setError("");
-    
+
     try {
       await apiClient.addUrlToLibrary({
         url: currentUrl,
         note: note.trim() || undefined,
       });
-      
+
       setSuccess(true);
       setTimeout(() => {
         window.close(); // Close the popup after successful save
@@ -96,7 +98,9 @@ export function SaveCardPage() {
         <div className="flex items-center justify-center py-8">
           <div className="text-center">
             <div className="text-green-600 text-2xl mb-2">✓</div>
-            <div className="text-sm text-gray-600">Card saved successfully!</div>
+            <div className="text-sm text-gray-600">
+              Card saved successfully!
+            </div>
           </div>
         </div>
       </div>
@@ -116,18 +120,20 @@ export function SaveCardPage() {
           </button>
         </div>
       </div>
-      
+
       <div className="space-y-4">
         {/* URL Metadata Display */}
         {isLoadingMetadata ? (
           <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="text-sm text-gray-600">Loading page information...</div>
+            <div className="text-sm text-gray-600">
+              Loading page information...
+            </div>
           </div>
         ) : metadata ? (
           <div className="bg-gray-50 p-3 rounded-lg space-y-2">
             {metadata.imageUrl && (
-              <img 
-                src={metadata.imageUrl} 
+              <img
+                src={metadata.imageUrl}
                 alt={metadata.title || "Page preview"}
                 className="w-full h-24 object-cover rounded"
               />
@@ -186,7 +192,7 @@ export function SaveCardPage() {
           >
             {isSaving ? "Saving..." : "Save Card"}
           </button>
-          
+
           <button
             onClick={() => window.close()}
             className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors"

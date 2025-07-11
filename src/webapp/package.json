@@ -2,11 +2,20 @@
   "name": "annos-webapp",
   "version": "0.1.0",
   "private": true,
+  "manifest": {
+    "name": "Annos Browser Extension",
+    "permissions": [
+      "activeTab"
+    ]
+  },
   "scripts": {
     "dev": "PORT=4000 next dev",
     "dev:prod": "NODE_ENV=production PORT=4000 next dev",
+    "dev:extension": "plasmo dev",
     "build": "next build",
     "build:prod": "NODE_ENV=production next build",
+    "build:extension": "NODE_ENV=production plasmo build",
+    "package:extension": "plasmo package",
     "start": "PORT=4000 next start",
     "lint": "next lint"
   },
@@ -26,12 +35,14 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@types/chrome": "^0.0.332",
     "@types/node": "^20.10.4",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.55.0",
     "eslint-config-next": "^14.0.4",
+    "plasmo": "^0.90.5",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6",
     "typescript": "^5.3.3"

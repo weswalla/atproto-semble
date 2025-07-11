@@ -35,7 +35,7 @@ export const ExtensionAuthProvider = ({
 
   const createApiClient = useCallback((token: string | null) => {
     return new ApiClient(
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+      process.env.PLASMO_PUBLIC_API_URL || "http://localhost:3000",
       () => token
     );
   }, []);

@@ -10,12 +10,15 @@ import {
 } from "../../domain/ICardQueryRepository";
 import { CardTypeEnum } from "../../domain/value-objects/CardType";
 import { InMemoryCardRepository } from "./InMemoryCardRepository";
+import { InMemoryCollectionRepository } from "./InMemoryCollectionRepository";
 import { Card } from "../../domain/Card";
+import { CollectionId } from "../../domain/value-objects/CollectionId";
 
 export class InMemoryCardQueryRepository implements ICardQueryRepository {
-  private collectionCards: Map<string, Set<string>> = new Map(); // collectionId -> Set of cardIds
-
-  constructor(private cardRepository: InMemoryCardRepository) {}
+  constructor(
+    private cardRepository: InMemoryCardRepository,
+    private collectionRepository: InMemoryCollectionRepository
+  ) {}
 
   async getUrlCardsOfUser(
     userId: string,
@@ -85,16 +88,16 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       throw new Error("Card is not a URL card");
     }
 
-    // Find collections this card belongs to
+    // Find collections this card belongs to by querying the collection repository
+    const allCollections = this.collectionRepository.getAllCollections();
     const collections: { id: string; name: string; authorId: string }[] = [];
-    for (const [collectionId, cardIds] of this.collectionCards.entries()) {
-      if (cardIds.has(card.cardId.getStringValue())) {
-        // In a real implementation, you'd fetch collection details
-        // For testing, we'll use placeholder data
+    
+    for (const collection of allCollections) {
+      if (collection.cardIds.some(cardId => cardId.getStringValue() === card.cardId.getStringValue())) {
         collections.push({
-          id: collectionId,
-          name: `Collection ${collectionId}`,
-          authorId: "test-author",
+          id: collection.collectionId.getStringValue(),
+          name: collection.name.value,
+          authorId: collection.authorId.value,
         });
       }
     }
@@ -127,10 +130,29 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     options: CardQueryOptions
   ): Promise<PaginatedQueryResult<CollectionCardQueryResultDTO>> {
     try {
-      // Get cards in collection
-      const collectionCardIds =
-        this.collectionCards.get(collectionId) || new Set();
+      // Get the collection from the repository
+      const collectionIdObj = CollectionId.createFromString(collectionId);
+      if (collectionIdObj.isErr()) {
+        throw new Error(`Invalid collection ID: ${collectionId}`);
+      }
+
+      const collectionResult = await this.collectionRepository.findById(collectionIdObj.value);
+      if (collectionResult.isErr()) {
+        throw collectionResult.error;
+      }
+
+      const collection = collectionResult.value;
+      if (!collection) {
+        return {
+          items: [],
+          totalCount: 0,
+          hasMore: false,
+        };
+      }
+
+      // Get cards that are in this collection
       const allCards = this.cardRepository.getAllCards();
+      const collectionCardIds = new Set(collection.cardIds.map(id => id.getStringValue()));
       const collectionCards = allCards
         .filter(
           (card) =>
@@ -208,17 +230,6 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     };
   }
 
-  // Test helper methods for collections
-  addCardToCollection(collectionId: string, cardId: string): void {
-    if (!this.collectionCards.has(collectionId)) {
-      this.collectionCards.set(collectionId, new Set());
-    }
-    this.collectionCards.get(collectionId)!.add(cardId);
-  }
-
-  getCollectionCards(collectionId: string): string[] {
-    return Array.from(this.collectionCards.get(collectionId) || new Set());
-  }
 
   async getUrlCardView(cardId: string): Promise<UrlCardViewDTO | null> {
     const allCards = this.cardRepository.getAllCards();
@@ -252,6 +263,6 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   }
 
   clear(): void {
-    this.collectionCards.clear();
+    // No separate state to clear
   }
 }

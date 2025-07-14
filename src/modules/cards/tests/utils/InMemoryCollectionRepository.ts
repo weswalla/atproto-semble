@@ -18,6 +18,7 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
         accessType: collection.accessType,
         collaboratorIds: collection.collaboratorIds,
         cardLinks: collection.cardLinks,
+        cardCount: collection.cardCount,
         publishedRecordId: collection.publishedRecordId,
         createdAt: collection.createdAt,
         updatedAt: collection.updatedAt,
@@ -31,14 +32,7 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
       );
     }
 
-    const clonedCollection = collectionResult.value;
-
-    // Set the published record ID if it exists
-    if (collection.publishedRecordId) {
-      clonedCollection.markAsPublished(collection.publishedRecordId);
-    }
-
-    return clonedCollection;
+    return collectionResult.value;
   }
 
   async findById(id: CollectionId): Promise<Result<Collection | null>> {
@@ -67,8 +61,8 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
     try {
       const collections = Array.from(this.collections.values()).filter(
         (collection) =>
-          collection.cardIds.some(
-            (id) => id.getStringValue() === cardId.getStringValue()
+          collection.cardLinks.some(
+            (link) => link.cardId.getStringValue() === cardId.getStringValue()
           )
       );
       return ok(collections.map((collection) => this.clone(collection)));

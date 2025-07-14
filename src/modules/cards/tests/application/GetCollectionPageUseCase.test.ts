@@ -6,15 +6,17 @@ import { FakeProfileService } from "../utils/FakeProfileService";
 import { CuratorId } from "../../domain/value-objects/CuratorId";
 import { CollectionId } from "../../domain/value-objects/CollectionId";
 import { Collection, CollectionAccessType } from "../../domain/Collection";
+import { Card } from "../../domain/Card";
+import { CardType, CardTypeEnum } from "../../domain/value-objects/CardType";
+import { CardContent } from "../../domain/value-objects/CardContent";
+import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
+import { URL } from "../../domain/value-objects/URL";
 import {
   CardSortField,
   SortOrder,
   CollectionCardQueryResultDTO,
 } from "../../domain/ICardQueryRepository";
-import { CardTypeEnum } from "../../domain/value-objects/CardType";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
-import { CardFactory } from "../../domain/CardFactory";
-import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
 
 describe("GetCollectionPageUseCase", () => {
   let useCase: GetCollectionPageUseCase;
@@ -28,7 +30,7 @@ describe("GetCollectionPageUseCase", () => {
   beforeEach(() => {
     collectionRepo = new InMemoryCollectionRepository();
     cardRepo = new InMemoryCardRepository();
-    cardQueryRepo = new InMemoryCardQueryRepository(cardRepo);
+    cardQueryRepo = new InMemoryCardQueryRepository(cardRepo, collectionRepo);
     profileService = new FakeProfileService();
     useCase = new GetCollectionPageUseCase(
       collectionRepo,
@@ -51,6 +53,7 @@ describe("GetCollectionPageUseCase", () => {
 
   afterEach(() => {
     collectionRepo.clear();
+    cardRepo.clear();
     cardQueryRepo.clear();
     profileService.clear();
   });
@@ -108,52 +111,69 @@ describe("GetCollectionPageUseCase", () => {
         collectionId.getValue()
       ).unwrap();
 
-      await collectionRepo.save(collection);
+      // Create first URL card
+      const urlMetadata1 = UrlMetadata.create({
+        url: "https://example.com/article1",
+        title: "First Article",
+        description: "Description of first article",
+        author: "John Doe",
+        imageUrl: "https://example.com/thumb1.jpg",
+      }).unwrap();
 
-      // Create test URL cards using CardFactory
-      const card1Result = CardFactory.create({
-        curatorId: curatorId.value,
-        cardInput: {
-          type: CardTypeEnum.URL,
-          url: "https://example.com/article1",
-          metadata: UrlMetadata.create({
-            url: "https://example.com/article1",
-            title: "First Article",
-            description: "Description of first article",
-            author: "John Doe",
-            imageUrl: "https://example.com/thumb1.jpg",
-          }).unwrap(),
-        },
+      const url1 = URL.create("https://example.com/article1").unwrap();
+      const cardType1 = CardType.create(CardTypeEnum.URL).unwrap();
+      const cardContent1 = CardContent.createUrlContent(url1, urlMetadata1).unwrap();
+
+      const card1Result = Card.create({
+        type: cardType1,
+        content: cardContent1,
+        url: url1,
+        libraryMemberships: [],
+        libraryCount: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
-      expect(card1Result.isOk()).toBe(true);
-      const card1 = card1Result.unwrap();
+
+      if (card1Result.isErr()) {
+        throw card1Result.error;
+      }
+
+      const card1 = card1Result.value;
       await cardRepo.save(card1);
 
-      const card2Result = CardFactory.create({
-        curatorId: curatorId.value,
-        cardInput: {
-          type: CardTypeEnum.URL,
-          url: "https://example.com/article2",
-          metadata: UrlMetadata.create({
-            url: "https://example.com/article2",
-            title: "Second Article",
-            description: "Description of second article",
-            author: "Jane Smith",
-          }).unwrap(),
-        },
+      // Create second URL card
+      const urlMetadata2 = UrlMetadata.create({
+        url: "https://example.com/article2",
+        title: "Second Article",
+        description: "Description of second article",
+        author: "Jane Smith",
+      }).unwrap();
+
+      const url2 = URL.create("https://example.com/article2").unwrap();
+      const cardType2 = CardType.create(CardTypeEnum.URL).unwrap();
+      const cardContent2 = CardContent.createUrlContent(url2, urlMetadata2).unwrap();
+
+      const card2Result = Card.create({
+        type: cardType2,
+        content: cardContent2,
+        url: url2,
+        libraryMemberships: [],
+        libraryCount: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
-      expect(card2Result.isOk()).toBe(true);
-      const card2 = card2Result.unwrap();
+
+      if (card2Result.isErr()) {
+        throw card2Result.error;
+      }
+
+      const card2 = card2Result.value;
       await cardRepo.save(card2);
 
-      cardQueryRepo.addCardToCollection(
-        collectionId.getStringValue(),
-        card1.cardId.getStringValue()
-      );
-      cardQueryRepo.addCardToCollection(
-        collectionId.getStringValue(),
-        card2.cardId.getStringValue()
-      );
+      // Add cards to collection
+      collection.addCard(card1.cardId, curatorId);
+      collection.addCard(card2.cardId, curatorId);
+      await collectionRepo.save(collection);
 
       const query = {
         collectionId: collectionId.getStringValue(),
@@ -196,33 +216,56 @@ describe("GetCollectionPageUseCase", () => {
         collectionId.getValue()
       ).unwrap();
 
-      await collectionRepo.save(collection);
+      // Create URL card
+      const urlMetadata = UrlMetadata.create({
+        url: "https://example.com/article-with-note",
+        title: "Article with Note",
+        description: "An article with an associated note",
+      }).unwrap();
 
-      // Create URL card with note using CardFactory
-      const cardResult = CardFactory.create({
-        curatorId: curatorId.value,
-        cardInput: {
-          type: CardTypeEnum.URL,
-          url: "https://example.com/article-with-note",
-          metadata: UrlMetadata.create({
-            url: "https://example.com/article-with-note",
-            title: "Article with Note",
-            description: "An article with an associated note",
-          }).unwrap(),
-        },
+      const url = URL.create("https://example.com/article-with-note").unwrap();
+      const cardType = CardType.create(CardTypeEnum.URL).unwrap();
+      const cardContent = CardContent.createUrlContent(url, urlMetadata).unwrap();
+
+      const cardResult = Card.create({
+        type: cardType,
+        content: cardContent,
+        url: url,
+        libraryMemberships: [],
+        libraryCount: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
-      expect(cardResult.isOk()).toBe(true);
-      const card = cardResult.unwrap();
-      
-      // Add note to the card content (this would need to be supported by the domain model)
-      // For now, we'll skip this test as the current domain model doesn't support notes on URL cards
-      // in the way the test expects
+
+      if (cardResult.isErr()) {
+        throw cardResult.error;
+      }
+
+      const card = cardResult.value;
       await cardRepo.save(card);
 
-      cardQueryRepo.addCardToCollection(
-        collectionId.getStringValue(),
-        card.cardId.getStringValue()
-      );
+      // Create a note card that references the same URL
+      const noteCardResult = Card.create({
+        type: CardType.create(CardTypeEnum.NOTE).unwrap(),
+        content: CardContent.createNoteContent("This is my note about the article").unwrap(),
+        parentCardId: card.cardId,
+        url: url,
+        libraryMemberships: [],
+        libraryCount: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      if (noteCardResult.isErr()) {
+        throw noteCardResult.error;
+      }
+
+      const noteCard = noteCardResult.value;
+      await cardRepo.save(noteCard);
+
+      // Add card to collection
+      collection.addCard(card.cardId, curatorId);
+      await collectionRepo.save(collection);
 
       const query = {
         collectionId: collectionId.getStringValue(),
@@ -236,7 +279,8 @@ describe("GetCollectionPageUseCase", () => {
 
       const responseCard = response.urlCards[0]!;
       expect(responseCard.cardContent.title).toBe("Article with Note");
-      // Note: The note functionality would need to be implemented in the domain model
+      expect(responseCard.note).toBeDefined();
+      expect(responseCard.note?.text).toBe("This is my note about the article");
     });
 
     it("should handle collection without description", async () => {
@@ -286,27 +330,38 @@ describe("GetCollectionPageUseCase", () => {
 
       // Create multiple URL cards for pagination testing
       for (let i = 1; i <= 5; i++) {
-        const cardResult = CardFactory.create({
-          curatorId: curatorId.value,
-          cardInput: {
-            type: CardTypeEnum.URL,
-            url: `https://example.com/article${i}`,
-            metadata: UrlMetadata.create({
-              url: `https://example.com/article${i}`,
-              title: `Article ${i}`,
-              description: `Description of article ${i}`,
-            }).unwrap(),
-          },
+        const urlMetadata = UrlMetadata.create({
+          url: `https://example.com/article${i}`,
+          title: `Article ${i}`,
+          description: `Description of article ${i}`,
+        }).unwrap();
+
+        const url = URL.create(`https://example.com/article${i}`).unwrap();
+        const cardType = CardType.create(CardTypeEnum.URL).unwrap();
+        const cardContent = CardContent.createUrlContent(url, urlMetadata).unwrap();
+
+        const cardResult = Card.create({
+          type: cardType,
+          content: cardContent,
+          url: url,
+          libraryMemberships: [],
+          libraryCount: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         });
-        expect(cardResult.isOk()).toBe(true);
-        const card = cardResult.unwrap();
+
+        if (cardResult.isErr()) {
+          throw cardResult.error;
+        }
+
+        const card = cardResult.value;
         await cardRepo.save(card);
 
-        cardQueryRepo.addCardToCollection(
-          collectionId.getStringValue(),
-          card.cardId.getStringValue()
-        );
+        // Add card to collection
+        collection.addCard(card.cardId, curatorId);
       }
+
+      await collectionRepo.save(collection);
     });
 
     it("should handle pagination correctly", async () => {
@@ -394,69 +449,89 @@ describe("GetCollectionPageUseCase", () => {
       // Create URL cards with different properties for sorting
       const now = new Date();
 
-      const card1: CollectionCardQueryResultDTO = {
-        id: new UniqueEntityID().toString(),
-        type: CardTypeEnum.URL,
+      // Create Alpha card
+      const alphaMetadata = UrlMetadata.create({
         url: "https://example.com/alpha",
-        cardContent: {
-          url: "https://example.com/alpha",
-          title: "Alpha Article",
-        },
+        title: "Alpha Article",
+      }).unwrap();
+
+      const alphaUrl = URL.create("https://example.com/alpha").unwrap();
+      const alphaCardType = CardType.create(CardTypeEnum.URL).unwrap();
+      const alphaCardContent = CardContent.createUrlContent(alphaUrl, alphaMetadata).unwrap();
+
+      const alphaCardResult = Card.create({
+        type: alphaCardType,
+        content: alphaCardContent,
+        url: alphaUrl,
+        libraryMemberships: [],
         libraryCount: 1,
         createdAt: new Date(now.getTime() - 2000),
         updatedAt: new Date(now.getTime() - 1000),
-      };
+      });
 
-      const card2: CollectionCardQueryResultDTO = {
-        id: new UniqueEntityID().toString(),
-        type: CardTypeEnum.URL,
+      if (alphaCardResult.isErr()) {
+        throw alphaCardResult.error;
+      }
+
+      await cardRepo.save(alphaCardResult.value);
+
+      // Create Beta card
+      const betaMetadata = UrlMetadata.create({
         url: "https://example.com/beta",
-        cardContent: {
-          url: "https://example.com/beta",
-          title: "Beta Article",
-        },
+        title: "Beta Article",
+      }).unwrap();
+
+      const betaUrl = URL.create("https://example.com/beta").unwrap();
+      const betaCardType = CardType.create(CardTypeEnum.URL).unwrap();
+      const betaCardContent = CardContent.createUrlContent(betaUrl, betaMetadata).unwrap();
+
+      const betaCardResult = Card.create({
+        type: betaCardType,
+        content: betaCardContent,
+        url: betaUrl,
+        libraryMemberships: [],
         libraryCount: 3,
         createdAt: new Date(now.getTime() - 1000),
         updatedAt: new Date(now.getTime() - 2000),
-      };
+      });
 
-      const card3: CollectionCardQueryResultDTO = {
-        id: new UniqueEntityID().toString(),
-        type: CardTypeEnum.URL,
+      if (betaCardResult.isErr()) {
+        throw betaCardResult.error;
+      }
+
+      await cardRepo.save(betaCardResult.value);
+
+      // Create Gamma card
+      const gammaMetadata = UrlMetadata.create({
         url: "https://example.com/gamma",
-        cardContent: {
-          url: "https://example.com/gamma",
-          title: "Gamma Article",
-        },
+        title: "Gamma Article",
+      }).unwrap();
+
+      const gammaUrl = URL.create("https://example.com/gamma").unwrap();
+      const gammaCardType = CardType.create(CardTypeEnum.URL).unwrap();
+      const gammaCardContent = CardContent.createUrlContent(gammaUrl, gammaMetadata).unwrap();
+
+      const gammaCardResult = Card.create({
+        type: gammaCardType,
+        content: gammaCardContent,
+        url: gammaUrl,
+        libraryMemberships: [],
         libraryCount: 2,
         createdAt: new Date(now.getTime()),
         updatedAt: new Date(now.getTime()),
-      };
+      });
 
-      cardQueryRepo.addUrlCard({
-        ...card1,
-        collections: [],
-      });
-      cardQueryRepo.addUrlCard({
-        ...card2,
-        collections: [],
-      });
-      cardQueryRepo.addUrlCard({
-        ...card3,
-        collections: [],
-      });
-      cardQueryRepo.addCardToCollection(
-        collectionId.getStringValue(),
-        card1.id
-      );
-      cardQueryRepo.addCardToCollection(
-        collectionId.getStringValue(),
-        card2.id
-      );
-      cardQueryRepo.addCardToCollection(
-        collectionId.getStringValue(),
-        card3.id
-      );
+      if (gammaCardResult.isErr()) {
+        throw gammaCardResult.error;
+      }
+
+      await cardRepo.save(gammaCardResult.value);
+
+      // Add all cards to collection
+      collection.addCard(alphaCardResult.value.cardId, curatorId);
+      collection.addCard(betaCardResult.value.cardId, curatorId);
+      collection.addCard(gammaCardResult.value.cardId, curatorId);
+      await collectionRepo.save(collection);
     });
 
     it("should sort by library count descending", async () => {
@@ -702,26 +777,31 @@ describe("GetCollectionPageUseCase", () => {
 
       await collectionRepo.save(collection);
 
-      const urlCard: CollectionCardQueryResultDTO = {
-        id: new UniqueEntityID().toString(),
-        type: CardTypeEnum.URL,
-        url: "https://example.com/minimal",
-        cardContent: {
-          url: "https://example.com/minimal",
-        }, // Minimal metadata
+      // Create URL card with minimal metadata
+      const url = URL.create("https://example.com/minimal").unwrap();
+      const cardType = CardType.create(CardTypeEnum.URL).unwrap();
+      const cardContent = CardContent.createUrlContent(url).unwrap();
+
+      const cardResult = Card.create({
+        type: cardType,
+        content: cardContent,
+        url: url,
+        libraryMemberships: [],
         libraryCount: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
-      };
-
-      cardQueryRepo.addUrlCard({
-        ...urlCard,
-        collections: [],
       });
-      cardQueryRepo.addCardToCollection(
-        collectionId.getStringValue(),
-        urlCard.id
-      );
+
+      if (cardResult.isErr()) {
+        throw cardResult.error;
+      }
+
+      const card = cardResult.value;
+      await cardRepo.save(card);
+
+      // Add card to collection
+      collection.addCard(card.cardId, curatorId);
+      await collectionRepo.save(collection);
 
       const query = {
         collectionId: collectionId.getStringValue(),
@@ -754,27 +834,36 @@ describe("GetCollectionPageUseCase", () => {
 
       await collectionRepo.save(collection);
 
-      const urlCard: CollectionCardQueryResultDTO = {
-        id: new UniqueEntityID().toString(),
-        type: CardTypeEnum.URL,
+      // Create URL card with high library count
+      const urlMetadata = UrlMetadata.create({
         url: "https://example.com/popular",
-        cardContent: {
-          url: "https://example.com/popular",
-          title: "Very Popular Article",
-        },
+        title: "Very Popular Article",
+      }).unwrap();
+
+      const url = URL.create("https://example.com/popular").unwrap();
+      const cardType = CardType.create(CardTypeEnum.URL).unwrap();
+      const cardContent = CardContent.createUrlContent(url, urlMetadata).unwrap();
+
+      const cardResult = Card.create({
+        type: cardType,
+        content: cardContent,
+        url: url,
+        libraryMemberships: [],
         libraryCount: 9999,
         createdAt: new Date(),
         updatedAt: new Date(),
-      };
-
-      cardQueryRepo.addUrlCard({
-        ...urlCard,
-        collections: [],
       });
-      cardQueryRepo.addCardToCollection(
-        collectionId.getStringValue(),
-        urlCard.id
-      );
+
+      if (cardResult.isErr()) {
+        throw cardResult.error;
+      }
+
+      const card = cardResult.value;
+      await cardRepo.save(card);
+
+      // Add card to collection
+      collection.addCard(card.cardId, curatorId);
+      await collectionRepo.save(collection);
 
       const query = {
         collectionId: collectionId.getStringValue(),

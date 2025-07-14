@@ -11,6 +11,7 @@ import { CardContent } from "../../domain/value-objects/CardContent";
 import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
 import { URL } from "../../domain/value-objects/URL";
 import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
+import { Collection, CollectionAccessType } from "../../domain/Collection";
 
 describe("GetUrlCardViewUseCase", () => {
   let useCase: GetUrlCardViewUseCase;
@@ -72,21 +73,27 @@ describe("GetUrlCardViewUseCase", () => {
       // Create URL and card content
       const url = URL.create("https://example.com/article1").unwrap();
       const cardType = CardType.create(CardTypeEnum.URL).unwrap();
-      const cardContent = CardContent.createUrlContent(url, urlMetadata).unwrap();
+      const cardContent = CardContent.createUrlContent(
+        url,
+        urlMetadata
+      ).unwrap();
 
       // Create card with library memberships
-      const cardResult = Card.create({
-        type: cardType,
-        content: cardContent,
-        url: url,
-        libraryMemberships: [
-          { curatorId: curatorId, addedAt: new Date("2023-01-01") },
-          { curatorId: otherCuratorId, addedAt: new Date("2023-01-01") },
-        ],
-        libraryCount: 2,
-        createdAt: new Date("2023-01-01"),
-        updatedAt: new Date("2023-01-01"),
-      }, new UniqueEntityID(cardId));
+      const cardResult = Card.create(
+        {
+          type: cardType,
+          content: cardContent,
+          url: url,
+          libraryMemberships: [
+            { curatorId: curatorId, addedAt: new Date("2023-01-01") },
+            { curatorId: otherCuratorId, addedAt: new Date("2023-01-01") },
+          ],
+          libraryCount: 2,
+          createdAt: new Date("2023-01-01"),
+          updatedAt: new Date("2023-01-01"),
+        },
+        new UniqueEntityID(cardId)
+      );
 
       if (cardResult.isErr()) {
         throw cardResult.error;
@@ -94,6 +101,34 @@ describe("GetUrlCardViewUseCase", () => {
 
       const card = cardResult.value;
       await cardRepo.save(card);
+
+      // now create a note card that references this URL card
+      const noteCardResult = Card.create({
+        type: CardType.create(CardTypeEnum.NOTE).unwrap(),
+        content: CardContent.createNoteContent(
+          "This is my note about the article"
+        ).unwrap(),
+        parentCardId: card.cardId,
+        url: url,
+      });
+
+      const noteCard = noteCardResult.unwrap();
+      await cardRepo.save(noteCard);
+
+      const collectionResult = Collection.create({
+        name: "Reading List",
+        authorId: curatorId,
+        accessType: CollectionAccessType.CLOSED,
+        createdAt: new Date("2023-01-01"),
+        updatedAt: new Date("2023-01-01"),
+        collaboratorIds: [],
+      });
+      if (collectionResult.isErr()) {
+        throw collectionResult.error;
+      }
+      const collection = collectionResult.value;
+      collection.addCard(card.cardId, curatorId);
+      await collectionRepo.save(collection);
 
       const query = {
         cardId: cardId,
@@ -160,18 +195,24 @@ describe("GetUrlCardViewUseCase", () => {
       // Create URL and card content
       const url = URL.create("https://example.com/lonely-article").unwrap();
       const cardType = CardType.create(CardTypeEnum.URL).unwrap();
-      const cardContent = CardContent.createUrlContent(url, urlMetadata).unwrap();
+      const cardContent = CardContent.createUrlContent(
+        url,
+        urlMetadata
+      ).unwrap();
 
       // Create card with no library memberships
-      const cardResult = Card.create({
-        type: cardType,
-        content: cardContent,
-        url: url,
-        libraryMemberships: [],
-        libraryCount: 0,
-        createdAt: new Date("2023-01-01"),
-        updatedAt: new Date("2023-01-01"),
-      }, new UniqueEntityID(cardId));
+      const cardResult = Card.create(
+        {
+          type: cardType,
+          content: cardContent,
+          url: url,
+          libraryMemberships: [],
+          libraryCount: 0,
+          createdAt: new Date("2023-01-01"),
+          updatedAt: new Date("2023-01-01"),
+        },
+        new UniqueEntityID(cardId)
+      );
 
       if (cardResult.isErr()) {
         throw cardResult.error;
@@ -200,17 +241,18 @@ describe("GetUrlCardViewUseCase", () => {
       const cardContent = CardContent.createUrlContent(url).unwrap();
 
       // Create card with minimal data
-      const cardResult = Card.create({
-        type: cardType,
-        content: cardContent,
-        url: url,
-        libraryMemberships: [
-          { curatorId: curatorId, addedAt: new Date() },
-        ],
-        libraryCount: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, new UniqueEntityID(cardId));
+      const cardResult = Card.create(
+        {
+          type: cardType,
+          content: cardContent,
+          url: url,
+          libraryMemberships: [{ curatorId: curatorId, addedAt: new Date() }],
+          libraryCount: 1,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID(cardId)
+      );
 
       if (cardResult.isErr()) {
         throw cardResult.error;
@@ -253,20 +295,26 @@ describe("GetUrlCardViewUseCase", () => {
       // Create URL and card content
       const url = URL.create("https://example.com/test").unwrap();
       const cardType = CardType.create(CardTypeEnum.URL).unwrap();
-      const cardContent = CardContent.createUrlContent(url, urlMetadata).unwrap();
+      const cardContent = CardContent.createUrlContent(
+        url,
+        urlMetadata
+      ).unwrap();
 
       // Create card
-      const cardResult = Card.create({
-        type: cardType,
-        content: cardContent,
-        url: url,
-        libraryMemberships: [
-          { curatorId: minimalCuratorId, addedAt: new Date() },
-        ],
-        libraryCount: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, new UniqueEntityID(cardId));
+      const cardResult = Card.create(
+        {
+          type: cardType,
+          content: cardContent,
+          url: url,
+          libraryMemberships: [
+            { curatorId: minimalCuratorId, addedAt: new Date() },
+          ],
+          libraryCount: 1,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID(cardId)
+      );
 
       if (cardResult.isErr()) {
         throw cardResult.error;
@@ -329,20 +377,24 @@ describe("GetUrlCardViewUseCase", () => {
       // Create URL and card content
       const url = URL.create("https://example.com/test").unwrap();
       const cardType = CardType.create(CardTypeEnum.URL).unwrap();
-      const cardContent = CardContent.createUrlContent(url, urlMetadata).unwrap();
+      const cardContent = CardContent.createUrlContent(
+        url,
+        urlMetadata
+      ).unwrap();
 
       // Create card
-      const cardResult = Card.create({
-        type: cardType,
-        content: cardContent,
-        url: url,
-        libraryMemberships: [
-          { curatorId: curatorId, addedAt: new Date() },
-        ],
-        libraryCount: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, new UniqueEntityID(cardId));
+      const cardResult = Card.create(
+        {
+          type: cardType,
+          content: cardContent,
+          url: url,
+          libraryMemberships: [{ curatorId: curatorId, addedAt: new Date() }],
+          libraryCount: 1,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID(cardId)
+      );
 
       if (cardResult.isErr()) {
         throw cardResult.error;
@@ -379,20 +431,26 @@ describe("GetUrlCardViewUseCase", () => {
       // Create URL and card content
       const url = URL.create("https://example.com/test").unwrap();
       const cardType = CardType.create(CardTypeEnum.URL).unwrap();
-      const cardContent = CardContent.createUrlContent(url, urlMetadata).unwrap();
+      const cardContent = CardContent.createUrlContent(
+        url,
+        urlMetadata
+      ).unwrap();
 
       // Create card with unknown user in library
-      const cardResult = Card.create({
-        type: cardType,
-        content: cardContent,
-        url: url,
-        libraryMemberships: [
-          { curatorId: unknownCuratorId, addedAt: new Date() },
-        ],
-        libraryCount: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, new UniqueEntityID(cardId));
+      const cardResult = Card.create(
+        {
+          type: cardType,
+          content: cardContent,
+          url: url,
+          libraryMemberships: [
+            { curatorId: unknownCuratorId, addedAt: new Date() },
+          ],
+          libraryCount: 1,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID(cardId)
+      );
 
       if (cardResult.isErr()) {
         throw cardResult.error;
@@ -469,21 +527,27 @@ describe("GetUrlCardViewUseCase", () => {
       // Create URL and card content
       const url = URL.create("https://example.com/popular-article").unwrap();
       const cardType = CardType.create(CardTypeEnum.URL).unwrap();
-      const cardContent = CardContent.createUrlContent(url, urlMetadata).unwrap();
+      const cardContent = CardContent.createUrlContent(
+        url,
+        urlMetadata
+      ).unwrap();
 
       // Create card with multiple library memberships
-      const cardResult = Card.create({
-        type: cardType,
-        content: cardContent,
-        url: url,
-        libraryMemberships: curatorIds.map(curatorId => ({
-          curatorId: curatorId,
-          addedAt: new Date(),
-        })),
-        libraryCount: 5,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, new UniqueEntityID(cardId));
+      const cardResult = Card.create(
+        {
+          type: cardType,
+          content: cardContent,
+          url: url,
+          libraryMemberships: curatorIds.map((curatorId) => ({
+            curatorId: curatorId,
+            addedAt: new Date(),
+          })),
+          libraryCount: 5,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID(cardId)
+      );
 
       if (cardResult.isErr()) {
         throw cardResult.error;
@@ -524,20 +588,24 @@ describe("GetUrlCardViewUseCase", () => {
       // Create URL and card content
       const url = URL.create("https://example.com/well-organized").unwrap();
       const cardType = CardType.create(CardTypeEnum.URL).unwrap();
-      const cardContent = CardContent.createUrlContent(url, urlMetadata).unwrap();
+      const cardContent = CardContent.createUrlContent(
+        url,
+        urlMetadata
+      ).unwrap();
 
       // Create card
-      const cardResult = Card.create({
-        type: cardType,
-        content: cardContent,
-        url: url,
-        libraryMemberships: [
-          { curatorId: curatorId, addedAt: new Date() },
-        ],
-        libraryCount: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, new UniqueEntityID(cardId));
+      const cardResult = Card.create(
+        {
+          type: cardType,
+          content: cardContent,
+          url: url,
+          libraryMemberships: [{ curatorId: curatorId, addedAt: new Date() }],
+          libraryCount: 1,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID(cardId)
+      );
 
       if (cardResult.isErr()) {
         throw cardResult.error;
@@ -573,20 +641,24 @@ describe("GetUrlCardViewUseCase", () => {
       // Create URL and card content
       const url = URL.create("https://example.com/viral").unwrap();
       const cardType = CardType.create(CardTypeEnum.URL).unwrap();
-      const cardContent = CardContent.createUrlContent(url, urlMetadata).unwrap();
+      const cardContent = CardContent.createUrlContent(
+        url,
+        urlMetadata
+      ).unwrap();
 
       // Create card with high library count
-      const cardResult = Card.create({
-        type: cardType,
-        content: cardContent,
-        url: url,
-        libraryMemberships: [
-          { curatorId: curatorId, addedAt: new Date() },
-        ],
-        libraryCount: 9999, // High count but only one actual membership for testing
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, new UniqueEntityID(cardId));
+      const cardResult = Card.create(
+        {
+          type: cardType,
+          content: cardContent,
+          url: url,
+          libraryMemberships: [{ curatorId: curatorId, addedAt: new Date() }],
+          libraryCount: 9999, // High count but only one actual membership for testing
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID(cardId)
+      );
 
       if (cardResult.isErr()) {
         throw cardResult.error;

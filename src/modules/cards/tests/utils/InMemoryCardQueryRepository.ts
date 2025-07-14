@@ -13,7 +13,6 @@ import { InMemoryCardRepository } from "./InMemoryCardRepository";
 import { Card } from "../../domain/Card";
 
 export class InMemoryCardQueryRepository implements ICardQueryRepository {
-  private userLibraries: Map<string, Set<string>> = new Map(); // userId -> Set of cardIds
   private collectionCards: Map<string, Set<string>> = new Map(); // collectionId -> Set of cardIds
 
   constructor(private cardRepository: InMemoryCardRepository) {}
@@ -23,14 +22,10 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     options: CardQueryOptions
   ): Promise<PaginatedQueryResult<UrlCardQueryResultDTO>> {
     try {
-      // Get cards in user's library
-      const userCardIds = this.userLibraries.get(userId) || new Set();
+      // Get all cards and filter by user's library membership
       const allCards = this.cardRepository.getAllCards();
       const userCards = allCards
-        .filter(
-          (card) =>
-            userCardIds.has(card.cardId.getStringValue()) && card.isUrlCard
-        )
+        .filter((card) => card.isUrlCard && card.isInLibrary({ value: userId } as any))
         .map((card) => this.cardToUrlCardQueryResult(card));
 
       // Sort cards
@@ -123,25 +118,8 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   }
 
   private getLibraryCountForCard(cardId: string): number {
-    let count = 0;
-    for (const cardIds of this.userLibraries.values()) {
-      if (cardIds.has(cardId)) {
-        count++;
-      }
-    }
-    return count;
-  }
-
-  // Test helper methods
-  addCardToUserLibrary(userId: string, cardId: string): void {
-    if (!this.userLibraries.has(userId)) {
-      this.userLibraries.set(userId, new Set());
-    }
-    this.userLibraries.get(userId)!.add(cardId);
-  }
-
-  getUserLibrary(userId: string): string[] {
-    return Array.from(this.userLibraries.get(userId) || new Set());
+    const card = this.cardRepository.getStoredCard({ getStringValue: () => cardId } as any);
+    return card ? card.libraryMembershipCount : 0;
   }
 
   async getCardsInCollection(
@@ -251,13 +229,10 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
     const urlCardResult = this.cardToUrlCardQueryResult(card);
 
-    // Find which users have this card in their library
-    const libraries: { userId: string }[] = [];
-    for (const [userId, cardIds] of this.userLibraries.entries()) {
-      if (cardIds.has(cardId)) {
-        libraries.push({ userId });
-      }
-    }
+    // Get library memberships from the card itself
+    const libraries = card.libraryMemberships.map((membership) => ({
+      userId: membership.curatorId.value,
+    }));
 
     return {
       ...urlCardResult,
@@ -266,21 +241,17 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   }
 
   async getLibrariesForCard(cardId: string): Promise<string[]> {
-    const userIds: string[] = [];
-
-    // Find all users who have this card in their library
-    for (const [userId, cardIds] of this.userLibraries.entries()) {
-      if (cardIds.has(cardId)) {
-        userIds.push(userId);
-      }
+    const allCards = this.cardRepository.getAllCards();
+    const card = allCards.find((c) => c.cardId.getStringValue() === cardId);
+    
+    if (!card) {
+      return [];
     }
 
-    return userIds;
+    return card.libraryMemberships.map((membership) => membership.curatorId.value);
   }
 
   clear(): void {
-    this.cardRepository.clear();
-    this.userLibraries.clear();
     this.collectionCards.clear();
   }
 }

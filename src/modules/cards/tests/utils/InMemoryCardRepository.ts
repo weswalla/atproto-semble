@@ -44,17 +44,6 @@ export class InMemoryCardRepository implements ICardRepository {
     }
   }
 
-  async findByParentCardId(parentCardId: CardId): Promise<Result<Card[]>> {
-    try {
-      const cards = Array.from(this.cards.values()).filter(
-        (card) =>
-          card.parentCardId?.getStringValue() === parentCardId.getStringValue()
-      );
-      return ok(cards.map((card) => this.clone(card)));
-    } catch (error) {
-      return err(error as Error);
-    }
-  }
 
   async findUrlCardByUrl(url: URL): Promise<Result<Card | null>> {
     try {

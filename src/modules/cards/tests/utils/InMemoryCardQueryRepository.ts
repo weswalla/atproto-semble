@@ -102,6 +102,18 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       }
     }
 
+    // Find note cards with matching URL
+    const allCards = this.cardRepository.getAllCards();
+    const noteCard = allCards.find((c) => 
+      c.type.value === "NOTE" && 
+      c.url?.value === card.url?.value
+    );
+
+    const note = noteCard ? {
+      id: noteCard.cardId.getStringValue(),
+      text: noteCard.content.noteContent?.text || "",
+    } : undefined;
+
     return {
       id: card.cardId.getStringValue(),
       type: CardTypeEnum.URL,
@@ -117,6 +129,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,
       collections,
+      note,
     };
   }
 
@@ -245,9 +258,21 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       userId: membership.curatorId.value,
     }));
 
+    // Find note cards with matching URL
+    const noteCard = allCards.find((c) => 
+      c.type.value === "NOTE" && 
+      c.url?.value === card.url?.value
+    );
+
+    const note = noteCard ? {
+      id: noteCard.cardId.getStringValue(),
+      text: noteCard.content.noteContent?.text || "",
+    } : undefined;
+
     return {
       ...urlCardResult,
       libraries,
+      note,
     };
   }
 

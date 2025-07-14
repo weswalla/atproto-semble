@@ -614,8 +614,27 @@ describe("GetUrlCardViewUseCase", () => {
       const card = cardResult.value;
       await cardRepo.save(card);
 
-      // Note: Collection testing would require creating actual Collection domain objects
-      // and saving them to the collection repository. This is simplified for now.
+      // Create multiple collections and add the card to them
+      const collectionNames = ["Reading List", "Favorites", "Tech Articles"];
+      
+      for (const collectionName of collectionNames) {
+        const collectionResult = Collection.create({
+          name: collectionName,
+          authorId: curatorId,
+          accessType: CollectionAccessType.CLOSED,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          collaboratorIds: [],
+        });
+        
+        if (collectionResult.isErr()) {
+          throw collectionResult.error;
+        }
+        
+        const collection = collectionResult.value;
+        collection.addCard(card.cardId, curatorId);
+        await collectionRepo.save(collection);
+      }
 
       const query = {
         cardId: cardId,
@@ -626,9 +645,14 @@ describe("GetUrlCardViewUseCase", () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.collections).toHaveLength(3);
-      expect(response.collections[0]?.name).toBe("Collection 1");
-      expect(response.collections[1]?.name).toBe("Collection 2");
-      expect(response.collections[2]?.name).toBe("Collection 3");
+      
+      const collectionNamesInResponse = response.collections.map(c => c.name).sort();
+      expect(collectionNamesInResponse).toEqual(["Favorites", "Reading List", "Tech Articles"]);
+      
+      // Verify all collections have the correct author
+      response.collections.forEach(collection => {
+        expect(collection.authorId).toBe(curatorId.value);
+      });
     });
 
     it("should handle card with high library count", async () => {

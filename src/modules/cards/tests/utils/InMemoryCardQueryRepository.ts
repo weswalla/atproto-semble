@@ -27,7 +27,10 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       const userCardIds = this.userLibraries.get(userId) || new Set();
       const allCards = this.cardRepository.getAllCards();
       const userCards = allCards
-        .filter((card) => userCardIds.has(card.cardId.getStringValue()) && card.isUrlCard)
+        .filter(
+          (card) =>
+            userCardIds.has(card.cardId.getStringValue()) && card.isUrlCard
+        )
         .map((card) => this.cardToUrlCardQueryResult(card));
 
       // Sort cards
@@ -115,12 +118,6 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       libraryCount: this.getLibraryCountForCard(card.cardId.getStringValue()),
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,
-      note: card.content.urlContent.note
-        ? {
-            id: "note-id", // In a real implementation, notes would have proper IDs
-            text: card.content.urlContent.note,
-          }
-        : undefined,
       collections,
     };
   }
@@ -157,8 +154,14 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         this.collectionCards.get(collectionId) || new Set();
       const allCards = this.cardRepository.getAllCards();
       const collectionCards = allCards
-        .filter((card) => collectionCardIds.has(card.cardId.getStringValue()) && card.isUrlCard)
-        .map((card) => this.toCollectionCardQueryResult(this.cardToUrlCardQueryResult(card)));
+        .filter(
+          (card) =>
+            collectionCardIds.has(card.cardId.getStringValue()) &&
+            card.isUrlCard
+        )
+        .map((card) =>
+          this.toCollectionCardQueryResult(this.cardToUrlCardQueryResult(card))
+        );
 
       // Sort cards
       const sortedCards = this.sortCollectionCards(
@@ -264,14 +267,14 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
   async getLibrariesForCard(cardId: string): Promise<string[]> {
     const userIds: string[] = [];
-    
+
     // Find all users who have this card in their library
     for (const [userId, cardIds] of this.userLibraries.entries()) {
       if (cardIds.has(cardId)) {
         userIds.push(userId);
       }
     }
-    
+
     return userIds;
   }
 

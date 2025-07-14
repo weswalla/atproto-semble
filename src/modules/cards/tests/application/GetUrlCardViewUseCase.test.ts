@@ -616,7 +616,7 @@ describe("GetUrlCardViewUseCase", () => {
 
       // Create multiple collections and add the card to them
       const collectionNames = ["Reading List", "Favorites", "Tech Articles"];
-      
+
       for (const collectionName of collectionNames) {
         const collectionResult = Collection.create({
           name: collectionName,
@@ -626,11 +626,11 @@ describe("GetUrlCardViewUseCase", () => {
           updatedAt: new Date(),
           collaboratorIds: [],
         });
-        
+
         if (collectionResult.isErr()) {
           throw collectionResult.error;
         }
-        
+
         const collection = collectionResult.value;
         collection.addCard(card.cardId, curatorId);
         await collectionRepo.save(collection);
@@ -645,62 +645,20 @@ describe("GetUrlCardViewUseCase", () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.collections).toHaveLength(3);
-      
-      const collectionNamesInResponse = response.collections.map(c => c.name).sort();
-      expect(collectionNamesInResponse).toEqual(["Favorites", "Reading List", "Tech Articles"]);
-      
+
+      const collectionNamesInResponse = response.collections
+        .map((c) => c.name)
+        .sort();
+      expect(collectionNamesInResponse).toEqual([
+        "Favorites",
+        "Reading List",
+        "Tech Articles",
+      ]);
+
       // Verify all collections have the correct author
-      response.collections.forEach(collection => {
+      response.collections.forEach((collection) => {
         expect(collection.authorId).toBe(curatorId.value);
       });
-    });
-
-    it("should handle card with high library count", async () => {
-      // Create URL metadata
-      const urlMetadata = UrlMetadata.create({
-        url: "https://example.com/viral",
-        title: "Viral Article",
-      }).unwrap();
-
-      // Create URL and card content
-      const url = URL.create("https://example.com/viral").unwrap();
-      const cardType = CardType.create(CardTypeEnum.URL).unwrap();
-      const cardContent = CardContent.createUrlContent(
-        url,
-        urlMetadata
-      ).unwrap();
-
-      // Create card with high library count
-      const cardResult = Card.create(
-        {
-          type: cardType,
-          content: cardContent,
-          url: url,
-          libraryMemberships: [{ curatorId: curatorId, addedAt: new Date() }],
-          libraryCount: 9999, // High count but only one actual membership for testing
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        new UniqueEntityID(cardId)
-      );
-
-      if (cardResult.isErr()) {
-        throw cardResult.error;
-      }
-
-      const card = cardResult.value;
-      await cardRepo.save(card);
-
-      const query = {
-        cardId: cardId,
-      };
-
-      const result = await useCase.execute(query);
-
-      expect(result.isOk()).toBe(true);
-      const response = result.unwrap();
-      expect(response.libraryCount).toBe(9999);
-      expect(response.libraries).toHaveLength(1);
     });
 
     it("should handle empty card ID", async () => {

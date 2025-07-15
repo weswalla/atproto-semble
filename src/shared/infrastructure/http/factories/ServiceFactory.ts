@@ -21,6 +21,9 @@ import { Repositories } from "./RepositoryFactory";
 import { NodeOAuthClient } from "@atproto/oauth-client-node";
 import { AppPasswordSessionService } from "src/modules/atproto/infrastructure/services/AppPasswordSessionService";
 import { AtpAppPasswordProcessor } from "src/modules/atproto/infrastructure/services/AtpAppPasswordProcessor";
+import { ICollectionPublisher } from "src/modules/cards/application/ports/ICollectionPublisher";
+import { ICardPublisher } from "src/modules/cards/application/ports/ICardPublisher";
+import { IMetadataService } from "src/modules/cards/domain/services/IMetadataService";
 
 export interface Services {
   tokenService: JwtTokenService;
@@ -29,10 +32,10 @@ export interface Services {
   appPasswordProcessor: AtpAppPasswordProcessor;
   userAuthService: UserAuthenticationService;
   atProtoAgentService: ATProtoAgentService;
-  metadataService: IFramelyMetadataService;
+  metadataService: IMetadataService;
   profileService: BlueskyProfileService;
-  collectionPublisher: ATProtoCollectionPublisher | FakeCollectionPublisher;
-  cardPublisher: ATProtoCardPublisher | FakeCardPublisher;
+  collectionPublisher: ICollectionPublisher;
+  cardPublisher: ICardPublisher;
   cardLibraryService: CardLibraryService;
   cardCollectionService: CardCollectionService;
   authMiddleware: AuthMiddleware;
@@ -80,13 +83,13 @@ export class ServiceFactory {
       configService.getIFramelyApiKey()
     );
     const profileService = new BlueskyProfileService(atProtoAgentService);
-    
-    const useFakePublishers = process.env.USE_FAKE_PUBLISHERS === 'true';
-    
+
+    const useFakePublishers = process.env.USE_FAKE_PUBLISHERS === "true";
+
     const collectionPublisher = useFakePublishers
       ? new FakeCollectionPublisher()
       : new ATProtoCollectionPublisher(atProtoAgentService);
-    
+
     const cardPublisher = useFakePublishers
       ? new FakeCardPublisher()
       : new ATProtoCardPublisher(atProtoAgentService);

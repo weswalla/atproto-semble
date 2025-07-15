@@ -11,27 +11,39 @@ import { InMemoryCardRepository } from "../../../../modules/cards/tests/utils/In
 import { InMemoryCardQueryRepository } from "../../../../modules/cards/tests/utils/InMemoryCardQueryRepository";
 import { InMemoryCollectionRepository } from "../../../../modules/cards/tests/utils/InMemoryCollectionRepository";
 import { InMemoryCollectionQueryRepository } from "../../../../modules/cards/tests/utils/InMemoryCollectionQueryRepository";
+import { ICardRepository } from "src/modules/cards/domain/ICardRepository";
+import { ICardQueryRepository } from "src/modules/cards/domain/ICardQueryRepository";
+import { ICollectionRepository } from "src/modules/cards/domain/ICollectionRepository";
+import { ICollectionQueryRepository } from "src/modules/cards/domain/ICollectionQueryRepository";
+import { IUserRepository } from "src/modules/user/domain/repositories/IUserRepository";
+import { ITokenRepository } from "src/modules/user/domain/repositories/ITokenRepository";
+import { IAppPasswordSessionRepository } from "src/modules/atproto/infrastructure/repositories/IAppPasswordSessionRepository";
 
 export interface Repositories {
-  userRepository: DrizzleUserRepository;
-  tokenRepository: DrizzleTokenRepository;
-  cardRepository: DrizzleCardRepository | InMemoryCardRepository;
-  cardQueryRepository: DrizzleCardQueryRepository | InMemoryCardQueryRepository;
-  collectionRepository: DrizzleCollectionRepository | InMemoryCollectionRepository;
-  collectionQueryRepository: DrizzleCollectionQueryRepository | InMemoryCollectionQueryRepository;
-  appPasswordSessionRepository: DrizzleAppPasswordSessionRepository;
+  userRepository: IUserRepository;
+  tokenRepository: ITokenRepository;
+  cardRepository: ICardRepository;
+  cardQueryRepository: ICardQueryRepository;
+  collectionRepository: ICollectionRepository;
+  collectionQueryRepository: ICollectionQueryRepository;
+  appPasswordSessionRepository: IAppPasswordSessionRepository;
 }
 
 export class RepositoryFactory {
   static create(configService: EnvironmentConfigService): Repositories {
-    const useMockRepos = process.env.USE_MOCK_REPOS === 'true';
+    const useMockRepos = process.env.USE_MOCK_REPOS === "true";
 
     if (useMockRepos) {
       // Create in-memory repositories
       const cardRepository = new InMemoryCardRepository();
       const collectionRepository = new InMemoryCollectionRepository();
-      const cardQueryRepository = new InMemoryCardQueryRepository(cardRepository, collectionRepository);
-      const collectionQueryRepository = new InMemoryCollectionQueryRepository(collectionRepository);
+      const cardQueryRepository = new InMemoryCardQueryRepository(
+        cardRepository,
+        collectionRepository
+      );
+      const collectionQueryRepository = new InMemoryCollectionQueryRepository(
+        collectionRepository
+      );
 
       const db = DatabaseFactory.createConnection(
         configService.getDatabaseConfig()
@@ -44,7 +56,9 @@ export class RepositoryFactory {
         cardQueryRepository,
         collectionRepository,
         collectionQueryRepository,
-        appPasswordSessionRepository: new DrizzleAppPasswordSessionRepository(db),
+        appPasswordSessionRepository: new DrizzleAppPasswordSessionRepository(
+          db
+        ),
       };
     }
 

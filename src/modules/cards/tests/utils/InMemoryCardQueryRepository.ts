@@ -13,6 +13,7 @@ import { InMemoryCardRepository } from "./InMemoryCardRepository";
 import { InMemoryCollectionRepository } from "./InMemoryCollectionRepository";
 import { Card } from "../../domain/Card";
 import { CollectionId } from "../../domain/value-objects/CollectionId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 
 export class InMemoryCardQueryRepository implements ICardQueryRepository {
   constructor(
@@ -28,7 +29,11 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       // Get all cards and filter by user's library membership
       const allCards = this.cardRepository.getAllCards();
       const userCards = allCards
-        .filter((card) => card.isUrlCard && card.isInLibrary({ value: userId } as any))
+        .filter(
+          (card) =>
+            card.isUrlCard &&
+            card.isInLibrary(CuratorId.create(userId).unwrap())
+        )
         .map((card) => this.cardToUrlCardQueryResult(card));
 
       // Sort cards
@@ -91,9 +96,13 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     // Find collections this card belongs to by querying the collection repository
     const allCollections = this.collectionRepository.getAllCollections();
     const collections: { id: string; name: string; authorId: string }[] = [];
-    
+
     for (const collection of allCollections) {
-      if (collection.cardIds.some(cardId => cardId.getStringValue() === card.cardId.getStringValue())) {
+      if (
+        collection.cardIds.some(
+          (cardId) => cardId.getStringValue() === card.cardId.getStringValue()
+        )
+      ) {
         collections.push({
           id: collection.collectionId.getStringValue(),
           name: collection.name.value,
@@ -104,15 +113,16 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
     // Find note cards with matching URL
     const allCards = this.cardRepository.getAllCards();
-    const noteCard = allCards.find((c) => 
-      c.type.value === "NOTE" && 
-      c.url?.value === card.url?.value
+    const noteCard = allCards.find(
+      (c) => c.type.value === "NOTE" && c.url?.value === card.url?.value
     );
 
-    const note = noteCard ? {
-      id: noteCard.cardId.getStringValue(),
-      text: noteCard.content.noteContent?.text || "",
-    } : undefined;
+    const note = noteCard
+      ? {
+          id: noteCard.cardId.getStringValue(),
+          text: noteCard.content.noteContent?.text || "",
+        }
+      : undefined;
 
     return {
       id: card.cardId.getStringValue(),
@@ -134,7 +144,9 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   }
 
   private getLibraryCountForCard(cardId: string): number {
-    const card = this.cardRepository.getStoredCard({ getStringValue: () => cardId } as any);
+    const card = this.cardRepository.getStoredCard({
+      getStringValue: () => cardId,
+    } as any);
     return card ? card.libraryMembershipCount : 0;
   }
 
@@ -149,7 +161,9 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         throw new Error(`Invalid collection ID: ${collectionId}`);
       }
 
-      const collectionResult = await this.collectionRepository.findById(collectionIdObj.value);
+      const collectionResult = await this.collectionRepository.findById(
+        collectionIdObj.value
+      );
       if (collectionResult.isErr()) {
         throw collectionResult.error;
       }
@@ -165,7 +179,9 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
       // Get cards that are in this collection
       const allCards = this.cardRepository.getAllCards();
-      const collectionCardIds = new Set(collection.cardIds.map(id => id.getStringValue()));
+      const collectionCardIds = new Set(
+        collection.cardIds.map((id) => id.getStringValue())
+      );
       const collectionCards = allCards
         .filter(
           (card) =>
@@ -243,7 +259,6 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     };
   }
 
-
   async getUrlCardView(cardId: string): Promise<UrlCardViewDTO | null> {
     const allCards = this.cardRepository.getAllCards();
     const card = allCards.find((c) => c.cardId.getStringValue() === cardId);
@@ -259,15 +274,16 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     }));
 
     // Find note cards with matching URL
-    const noteCard = allCards.find((c) => 
-      c.type.value === "NOTE" && 
-      c.url?.value === card.url?.value
+    const noteCard = allCards.find(
+      (c) => c.type.value === "NOTE" && c.url?.value === card.url?.value
     );
 
-    const note = noteCard ? {
-      id: noteCard.cardId.getStringValue(),
-      text: noteCard.content.noteContent?.text || "",
-    } : undefined;
+    const note = noteCard
+      ? {
+          id: noteCard.cardId.getStringValue(),
+          text: noteCard.content.noteContent?.text || "",
+        }
+      : undefined;
 
     return {
       ...urlCardResult,
@@ -279,12 +295,14 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   async getLibrariesForCard(cardId: string): Promise<string[]> {
     const allCards = this.cardRepository.getAllCards();
     const card = allCards.find((c) => c.cardId.getStringValue() === cardId);
-    
+
     if (!card) {
       return [];
     }
 
-    return card.libraryMemberships.map((membership) => membership.curatorId.value);
+    return card.libraryMemberships.map(
+      (membership) => membership.curatorId.value
+    );
   }
 
   clear(): void {

@@ -13,6 +13,7 @@ import { InMemoryCollectionRepository } from "../../../../modules/cards/tests/ut
 import { InMemoryCollectionQueryRepository } from "../../../../modules/cards/tests/utils/InMemoryCollectionQueryRepository";
 import { InMemoryUserRepository } from "../../../../modules/user/tests/infrastructure/InMemoryUserRepository";
 import { InMemoryTokenRepository } from "../../../../modules/user/tests/infrastructure/InMemoryTokenRepository";
+import { InMemoryAppPasswordSessionRepository } from "../../../../modules/atproto/tests/infrastructure/InMemoryAppPasswordSessionRepository";
 import { ICardRepository } from "src/modules/cards/domain/ICardRepository";
 import { ICardQueryRepository } from "src/modules/cards/domain/ICardQueryRepository";
 import { ICollectionRepository } from "src/modules/cards/domain/ICollectionRepository";
@@ -48,10 +49,7 @@ export class RepositoryFactory {
       const collectionQueryRepository = new InMemoryCollectionQueryRepository(
         collectionRepository
       );
-
-      const db = DatabaseFactory.createConnection(
-        configService.getDatabaseConfig()
-      );
+      const appPasswordSessionRepository = new InMemoryAppPasswordSessionRepository();
 
       return {
         userRepository,
@@ -60,9 +58,7 @@ export class RepositoryFactory {
         cardQueryRepository,
         collectionRepository,
         collectionQueryRepository,
-        appPasswordSessionRepository: new DrizzleAppPasswordSessionRepository(
-          db
-        ),
+        appPasswordSessionRepository,
       };
     }
 

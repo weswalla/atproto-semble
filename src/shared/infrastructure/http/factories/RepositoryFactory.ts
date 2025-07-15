@@ -21,6 +21,11 @@ import { ICollectionQueryRepository } from "src/modules/cards/domain/ICollection
 import { IUserRepository } from "src/modules/user/domain/repositories/IUserRepository";
 import { ITokenRepository } from "src/modules/user/domain/repositories/ITokenRepository";
 import { IAppPasswordSessionRepository } from "src/modules/atproto/infrastructure/repositories/IAppPasswordSessionRepository";
+import { DrizzleStateStore } from "../../../../modules/user/infrastructure/services/DrizzleStateStore";
+import { DrizzleSessionStore } from "../../../../modules/user/infrastructure/services/DrizzleSessionStore";
+import { InMemoryStateStore } from "../../../../modules/user/tests/infrastructure/InMemoryStateStore";
+import { InMemorySessionStore } from "../../../../modules/user/tests/infrastructure/InMemorySessionStore";
+import { NodeSavedStateStore, NodeSavedSessionStore } from "@atproto/oauth-client-node";
 
 export interface Repositories {
   userRepository: IUserRepository;
@@ -30,6 +35,8 @@ export interface Repositories {
   collectionRepository: ICollectionRepository;
   collectionQueryRepository: ICollectionQueryRepository;
   appPasswordSessionRepository: IAppPasswordSessionRepository;
+  oauthStateStore: NodeSavedStateStore;
+  oauthSessionStore: NodeSavedSessionStore;
 }
 
 export class RepositoryFactory {
@@ -50,6 +57,8 @@ export class RepositoryFactory {
         collectionRepository
       );
       const appPasswordSessionRepository = new InMemoryAppPasswordSessionRepository();
+      const oauthStateStore = new InMemoryStateStore();
+      const oauthSessionStore = new InMemorySessionStore();
 
       return {
         userRepository,
@@ -59,12 +68,17 @@ export class RepositoryFactory {
         collectionRepository,
         collectionQueryRepository,
         appPasswordSessionRepository,
+        oauthStateStore,
+        oauthSessionStore,
       };
     }
 
     const db = DatabaseFactory.createConnection(
       configService.getDatabaseConfig()
     );
+
+    const oauthStateStore = new DrizzleStateStore(db);
+    const oauthSessionStore = new DrizzleSessionStore(db);
 
     return {
       userRepository: new DrizzleUserRepository(db),
@@ -74,6 +88,8 @@ export class RepositoryFactory {
       collectionRepository: new DrizzleCollectionRepository(db),
       collectionQueryRepository: new DrizzleCollectionQueryRepository(db),
       appPasswordSessionRepository: new DrizzleAppPasswordSessionRepository(db),
+      oauthStateStore,
+      oauthSessionStore,
     };
   }
 }

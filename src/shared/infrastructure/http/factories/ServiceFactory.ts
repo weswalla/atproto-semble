@@ -53,13 +53,9 @@ export class ServiceFactory {
       jwtConfig.refreshTokenExpiresIn
     );
 
-    // Get database connection for OAuth client
-    const db = DatabaseFactory.createConnection(
-      configService.getDatabaseConfig()
-    );
-
     const nodeOauthClient = OAuthClientFactory.createClient(
-      db,
+      repositories.oauthStateStore,
+      repositories.oauthSessionStore,
       oauthConfig.baseUrl
     );
 

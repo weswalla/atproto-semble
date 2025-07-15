@@ -11,6 +11,8 @@ import { InMemoryCardRepository } from "../../../../modules/cards/tests/utils/In
 import { InMemoryCardQueryRepository } from "../../../../modules/cards/tests/utils/InMemoryCardQueryRepository";
 import { InMemoryCollectionRepository } from "../../../../modules/cards/tests/utils/InMemoryCollectionRepository";
 import { InMemoryCollectionQueryRepository } from "../../../../modules/cards/tests/utils/InMemoryCollectionQueryRepository";
+import { InMemoryUserRepository } from "../../../../modules/user/tests/infrastructure/InMemoryUserRepository";
+import { InMemoryTokenRepository } from "../../../../modules/user/tests/infrastructure/InMemoryTokenRepository";
 import { ICardRepository } from "src/modules/cards/domain/ICardRepository";
 import { ICardQueryRepository } from "src/modules/cards/domain/ICardQueryRepository";
 import { ICollectionRepository } from "src/modules/cards/domain/ICollectionRepository";
@@ -35,6 +37,8 @@ export class RepositoryFactory {
 
     if (useMockRepos) {
       // Create in-memory repositories
+      const userRepository = new InMemoryUserRepository();
+      const tokenRepository = new InMemoryTokenRepository();
       const cardRepository = new InMemoryCardRepository();
       const collectionRepository = new InMemoryCollectionRepository();
       const cardQueryRepository = new InMemoryCardQueryRepository(
@@ -50,8 +54,8 @@ export class RepositoryFactory {
       );
 
       return {
-        userRepository: new DrizzleUserRepository(db),
-        tokenRepository: new DrizzleTokenRepository(db),
+        userRepository,
+        tokenRepository,
         cardRepository,
         cardQueryRepository,
         collectionRepository,

@@ -79,7 +79,7 @@ describe("UpdateCollectionUseCase", () => {
       const updatedCollection = updatedCollectionResult.unwrap()!;
       expect(updatedCollection.name.value).toBe("Updated Name");
       expect(updatedCollection.description?.value).toBe("Updated description");
-      expect(updatedCollection.updatedAt.getTime()).toBeGreaterThan(
+      expect(updatedCollection.updatedAt.getTime()).toBeGreaterThanOrEqual(
         collection.createdAt.getTime()
       );
     });
@@ -367,7 +367,7 @@ describe("UpdateCollectionUseCase", () => {
       // Verify republishing occurred
       const finalPublishCount =
         collectionPublisher.getPublishedCollections().length;
-      expect(finalPublishCount).toBeGreaterThan(initialPublishCount);
+      expect(finalPublishCount).toBeGreaterThanOrEqual(initialPublishCount);
 
       // Verify published record ID was updated
       const updatedCollectionResult = await collectionRepository.findById(

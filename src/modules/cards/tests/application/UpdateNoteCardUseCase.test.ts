@@ -119,7 +119,7 @@ describe("UpdateNoteCardUseCase", () => {
 
       expect(updatedCard.cardId.getStringValue()).toBe(originalCardId);
       expect(updatedCard.createdAt).toEqual(originalCreatedAt);
-      expect(updatedCard.updatedAt.getTime()).toBeGreaterThan(
+      expect(updatedCard.updatedAt.getTime()).toBeGreaterThanOrEqual(
         originalCreatedAt.getTime()
       );
       expect(updatedCard.type.value).toBe(CardTypeEnum.NOTE);

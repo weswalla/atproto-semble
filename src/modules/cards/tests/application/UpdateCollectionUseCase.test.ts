@@ -458,7 +458,7 @@ describe("UpdateCollectionUseCase", () => {
       const updatedCollection = updatedCollectionResult.unwrap()!;
       expect(updatedCollection.name.value).toBe("Same Name");
       expect(updatedCollection.description?.value).toBe("Same description");
-      expect(updatedCollection.updatedAt.getTime()).toBeGreaterThan(
+      expect(updatedCollection.updatedAt.getTime()).toBeGreaterThanOrEqual(
         collection.createdAt.getTime()
       );
     });

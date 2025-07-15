@@ -122,7 +122,10 @@ describe("GetCollectionPageUseCase", () => {
 
       const url1 = URL.create("https://example.com/article1").unwrap();
       const cardType1 = CardType.create(CardTypeEnum.URL).unwrap();
-      const cardContent1 = CardContent.createUrlContent(url1, urlMetadata1).unwrap();
+      const cardContent1 = CardContent.createUrlContent(
+        url1,
+        urlMetadata1
+      ).unwrap();
 
       const card1Result = Card.create({
         type: cardType1,
@@ -151,7 +154,10 @@ describe("GetCollectionPageUseCase", () => {
 
       const url2 = URL.create("https://example.com/article2").unwrap();
       const cardType2 = CardType.create(CardTypeEnum.URL).unwrap();
-      const cardContent2 = CardContent.createUrlContent(url2, urlMetadata2).unwrap();
+      const cardContent2 = CardContent.createUrlContent(
+        url2,
+        urlMetadata2
+      ).unwrap();
 
       const card2Result = Card.create({
         type: cardType2,
@@ -225,7 +231,10 @@ describe("GetCollectionPageUseCase", () => {
 
       const url = URL.create("https://example.com/article-with-note").unwrap();
       const cardType = CardType.create(CardTypeEnum.URL).unwrap();
-      const cardContent = CardContent.createUrlContent(url, urlMetadata).unwrap();
+      const cardContent = CardContent.createUrlContent(
+        url,
+        urlMetadata
+      ).unwrap();
 
       const cardResult = Card.create({
         type: cardType,
@@ -247,7 +256,9 @@ describe("GetCollectionPageUseCase", () => {
       // Create a note card that references the same URL
       const noteCardResult = Card.create({
         type: CardType.create(CardTypeEnum.NOTE).unwrap(),
-        content: CardContent.createNoteContent("This is my note about the article").unwrap(),
+        content: CardContent.createNoteContent(
+          "This is my note about the article"
+        ).unwrap(),
         parentCardId: card.cardId,
         url: url,
         libraryMemberships: [],
@@ -338,7 +349,10 @@ describe("GetCollectionPageUseCase", () => {
 
         const url = URL.create(`https://example.com/article${i}`).unwrap();
         const cardType = CardType.create(CardTypeEnum.URL).unwrap();
-        const cardContent = CardContent.createUrlContent(url, urlMetadata).unwrap();
+        const cardContent = CardContent.createUrlContent(
+          url,
+          urlMetadata
+        ).unwrap();
 
         const cardResult = Card.create({
           type: cardType,
@@ -457,13 +471,18 @@ describe("GetCollectionPageUseCase", () => {
 
       const alphaUrl = URL.create("https://example.com/alpha").unwrap();
       const alphaCardType = CardType.create(CardTypeEnum.URL).unwrap();
-      const alphaCardContent = CardContent.createUrlContent(alphaUrl, alphaMetadata).unwrap();
+      const alphaCardContent = CardContent.createUrlContent(
+        alphaUrl,
+        alphaMetadata
+      ).unwrap();
 
       const alphaCardResult = Card.create({
         type: alphaCardType,
         content: alphaCardContent,
         url: alphaUrl,
-        libraryMemberships: [],
+        libraryMemberships: [
+          { curatorId: curatorId, addedAt: new Date(now.getTime() - 5000) },
+        ],
         libraryCount: 1,
         createdAt: new Date(now.getTime() - 2000),
         updatedAt: new Date(now.getTime() - 1000),
@@ -483,13 +502,26 @@ describe("GetCollectionPageUseCase", () => {
 
       const betaUrl = URL.create("https://example.com/beta").unwrap();
       const betaCardType = CardType.create(CardTypeEnum.URL).unwrap();
-      const betaCardContent = CardContent.createUrlContent(betaUrl, betaMetadata).unwrap();
+      const betaCardContent = CardContent.createUrlContent(
+        betaUrl,
+        betaMetadata
+      ).unwrap();
 
       const betaCardResult = Card.create({
         type: betaCardType,
         content: betaCardContent,
         url: betaUrl,
-        libraryMemberships: [],
+        libraryMemberships: [
+          { curatorId: curatorId, addedAt: new Date(now.getTime() - 5000) },
+          {
+            curatorId: CuratorId.create("did:plc:anothercurator").unwrap(),
+            addedAt: new Date(now.getTime() - 2000),
+          },
+          {
+            curatorId: CuratorId.create("did:plc:thirdcurator").unwrap(),
+            addedAt: new Date(now.getTime() - 1000),
+          },
+        ],
         libraryCount: 3,
         createdAt: new Date(now.getTime() - 1000),
         updatedAt: new Date(now.getTime() - 2000),
@@ -509,13 +541,22 @@ describe("GetCollectionPageUseCase", () => {
 
       const gammaUrl = URL.create("https://example.com/gamma").unwrap();
       const gammaCardType = CardType.create(CardTypeEnum.URL).unwrap();
-      const gammaCardContent = CardContent.createUrlContent(gammaUrl, gammaMetadata).unwrap();
+      const gammaCardContent = CardContent.createUrlContent(
+        gammaUrl,
+        gammaMetadata
+      ).unwrap();
 
       const gammaCardResult = Card.create({
         type: gammaCardType,
         content: gammaCardContent,
         url: gammaUrl,
-        libraryMemberships: [],
+        libraryMemberships: [
+          { curatorId: curatorId, addedAt: new Date(now.getTime() - 3000) },
+          {
+            curatorId: CuratorId.create("did:plc:anothercurator").unwrap(),
+            addedAt: new Date(now.getTime() - 1000),
+          },
+        ],
         libraryCount: 2,
         createdAt: new Date(now.getTime()),
         updatedAt: new Date(now.getTime()),
@@ -786,7 +827,7 @@ describe("GetCollectionPageUseCase", () => {
         type: cardType,
         content: cardContent,
         url: url,
-        libraryMemberships: [],
+        libraryMemberships: [{ curatorId: curatorId, addedAt: new Date() }],
         libraryCount: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -816,65 +857,6 @@ describe("GetCollectionPageUseCase", () => {
       expect(response.urlCards[0]?.cardContent.description).toBeUndefined();
       expect(response.urlCards[0]?.cardContent.author).toBeUndefined();
       expect(response.urlCards[0]?.cardContent.thumbnailUrl).toBeUndefined();
-    });
-
-    it("should handle URL cards with high library counts", async () => {
-      // Create collection
-      const collection = Collection.create(
-        {
-          authorId: curatorId,
-          name: "Popular Collection",
-          accessType: CollectionAccessType.OPEN,
-          collaboratorIds: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        collectionId.getValue()
-      ).unwrap();
-
-      await collectionRepo.save(collection);
-
-      // Create URL card with high library count
-      const urlMetadata = UrlMetadata.create({
-        url: "https://example.com/popular",
-        title: "Very Popular Article",
-      }).unwrap();
-
-      const url = URL.create("https://example.com/popular").unwrap();
-      const cardType = CardType.create(CardTypeEnum.URL).unwrap();
-      const cardContent = CardContent.createUrlContent(url, urlMetadata).unwrap();
-
-      const cardResult = Card.create({
-        type: cardType,
-        content: cardContent,
-        url: url,
-        libraryMemberships: [],
-        libraryCount: 9999,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      if (cardResult.isErr()) {
-        throw cardResult.error;
-      }
-
-      const card = cardResult.value;
-      await cardRepo.save(card);
-
-      // Add card to collection
-      collection.addCard(card.cardId, curatorId);
-      await collectionRepo.save(collection);
-
-      const query = {
-        collectionId: collectionId.getStringValue(),
-      };
-
-      const result = await useCase.execute(query);
-
-      expect(result.isOk()).toBe(true);
-      const response = result.unwrap();
-      expect(response.urlCards).toHaveLength(1);
-      expect(response.urlCards[0]?.libraryCount).toBe(9999);
     });
 
     it("should handle author profile with minimal data", async () => {

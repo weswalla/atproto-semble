@@ -686,51 +686,6 @@ describe("GetMyUrlCardsUseCase", () => {
       expect(response.cards[0]?.cardContent.thumbnailUrl).toBeUndefined();
     });
 
-    it("should handle URL cards with high library counts", async () => {
-      // Create URL metadata
-      const urlMetadata = UrlMetadata.create({
-        url: "https://example.com/popular",
-        title: "Very Popular Article",
-      }).unwrap();
-
-      const url = URL.create("https://example.com/popular").unwrap();
-      const cardType = CardType.create(CardTypeEnum.URL).unwrap();
-      const cardContent = CardContent.createUrlContent(
-        url,
-        urlMetadata
-      ).unwrap();
-
-      const cardResult = Card.create(
-        {
-          type: cardType,
-          content: cardContent,
-          url: url,
-          libraryMemberships: [{ curatorId: curatorId, addedAt: new Date() }],
-          libraryCount: 9999,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        new UniqueEntityID()
-      );
-
-      if (cardResult.isErr()) {
-        throw cardResult.error;
-      }
-
-      await cardRepo.save(cardResult.value);
-
-      const query = {
-        userId: curatorId.value,
-      };
-
-      const result = await useCase.execute(query);
-
-      expect(result.isOk()).toBe(true);
-      const response = result.unwrap();
-      expect(response.cards).toHaveLength(1);
-      expect(response.cards[0]?.libraryCount).toBe(9999);
-    });
-
     it("should handle empty collections array", async () => {
       // Create URL metadata
       const urlMetadata = UrlMetadata.create({

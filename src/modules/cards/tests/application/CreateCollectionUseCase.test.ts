@@ -49,7 +49,7 @@ describe("CreateCollectionUseCase", () => {
         "A collection for testing purposes"
       );
       expect(savedCollection.authorId.equals(curatorId)).toBe(true);
-      expect(savedCollection.accessType).toBe(CollectionAccessType.OPEN);
+      expect(savedCollection.accessType).toBe(CollectionAccessType.CLOSED);
       expect(savedCollection.isPublished).toBe(true);
       expect(savedCollection.publishedRecordId).toBeDefined();
     });

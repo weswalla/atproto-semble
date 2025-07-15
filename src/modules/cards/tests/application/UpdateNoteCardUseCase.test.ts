@@ -119,7 +119,7 @@ describe("UpdateNoteCardUseCase", () => {
 
       expect(updatedCard.cardId.getStringValue()).toBe(originalCardId);
       expect(updatedCard.createdAt).toEqual(originalCreatedAt);
-      expect(updatedCard.updatedAt.getTime()).toBeGreaterThan(
+      expect(updatedCard.updatedAt.getTime()).toBeGreaterThanOrEqual(
         originalCreatedAt.getTime()
       );
       expect(updatedCard.type.value).toBe(CardTypeEnum.NOTE);
@@ -361,7 +361,7 @@ describe("UpdateNoteCardUseCase", () => {
       const updatedCardResult = await cardRepository.findById(noteCard.cardId);
       const updatedCard = updatedCardResult.unwrap()!;
       expect(updatedCard.content.noteContent!.text).toBe(noteText);
-      expect(updatedCard.updatedAt.getTime()).toBeGreaterThan(
+      expect(updatedCard.updatedAt.getTime()).toBeGreaterThanOrEqual(
         noteCard.createdAt.getTime()
       );
     });

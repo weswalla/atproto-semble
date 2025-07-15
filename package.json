@@ -19,6 +19,7 @@
     "build": "tsup",
     "build:watch": "tsc --watch",
     "dev:inner": "dotenv -e .env.local -- concurrently -k -n TYPE,CODE -c red,blue \"tsc --noEmit --watch\" \"tsup --watch --onSuccess='node dist/index.js'\"",
+    "dev:mock": "USE_MOCK_REPOS=true USE_FAKE_PUBLISHERS=true npm run dev:inner",
     "dev": "bash ./scripts/dev.sh",
     "migrate": "node dist/scripts/migrate.js",
     "lexgen": "lex gen-server ./src/modules/atproto/infrastructure/lexicon ./src/modules/atproto/infrastructure/lexicons/*",

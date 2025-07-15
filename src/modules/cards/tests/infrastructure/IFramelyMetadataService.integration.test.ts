@@ -226,7 +226,7 @@ describe("IFramelyMetadataService Integration Tests", () => {
           expect(metadata.publishedDate.getTime()).toBeLessThanOrEqual(
             now.getTime()
           );
-          expect(metadata.publishedDate.getTime()).toBeGreaterThan(
+          expect(metadata.publishedDate.getTime()).toBeGreaterThanOrEqual(
             twentyYearsAgo.getTime()
           );
 

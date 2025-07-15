@@ -8,19 +8,21 @@ import {
   SortOrder,
 } from "../../domain/ICollectionQueryRepository";
 import { Collection } from "../../domain/Collection";
+import { InMemoryCollectionRepository } from "./InMemoryCollectionRepository";
 
 export class InMemoryCollectionQueryRepository
   implements ICollectionQueryRepository
 {
-  private collections: Map<string, Collection> = new Map();
+  constructor(private collectionRepository: InMemoryCollectionRepository) {}
 
   async findByCreator(
     curatorId: string,
     options: CollectionQueryOptions
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>> {
     try {
-      // Filter collections by creator
-      const creatorCollections = Array.from(this.collections.values()).filter(
+      // Get all collections and filter by creator
+      const allCollections = this.collectionRepository.getAllCollections();
+      const creatorCollections = allCollections.filter(
         (collection) => collection.authorId.value === curatorId
       );
 
@@ -96,20 +98,7 @@ export class InMemoryCollectionQueryRepository
     return sorted;
   }
 
-  // Test helper methods
-  addCollection(collection: Collection): void {
-    this.collections.set(collection.collectionId.getStringValue(), collection);
-  }
-
   clear(): void {
-    this.collections.clear();
-  }
-
-  getStoredCollection(id: string): Collection | undefined {
-    return this.collections.get(id);
-  }
-
-  getAllCollections(): Collection[] {
-    return Array.from(this.collections.values());
+    // No separate state to clear
   }
 }

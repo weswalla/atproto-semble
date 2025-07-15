@@ -1,6 +1,8 @@
 import {
   NodeOAuthClient,
   OAuthClientMetadataInput,
+  NodeSavedStateStore,
+  NodeSavedSessionStore,
 } from "@atproto/oauth-client-node";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { DrizzleStateStore } from "./DrizzleStateStore";
@@ -37,13 +39,12 @@ export class OAuthClientFactory {
   }
 
   static createClient(
-    db: PostgresJsDatabase,
+    stateStore: NodeSavedStateStore,
+    sessionStore: NodeSavedSessionStore,
     baseUrl: string,
     appName: string = "Annotation App"
   ): NodeOAuthClient {
     const { clientMetadata } = this.getClientMetadata(baseUrl, appName);
-    const stateStore = new DrizzleStateStore(db);
-    const sessionStore = new DrizzleSessionStore(db);
 
     return new NodeOAuthClient({
       clientMetadata,

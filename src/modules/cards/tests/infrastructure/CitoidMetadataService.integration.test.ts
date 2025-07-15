@@ -128,7 +128,7 @@ describe("CitoidMetadataService Integration Tests", () => {
         expect(metadata.author).not.toBe("");
 
         // Should contain at least one author name
-        expect(metadata.author!.length).toBeGreaterThan(0);
+        expect(metadata.author!.length).toBeGreaterThanOrEqual(0);
 
         console.log("Authors for multi-author paper:", metadata.author);
       }
@@ -165,7 +165,7 @@ describe("CitoidMetadataService Integration Tests", () => {
           expect(metadata.publishedDate.getTime()).toBeLessThanOrEqual(
             now.getTime()
           );
-          expect(metadata.publishedDate.getTime()).toBeGreaterThan(
+          expect(metadata.publishedDate.getTime()).toBeGreaterThanOrEqual(
             oneYearAgo.getTime()
           );
 

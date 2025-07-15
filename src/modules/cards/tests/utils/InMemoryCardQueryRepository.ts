@@ -9,22 +9,32 @@ import {
   SortOrder,
 } from "../../domain/ICardQueryRepository";
 import { CardTypeEnum } from "../../domain/value-objects/CardType";
+import { InMemoryCardRepository } from "./InMemoryCardRepository";
+import { InMemoryCollectionRepository } from "./InMemoryCollectionRepository";
+import { Card } from "../../domain/Card";
+import { CollectionId } from "../../domain/value-objects/CollectionId";
+import { CuratorId } from "../../domain/value-objects/CuratorId";
 
 export class InMemoryCardQueryRepository implements ICardQueryRepository {
-  private urlCards: Map<string, UrlCardQueryResultDTO> = new Map();
-  private userLibraries: Map<string, Set<string>> = new Map(); // userId -> Set of cardIds
-  private collectionCards: Map<string, Set<string>> = new Map(); // collectionId -> Set of cardIds
+  constructor(
+    private cardRepository: InMemoryCardRepository,
+    private collectionRepository: InMemoryCollectionRepository
+  ) {}
 
   async getUrlCardsOfUser(
     userId: string,
     options: CardQueryOptions
   ): Promise<PaginatedQueryResult<UrlCardQueryResultDTO>> {
     try {
-      // Get cards in user's library
-      const userCardIds = this.userLibraries.get(userId) || new Set();
-      const userCards = Array.from(this.urlCards.values()).filter((card) =>
-        userCardIds.has(card.id)
-      );
+      // Get all cards and filter by user's library membership
+      const allCards = this.cardRepository.getAllCards();
+      const userCards = allCards
+        .filter(
+          (card) =>
+            card.isUrlCard &&
+            card.isInLibrary(CuratorId.create(userId).unwrap())
+        )
+        .map((card) => this.cardToUrlCardQueryResult(card));
 
       // Sort cards
       const sortedCards = this.sortCards(
@@ -78,28 +88,66 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return sorted;
   }
 
-  // Test helper methods
-  addUrlCard(card: UrlCardQueryResultDTO): void {
-    this.urlCards.set(card.id, card);
-  }
-
-  addCardToUserLibrary(userId: string, cardId: string): void {
-    if (!this.userLibraries.has(userId)) {
-      this.userLibraries.set(userId, new Set());
+  private cardToUrlCardQueryResult(card: Card): UrlCardQueryResultDTO {
+    if (!card.isUrlCard || !card.content.urlContent) {
+      throw new Error("Card is not a URL card");
     }
-    this.userLibraries.get(userId)!.add(cardId);
+
+    // Find collections this card belongs to by querying the collection repository
+    const allCollections = this.collectionRepository.getAllCollections();
+    const collections: { id: string; name: string; authorId: string }[] = [];
+
+    for (const collection of allCollections) {
+      if (
+        collection.cardIds.some(
+          (cardId) => cardId.getStringValue() === card.cardId.getStringValue()
+        )
+      ) {
+        collections.push({
+          id: collection.collectionId.getStringValue(),
+          name: collection.name.value,
+          authorId: collection.authorId.value,
+        });
+      }
+    }
+
+    // Find note cards with matching URL
+    const allCards = this.cardRepository.getAllCards();
+    const noteCard = allCards.find(
+      (c) => c.type.value === "NOTE" && c.url?.value === card.url?.value
+    );
+
+    const note = noteCard
+      ? {
+          id: noteCard.cardId.getStringValue(),
+          text: noteCard.content.noteContent?.text || "",
+        }
+      : undefined;
+
+    return {
+      id: card.cardId.getStringValue(),
+      type: CardTypeEnum.URL,
+      url: card.content.urlContent.url.value,
+      cardContent: {
+        url: card.content.urlContent.url.value,
+        title: card.content.urlContent.metadata?.title,
+        description: card.content.urlContent.metadata?.description,
+        author: card.content.urlContent.metadata?.author,
+        thumbnailUrl: card.content.urlContent.metadata?.imageUrl,
+      },
+      libraryCount: this.getLibraryCountForCard(card.cardId.getStringValue()),
+      createdAt: card.createdAt,
+      updatedAt: card.updatedAt,
+      collections,
+      note,
+    };
   }
 
-  getStoredCard(id: string): UrlCardQueryResultDTO | undefined {
-    return this.urlCards.get(id);
-  }
-
-  getAllCards(): UrlCardQueryResultDTO[] {
-    return Array.from(this.urlCards.values());
-  }
-
-  getUserLibrary(userId: string): string[] {
-    return Array.from(this.userLibraries.get(userId) || new Set());
+  private getLibraryCountForCard(cardId: string): number {
+    const card = this.cardRepository.getStoredCard({
+      getStringValue: () => cardId,
+    } as any);
+    return card ? card.libraryMembershipCount : 0;
   }
 
   async getCardsInCollection(
@@ -107,12 +155,42 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     options: CardQueryOptions
   ): Promise<PaginatedQueryResult<CollectionCardQueryResultDTO>> {
     try {
-      // Get cards in collection
-      const collectionCardIds =
-        this.collectionCards.get(collectionId) || new Set();
-      const collectionCards = Array.from(this.urlCards.values())
-        .filter((card) => collectionCardIds.has(card.id))
-        .map((card) => this.toCollectionCardQueryResult(card));
+      // Get the collection from the repository
+      const collectionIdObj = CollectionId.createFromString(collectionId);
+      if (collectionIdObj.isErr()) {
+        throw new Error(`Invalid collection ID: ${collectionId}`);
+      }
+
+      const collectionResult = await this.collectionRepository.findById(
+        collectionIdObj.value
+      );
+      if (collectionResult.isErr()) {
+        throw collectionResult.error;
+      }
+
+      const collection = collectionResult.value;
+      if (!collection) {
+        return {
+          items: [],
+          totalCount: 0,
+          hasMore: false,
+        };
+      }
+
+      // Get cards that are in this collection
+      const allCards = this.cardRepository.getAllCards();
+      const collectionCardIds = new Set(
+        collection.cardIds.map((id) => id.getStringValue())
+      );
+      const collectionCards = allCards
+        .filter(
+          (card) =>
+            collectionCardIds.has(card.cardId.getStringValue()) &&
+            card.isUrlCard
+        )
+        .map((card) =>
+          this.toCollectionCardQueryResult(this.cardToUrlCardQueryResult(card))
+        );
 
       // Sort cards
       const sortedCards = this.sortCollectionCards(
@@ -181,54 +259,53 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     };
   }
 
-  // Additional test helper methods for collections
-  addCardToCollection(collectionId: string, cardId: string): void {
-    if (!this.collectionCards.has(collectionId)) {
-      this.collectionCards.set(collectionId, new Set());
-    }
-    this.collectionCards.get(collectionId)!.add(cardId);
-  }
-
-  getCollectionCards(collectionId: string): string[] {
-    return Array.from(this.collectionCards.get(collectionId) || new Set());
-  }
-
   async getUrlCardView(cardId: string): Promise<UrlCardViewDTO | null> {
-    const card = this.urlCards.get(cardId);
-    if (!card) {
+    const allCards = this.cardRepository.getAllCards();
+    const card = allCards.find((c) => c.cardId.getStringValue() === cardId);
+    if (!card || !card.isUrlCard) {
       return null;
     }
 
-    // Find which users have this card in their library
-    const libraries: { userId: string }[] = [];
-    for (const [userId, cardIds] of this.userLibraries.entries()) {
-      if (cardIds.has(cardId)) {
-        libraries.push({ userId });
-      }
-    }
+    const urlCardResult = this.cardToUrlCardQueryResult(card);
+
+    // Get library memberships from the card itself
+    const libraries = card.libraryMemberships.map((membership) => ({
+      userId: membership.curatorId.value,
+    }));
+
+    // Find note cards with matching URL
+    const noteCard = allCards.find(
+      (c) => c.type.value === "NOTE" && c.url?.value === card.url?.value
+    );
+
+    const note = noteCard
+      ? {
+          id: noteCard.cardId.getStringValue(),
+          text: noteCard.content.noteContent?.text || "",
+        }
+      : undefined;
 
     return {
-      ...card,
+      ...urlCardResult,
       libraries,
+      note,
     };
   }
 
   async getLibrariesForCard(cardId: string): Promise<string[]> {
-    const userIds: string[] = [];
-    
-    // Find all users who have this card in their library
-    for (const [userId, cardIds] of this.userLibraries.entries()) {
-      if (cardIds.has(cardId)) {
-        userIds.push(userId);
-      }
+    const allCards = this.cardRepository.getAllCards();
+    const card = allCards.find((c) => c.cardId.getStringValue() === cardId);
+
+    if (!card) {
+      return [];
     }
-    
-    return userIds;
+
+    return card.libraryMemberships.map(
+      (membership) => membership.curatorId.value
+    );
   }
 
   clear(): void {
-    this.urlCards.clear();
-    this.userLibraries.clear();
-    this.collectionCards.clear();
+    // No separate state to clear
   }
 }

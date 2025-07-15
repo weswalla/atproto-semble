@@ -1,8 +1,9 @@
 import { GetMyCollectionsUseCase } from "../../application/useCases/queries/GetMyCollectionsUseCase";
 import { InMemoryCollectionQueryRepository } from "../utils/InMemoryCollectionQueryRepository";
+import { InMemoryCollectionRepository } from "../utils/InMemoryCollectionRepository";
 import { FakeProfileService } from "../utils/FakeProfileService";
 import { CuratorId } from "../../domain/value-objects/CuratorId";
-import { CollectionBuilder } from "../utils/builders/CollectionBuilder";
+import { Collection, CollectionAccessType } from "../../domain/Collection";
 import {
   CollectionSortField,
   SortOrder,
@@ -12,12 +13,14 @@ import { UserProfile } from "../../domain/services/IProfileService";
 describe("GetMyCollectionsUseCase", () => {
   let useCase: GetMyCollectionsUseCase;
   let collectionQueryRepo: InMemoryCollectionQueryRepository;
+  let collectionRepo: InMemoryCollectionRepository;
   let profileService: FakeProfileService;
   let curatorId: CuratorId;
   let userProfile: UserProfile;
 
   beforeEach(() => {
-    collectionQueryRepo = new InMemoryCollectionQueryRepository();
+    collectionRepo = new InMemoryCollectionRepository();
+    collectionQueryRepo = new InMemoryCollectionQueryRepository(collectionRepo);
     profileService = new FakeProfileService();
     useCase = new GetMyCollectionsUseCase(collectionQueryRepo, profileService);
 
@@ -34,6 +37,7 @@ describe("GetMyCollectionsUseCase", () => {
   });
 
   afterEach(() => {
+    collectionRepo.clear();
     collectionQueryRepo.clear();
     profileService.clear();
   });
@@ -56,24 +60,32 @@ describe("GetMyCollectionsUseCase", () => {
 
     it("should return curator's collections with profile data", async () => {
       // Create test collections
-      const collection1 = new CollectionBuilder()
-        .withAuthorId(curatorId.value)
-        .withName("First Collection")
-        .withDescription("First collection description")
-        .build();
+      const collection1Result = Collection.create({
+        name: "First Collection",
+        description: "First collection description",
+        authorId: curatorId,
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-      const collection2 = new CollectionBuilder()
-        .withAuthorId(curatorId.value)
-        .withName("Second Collection")
-        .withDescription("Second collection description")
-        .build();
+      const collection2Result = Collection.create({
+        name: "Second Collection",
+        description: "Second collection description",
+        authorId: curatorId,
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-      if (collection1 instanceof Error || collection2 instanceof Error) {
+      if (collection1Result.isErr() || collection2Result.isErr()) {
         throw new Error("Failed to create test collections");
       }
 
-      collectionQueryRepo.addCollection(collection1);
-      collectionQueryRepo.addCollection(collection2);
+      await collectionRepo.save(collection1Result.value);
+      await collectionRepo.save(collection2Result.value);
 
       const query = {
         curatorId: curatorId.value,
@@ -98,22 +110,30 @@ describe("GetMyCollectionsUseCase", () => {
       const otherCuratorId = CuratorId.create("did:plc:othercurator").unwrap();
 
       // Create collections for different curators
-      const myCollection = new CollectionBuilder()
-        .withAuthorId(curatorId.value)
-        .withName("My Collection")
-        .build();
+      const myCollectionResult = Collection.create({
+        name: "My Collection",
+        authorId: curatorId,
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-      const otherCollection = new CollectionBuilder()
-        .withAuthorId(otherCuratorId.value)
-        .withName("Other Collection")
-        .build();
+      const otherCollectionResult = Collection.create({
+        name: "Other Collection",
+        authorId: otherCuratorId,
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-      if (myCollection instanceof Error || otherCollection instanceof Error) {
+      if (myCollectionResult.isErr() || otherCollectionResult.isErr()) {
         throw new Error("Failed to create test collections");
       }
 
-      collectionQueryRepo.addCollection(myCollection);
-      collectionQueryRepo.addCollection(otherCollection);
+      await collectionRepo.save(myCollectionResult.value);
+      await collectionRepo.save(otherCollectionResult.value);
 
       const query = {
         curatorId: curatorId.value,
@@ -129,19 +149,23 @@ describe("GetMyCollectionsUseCase", () => {
   });
 
   describe("Pagination", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       // Create multiple collections for pagination testing
       for (let i = 1; i <= 5; i++) {
-        const collection = new CollectionBuilder()
-          .withAuthorId(curatorId.value)
-          .withName(`Collection ${i}`)
-          .build();
+        const collectionResult = Collection.create({
+          name: `Collection ${i}`,
+          authorId: curatorId,
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
 
-        if (collection instanceof Error) {
+        if (collectionResult.isErr()) {
           throw new Error(`Failed to create collection ${i}`);
         }
 
-        collectionQueryRepo.addCollection(collection);
+        await collectionRepo.save(collectionResult.value);
       }
     });
 
@@ -211,30 +235,34 @@ describe("GetMyCollectionsUseCase", () => {
   });
 
   describe("Sorting", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       // Create collections with different properties for sorting
       const now = new Date();
 
-      const collection1 = new CollectionBuilder()
-        .withAuthorId(curatorId.value)
-        .withName("Alpha Collection")
-        .withCreatedAt(new Date(now.getTime() - 2000))
-        .withUpdatedAt(new Date(now.getTime() - 1000))
-        .build();
+      const collection1Result = Collection.create({
+        name: "Alpha Collection",
+        authorId: curatorId,
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(now.getTime() - 2000),
+        updatedAt: new Date(now.getTime() - 1000),
+      });
 
-      const collection2 = new CollectionBuilder()
-        .withAuthorId(curatorId.value)
-        .withName("Beta Collection")
-        .withCreatedAt(new Date(now.getTime() - 1000))
-        .withUpdatedAt(new Date(now.getTime() - 2000))
-        .build();
+      const collection2Result = Collection.create({
+        name: "Beta Collection",
+        authorId: curatorId,
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(now.getTime() - 1000),
+        updatedAt: new Date(now.getTime() - 2000),
+      });
 
-      if (collection1 instanceof Error || collection2 instanceof Error) {
+      if (collection1Result.isErr() || collection2Result.isErr()) {
         throw new Error("Failed to create test collections");
       }
 
-      collectionQueryRepo.addCollection(collection1);
-      collectionQueryRepo.addCollection(collection2);
+      await collectionRepo.save(collection1Result.value);
+      await collectionRepo.save(collection2Result.value);
     });
 
     it("should sort by name ascending", async () => {

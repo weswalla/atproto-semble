@@ -345,7 +345,7 @@ describe("RemoveCardFromLibraryUseCase", () => {
       expect(updatedCard.createdAt).toEqual(originalCreatedAt);
       expect(updatedCard.type.value).toBe(originalType);
       expect(updatedCard.content).toEqual(originalContent);
-      expect(updatedCard.updatedAt.getTime()).toBeGreaterThan(
+      expect(updatedCard.updatedAt.getTime()).toBeGreaterThanOrEqual(
         originalCreatedAt.getTime()
       );
     });

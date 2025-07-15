@@ -12,6 +12,8 @@ import { IFramelyMetadataService } from "../../../../modules/cards/infrastructur
 import { BlueskyProfileService } from "../../../../modules/atproto/infrastructure/services/BlueskyProfileService";
 import { ATProtoCollectionPublisher } from "../../../../modules/atproto/infrastructure/publishers/ATProtoCollectionPublisher";
 import { ATProtoCardPublisher } from "../../../../modules/atproto/infrastructure/publishers/ATProtoCardPublisher";
+import { FakeCollectionPublisher } from "../../../../modules/cards/tests/utils/FakeCollectionPublisher";
+import { FakeCardPublisher } from "../../../../modules/cards/tests/utils/FakeCardPublisher";
 import { CardLibraryService } from "../../../../modules/cards/domain/services/CardLibraryService";
 import { CardCollectionService } from "../../../../modules/cards/domain/services/CardCollectionService";
 import { AuthMiddleware } from "../middleware/AuthMiddleware";
@@ -29,8 +31,8 @@ export interface Services {
   atProtoAgentService: ATProtoAgentService;
   metadataService: IFramelyMetadataService;
   profileService: BlueskyProfileService;
-  collectionPublisher: ATProtoCollectionPublisher;
-  cardPublisher: ATProtoCardPublisher;
+  collectionPublisher: ATProtoCollectionPublisher | FakeCollectionPublisher;
+  cardPublisher: ATProtoCardPublisher | FakeCardPublisher;
   cardLibraryService: CardLibraryService;
   cardCollectionService: CardCollectionService;
   authMiddleware: AuthMiddleware;
@@ -78,10 +80,16 @@ export class ServiceFactory {
       configService.getIFramelyApiKey()
     );
     const profileService = new BlueskyProfileService(atProtoAgentService);
-    const collectionPublisher = new ATProtoCollectionPublisher(
-      atProtoAgentService
-    );
-    const cardPublisher = new ATProtoCardPublisher(atProtoAgentService);
+    
+    const useFakePublishers = process.env.USE_FAKE_PUBLISHERS === 'true';
+    
+    const collectionPublisher = useFakePublishers
+      ? new FakeCollectionPublisher()
+      : new ATProtoCollectionPublisher(atProtoAgentService);
+    
+    const cardPublisher = useFakePublishers
+      ? new FakeCardPublisher()
+      : new ATProtoCardPublisher(atProtoAgentService);
 
     const cardLibraryService = new CardLibraryService(
       repositories.cardRepository,

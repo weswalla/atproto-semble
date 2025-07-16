@@ -1,6 +1,22 @@
 import { useState, useEffect } from "react";
 import { useExtensionAuth } from "../../hooks/useExtensionAuth";
 import { ApiClient } from "../../api-client/ApiClient";
+import { IoMdCheckmark } from "react-icons/io";
+import {
+  Alert,
+  AspectRatio,
+  Box,
+  Button,
+  Divider,
+  Group,
+  Image,
+  Loader,
+  Paper,
+  Stack,
+  Text,
+  Textarea,
+  Title,
+} from "@mantine/core";
 
 interface UrlMetadata {
   url: string;
@@ -24,7 +40,7 @@ export function SaveCardPage() {
 
   const apiClient = new ApiClient(
     process.env.PLASMO_PUBLIC_API_URL || "http://localhost:3000",
-    () => accessToken
+    () => accessToken,
   );
 
   // Get current tab URL and fetch metadata when popup opens
@@ -54,7 +70,7 @@ export function SaveCardPage() {
           } else {
             console.error("No URL found in tab:", tab);
             setError(
-              "Cannot access this page's URL. Make sure the extension has proper permissions."
+              "Cannot access this page's URL. Make sure the extension has proper permissions.",
             );
           }
         } else {
@@ -94,114 +110,108 @@ export function SaveCardPage() {
 
   if (success) {
     return (
-      <div className="w-80 p-4 bg-white">
-        <div className="flex items-center justify-center py-8">
-          <div className="text-center">
-            <div className="text-green-600 text-2xl mb-2">✓</div>
-            <div className="text-sm text-gray-600">
-              Card saved successfully!
-            </div>
-          </div>
-        </div>
-      </div>
+      <Stack align="center" gap={"xs"} c={"green"}>
+        <IoMdCheckmark size={20} />
+        <Text fw={500} c={"gray"}>
+          Card saved successfully!
+        </Text>
+      </Stack>
     );
   }
 
   return (
-    <div className="w-80 p-4 bg-white">
-      <div className="border-b pb-3 mb-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-gray-900">Save Card</h1>
-          <button
-            onClick={logout}
-            className="text-xs text-gray-500 hover:text-gray-700"
-          >
+    <Box>
+      <Stack>
+        <Group justify="space-between">
+          <Title order={1} fz={"xl"}>
+            Save Card
+          </Title>
+          <Button variant="subtle" color={"gray"} onClick={logout}>
             Sign out
-          </button>
-        </div>
-      </div>
+          </Button>
+        </Group>
 
-      <div className="space-y-4">
+        <Divider />
+
         {/* URL Metadata Display */}
         {isLoadingMetadata ? (
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="text-sm text-gray-600">
+          <Stack gap={0} align="center">
+            <Loader type="dots" size={"sm"} />
+            <Text fz={"sm"} fw={500} c={"gray"}>
               Loading page information...
-            </div>
-          </div>
+            </Text>
+          </Stack>
         ) : metadata ? (
-          <div className="bg-gray-50 p-3 rounded-lg space-y-2">
-            {metadata.imageUrl && (
-              <img
-                src={metadata.imageUrl}
-                alt={metadata.title || "Page preview"}
-                className="w-full h-24 object-cover rounded"
-              />
-            )}
-            <div>
-              <h3 className="font-medium text-sm text-gray-900 line-clamp-2">
-                {metadata.title || "Untitled"}
-              </h3>
-              {metadata.description && (
-                <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-                  {metadata.description}
-                </p>
+          <Paper bg={"gray.2"} p={"sm"}>
+            <Stack>
+              {metadata.imageUrl && (
+                <AspectRatio ratio={2 / 1}>
+                  <Image
+                    src={metadata.imageUrl}
+                    alt={metadata.title || "Page preview"}
+                  />
+                </AspectRatio>
               )}
-              <p className="text-xs text-gray-500 mt-1 truncate">
-                {metadata.siteName || new URL(currentUrl).hostname}
-              </p>
-            </div>
-          </div>
+              <Stack gap={"xs"}>
+                <Stack gap={"0"}>
+                  <Title order={3} lineClamp={2} fz={"md"} fw={500}>
+                    {metadata.title || "Untitled"}
+                  </Title>
+                  {metadata.description && (
+                    <Text fz={"sm"} fw={500} c={"gray"} lineClamp={2}>
+                      {metadata.description}
+                    </Text>
+                  )}
+                </Stack>
+                <Text fz={"xs"} c={"gray"}>
+                  {metadata.siteName || new URL(currentUrl).hostname}
+                </Text>
+              </Stack>
+            </Stack>
+          </Paper>
         ) : (
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <p className="text-xs text-gray-500 mb-1">Current page:</p>
-            <p className="text-sm text-gray-800 truncate" title={currentUrl}>
+          <Stack gap={0}>
+            <Text fz={"sm"} c={"gray"}>
+              Current page:
+            </Text>
+            <Text fz={"sm"} truncate={"end"}>
               {currentUrl || "Loading..."}
-            </p>
-          </div>
+            </Text>
+          </Stack>
         )}
 
         {/* Note Input */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Note (optional)
-          </label>
-          <textarea
-            placeholder="Add a note about this page..."
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-            rows={3}
-            disabled={isSaving}
-          />
-        </div>
+        <Textarea
+          label="Note (optional)"
+          placeholder="Add a note about this page..."
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={3}
+          disabled={isSaving}
+        />
 
         {/* Error Display */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-3">
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
-        )}
+        {error && <Alert color={"red"} title={error} />}
 
         {/* Action Buttons */}
-        <div className="space-y-2">
-          <button
+        <Stack gap={"xs"}>
+          <Button
             onClick={handleSaveCard}
             disabled={!currentUrl || isSaving}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            loading={isSaving}
           >
             {isSaving ? "Saving..." : "Save Card"}
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="subtle"
             onClick={() => window.close()}
-            className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors"
             disabled={isSaving}
           >
             Cancel
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </Stack>
+      </Stack>
+    </Box>
   );
 }

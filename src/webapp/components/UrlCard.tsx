@@ -1,10 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { BiPlus, BiLinkExternal } from "react-icons/bi";
 import { AddToCollectionModal } from "./AddToCollectionModal";
+import {
+  ActionIcon,
+  Blockquote,
+  Box,
+  Card,
+  Group,
+  Image,
+  Stack,
+  Text,
+} from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 
 interface UrlCardProps {
   cardId: string;
@@ -29,8 +37,7 @@ export function UrlCard({
   addedAt,
   note,
 }: UrlCardProps) {
-  const [showAddToCollectionModal, setShowAddToCollectionModal] =
-    useState(false);
+  const [modalOpened, { open, close }] = useDisclosure(false);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -54,68 +61,73 @@ export function UrlCard({
   };
 
   return (
-    <>
-      <Card className="w-full hover:shadow-md transition-shadow">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg leading-tight mb-1 truncate">
+    <Box>
+      <Card withBorder>
+        <Stack>
+          <Group justify="space-between" wrap="nowrap">
+            <Stack gap={0}>
+              <Text fw={600} lineClamp={1}>
                 {title || getDomain(url)}
-              </h3>
-              <p className="text-sm text-gray-500 truncate">
+              </Text>
+              <Text fz={"sm"} fw={500} lineClamp={1} c={"gray"}>
                 {getDomain(url)} • {formatDate(addedAt)}
-              </p>
-            </div>
-            <div className="ml-4 flex items-center gap-2">
+              </Text>
+            </Stack>
+            <Group wrap="nowrap">
               {imageUrl && (
-                <img
+                <Image
                   src={imageUrl}
                   alt={title || "Card image"}
-                  className="w-16 h-16 object-cover rounded-md"
+                  w={64}
+                  h={64}
+                  radius={"md"}
                 />
               )}
-              <div className="flex flex-col gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowAddToCollectionModal(true)}
+              <Stack gap={"xs"}>
+                <ActionIcon
+                  variant="transparent"
+                  onClick={() => open()}
                   title="Add to collection"
                 >
-                  <BiPlus className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
+                  <BiPlus />
+                </ActionIcon>
+                <ActionIcon
+                  variant="transparent"
                   onClick={() => window.open(url, "_blank")}
                   title="Open link"
                 >
-                  <BiLinkExternal className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          {description && (
-            <p className="text-gray-700 text-sm mb-3 line-clamp-2">
-              {description}
-            </p>
-          )}
-          {author && <p className="text-xs text-gray-500 mb-2">By {author}</p>}
-          {note && (
-            <div className="bg-yellow-50 border-l-4 border-yellow-200 p-2 mb-3">
-              <p className="text-sm text-gray-700">{note}</p>
-            </div>
-          )}
-        </CardContent>
+                  <BiLinkExternal />
+                </ActionIcon>
+              </Stack>
+            </Group>
+          </Group>
+
+          <Stack>
+            {description && (
+              <Text lineClamp={2} fz={"sm"}>
+                {description}
+              </Text>
+            )}
+            {author && (
+              <Text fw={500} fz={"xs"} c={"gray"}>
+                By {author}
+              </Text>
+            )}
+            {note && (
+              <Blockquote color="yellow" p={"xs"} fz={"sm"}>
+                {note}
+              </Blockquote>
+            )}
+          </Stack>
+        </Stack>
       </Card>
 
       <AddToCollectionModal
         cardId={cardId}
-        isOpen={showAddToCollectionModal}
-        onClose={() => setShowAddToCollectionModal(false)}
+        isOpen={modalOpened}
+        onClose={close}
         onSuccess={handleAddToCollectionSuccess}
       />
-    </>
+    </Box>
   );
 }

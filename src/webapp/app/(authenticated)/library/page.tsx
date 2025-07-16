@@ -1,13 +1,21 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/api";
-import { getAccessToken, clearAuth } from "@/services/auth";
+import { getAccessToken } from "@/services/auth";
 import { ApiClient } from "@/api-client/ApiClient";
 import { UrlCard } from "@/components/UrlCard";
 import type { GetMyUrlCardsResponse } from "@/api-client/types";
+import {
+  Button,
+  Group,
+  Loader,
+  SimpleGrid,
+  Stack,
+  Title,
+  Text,
+} from "@mantine/core";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
@@ -19,7 +27,7 @@ export default function DashboardPage() {
   // Create API client instance
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
-    () => getAccessToken()
+    () => getAccessToken(),
   );
 
   useEffect(() => {
@@ -46,71 +54,48 @@ export default function DashboardPage() {
     fetchData();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      const refreshToken = localStorage.getItem("refreshToken");
-      if (refreshToken) {
-        await authService.logout(refreshToken);
-      }
-    } catch (error) {
-      console.error("Error during logout:", error);
-    } finally {
-      // Clear auth tokens regardless of API success
-      clearAuth();
-      router.push("/");
-    }
-  };
-
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   return (
-    <>
-      <div className="space-y-8">
-        {/* Recent Cards Section */}
-        <div>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold">Recent Cards</h2>
-            <Button variant="outline" onClick={() => router.push("/cards")}>
-              View All Cards
-            </Button>
-          </div>
+    <div>
+      {/* Recent Cards Section */}
+      <Stack>
+        <Group justify="space-between">
+          <Title order={1}>Recent Cards</Title>
+          <Button variant="outline" onClick={() => router.push("/cards")}>
+            View All Cards
+          </Button>
+        </Group>
 
-          {cardsLoading ? (
-            <div className="flex justify-center items-center h-32">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            </div>
-          ) : urlCards.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {urlCards.map((card) => (
-                <UrlCard
-                  key={card.id}
-                  cardId={card.id}
-                  url={card.url}
-                  title={card.cardContent.title}
-                  description={card.cardContent.description}
-                  author={card.cardContent.author}
-                  imageUrl={card.cardContent.thumbnailUrl}
-                  addedAt={card.createdAt}
-                  note={card.note?.text}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 bg-gray-50 rounded-lg">
-              <p className="text-gray-500 mb-4">No cards yet</p>
-              <Button onClick={() => router.push("/cards/add")}>
-                Add Your First Card
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
-    </>
+        {cardsLoading ? (
+          <Loader />
+        ) : urlCards.length > 0 ? (
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing={"md"}>
+            {urlCards.map((card) => (
+              <UrlCard
+                key={card.id}
+                cardId={card.id}
+                url={card.url}
+                title={card.cardContent.title}
+                description={card.cardContent.description}
+                author={card.cardContent.author}
+                imageUrl={card.cardContent.thumbnailUrl}
+                addedAt={card.createdAt}
+                note={card.note?.text}
+              />
+            ))}
+          </SimpleGrid>
+        ) : (
+          <Stack align="center" gap={"xs"}>
+            <Text c={"grey"}>No cards yet</Text>
+            <Button onClick={() => router.push("/cards/add")}>
+              Add Your First Card
+            </Button>
+          </Stack>
+        )}
+      </Stack>
+    </div>
   );
 }

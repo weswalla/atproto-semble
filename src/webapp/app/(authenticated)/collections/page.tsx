@@ -1,19 +1,22 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken } from "@/services/auth";
 import { ApiClient } from "@/api-client/ApiClient";
 import type { GetMyCollectionsResponse } from "@/api-client/types";
+import {
+  Box,
+  Button,
+  Card,
+  Container,
+  Group,
+  Loader,
+  SimpleGrid,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
 
 export default function CollectionsPage() {
   const [collections, setCollections] = useState<
@@ -26,7 +29,7 @@ export default function CollectionsPage() {
   // Create API client instance
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
-    () => getAccessToken()
+    () => getAccessToken(),
   );
 
   useEffect(() => {
@@ -47,71 +50,65 @@ export default function CollectionsPage() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Collections</h1>
-          <p className="text-gray-600 mt-2">
-            Organize your cards into collections
-          </p>
-        </div>
-        <Button onClick={() => router.push("/collections/create")}>
-          Create Collection
-        </Button>
-      </div>
-
-      {error && (
-        <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
-          {error}
-        </div>
-      )}
-
-      {collections.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {collections.map((collection) => (
-            <Card
-              key={collection.id}
-              className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => router.push(`/collections/${collection.id}`)}
-            >
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{collection.name}</CardTitle>
-                </div>
-                {collection.description && (
-                  <CardDescription className="line-clamp-2">
-                    {collection.description}
-                  </CardDescription>
-                )}
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-between items-center text-sm text-gray-500">
-                  <span>{collection.cardCount} cards</span>
-                  <span>
-                    Created{" "}
-                    {new Date(collection.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-500 mb-4">No collections yet</p>
+    <Box>
+      <Stack>
+        <Group justify="space-between">
+          <Stack gap={0}>
+            <Title order={1}>Collections</Title>
+            <Text c={"gray"}>Organize your cards into collections</Text>
+          </Stack>
           <Button onClick={() => router.push("/collections/create")}>
-            Create Your First Collection
+            Create Collection
           </Button>
-        </div>
-      )}
-    </div>
+        </Group>
+
+        {error && <Text c="red">{error}</Text>}
+
+        {collections.length > 0 ? (
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing={"md"}>
+            {collections.map((collection) => (
+              <Card
+                key={collection.id}
+                component="button"
+                withBorder
+                onClick={() => router.push(`/collections/${collection.id}`)}
+              >
+                <Stack>
+                  <Stack align="start">
+                    <Text fw={600} lineClamp={1}>
+                      {collection.name}
+                    </Text>
+
+                    {collection.description && (
+                      <Text lineClamp={2}>{collection.description}</Text>
+                    )}
+                  </Stack>
+                  <Stack>
+                    <Group justify="space-between">
+                      <Text c={"gray"}>{collection.cardCount} cards</Text>
+                      <Text c={"gray"}>
+                        Created{" "}
+                        {new Date(collection.createdAt).toLocaleDateString()}
+                      </Text>
+                    </Group>
+                  </Stack>
+                </Stack>
+              </Card>
+            ))}
+          </SimpleGrid>
+        ) : (
+          <Stack align="center">
+            <Text>No collections yet</Text>
+            <Button onClick={() => router.push("/collections/create")}>
+              Create Your First Collection
+            </Button>
+          </Stack>
+        )}
+      </Stack>
+    </Box>
   );
 }

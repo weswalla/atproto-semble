@@ -1,10 +1,20 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ApiClient } from "@/api-client/ApiClient";
 import { useAuth } from "@/hooks/useAuth";
+import { ApiClient } from "@/api-client/ApiClient";
+import {
+  Title,
+  Button,
+  Stack,
+  Center,
+  Card,
+  TextInput,
+  PasswordInput,
+  Text,
+  Group,
+} from "@mantine/core";
 
 export default function LoginPage() {
   const [handle, setHandle] = useState("");
@@ -18,7 +28,7 @@ export default function LoginPage() {
   // Create API client instance
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
-    () => null // No auth token needed for login
+    () => null, // No auth token needed for login
   );
 
   const handleOAuthSubmit = async (e: React.FormEvent) => {
@@ -73,107 +83,94 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-center font-mono text-sm flex flex-col">
-        <h1 className="text-4xl font-bold mb-8">Sign in with Bluesky</h1>
+    <Center h={"100svh"}>
+      <Stack align="center">
+        <Title order={1}>Sign in with Bluesky</Title>
 
-        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <Card withBorder w={400}>
           {!useAppPassword ? (
             <form onSubmit={handleOAuthSubmit}>
-              <div className="mb-6">
-                <label
-                  htmlFor="handle"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Enter your Bluesky handle
-                </label>
-                <input
-                  type="text"
-                  id="handle"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="username.bsky.social"
-                  value={handle}
-                  onChange={(e) => setHandle(e.target.value)}
-                />
-                {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-              </div>
+              <Stack>
+                <Stack>
+                  <TextInput
+                    id="handle"
+                    label="Enter your Bluesky handle"
+                    placeholder="username.bsky.social"
+                    value={handle}
+                    onChange={(e) => setHandle(e.target.value)}
+                  />
+                  {error && (
+                    <Text fz={"sm"} c={"red"}>
+                      {error}
+                    </Text>
+                  )}
+                </Stack>
 
-              <Button
-                type="submit"
-                className="w-full mb-4"
-                disabled={isLoading}
-              >
-                {isLoading ? "Connecting..." : "Continue"}
-              </Button>
+                <Group grow>
+                  <Button type="submit" loading={isLoading}>
+                    {isLoading ? "Connecting..." : "Continue"}
+                  </Button>
+                </Group>
 
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => setUseAppPassword(true)}
-                  className="text-sm text-blue-600 hover:text-blue-800 underline"
-                >
-                  Sign in with app password
-                </button>
-              </div>
+                <Stack>
+                  <Button
+                    type="button"
+                    onClick={() => setUseAppPassword(true)}
+                    variant="transparent"
+                    color="blue"
+                  >
+                    Sign in with app password
+                  </Button>
+                </Stack>
+              </Stack>
             </form>
           ) : (
             <form onSubmit={handleAppPasswordSubmit}>
-              <div className="mb-4">
-                <label
-                  htmlFor="handle-app"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Bluesky handle
-                </label>
-                <input
-                  type="text"
-                  id="handle-app"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="username.bsky.social"
-                  value={handle}
-                  onChange={(e) => setHandle(e.target.value)}
-                />
-              </div>
+              <Stack>
+                <Stack>
+                  <TextInput
+                    id="handle-app"
+                    label="Bluesky handle"
+                    placeholder="username.bsky.social"
+                    value={handle}
+                    onChange={(e) => setHandle(e.target.value)}
+                  />
 
-              <div className="mb-6">
-                <label
-                  htmlFor="app-password"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  App password
-                </label>
-                <input
-                  type="password"
-                  id="app-password"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="xxxx-xxxx-xxxx-xxxx"
-                  value={appPassword}
-                  onChange={(e) => setAppPassword(e.target.value)}
-                />
-                {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-              </div>
+                  <Stack>
+                    <PasswordInput
+                      id="app-password"
+                      label="App password"
+                      placeholder="xxxx-xxxx-xxxx-xxxx"
+                      value={appPassword}
+                      onChange={(e) => setAppPassword(e.target.value)}
+                    />
+                    {error && (
+                      <Text fz={"sm"} c={"red"}>
+                        {error}
+                      </Text>
+                    )}
+                  </Stack>
+                </Stack>
 
-              <Button
-                type="submit"
-                className="w-full mb-4"
-                disabled={isLoading}
-              >
-                {isLoading ? "Signing in..." : "Sign in"}
-              </Button>
+                <Button type="submit" disabled={isLoading} loading={isLoading}>
+                  {isLoading ? "Signing in..." : "Sign in"}
+                </Button>
 
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => setUseAppPassword(false)}
-                  className="text-sm text-blue-600 hover:text-blue-800 underline"
-                >
-                  Back to OAuth sign in
-                </button>
-              </div>
+                <Stack>
+                  <Button
+                    type="button"
+                    onClick={() => setUseAppPassword(false)}
+                    variant="transparent"
+                    color="blue"
+                  >
+                    Back to OAuth sign in
+                  </Button>
+                </Stack>
+              </Stack>
             </form>
           )}
-        </div>
-      </div>
-    </main>
+        </Card>
+      </Stack>
+    </Center>
   );
 }

@@ -1,13 +1,25 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getAccessToken } from "@/services/auth";
 import { ApiClient } from "@/api-client/ApiClient";
 import type { GetUrlCardViewResponse } from "@/api-client/types";
+import {
+  Button,
+  Loader,
+  Stack,
+  Text,
+  Card,
+  Title,
+  Anchor,
+  Blockquote,
+  Box,
+  Group,
+  Badge,
+  Image,
+  Divider,
+} from "@mantine/core";
 
 export default function CardPage() {
   const [card, setCard] = useState<GetUrlCardViewResponse | null>(null);
@@ -20,7 +32,7 @@ export default function CardPage() {
   // Create API client instance
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
-    () => getAccessToken()
+    () => getAccessToken(),
   );
 
   useEffect(() => {
@@ -43,131 +55,137 @@ export default function CardPage() {
   }, [cardId]);
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (error || !card) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-600 mb-4">{error || "Card not found"}</p>
+      <Stack align="center">
+        <Text c={"red"}>{error || "Card not found"}</Text>
         <Button onClick={() => router.back()}>Go Back</Button>
-      </div>
+      </Stack>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex justify-between items-start">
-        <Button variant="outline" onClick={() => router.back()}>
-          ← Back
-        </Button>
-      </div>
+    <Box>
+      <Stack>
+        <Group>
+          <Button variant="outline" onClick={() => router.back()}>
+            ← Back
+          </Button>
+        </Group>
 
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start gap-4">
-            <div className="flex-1">
-              <CardTitle className="text-2xl mb-2">
-                {card.cardContent.title || "Untitled"}
-              </CardTitle>
-              <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-                <Badge variant="secondary">{card.type}</Badge>
-                <span>
-                  Added {new Date(card.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-            {card.cardContent.thumbnailUrl && (
-              <img
-                src={card.cardContent.thumbnailUrl}
-                alt={card.cardContent.title || "Card thumbnail"}
-                className="w-32 h-20 object-cover rounded-md"
-              />
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* URL */}
-          <div>
-            <h3 className="font-semibold mb-2">URL</h3>
-            <a
-              href={card.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 underline break-all"
-            >
-              {card.url}
-            </a>
-          </div>
+        <Card withBorder>
+          <Stack>
+            <Stack>
+              <Group wrap="nowrap">
+                <Stack>
+                  <Text fz={"xl"} fw={600}>
+                    {card.cardContent.title || "Untitled"}
+                  </Text>
+                  <Group gap={"xs"}>
+                    <Badge variant="outline">{card.type}</Badge>
+                    <Text fz={"sm"} c={"gray"}>
+                      Added {new Date(card.createdAt).toLocaleDateString()}
+                    </Text>
+                  </Group>
+                </Stack>
+                {card.cardContent.thumbnailUrl && (
+                  <Image
+                    src={card.cardContent.thumbnailUrl}
+                    alt={card.cardContent.title || "Card thumbnail"}
+                    w={128}
+                    radius={"md"}
+                  />
+                )}
+              </Group>
+            </Stack>
+            <Stack gap={"xl"}>
+              {/* URL */}
+              <Stack gap={"xs"}>
+                <Title order={3} fz={"sm"}>
+                  URL
+                </Title>
+                <Anchor
+                  c="blue"
+                  href={card.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {card.url}
+                </Anchor>
+              </Stack>
 
-          {/* Description */}
-          {card.cardContent.description && (
-            <div>
-              <h3 className="font-semibold mb-2">Description</h3>
-              <p className="text-gray-700 leading-relaxed">
-                {card.cardContent.description}
-              </p>
-            </div>
-          )}
+              {/* Description */}
+              {card.cardContent.description && (
+                <Stack gap={"xs"}>
+                  <Title order={3} fz={"sm"}>
+                    Description
+                  </Title>
+                  <Text c={"gray"}>{card.cardContent.description}</Text>
+                </Stack>
+              )}
 
-          {/* Author */}
-          {card.cardContent.author && (
-            <div>
-              <h3 className="font-semibold mb-2">Author</h3>
-              <p className="text-gray-700">{card.cardContent.author}</p>
-            </div>
-          )}
+              {/* Author */}
+              {card.cardContent.author && (
+                <Stack gap={"xs"}>
+                  <Title order={3} fz={"sm"}>
+                    Author
+                  </Title>
+                  <Text c={"gray"}>{card.cardContent.author}</Text>
+                </Stack>
+              )}
 
-          {/* Note */}
-          {card.note && (
-            <div>
-              <h3 className="font-semibold mb-2">Note</h3>
-              <div className="bg-gray-50 p-4 rounded-md">
-                <p className="text-gray-700 leading-relaxed">
-                  {card.note.text}
-                </p>
-              </div>
-            </div>
-          )}
+              {/* Note */}
+              {card.note && (
+                <Stack gap={"xs"}>
+                  <Title order={3} fz={"sm"}>
+                    Note
+                  </Title>
+                  <Blockquote color="yellow" p={"xs"} fz={"sm"}>
+                    {card.note.text}
+                  </Blockquote>
+                </Stack>
+              )}
 
-          {/* Collections */}
-          {card.collections && card.collections.length > 0 && (
-            <div>
-              <h3 className="font-semibold mb-2">Collections</h3>
-              <div className="flex flex-wrap gap-2">
-                {card.collections.map((collection) => (
-                  <Badge
-                    key={collection.id}
-                    variant="outline"
-                    className="cursor-pointer hover:bg-gray-100"
-                    onClick={() => router.push(`/collections/${collection.id}`)}
-                  >
-                    {collection.name}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
+              {/* Collections */}
+              {card.collections && card.collections.length > 0 && (
+                <Stack gap={"xs"}>
+                  <Title order={3} fz={"sm"}>
+                    Collections
+                  </Title>
+                  <Group>
+                    {card.collections.map((collection) => (
+                      <Badge
+                        key={collection.id}
+                        variant="outline"
+                        onClick={() =>
+                          router.push(`/collections/${collection.id}`)
+                        }
+                      >
+                        {collection.name}
+                      </Badge>
+                    ))}
+                  </Group>
+                </Stack>
+              )}
 
-          {/* Metadata */}
-          <div className="pt-4 border-t border-gray-200">
-            <div className="grid grid-cols-2 gap-4 text-sm text-gray-500">
-              <div>
-                <span className="font-medium">Created:</span>{" "}
-                {new Date(card.createdAt).toLocaleString()}
-              </div>
-              <div>
-                <span className="font-medium">Updated:</span>{" "}
-                {new Date(card.updatedAt).toLocaleString()}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+              {/* Metadata */}
+              <Divider />
+
+              <Group justify="space-between">
+                <Text fz={"sm"} fw={500} c={"gray"}>
+                  Created: {new Date(card.createdAt).toLocaleString()}
+                </Text>
+                <Text fz={"sm"} fw={500} c={"gray"}>
+                  Updated: {new Date(card.updatedAt).toLocaleString()}
+                </Text>
+              </Group>
+            </Stack>
+          </Stack>
+        </Card>
+      </Stack>
+    </Box>
   );
 }

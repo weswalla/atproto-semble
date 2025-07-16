@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, ExternalLink } from "lucide-react";
+import { BiPlus, BiLinkExternal } from "react-icons/bi";
 import { AddToCollectionModal } from "./AddToCollectionModal";
 
 interface UrlCardProps {
@@ -29,13 +29,14 @@ export function UrlCard({
   addedAt,
   note,
 }: UrlCardProps) {
-  const [showAddToCollectionModal, setShowAddToCollectionModal] = useState(false);
+  const [showAddToCollectionModal, setShowAddToCollectionModal] =
+    useState(false);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -80,15 +81,15 @@ export function UrlCard({
                   onClick={() => setShowAddToCollectionModal(true)}
                   title="Add to collection"
                 >
-                  <Plus className="h-4 w-4" />
+                  <BiPlus className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => window.open(url, '_blank')}
+                  onClick={() => window.open(url, "_blank")}
                   title="Open link"
                 >
-                  <ExternalLink className="h-4 w-4" />
+                  <BiLinkExternal className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -100,11 +101,7 @@ export function UrlCard({
               {description}
             </p>
           )}
-          {author && (
-            <p className="text-xs text-gray-500 mb-2">
-              By {author}
-            </p>
-          )}
+          {author && <p className="text-xs text-gray-500 mb-2">By {author}</p>}
           {note && (
             <div className="bg-yellow-50 border-l-4 border-yellow-200 p-2 mb-3">
               <p className="text-sm text-gray-700">{note}</p>

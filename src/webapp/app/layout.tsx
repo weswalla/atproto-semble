@@ -6,7 +6,6 @@ import {
 } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { AuthProvider } from "@/hooks/useAuth";
-import "./globals.css";
 import { theme } from "@/styles/theme";
 
 export const metadata: Metadata = {

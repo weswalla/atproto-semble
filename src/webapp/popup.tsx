@@ -6,7 +6,6 @@ import { SignInPage } from "./components/extension/SignInPage";
 import { SaveCardPage } from "./components/extension/SaveCardPage";
 import { Card, MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
-import "./app/globals.css";
 import { theme } from "@/styles/theme";
 
 function PopupContent() {

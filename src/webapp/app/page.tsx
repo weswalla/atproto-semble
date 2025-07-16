@@ -1,10 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Title, Text, Stack, Button } from "@mantine/core";
+import { FaBluesky } from "react-icons/fa6";
 
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -22,22 +22,23 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-center font-mono text-sm flex flex-col">
-        <h1 className="text-4xl font-bold mb-8">Welcome to Annos</h1>
-        <p className="text-xl mb-8">Your annotation platform</p>
+      <Stack align="center">
+        <Stack align="center" gap={0}>
+          <Title order={1}>Welcome to Annos</Title>
+          <Text fw={600} fz={"xl"} c={"dark.4"}>
+            Your annotation platform
+          </Text>
+        </Stack>
 
-        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-          <h2 className="text-2xl font-semibold mb-6 text-center">Sign In</h2>
-          <p className="mb-6 text-center text-gray-600">
+        <Stack align="center">
+          <Text fw={500} c={"gray"}>
             Please sign in to access your annotations
-          </p>
-          <div className="flex justify-center">
-            <Link href="/login" className="w-full">
-              <Button className="w-full">Sign in with Bluesky</Button>
-            </Link>
-          </div>
-        </div>
-      </div>
+          </Text>
+          <Button component="a" href="/login" leftSection={<FaBluesky />}>
+            Sign in with Bluesky
+          </Button>
+        </Stack>
+      </Stack>
     </main>
   );
 }

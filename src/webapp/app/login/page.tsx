@@ -1,10 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiClient } from "@/api-client/ApiClient";
 import { useAuth } from "@/hooks/useAuth";
+import { Title, Button, Stack } from "@mantine/core";
 
 export default function LoginPage() {
   const [handle, setHandle] = useState("");
@@ -18,7 +18,7 @@ export default function LoginPage() {
   // Create API client instance
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
-    () => null // No auth token needed for login
+    () => null, // No auth token needed for login
   );
 
   const handleOAuthSubmit = async (e: React.FormEvent) => {
@@ -74,8 +74,8 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-center font-mono text-sm flex flex-col">
-        <h1 className="text-4xl font-bold mb-8">Sign in with Bluesky</h1>
+      <div className="z-10 max-w-5xl w-full items-center justify-center text-sm flex flex-col">
+        <Title order={1}>Sign in with Bluesky</Title>
 
         <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
           {!useAppPassword ? (
@@ -98,23 +98,20 @@ export default function LoginPage() {
                 {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
               </div>
 
-              <Button
-                type="submit"
-                className="w-full mb-4"
-                disabled={isLoading}
-              >
+              <Button type="submit" className="w-full mb-4" loading={isLoading}>
                 {isLoading ? "Connecting..." : "Continue"}
               </Button>
 
-              <div className="text-center">
-                <button
+              <Stack>
+                <Button
                   type="button"
                   onClick={() => setUseAppPassword(true)}
-                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                  variant="transparent"
+                  color="blue"
                 >
                   Sign in with app password
-                </button>
-              </div>
+                </Button>
+              </Stack>
             </form>
           ) : (
             <form onSubmit={handleAppPasswordSubmit}>
@@ -161,15 +158,16 @@ export default function LoginPage() {
                 {isLoading ? "Signing in..." : "Sign in"}
               </Button>
 
-              <div className="text-center">
-                <button
+              <Stack>
+                <Button
                   type="button"
                   onClick={() => setUseAppPassword(false)}
-                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                  variant="transparent"
+                  color="blue"
                 >
                   Back to OAuth sign in
-                </button>
-              </div>
+                </Button>
+              </Stack>
             </form>
           )}
         </div>

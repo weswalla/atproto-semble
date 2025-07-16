@@ -75,21 +75,21 @@ src/
 **popup.tsx:**
 ```typescript
 import { useAuth } from "./hooks/useAuth"
-import { Button } from "@mantine/core"
-import "./app/globals.css" // Reuse your styles
+import { Button, Center, Title } from "@mantine/core"
+import "@mantine/core/styles.css"; // Reuse your styles
 
 function IndexPopup() {
   const { isAuthenticated, login } = useAuth()
 
   return (
-    <div className="w-80 p-4">
-      <h1>Your App Extension</h1>
+    <Center>
+      <Title order={1}>Your App Extension</Title>
       {isAuthenticated ? (
         <div>Welcome back!</div>
       ) : (
         <Button onClick={() => login()}>Sign In</Button>
       )}
-    </div>
+    </Center>
   )
 }
 

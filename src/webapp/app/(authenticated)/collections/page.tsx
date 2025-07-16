@@ -6,6 +6,7 @@ import { getAccessToken } from "@/services/auth";
 import { ApiClient } from "@/api-client/ApiClient";
 import type { GetMyCollectionsResponse } from "@/api-client/types";
 import {
+  Box,
   Button,
   Card,
   Container,
@@ -53,7 +54,7 @@ export default function CollectionsPage() {
   }
 
   return (
-    <Container>
+    <Box>
       <Stack>
         <Group justify="space-between">
           <Stack gap={0}>
@@ -108,6 +109,6 @@ export default function CollectionsPage() {
           </Stack>
         )}
       </Stack>
-    </Container>
+    </Box>
   );
 }

@@ -36,7 +36,7 @@ export const ExtensionAuthProvider = ({
   const createApiClient = useCallback((token: string | null) => {
     return new ApiClient(
       process.env.PLASMO_PUBLIC_API_URL || "http://localhost:3000",
-      () => token
+      () => token,
     );
   }, []);
 
@@ -98,7 +98,7 @@ export const ExtensionAuthProvider = ({
 
   const loginWithAppPassword = async (
     identifier: string,
-    appPassword: string
+    appPassword: string,
   ) => {
     try {
       setError(null);
@@ -162,7 +162,7 @@ export const useExtensionAuth = () => {
   const context = useContext(ExtensionAuthContext);
   if (!context) {
     throw new Error(
-      "useExtensionAuth must be used within ExtensionAuthProvider"
+      "useExtensionAuth must be used within ExtensionAuthProvider",
     );
   }
   return context;

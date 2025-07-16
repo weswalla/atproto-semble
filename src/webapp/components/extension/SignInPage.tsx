@@ -1,19 +1,42 @@
+"use client";
+
 import { useState } from "react";
 import { useExtensionAuth } from "../../hooks/useExtensionAuth";
+import {
+  Alert,
+  Button,
+  Center,
+  Divider,
+  Loader,
+  PasswordInput,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from "@mantine/core";
+import { useForm } from "@mantine/form";
 
 export function SignInPage() {
   const { loginWithAppPassword, error, isLoading } = useExtensionAuth();
-  const [handle, setHandle] = useState("");
-  const [password, setPassword] = useState("");
+  const form = useForm({
+    initialValues: {
+      handle: "",
+      password: "",
+    },
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!handle.trim() || !password.trim()) return;
+    if (!form.getValues().handle.trim() || !form.getValues().password.trim())
+      return;
 
     try {
       setIsSubmitting(true);
-      await loginWithAppPassword(handle.trim(), password.trim());
+      await loginWithAppPassword(
+        form.getValues().handle.trim(),
+        form.getValues().password.trim(),
+      );
     } catch (error) {
       // Error is handled by the auth context
     } finally {
@@ -23,64 +46,59 @@ export function SignInPage() {
 
   if (isLoading) {
     return (
-      <div className="w-80 p-4 bg-white">
-        <div className="flex items-center justify-center py-8">
-          <div className="text-sm text-gray-600">Loading...</div>
-        </div>
-      </div>
+      <Center>
+        <Loader />
+      </Center>
     );
   }
 
   return (
-    <div className="w-80 p-4 bg-white">
-      <div className="border-b pb-3 mb-4">
-        <h1 className="text-lg font-semibold text-gray-900">Card Extension</h1>
-        <p className="text-sm text-gray-600">Sign in to save content</p>
-      </div>
-      
-      <form onSubmit={handleLogin} className="space-y-4">
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-3">
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
-        )}
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Handle
-          </label>
-          <input
+    <Stack>
+      <Stack gap={0}>
+        <Title order={1} fz={"xl"}>
+          Card Extension
+        </Title>
+        <Text c={"gray"} fz={"sm"} fw={500}>
+          Sign in to save content
+        </Text>
+      </Stack>
+
+      <Divider />
+
+      <form onSubmit={handleLogin}>
+        <Stack>
+          {error && <Alert color={"red"} title={error} />}
+
+          <TextInput
             type="text"
+            label="Handle"
             placeholder="user.bsky.social"
-            value={handle}
-            onChange={(e) => setHandle(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={isSubmitting}
+            key={form.key("handle")}
+            {...form.getInputProps("handle")}
           />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            App Password
-          </label>
-          <input
-            type="password"
+
+          <PasswordInput
+            label="App Password"
             placeholder="xxxx-xxxx-xxxx-xxxx"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={isSubmitting}
+            key={form.key("password")}
+            {...form.getInputProps("password")}
           />
-        </div>
-        
-        <button
-          type="submit"
-          disabled={!handle.trim() || !password.trim() || isSubmitting}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-        >
-          {isSubmitting ? "Signing in..." : "Sign In"}
-        </button>
+
+          <Button
+            type="submit"
+            disabled={
+              !form.getValues().handle.trim() ||
+              !form.getValues().password.trim() ||
+              isSubmitting
+            }
+            loading={isSubmitting}
+          >
+            {isSubmitting ? "Signing in..." : "Sign In"}
+          </Button>
+        </Stack>
       </form>
-    </div>
+    </Stack>
   );
 }

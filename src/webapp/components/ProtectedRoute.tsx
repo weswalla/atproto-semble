@@ -3,6 +3,7 @@
 import { useEffect, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { isAuthenticated } from "@/services/auth";
+import { Loader } from "@mantine/core";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -19,17 +20,13 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
       router.push("/");
       return;
     }
-    
+
     setIsAuthorized(true);
     setIsLoading(false);
   }, [router]);
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   return isAuthorized ? <>{children}</> : null;

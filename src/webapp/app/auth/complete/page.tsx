@@ -3,6 +3,7 @@
 import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { Card, Center, Loader, Stack, Title, Text } from "@mantine/core";
 
 function AuthCompleteContent() {
   const router = useRouter();
@@ -36,37 +37,31 @@ function AuthCompleteContent() {
   }, [router, searchParams, setTokens]);
 
   return (
-    <div className="z-10 max-w-5xl w-full items-center justify-center font-mono text-sm flex flex-col">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md text-center">
-        <h2 className="text-2xl font-semibold mb-4">Completing Sign In</h2>
-        <p className="mb-4">
-          Please wait while we complete your authentication...
-        </p>
-        <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
-        </div>
-      </div>
-    </div>
+    <Stack align="center">
+      <Stack gap={0} align="center">
+        <Title order={2}>Completing Sign In</Title>
+        <Text>Please wait while we complete your authentication...</Text>
+      </Stack>
+      <Loader type="bars" />
+    </Stack>
   );
 }
 
 export default function AuthCompletePage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
+    <Center h={"100svh"}>
       <Suspense
         fallback={
-          <div className="z-10 max-w-5xl w-full items-center justify-center font-mono text-sm flex flex-col">
-            <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md text-center">
-              <h2 className="text-2xl font-semibold mb-4">Loading</h2>
-              <div className="flex justify-center">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
-              </div>
-            </div>
-          </div>
+          <Card>
+            <Stack align="center">
+              <Title order={2}>Loading</Title>
+              <Loader />
+            </Stack>
+          </Card>
         }
       >
         <AuthCompleteContent />
       </Suspense>
-    </main>
+    </Center>
   );
 }

@@ -3,7 +3,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Title, Text, Stack, Button } from "@mantine/core";
+import { Title, Text, Stack, Button, Center } from "@mantine/core";
 import { FaBluesky } from "react-icons/fa6";
 
 export default function Home() {
@@ -17,11 +17,11 @@ export default function Home() {
   }, [isAuthenticated, isLoading, router]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <>Loading...</>;
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
+    <Center h={"100svh"}>
       <Stack align="center">
         <Stack align="center" gap={0}>
           <Title order={1}>Welcome to Annos</Title>
@@ -39,6 +39,6 @@ export default function Home() {
           </Button>
         </Stack>
       </Stack>
-    </main>
+    </Center>
   );
 }

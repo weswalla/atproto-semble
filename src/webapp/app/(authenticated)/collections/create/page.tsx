@@ -14,6 +14,7 @@ import {
   TextInput,
   Textarea,
   Group,
+  Alert,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 
@@ -106,22 +107,11 @@ export default function CreateCollectionPage() {
                     />
                   </Stack>
 
-                  {error && (
-                    <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
-                      {error}
-                    </div>
-                  )}
+                  {error && <Alert color="red" title={error} />}
 
                   <Group>
                     <Button type="submit" loading={loading}>
-                      {loading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Creating...
-                        </>
-                      ) : (
-                        "Create Collection"
-                      )}
+                      {loading ? "Creating..." : "Create Collection"}
                     </Button>
                     <Button
                       type="button"

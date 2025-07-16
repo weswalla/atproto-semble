@@ -64,7 +64,7 @@ export function UrlCard({
     <Box>
       <Card withBorder>
         <Stack>
-          <Group wrap="nowrap">
+          <Group justify="space-between" wrap="nowrap">
             <Stack gap={0}>
               <Text fw={600} lineClamp={1}>
                 {title || getDomain(url)}
@@ -83,23 +83,23 @@ export function UrlCard({
                   radius={"md"}
                 />
               )}
+              <Stack gap={"xs"}>
+                <ActionIcon
+                  variant="transparent"
+                  onClick={() => open()}
+                  title="Add to collection"
+                >
+                  <BiPlus />
+                </ActionIcon>
+                <ActionIcon
+                  variant="transparent"
+                  onClick={() => window.open(url, "_blank")}
+                  title="Open link"
+                >
+                  <BiLinkExternal />
+                </ActionIcon>
+              </Stack>
             </Group>
-            <Stack gap={"xs"}>
-              <ActionIcon
-                variant="transparent"
-                onClick={() => open()}
-                title="Add to collection"
-              >
-                <BiPlus />
-              </ActionIcon>
-              <ActionIcon
-                variant="transparent"
-                onClick={() => window.open(url, "_blank")}
-                title="Open link"
-              >
-                <BiLinkExternal />
-              </ActionIcon>
-            </Stack>
           </Group>
 
           <Stack>

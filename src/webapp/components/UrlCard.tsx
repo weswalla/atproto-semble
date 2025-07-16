@@ -1,17 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import { BiPlus, BiLinkExternal } from "react-icons/bi";
 import { AddToCollectionModal } from "./AddToCollectionModal";
 import {
   ActionIcon,
   Blockquote,
+  Box,
   Card,
   Group,
   Image,
   Stack,
   Text,
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 
 interface UrlCardProps {
   cardId: string;
@@ -36,8 +37,7 @@ export function UrlCard({
   addedAt,
   note,
 }: UrlCardProps) {
-  const [showAddToCollectionModal, setShowAddToCollectionModal] =
-    useState(false);
+  const [modalOpened, { open, close }] = useDisclosure(false);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -61,7 +61,7 @@ export function UrlCard({
   };
 
   return (
-    <>
+    <Box>
       <Card withBorder>
         <Stack>
           <Group wrap="nowrap">
@@ -87,7 +87,7 @@ export function UrlCard({
             <Stack gap={"xs"}>
               <ActionIcon
                 variant="transparent"
-                onClick={() => setShowAddToCollectionModal(true)}
+                onClick={() => open()}
                 title="Add to collection"
               >
                 <BiPlus />
@@ -124,10 +124,10 @@ export function UrlCard({
 
       <AddToCollectionModal
         cardId={cardId}
-        isOpen={showAddToCollectionModal}
-        onClose={() => setShowAddToCollectionModal(false)}
+        isOpen={modalOpened}
+        onClose={close}
         onSuccess={handleAddToCollectionSuccess}
       />
-    </>
+    </Box>
   );
 }

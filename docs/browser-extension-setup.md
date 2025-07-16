@@ -75,12 +75,12 @@ src/
 **popup.tsx:**
 ```typescript
 import { useAuth } from "./hooks/useAuth"
-import { Button } from "./components/ui/button"
+import { Button } from "@mantine/core"
 import "./app/globals.css" // Reuse your styles
 
 function IndexPopup() {
   const { isAuthenticated, login } = useAuth()
-  
+
   return (
     <div className="w-80 p-4">
       <h1>Your App Extension</h1>
@@ -118,7 +118,7 @@ const isExtension = typeof chrome !== 'undefined' && chrome.storage
 const useAuth = () => {
   // Use chrome.storage for extension, localStorage for webapp
   const storage = isExtension ? chrome.storage.local : localStorage
-  
+
   // Rest of your existing auth logic...
 }
 ```
@@ -130,7 +130,7 @@ Create **shared/components/** and move reusable components:
 ```typescript
 // Move these to shared/components/
 - UrlCard.tsx
-- Sidebar.tsx  
+- Sidebar.tsx
 - ui/ components
 ```
 

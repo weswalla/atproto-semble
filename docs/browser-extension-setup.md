@@ -130,7 +130,6 @@ Create **shared/components/** and move reusable components:
 ```typescript
 // Move these to shared/components/
 - UrlCard.tsx
-- Sidebar.tsx
 - ui/ components
 ```
 

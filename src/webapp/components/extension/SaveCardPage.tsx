@@ -4,6 +4,7 @@ import { ApiClient } from "../../api-client/ApiClient";
 import { IoMdCheckmark } from "react-icons/io";
 import {
   Alert,
+  AspectRatio,
   Box,
   Button,
   Divider,
@@ -144,10 +145,12 @@ export function SaveCardPage() {
           <Paper bg={"gray.2"} p={"sm"}>
             <Stack>
               {metadata.imageUrl && (
-                <Image
-                  src={metadata.imageUrl}
-                  alt={metadata.title || "Page preview"}
-                />
+                <AspectRatio ratio={2 / 1}>
+                  <Image
+                    src={metadata.imageUrl}
+                    alt={metadata.title || "Page preview"}
+                  />
+                </AspectRatio>
               )}
               <Stack gap={"xs"}>
                 <Stack gap={"0"}>

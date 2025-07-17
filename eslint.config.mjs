@@ -1,5 +1,4 @@
 import js from '@eslint/js';
-import prettier from 'eslint-config-prettier';
 import prettierPlugin from 'eslint-plugin-prettier';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
@@ -7,7 +6,7 @@ import tsparser from '@typescript-eslint/parser';
 export default [
   js.configs.recommended,
   {
-    ignores: ['src/webapp/**', 'dist/**', 'node_modules/**'],
+    ignores: ['src/webapp/**', 'dist/**', 'node_modules/**', 'src/modules/atproto/infrastructure/lexicon/**'],
   },
   {
     files: ['**/*.ts'],

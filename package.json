@@ -32,7 +32,9 @@
     "webapp:build": "cd src/webapp && npm run build",
     "webapp:start": "cd src/webapp && npm run start",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "keywords": [],
   "author": "",

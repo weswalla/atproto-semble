@@ -42,7 +42,7 @@ export class CardMapper {
 
   private static mapCardContent(card: Card): $Typed<UrlContent | NoteContent> {
     switch (card.type.value) {
-      case CardTypeEnum.URL:
+      case CardTypeEnum.URL: {
         const urlContent = card.content.urlContent!;
         const urlContentDTO: $Typed<UrlContent> = {
           $type: 'network.cosmik.card#urlContent',
@@ -54,8 +54,9 @@ export class CardMapper {
         }
 
         return urlContentDTO;
+      }
 
-      case CardTypeEnum.NOTE:
+      case CardTypeEnum.NOTE: {
         const noteContent = card.content.noteContent!;
         const noteContentDTO: $Typed<NoteContent> = {
           $type: 'network.cosmik.card#noteContent',
@@ -63,6 +64,7 @@ export class CardMapper {
         };
 
         return noteContentDTO;
+      }
 
       default:
         throw new Error(`Unsupported card type: ${card.type.value}`);

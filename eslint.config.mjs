@@ -33,6 +33,7 @@ export default [
     },
     rules: {
       'prettier/prettier': 'error',
+      'no-unused-vars': 'off', // Turn off base rule
       '@typescript-eslint/no-unused-vars': 'warn',
       'no-console': 'warn',
     },

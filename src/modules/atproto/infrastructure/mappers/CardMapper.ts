@@ -8,6 +8,7 @@ import {
   UrlMetadata,
 } from '../lexicon/types/network/cosmik/card';
 import { StrongRef } from '../../domain';
+import { UrlMetadata as UrlMetadataVO } from 'src/modules/cards/domain/value-objects/UrlMetadata';
 
 type CardRecordDTO = Record;
 
@@ -68,7 +69,7 @@ export class CardMapper {
     }
   }
 
-  private static mapUrlMetadata(metadata: any): $Typed<UrlMetadata> {
+  private static mapUrlMetadata(metadata: UrlMetadataVO): $Typed<UrlMetadata> {
     return {
       $type: 'network.cosmik.card#urlMetadata',
       url: metadata.url,

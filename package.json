@@ -66,6 +66,8 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/pg": "^8.11.13",
     "@types/supertest": "^6.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.37.0",
+    "@typescript-eslint/parser": "^8.37.0",
     "concurrently": "^9.1.2",
     "dotenv-cli": "^8.0.0",
     "drizzle-kit": "^0.31.1",

@@ -177,7 +177,7 @@ export class CardMapper {
   ): Result<CardContent> {
     try {
       switch (type) {
-        case CardTypeEnum.URL:
+        case CardTypeEnum.URL: {
           const urlData = data as UrlContentData;
           const urlOrError = URL.create(urlData.url);
           if (urlOrError.isErr()) return err(urlOrError.error);
@@ -202,12 +202,14 @@ export class CardMapper {
           }
 
           return CardContent.createUrlContent(urlOrError.value, metadata);
+        }
 
-        case CardTypeEnum.NOTE:
+        case CardTypeEnum.NOTE: {
           const noteData = data as NoteContentData;
           const authorIdResult = CuratorId.create(noteData.authorId);
           if (authorIdResult.isErr()) return err(authorIdResult.error);
           return CardContent.createNoteContent(noteData.text);
+        }
 
         default:
           return err(new Error(`Unknown card type: ${type}`));

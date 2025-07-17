@@ -70,7 +70,7 @@ export class DomainEvents {
     callback: (event: IDomainEvent) => void,
     eventClassName: string,
   ): void {
-    if (!this.handlersMap.hasOwnProperty(eventClassName)) {
+    if (!Object.hasOwn(this.handlersMap, eventClassName)) {
       this.handlersMap[eventClassName] = [];
     }
     this.handlersMap[eventClassName]?.push(callback);
@@ -87,7 +87,7 @@ export class DomainEvents {
   private static dispatch(event: IDomainEvent): void {
     const eventClassName: string = event.constructor.name;
 
-    if (this.handlersMap.hasOwnProperty(eventClassName)) {
+    if (Object.hasOwn(this.handlersMap, eventClassName)) {
       const handlers = this.handlersMap[eventClassName];
       if (!handlers) {
         return;

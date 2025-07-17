@@ -9,6 +9,32 @@ export default [
     ignores: ['src/webapp/**', 'dist/**', 'node_modules/**', 'src/modules/atproto/infrastructure/lexicon/**'],
   },
   {
+    files: ['**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'script',
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        Buffer: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        module: 'readonly',
+        require: 'readonly',
+        exports: 'readonly',
+        global: 'readonly',
+      },
+    },
+    plugins: {
+      prettier: prettierPlugin,
+    },
+    rules: {
+      'prettier/prettier': 'error',
+      'no-unused-vars': 'warn',
+      'no-console': 'warn',
+    },
+  },
+  {
     files: ['**/*.ts'],
     plugins: {
       '@typescript-eslint': tseslint,

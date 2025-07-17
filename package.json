@@ -30,7 +30,9 @@
     "webapp:dev": "cd src/webapp && npm run dev",
     "webapp:extension:dev": "cd src/webapp && npm run dev:extension",
     "webapp:build": "cd src/webapp && npm run build",
-    "webapp:start": "cd src/webapp && npm run start"
+    "webapp:start": "cd src/webapp && npm run start",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [],
   "author": "",

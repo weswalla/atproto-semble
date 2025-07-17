@@ -40,6 +40,7 @@ export default [
         afterAll: 'readonly',
         afterEach: 'readonly',
         jest: 'readonly',
+        URLSearchParams: 'readonly',
       },
     },
     rules: {

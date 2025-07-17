@@ -6,7 +6,12 @@ import tsparser from '@typescript-eslint/parser';
 export default [
   js.configs.recommended,
   {
-    ignores: ['src/webapp/**', 'dist/**', 'node_modules/**', 'src/modules/atproto/infrastructure/lexicon/**'],
+    ignores: [
+      'src/webapp/**',
+      'dist/**',
+      'node_modules/**',
+      'src/modules/atproto/infrastructure/lexicon/**',
+    ],
   },
   {
     files: ['**/*.js'],

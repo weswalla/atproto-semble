@@ -1,5 +1,5 @@
-import { Result } from "../../../../shared/core/Result";
-import { CardId } from "../../domain/value-objects/CardId";
+import { Result } from '../../../../shared/core/Result';
+import { CardId } from '../../domain/value-objects/CardId';
 
 export interface ICardLibraryQueryService {
   /**

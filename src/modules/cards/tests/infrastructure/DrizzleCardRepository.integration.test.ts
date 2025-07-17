@@ -1,23 +1,23 @@
 import {
   PostgreSqlContainer,
   StartedPostgreSqlContainer,
-} from "@testcontainers/postgresql";
-import postgres from "postgres";
-import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { DrizzleCardRepository } from "../../infrastructure/repositories/DrizzleCardRepository";
-import { CuratorId } from "../../domain/value-objects/CuratorId";
-import { URL } from "../../domain/value-objects/URL";
-import { cards } from "../../infrastructure/repositories/schema/card.sql";
-import { libraryMemberships } from "../../infrastructure/repositories/schema/libraryMembership.sql";
-import { publishedRecords } from "../../infrastructure/repositories/schema/publishedRecord.sql";
-import { Card } from "../../domain/Card";
-import { CardType, CardTypeEnum } from "../../domain/value-objects/CardType";
-import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
-import { CardContent } from "../../domain/value-objects/CardContent";
-import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
-import { createTestSchema } from "../test-utils/createTestSchema";
+} from '@testcontainers/postgresql';
+import postgres from 'postgres';
+import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { DrizzleCardRepository } from '../../infrastructure/repositories/DrizzleCardRepository';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
+import { URL } from '../../domain/value-objects/URL';
+import { cards } from '../../infrastructure/repositories/schema/card.sql';
+import { libraryMemberships } from '../../infrastructure/repositories/schema/libraryMembership.sql';
+import { publishedRecords } from '../../infrastructure/repositories/schema/publishedRecord.sql';
+import { Card } from '../../domain/Card';
+import { CardType, CardTypeEnum } from '../../domain/value-objects/CardType';
+import { UrlMetadata } from '../../domain/value-objects/UrlMetadata';
+import { CardContent } from '../../domain/value-objects/CardContent';
+import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
+import { createTestSchema } from '../test-utils/createTestSchema';
 
-describe("DrizzleCardRepository", () => {
+describe('DrizzleCardRepository', () => {
   let container: StartedPostgreSqlContainer;
   let db: PostgresJsDatabase;
   let cardRepository: DrizzleCardRepository;
@@ -29,7 +29,7 @@ describe("DrizzleCardRepository", () => {
   // Setup before all tests
   beforeAll(async () => {
     // Start PostgreSQL container
-    container = await new PostgreSqlContainer("postgres:14").start();
+    container = await new PostgreSqlContainer('postgres:14').start();
 
     // Create database connection
     const connectionString = container.getConnectionUri();
@@ -44,8 +44,8 @@ describe("DrizzleCardRepository", () => {
     await createTestSchema(db);
 
     // Create test data
-    curatorId = CuratorId.create("did:plc:testcurator").unwrap();
-    anotherCuratorId = CuratorId.create("did:plc:anothercurator").unwrap();
+    curatorId = CuratorId.create('did:plc:testcurator').unwrap();
+    anotherCuratorId = CuratorId.create('did:plc:anothercurator').unwrap();
   }, 60000); // Increase timeout for container startup
 
   // Cleanup after all tests
@@ -61,15 +61,15 @@ describe("DrizzleCardRepository", () => {
     await db.delete(publishedRecords);
   });
 
-  it("should save and retrieve a URL card", async () => {
+  it('should save and retrieve a URL card', async () => {
     // Create a URL card
-    const url = URL.create("https://example.com/article1").unwrap();
+    const url = URL.create('https://example.com/article1').unwrap();
     const metadata = UrlMetadata.create({
-      url: "https://example.com/article1",
-      title: "Test Article",
-      description: "A test article",
-      author: "Test Author",
-      siteName: "Example Site",
+      url: 'https://example.com/article1',
+      title: 'Test Article',
+      description: 'A test article',
+      author: 'Test Author',
+      siteName: 'Example Site',
       retrievedAt: new Date(),
     }).unwrap();
 
@@ -96,19 +96,19 @@ describe("DrizzleCardRepository", () => {
     const retrievedCard = retrievedResult.unwrap();
     expect(retrievedCard).not.toBeNull();
     expect(retrievedCard?.cardId.getStringValue()).toBe(
-      card.cardId.getStringValue()
+      card.cardId.getStringValue(),
     );
     expect(retrievedCard?.content.type).toBe(CardTypeEnum.URL);
     expect(retrievedCard?.content.urlContent?.url.value).toBe(url.value);
     expect(retrievedCard?.content.urlContent?.metadata?.title).toBe(
-      "Test Article"
+      'Test Article',
     );
   });
 
-  it("should save and retrieve a note card", async () => {
+  it('should save and retrieve a note card', async () => {
     // Create a note card
     const noteContent = CardContent.createNoteContent(
-      "This is a test note"
+      'This is a test note',
     ).unwrap();
     const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
 
@@ -132,15 +132,15 @@ describe("DrizzleCardRepository", () => {
     expect(retrievedCard).not.toBeNull();
     expect(retrievedCard?.content.type).toBe(CardTypeEnum.NOTE);
     expect(retrievedCard?.content.noteContent?.text).toBe(
-      "This is a test note"
+      'This is a test note',
     );
     expect(retrievedCard?.content.noteContent?.title).toBeUndefined();
   });
 
-  it("should save and retrieve a card with library memberships", async () => {
+  it('should save and retrieve a card with library memberships', async () => {
     // Create a note card
     const noteContent = CardContent.createNoteContent(
-      "Card with library memberships"
+      'Card with library memberships',
     ).unwrap();
     const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
 
@@ -172,16 +172,16 @@ describe("DrizzleCardRepository", () => {
     expect(retrievedCard?.libraryMemberships).toHaveLength(2);
 
     const membershipUserIds = retrievedCard?.libraryMemberships.map(
-      (m) => m.curatorId.value
+      (m) => m.curatorId.value,
     );
     expect(membershipUserIds).toContain(curatorId.value);
     expect(membershipUserIds).toContain(anotherCuratorId.value);
   });
 
-  it("should update library memberships when card is saved", async () => {
+  it('should update library memberships when card is saved', async () => {
     // Create a note card
     const noteContent = CardContent.createNoteContent(
-      "Card for membership updates"
+      'Card for membership updates',
     ).unwrap();
     const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
 
@@ -219,14 +219,14 @@ describe("DrizzleCardRepository", () => {
     retrievedCard = retrievedResult.unwrap();
     expect(retrievedCard?.libraryMemberships).toHaveLength(1);
     expect(retrievedCard?.libraryMemberships[0]!.curatorId.value).toBe(
-      anotherCuratorId.value
+      anotherCuratorId.value,
     );
   });
 
-  it("should delete a card and its library memberships", async () => {
+  it('should delete a card and its library memberships', async () => {
     // Create a card
     const noteContent =
-      CardContent.createNoteContent("Card to delete").unwrap();
+      CardContent.createNoteContent('Card to delete').unwrap();
     const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
 
     const cardResult = Card.create({
@@ -256,9 +256,9 @@ describe("DrizzleCardRepository", () => {
     expect(retrievedResult.unwrap()).toBeNull();
   });
 
-  it("should return null when card is not found", async () => {
+  it('should return null when card is not found', async () => {
     const noteContent =
-      CardContent.createNoteContent("Non-existent card").unwrap();
+      CardContent.createNoteContent('Non-existent card').unwrap();
     const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
 
     const nonExistentCardId = Card.create({
@@ -271,10 +271,10 @@ describe("DrizzleCardRepository", () => {
     expect(result.unwrap()).toBeNull();
   });
 
-  it("should handle originalPublishedRecordId when marking card as published", async () => {
+  it('should handle originalPublishedRecordId when marking card as published', async () => {
     // Create a note card
     const noteContent = CardContent.createNoteContent(
-      "Card for publishing test"
+      'Card for publishing test',
     ).unwrap();
     const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
 
@@ -290,15 +290,15 @@ describe("DrizzleCardRepository", () => {
 
     // Mark as published - this should set the originalPublishedRecordId
     const publishedRecordId = {
-      uri: "at://did:plc:testcurator/network.cosmik.card/test123",
-      cid: "bafytest123",
+      uri: 'at://did:plc:testcurator/network.cosmik.card/test123',
+      cid: 'bafytest123',
     };
 
     const publishedRecord = PublishedRecordId.create(publishedRecordId);
 
     const markResult = card.markCardInLibraryAsPublished(
       curatorId,
-      publishedRecord
+      publishedRecord,
     );
     expect(markResult.isOk()).toBe(true);
 
@@ -317,20 +317,20 @@ describe("DrizzleCardRepository", () => {
 
     expect(retrievedCard?.originalPublishedRecordId).toBeDefined();
     expect(retrievedCard?.originalPublishedRecordId?.uri).toBe(
-      publishedRecordId.uri
+      publishedRecordId.uri,
     );
     expect(retrievedCard?.originalPublishedRecordId?.cid).toBe(
-      publishedRecordId.cid
+      publishedRecordId.cid,
     );
   });
 
-  it("should find URL card by URL", async () => {
+  it('should find URL card by URL', async () => {
     // Create a URL card
-    const url = URL.create("https://example.com/findme").unwrap();
+    const url = URL.create('https://example.com/findme').unwrap();
     const metadata = UrlMetadata.create({
-      url: "https://example.com/findme",
-      title: "Findable Article",
-      description: "An article that can be found",
+      url: 'https://example.com/findme',
+      title: 'Findable Article',
+      description: 'An article that can be found',
       retrievedAt: new Date(),
     }).unwrap();
 
@@ -355,25 +355,25 @@ describe("DrizzleCardRepository", () => {
     const foundCard = foundResult.unwrap();
     expect(foundCard).not.toBeNull();
     expect(foundCard?.cardId.getStringValue()).toBe(
-      card.cardId.getStringValue()
+      card.cardId.getStringValue(),
     );
     expect(foundCard?.content.type).toBe(CardTypeEnum.URL);
     expect(foundCard?.content.urlContent?.url.value).toBe(url.value);
   });
 
-  it("should return null when URL card is not found", async () => {
-    const nonExistentUrl = URL.create("https://example.com/notfound").unwrap();
+  it('should return null when URL card is not found', async () => {
+    const nonExistentUrl = URL.create('https://example.com/notfound').unwrap();
 
     const result = await cardRepository.findUrlCardByUrl(nonExistentUrl);
     expect(result.isOk()).toBe(true);
     expect(result.unwrap()).toBeNull();
   });
 
-  it("should not find note cards when searching by URL", async () => {
+  it('should not find note cards when searching by URL', async () => {
     // Create a note card with a URL (but it's not a URL card type)
-    const url = URL.create("https://example.com/note-url").unwrap();
+    const url = URL.create('https://example.com/note-url').unwrap();
     const noteContent =
-      CardContent.createNoteContent("Note about a URL").unwrap();
+      CardContent.createNoteContent('Note about a URL').unwrap();
     const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
 
     const cardResult = Card.create({
@@ -391,10 +391,10 @@ describe("DrizzleCardRepository", () => {
     expect(foundResult.unwrap()).toBeNull();
   });
 
-  it("should maintain accurate libraryCount when adding and removing from libraries", async () => {
+  it('should maintain accurate libraryCount when adding and removing from libraries', async () => {
     // Create a note card
     const noteContent = CardContent.createNoteContent(
-      "Card for library count test"
+      'Card for library count test',
     ).unwrap();
     const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
 
@@ -441,14 +441,14 @@ describe("DrizzleCardRepository", () => {
     expect(retrievedCard?.libraryCount).toBe(1);
     expect(retrievedCard?.libraryMemberships).toHaveLength(1);
     expect(retrievedCard?.libraryMemberships[0]!.curatorId.value).toBe(
-      anotherCuratorId.value
+      anotherCuratorId.value,
     );
   });
 
-  it("should initialize libraryCount correctly when creating card with existing memberships", async () => {
+  it('should initialize libraryCount correctly when creating card with existing memberships', async () => {
     // Create a note card with initial library memberships
     const noteContent = CardContent.createNoteContent(
-      "Card with initial memberships"
+      'Card with initial memberships',
     ).unwrap();
     const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
 

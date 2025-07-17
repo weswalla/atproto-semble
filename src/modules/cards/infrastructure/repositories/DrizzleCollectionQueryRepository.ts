@@ -1,5 +1,5 @@
-import { eq, desc, asc, count, sql } from "drizzle-orm";
-import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { eq, desc, asc, count, sql } from 'drizzle-orm';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   ICollectionQueryRepository,
   CollectionQueryOptions,
@@ -7,19 +7,18 @@ import {
   CollectionQueryResultDTO,
   CollectionSortField,
   SortOrder,
-} from "../../domain/ICollectionQueryRepository";
-import {
-  collections,
-  collectionCards,
-} from "./schema/collection.sql";
-import { CollectionMapper } from "./mappers/CollectionMapper";
+} from '../../domain/ICollectionQueryRepository';
+import { collections, collectionCards } from './schema/collection.sql';
+import { CollectionMapper } from './mappers/CollectionMapper';
 
-export class DrizzleCollectionQueryRepository implements ICollectionQueryRepository {
+export class DrizzleCollectionQueryRepository
+  implements ICollectionQueryRepository
+{
   constructor(private db: PostgresJsDatabase) {}
 
   async findByCreator(
     curatorId: string,
-    options: CollectionQueryOptions
+    options: CollectionQueryOptions,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>> {
     try {
       const { page, limit, sortBy, sortOrder } = options;
@@ -66,7 +65,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           updatedAt: raw.updatedAt,
           authorId: raw.authorId,
           cardCount: raw.cardCount,
-        })
+        }),
       );
 
       return {
@@ -75,7 +74,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
         hasMore,
       };
     } catch (error) {
-      console.error("Error in findByCreator:", error);
+      console.error('Error in findByCreator:', error);
       throw error;
     }
   }

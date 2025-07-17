@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
-import { ApiClient } from "@/api-client/ApiClient";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import { ApiClient } from '@/api-client/ApiClient';
 import {
   Title,
   Button,
@@ -14,20 +14,20 @@ import {
   PasswordInput,
   Text,
   Group,
-} from "@mantine/core";
+} from '@mantine/core';
 
 export default function LoginPage() {
-  const [handle, setHandle] = useState("");
-  const [appPassword, setAppPassword] = useState("");
+  const [handle, setHandle] = useState('');
+  const [appPassword, setAppPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [useAppPassword, setUseAppPassword] = useState(false);
   const router = useRouter();
   const { setTokens } = useAuth();
 
   // Create API client instance
   const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     () => null, // No auth token needed for login
   );
 
@@ -35,12 +35,12 @@ export default function LoginPage() {
     e.preventDefault();
 
     if (!handle) {
-      setError("Please enter your Bluesky handle");
+      setError('Please enter your Bluesky handle');
       return;
     }
 
     setIsLoading(true);
-    setError("");
+    setError('');
 
     try {
       const { authUrl } = await apiClient.initiateOAuthSignIn({ handle });
@@ -48,7 +48,7 @@ export default function LoginPage() {
       // Redirect to the auth URL from the API
       window.location.href = authUrl;
     } catch (err: any) {
-      setError(err.message || "An error occurred during login");
+      setError(err.message || 'An error occurred during login');
     } finally {
       setIsLoading(false);
     }
@@ -58,12 +58,12 @@ export default function LoginPage() {
     e.preventDefault();
 
     if (!handle || !appPassword) {
-      setError("Please enter both your handle and app password");
+      setError('Please enter both your handle and app password');
       return;
     }
 
     setIsLoading(true);
-    setError("");
+    setError('');
 
     try {
       const { accessToken, refreshToken } =
@@ -74,16 +74,16 @@ export default function LoginPage() {
 
       // Set tokens and redirect to dashboard
       setTokens(accessToken, refreshToken);
-      router.push("/library");
+      router.push('/library');
     } catch (err: any) {
-      setError(err.message || "Invalid credentials");
+      setError(err.message || 'Invalid credentials');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Center h={"100svh"}>
+    <Center h={'100svh'}>
       <Stack align="center">
         <Title order={1}>Sign in with Bluesky</Title>
 
@@ -100,7 +100,7 @@ export default function LoginPage() {
                     onChange={(e) => setHandle(e.target.value)}
                   />
                   {error && (
-                    <Text fz={"sm"} c={"red"}>
+                    <Text fz={'sm'} c={'red'}>
                       {error}
                     </Text>
                   )}
@@ -108,7 +108,7 @@ export default function LoginPage() {
 
                 <Group grow>
                   <Button type="submit" loading={isLoading}>
-                    {isLoading ? "Connecting..." : "Continue"}
+                    {isLoading ? 'Connecting...' : 'Continue'}
                   </Button>
                 </Group>
 
@@ -145,7 +145,7 @@ export default function LoginPage() {
                       onChange={(e) => setAppPassword(e.target.value)}
                     />
                     {error && (
-                      <Text fz={"sm"} c={"red"}>
+                      <Text fz={'sm'} c={'red'}>
                         {error}
                       </Text>
                     )}
@@ -153,7 +153,7 @@ export default function LoginPage() {
                 </Stack>
 
                 <Button type="submit" disabled={isLoading} loading={isLoading}>
-                  {isLoading ? "Signing in..." : "Sign in"}
+                  {isLoading ? 'Signing in...' : 'Sign in'}
                 </Button>
 
                 <Stack>

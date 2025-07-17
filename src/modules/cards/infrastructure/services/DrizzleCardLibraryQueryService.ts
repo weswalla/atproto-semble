@@ -1,11 +1,13 @@
-import { eq } from "drizzle-orm";
-import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { ICardLibraryQueryService } from "../../application/services/ICardLibraryQueryService";
-import { CardId } from "../../domain/value-objects/CardId";
-import { libraryMemberships } from "../repositories/schema/libraryMembership.sql";
-import { Result, ok, err } from "../../../../shared/core/Result";
+import { eq } from 'drizzle-orm';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { ICardLibraryQueryService } from '../../application/services/ICardLibraryQueryService';
+import { CardId } from '../../domain/value-objects/CardId';
+import { libraryMemberships } from '../repositories/schema/libraryMembership.sql';
+import { Result, ok, err } from '../../../../shared/core/Result';
 
-export class DrizzleCardLibraryQueryService implements ICardLibraryQueryService {
+export class DrizzleCardLibraryQueryService
+  implements ICardLibraryQueryService
+{
   constructor(private db: PostgresJsDatabase) {}
 
   async getLibrariesForCard(cardId: CardId): Promise<Result<string[]>> {
@@ -15,7 +17,7 @@ export class DrizzleCardLibraryQueryService implements ICardLibraryQueryService 
         .from(libraryMemberships)
         .where(eq(libraryMemberships.cardId, cardId.getStringValue()));
 
-      return ok(results.map(r => r.userId));
+      return ok(results.map((r) => r.userId));
     } catch (error) {
       return err(error as Error);
     }
@@ -42,14 +44,17 @@ export class DrizzleCardLibraryQueryService implements ICardLibraryQueryService 
     }
   }
 
-  async isCardInLibrary(cardId: CardId, userId: string): Promise<Result<boolean>> {
+  async isCardInLibrary(
+    cardId: CardId,
+    userId: string,
+  ): Promise<Result<boolean>> {
     try {
       const result = await this.db
         .select({ cardId: libraryMemberships.cardId })
         .from(libraryMemberships)
         .where(
           eq(libraryMemberships.cardId, cardId.getStringValue()) &&
-          eq(libraryMemberships.userId, userId)
+            eq(libraryMemberships.userId, userId),
         )
         .limit(1);
 

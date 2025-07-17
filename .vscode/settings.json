@@ -1,7 +1,6 @@
 {
-    "jest.runMode": {
-        "type":"on-demand",
-    },
-    "jest.jestCommandLine": "npm test --",
-  }
-  
+  "jest.runMode": {
+    "type": "on-demand"
+  },
+  "jest.jestCommandLine": "npm test --"
+}

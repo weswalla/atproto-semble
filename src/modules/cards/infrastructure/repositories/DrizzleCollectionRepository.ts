@@ -1,19 +1,19 @@
-import { eq, inArray, and } from "drizzle-orm";
-import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { ICollectionRepository } from "../../domain/ICollectionRepository";
-import { Collection } from "../../domain/Collection";
-import { CollectionId } from "../../domain/value-objects/CollectionId";
-import { CardId } from "../../domain/value-objects/CardId";
-import { CuratorId } from "../../domain/value-objects/CuratorId";
+import { eq, inArray, and } from 'drizzle-orm';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { ICollectionRepository } from '../../domain/ICollectionRepository';
+import { Collection } from '../../domain/Collection';
+import { CollectionId } from '../../domain/value-objects/CollectionId';
+import { CardId } from '../../domain/value-objects/CardId';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
 import {
   collections,
   collectionCollaborators,
   collectionCards,
-} from "./schema/collection.sql";
-import { publishedRecords } from "./schema/publishedRecord.sql";
-import { CollectionDTO, CollectionMapper } from "./mappers/CollectionMapper";
-import { Result, ok, err } from "../../../../shared/core/Result";
-import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
+} from './schema/collection.sql';
+import { publishedRecords } from './schema/publishedRecord.sql';
+import { CollectionDTO, CollectionMapper } from './mappers/CollectionMapper';
+import { Result, ok, err } from '../../../../shared/core/Result';
+import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
 
 export class DrizzleCollectionRepository implements ICollectionRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -31,7 +31,7 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
         .from(collections)
         .leftJoin(
           publishedRecords,
-          eq(collections.publishedRecordId, publishedRecords.id)
+          eq(collections.publishedRecordId, publishedRecords.id),
         )
         .where(eq(collections.id, collectionId))
         .limit(1);
@@ -62,7 +62,7 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
         .from(collectionCards)
         .leftJoin(
           publishedRecords,
-          eq(collectionCards.publishedRecordId, publishedRecords.id)
+          eq(collectionCards.publishedRecordId, publishedRecords.id),
         )
         .where(eq(collectionCards.collectionId, collectionId));
 
@@ -113,7 +113,7 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
         .from(collections)
         .leftJoin(
           publishedRecords,
-          eq(collections.publishedRecordId, publishedRecords.id)
+          eq(collections.publishedRecordId, publishedRecords.id),
         )
         .where(eq(collections.authorId, curatorIdString));
 
@@ -125,11 +125,11 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
         .from(collections)
         .leftJoin(
           publishedRecords,
-          eq(collections.publishedRecordId, publishedRecords.id)
+          eq(collections.publishedRecordId, publishedRecords.id),
         )
         .innerJoin(
           collectionCollaborators,
-          eq(collections.id, collectionCollaborators.collectionId)
+          eq(collections.id, collectionCollaborators.collectionId),
         )
         .where(eq(collectionCollaborators.collaboratorId, curatorIdString));
 
@@ -141,7 +141,7 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
       const uniqueCollections = allCollectionResults.filter(
         (collection, index, self) =>
           index ===
-          self.findIndex((c) => c.collection.id === collection.collection.id)
+          self.findIndex((c) => c.collection.id === collection.collection.id),
       );
 
       const domainCollections: Collection[] = [];
@@ -165,7 +165,7 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
           .from(collectionCards)
           .leftJoin(
             publishedRecords,
-            eq(collectionCards.publishedRecordId, publishedRecords.id)
+            eq(collectionCards.publishedRecordId, publishedRecords.id),
           )
           .where(eq(collectionCards.collectionId, collectionId));
 
@@ -195,8 +195,8 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
         const domainResult = CollectionMapper.toDomain(collectionDTO);
         if (domainResult.isErr()) {
           console.error(
-            "Error mapping collection to domain:",
-            domainResult.error
+            'Error mapping collection to domain:',
+            domainResult.error,
           );
           continue;
         }
@@ -222,11 +222,11 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
         .from(collections)
         .leftJoin(
           publishedRecords,
-          eq(collections.publishedRecordId, publishedRecords.id)
+          eq(collections.publishedRecordId, publishedRecords.id),
         )
         .innerJoin(
           collectionCards,
-          eq(collections.id, collectionCards.collectionId)
+          eq(collections.id, collectionCards.collectionId),
         )
         .where(eq(collectionCards.cardId, cardIdString));
 
@@ -251,7 +251,7 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
           .from(collectionCards)
           .leftJoin(
             publishedRecords,
-            eq(collectionCards.publishedRecordId, publishedRecords.id)
+            eq(collectionCards.publishedRecordId, publishedRecords.id),
           )
           .where(eq(collectionCards.collectionId, collectionId));
 
@@ -281,8 +281,8 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
         const domainResult = CollectionMapper.toDomain(collectionDTO);
         if (domainResult.isErr()) {
           console.error(
-            "Error mapping collection to domain:",
-            domainResult.error
+            'Error mapping collection to domain:',
+            domainResult.error,
           );
           continue;
         }
@@ -330,8 +330,8 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
               .where(
                 and(
                   eq(publishedRecords.uri, publishedRecord.uri),
-                  eq(publishedRecords.cid, publishedRecord.cid)
-                )
+                  eq(publishedRecords.cid, publishedRecord.cid),
+                ),
               )
               .limit(1);
 
@@ -368,8 +368,8 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
                 .where(
                   and(
                     eq(publishedRecords.uri, linkRecord.uri),
-                    eq(publishedRecords.cid, linkRecord.cid)
-                  )
+                    eq(publishedRecords.cid, linkRecord.cid),
+                  ),
                 )
                 .limit(1);
 

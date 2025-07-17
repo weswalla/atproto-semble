@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, useState, ReactNode } from "react";
-import { useRouter } from "next/navigation";
-import { isAuthenticated } from "@/services/auth";
-import { Loader } from "@mantine/core";
+import { useEffect, useState, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
+import { isAuthenticated } from '@/services/auth';
+import { Loader } from '@mantine/core';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -17,7 +17,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     // Check if the user is authenticated
     if (!isAuthenticated()) {
-      router.push("/");
+      router.push('/');
       return;
     }
 

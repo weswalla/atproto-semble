@@ -1,7 +1,7 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Response } from "express";
-import { CreateCollectionUseCase } from "../../../application/useCases/commands/CreateCollectionUseCase";
-import { AuthenticatedRequest } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Response } from 'express';
+import { CreateCollectionUseCase } from '../../../application/useCases/commands/CreateCollectionUseCase';
+import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class CreateCollectionController extends Controller {
   constructor(private createCollectionUseCase: CreateCollectionUseCase) {
@@ -12,13 +12,13 @@ export class CreateCollectionController extends Controller {
     try {
       const { name, description } = req.body;
       const curatorId = req.did;
-      
+
       if (!curatorId) {
         return this.unauthorized(res);
       }
 
       if (!name) {
-        return this.badRequest(res, "Collection name is required");
+        return this.badRequest(res, 'Collection name is required');
       }
 
       const result = await this.createCollectionUseCase.execute({

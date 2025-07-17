@@ -1,13 +1,13 @@
-import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
-import { users } from "./user.sql";
+import { pgTable, text, timestamp, boolean } from 'drizzle-orm/pg-core';
+import { users } from './user.sql';
 
-export const authRefreshTokens = pgTable("auth_refresh_tokens", {
-  tokenId: text("token_id").primaryKey(),
-  userDid: text("user_did")
+export const authRefreshTokens = pgTable('auth_refresh_tokens', {
+  tokenId: text('token_id').primaryKey(),
+  userDid: text('user_did')
     .notNull()
     .references(() => users.id),
-  refreshToken: text("refresh_token").notNull(),
-  issuedAt: timestamp("issued_at").notNull(),
-  expiresAt: timestamp("expires_at").notNull(),
-  revoked: boolean("revoked").default(false),
+  refreshToken: text('refresh_token').notNull(),
+  issuedAt: timestamp('issued_at').notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  revoked: boolean('revoked').default(false),
 });

@@ -1,32 +1,32 @@
 import {
   PostgreSqlContainer,
   StartedPostgreSqlContainer,
-} from "@testcontainers/postgresql";
-import postgres from "postgres";
-import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { DrizzleCollectionQueryRepository } from "../../infrastructure/repositories/DrizzleCollectionQueryRepository";
-import { DrizzleCardRepository } from "../../infrastructure/repositories/DrizzleCardRepository";
-import { DrizzleCollectionRepository } from "../../infrastructure/repositories/DrizzleCollectionRepository";
-import { CuratorId } from "../../domain/value-objects/CuratorId";
-import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
+} from '@testcontainers/postgresql';
+import postgres from 'postgres';
+import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { DrizzleCollectionQueryRepository } from '../../infrastructure/repositories/DrizzleCollectionQueryRepository';
+import { DrizzleCardRepository } from '../../infrastructure/repositories/DrizzleCardRepository';
+import { DrizzleCollectionRepository } from '../../infrastructure/repositories/DrizzleCollectionRepository';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
+import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
 import {
   collections,
   collectionCollaborators,
   collectionCards,
-} from "../../infrastructure/repositories/schema/collection.sql";
-import { cards } from "../../infrastructure/repositories/schema/card.sql";
-import { libraryMemberships } from "../../infrastructure/repositories/schema/libraryMembership.sql";
-import { publishedRecords } from "../../infrastructure/repositories/schema/publishedRecord.sql";
-import { Collection, CollectionAccessType } from "../../domain/Collection";
-import { CardFactory } from "../../domain/CardFactory";
-import { CardTypeEnum } from "../../domain/value-objects/CardType";
+} from '../../infrastructure/repositories/schema/collection.sql';
+import { cards } from '../../infrastructure/repositories/schema/card.sql';
+import { libraryMemberships } from '../../infrastructure/repositories/schema/libraryMembership.sql';
+import { publishedRecords } from '../../infrastructure/repositories/schema/publishedRecord.sql';
+import { Collection, CollectionAccessType } from '../../domain/Collection';
+import { CardFactory } from '../../domain/CardFactory';
+import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import {
   CollectionSortField,
   SortOrder,
-} from "../../domain/ICollectionQueryRepository";
-import { createTestSchema } from "../test-utils/createTestSchema";
+} from '../../domain/ICollectionQueryRepository';
+import { createTestSchema } from '../test-utils/createTestSchema';
 
-describe("DrizzleCollectionQueryRepository", () => {
+describe('DrizzleCollectionQueryRepository', () => {
   let container: StartedPostgreSqlContainer;
   let db: PostgresJsDatabase;
   let queryRepository: DrizzleCollectionQueryRepository;
@@ -40,7 +40,7 @@ describe("DrizzleCollectionQueryRepository", () => {
   // Setup before all tests
   beforeAll(async () => {
     // Start PostgreSQL container
-    container = await new PostgreSqlContainer("postgres:14").start();
+    container = await new PostgreSqlContainer('postgres:14').start();
 
     // Create database connection
     const connectionString = container.getConnectionUri();
@@ -57,8 +57,8 @@ describe("DrizzleCollectionQueryRepository", () => {
     await createTestSchema(db);
 
     // Create test data
-    curatorId = CuratorId.create("did:plc:testcurator").unwrap();
-    otherCuratorId = CuratorId.create("did:plc:othercurator").unwrap();
+    curatorId = CuratorId.create('did:plc:testcurator').unwrap();
+    otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
   }, 60000); // Increase timeout for container startup
 
   // Cleanup after all tests
@@ -77,8 +77,8 @@ describe("DrizzleCollectionQueryRepository", () => {
     await db.delete(publishedRecords);
   });
 
-  describe("findByCreator", () => {
-    it("should return empty result when curator has no collections", async () => {
+  describe('findByCreator', () => {
+    it('should return empty result when curator has no collections', async () => {
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
         limit: 10,
@@ -91,31 +91,31 @@ describe("DrizzleCollectionQueryRepository", () => {
       expect(result.hasMore).toBe(false);
     });
 
-    it("should return collections for a curator", async () => {
+    it('should return collections for a curator', async () => {
       // Create test collections
       const collection1 = Collection.create(
         {
           authorId: curatorId,
-          name: "First Collection",
-          description: "First description",
+          name: 'First Collection',
+          description: 'First description',
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
-          createdAt: new Date("2023-01-01"),
-          updatedAt: new Date("2023-01-01"),
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-01'),
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       const collection2 = Collection.create(
         {
           authorId: curatorId,
-          name: "Second Collection",
+          name: 'Second Collection',
           accessType: CollectionAccessType.CLOSED,
           collaboratorIds: [],
-          createdAt: new Date("2023-01-02"),
-          updatedAt: new Date("2023-01-02"),
+          createdAt: new Date('2023-01-02'),
+          updatedAt: new Date('2023-01-02'),
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       // Save collections
@@ -136,8 +136,8 @@ describe("DrizzleCollectionQueryRepository", () => {
 
       // Check collection data
       const names = result.items.map((item) => item.name);
-      expect(names).toContain("First Collection");
-      expect(names).toContain("Second Collection");
+      expect(names).toContain('First Collection');
+      expect(names).toContain('Second Collection');
 
       // Check that all items have the correct curator
       result.items.forEach((item) => {
@@ -145,7 +145,7 @@ describe("DrizzleCollectionQueryRepository", () => {
       });
     });
 
-    it("should not return collections from other curators", async () => {
+    it('should not return collections from other curators', async () => {
       // Create collection for other curator
       const otherCollection = Collection.create(
         {
@@ -156,7 +156,7 @@ describe("DrizzleCollectionQueryRepository", () => {
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       await collectionRepository.save(otherCollection);
@@ -173,13 +173,13 @@ describe("DrizzleCollectionQueryRepository", () => {
       expect(result.totalCount).toBe(0);
     });
 
-    it("should include card count for collections", async () => {
+    it('should include card count for collections', async () => {
       // Create a card
       const cardResult = CardFactory.create({
         curatorId: curatorId.value,
         cardInput: {
           type: CardTypeEnum.NOTE,
-          text: "Test card",
+          text: 'Test card',
         },
       });
       const card = cardResult.unwrap();
@@ -189,13 +189,13 @@ describe("DrizzleCollectionQueryRepository", () => {
       const collection = Collection.create(
         {
           authorId: curatorId,
-          name: "Collection with Cards",
+          name: 'Collection with Cards',
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       // Add card to collection
@@ -206,13 +206,13 @@ describe("DrizzleCollectionQueryRepository", () => {
       const emptyCollection = Collection.create(
         {
           authorId: curatorId,
-          name: "Empty Collection",
+          name: 'Empty Collection',
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       await collectionRepository.save(emptyCollection);
@@ -229,10 +229,10 @@ describe("DrizzleCollectionQueryRepository", () => {
 
       // Find the collections by name and check card counts
       const collectionWithCards = result.items.find(
-        (item) => item.name === "Collection with Cards"
+        (item) => item.name === 'Collection with Cards',
       );
       const collectionWithoutCards = result.items.find(
-        (item) => item.name === "Empty Collection"
+        (item) => item.name === 'Empty Collection',
       );
 
       expect(collectionWithCards?.cardCount).toBe(1);
@@ -240,46 +240,46 @@ describe("DrizzleCollectionQueryRepository", () => {
     });
   });
 
-  describe("sorting", () => {
+  describe('sorting', () => {
     beforeEach(async () => {
       // Create test collections with different properties for sorting
       const collection1 = Collection.create(
         {
           authorId: curatorId,
-          name: "Alpha Collection",
-          description: "First alphabetically",
+          name: 'Alpha Collection',
+          description: 'First alphabetically',
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
-          createdAt: new Date("2023-01-01T10:00:00Z"),
-          updatedAt: new Date("2023-01-03T10:00:00Z"), // Most recently updated
+          createdAt: new Date('2023-01-01T10:00:00Z'),
+          updatedAt: new Date('2023-01-03T10:00:00Z'), // Most recently updated
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       const collection2 = Collection.create(
         {
           authorId: curatorId,
-          name: "Beta Collection",
-          description: "Second alphabetically",
+          name: 'Beta Collection',
+          description: 'Second alphabetically',
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
-          createdAt: new Date("2023-01-02T10:00:00Z"), // Most recently created
-          updatedAt: new Date("2023-01-02T10:00:00Z"),
+          createdAt: new Date('2023-01-02T10:00:00Z'), // Most recently created
+          updatedAt: new Date('2023-01-02T10:00:00Z'),
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       const collection3 = Collection.create(
         {
           authorId: curatorId,
-          name: "Gamma Collection",
-          description: "Third alphabetically",
+          name: 'Gamma Collection',
+          description: 'Third alphabetically',
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
-          createdAt: new Date("2023-01-01T09:00:00Z"), // Oldest created
-          updatedAt: new Date("2023-01-01T09:00:00Z"), // Oldest updated
+          createdAt: new Date('2023-01-01T09:00:00Z'), // Oldest created
+          updatedAt: new Date('2023-01-01T09:00:00Z'), // Oldest updated
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       // Save collections
@@ -290,15 +290,15 @@ describe("DrizzleCollectionQueryRepository", () => {
       // Create cards and add different numbers to collections for card count sorting
       const card1 = CardFactory.create({
         curatorId: curatorId.value,
-        cardInput: { type: CardTypeEnum.NOTE, text: "Card 1" },
+        cardInput: { type: CardTypeEnum.NOTE, text: 'Card 1' },
       }).unwrap();
       const card2 = CardFactory.create({
         curatorId: curatorId.value,
-        cardInput: { type: CardTypeEnum.NOTE, text: "Card 2" },
+        cardInput: { type: CardTypeEnum.NOTE, text: 'Card 2' },
       }).unwrap();
       const card3 = CardFactory.create({
         curatorId: curatorId.value,
-        cardInput: { type: CardTypeEnum.NOTE, text: "Card 3" },
+        cardInput: { type: CardTypeEnum.NOTE, text: 'Card 3' },
       }).unwrap();
 
       await cardRepository.save(card1);
@@ -315,7 +315,7 @@ describe("DrizzleCollectionQueryRepository", () => {
       await collectionRepository.save(collection3);
     });
 
-    it("should sort by name ascending", async () => {
+    it('should sort by name ascending', async () => {
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
         limit: 10,
@@ -324,12 +324,12 @@ describe("DrizzleCollectionQueryRepository", () => {
       });
 
       expect(result.items).toHaveLength(3);
-      expect(result.items[0]?.name).toBe("Alpha Collection");
-      expect(result.items[1]?.name).toBe("Beta Collection");
-      expect(result.items[2]?.name).toBe("Gamma Collection");
+      expect(result.items[0]?.name).toBe('Alpha Collection');
+      expect(result.items[1]?.name).toBe('Beta Collection');
+      expect(result.items[2]?.name).toBe('Gamma Collection');
     });
 
-    it("should sort by name descending", async () => {
+    it('should sort by name descending', async () => {
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
         limit: 10,
@@ -338,12 +338,12 @@ describe("DrizzleCollectionQueryRepository", () => {
       });
 
       expect(result.items).toHaveLength(3);
-      expect(result.items[0]?.name).toBe("Gamma Collection");
-      expect(result.items[1]?.name).toBe("Beta Collection");
-      expect(result.items[2]?.name).toBe("Alpha Collection");
+      expect(result.items[0]?.name).toBe('Gamma Collection');
+      expect(result.items[1]?.name).toBe('Beta Collection');
+      expect(result.items[2]?.name).toBe('Alpha Collection');
     });
 
-    it("should sort by created date ascending", async () => {
+    it('should sort by created date ascending', async () => {
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
         limit: 10,
@@ -352,12 +352,12 @@ describe("DrizzleCollectionQueryRepository", () => {
       });
 
       expect(result.items).toHaveLength(3);
-      expect(result.items[0]?.name).toBe("Gamma Collection"); // Oldest
-      expect(result.items[1]?.name).toBe("Alpha Collection");
-      expect(result.items[2]?.name).toBe("Beta Collection"); // Newest
+      expect(result.items[0]?.name).toBe('Gamma Collection'); // Oldest
+      expect(result.items[1]?.name).toBe('Alpha Collection');
+      expect(result.items[2]?.name).toBe('Beta Collection'); // Newest
     });
 
-    it("should sort by created date descending", async () => {
+    it('should sort by created date descending', async () => {
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
         limit: 10,
@@ -366,12 +366,12 @@ describe("DrizzleCollectionQueryRepository", () => {
       });
 
       expect(result.items).toHaveLength(3);
-      expect(result.items[0]?.name).toBe("Beta Collection"); // Newest
-      expect(result.items[1]?.name).toBe("Alpha Collection");
-      expect(result.items[2]?.name).toBe("Gamma Collection"); // Oldest
+      expect(result.items[0]?.name).toBe('Beta Collection'); // Newest
+      expect(result.items[1]?.name).toBe('Alpha Collection');
+      expect(result.items[2]?.name).toBe('Gamma Collection'); // Oldest
     });
 
-    it("should sort by updated date ascending", async () => {
+    it('should sort by updated date ascending', async () => {
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
         limit: 10,
@@ -381,14 +381,14 @@ describe("DrizzleCollectionQueryRepository", () => {
 
       expect(result.items).toHaveLength(3);
       expect(result.items[0]!.updatedAt.getTime()).toBeLessThanOrEqual(
-        result.items[1]!.updatedAt.getTime()
+        result.items[1]!.updatedAt.getTime(),
       );
       expect(result.items[1]!.updatedAt.getTime()).toBeLessThanOrEqual(
-        result.items[2]!.updatedAt.getTime()
+        result.items[2]!.updatedAt.getTime(),
       );
     });
 
-    it("should sort by updated date descending (default)", async () => {
+    it('should sort by updated date descending (default)', async () => {
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
         limit: 10,
@@ -398,14 +398,14 @@ describe("DrizzleCollectionQueryRepository", () => {
 
       expect(result.items).toHaveLength(3);
       expect(result.items[0]!.updatedAt.getTime()).toBeGreaterThanOrEqual(
-        result.items[1]!.updatedAt.getTime()
+        result.items[1]!.updatedAt.getTime(),
       );
       expect(result.items[1]!.updatedAt.getTime()).toBeGreaterThanOrEqual(
-        result.items[2]!.updatedAt.getTime()
+        result.items[2]!.updatedAt.getTime(),
       );
     });
 
-    it("should sort by card count ascending", async () => {
+    it('should sort by card count ascending', async () => {
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
         limit: 10,
@@ -414,15 +414,15 @@ describe("DrizzleCollectionQueryRepository", () => {
       });
 
       expect(result.items).toHaveLength(3);
-      expect(result.items[0]?.name).toBe("Alpha Collection"); // 0 cards
+      expect(result.items[0]?.name).toBe('Alpha Collection'); // 0 cards
       expect(result.items[0]?.cardCount).toBe(0);
-      expect(result.items[1]?.name).toBe("Beta Collection"); // 1 card
+      expect(result.items[1]?.name).toBe('Beta Collection'); // 1 card
       expect(result.items[1]?.cardCount).toBe(1);
-      expect(result.items[2]?.name).toBe("Gamma Collection"); // 3 cards
+      expect(result.items[2]?.name).toBe('Gamma Collection'); // 3 cards
       expect(result.items[2]?.cardCount).toBe(3);
     });
 
-    it("should sort by card count descending", async () => {
+    it('should sort by card count descending', async () => {
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
         limit: 10,
@@ -431,37 +431,37 @@ describe("DrizzleCollectionQueryRepository", () => {
       });
 
       expect(result.items).toHaveLength(3);
-      expect(result.items[0]?.name).toBe("Gamma Collection"); // 3 cards
+      expect(result.items[0]?.name).toBe('Gamma Collection'); // 3 cards
       expect(result.items[0]?.cardCount).toBe(3);
-      expect(result.items[1]?.name).toBe("Beta Collection"); // 1 card
+      expect(result.items[1]?.name).toBe('Beta Collection'); // 1 card
       expect(result.items[1]?.cardCount).toBe(1);
-      expect(result.items[2]?.name).toBe("Alpha Collection"); // 0 cards
+      expect(result.items[2]?.name).toBe('Alpha Collection'); // 0 cards
       expect(result.items[2]?.cardCount).toBe(0);
     });
   });
 
-  describe("pagination", () => {
+  describe('pagination', () => {
     beforeEach(async () => {
       // Create 5 test collections for pagination testing
       for (let i = 1; i <= 5; i++) {
         const collection = Collection.create(
           {
             authorId: curatorId,
-            name: `Collection ${i.toString().padStart(2, "0")}`,
+            name: `Collection ${i.toString().padStart(2, '0')}`,
             description: `Description ${i}`,
             accessType: CollectionAccessType.OPEN,
             collaboratorIds: [],
-            createdAt: new Date(`2023-01-${i.toString().padStart(2, "0")}`),
-            updatedAt: new Date(`2023-01-${i.toString().padStart(2, "0")}`),
+            createdAt: new Date(`2023-01-${i.toString().padStart(2, '0')}`),
+            updatedAt: new Date(`2023-01-${i.toString().padStart(2, '0')}`),
           },
-          new UniqueEntityID()
+          new UniqueEntityID(),
         ).unwrap();
 
         await collectionRepository.save(collection);
       }
     });
 
-    it("should handle first page with limit", async () => {
+    it('should handle first page with limit', async () => {
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
         limit: 2,
@@ -472,11 +472,11 @@ describe("DrizzleCollectionQueryRepository", () => {
       expect(result.items).toHaveLength(2);
       expect(result.totalCount).toBe(5);
       expect(result.hasMore).toBe(true);
-      expect(result.items[0]?.name).toBe("Collection 01");
-      expect(result.items[1]?.name).toBe("Collection 02");
+      expect(result.items[0]?.name).toBe('Collection 01');
+      expect(result.items[1]?.name).toBe('Collection 02');
     });
 
-    it("should handle second page", async () => {
+    it('should handle second page', async () => {
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 2,
         limit: 2,
@@ -487,11 +487,11 @@ describe("DrizzleCollectionQueryRepository", () => {
       expect(result.items).toHaveLength(2);
       expect(result.totalCount).toBe(5);
       expect(result.hasMore).toBe(true);
-      expect(result.items[0]?.name).toBe("Collection 03");
-      expect(result.items[1]?.name).toBe("Collection 04");
+      expect(result.items[0]?.name).toBe('Collection 03');
+      expect(result.items[1]?.name).toBe('Collection 04');
     });
 
-    it("should handle last page with remaining items", async () => {
+    it('should handle last page with remaining items', async () => {
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 3,
         limit: 2,
@@ -502,10 +502,10 @@ describe("DrizzleCollectionQueryRepository", () => {
       expect(result.items).toHaveLength(1);
       expect(result.totalCount).toBe(5);
       expect(result.hasMore).toBe(false);
-      expect(result.items[0]?.name).toBe("Collection 05");
+      expect(result.items[0]?.name).toBe('Collection 05');
     });
 
-    it("should handle page beyond available data", async () => {
+    it('should handle page beyond available data', async () => {
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 10,
         limit: 2,
@@ -518,7 +518,7 @@ describe("DrizzleCollectionQueryRepository", () => {
       expect(result.hasMore).toBe(false);
     });
 
-    it("should handle large limit that exceeds total items", async () => {
+    it('should handle large limit that exceeds total items', async () => {
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
         limit: 100,
@@ -531,7 +531,7 @@ describe("DrizzleCollectionQueryRepository", () => {
       expect(result.hasMore).toBe(false);
     });
 
-    it("should calculate hasMore correctly for exact page boundaries", async () => {
+    it('should calculate hasMore correctly for exact page boundaries', async () => {
       // Test when items exactly fill pages
       const result = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
@@ -546,28 +546,28 @@ describe("DrizzleCollectionQueryRepository", () => {
     });
   });
 
-  describe("combined sorting and pagination", () => {
+  describe('combined sorting and pagination', () => {
     beforeEach(async () => {
       // Create collections with different update times and card counts
       const collections = [
         {
-          name: "Alpha",
-          updatedAt: new Date("2023-01-01"),
+          name: 'Alpha',
+          updatedAt: new Date('2023-01-01'),
           cardCount: 3,
         },
         {
-          name: "Beta",
-          updatedAt: new Date("2023-01-03"),
+          name: 'Beta',
+          updatedAt: new Date('2023-01-03'),
           cardCount: 1,
         },
         {
-          name: "Gamma",
-          updatedAt: new Date("2023-01-02"),
+          name: 'Gamma',
+          updatedAt: new Date('2023-01-02'),
           cardCount: 2,
         },
         {
-          name: "Delta",
-          updatedAt: new Date("2023-01-04"),
+          name: 'Delta',
+          updatedAt: new Date('2023-01-04'),
           cardCount: 0,
         },
       ];
@@ -582,7 +582,7 @@ describe("DrizzleCollectionQueryRepository", () => {
             createdAt: new Date(),
             updatedAt: collectionData.updatedAt,
           },
-          new UniqueEntityID()
+          new UniqueEntityID(),
         ).unwrap();
 
         await collectionRepository.save(collection);
@@ -607,7 +607,7 @@ describe("DrizzleCollectionQueryRepository", () => {
       }
     });
 
-    it("should combine sorting by updated date desc with pagination", async () => {
+    it('should combine sorting by updated date desc with pagination', async () => {
       // First page - should get Delta (newest) and Beta
       const page1 = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
@@ -618,7 +618,7 @@ describe("DrizzleCollectionQueryRepository", () => {
 
       expect(page1.items).toHaveLength(2);
       expect(page1.items[0]!.updatedAt.getTime()).toBeGreaterThanOrEqual(
-        page1.items[1]!.updatedAt.getTime()
+        page1.items[1]!.updatedAt.getTime(),
       );
       expect(page1.hasMore).toBe(true);
 
@@ -632,12 +632,12 @@ describe("DrizzleCollectionQueryRepository", () => {
 
       expect(page2.items).toHaveLength(2);
       expect(page2.items[0]!.updatedAt.getTime()).toBeGreaterThanOrEqual(
-        page2.items[1]!.updatedAt.getTime()
+        page2.items[1]!.updatedAt.getTime(),
       );
       expect(page2.hasMore).toBe(false);
     });
 
-    it("should combine sorting by card count desc with pagination", async () => {
+    it('should combine sorting by card count desc with pagination', async () => {
       // First page - should get Alpha (3 cards) and Gamma (2 cards)
       const page1 = await queryRepository.findByCreator(curatorId.value, {
         page: 1,
@@ -647,9 +647,9 @@ describe("DrizzleCollectionQueryRepository", () => {
       });
 
       expect(page1.items).toHaveLength(2);
-      expect(page1.items[0]?.name).toBe("Alpha");
+      expect(page1.items[0]?.name).toBe('Alpha');
       expect(page1.items[0]?.cardCount).toBe(3);
-      expect(page1.items[1]?.name).toBe("Gamma");
+      expect(page1.items[1]?.name).toBe('Gamma');
       expect(page1.items[1]?.cardCount).toBe(2);
       expect(page1.hasMore).toBe(true);
 
@@ -662,24 +662,24 @@ describe("DrizzleCollectionQueryRepository", () => {
       });
 
       expect(page2.items).toHaveLength(2);
-      expect(page2.items[0]?.name).toBe("Beta");
+      expect(page2.items[0]?.name).toBe('Beta');
       expect(page2.items[0]?.cardCount).toBe(1);
-      expect(page2.items[1]?.name).toBe("Delta");
+      expect(page2.items[1]?.name).toBe('Delta');
       expect(page2.items[1]?.cardCount).toBe(0);
       expect(page2.hasMore).toBe(false);
     });
   });
 
-  describe("edge cases", () => {
-    it("should handle curator with no collections gracefully", async () => {
+  describe('edge cases', () => {
+    it('should handle curator with no collections gracefully', async () => {
       const result = await queryRepository.findByCreator(
-        "did:plc:nonexistent",
+        'did:plc:nonexistent',
         {
           page: 1,
           limit: 10,
           sortBy: CollectionSortField.UPDATED_AT,
           sortOrder: SortOrder.DESC,
-        }
+        },
       );
 
       expect(result.items).toHaveLength(0);
@@ -687,18 +687,18 @@ describe("DrizzleCollectionQueryRepository", () => {
       expect(result.hasMore).toBe(false);
     });
 
-    it("should handle collections with null descriptions", async () => {
+    it('should handle collections with null descriptions', async () => {
       const collection = Collection.create(
         {
           authorId: curatorId,
-          name: "No Description Collection",
+          name: 'No Description Collection',
           // No description provided
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       await collectionRepository.save(collection);
@@ -714,17 +714,17 @@ describe("DrizzleCollectionQueryRepository", () => {
       expect(result.items[0]?.description).toBeUndefined();
     });
 
-    it("should handle very large page numbers", async () => {
+    it('should handle very large page numbers', async () => {
       const collection = Collection.create(
         {
           authorId: curatorId,
-          name: "Single Collection",
+          name: 'Single Collection',
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       await collectionRepository.save(collection);

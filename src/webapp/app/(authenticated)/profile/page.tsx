@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Avatar,
   Button,
@@ -12,22 +12,22 @@ import {
   Stack,
   Text,
   Title,
-} from "@mantine/core";
-import { getAccessToken } from "@/services/auth";
-import { ApiClient } from "@/api-client/ApiClient";
-import type { GetMyProfileResponse } from "@/api-client/types";
-import { useAuth } from "@/hooks/useAuth";
+} from '@mantine/core';
+import { getAccessToken } from '@/services/auth';
+import { ApiClient } from '@/api-client/ApiClient';
+import type { GetMyProfileResponse } from '@/api-client/types';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<GetMyProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const router = useRouter();
   const { logout } = useAuth();
 
   // Create API client instance
   const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     () => getAccessToken(),
   );
 
@@ -38,8 +38,8 @@ export default function ProfilePage() {
         const response = await apiClient.getMyProfile();
         setProfile(response);
       } catch (error: any) {
-        console.error("Error fetching profile:", error);
-        setError(error.message || "Failed to load profile");
+        console.error('Error fetching profile:', error);
+        setError(error.message || 'Failed to load profile');
       } finally {
         setLoading(false);
       }
@@ -51,9 +51,9 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     try {
       await logout();
-      router.push("/");
+      router.push('/');
     } catch (error) {
-      console.error("Error logging out:", error);
+      console.error('Error logging out:', error);
     }
   };
 
@@ -64,7 +64,7 @@ export default function ProfilePage() {
   if (error || !profile) {
     return (
       <Stack align="center">
-        <Text fw={500}>{error || "Failed to load profile"}</Text>
+        <Text fw={500}>{error || 'Failed to load profile'}</Text>
         <Button onClick={() => window.location.reload()}>Try Again</Button>
       </Stack>
     );
@@ -109,31 +109,31 @@ export default function ProfilePage() {
 
           <Stack>
             <div>
-              <Text fw={500} fz={"sm"} c={"gray"}>
+              <Text fw={500} fz={'sm'} c={'gray'}>
                 User ID
               </Text>
-              <Code bg={"gray.1"} p={"sm"}>
+              <Code bg={'gray.1'} p={'sm'}>
                 {profile.id}
               </Code>
             </div>
             <div>
-              <Text fw={500} fz={"sm"} c={"gray"}>
+              <Text fw={500} fz={'sm'} c={'gray'}>
                 Handle
               </Text>
-              <Text fz={"sm"}>@{profile.handle}</Text>
+              <Text fz={'sm'}>@{profile.handle}</Text>
             </div>
             <div>
-              <Text fw={500} fz={"sm"} c={"gray"}>
+              <Text fw={500} fz={'sm'} c={'gray'}>
                 Display Name
               </Text>
-              <Text fz={"sm"}>{profile.name}</Text>
+              <Text fz={'sm'}>{profile.name}</Text>
             </div>
             {profile.description && (
               <div>
-                <Text fw={500} fz={"sm"} c={"gray"}>
+                <Text fw={500} fz={'sm'} c={'gray'}>
                   Description
                 </Text>
-                <Text fz={"sm"}>{profile.description}</Text>
+                <Text fz={'sm'}>{profile.description}</Text>
               </div>
             )}
           </Stack>

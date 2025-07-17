@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { authService } from "@/services/api";
-import { getAccessToken } from "@/services/auth";
-import { ApiClient } from "@/api-client/ApiClient";
-import { UrlCard } from "@/components/UrlCard";
-import type { GetMyUrlCardsResponse } from "@/api-client/types";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { authService } from '@/services/api';
+import { getAccessToken } from '@/services/auth';
+import { ApiClient } from '@/api-client/ApiClient';
+import { UrlCard } from '@/components/UrlCard';
+import type { GetMyUrlCardsResponse } from '@/api-client/types';
 import {
   Button,
   Group,
@@ -15,18 +15,18 @@ import {
   Stack,
   Title,
   Text,
-} from "@mantine/core";
+} from '@mantine/core';
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
-  const [urlCards, setUrlCards] = useState<GetMyUrlCardsResponse["cards"]>([]);
+  const [urlCards, setUrlCards] = useState<GetMyUrlCardsResponse['cards']>([]);
   const [loading, setLoading] = useState(true);
   const [cardsLoading, setCardsLoading] = useState(true);
   const router = useRouter();
 
   // Create API client instance
   const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     () => getAccessToken(),
   );
 
@@ -44,7 +44,7 @@ export default function DashboardPage() {
         const cardsResponse = await apiClient.getMyUrlCards({ limit: 10 });
         setUrlCards(cardsResponse.cards);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
         setCardsLoading(false);
@@ -64,7 +64,7 @@ export default function DashboardPage() {
       <Stack>
         <Group justify="space-between">
           <Title order={1}>Recent Cards</Title>
-          <Button variant="outline" onClick={() => router.push("/cards")}>
+          <Button variant="outline" onClick={() => router.push('/cards')}>
             View All Cards
           </Button>
         </Group>
@@ -72,7 +72,7 @@ export default function DashboardPage() {
         {cardsLoading ? (
           <Loader />
         ) : urlCards.length > 0 ? (
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing={"md"}>
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing={'md'}>
             {urlCards.map((card) => (
               <UrlCard
                 key={card.id}
@@ -88,9 +88,9 @@ export default function DashboardPage() {
             ))}
           </SimpleGrid>
         ) : (
-          <Stack align="center" gap={"xs"}>
-            <Text c={"grey"}>No cards yet</Text>
-            <Button onClick={() => router.push("/cards/add")}>
+          <Stack align="center" gap={'xs'}>
+            <Text c={'grey'}>No cards yet</Text>
+            <Button onClick={() => router.push('/cards/add')}>
               Add Your First Card
             </Button>
           </Stack>

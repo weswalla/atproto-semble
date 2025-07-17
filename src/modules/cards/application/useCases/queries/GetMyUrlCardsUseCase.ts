@@ -1,13 +1,13 @@
-import { err, ok, Result } from "src/shared/core/Result";
-import { UseCase } from "src/shared/core/UseCase";
+import { err, ok, Result } from 'src/shared/core/Result';
+import { UseCase } from 'src/shared/core/UseCase';
 import {
   ICardQueryRepository,
   CardSortField,
   SortOrder,
   WithCollections,
   UrlCardView,
-} from "../../../domain/ICardQueryRepository";
-import { CuratorId } from "src/modules/cards/domain/value-objects/CuratorId";
+} from '../../../domain/ICardQueryRepository';
+import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 
 export interface GetMyUrlCardsQuery {
   userId: string;
@@ -37,7 +37,7 @@ export interface GetMyUrlCardsResult {
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "ValidationError";
+    this.name = 'ValidationError';
   }
 }
 
@@ -47,7 +47,7 @@ export class GetMyUrlCardsUseCase
   constructor(private cardQueryRepo: ICardQueryRepository) {}
 
   async execute(
-    query: GetMyUrlCardsQuery
+    query: GetMyUrlCardsQuery,
   ): Promise<Result<GetMyUrlCardsResult>> {
     // Set defaults
     const page = query.page || 1;
@@ -58,7 +58,7 @@ export class GetMyUrlCardsUseCase
     // Validate user ID
     const userIdResult = CuratorId.create(query.userId);
     if (userIdResult.isErr()) {
-      return err(new ValidationError("Invalid user ID"));
+      return err(new ValidationError('Invalid user ID'));
     }
 
     try {
@@ -90,8 +90,8 @@ export class GetMyUrlCardsUseCase
     } catch (error) {
       return err(
         new Error(
-          `Failed to retrieve URL cards: ${error instanceof Error ? error.message : "Unknown error"}`
-        )
+          `Failed to retrieve URL cards: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
       );
     }
   }

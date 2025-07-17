@@ -5,12 +5,12 @@ export class DID {
   constructor(did: string) {
     this.value = did;
     if (!this.isValid()) {
-      throw new Error("Invalid DID");
+      throw new Error('Invalid DID');
     }
   }
 
   isValid(): boolean {
-    return this.value.startsWith("did:plc:");
+    return this.value.startsWith('did:plc:');
   }
 
   toString(): string {

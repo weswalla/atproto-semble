@@ -1,30 +1,30 @@
 import {
   PostgreSqlContainer,
   StartedPostgreSqlContainer,
-} from "@testcontainers/postgresql";
-import postgres from "postgres";
-import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { DrizzleCardQueryRepository } from "../../infrastructure/repositories/DrizzleCardQueryRepository";
-import { DrizzleCardRepository } from "../../infrastructure/repositories/DrizzleCardRepository";
-import { DrizzleCollectionRepository } from "../../infrastructure/repositories/DrizzleCollectionRepository";
-import { CuratorId } from "../../domain/value-objects/CuratorId";
-import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
-import { cards } from "../../infrastructure/repositories/schema/card.sql";
+} from '@testcontainers/postgresql';
+import postgres from 'postgres';
+import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { DrizzleCardQueryRepository } from '../../infrastructure/repositories/DrizzleCardQueryRepository';
+import { DrizzleCardRepository } from '../../infrastructure/repositories/DrizzleCardRepository';
+import { DrizzleCollectionRepository } from '../../infrastructure/repositories/DrizzleCollectionRepository';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
+import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
+import { cards } from '../../infrastructure/repositories/schema/card.sql';
 import {
   collections,
   collectionCards,
-} from "../../infrastructure/repositories/schema/collection.sql";
-import { libraryMemberships } from "../../infrastructure/repositories/schema/libraryMembership.sql";
-import { publishedRecords } from "../../infrastructure/repositories/schema/publishedRecord.sql";
-import { Collection, CollectionAccessType } from "../../domain/Collection";
-import { CardBuilder } from "../utils/builders/CardBuilder";
-import { URL } from "../../domain/value-objects/URL";
-import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
-import { CardSortField, SortOrder } from "../../domain/ICardQueryRepository";
-import { createTestSchema } from "../test-utils/createTestSchema";
-import { CardTypeEnum } from "../../domain/value-objects/CardType";
+} from '../../infrastructure/repositories/schema/collection.sql';
+import { libraryMemberships } from '../../infrastructure/repositories/schema/libraryMembership.sql';
+import { publishedRecords } from '../../infrastructure/repositories/schema/publishedRecord.sql';
+import { Collection, CollectionAccessType } from '../../domain/Collection';
+import { CardBuilder } from '../utils/builders/CardBuilder';
+import { URL } from '../../domain/value-objects/URL';
+import { UrlMetadata } from '../../domain/value-objects/UrlMetadata';
+import { CardSortField, SortOrder } from '../../domain/ICardQueryRepository';
+import { createTestSchema } from '../test-utils/createTestSchema';
+import { CardTypeEnum } from '../../domain/value-objects/CardType';
 
-describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
+describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
   let container: StartedPostgreSqlContainer;
   let db: PostgresJsDatabase;
   let queryRepository: DrizzleCardQueryRepository;
@@ -39,7 +39,7 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
   // Setup before all tests
   beforeAll(async () => {
     // Start PostgreSQL container
-    container = await new PostgreSqlContainer("postgres:14").start();
+    container = await new PostgreSqlContainer('postgres:14').start();
 
     // Create database connection
     const connectionString = container.getConnectionUri();
@@ -56,9 +56,9 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
     await createTestSchema(db);
 
     // Create test data
-    curatorId = CuratorId.create("did:plc:testcurator").unwrap();
-    otherCuratorId = CuratorId.create("did:plc:othercurator").unwrap();
-    thirdCuratorId = CuratorId.create("did:plc:thirdcurator").unwrap();
+    curatorId = CuratorId.create('did:plc:testcurator').unwrap();
+    otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
+    thirdCuratorId = CuratorId.create('did:plc:thirdcurator').unwrap();
   }, 60000); // Increase timeout for container startup
 
   // Cleanup after all tests
@@ -76,19 +76,19 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
     await db.delete(publishedRecords);
   });
 
-  describe("getCardsInCollection", () => {
-    it("should return empty result when collection has no URL cards", async () => {
+  describe('getCardsInCollection', () => {
+    it('should return empty result when collection has no URL cards', async () => {
       // Create empty collection
       const collection = Collection.create(
         {
           authorId: curatorId,
-          name: "Empty Collection",
+          name: 'Empty Collection',
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       await collectionRepository.save(collection);
@@ -100,7 +100,7 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
           limit: 10,
           sortBy: CardSortField.UPDATED_AT,
           sortOrder: SortOrder.DESC,
-        }
+        },
       );
 
       expect(result.items).toHaveLength(0);
@@ -108,30 +108,30 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       expect(result.hasMore).toBe(false);
     });
 
-    it("should return URL cards in a collection", async () => {
+    it('should return URL cards in a collection', async () => {
       // Create URL cards
-      const url1 = URL.create("https://example.com/article1").unwrap();
+      const url1 = URL.create('https://example.com/article1').unwrap();
       const urlMetadata1 = UrlMetadata.create({
         url: url1.value,
-        title: "Collection Article 1",
-        description: "First article in collection",
-        author: "John Doe",
-        imageUrl: "https://example.com/image1.jpg",
+        title: 'Collection Article 1',
+        description: 'First article in collection',
+        author: 'John Doe',
+        imageUrl: 'https://example.com/image1.jpg',
       }).unwrap();
 
       const urlCard1 = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withUrlCard(url1, urlMetadata1)
-        .withCreatedAt(new Date("2023-01-01"))
-        .withUpdatedAt(new Date("2023-01-01"))
+        .withCreatedAt(new Date('2023-01-01'))
+        .withUpdatedAt(new Date('2023-01-01'))
         .buildOrThrow();
 
-      const url2 = URL.create("https://example.com/article2").unwrap();
+      const url2 = URL.create('https://example.com/article2').unwrap();
       const urlCard2 = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withUrlCard(url2)
-        .withCreatedAt(new Date("2023-01-02"))
-        .withUpdatedAt(new Date("2023-01-02"))
+        .withCreatedAt(new Date('2023-01-02'))
+        .withUpdatedAt(new Date('2023-01-02'))
         .buildOrThrow();
 
       // Save cards
@@ -142,13 +142,13 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       const collection = Collection.create(
         {
           authorId: curatorId,
-          name: "Test Collection",
+          name: 'Test Collection',
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       collection.addCard(urlCard1.cardId, curatorId);
@@ -164,7 +164,7 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
           limit: 10,
           sortBy: CardSortField.UPDATED_AT,
           sortOrder: SortOrder.DESC,
-        }
+        },
       );
 
       expect(result.items).toHaveLength(2);
@@ -177,13 +177,13 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
 
       expect(card1Result).toBeDefined();
       expect(card1Result?.type).toBe(CardTypeEnum.URL);
-      expect(card1Result?.cardContent.title).toBe("Collection Article 1");
+      expect(card1Result?.cardContent.title).toBe('Collection Article 1');
       expect(card1Result?.cardContent.description).toBe(
-        "First article in collection"
+        'First article in collection',
       );
-      expect(card1Result?.cardContent.author).toBe("John Doe");
+      expect(card1Result?.cardContent.author).toBe('John Doe');
       expect(card1Result?.cardContent.thumbnailUrl).toBe(
-        "https://example.com/image1.jpg"
+        'https://example.com/image1.jpg',
       );
 
       expect(card2Result).toBeDefined();
@@ -191,9 +191,9 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       expect(card2Result?.cardContent.title).toBeUndefined(); // No metadata provided
     });
 
-    it("should include connected note cards for collection cards", async () => {
+    it('should include connected note cards for collection cards', async () => {
       // Create URL card
-      const url = URL.create("https://example.com/collection-article").unwrap();
+      const url = URL.create('https://example.com/collection-article').unwrap();
       const urlCard = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withUrlCard(url)
@@ -205,8 +205,8 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withNoteCard(
-          "This is my note about the collection article",
-          "Collection Note"
+          'This is my note about the collection article',
+          'Collection Note',
         )
         .withParentCard(urlCard.cardId)
         .buildOrThrow();
@@ -217,13 +217,13 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       const collection = Collection.create(
         {
           authorId: curatorId,
-          name: "Collection with Notes",
+          name: 'Collection with Notes',
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       collection.addCard(urlCard.cardId, curatorId);
@@ -237,7 +237,7 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
           limit: 10,
           sortBy: CardSortField.UPDATED_AT,
           sortOrder: SortOrder.DESC,
-        }
+        },
       );
 
       expect(result.items).toHaveLength(1);
@@ -246,13 +246,13 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       expect(urlCardResult?.note).toBeDefined();
       expect(urlCardResult?.note?.id).toBe(noteCard.cardId.getStringValue());
       expect(urlCardResult?.note?.text).toBe(
-        "This is my note about the collection article"
+        'This is my note about the collection article',
       );
     });
 
-    it("should not include note cards that are not connected to collection URL cards", async () => {
+    it('should not include note cards that are not connected to collection URL cards', async () => {
       // Create URL card in collection
-      const url = URL.create("https://example.com/collection-article").unwrap();
+      const url = URL.create('https://example.com/collection-article').unwrap();
       const urlCard = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withUrlCard(url)
@@ -261,7 +261,7 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       await cardRepository.save(urlCard);
 
       // Create another URL card NOT in collection
-      const otherUrl = URL.create("https://example.com/other-article").unwrap();
+      const otherUrl = URL.create('https://example.com/other-article').unwrap();
       const otherUrlCard = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withUrlCard(otherUrl)
@@ -272,7 +272,7 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       // Create note card connected to the OTHER URL card (not in collection)
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard("This note is for the other article", "Other Note")
+        .withNoteCard('This note is for the other article', 'Other Note')
         .withParentCard(otherUrlCard.cardId)
         .buildOrThrow();
 
@@ -282,13 +282,13 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       const collection = Collection.create(
         {
           authorId: curatorId,
-          name: "Selective Collection",
+          name: 'Selective Collection',
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       collection.addCard(urlCard.cardId, curatorId);
@@ -302,7 +302,7 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
           limit: 10,
           sortBy: CardSortField.UPDATED_AT,
           sortOrder: SortOrder.DESC,
-        }
+        },
       );
 
       expect(result.items).toHaveLength(1);
@@ -312,15 +312,15 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       expect(urlCardResult?.note).toBeUndefined();
     });
 
-    it("should handle collection with cards from multiple users", async () => {
+    it('should handle collection with cards from multiple users', async () => {
       // Create URL cards from different users
-      const url1 = URL.create("https://example.com/user1-article").unwrap();
+      const url1 = URL.create('https://example.com/user1-article').unwrap();
       const urlCard1 = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withUrlCard(url1)
         .buildOrThrow();
 
-      const url2 = URL.create("https://example.com/user2-article").unwrap();
+      const url2 = URL.create('https://example.com/user2-article').unwrap();
       const urlCard2 = new CardBuilder()
         .withCuratorId(otherCuratorId.value)
         .withUrlCard(url2)
@@ -333,13 +333,13 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       const collection = Collection.create(
         {
           authorId: curatorId,
-          name: "Multi-User Collection",
+          name: 'Multi-User Collection',
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       collection.addCard(urlCard1.cardId, curatorId);
@@ -354,7 +354,7 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
           limit: 10,
           sortBy: CardSortField.UPDATED_AT,
           sortOrder: SortOrder.DESC,
-        }
+        },
       );
 
       expect(result.items).toHaveLength(2);
@@ -364,11 +364,11 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       expect(urls).toContain(url2.value);
     });
 
-    it("should not return note cards directly from collection", async () => {
+    it('should not return note cards directly from collection', async () => {
       // Create a standalone note card
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard("Standalone note in collection")
+        .withNoteCard('Standalone note in collection')
         .buildOrThrow();
 
       await cardRepository.save(noteCard);
@@ -377,13 +377,13 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       const collection = Collection.create(
         {
           authorId: curatorId,
-          name: "Collection with Direct Note",
+          name: 'Collection with Direct Note',
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       collection.addCard(noteCard.cardId, curatorId);
@@ -397,7 +397,7 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
           limit: 10,
           sortBy: CardSortField.UPDATED_AT,
           sortOrder: SortOrder.DESC,
-        }
+        },
       );
 
       // Should not return the note card since we only return URL cards
@@ -405,15 +405,15 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       expect(result.totalCount).toBe(0);
     });
 
-    it("should handle sorting by library count in collection", async () => {
+    it('should handle sorting by library count in collection', async () => {
       // Create URL cards with different library counts
-      const url1 = URL.create("https://example.com/popular").unwrap();
+      const url1 = URL.create('https://example.com/popular').unwrap();
       const urlCard1 = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withUrlCard(url1)
         .buildOrThrow();
 
-      const url2 = URL.create("https://example.com/less-popular").unwrap();
+      const url2 = URL.create('https://example.com/less-popular').unwrap();
       const urlCard2 = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withUrlCard(url2)
@@ -437,13 +437,13 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       const collection = Collection.create(
         {
           authorId: curatorId,
-          name: "Popularity Collection",
+          name: 'Popularity Collection',
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       collection.addCard(urlCard1.cardId, curatorId);
@@ -458,7 +458,7 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
           limit: 10,
           sortBy: CardSortField.LIBRARY_COUNT,
           sortOrder: SortOrder.DESC,
-        }
+        },
       );
 
       expect(result.items).toHaveLength(2);
@@ -466,18 +466,18 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       expect(result.items[1]?.libraryCount).toBe(1); // urlCard2
     });
 
-    it("should handle pagination for collection cards", async () => {
+    it('should handle pagination for collection cards', async () => {
       // Create multiple URL cards
       const urlCards = [];
       for (let i = 1; i <= 5; i++) {
         const url = URL.create(
-          `https://example.com/collection-article${i}`
+          `https://example.com/collection-article${i}`,
         ).unwrap();
         const urlCard = new CardBuilder()
           .withCuratorId(curatorId.value)
           .withUrlCard(url)
-          .withCreatedAt(new Date(`2023-01-${i.toString().padStart(2, "0")}`))
-          .withUpdatedAt(new Date(`2023-01-${i.toString().padStart(2, "0")}`))
+          .withCreatedAt(new Date(`2023-01-${i.toString().padStart(2, '0')}`))
+          .withUpdatedAt(new Date(`2023-01-${i.toString().padStart(2, '0')}`))
           .buildOrThrow();
 
         await cardRepository.save(urlCard);
@@ -488,13 +488,13 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
       const collection = Collection.create(
         {
           authorId: curatorId,
-          name: "Large Collection",
+          name: 'Large Collection',
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        new UniqueEntityID()
+        new UniqueEntityID(),
       ).unwrap();
 
       for (const urlCard of urlCards) {
@@ -510,7 +510,7 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
           limit: 2,
           sortBy: CardSortField.UPDATED_AT,
           sortOrder: SortOrder.ASC,
-        }
+        },
       );
 
       expect(page1.items).toHaveLength(2);
@@ -525,7 +525,7 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
           limit: 2,
           sortBy: CardSortField.UPDATED_AT,
           sortOrder: SortOrder.ASC,
-        }
+        },
       );
 
       expect(page2.items).toHaveLength(2);
@@ -540,7 +540,7 @@ describe("DrizzleCardQueryRepository - getCardsInCollection", () => {
           limit: 2,
           sortBy: CardSortField.UPDATED_AT,
           sortOrder: SortOrder.ASC,
-        }
+        },
       );
 
       expect(page3.items).toHaveLength(1);

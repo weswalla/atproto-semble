@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getAccessToken } from "@/services/auth";
-import { ApiClient } from "@/api-client/ApiClient";
-import type { GetMyCollectionsResponse } from "@/api-client/types";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { getAccessToken } from '@/services/auth';
+import { ApiClient } from '@/api-client/ApiClient';
+import type { GetMyCollectionsResponse } from '@/api-client/types';
 import {
   Box,
   Button,
@@ -16,19 +16,19 @@ import {
   Stack,
   Text,
   Title,
-} from "@mantine/core";
+} from '@mantine/core';
 
 export default function CollectionsPage() {
   const [collections, setCollections] = useState<
-    GetMyCollectionsResponse["collections"]
+    GetMyCollectionsResponse['collections']
   >([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const router = useRouter();
 
   // Create API client instance
   const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     () => getAccessToken(),
   );
 
@@ -39,8 +39,8 @@ export default function CollectionsPage() {
         const response = await apiClient.getMyCollections({ limit: 50 });
         setCollections(response.collections);
       } catch (error: any) {
-        console.error("Error fetching collections:", error);
-        setError(error.message || "Failed to load collections");
+        console.error('Error fetching collections:', error);
+        setError(error.message || 'Failed to load collections');
       } finally {
         setLoading(false);
       }
@@ -59,9 +59,9 @@ export default function CollectionsPage() {
         <Group justify="space-between">
           <Stack gap={0}>
             <Title order={1}>Collections</Title>
-            <Text c={"gray"}>Organize your cards into collections</Text>
+            <Text c={'gray'}>Organize your cards into collections</Text>
           </Stack>
-          <Button onClick={() => router.push("/collections/create")}>
+          <Button onClick={() => router.push('/collections/create')}>
             Create Collection
           </Button>
         </Group>
@@ -69,7 +69,7 @@ export default function CollectionsPage() {
         {error && <Text c="red">{error}</Text>}
 
         {collections.length > 0 ? (
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing={"md"}>
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing={'md'}>
             {collections.map((collection) => (
               <Card
                 key={collection.id}
@@ -89,9 +89,9 @@ export default function CollectionsPage() {
                   </Stack>
                   <Stack>
                     <Group justify="space-between">
-                      <Text c={"gray"}>{collection.cardCount} cards</Text>
-                      <Text c={"gray"}>
-                        Created{" "}
+                      <Text c={'gray'}>{collection.cardCount} cards</Text>
+                      <Text c={'gray'}>
+                        Created{' '}
                         {new Date(collection.createdAt).toLocaleDateString()}
                       </Text>
                     </Group>
@@ -103,7 +103,7 @@ export default function CollectionsPage() {
         ) : (
           <Stack align="center">
             <Text>No collections yet</Text>
-            <Button onClick={() => router.push("/collections/create")}>
+            <Button onClick={() => router.push('/collections/create')}>
               Create Your First Collection
             </Button>
           </Stack>

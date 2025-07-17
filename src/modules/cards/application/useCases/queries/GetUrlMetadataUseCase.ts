@@ -1,8 +1,8 @@
-import { URL } from "../../../domain/value-objects/URL";
-import { IMetadataService } from "../../../domain/services/IMetadataService";
-import { ICardRepository } from "../../../domain/ICardRepository";
-import { UseCase } from "src/shared/core/UseCase";
-import { err, ok, Result } from "src/shared/core/Result";
+import { URL } from '../../../domain/value-objects/URL';
+import { IMetadataService } from '../../../domain/services/IMetadataService';
+import { ICardRepository } from '../../../domain/ICardRepository';
+import { UseCase } from 'src/shared/core/UseCase';
+import { err, ok, Result } from 'src/shared/core/Result';
 
 export interface GetUrlMetadataQuery {
   url: string;
@@ -24,7 +24,7 @@ export interface GetUrlMetadataResult {
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "ValidationError";
+    this.name = 'ValidationError';
   }
 }
 
@@ -33,17 +33,17 @@ export class GetUrlMetadataUseCase
 {
   constructor(
     private metadataService: IMetadataService,
-    private cardRepository: ICardRepository
+    private cardRepository: ICardRepository,
   ) {}
 
   async execute(
-    query: GetUrlMetadataQuery
+    query: GetUrlMetadataQuery,
   ): Promise<Result<GetUrlMetadataResult>> {
     // Validate and create URL value object
     const urlResult = URL.create(query.url);
     if (urlResult.isErr()) {
       return err(
-        new ValidationError(`Invalid URL: ${urlResult.error.message}`)
+        new ValidationError(`Invalid URL: ${urlResult.error.message}`),
       );
     }
     const url = urlResult.value;
@@ -55,8 +55,8 @@ export class GetUrlMetadataUseCase
       if (existingCardResult.isErr()) {
         return err(
           new Error(
-            `Failed to check for existing card: ${existingCardResult.error instanceof Error ? existingCardResult.error.message : "Unknown error"}`
-          )
+            `Failed to check for existing card: ${existingCardResult.error instanceof Error ? existingCardResult.error.message : 'Unknown error'}`,
+          ),
         );
       }
 
@@ -68,8 +68,8 @@ export class GetUrlMetadataUseCase
       if (metadataResult.isErr()) {
         return err(
           new Error(
-            `Failed to fetch metadata: ${metadataResult.error instanceof Error ? metadataResult.error.message : "Unknown error"}`
-          )
+            `Failed to fetch metadata: ${metadataResult.error instanceof Error ? metadataResult.error.message : 'Unknown error'}`,
+          ),
         );
       }
 
@@ -90,8 +90,8 @@ export class GetUrlMetadataUseCase
     } catch (error) {
       return err(
         new Error(
-          `Failed to get URL metadata: ${error instanceof Error ? error.message : "Unknown error"}`
-        )
+          `Failed to get URL metadata: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
       );
     }
   }

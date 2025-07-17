@@ -1,12 +1,12 @@
-import { Result, ok, err } from "../../../../../shared/core/Result";
-import { UseCase } from "../../../../../shared/core/UseCase";
-import { UseCaseError } from "../../../../../shared/core/UseCaseError";
-import { AppError } from "../../../../../shared/core/AppError";
-import { ICardRepository } from "../../../domain/ICardRepository";
-import { CardId } from "../../../domain/value-objects/CardId";
-import { CollectionId } from "../../../domain/value-objects/CollectionId";
-import { CuratorId } from "../../../domain/value-objects/CuratorId";
-import { CardCollectionService } from "../../../domain/services/CardCollectionService";
+import { Result, ok, err } from '../../../../../shared/core/Result';
+import { UseCase } from '../../../../../shared/core/UseCase';
+import { UseCaseError } from '../../../../../shared/core/UseCaseError';
+import { AppError } from '../../../../../shared/core/AppError';
+import { ICardRepository } from '../../../domain/ICardRepository';
+import { CardId } from '../../../domain/value-objects/CardId';
+import { CollectionId } from '../../../domain/value-objects/CollectionId';
+import { CuratorId } from '../../../domain/value-objects/CuratorId';
+import { CardCollectionService } from '../../../domain/services/CardCollectionService';
 
 export interface AddCardToCollectionDTO {
   cardId: string;
@@ -36,11 +36,11 @@ export class AddCardToCollectionUseCase
 {
   constructor(
     private cardRepository: ICardRepository,
-    private cardCollectionService: CardCollectionService
+    private cardCollectionService: CardCollectionService,
   ) {}
 
   async execute(
-    request: AddCardToCollectionDTO
+    request: AddCardToCollectionDTO,
   ): Promise<
     Result<
       AddCardToCollectionResponseDTO,
@@ -53,8 +53,8 @@ export class AddCardToCollectionUseCase
       if (curatorIdResult.isErr()) {
         return err(
           new ValidationError(
-            `Invalid curator ID: ${curatorIdResult.error.message}`
-          )
+            `Invalid curator ID: ${curatorIdResult.error.message}`,
+          ),
         );
       }
       const curatorId = curatorIdResult.value;
@@ -63,7 +63,7 @@ export class AddCardToCollectionUseCase
       const cardIdResult = CardId.createFromString(request.cardId);
       if (cardIdResult.isErr()) {
         return err(
-          new ValidationError(`Invalid card ID: ${cardIdResult.error.message}`)
+          new ValidationError(`Invalid card ID: ${cardIdResult.error.message}`),
         );
       }
       const cardId = cardIdResult.value;
@@ -76,8 +76,8 @@ export class AddCardToCollectionUseCase
         if (collectionIdResult.isErr()) {
           return err(
             new ValidationError(
-              `Invalid collection ID: ${collectionIdResult.error.message}`
-            )
+              `Invalid collection ID: ${collectionIdResult.error.message}`,
+            ),
           );
         }
         collectionIds.push(collectionIdResult.value);
@@ -99,7 +99,7 @@ export class AddCardToCollectionUseCase
         await this.cardCollectionService.addCardToCollections(
           card,
           collectionIds,
-          curatorId
+          curatorId,
         );
       if (addToCollectionsResult.isErr()) {
         if (addToCollectionsResult.error instanceof AppError.UnexpectedError) {

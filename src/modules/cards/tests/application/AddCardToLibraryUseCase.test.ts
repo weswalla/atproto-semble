@@ -1,16 +1,16 @@
-import { AddCardToLibraryUseCase } from "../../application/useCases/commands/AddCardToLibraryUseCase";
-import { InMemoryCardRepository } from "../utils/InMemoryCardRepository";
-import { InMemoryCollectionRepository } from "../utils/InMemoryCollectionRepository";
-import { FakeCardPublisher } from "../utils/FakeCardPublisher";
-import { FakeCollectionPublisher } from "../utils/FakeCollectionPublisher";
-import { CardLibraryService } from "../../domain/services/CardLibraryService";
-import { CardCollectionService } from "../../domain/services/CardCollectionService";
-import { CuratorId } from "../../domain/value-objects/CuratorId";
-import { CollectionBuilder } from "../utils/builders/CollectionBuilder";
-import { CardBuilder } from "../utils/builders/CardBuilder";
-import { CardTypeEnum } from "../../domain/value-objects/CardType";
+import { AddCardToLibraryUseCase } from '../../application/useCases/commands/AddCardToLibraryUseCase';
+import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
+import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
+import { FakeCardPublisher } from '../utils/FakeCardPublisher';
+import { FakeCollectionPublisher } from '../utils/FakeCollectionPublisher';
+import { CardLibraryService } from '../../domain/services/CardLibraryService';
+import { CardCollectionService } from '../../domain/services/CardCollectionService';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
+import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
+import { CardBuilder } from '../utils/builders/CardBuilder';
+import { CardTypeEnum } from '../../domain/value-objects/CardType';
 
-describe("AddCardToLibraryUseCase", () => {
+describe('AddCardToLibraryUseCase', () => {
   let useCase: AddCardToLibraryUseCase;
   let cardRepository: InMemoryCardRepository;
   let collectionRepository: InMemoryCollectionRepository;
@@ -29,16 +29,16 @@ describe("AddCardToLibraryUseCase", () => {
     cardLibraryService = new CardLibraryService(cardRepository, cardPublisher);
     cardCollectionService = new CardCollectionService(
       collectionRepository,
-      collectionPublisher
+      collectionPublisher,
     );
 
     useCase = new AddCardToLibraryUseCase(
       cardRepository,
       cardLibraryService,
-      cardCollectionService
+      cardCollectionService,
     );
 
-    curatorId = CuratorId.create("did:plc:testcurator").unwrap();
+    curatorId = CuratorId.create('did:plc:testcurator').unwrap();
   });
 
   afterEach(() => {
@@ -48,8 +48,8 @@ describe("AddCardToLibraryUseCase", () => {
     collectionPublisher.clear();
   });
 
-  describe("Basic card addition to library", () => {
-    it("should add an existing card to library", async () => {
+  describe('Basic card addition to library', () => {
+    it('should add an existing card to library', async () => {
       // Create and save a card first
       const card = new CardBuilder()
         .withCuratorId(curatorId.value)
@@ -77,13 +77,13 @@ describe("AddCardToLibraryUseCase", () => {
       const publishedCards = cardPublisher.getPublishedCards();
       expect(publishedCards).toHaveLength(1);
       expect(publishedCards[0]?.cardId.getStringValue()).toBe(
-        card.cardId.getStringValue()
+        card.cardId.getStringValue(),
       );
     });
 
-    it("should fail when card does not exist", async () => {
+    it('should fail when card does not exist', async () => {
       const request = {
-        cardId: "non-existent-card-id",
+        cardId: 'non-existent-card-id',
         curatorId: curatorId.value,
       };
 
@@ -91,13 +91,13 @@ describe("AddCardToLibraryUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Card not found");
+        expect(result.error.message).toContain('Card not found');
       }
     });
   });
 
-  describe("Collection handling", () => {
-    it("should add card to specified collections", async () => {
+  describe('Collection handling', () => {
+    it('should add card to specified collections', async () => {
       // Create and save a card first
       const card = new CardBuilder()
         .withCuratorId(curatorId.value)
@@ -113,7 +113,7 @@ describe("AddCardToLibraryUseCase", () => {
       // Create a test collection
       const collection = new CollectionBuilder()
         .withAuthorId(curatorId.value)
-        .withName("Test Collection")
+        .withName('Test Collection')
         .build();
 
       if (collection instanceof Error) {
@@ -138,13 +138,13 @@ describe("AddCardToLibraryUseCase", () => {
 
       // Verify collection link was published
       const publishedLinks = collectionPublisher.getPublishedLinksForCollection(
-        collection.collectionId.getStringValue()
+        collection.collectionId.getStringValue(),
       );
       expect(publishedLinks).toHaveLength(1);
       expect(publishedLinks[0]?.cardId).toBe(card.cardId.getStringValue());
     });
 
-    it("should add card to multiple collections", async () => {
+    it('should add card to multiple collections', async () => {
       // Create and save a card first
       const card = new CardBuilder()
         .withCuratorId(curatorId.value)
@@ -160,16 +160,16 @@ describe("AddCardToLibraryUseCase", () => {
       // Create test collections
       const collection1 = new CollectionBuilder()
         .withAuthorId(curatorId.value)
-        .withName("Test Collection 1")
+        .withName('Test Collection 1')
         .build();
 
       const collection2 = new CollectionBuilder()
         .withAuthorId(curatorId.value)
-        .withName("Test Collection 2")
+        .withName('Test Collection 2')
         .build();
 
       if (collection1 instanceof Error || collection2 instanceof Error) {
-        throw new Error("Failed to create collections");
+        throw new Error('Failed to create collections');
       }
 
       await collectionRepository.save(collection1);
@@ -195,11 +195,11 @@ describe("AddCardToLibraryUseCase", () => {
       // Verify collection links were published for both collections
       const publishedLinks1 =
         collectionPublisher.getPublishedLinksForCollection(
-          collection1.collectionId.getStringValue()
+          collection1.collectionId.getStringValue(),
         );
       const publishedLinks2 =
         collectionPublisher.getPublishedLinksForCollection(
-          collection2.collectionId.getStringValue()
+          collection2.collectionId.getStringValue(),
         );
 
       expect(publishedLinks1).toHaveLength(1);
@@ -208,7 +208,7 @@ describe("AddCardToLibraryUseCase", () => {
       expect(publishedLinks2[0]?.cardId).toBe(card.cardId.getStringValue());
     });
 
-    it("should work without collections when none are specified", async () => {
+    it('should work without collections when none are specified', async () => {
       // Create and save a card first
       const card = new CardBuilder()
         .withCuratorId(curatorId.value)
@@ -240,7 +240,7 @@ describe("AddCardToLibraryUseCase", () => {
       expect(allPublishedLinks).toHaveLength(0);
     });
 
-    it("should fail when collection does not exist", async () => {
+    it('should fail when collection does not exist', async () => {
       // Create and save a card first
       const card = new CardBuilder()
         .withCuratorId(curatorId.value)
@@ -255,7 +255,7 @@ describe("AddCardToLibraryUseCase", () => {
 
       const request = {
         cardId: card.cardId.getStringValue(),
-        collectionIds: ["non-existent-collection-id"],
+        collectionIds: ['non-existent-collection-id'],
         curatorId: curatorId.value,
       };
 
@@ -263,15 +263,15 @@ describe("AddCardToLibraryUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Collection not found");
+        expect(result.error.message).toContain('Collection not found');
       }
     });
   });
 
-  describe("Validation", () => {
-    it("should fail with invalid card ID", async () => {
+  describe('Validation', () => {
+    it('should fail with invalid card ID', async () => {
       const request = {
-        cardId: "invalid-card-id",
+        cardId: 'invalid-card-id',
         curatorId: curatorId.value,
       };
 
@@ -279,11 +279,11 @@ describe("AddCardToLibraryUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("invalid-card-id");
+        expect(result.error.message).toContain('invalid-card-id');
       }
     });
 
-    it("should fail with invalid curator ID", async () => {
+    it('should fail with invalid curator ID', async () => {
       // Create and save a card first
       const card = new CardBuilder()
         .withCuratorId(curatorId.value)
@@ -298,18 +298,18 @@ describe("AddCardToLibraryUseCase", () => {
 
       const request = {
         cardId: card.cardId.getStringValue(),
-        curatorId: "invalid-curator-id",
+        curatorId: 'invalid-curator-id',
       };
 
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Invalid curator ID");
+        expect(result.error.message).toContain('Invalid curator ID');
       }
     });
 
-    it("should fail with invalid collection ID", async () => {
+    it('should fail with invalid collection ID', async () => {
       // Create and save a card first
       const card = new CardBuilder()
         .withCuratorId(curatorId.value)
@@ -324,7 +324,7 @@ describe("AddCardToLibraryUseCase", () => {
 
       const request = {
         cardId: card.cardId.getStringValue(),
-        collectionIds: ["invalid-collection-id"],
+        collectionIds: ['invalid-collection-id'],
         curatorId: curatorId.value,
       };
 
@@ -332,7 +332,7 @@ describe("AddCardToLibraryUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("invalid-collection-id");
+        expect(result.error.message).toContain('invalid-collection-id');
       }
     });
   });

@@ -1,10 +1,10 @@
-import { ValueObject } from "../../../../shared/domain/ValueObject";
-import { Result, ok, err } from "../../../../shared/core/Result";
+import { ValueObject } from '../../../../shared/domain/ValueObject';
+import { Result, ok, err } from '../../../../shared/core/Result';
 
 export class InvalidCollectionDescriptionError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "InvalidCollectionDescriptionError";
+    this.name = 'InvalidCollectionDescriptionError';
   }
 }
 
@@ -23,11 +23,17 @@ export class CollectionDescription extends ValueObject<CollectionDescriptionProp
     super(props);
   }
 
-  public static create(description: string): Result<CollectionDescription, InvalidCollectionDescriptionError> {
+  public static create(
+    description: string,
+  ): Result<CollectionDescription, InvalidCollectionDescriptionError> {
     const trimmedDescription = description.trim();
 
     if (trimmedDescription.length > this.MAX_LENGTH) {
-      return err(new InvalidCollectionDescriptionError(`Collection description cannot exceed ${this.MAX_LENGTH} characters`));
+      return err(
+        new InvalidCollectionDescriptionError(
+          `Collection description cannot exceed ${this.MAX_LENGTH} characters`,
+        ),
+      );
     }
 
     return ok(new CollectionDescription({ value: trimmedDescription }));

@@ -5,6 +5,7 @@ This guide covers how to build and distribute the browser extension for team tes
 ## Building the Extension
 
 ### Development Build
+
 ```bash
 npm run dev:extension
 # or
@@ -12,6 +13,7 @@ plasmo dev
 ```
 
 ### Production Build
+
 ```bash
 npm run build:extension
 # or
@@ -21,6 +23,7 @@ plasmo build
 This creates a `build/` directory with the production-ready extension files.
 
 ### Package for Distribution
+
 ```bash
 npm run package:extension
 # or
@@ -32,11 +35,13 @@ This creates a `.zip` file in the `build/` directory that's ready for distributi
 ## Distribution Options
 
 ### Option A: Share the Build Folder
+
 1. Zip the entire `build/chrome-mv3-prod/` folder
 2. Share the zip file with your team
 3. Team members can load it as an unpacked extension
 
 ### Option B: Use the Packaged ZIP
+
 1. Share the `.zip` file created by `plasmo package`
 2. Team members can extract and load it
 

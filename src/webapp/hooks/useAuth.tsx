@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   useState,
@@ -7,10 +7,10 @@ import {
   useContext,
   ReactNode,
   useCallback,
-} from "react";
-import { useRouter } from "next/navigation";
-import { authService } from "@/services/api";
-import { getAccessToken, getRefreshToken, clearAuth } from "@/services/auth";
+} from 'react';
+import { useRouter } from 'next/navigation';
+import { authService } from '@/services/api';
+import { getAccessToken, getRefreshToken, clearAuth } from '@/services/auth';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!token) return true;
 
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
+      const payload = JSON.parse(atob(token.split('.')[1]));
       const expiry = payload.exp * 1000; // Convert to milliseconds
       return Date.now() >= expiry;
     } catch (e) {
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setTokens(newAccessToken, newRefreshToken);
       return true;
     } catch (error) {
-      console.error("Token refresh failed:", error);
+      console.error('Token refresh failed:', error);
       handleLogout();
       return false;
     }
@@ -80,17 +80,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           .then((success) => {
             if (success) {
               // Token refreshed, now fetch user data with new token
-              return authService.getCurrentUser(getAccessToken() || "");
+              return authService.getCurrentUser(getAccessToken() || '');
             }
-            throw new Error("Token refresh failed");
+            throw new Error('Token refresh failed');
           })
           .then((userData) => {
             setUser(userData);
           })
           .catch((error) => {
             console.error(
-              "Error refreshing token or fetching user data:",
-              error
+              'Error refreshing token or fetching user data:',
+              error,
             );
             handleLogout();
           })
@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(userData);
           })
           .catch((error) => {
-            console.error("Error fetching user data:", error);
+            console.error('Error fetching user data:', error);
             // If token is invalid, log out
             handleLogout();
           })
@@ -138,7 +138,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       return await authService.initiateLogin(handle);
     } catch (error) {
-      console.error("Login error:", error);
+      console.error('Login error:', error);
       throw error;
     }
   };
@@ -156,10 +156,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Redirect to dashboard after a short delay
       setTimeout(() => {
-        router.push("/library");
+        router.push('/library');
       }, 1000);
     } catch (error) {
-      console.error("OAuth completion error:", error);
+      console.error('OAuth completion error:', error);
       throw error;
     }
   };
@@ -170,7 +170,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await authService.logout(refreshToken);
       }
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error('Logout error:', error);
     } finally {
       // Clear auth state
       clearAuth();
@@ -180,14 +180,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsAuthenticated(false);
 
       // Redirect to login
-      router.push("/login");
+      router.push('/login');
     }
   };
 
   const setTokens = useCallback((accessToken: string, refreshToken: string) => {
     // Store tokens
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("refreshToken", refreshToken);
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('refreshToken', refreshToken);
 
     // Update state
     setAccessToken(accessToken);
@@ -218,7 +218,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

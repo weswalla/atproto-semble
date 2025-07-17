@@ -1,4 +1,4 @@
-import { UseCaseError } from "src/shared/core/UseCaseError";
+import { UseCaseError } from 'src/shared/core/UseCaseError';
 
 export namespace InitiateOAuthSignInErrors {
   export class InvalidHandleError extends UseCaseError {

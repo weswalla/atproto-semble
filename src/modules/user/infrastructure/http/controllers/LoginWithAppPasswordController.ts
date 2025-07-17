@@ -1,9 +1,11 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Request, Response } from "express";
-import { LoginWithAppPasswordUseCase } from "../../../application/use-cases/LoginWithAppPasswordUseCase";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Request, Response } from 'express';
+import { LoginWithAppPasswordUseCase } from '../../../application/use-cases/LoginWithAppPasswordUseCase';
 
 export class LoginWithAppPasswordController extends Controller {
-  constructor(private loginWithAppPasswordUseCase: LoginWithAppPasswordUseCase) {
+  constructor(
+    private loginWithAppPasswordUseCase: LoginWithAppPasswordUseCase,
+  ) {
     super();
   }
 
@@ -12,7 +14,7 @@ export class LoginWithAppPasswordController extends Controller {
       const { identifier, appPassword } = req.body;
 
       if (!identifier || !appPassword) {
-        return this.badRequest(res, "Missing identifier or app password");
+        return this.badRequest(res, 'Missing identifier or app password');
       }
 
       const result = await this.loginWithAppPasswordUseCase.execute({
@@ -29,7 +31,7 @@ export class LoginWithAppPasswordController extends Controller {
         refreshToken: result.value.refreshToken,
       });
     } catch (error: any) {
-      return this.fail(res, error.message || "Unknown error");
+      return this.fail(res, error.message || 'Unknown error');
     }
   }
 }

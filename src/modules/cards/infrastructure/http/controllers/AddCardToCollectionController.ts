@@ -1,7 +1,7 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Response } from "express";
-import { AddCardToCollectionUseCase } from "../../../application/useCases/commands/AddCardToCollectionUseCase";
-import { AuthenticatedRequest } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Response } from 'express';
+import { AddCardToCollectionUseCase } from '../../../application/useCases/commands/AddCardToCollectionUseCase';
+import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class AddCardToCollectionController extends Controller {
   constructor(private addCardToCollectionUseCase: AddCardToCollectionUseCase) {
@@ -12,17 +12,17 @@ export class AddCardToCollectionController extends Controller {
     try {
       const { cardId, collectionIds } = req.body;
       const curatorId = req.did;
-      
+
       if (!curatorId) {
         return this.unauthorized(res);
       }
 
       if (!cardId) {
-        return this.badRequest(res, "Card ID is required");
+        return this.badRequest(res, 'Card ID is required');
       }
 
       if (!collectionIds || !Array.isArray(collectionIds)) {
-        return this.badRequest(res, "Collection IDs array is required");
+        return this.badRequest(res, 'Collection IDs array is required');
       }
 
       const result = await this.addCardToCollectionUseCase.execute({

@@ -1,8 +1,8 @@
-import { Result, ok, err } from "../../../../shared/core/Result";
-import { ICardRepository } from "../../domain/ICardRepository";
-import { Card } from "../../domain/Card";
-import { CardId } from "../../domain/value-objects/CardId";
-import { URL } from "../../domain/value-objects/URL";
+import { Result, ok, err } from '../../../../shared/core/Result';
+import { ICardRepository } from '../../domain/ICardRepository';
+import { Card } from '../../domain/Card';
+import { CardId } from '../../domain/value-objects/CardId';
+import { URL } from '../../domain/value-objects/URL';
 
 export class InMemoryCardRepository implements ICardRepository {
   private cards: Map<string, Card> = new Map();
@@ -22,7 +22,7 @@ export class InMemoryCardRepository implements ICardRepository {
         createdAt: card.createdAt,
         updatedAt: card.updatedAt,
       },
-      card.id
+      card.id,
     );
 
     if (cardResult.isErr()) {
@@ -34,7 +34,7 @@ export class InMemoryCardRepository implements ICardRepository {
 
   async findById(id: CardId): Promise<Result<Card | null>> {
     if (this.shouldFail) {
-      return err(new Error("Simulated find failure"));
+      return err(new Error('Simulated find failure'));
     }
     try {
       const card = this.cards.get(id.getStringValue());
@@ -44,13 +44,12 @@ export class InMemoryCardRepository implements ICardRepository {
     }
   }
 
-
   async findUrlCardByUrl(url: URL): Promise<Result<Card | null>> {
     try {
       const card = Array.from(this.cards.values()).find(
         (card) =>
-          card.content.type === "URL" &&
-          card.content.urlContent?.url.value === url.value
+          card.content.type === 'URL' &&
+          card.content.urlContent?.url.value === url.value,
       );
       return ok(card ? this.clone(card) : null);
     } catch (error) {
@@ -60,7 +59,7 @@ export class InMemoryCardRepository implements ICardRepository {
 
   async save(card: Card): Promise<Result<void>> {
     if (this.shouldFailSave || this.shouldFail) {
-      return err(new Error("Simulated save failure"));
+      return err(new Error('Simulated save failure'));
     }
     try {
       this.cards.set(card.cardId.getStringValue(), this.clone(card));

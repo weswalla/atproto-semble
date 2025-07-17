@@ -1,5 +1,5 @@
-import { AtpSessionData } from "@atproto/api";
-import { Result } from "src/shared/core/Result";
+import { AtpSessionData } from '@atproto/api';
+import { Result } from 'src/shared/core/Result';
 
 export type SessionWithAppPassword = {
   session: AtpSessionData;
@@ -8,7 +8,7 @@ export type SessionWithAppPassword = {
 export interface IAppPasswordSessionRepository {
   saveSession(
     did: string,
-    session: SessionWithAppPassword
+    session: SessionWithAppPassword,
   ): Promise<Result<void>>;
 
   getSession(did: string): Promise<Result<SessionWithAppPassword | null>>;

@@ -1,17 +1,17 @@
-import { UpdateNoteCardUseCase } from "../../application/useCases/commands/UpdateNoteCardUseCase";
-import { InMemoryCardRepository } from "../utils/InMemoryCardRepository";
-import { FakeCardPublisher } from "../utils/FakeCardPublisher";
-import { CuratorId } from "../../domain/value-objects/CuratorId";
+import { UpdateNoteCardUseCase } from '../../application/useCases/commands/UpdateNoteCardUseCase';
+import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
+import { FakeCardPublisher } from '../utils/FakeCardPublisher';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
 import {
   CardFactory,
   INoteCardInput,
   IUrlCardInput,
-} from "../../domain/CardFactory";
-import { CardTypeEnum } from "../../domain/value-objects/CardType";
-import { CardLibraryService } from "../../domain/services/CardLibraryService";
-import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
+} from '../../domain/CardFactory';
+import { CardTypeEnum } from '../../domain/value-objects/CardType';
+import { CardLibraryService } from '../../domain/services/CardLibraryService';
+import { UrlMetadata } from '../../domain/value-objects/UrlMetadata';
 
-describe("UpdateNoteCardUseCase", () => {
+describe('UpdateNoteCardUseCase', () => {
   let useCase: UpdateNoteCardUseCase;
   let cardRepository: InMemoryCardRepository;
   let cardPublisher: FakeCardPublisher;
@@ -26,8 +26,8 @@ describe("UpdateNoteCardUseCase", () => {
 
     useCase = new UpdateNoteCardUseCase(cardRepository, cardPublisher);
 
-    curatorId = CuratorId.create("did:plc:testcurator").unwrap();
-    otherCuratorId = CuratorId.create("did:plc:othercurator").unwrap();
+    curatorId = CuratorId.create('did:plc:testcurator').unwrap();
+    otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
   });
 
   afterEach(() => {
@@ -48,7 +48,7 @@ describe("UpdateNoteCardUseCase", () => {
 
     if (noteCardResult.isErr()) {
       throw new Error(
-        `Failed to create note card: ${noteCardResult.error.message}`
+        `Failed to create note card: ${noteCardResult.error.message}`,
       );
     }
 
@@ -61,10 +61,10 @@ describe("UpdateNoteCardUseCase", () => {
     return noteCard;
   };
 
-  describe("Basic note card update", () => {
-    it("should successfully update a note card", async () => {
-      const originalText = "This is my original note";
-      const updatedText = "This is my updated note with more content";
+  describe('Basic note card update', () => {
+    it('should successfully update a note card', async () => {
+      const originalText = 'This is my original note';
+      const updatedText = 'This is my updated note with more content';
 
       // Create a note card
       const noteCard = await createNoteCard(curatorId, originalText);
@@ -94,9 +94,9 @@ describe("UpdateNoteCardUseCase", () => {
       expect(libraryInfo!.publishedRecordId).toBeDefined();
     });
 
-    it("should update card content while preserving other properties", async () => {
-      const originalText = "Original note";
-      const updatedText = "Updated note";
+    it('should update card content while preserving other properties', async () => {
+      const originalText = 'Original note';
+      const updatedText = 'Updated note';
 
       // Create a note card
       const noteCard = await createNoteCard(curatorId, originalText);
@@ -120,16 +120,16 @@ describe("UpdateNoteCardUseCase", () => {
       expect(updatedCard.cardId.getStringValue()).toBe(originalCardId);
       expect(updatedCard.createdAt).toEqual(originalCreatedAt);
       expect(updatedCard.updatedAt.getTime()).toBeGreaterThanOrEqual(
-        originalCreatedAt.getTime()
+        originalCreatedAt.getTime(),
       );
       expect(updatedCard.type.value).toBe(CardTypeEnum.NOTE);
       expect(updatedCard.content.noteContent!.authorId.equals(curatorId)).toBe(
-        true
+        true,
       );
     });
   });
 
-  describe("Authorization", () => {
+  describe('Authorization', () => {
     it("should fail when trying to update another user's note card", async () => {
       const originalText = "This is someone else's note";
 
@@ -148,7 +148,7 @@ describe("UpdateNoteCardUseCase", () => {
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
         expect(result.error.message).toContain(
-          "Only the author can update this note card"
+          'Only the author can update this note card',
         );
       }
 
@@ -158,9 +158,9 @@ describe("UpdateNoteCardUseCase", () => {
       expect(originalCard.content.noteContent!.text).toBe(originalText);
     });
 
-    it("should allow author to update their own note card", async () => {
-      const originalText = "My note";
-      const updatedText = "My updated note";
+    it('should allow author to update their own note card', async () => {
+      const originalText = 'My note';
+      const updatedText = 'My updated note';
 
       // Create and update with same curator
       const noteCard = await createNoteCard(curatorId, originalText);
@@ -182,28 +182,28 @@ describe("UpdateNoteCardUseCase", () => {
     });
   });
 
-  describe("Validation", () => {
-    it("should fail with invalid curator ID", async () => {
-      const noteCard = await createNoteCard(curatorId, "Some note");
+  describe('Validation', () => {
+    it('should fail with invalid curator ID', async () => {
+      const noteCard = await createNoteCard(curatorId, 'Some note');
 
       const request = {
         cardId: noteCard.cardId.getStringValue(),
-        note: "Updated note",
-        curatorId: "invalid-curator-id",
+        note: 'Updated note',
+        curatorId: 'invalid-curator-id',
       };
 
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Invalid curator ID");
+        expect(result.error.message).toContain('Invalid curator ID');
       }
     });
 
-    it("should fail when card does not exist", async () => {
+    it('should fail when card does not exist', async () => {
       const request = {
-        cardId: "non-existent-card-id",
-        note: "Some note text",
+        cardId: 'non-existent-card-id',
+        note: 'Some note text',
         curatorId: curatorId.value,
       };
 
@@ -211,24 +211,24 @@ describe("UpdateNoteCardUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Card not found");
+        expect(result.error.message).toContain('Card not found');
       }
     });
 
-    it("should fail when trying to update a non-note card", async () => {
+    it('should fail when trying to update a non-note card', async () => {
       // Create a URL card instead of a note card
       const urlCardInput: IUrlCardInput = {
         type: CardTypeEnum.URL,
-        url: "https://example.com",
+        url: 'https://example.com',
         metadata: UrlMetadata.create({
-          title: "Example URL",
-          description: "This is an example URL card",
-          imageUrl: "https://example.com/image.png",
-          type: "article",
-          url: "https://example.com",
-          author: "John Doe",
-          publishedDate: new Date("2023-01-01"),
-          siteName: "Example Site",
+          title: 'Example URL',
+          description: 'This is an example URL card',
+          imageUrl: 'https://example.com/image.png',
+          type: 'article',
+          url: 'https://example.com',
+          author: 'John Doe',
+          publishedDate: new Date('2023-01-01'),
+          siteName: 'Example Site',
           retrievedAt: new Date(),
         }).unwrap(),
       };
@@ -240,7 +240,7 @@ describe("UpdateNoteCardUseCase", () => {
 
       if (urlCardResult.isErr()) {
         throw new Error(
-          `Failed to create URL card: ${urlCardResult.error.message}`
+          `Failed to create URL card: ${urlCardResult.error.message}`,
         );
       }
 
@@ -249,7 +249,7 @@ describe("UpdateNoteCardUseCase", () => {
 
       const request = {
         cardId: urlCard.cardId.getStringValue(),
-        note: "Trying to update a URL card as note",
+        note: 'Trying to update a URL card as note',
         curatorId: curatorId.value,
       };
 
@@ -258,17 +258,17 @@ describe("UpdateNoteCardUseCase", () => {
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
         expect(result.error.message).toContain(
-          "Card is not a note card and cannot be updated"
+          'Card is not a note card and cannot be updated',
         );
       }
     });
 
-    it("should fail with empty note text", async () => {
-      const noteCard = await createNoteCard(curatorId, "Original note");
+    it('should fail with empty note text', async () => {
+      const noteCard = await createNoteCard(curatorId, 'Original note');
 
       const request = {
         cardId: noteCard.cardId.getStringValue(),
-        note: "",
+        note: '',
         curatorId: curatorId.value,
       };
 
@@ -276,13 +276,13 @@ describe("UpdateNoteCardUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Note text cannot be empty");
+        expect(result.error.message).toContain('Note text cannot be empty');
       }
     });
 
-    it("should fail with note text that is too long", async () => {
-      const noteCard = await createNoteCard(curatorId, "Original note");
-      const tooLongText = "a".repeat(10001); // Exceeds MAX_TEXT_LENGTH
+    it('should fail with note text that is too long', async () => {
+      const noteCard = await createNoteCard(curatorId, 'Original note');
+      const tooLongText = 'a'.repeat(10001); // Exceeds MAX_TEXT_LENGTH
 
       const request = {
         cardId: noteCard.cardId.getStringValue(),
@@ -294,14 +294,14 @@ describe("UpdateNoteCardUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Note text cannot exceed");
+        expect(result.error.message).toContain('Note text cannot exceed');
       }
     });
 
-    it("should trim whitespace from note text", async () => {
-      const noteCard = await createNoteCard(curatorId, "Original note");
-      const textWithWhitespace = "  Updated note with whitespace  ";
-      const expectedTrimmedText = "Updated note with whitespace";
+    it('should trim whitespace from note text', async () => {
+      const noteCard = await createNoteCard(curatorId, 'Original note');
+      const textWithWhitespace = '  Updated note with whitespace  ';
+      const expectedTrimmedText = 'Updated note with whitespace';
 
       const request = {
         cardId: noteCard.cardId.getStringValue(),
@@ -320,13 +320,13 @@ describe("UpdateNoteCardUseCase", () => {
     });
   });
 
-  describe("Publishing integration", () => {
-    it("should publish updated card before saving to repository", async () => {
-      const noteCard = await createNoteCard(curatorId, "Original note");
+  describe('Publishing integration', () => {
+    it('should publish updated card before saving to repository', async () => {
+      const noteCard = await createNoteCard(curatorId, 'Original note');
 
       const request = {
         cardId: noteCard.cardId.getStringValue(),
-        note: "Updated note",
+        note: 'Updated note',
         curatorId: curatorId.value,
       };
 
@@ -342,9 +342,9 @@ describe("UpdateNoteCardUseCase", () => {
     });
   });
 
-  describe("Edge cases", () => {
-    it("should handle updating to the same text", async () => {
-      const noteText = "Same note text";
+  describe('Edge cases', () => {
+    it('should handle updating to the same text', async () => {
+      const noteText = 'Same note text';
       const noteCard = await createNoteCard(curatorId, noteText);
 
       const request = {
@@ -362,13 +362,13 @@ describe("UpdateNoteCardUseCase", () => {
       const updatedCard = updatedCardResult.unwrap()!;
       expect(updatedCard.content.noteContent!.text).toBe(noteText);
       expect(updatedCard.updatedAt.getTime()).toBeGreaterThanOrEqual(
-        noteCard.createdAt.getTime()
+        noteCard.createdAt.getTime(),
       );
     });
 
-    it("should handle maximum length note text", async () => {
-      const noteCard = await createNoteCard(curatorId, "Original note");
-      const maxLengthText = "a".repeat(10000); // Exactly MAX_TEXT_LENGTH
+    it('should handle maximum length note text', async () => {
+      const noteCard = await createNoteCard(curatorId, 'Original note');
+      const maxLengthText = 'a'.repeat(10000); // Exactly MAX_TEXT_LENGTH
 
       const request = {
         cardId: noteCard.cardId.getStringValue(),

@@ -1,5 +1,8 @@
-import { IProfileService, UserProfile } from "../../domain/services/IProfileService";
-import { Result, ok, err } from "../../../../shared/core/Result";
+import {
+  IProfileService,
+  UserProfile,
+} from '../../domain/services/IProfileService';
+import { Result, ok, err } from '../../../../shared/core/Result';
 
 export class FakeProfileService implements IProfileService {
   private profiles: Map<string, UserProfile> = new Map();
@@ -7,7 +10,7 @@ export class FakeProfileService implements IProfileService {
 
   async getProfile(userId: string): Promise<Result<UserProfile>> {
     if (this.shouldFail) {
-      return err(new Error("Simulated profile service failure"));
+      return err(new Error('Simulated profile service failure'));
     }
 
     const profile = this.profiles.get(userId);

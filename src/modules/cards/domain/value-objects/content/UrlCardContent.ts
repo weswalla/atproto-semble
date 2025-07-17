@@ -1,8 +1,8 @@
-import { ValueObject } from "../../../../../shared/domain/ValueObject";
-import { ok, err, Result } from "../../../../../shared/core/Result";
-import { CardTypeEnum } from "../CardType";
-import { UrlMetadata } from "../UrlMetadata";
-import { URL } from "../URL";
+import { ValueObject } from '../../../../../shared/domain/ValueObject';
+import { ok, err, Result } from '../../../../../shared/core/Result';
+import { CardTypeEnum } from '../CardType';
+import { UrlMetadata } from '../UrlMetadata';
+import { URL } from '../URL';
 
 export class UrlCardContentValidationError extends Error {
   constructor(message: string) {
@@ -34,18 +34,23 @@ export class UrlCardContent extends ValueObject<UrlCardContentProps> {
     super(props);
   }
 
-  public static create(url: URL, metadata?: UrlMetadata): Result<UrlCardContent, UrlCardContentValidationError> {
-    return ok(new UrlCardContent({
-      type: CardTypeEnum.URL,
-      url,
-      metadata
-    }));
+  public static create(
+    url: URL,
+    metadata?: UrlMetadata,
+  ): Result<UrlCardContent, UrlCardContentValidationError> {
+    return ok(
+      new UrlCardContent({
+        type: CardTypeEnum.URL,
+        url,
+        metadata,
+      }),
+    );
   }
 
   public updateMetadata(metadata: UrlMetadata): UrlCardContent {
     return new UrlCardContent({
       ...this.props,
-      metadata
+      metadata,
     });
   }
 }

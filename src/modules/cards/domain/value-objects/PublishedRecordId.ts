@@ -1,4 +1,4 @@
-import { ValueObject } from "src/shared/domain/ValueObject";
+import { ValueObject } from 'src/shared/domain/ValueObject';
 
 export interface PublishedRecordIdProps {
   uri: string;
@@ -20,7 +20,7 @@ export class PublishedRecordId extends ValueObject<PublishedRecordIdProps> {
   }
 
   public static create(value: PublishedRecordIdProps): PublishedRecordId {
-    if (!value.uri.startsWith("at://")) {
+    if (!value.uri.startsWith('at://')) {
       throw new Error(`Invalid AT URI format: ${value}`);
     }
     return new PublishedRecordId(value);

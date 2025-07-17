@@ -1,2 +1,2 @@
-export * from './StrongRef'
-export * from './TID'
+export * from './StrongRef';
+export * from './TID';

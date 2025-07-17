@@ -1,13 +1,13 @@
-import { Result, ok, err } from "../../../../../shared/core/Result";
-import { UseCase } from "../../../../../shared/core/UseCase";
-import { UseCaseError } from "../../../../../shared/core/UseCaseError";
-import { AppError } from "../../../../../shared/core/AppError";
-import { ICardRepository } from "../../../domain/ICardRepository";
-import { CardId } from "../../../domain/value-objects/CardId";
-import { CuratorId } from "../../../domain/value-objects/CuratorId";
-import { CardTypeEnum } from "../../../domain/value-objects/CardType";
-import { CardContent } from "../../../domain/value-objects/CardContent";
-import { ICardPublisher } from "../../ports/ICardPublisher";
+import { Result, ok, err } from '../../../../../shared/core/Result';
+import { UseCase } from '../../../../../shared/core/UseCase';
+import { UseCaseError } from '../../../../../shared/core/UseCaseError';
+import { AppError } from '../../../../../shared/core/AppError';
+import { ICardRepository } from '../../../domain/ICardRepository';
+import { CardId } from '../../../domain/value-objects/CardId';
+import { CuratorId } from '../../../domain/value-objects/CuratorId';
+import { CardTypeEnum } from '../../../domain/value-objects/CardType';
+import { CardContent } from '../../../domain/value-objects/CardContent';
+import { ICardPublisher } from '../../ports/ICardPublisher';
 
 export interface UpdateNoteCardDTO {
   cardId: string;
@@ -37,11 +37,11 @@ export class UpdateNoteCardUseCase
 {
   constructor(
     private cardRepository: ICardRepository,
-    private cardPublisher: ICardPublisher
+    private cardPublisher: ICardPublisher,
   ) {}
 
   async execute(
-    request: UpdateNoteCardDTO
+    request: UpdateNoteCardDTO,
   ): Promise<
     Result<
       UpdateNoteCardResponseDTO,
@@ -54,8 +54,8 @@ export class UpdateNoteCardUseCase
       if (curatorIdResult.isErr()) {
         return err(
           new ValidationError(
-            `Invalid curator ID: ${curatorIdResult.error.message}`
-          )
+            `Invalid curator ID: ${curatorIdResult.error.message}`,
+          ),
         );
       }
       const curatorId = curatorIdResult.value;
@@ -64,7 +64,7 @@ export class UpdateNoteCardUseCase
       const cardIdResult = CardId.createFromString(request.cardId);
       if (cardIdResult.isErr()) {
         return err(
-          new ValidationError(`Invalid card ID: ${cardIdResult.error.message}`)
+          new ValidationError(`Invalid card ID: ${cardIdResult.error.message}`),
         );
       }
       const cardId = cardIdResult.value;
@@ -83,7 +83,7 @@ export class UpdateNoteCardUseCase
       // Verify it's a note card
       if (card.type.value !== CardTypeEnum.NOTE) {
         return err(
-          new ValidationError("Card is not a note card and cannot be updated")
+          new ValidationError('Card is not a note card and cannot be updated'),
         );
       }
 
@@ -91,13 +91,13 @@ export class UpdateNoteCardUseCase
       const noteContent = card.content.noteContent;
       if (!noteContent) {
         return err(
-          new ValidationError("Card does not have valid note content")
+          new ValidationError('Card does not have valid note content'),
         );
       }
 
       if (!noteContent.authorId.equals(curatorId)) {
         return err(
-          new ValidationError("Only the author can update this note card")
+          new ValidationError('Only the author can update this note card'),
         );
       }
 
@@ -111,7 +111,7 @@ export class UpdateNoteCardUseCase
       const updatedCardContentResult = CardContent.createNoteContent(
         request.note,
         undefined,
-        curatorId
+        curatorId,
       );
       if (updatedCardContentResult.isErr()) {
         return err(new ValidationError(updatedCardContentResult.error.message));
@@ -126,7 +126,7 @@ export class UpdateNoteCardUseCase
       // Publish the updated card to library first
       const publishResult = await this.cardPublisher.publishCardToLibrary(
         card,
-        curatorId
+        curatorId,
       );
       if (publishResult.isErr()) {
         return err(AppError.UnexpectedError.create(publishResult.error));
@@ -135,7 +135,7 @@ export class UpdateNoteCardUseCase
       // Mark the card in library as published with the new record ID
       const markPublishedResult = card.markCardInLibraryAsPublished(
         curatorId,
-        publishResult.value
+        publishResult.value,
       );
       if (markPublishedResult.isErr()) {
         return err(new ValidationError(markPublishedResult.error.message));

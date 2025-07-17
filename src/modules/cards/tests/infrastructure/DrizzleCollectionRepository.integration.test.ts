@@ -1,29 +1,29 @@
 import {
   PostgreSqlContainer,
   StartedPostgreSqlContainer,
-} from "@testcontainers/postgresql";
-import postgres from "postgres";
-import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { DrizzleCollectionRepository } from "../../infrastructure/repositories/DrizzleCollectionRepository";
-import { DrizzleCardRepository } from "../../infrastructure/repositories/DrizzleCardRepository";
-import { CollectionId } from "../../domain/value-objects/CollectionId";
-import { CuratorId } from "../../domain/value-objects/CuratorId";
-import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
-import { UniqueEntityID } from "../../../../shared/domain/UniqueEntityID";
+} from '@testcontainers/postgresql';
+import postgres from 'postgres';
+import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { DrizzleCollectionRepository } from '../../infrastructure/repositories/DrizzleCollectionRepository';
+import { DrizzleCardRepository } from '../../infrastructure/repositories/DrizzleCardRepository';
+import { CollectionId } from '../../domain/value-objects/CollectionId';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
+import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
+import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
 import {
   collections,
   collectionCollaborators,
   collectionCards,
-} from "../../infrastructure/repositories/schema/collection.sql";
-import { cards } from "../../infrastructure/repositories/schema/card.sql";
-import { libraryMemberships } from "../../infrastructure/repositories/schema/libraryMembership.sql";
-import { publishedRecords } from "../../infrastructure/repositories/schema/publishedRecord.sql";
-import { Collection, CollectionAccessType } from "../../domain/Collection";
-import { CardFactory } from "../../domain/CardFactory";
-import { CardTypeEnum } from "../../domain/value-objects/CardType";
-import { createTestSchema } from "../test-utils/createTestSchema";
+} from '../../infrastructure/repositories/schema/collection.sql';
+import { cards } from '../../infrastructure/repositories/schema/card.sql';
+import { libraryMemberships } from '../../infrastructure/repositories/schema/libraryMembership.sql';
+import { publishedRecords } from '../../infrastructure/repositories/schema/publishedRecord.sql';
+import { Collection, CollectionAccessType } from '../../domain/Collection';
+import { CardFactory } from '../../domain/CardFactory';
+import { CardTypeEnum } from '../../domain/value-objects/CardType';
+import { createTestSchema } from '../test-utils/createTestSchema';
 
-describe("DrizzleCollectionRepository", () => {
+describe('DrizzleCollectionRepository', () => {
   let container: StartedPostgreSqlContainer;
   let db: PostgresJsDatabase;
   let collectionRepository: DrizzleCollectionRepository;
@@ -36,7 +36,7 @@ describe("DrizzleCollectionRepository", () => {
   // Setup before all tests
   beforeAll(async () => {
     // Start PostgreSQL container
-    container = await new PostgreSqlContainer("postgres:14").start();
+    container = await new PostgreSqlContainer('postgres:14').start();
 
     // Create database connection
     const connectionString = container.getConnectionUri();
@@ -52,8 +52,8 @@ describe("DrizzleCollectionRepository", () => {
     await createTestSchema(db);
 
     // Create test data
-    curatorId = CuratorId.create("did:plc:testcurator").unwrap();
-    collaboratorId = CuratorId.create("did:plc:collaborator").unwrap();
+    curatorId = CuratorId.create('did:plc:testcurator').unwrap();
+    collaboratorId = CuratorId.create('did:plc:collaborator').unwrap();
   }, 60000); // Increase timeout for container startup
 
   // Cleanup after all tests
@@ -72,21 +72,21 @@ describe("DrizzleCollectionRepository", () => {
     await db.delete(publishedRecords);
   });
 
-  it("should save and retrieve a collection", async () => {
+  it('should save and retrieve a collection', async () => {
     // Create a collection
     const collectionId = new UniqueEntityID();
 
     const collection = Collection.create(
       {
         authorId: curatorId,
-        name: "Test Collection",
-        description: "A test collection",
+        name: 'Test Collection',
+        description: 'A test collection',
         accessType: CollectionAccessType.OPEN,
         collaboratorIds: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      collectionId
+      collectionId,
     ).unwrap();
 
     // Save the collection
@@ -95,41 +95,41 @@ describe("DrizzleCollectionRepository", () => {
 
     // Retrieve the collection
     const retrievedResult = await collectionRepository.findById(
-      CollectionId.create(collectionId).unwrap()
+      CollectionId.create(collectionId).unwrap(),
     );
     expect(retrievedResult.isOk()).toBe(true);
 
     const retrievedCollection = retrievedResult.unwrap();
     expect(retrievedCollection).not.toBeNull();
     expect(retrievedCollection?.collectionId.getStringValue()).toBe(
-      collectionId.toString()
+      collectionId.toString(),
     );
     expect(retrievedCollection?.authorId.value).toBe(curatorId.value);
-    expect(retrievedCollection?.name.value).toBe("Test Collection");
-    expect(retrievedCollection?.description?.value).toBe("A test collection");
+    expect(retrievedCollection?.name.value).toBe('Test Collection');
+    expect(retrievedCollection?.description?.value).toBe('A test collection');
     expect(retrievedCollection?.accessType).toBe(CollectionAccessType.OPEN);
   });
 
-  it("should save and retrieve a collection with collaborators", async () => {
+  it('should save and retrieve a collection with collaborators', async () => {
     // Create a collection
     const collectionId = new UniqueEntityID();
 
     const collection = Collection.create(
       {
         authorId: curatorId,
-        name: "Collaborative Collection",
+        name: 'Collaborative Collection',
         accessType: CollectionAccessType.CLOSED,
         collaboratorIds: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      collectionId
+      collectionId,
     ).unwrap();
 
     // Add a collaborator
     const addCollaboratorResult = collection.addCollaborator(
       collaboratorId,
-      curatorId
+      curatorId,
     );
     expect(addCollaboratorResult.isOk()).toBe(true);
 
@@ -139,7 +139,7 @@ describe("DrizzleCollectionRepository", () => {
 
     // Retrieve the collection
     const retrievedResult = await collectionRepository.findById(
-      CollectionId.create(collectionId).unwrap()
+      CollectionId.create(collectionId).unwrap(),
     );
     expect(retrievedResult.isOk()).toBe(true);
 
@@ -147,17 +147,17 @@ describe("DrizzleCollectionRepository", () => {
     expect(retrievedCollection).not.toBeNull();
     expect(retrievedCollection?.collaboratorIds).toHaveLength(1);
     expect(retrievedCollection?.collaboratorIds[0]?.value).toBe(
-      collaboratorId.value
+      collaboratorId.value,
     );
   });
 
-  it("should save and retrieve a collection with cards", async () => {
+  it('should save and retrieve a collection with cards', async () => {
     // Create a card first
     const cardResult = CardFactory.create({
       curatorId: curatorId.value,
       cardInput: {
         type: CardTypeEnum.NOTE,
-        text: "Test card for collection",
+        text: 'Test card for collection',
       },
     });
 
@@ -170,13 +170,13 @@ describe("DrizzleCollectionRepository", () => {
     const collection = Collection.create(
       {
         authorId: curatorId,
-        name: "Collection with Cards",
+        name: 'Collection with Cards',
         accessType: CollectionAccessType.OPEN,
         collaboratorIds: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      collectionId
+      collectionId,
     ).unwrap();
 
     // Add the card to the collection
@@ -189,7 +189,7 @@ describe("DrizzleCollectionRepository", () => {
 
     // Retrieve the collection
     const retrievedResult = await collectionRepository.findById(
-      CollectionId.create(collectionId).unwrap()
+      CollectionId.create(collectionId).unwrap(),
     );
     expect(retrievedResult.isOk()).toBe(true);
 
@@ -197,27 +197,27 @@ describe("DrizzleCollectionRepository", () => {
     expect(retrievedCollection).not.toBeNull();
     expect(retrievedCollection?.cardLinks).toHaveLength(1);
     expect(retrievedCollection?.cardLinks[0]?.cardId.getStringValue()).toBe(
-      card.cardId.getStringValue()
+      card.cardId.getStringValue(),
     );
     expect(retrievedCollection?.cardLinks[0]?.addedBy.value).toBe(
-      curatorId.value
+      curatorId.value,
     );
   });
 
-  it("should update an existing collection", async () => {
+  it('should update an existing collection', async () => {
     // Create a collection
     const collectionId = new UniqueEntityID();
 
     const collection = Collection.create(
       {
         authorId: curatorId,
-        name: "Original Name",
+        name: 'Original Name',
         accessType: CollectionAccessType.CLOSED,
         collaboratorIds: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      collectionId
+      collectionId,
     ).unwrap();
 
     await collectionRepository.save(collection);
@@ -226,87 +226,87 @@ describe("DrizzleCollectionRepository", () => {
     const updatedCollection = Collection.create(
       {
         authorId: curatorId,
-        name: "Updated Name",
-        description: "Updated description",
+        name: 'Updated Name',
+        description: 'Updated description',
         accessType: CollectionAccessType.CLOSED,
         collaboratorIds: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      collectionId
+      collectionId,
     ).unwrap();
 
     await collectionRepository.save(updatedCollection);
 
     // Retrieve the updated collection
     const retrievedResult = await collectionRepository.findById(
-      CollectionId.create(collectionId).unwrap()
+      CollectionId.create(collectionId).unwrap(),
     );
     const retrievedCollection = retrievedResult.unwrap();
 
     expect(retrievedCollection).not.toBeNull();
-    expect(retrievedCollection?.name.value).toBe("Updated Name");
-    expect(retrievedCollection?.description?.value).toBe("Updated description");
+    expect(retrievedCollection?.name.value).toBe('Updated Name');
+    expect(retrievedCollection?.description?.value).toBe('Updated description');
   });
 
-  it("should delete a collection", async () => {
+  it('should delete a collection', async () => {
     // Create a collection
     const collectionId = new UniqueEntityID();
 
     const collection = Collection.create(
       {
         authorId: curatorId,
-        name: "Collection to Delete",
+        name: 'Collection to Delete',
         accessType: CollectionAccessType.OPEN,
         collaboratorIds: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      collectionId
+      collectionId,
     ).unwrap();
 
     await collectionRepository.save(collection);
 
     // Delete the collection
     const deleteResult = await collectionRepository.delete(
-      CollectionId.create(collectionId).unwrap()
+      CollectionId.create(collectionId).unwrap(),
     );
     expect(deleteResult.isOk()).toBe(true);
 
     // Try to retrieve the deleted collection
     const retrievedResult = await collectionRepository.findById(
-      CollectionId.create(collectionId).unwrap()
+      CollectionId.create(collectionId).unwrap(),
     );
     expect(retrievedResult.isOk()).toBe(true);
     expect(retrievedResult.unwrap()).toBeNull();
   });
 
-  it("should find collections by curator ID", async () => {
+  it('should find collections by curator ID', async () => {
     // Create multiple collections for the same curator
     const collection1Id = new UniqueEntityID();
     const collection1 = Collection.create(
       {
         authorId: curatorId,
-        name: "First Collection",
+        name: 'First Collection',
         accessType: CollectionAccessType.OPEN,
         collaboratorIds: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      collection1Id
+      collection1Id,
     ).unwrap();
 
     const collection2Id = new UniqueEntityID();
     const collection2 = Collection.create(
       {
         authorId: curatorId,
-        name: "Second Collection",
+        name: 'Second Collection',
         accessType: CollectionAccessType.CLOSED,
         collaboratorIds: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      collection2Id
+      collection2Id,
     ).unwrap();
 
     await collectionRepository.save(collection1);
@@ -321,17 +321,17 @@ describe("DrizzleCollectionRepository", () => {
     expect(foundCollections).toHaveLength(2);
 
     const names = foundCollections.map((c) => c.name.value);
-    expect(names).toContain("First Collection");
-    expect(names).toContain("Second Collection");
+    expect(names).toContain('First Collection');
+    expect(names).toContain('Second Collection');
   });
 
-  it("should find collections by card ID", async () => {
+  it('should find collections by card ID', async () => {
     // Create a card
     const cardResult = CardFactory.create({
       curatorId: curatorId.value,
       cardInput: {
         type: CardTypeEnum.NOTE,
-        text: "Shared card",
+        text: 'Shared card',
       },
     });
 
@@ -343,26 +343,26 @@ describe("DrizzleCollectionRepository", () => {
     const collection1 = Collection.create(
       {
         authorId: curatorId,
-        name: "Collection One",
+        name: 'Collection One',
         accessType: CollectionAccessType.OPEN,
         collaboratorIds: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      collection1Id
+      collection1Id,
     ).unwrap();
 
     const collection2Id = new UniqueEntityID();
     const collection2 = Collection.create(
       {
         authorId: curatorId,
-        name: "Collection Two",
+        name: 'Collection Two',
         accessType: CollectionAccessType.CLOSED,
         collaboratorIds: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      collection2Id
+      collection2Id,
     ).unwrap();
 
     // Add card to both collections
@@ -374,7 +374,7 @@ describe("DrizzleCollectionRepository", () => {
 
     // Find collections by card ID
     const foundCollectionsResult = await collectionRepository.findByCardId(
-      card.cardId
+      card.cardId,
     );
     expect(foundCollectionsResult.isOk()).toBe(true);
 
@@ -382,30 +382,30 @@ describe("DrizzleCollectionRepository", () => {
     expect(foundCollections).toHaveLength(2);
 
     const names = foundCollections.map((c) => c.name.value);
-    expect(names).toContain("Collection One");
-    expect(names).toContain("Collection Two");
+    expect(names).toContain('Collection One');
+    expect(names).toContain('Collection Two');
   });
 
-  it("should save and retrieve a collection with published record", async () => {
+  it('should save and retrieve a collection with published record', async () => {
     // Create a collection
     const collectionId = new UniqueEntityID();
 
     const collection = Collection.create(
       {
         authorId: curatorId,
-        name: "Published Collection",
+        name: 'Published Collection',
         accessType: CollectionAccessType.OPEN,
         collaboratorIds: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      collectionId
+      collectionId,
     ).unwrap();
 
     // Mark as published
     const publishedRecordId = PublishedRecordId.create({
-      uri: "at://did:plc:testcurator/network.cosmik.collection/1234",
-      cid: "bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu",
+      uri: 'at://did:plc:testcurator/network.cosmik.collection/1234',
+      cid: 'bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu',
     });
 
     collection.markAsPublished(publishedRecordId);
@@ -416,27 +416,27 @@ describe("DrizzleCollectionRepository", () => {
 
     // Retrieve the collection
     const retrievedResult = await collectionRepository.findById(
-      CollectionId.create(collectionId).unwrap()
+      CollectionId.create(collectionId).unwrap(),
     );
     expect(retrievedResult.isOk()).toBe(true);
 
     const retrievedCollection = retrievedResult.unwrap();
     expect(retrievedCollection).not.toBeNull();
     expect(retrievedCollection?.publishedRecordId?.uri).toBe(
-      "at://did:plc:testcurator/network.cosmik.collection/1234"
+      'at://did:plc:testcurator/network.cosmik.collection/1234',
     );
     expect(retrievedCollection?.publishedRecordId?.cid).toBe(
-      "bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu"
+      'bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu',
     );
   });
 
-  it("should handle card links with published records", async () => {
+  it('should handle card links with published records', async () => {
     // Create a card
     const cardResult = CardFactory.create({
       curatorId: curatorId.value,
       cardInput: {
         type: CardTypeEnum.NOTE,
-        text: "Card with published link",
+        text: 'Card with published link',
       },
     });
 
@@ -448,13 +448,13 @@ describe("DrizzleCollectionRepository", () => {
     const collection = Collection.create(
       {
         authorId: curatorId,
-        name: "Collection with Published Links",
+        name: 'Collection with Published Links',
         accessType: CollectionAccessType.OPEN,
         collaboratorIds: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      collectionId
+      collectionId,
     ).unwrap();
 
     // Add card to collection
@@ -462,8 +462,8 @@ describe("DrizzleCollectionRepository", () => {
 
     // Mark the card link as published
     const linkPublishedRecord = PublishedRecordId.create({
-      uri: "at://did:plc:testcurator/network.cosmik.collectionLink/5678",
-      cid: "bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu",
+      uri: 'at://did:plc:testcurator/network.cosmik.collectionLink/5678',
+      cid: 'bafyreihgmyh2srmmyj7g7vmah3ietpwdwcgda2jof7hkfxmcbbjwejnqwu',
     });
 
     collection.markCardLinkAsPublished(card.cardId, linkPublishedRecord);
@@ -474,7 +474,7 @@ describe("DrizzleCollectionRepository", () => {
 
     // Retrieve the collection
     const retrievedResult = await collectionRepository.findById(
-      CollectionId.create(collectionId).unwrap()
+      CollectionId.create(collectionId).unwrap(),
     );
     expect(retrievedResult.isOk()).toBe(true);
 
@@ -482,7 +482,7 @@ describe("DrizzleCollectionRepository", () => {
     expect(retrievedCollection).not.toBeNull();
     expect(retrievedCollection?.cardLinks).toHaveLength(1);
     expect(retrievedCollection?.cardLinks[0]?.publishedRecordId?.uri).toBe(
-      "at://did:plc:testcurator/network.cosmik.collectionLink/5678"
+      'at://did:plc:testcurator/network.cosmik.collectionLink/5678',
     );
   });
 });

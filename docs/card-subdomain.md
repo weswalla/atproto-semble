@@ -79,8 +79,7 @@ The Card context represents a system where users can save various types of conte
 ## Relationships and Boundaries
 
 - **Card-Collection Relationship**: This is a many-to-many relationship. A card can be in multiple collections, and a collection can contain multiple cards.
-  
-- **Aggregate Boundaries**: 
+- **Aggregate Boundaries**:
   - The Card aggregate is responsible for its own data and direct relationships to other cards.
   - The Collection aggregate manages which cards are members of the collection.
   - When adding a card to a collection, the operation is handled by the Collection aggregate.

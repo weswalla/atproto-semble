@@ -17,33 +17,37 @@ This is the most common DDD pattern for cross-cutting concerns like user profile
 export class CollectionApplicationService {
   constructor(
     private getMyCollectionsUseCase: GetMyCollectionsUseCase,
-    private userProfileService: IUserProfileService // External service
+    private userProfileService: IUserProfileService, // External service
   ) {}
 
   async getMyCollectionsWithProfiles(query: GetMyCollectionsQuery) {
     // 1. Execute core use case
     const collectionsResult = await this.getMyCollectionsUseCase.execute(query);
-    
+
     if (collectionsResult.isErr()) {
       return collectionsResult;
     }
 
     // 2. Enrich with external data
-    const curatorIds = collectionsResult.value.collections.map(c => c.createdBy.id);
+    const curatorIds = collectionsResult.value.collections.map(
+      (c) => c.createdBy.id,
+    );
     const profiles = await this.userProfileService.getProfiles(curatorIds);
-    
+
     // 3. Merge data
-    const enrichedCollections = collectionsResult.value.collections.map(collection => ({
-      ...collection,
-      createdBy: {
-        ...collection.createdBy,
-        ...profiles.get(collection.createdBy.id)
-      }
-    }));
+    const enrichedCollections = collectionsResult.value.collections.map(
+      (collection) => ({
+        ...collection,
+        createdBy: {
+          ...collection.createdBy,
+          ...profiles.get(collection.createdBy.id),
+        },
+      }),
+    );
 
     return ok({
       ...collectionsResult.value,
-      collections: enrichedCollections
+      collections: enrichedCollections,
     });
   }
 }
@@ -57,18 +61,19 @@ When the enrichment is a core business concern:
 // Domain Service in the Cards bounded context
 export class CollectionEnrichmentService implements DomainService {
   constructor(
-    private userContextGateway: IUserContextGateway // Anti-corruption layer
+    private userContextGateway: IUserContextGateway, // Anti-corruption layer
   ) {}
 
   async enrichCollectionsWithCreatorInfo(
-    collections: Collection[]
+    collections: Collection[],
   ): Promise<EnrichedCollectionData[]> {
-    const creatorIds = collections.map(c => c.authorId.value);
-    const creatorProfiles = await this.userContextGateway.getCreatorProfiles(creatorIds);
-    
-    return collections.map(collection => ({
+    const creatorIds = collections.map((c) => c.authorId.value);
+    const creatorProfiles =
+      await this.userContextGateway.getCreatorProfiles(creatorIds);
+
+    return collections.map((collection) => ({
       collection,
-      creatorProfile: creatorProfiles.get(collection.authorId.value)
+      creatorProfile: creatorProfiles.get(collection.authorId.value),
     }));
   }
 }
@@ -95,19 +100,22 @@ export interface CreatorProfile {
 export class UserContextGateway implements IUserContextGateway {
   constructor(private externalUserService: ExternalUserAPI) {}
 
-  async getCreatorProfiles(userIds: string[]): Promise<Map<string, CreatorProfile>> {
-    const externalProfiles = await this.externalUserService.getUsersByIds(userIds);
-    
+  async getCreatorProfiles(
+    userIds: string[],
+  ): Promise<Map<string, CreatorProfile>> {
+    const externalProfiles =
+      await this.externalUserService.getUsersByIds(userIds);
+
     // Transform external format to domain format
     const profiles = new Map<string, CreatorProfile>();
-    externalProfiles.forEach(profile => {
+    externalProfiles.forEach((profile) => {
       profiles.set(profile.user_id, {
         id: profile.user_id,
         displayName: profile.full_name || profile.username,
-        avatarUrl: profile.profile_image_url
+        avatarUrl: profile.profile_image_url,
       });
     });
-    
+
     return profiles;
   }
 }
@@ -135,17 +143,16 @@ export interface EnrichedCollectionReadModel {
 
 // Event handler that updates read model when user profiles change
 export class UserProfileUpdatedHandler {
-  constructor(private collectionReadModelRepo: ICollectionReadModelRepository) {}
+  constructor(
+    private collectionReadModelRepo: ICollectionReadModelRepository,
+  ) {}
 
   async handle(event: UserProfileUpdatedEvent) {
     // Update all collections created by this user
-    await this.collectionReadModelRepo.updateCreatorInfo(
-      event.userId,
-      {
-        name: event.newDisplayName,
-        avatarUrl: event.newAvatarUrl
-      }
-    );
+    await this.collectionReadModelRepo.updateCreatorInfo(event.userId, {
+      name: event.newDisplayName,
+      avatarUrl: event.newAvatarUrl,
+    });
   }
 }
 ```
@@ -162,6 +169,7 @@ export interface ICuratorEnrichmentService {
 ```
 
 **Strengths:**
+
 - ✅ Keeps enrichment logic out of the domain
 - ✅ Single responsibility for user data enrichment
 - ✅ Easy to test and mock
@@ -175,14 +183,16 @@ export interface ICuratorEnrichmentService {
 export class CuratorEnrichmentService implements ICuratorEnrichmentService {
   constructor(private userContextGateway: IUserContextGateway) {}
 
-  async enrichCurators(curatorIds: string[]): Promise<Map<string, CuratorInfo>> {
+  async enrichCurators(
+    curatorIds: string[],
+  ): Promise<Map<string, CuratorInfo>> {
     try {
       return await this.userContextGateway.getCreatorProfiles(curatorIds);
     } catch (error) {
       // Graceful degradation - return minimal info
       const fallbackMap = new Map<string, CuratorInfo>();
-      curatorIds.forEach(id => {
-        fallbackMap.set(id, { id, name: "Unknown User" });
+      curatorIds.forEach((id) => {
+        fallbackMap.set(id, { id, name: 'Unknown User' });
       });
       return fallbackMap;
     }
@@ -193,24 +203,29 @@ export class CuratorEnrichmentService implements ICuratorEnrichmentService {
 ### 2. Add Caching for Performance
 
 ```typescript
-export class CachedCuratorEnrichmentService implements ICuratorEnrichmentService {
+export class CachedCuratorEnrichmentService
+  implements ICuratorEnrichmentService
+{
   constructor(
     private userContextGateway: IUserContextGateway,
-    private cache: ICache
+    private cache: ICache,
   ) {}
 
-  async enrichCurators(curatorIds: string[]): Promise<Map<string, CuratorInfo>> {
+  async enrichCurators(
+    curatorIds: string[],
+  ): Promise<Map<string, CuratorInfo>> {
     const cached = await this.cache.getMany(curatorIds);
-    const uncachedIds = curatorIds.filter(id => !cached.has(id));
-    
+    const uncachedIds = curatorIds.filter((id) => !cached.has(id));
+
     if (uncachedIds.length > 0) {
-      const fresh = await this.userContextGateway.getCreatorProfiles(uncachedIds);
+      const fresh =
+        await this.userContextGateway.getCreatorProfiles(uncachedIds);
       await this.cache.setMany(fresh, { ttl: 300 }); // 5 min cache
-      
+
       // Merge cached and fresh data
       fresh.forEach((value, key) => cached.set(key, value));
     }
-    
+
     return cached;
   }
 }
@@ -224,31 +239,32 @@ If you want to keep the use case purely focused on the core domain:
 export class CollectionQueryApplicationService {
   constructor(
     private getMyCollectionsUseCase: GetMyCollectionsUseCase,
-    private curatorEnrichmentService: ICuratorEnrichmentService
+    private curatorEnrichmentService: ICuratorEnrichmentService,
   ) {}
 
   async getMyCollectionsWithProfiles(query: GetMyCollectionsQuery) {
     // Execute core use case (returns minimal curator data)
     const result = await this.getMyCollectionsUseCase.execute(query);
-    
+
     if (result.isErr()) return result;
 
     // Enrich at application service level
-    const curatorIds = result.value.collections.map(c => c.authorId);
-    const enrichedCurators = await this.curatorEnrichmentService.enrichCurators(curatorIds);
-    
+    const curatorIds = result.value.collections.map((c) => c.authorId);
+    const enrichedCurators =
+      await this.curatorEnrichmentService.enrichCurators(curatorIds);
+
     // Transform to enriched DTOs
-    const enrichedCollections = result.value.collections.map(collection => ({
+    const enrichedCollections = result.value.collections.map((collection) => ({
       ...collection,
       createdBy: enrichedCurators.get(collection.authorId) || {
         id: collection.authorId,
-        name: "Unknown User"
-      }
+        name: 'Unknown User',
+      },
     }));
 
     return ok({
       ...result.value,
-      collections: enrichedCollections
+      collections: enrichedCollections,
     });
   }
 }

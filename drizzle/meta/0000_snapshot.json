@@ -33,12 +33,8 @@
           "name": "annotation_to_templates_annotation_id_annotations_id_fk",
           "tableFrom": "annotation_to_templates",
           "tableTo": "annotations",
-          "columnsFrom": [
-            "annotation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["annotation_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -46,12 +42,8 @@
           "name": "annotation_to_templates_template_id_annotation_templates_id_fk",
           "tableFrom": "annotation_to_templates",
           "tableTo": "annotation_templates",
-          "columnsFrom": [
-            "template_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["template_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -128,12 +120,8 @@
           "name": "annotations_annotation_field_id_annotation_fields_id_fk",
           "tableFrom": "annotations",
           "tableTo": "annotation_fields",
-          "columnsFrom": [
-            "annotation_field_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["annotation_field_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -141,12 +129,8 @@
           "name": "annotations_published_record_id_published_records_id_fk",
           "tableFrom": "annotations",
           "tableTo": "published_records",
-          "columnsFrom": [
-            "published_record_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["published_record_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -217,12 +201,8 @@
           "name": "annotation_fields_published_record_id_published_records_id_fk",
           "tableFrom": "annotation_fields",
           "tableTo": "published_records",
-          "columnsFrom": [
-            "published_record_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["published_record_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -269,12 +249,8 @@
           "name": "annotation_template_fields_template_id_annotation_templates_id_fk",
           "tableFrom": "annotation_template_fields",
           "tableTo": "annotation_templates",
-          "columnsFrom": [
-            "template_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["template_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -333,12 +309,8 @@
           "name": "annotation_templates_published_record_id_published_records_id_fk",
           "tableFrom": "annotation_templates",
           "tableTo": "published_records",
-          "columnsFrom": [
-            "published_record_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["published_record_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -514,12 +486,8 @@
           "name": "auth_refresh_tokens_user_did_users_id_fk",
           "tableFrom": "auth_refresh_tokens",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_did"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_did"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }

@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
-import { getAccessToken } from "@/services/auth";
-import { ApiClient } from "@/api-client/ApiClient";
-import type { GetUrlCardViewResponse } from "@/api-client/types";
+import { useEffect, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { getAccessToken } from '@/services/auth';
+import { ApiClient } from '@/api-client/ApiClient';
+import type { GetUrlCardViewResponse } from '@/api-client/types';
 import {
   Button,
   Loader,
@@ -19,19 +19,19 @@ import {
   Badge,
   Image,
   Divider,
-} from "@mantine/core";
+} from '@mantine/core';
 
 export default function CardPage() {
   const [card, setCard] = useState<GetUrlCardViewResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const router = useRouter();
   const params = useParams();
   const cardId = params.cardId as string;
 
   // Create API client instance
   const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     () => getAccessToken(),
   );
 
@@ -42,8 +42,8 @@ export default function CardPage() {
         const response = await apiClient.getUrlCardView(cardId);
         setCard(response);
       } catch (error: any) {
-        console.error("Error fetching card:", error);
-        setError(error.message || "Failed to load card");
+        console.error('Error fetching card:', error);
+        setError(error.message || 'Failed to load card');
       } finally {
         setLoading(false);
       }
@@ -61,7 +61,7 @@ export default function CardPage() {
   if (error || !card) {
     return (
       <Stack align="center">
-        <Text c={"red"}>{error || "Card not found"}</Text>
+        <Text c={'red'}>{error || 'Card not found'}</Text>
         <Button onClick={() => router.back()}>Go Back</Button>
       </Stack>
     );
@@ -81,12 +81,12 @@ export default function CardPage() {
             <Stack>
               <Group wrap="nowrap">
                 <Stack>
-                  <Text fz={"xl"} fw={600}>
-                    {card.cardContent.title || "Untitled"}
+                  <Text fz={'xl'} fw={600}>
+                    {card.cardContent.title || 'Untitled'}
                   </Text>
-                  <Group gap={"xs"}>
+                  <Group gap={'xs'}>
                     <Badge variant="outline">{card.type}</Badge>
-                    <Text fz={"sm"} c={"gray"}>
+                    <Text fz={'sm'} c={'gray'}>
                       Added {new Date(card.createdAt).toLocaleDateString()}
                     </Text>
                   </Group>
@@ -94,17 +94,17 @@ export default function CardPage() {
                 {card.cardContent.thumbnailUrl && (
                   <Image
                     src={card.cardContent.thumbnailUrl}
-                    alt={card.cardContent.title || "Card thumbnail"}
+                    alt={card.cardContent.title || 'Card thumbnail'}
                     w={128}
-                    radius={"md"}
+                    radius={'md'}
                   />
                 )}
               </Group>
             </Stack>
-            <Stack gap={"xl"}>
+            <Stack gap={'xl'}>
               {/* URL */}
-              <Stack gap={"xs"}>
-                <Title order={3} fz={"sm"}>
+              <Stack gap={'xs'}>
+                <Title order={3} fz={'sm'}>
                   URL
                 </Title>
                 <Anchor
@@ -119,31 +119,31 @@ export default function CardPage() {
 
               {/* Description */}
               {card.cardContent.description && (
-                <Stack gap={"xs"}>
-                  <Title order={3} fz={"sm"}>
+                <Stack gap={'xs'}>
+                  <Title order={3} fz={'sm'}>
                     Description
                   </Title>
-                  <Text c={"gray"}>{card.cardContent.description}</Text>
+                  <Text c={'gray'}>{card.cardContent.description}</Text>
                 </Stack>
               )}
 
               {/* Author */}
               {card.cardContent.author && (
-                <Stack gap={"xs"}>
-                  <Title order={3} fz={"sm"}>
+                <Stack gap={'xs'}>
+                  <Title order={3} fz={'sm'}>
                     Author
                   </Title>
-                  <Text c={"gray"}>{card.cardContent.author}</Text>
+                  <Text c={'gray'}>{card.cardContent.author}</Text>
                 </Stack>
               )}
 
               {/* Note */}
               {card.note && (
-                <Stack gap={"xs"}>
-                  <Title order={3} fz={"sm"}>
+                <Stack gap={'xs'}>
+                  <Title order={3} fz={'sm'}>
                     Note
                   </Title>
-                  <Blockquote color="yellow" p={"xs"} fz={"sm"}>
+                  <Blockquote color="yellow" p={'xs'} fz={'sm'}>
                     {card.note.text}
                   </Blockquote>
                 </Stack>
@@ -151,8 +151,8 @@ export default function CardPage() {
 
               {/* Collections */}
               {card.collections && card.collections.length > 0 && (
-                <Stack gap={"xs"}>
-                  <Title order={3} fz={"sm"}>
+                <Stack gap={'xs'}>
+                  <Title order={3} fz={'sm'}>
                     Collections
                   </Title>
                   <Group>
@@ -175,10 +175,10 @@ export default function CardPage() {
               <Divider />
 
               <Group justify="space-between">
-                <Text fz={"sm"} fw={500} c={"gray"}>
+                <Text fz={'sm'} fw={500} c={'gray'}>
                   Created: {new Date(card.createdAt).toLocaleString()}
                 </Text>
-                <Text fz={"sm"} fw={500} c={"gray"}>
+                <Text fz={'sm'} fw={500} c={'gray'}>
                   Updated: {new Date(card.updatedAt).toLocaleString()}
                 </Text>
               </Group>

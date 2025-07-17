@@ -1,7 +1,7 @@
-import { Result, ok, err } from "../../../../shared/core/Result";
-import { IMetadataService } from "../../domain/services/IMetadataService";
-import { UrlMetadata } from "../../domain/value-objects/UrlMetadata";
-import { URL } from "../../domain/value-objects/URL";
+import { Result, ok, err } from '../../../../shared/core/Result';
+import { IMetadataService } from '../../domain/services/IMetadataService';
+import { UrlMetadata } from '../../domain/value-objects/UrlMetadata';
+import { URL } from '../../domain/value-objects/URL';
 
 export class FakeMetadataService implements IMetadataService {
   private metadataMap: Map<string, UrlMetadata> = new Map();
@@ -10,11 +10,11 @@ export class FakeMetadataService implements IMetadataService {
 
   async fetchMetadata(url: URL): Promise<Result<UrlMetadata>> {
     if (!this.available) {
-      return err(new Error("Metadata service is not available"));
+      return err(new Error('Metadata service is not available'));
     }
 
     if (this.shouldFail) {
-      return err(new Error("Failed to fetch metadata"));
+      return err(new Error('Failed to fetch metadata'));
     }
 
     // Check if we have pre-configured metadata for this URL
@@ -28,14 +28,14 @@ export class FakeMetadataService implements IMetadataService {
       url: url.value,
       title: `Fake Title for ${url.value}`,
       description: `Fake description for ${url.value}`,
-      author: "Fake Author",
-      siteName: "Fake Site",
+      author: 'Fake Author',
+      siteName: 'Fake Site',
       retrievedAt: new Date(),
     });
 
     if (metadataResult.isErr()) {
       return err(
-        new Error(`Failed to create metadata: ${metadataResult.error.message}`)
+        new Error(`Failed to create metadata: ${metadataResult.error.message}`),
       );
     }
 

@@ -7,23 +7,23 @@ import {
   PaginatedQueryResult,
   CardSortField,
   SortOrder,
-} from "../../domain/ICardQueryRepository";
-import { CardTypeEnum } from "../../domain/value-objects/CardType";
-import { InMemoryCardRepository } from "./InMemoryCardRepository";
-import { InMemoryCollectionRepository } from "./InMemoryCollectionRepository";
-import { Card } from "../../domain/Card";
-import { CollectionId } from "../../domain/value-objects/CollectionId";
-import { CuratorId } from "../../domain/value-objects/CuratorId";
+} from '../../domain/ICardQueryRepository';
+import { CardTypeEnum } from '../../domain/value-objects/CardType';
+import { InMemoryCardRepository } from './InMemoryCardRepository';
+import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
+import { Card } from '../../domain/Card';
+import { CollectionId } from '../../domain/value-objects/CollectionId';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
 
 export class InMemoryCardQueryRepository implements ICardQueryRepository {
   constructor(
     private cardRepository: InMemoryCardRepository,
-    private collectionRepository: InMemoryCollectionRepository
+    private collectionRepository: InMemoryCollectionRepository,
   ) {}
 
   async getUrlCardsOfUser(
     userId: string,
-    options: CardQueryOptions
+    options: CardQueryOptions,
   ): Promise<PaginatedQueryResult<UrlCardQueryResultDTO>> {
     try {
       // Get all cards and filter by user's library membership
@@ -32,7 +32,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         .filter(
           (card) =>
             card.isUrlCard &&
-            card.isInLibrary(CuratorId.create(userId).unwrap())
+            card.isInLibrary(CuratorId.create(userId).unwrap()),
         )
         .map((card) => this.cardToUrlCardQueryResult(card));
 
@@ -40,7 +40,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       const sortedCards = this.sortCards(
         userCards,
         options.sortBy,
-        options.sortOrder
+        options.sortOrder,
       );
 
       // Apply pagination
@@ -55,7 +55,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       };
     } catch (error) {
       throw new Error(
-        `Failed to query URL cards: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to query URL cards: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -63,7 +63,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   private sortCards(
     cards: UrlCardQueryResultDTO[],
     sortBy: CardSortField,
-    sortOrder: SortOrder
+    sortOrder: SortOrder,
   ): UrlCardQueryResultDTO[] {
     const sorted = [...cards].sort((a, b) => {
       let comparison = 0;
@@ -90,7 +90,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
   private cardToUrlCardQueryResult(card: Card): UrlCardQueryResultDTO {
     if (!card.isUrlCard || !card.content.urlContent) {
-      throw new Error("Card is not a URL card");
+      throw new Error('Card is not a URL card');
     }
 
     // Find collections this card belongs to by querying the collection repository
@@ -100,7 +100,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     for (const collection of allCollections) {
       if (
         collection.cardIds.some(
-          (cardId) => cardId.getStringValue() === card.cardId.getStringValue()
+          (cardId) => cardId.getStringValue() === card.cardId.getStringValue(),
         )
       ) {
         collections.push({
@@ -114,13 +114,13 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     // Find note cards with matching URL
     const allCards = this.cardRepository.getAllCards();
     const noteCard = allCards.find(
-      (c) => c.type.value === "NOTE" && c.url?.value === card.url?.value
+      (c) => c.type.value === 'NOTE' && c.url?.value === card.url?.value,
     );
 
     const note = noteCard
       ? {
           id: noteCard.cardId.getStringValue(),
-          text: noteCard.content.noteContent?.text || "",
+          text: noteCard.content.noteContent?.text || '',
         }
       : undefined;
 
@@ -152,7 +152,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
   async getCardsInCollection(
     collectionId: string,
-    options: CardQueryOptions
+    options: CardQueryOptions,
   ): Promise<PaginatedQueryResult<CollectionCardQueryResultDTO>> {
     try {
       // Get the collection from the repository
@@ -162,7 +162,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       }
 
       const collectionResult = await this.collectionRepository.findById(
-        collectionIdObj.value
+        collectionIdObj.value,
       );
       if (collectionResult.isErr()) {
         throw collectionResult.error;
@@ -180,23 +180,23 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       // Get cards that are in this collection
       const allCards = this.cardRepository.getAllCards();
       const collectionCardIds = new Set(
-        collection.cardIds.map((id) => id.getStringValue())
+        collection.cardIds.map((id) => id.getStringValue()),
       );
       const collectionCards = allCards
         .filter(
           (card) =>
             collectionCardIds.has(card.cardId.getStringValue()) &&
-            card.isUrlCard
+            card.isUrlCard,
         )
         .map((card) =>
-          this.toCollectionCardQueryResult(this.cardToUrlCardQueryResult(card))
+          this.toCollectionCardQueryResult(this.cardToUrlCardQueryResult(card)),
         );
 
       // Sort cards
       const sortedCards = this.sortCollectionCards(
         collectionCards,
         options.sortBy,
-        options.sortOrder
+        options.sortOrder,
       );
 
       // Apply pagination
@@ -211,7 +211,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       };
     } catch (error) {
       throw new Error(
-        `Failed to query collection cards: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to query collection cards: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -219,7 +219,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   private sortCollectionCards(
     cards: CollectionCardQueryResultDTO[],
     sortBy: CardSortField,
-    sortOrder: SortOrder
+    sortOrder: SortOrder,
   ): CollectionCardQueryResultDTO[] {
     const sorted = [...cards].sort((a, b) => {
       let comparison = 0;
@@ -245,7 +245,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   }
 
   private toCollectionCardQueryResult(
-    card: UrlCardQueryResultDTO
+    card: UrlCardQueryResultDTO,
   ): CollectionCardQueryResultDTO {
     return {
       id: card.id,
@@ -275,13 +275,13 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
     // Find note cards with matching URL
     const noteCard = allCards.find(
-      (c) => c.type.value === "NOTE" && c.url?.value === card.url?.value
+      (c) => c.type.value === 'NOTE' && c.url?.value === card.url?.value,
     );
 
     const note = noteCard
       ? {
           id: noteCard.cardId.getStringValue(),
-          text: noteCard.content.noteContent?.text || "",
+          text: noteCard.content.noteContent?.text || '',
         }
       : undefined;
 
@@ -301,7 +301,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     }
 
     return card.libraryMemberships.map(
-      (membership) => membership.curatorId.value
+      (membership) => membership.curatorId.value,
     );
   }
 

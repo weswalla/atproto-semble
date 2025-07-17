@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useExtensionAuth } from "../../hooks/useExtensionAuth";
+import { useState } from 'react';
+import { useExtensionAuth } from '../../hooks/useExtensionAuth';
 import {
   Alert,
   Button,
@@ -13,15 +13,15 @@ import {
   Text,
   TextInput,
   Title,
-} from "@mantine/core";
-import { useForm } from "@mantine/form";
+} from '@mantine/core';
+import { useForm } from '@mantine/form';
 
 export function SignInPage() {
   const { loginWithAppPassword, error, isLoading } = useExtensionAuth();
   const form = useForm({
     initialValues: {
-      handle: "",
-      password: "",
+      handle: '',
+      password: '',
     },
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,10 +55,10 @@ export function SignInPage() {
   return (
     <Stack>
       <Stack gap={0}>
-        <Title order={1} fz={"xl"}>
+        <Title order={1} fz={'xl'}>
           Card Extension
         </Title>
-        <Text c={"gray"} fz={"sm"} fw={500}>
+        <Text c={'gray'} fz={'sm'} fw={500}>
           Sign in to save content
         </Text>
       </Stack>
@@ -67,23 +67,23 @@ export function SignInPage() {
 
       <form onSubmit={handleLogin}>
         <Stack>
-          {error && <Alert color={"red"} title={error} />}
+          {error && <Alert color={'red'} title={error} />}
 
           <TextInput
             type="text"
             label="Handle"
             placeholder="user.bsky.social"
             disabled={isSubmitting}
-            key={form.key("handle")}
-            {...form.getInputProps("handle")}
+            key={form.key('handle')}
+            {...form.getInputProps('handle')}
           />
 
           <PasswordInput
             label="App Password"
             placeholder="xxxx-xxxx-xxxx-xxxx"
             disabled={isSubmitting}
-            key={form.key("password")}
-            {...form.getInputProps("password")}
+            key={form.key('password')}
+            {...form.getInputProps('password')}
           />
 
           <Button
@@ -95,7 +95,7 @@ export function SignInPage() {
             }
             loading={isSubmitting}
           >
-            {isSubmitting ? "Signing in..." : "Sign In"}
+            {isSubmitting ? 'Signing in...' : 'Sign In'}
           </Button>
         </Stack>
       </form>

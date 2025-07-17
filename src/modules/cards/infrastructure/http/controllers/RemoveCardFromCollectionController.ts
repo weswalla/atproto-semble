@@ -1,10 +1,12 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Response } from "express";
-import { RemoveCardFromCollectionUseCase } from "../../../application/useCases/commands/RemoveCardFromCollectionUseCase";
-import { AuthenticatedRequest } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Response } from 'express';
+import { RemoveCardFromCollectionUseCase } from '../../../application/useCases/commands/RemoveCardFromCollectionUseCase';
+import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class RemoveCardFromCollectionController extends Controller {
-  constructor(private removeCardFromCollectionUseCase: RemoveCardFromCollectionUseCase) {
+  constructor(
+    private removeCardFromCollectionUseCase: RemoveCardFromCollectionUseCase,
+  ) {
     super();
   }
 
@@ -13,17 +15,17 @@ export class RemoveCardFromCollectionController extends Controller {
       const { cardId } = req.params;
       const { collectionIds } = req.body;
       const curatorId = req.did;
-      
+
       if (!curatorId) {
         return this.unauthorized(res);
       }
 
       if (!cardId) {
-        return this.badRequest(res, "Card ID is required");
+        return this.badRequest(res, 'Card ID is required');
       }
 
       if (!collectionIds || !Array.isArray(collectionIds)) {
-        return this.badRequest(res, "Collection IDs array is required");
+        return this.badRequest(res, 'Collection IDs array is required');
       }
 
       const result = await this.removeCardFromCollectionUseCase.execute({

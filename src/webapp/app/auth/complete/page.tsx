@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
-import { Card, Center, Loader, Stack, Title, Text } from "@mantine/core";
+import { useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import { Card, Center, Loader, Stack, Title, Text } from '@mantine/core';
 
 function AuthCompleteContent() {
   const router = useRouter();
@@ -11,16 +11,16 @@ function AuthCompleteContent() {
   const { setTokens } = useAuth();
 
   useEffect(() => {
-    const accessToken = searchParams.get("accessToken");
-    const refreshToken = searchParams.get("refreshToken");
-    const error = searchParams.get("error");
+    const accessToken = searchParams.get('accessToken');
+    const refreshToken = searchParams.get('refreshToken');
+    const error = searchParams.get('error');
 
     // Clear the URL parameters for security
-    const cleanUrl = "/";
+    const cleanUrl = '/';
     window.history.replaceState({}, document.title, cleanUrl);
 
     if (error) {
-      console.error("Authentication error:", error);
+      console.error('Authentication error:', error);
       router.push(`/login?error=${encodeURIComponent(error)}`);
       return;
     }
@@ -30,9 +30,9 @@ function AuthCompleteContent() {
       setTokens(accessToken, refreshToken);
 
       // Redirect to dashboard or home page
-      router.push("/library");
+      router.push('/library');
     } else {
-      router.push("/login?error=Authentication failed");
+      router.push('/login?error=Authentication failed');
     }
   }, [router, searchParams, setTokens]);
 
@@ -49,7 +49,7 @@ function AuthCompleteContent() {
 
 export default function AuthCompletePage() {
   return (
-    <Center h={"100svh"}>
+    <Center h={'100svh'}>
       <Suspense
         fallback={
           <Card>

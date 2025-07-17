@@ -12,15 +12,15 @@ export interface PaginatedQueryResult<T> {
 }
 
 export enum CollectionSortField {
-  NAME = "name",
-  CREATED_AT = "createdAt",
-  UPDATED_AT = "updatedAt",
-  CARD_COUNT = "cardCount",
+  NAME = 'name',
+  CREATED_AT = 'createdAt',
+  UPDATED_AT = 'updatedAt',
+  CARD_COUNT = 'cardCount',
 }
 
 export enum SortOrder {
-  ASC = "asc",
-  DESC = "desc",
+  ASC = 'asc',
+  DESC = 'desc',
 }
 
 // Raw data from repository - minimal, just what's stored
@@ -37,6 +37,6 @@ export interface CollectionQueryResultDTO {
 export interface ICollectionQueryRepository {
   findByCreator(
     curatorId: string,
-    options: CollectionQueryOptions
+    options: CollectionQueryOptions,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>>;
 }

@@ -1,10 +1,10 @@
 import {
   IProfileService,
   UserProfile,
-} from "src/modules/cards/domain/services/IProfileService";
-import { Result, ok, err } from "src/shared/core/Result";
-import { IAgentService } from "../../application/IAgentService";
-import { DID } from "../../domain/DID";
+} from 'src/modules/cards/domain/services/IProfileService';
+import { Result, ok, err } from 'src/shared/core/Result';
+import { IAgentService } from '../../application/IAgentService';
+import { DID } from '../../domain/DID';
 
 export class BlueskyProfileService implements IProfileService {
   constructor(private readonly agentService: IAgentService) {}
@@ -13,21 +13,21 @@ export class BlueskyProfileService implements IProfileService {
     try {
       // Get an authenticated agent - we can use any available agent for public profile data
       const agentResult = await this.agentService.getAuthenticatedAgent(
-        new DID(userId)
+        new DID(userId),
       );
 
       if (agentResult.isErr()) {
         return err(
           new Error(
-            `Failed to get authenticated agent: ${agentResult.error.message}`
-          )
+            `Failed to get authenticated agent: ${agentResult.error.message}`,
+          ),
         );
       }
 
       const agent = agentResult.value;
 
       if (!agent) {
-        return err(new Error("No authenticated agent available"));
+        return err(new Error('No authenticated agent available'));
       }
 
       // Fetch the profile using the ATProto API
@@ -36,8 +36,8 @@ export class BlueskyProfileService implements IProfileService {
       if (!profileResult.success) {
         return err(
           new Error(
-            `Failed to fetch profile ${userId}: ${JSON.stringify(profileResult)}`
-          )
+            `Failed to fetch profile ${userId}: ${JSON.stringify(profileResult)}`,
+          ),
         );
       }
 
@@ -56,8 +56,8 @@ export class BlueskyProfileService implements IProfileService {
     } catch (error) {
       return err(
         new Error(
-          `Error fetching profile: ${error instanceof Error ? error.message : String(error)}`
-        )
+          `Error fetching profile: ${error instanceof Error ? error.message : String(error)}`,
+        ),
       );
     }
   }

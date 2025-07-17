@@ -1,10 +1,12 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Response } from "express";
-import { RemoveCardFromLibraryUseCase } from "../../../application/useCases/commands/RemoveCardFromLibraryUseCase";
-import { AuthenticatedRequest } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Response } from 'express';
+import { RemoveCardFromLibraryUseCase } from '../../../application/useCases/commands/RemoveCardFromLibraryUseCase';
+import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class RemoveCardFromLibraryController extends Controller {
-  constructor(private removeCardFromLibraryUseCase: RemoveCardFromLibraryUseCase) {
+  constructor(
+    private removeCardFromLibraryUseCase: RemoveCardFromLibraryUseCase,
+  ) {
     super();
   }
 
@@ -12,13 +14,13 @@ export class RemoveCardFromLibraryController extends Controller {
     try {
       const { cardId } = req.params;
       const curatorId = req.did;
-      
+
       if (!curatorId) {
         return this.unauthorized(res);
       }
 
       if (!cardId) {
-        return this.badRequest(res, "Card ID is required");
+        return this.badRequest(res, 'Card ID is required');
       }
 
       const result = await this.removeCardFromLibraryUseCase.execute({

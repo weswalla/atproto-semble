@@ -1,7 +1,7 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Response } from "express";
-import { GetUrlCardViewUseCase } from "../../../application/useCases/queries/GetUrlCardViewUseCase";
-import { AuthenticatedRequest } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Response } from 'express';
+import { GetUrlCardViewUseCase } from '../../../application/useCases/queries/GetUrlCardViewUseCase';
+import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class GetUrlCardViewController extends Controller {
   constructor(private getUrlCardViewUseCase: GetUrlCardViewUseCase) {
@@ -13,7 +13,7 @@ export class GetUrlCardViewController extends Controller {
       const { cardId } = req.params;
 
       if (!cardId) {
-        return this.badRequest(res, "Card ID is required");
+        return this.badRequest(res, 'Card ID is required');
       }
 
       const result = await this.getUrlCardViewUseCase.execute({ cardId });

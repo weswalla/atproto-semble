@@ -1,12 +1,12 @@
-import { ValueObject } from "src/shared/domain/ValueObject";
-import { ATUri } from "./ATUri";
+import { ValueObject } from 'src/shared/domain/ValueObject';
+import { ATUri } from './ATUri';
 
 interface StrongRefProps {
   uri: string;
   cid: string;
 }
 export class StrongRef extends ValueObject<StrongRefProps> {
-  readonly $type = "com.atproto.repo.strongRef";
+  readonly $type = 'com.atproto.repo.strongRef';
 
   private readonly _atUri: ATUri;
 

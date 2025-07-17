@@ -1,9 +1,9 @@
-import { UseCase } from "src/shared/core/UseCase";
-import { Result, err, ok } from "src/shared/core/Result";
-import { AppError } from "src/shared/core/AppError";
-import { IOAuthProcessor } from "../services/IOAuthProcessor";
-import { Handle } from "../../domain/value-objects/Handle";
-import { InitiateOAuthSignInErrors } from "./errors/InitiateOAuthSignInErrors";
+import { UseCase } from 'src/shared/core/UseCase';
+import { Result, err, ok } from 'src/shared/core/Result';
+import { AppError } from 'src/shared/core/AppError';
+import { IOAuthProcessor } from '../services/IOAuthProcessor';
+import { Handle } from '../../domain/value-objects/Handle';
+import { InitiateOAuthSignInErrors } from './errors/InitiateOAuthSignInErrors';
 
 export interface InitiateOAuthSignInDTO {
   handle?: string;
@@ -21,28 +21,28 @@ export class InitiateOAuthSignInUseCase
   constructor(private oauthProcessor: IOAuthProcessor) {}
 
   async execute(
-    request: InitiateOAuthSignInDTO
+    request: InitiateOAuthSignInDTO,
   ): Promise<InitiateOAuthSignInResponse> {
     try {
       if (!request.handle) {
         return err(
           new InitiateOAuthSignInErrors.InvalidHandleError(
-            "Handle is required for OAuth sign-in"
-          )
+            'Handle is required for OAuth sign-in',
+          ),
         );
       }
       const handleOrError = Handle.create(request.handle);
       if (handleOrError.isErr()) {
         return err(
           new InitiateOAuthSignInErrors.InvalidHandleError(
-            handleOrError.error.message
-          )
+            handleOrError.error.message,
+          ),
         );
       }
 
       // Generate auth URL
       const authUrlResult = await this.oauthProcessor.generateAuthUrl(
-        request.handle
+        request.handle,
       );
 
       if (authUrlResult.isErr()) {

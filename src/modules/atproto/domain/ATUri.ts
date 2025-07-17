@@ -1,4 +1,4 @@
-import { DID } from "./DID";
+import { DID } from './DID';
 
 export class ATUri {
   // at://did:plc:lehcqqkwzcwvjvw66uthu5oq/app.bsky.feed.post/3lnxh4zet5c2a
@@ -11,9 +11,9 @@ export class ATUri {
 
   constructor(uri: string) {
     this.value = uri;
-    const parts = uri.split("/");
+    const parts = uri.split('/');
     if (parts.length !== 5) {
-      throw new Error("Invalid AT URI");
+      throw new Error('Invalid AT URI');
     }
     const did = new DID(parts[2]!);
     this.did = did;

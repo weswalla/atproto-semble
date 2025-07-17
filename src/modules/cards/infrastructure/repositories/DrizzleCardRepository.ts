@@ -1,14 +1,14 @@
-import { eq, and } from "drizzle-orm";
-import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { ICardRepository } from "../../domain/ICardRepository";
-import { Card } from "../../domain/Card";
-import { CardId } from "../../domain/value-objects/CardId";
-import { cards } from "./schema/card.sql";
-import { libraryMemberships } from "./schema/libraryMembership.sql";
-import { publishedRecords } from "./schema/publishedRecord.sql";
-import { CardDTO, CardMapper } from "./mappers/CardMapper";
-import { Result, ok, err } from "../../../../shared/core/Result";
-import { URL } from "../../domain/value-objects/URL";
+import { eq, and } from 'drizzle-orm';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { ICardRepository } from '../../domain/ICardRepository';
+import { Card } from '../../domain/Card';
+import { CardId } from '../../domain/value-objects/CardId';
+import { cards } from './schema/card.sql';
+import { libraryMemberships } from './schema/libraryMembership.sql';
+import { publishedRecords } from './schema/publishedRecord.sql';
+import { CardDTO, CardMapper } from './mappers/CardMapper';
+import { Result, ok, err } from '../../../../shared/core/Result';
+import { URL } from '../../domain/value-objects/URL';
 
 export class DrizzleCardRepository implements ICardRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -43,7 +43,7 @@ export class DrizzleCardRepository implements ICardRepository {
         .from(libraryMemberships)
         .leftJoin(
           publishedRecords,
-          eq(libraryMemberships.publishedRecordId, publishedRecords.id)
+          eq(libraryMemberships.publishedRecordId, publishedRecords.id),
         )
         .where(eq(libraryMemberships.cardId, cardId));
 
@@ -137,8 +137,8 @@ export class DrizzleCardRepository implements ICardRepository {
               .where(
                 and(
                   eq(publishedRecords.uri, originalPublishedRecord.uri),
-                  eq(publishedRecords.cid, originalPublishedRecord.cid)
-                )
+                  eq(publishedRecords.cid, originalPublishedRecord.cid),
+                ),
               )
               .limit(1);
 
@@ -175,8 +175,8 @@ export class DrizzleCardRepository implements ICardRepository {
                 .where(
                   and(
                     eq(publishedRecords.uri, membershipRecord.uri),
-                    eq(publishedRecords.cid, membershipRecord.cid)
-                  )
+                    eq(publishedRecords.cid, membershipRecord.cid),
+                  ),
                 )
                 .limit(1);
 
@@ -191,7 +191,7 @@ export class DrizzleCardRepository implements ICardRepository {
 
             membershipPublishedRecordMap.set(
               membershipRecord.id,
-              actualRecordId
+              actualRecordId,
             );
           }
         }
@@ -229,10 +229,10 @@ export class DrizzleCardRepository implements ICardRepository {
               addedAt: membership.addedAt,
               publishedRecordId: membership.publishedRecordId
                 ? membershipPublishedRecordMap.get(
-                    membership.publishedRecordId
+                    membership.publishedRecordId,
                   ) || membership.publishedRecordId
                 : null,
-            })
+            }),
           );
 
           await tx
@@ -264,7 +264,7 @@ export class DrizzleCardRepository implements ICardRepository {
       const cardResult = await this.db
         .select()
         .from(cards)
-        .where(and(eq(cards.url, urlValue), eq(cards.type, "URL")))
+        .where(and(eq(cards.url, urlValue), eq(cards.type, 'URL')))
         .limit(1);
 
       if (cardResult.length === 0) {
@@ -287,7 +287,7 @@ export class DrizzleCardRepository implements ICardRepository {
         .from(libraryMemberships)
         .leftJoin(
           publishedRecords,
-          eq(libraryMemberships.publishedRecordId, publishedRecords.id)
+          eq(libraryMemberships.publishedRecordId, publishedRecords.id),
         )
         .where(eq(libraryMemberships.cardId, result.id));
 

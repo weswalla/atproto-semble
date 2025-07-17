@@ -1,12 +1,12 @@
-import { err, ok, Result } from "src/shared/core/Result";
-import { UseCase } from "src/shared/core/UseCase";
+import { err, ok, Result } from 'src/shared/core/Result';
+import { UseCase } from 'src/shared/core/UseCase';
 import {
   ICollectionQueryRepository,
   CollectionSortField,
   SortOrder,
-} from "../../../domain/ICollectionQueryRepository";
-import { IProfileService } from "src/modules/cards/domain/services/IProfileService";
-import { CuratorId } from "src/modules/cards/domain/value-objects/CuratorId";
+} from '../../../domain/ICollectionQueryRepository';
+import { IProfileService } from 'src/modules/cards/domain/services/IProfileService';
+import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 
 export interface GetMyCollectionsQuery {
   curatorId: string;
@@ -49,7 +49,7 @@ export interface GetMyCollectionsResult {
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "ValidationError";
+    this.name = 'ValidationError';
   }
 }
 
@@ -58,11 +58,11 @@ export class GetMyCollectionsUseCase
 {
   constructor(
     private collectionQueryRepo: ICollectionQueryRepository,
-    private profileService: IProfileService
+    private profileService: IProfileService,
   ) {}
 
   async execute(
-    query: GetMyCollectionsQuery
+    query: GetMyCollectionsQuery,
   ): Promise<Result<GetMyCollectionsResult>> {
     // Set defaults
     const page = query.page || 1;
@@ -73,7 +73,7 @@ export class GetMyCollectionsUseCase
     // Validate curator ID
     const curatorIdResult = CuratorId.create(query.curatorId);
     if (curatorIdResult.isErr()) {
-      return err(new ValidationError("Invalid curator ID"));
+      return err(new ValidationError('Invalid curator ID'));
     }
 
     try {
@@ -85,19 +85,19 @@ export class GetMyCollectionsUseCase
           limit,
           sortBy,
           sortOrder,
-        }
+        },
       );
 
       // Get user profile for the curator
       const profileResult = await this.profileService.getProfile(
-        query.curatorId
+        query.curatorId,
       );
 
       if (profileResult.isErr()) {
         return err(
           new Error(
-            `Failed to fetch user profile: ${profileResult.error instanceof Error ? profileResult.error.message : "Unknown error"}`
-          )
+            `Failed to fetch user profile: ${profileResult.error instanceof Error ? profileResult.error.message : 'Unknown error'}`,
+          ),
         );
       }
       const profile = profileResult.value;
@@ -119,7 +119,7 @@ export class GetMyCollectionsUseCase
               avatarUrl: profile.avatarUrl,
             },
           };
-        }
+        },
       );
 
       return ok({
@@ -139,8 +139,8 @@ export class GetMyCollectionsUseCase
     } catch (error) {
       return err(
         new Error(
-          `Failed to retrieve collections: ${error instanceof Error ? error.message : "Unknown error"}`
-        )
+          `Failed to retrieve collections: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
       );
     }
   }

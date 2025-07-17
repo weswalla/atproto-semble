@@ -1,7 +1,7 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Response } from "express";
-import { UpdateNoteCardUseCase } from "../../../application/useCases/commands/UpdateNoteCardUseCase";
-import { AuthenticatedRequest } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Response } from 'express';
+import { UpdateNoteCardUseCase } from '../../../application/useCases/commands/UpdateNoteCardUseCase';
+import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class UpdateNoteCardController extends Controller {
   constructor(private updateNoteCardUseCase: UpdateNoteCardUseCase) {
@@ -13,17 +13,17 @@ export class UpdateNoteCardController extends Controller {
       const { cardId } = req.params;
       const { note } = req.body;
       const curatorId = req.did;
-      
+
       if (!curatorId) {
         return this.unauthorized(res);
       }
 
       if (!cardId) {
-        return this.badRequest(res, "Card ID is required");
+        return this.badRequest(res, 'Card ID is required');
       }
 
       if (!note) {
-        return this.badRequest(res, "Note text is required");
+        return this.badRequest(res, 'Note text is required');
       }
 
       const result = await this.updateNoteCardUseCase.execute({

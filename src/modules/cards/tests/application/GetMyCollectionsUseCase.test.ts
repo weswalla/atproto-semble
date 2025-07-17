@@ -1,16 +1,16 @@
-import { GetMyCollectionsUseCase } from "../../application/useCases/queries/GetMyCollectionsUseCase";
-import { InMemoryCollectionQueryRepository } from "../utils/InMemoryCollectionQueryRepository";
-import { InMemoryCollectionRepository } from "../utils/InMemoryCollectionRepository";
-import { FakeProfileService } from "../utils/FakeProfileService";
-import { CuratorId } from "../../domain/value-objects/CuratorId";
-import { Collection, CollectionAccessType } from "../../domain/Collection";
+import { GetMyCollectionsUseCase } from '../../application/useCases/queries/GetMyCollectionsUseCase';
+import { InMemoryCollectionQueryRepository } from '../utils/InMemoryCollectionQueryRepository';
+import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
+import { FakeProfileService } from '../utils/FakeProfileService';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
+import { Collection, CollectionAccessType } from '../../domain/Collection';
 import {
   CollectionSortField,
   SortOrder,
-} from "../../domain/ICollectionQueryRepository";
-import { UserProfile } from "../../domain/services/IProfileService";
+} from '../../domain/ICollectionQueryRepository';
+import { UserProfile } from '../../domain/services/IProfileService';
 
-describe("GetMyCollectionsUseCase", () => {
+describe('GetMyCollectionsUseCase', () => {
   let useCase: GetMyCollectionsUseCase;
   let collectionQueryRepo: InMemoryCollectionQueryRepository;
   let collectionRepo: InMemoryCollectionRepository;
@@ -24,13 +24,13 @@ describe("GetMyCollectionsUseCase", () => {
     profileService = new FakeProfileService();
     useCase = new GetMyCollectionsUseCase(collectionQueryRepo, profileService);
 
-    curatorId = CuratorId.create("did:plc:testcurator").unwrap();
+    curatorId = CuratorId.create('did:plc:testcurator').unwrap();
     userProfile = {
       id: curatorId.value,
-      name: "Test Curator",
-      handle: "testcurator.bsky.social",
-      avatarUrl: "https://example.com/avatar.jpg",
-      bio: "Test curator bio",
+      name: 'Test Curator',
+      handle: 'testcurator.bsky.social',
+      avatarUrl: 'https://example.com/avatar.jpg',
+      bio: 'Test curator bio',
     };
 
     profileService.addProfile(userProfile);
@@ -42,8 +42,8 @@ describe("GetMyCollectionsUseCase", () => {
     profileService.clear();
   });
 
-  describe("Basic functionality", () => {
-    it("should return empty collections list when curator has no collections", async () => {
+  describe('Basic functionality', () => {
+    it('should return empty collections list when curator has no collections', async () => {
       const query = {
         curatorId: curatorId.value,
       };
@@ -61,8 +61,8 @@ describe("GetMyCollectionsUseCase", () => {
     it("should return curator's collections with profile data", async () => {
       // Create test collections
       const collection1Result = Collection.create({
-        name: "First Collection",
-        description: "First collection description",
+        name: 'First Collection',
+        description: 'First collection description',
         authorId: curatorId,
         accessType: CollectionAccessType.OPEN,
         collaboratorIds: [],
@@ -71,8 +71,8 @@ describe("GetMyCollectionsUseCase", () => {
       });
 
       const collection2Result = Collection.create({
-        name: "Second Collection",
-        description: "Second collection description",
+        name: 'Second Collection',
+        description: 'Second collection description',
         authorId: curatorId,
         accessType: CollectionAccessType.OPEN,
         collaboratorIds: [],
@@ -81,7 +81,7 @@ describe("GetMyCollectionsUseCase", () => {
       });
 
       if (collection1Result.isErr() || collection2Result.isErr()) {
-        throw new Error("Failed to create test collections");
+        throw new Error('Failed to create test collections');
       }
 
       await collectionRepo.save(collection1Result.value);
@@ -106,12 +106,12 @@ describe("GetMyCollectionsUseCase", () => {
       expect(firstCollection.createdBy.avatarUrl).toBe(userProfile.avatarUrl);
     });
 
-    it("should only return collections for the specified curator", async () => {
-      const otherCuratorId = CuratorId.create("did:plc:othercurator").unwrap();
+    it('should only return collections for the specified curator', async () => {
+      const otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
 
       // Create collections for different curators
       const myCollectionResult = Collection.create({
-        name: "My Collection",
+        name: 'My Collection',
         authorId: curatorId,
         accessType: CollectionAccessType.OPEN,
         collaboratorIds: [],
@@ -120,7 +120,7 @@ describe("GetMyCollectionsUseCase", () => {
       });
 
       const otherCollectionResult = Collection.create({
-        name: "Other Collection",
+        name: 'Other Collection',
         authorId: otherCuratorId,
         accessType: CollectionAccessType.OPEN,
         collaboratorIds: [],
@@ -129,7 +129,7 @@ describe("GetMyCollectionsUseCase", () => {
       });
 
       if (myCollectionResult.isErr() || otherCollectionResult.isErr()) {
-        throw new Error("Failed to create test collections");
+        throw new Error('Failed to create test collections');
       }
 
       await collectionRepo.save(myCollectionResult.value);
@@ -144,11 +144,11 @@ describe("GetMyCollectionsUseCase", () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.collections).toHaveLength(1);
-      expect(response.collections[0]!.name).toBe("My Collection");
+      expect(response.collections[0]!.name).toBe('My Collection');
     });
   });
 
-  describe("Pagination", () => {
+  describe('Pagination', () => {
     beforeEach(async () => {
       // Create multiple collections for pagination testing
       for (let i = 1; i <= 5; i++) {
@@ -169,7 +169,7 @@ describe("GetMyCollectionsUseCase", () => {
       }
     });
 
-    it("should handle pagination correctly", async () => {
+    it('should handle pagination correctly', async () => {
       const query = {
         curatorId: curatorId.value,
         page: 1,
@@ -188,7 +188,7 @@ describe("GetMyCollectionsUseCase", () => {
       expect(response.pagination.limit).toBe(2);
     });
 
-    it("should handle second page correctly", async () => {
+    it('should handle second page correctly', async () => {
       const query = {
         curatorId: curatorId.value,
         page: 2,
@@ -204,7 +204,7 @@ describe("GetMyCollectionsUseCase", () => {
       expect(response.pagination.hasMore).toBe(true);
     });
 
-    it("should handle last page correctly", async () => {
+    it('should handle last page correctly', async () => {
       const query = {
         curatorId: curatorId.value,
         page: 3,
@@ -220,7 +220,7 @@ describe("GetMyCollectionsUseCase", () => {
       expect(response.pagination.hasMore).toBe(false);
     });
 
-    it("should cap limit at 100", async () => {
+    it('should cap limit at 100', async () => {
       const query = {
         curatorId: curatorId.value,
         limit: 150, // Should be capped at 100
@@ -234,13 +234,13 @@ describe("GetMyCollectionsUseCase", () => {
     });
   });
 
-  describe("Sorting", () => {
+  describe('Sorting', () => {
     beforeEach(async () => {
       // Create collections with different properties for sorting
       const now = new Date();
 
       const collection1Result = Collection.create({
-        name: "Alpha Collection",
+        name: 'Alpha Collection',
         authorId: curatorId,
         accessType: CollectionAccessType.OPEN,
         collaboratorIds: [],
@@ -249,7 +249,7 @@ describe("GetMyCollectionsUseCase", () => {
       });
 
       const collection2Result = Collection.create({
-        name: "Beta Collection",
+        name: 'Beta Collection',
         authorId: curatorId,
         accessType: CollectionAccessType.OPEN,
         collaboratorIds: [],
@@ -258,14 +258,14 @@ describe("GetMyCollectionsUseCase", () => {
       });
 
       if (collection1Result.isErr() || collection2Result.isErr()) {
-        throw new Error("Failed to create test collections");
+        throw new Error('Failed to create test collections');
       }
 
       await collectionRepo.save(collection1Result.value);
       await collectionRepo.save(collection2Result.value);
     });
 
-    it("should sort by name ascending", async () => {
+    it('should sort by name ascending', async () => {
       const query = {
         curatorId: curatorId.value,
         sortBy: CollectionSortField.NAME,
@@ -276,13 +276,13 @@ describe("GetMyCollectionsUseCase", () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.collections[0]!.name).toBe("Alpha Collection");
-      expect(response.collections[1]!.name).toBe("Beta Collection");
+      expect(response.collections[0]!.name).toBe('Alpha Collection');
+      expect(response.collections[1]!.name).toBe('Beta Collection');
       expect(response.sorting.sortBy).toBe(CollectionSortField.NAME);
       expect(response.sorting.sortOrder).toBe(SortOrder.ASC);
     });
 
-    it("should sort by name descending", async () => {
+    it('should sort by name descending', async () => {
       const query = {
         curatorId: curatorId.value,
         sortBy: CollectionSortField.NAME,
@@ -293,11 +293,11 @@ describe("GetMyCollectionsUseCase", () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.collections[0]!.name).toBe("Beta Collection");
-      expect(response.collections[1]!.name).toBe("Alpha Collection");
+      expect(response.collections[0]!.name).toBe('Beta Collection');
+      expect(response.collections[1]!.name).toBe('Alpha Collection');
     });
 
-    it("should use default sorting when not specified", async () => {
+    it('should use default sorting when not specified', async () => {
       const query = {
         curatorId: curatorId.value,
       };
@@ -311,21 +311,21 @@ describe("GetMyCollectionsUseCase", () => {
     });
   });
 
-  describe("Error handling", () => {
-    it("should fail with invalid curator ID", async () => {
+  describe('Error handling', () => {
+    it('should fail with invalid curator ID', async () => {
       const query = {
-        curatorId: "invalid-curator-id",
+        curatorId: 'invalid-curator-id',
       };
 
       const result = await useCase.execute(query);
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Invalid curator ID");
+        expect(result.error.message).toContain('Invalid curator ID');
       }
     });
 
-    it("should fail when profile service fails", async () => {
+    it('should fail when profile service fails', async () => {
       profileService.setShouldFail(true);
 
       const query = {
@@ -336,12 +336,12 @@ describe("GetMyCollectionsUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Failed to fetch user profile");
+        expect(result.error.message).toContain('Failed to fetch user profile');
       }
     });
 
-    it("should fail when profile not found", async () => {
-      const unknownCuratorId = CuratorId.create("did:plc:unknown").unwrap();
+    it('should fail when profile not found', async () => {
+      const unknownCuratorId = CuratorId.create('did:plc:unknown').unwrap();
 
       const query = {
         curatorId: unknownCuratorId.value,
@@ -351,7 +351,7 @@ describe("GetMyCollectionsUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Failed to fetch user profile");
+        expect(result.error.message).toContain('Failed to fetch user profile');
       }
     });
   });

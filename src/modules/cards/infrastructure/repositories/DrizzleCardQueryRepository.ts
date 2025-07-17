@@ -1,5 +1,5 @@
-import { eq, desc, asc, count, inArray, and } from "drizzle-orm";
-import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { eq, desc, asc, count, inArray, and } from 'drizzle-orm';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   ICardQueryRepository,
   CardQueryOptions,
@@ -9,19 +9,19 @@ import {
   UrlCardViewDTO,
   CardSortField,
   SortOrder,
-} from "../../domain/ICardQueryRepository";
-import { cards } from "./schema/card.sql";
-import { collections, collectionCards } from "./schema/collection.sql";
-import { libraryMemberships } from "./schema/libraryMembership.sql";
-import { CardMapper, RawUrlCardData } from "./mappers/CardMapper";
-import { CardTypeEnum } from "../../domain/value-objects/CardType";
+} from '../../domain/ICardQueryRepository';
+import { cards } from './schema/card.sql';
+import { collections, collectionCards } from './schema/collection.sql';
+import { libraryMemberships } from './schema/libraryMembership.sql';
+import { CardMapper, RawUrlCardData } from './mappers/CardMapper';
+import { CardTypeEnum } from '../../domain/value-objects/CardType';
 
 export class DrizzleCardQueryRepository implements ICardQueryRepository {
   constructor(private db: PostgresJsDatabase) {}
 
   async getUrlCardsOfUser(
     userId: string,
-    options: CardQueryOptions
+    options: CardQueryOptions,
   ): Promise<PaginatedQueryResult<UrlCardQueryResultDTO>> {
     try {
       const { page, limit, sortBy, sortOrder } = options;
@@ -45,8 +45,8 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .where(
           and(
             eq(libraryMemberships.userId, userId),
-            eq(cards.type, CardTypeEnum.URL)
-          )
+            eq(cards.type, CardTypeEnum.URL),
+          ),
         )
         .orderBy(orderDirection(this.getSortColumn(sortBy)))
         .limit(limit)
@@ -75,7 +75,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .from(collectionCards)
         .innerJoin(
           collections,
-          eq(collectionCards.collectionId, collections.id)
+          eq(collectionCards.collectionId, collections.id),
         )
         .where(inArray(collectionCards.cardId, cardIds));
 
@@ -94,8 +94,8 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
           and(
             eq(libraryMemberships.userId, userId),
             eq(cards.type, CardTypeEnum.NOTE),
-            inArray(cards.parentCardId, cardIds)
-          )
+            inArray(cards.parentCardId, cardIds),
+          ),
         );
 
       const notesResult = await notesQuery;
@@ -108,8 +108,8 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .where(
           and(
             eq(libraryMemberships.userId, userId),
-            eq(cards.type, CardTypeEnum.URL)
-          )
+            eq(cards.type, CardTypeEnum.URL),
+          ),
         );
 
       const totalCount = totalCountResult[0]?.count || 0;
@@ -131,7 +131,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
 
         return {
           id: card.id,
-          url: card.url || "",
+          url: card.url || '',
           contentData: card.contentData,
           libraryCount: card.libraryCount,
           createdAt: card.createdAt,
@@ -148,7 +148,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
 
       // Map to DTOs
       const items = rawCardData.map((raw) =>
-        CardMapper.toUrlCardQueryResult(raw)
+        CardMapper.toUrlCardQueryResult(raw),
       );
 
       return {
@@ -157,14 +157,14 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         hasMore,
       };
     } catch (error) {
-      console.error("Error in getUrlCardsOfUser:", error);
+      console.error('Error in getUrlCardsOfUser:', error);
       throw error;
     }
   }
 
   async getCardsInCollection(
     collectionId: string,
-    options: CardQueryOptions
+    options: CardQueryOptions,
   ): Promise<PaginatedQueryResult<CollectionCardQueryResultDTO>> {
     try {
       const { page, limit, sortBy, sortOrder } = options;
@@ -188,8 +188,8 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .where(
           and(
             eq(collectionCards.collectionId, collectionId),
-            eq(cards.type, CardTypeEnum.URL)
-          )
+            eq(cards.type, CardTypeEnum.URL),
+          ),
         )
         .orderBy(orderDirection(this.getSortColumn(sortBy)))
         .limit(limit)
@@ -218,8 +218,8 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .where(
           and(
             eq(cards.type, CardTypeEnum.NOTE),
-            inArray(cards.parentCardId, cardIds)
-          )
+            inArray(cards.parentCardId, cardIds),
+          ),
         );
 
       const notesResult = await notesQuery;
@@ -232,8 +232,8 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .where(
           and(
             eq(collectionCards.collectionId, collectionId),
-            eq(cards.type, CardTypeEnum.URL)
-          )
+            eq(cards.type, CardTypeEnum.URL),
+          ),
         );
 
       const totalCount = totalCountResult[0]?.count || 0;
@@ -246,7 +246,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
 
         return {
           id: card.id,
-          url: card.url || "",
+          url: card.url || '',
           contentData: card.contentData,
           libraryCount: card.libraryCount,
           createdAt: card.createdAt,
@@ -262,7 +262,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
 
       // Map to DTOs
       const items = rawCardData.map((raw) =>
-        CardMapper.toCollectionCardQueryResult(raw)
+        CardMapper.toCollectionCardQueryResult(raw),
       );
 
       return {
@@ -271,7 +271,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         hasMore,
       };
     } catch (error) {
-      console.error("Error in getCardsInCollection:", error);
+      console.error('Error in getCardsInCollection:', error);
       throw error;
     }
   }
@@ -320,7 +320,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .from(collectionCards)
         .innerJoin(
           collections,
-          eq(collectionCards.collectionId, collections.id)
+          eq(collectionCards.collectionId, collections.id),
         )
         .where(eq(collectionCards.cardId, cardId));
 
@@ -337,8 +337,8 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .where(
           and(
             eq(cards.type, CardTypeEnum.NOTE),
-            eq(cards.parentCardId, cardId)
-          )
+            eq(cards.parentCardId, cardId),
+          ),
         );
 
       const noteResult = await noteQuery;
@@ -348,7 +348,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
       const urlCardView = CardMapper.toUrlCardViewDTO({
         id: card.id,
         type: card.type,
-        url: card.url || "",
+        url: card.url || '',
         contentData: card.contentData,
         libraryCount: card.libraryCount,
         createdAt: card.createdAt,
@@ -369,7 +369,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
 
       return urlCardView;
     } catch (error) {
-      console.error("Error in getUrlCardView:", error);
+      console.error('Error in getUrlCardView:', error);
       throw error;
     }
   }
@@ -388,7 +388,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
 
       return libraryResult.map((lib) => lib.userId);
     } catch (error) {
-      console.error("Error in getLibrariesForCard:", error);
+      console.error('Error in getLibrariesForCard:', error);
       throw error;
     }
   }

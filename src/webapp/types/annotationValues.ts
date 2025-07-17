@@ -5,29 +5,29 @@ export interface AnnotationValue {
 }
 
 export interface DyadValue extends AnnotationValue {
-  type: "dyad";
+  type: 'dyad';
   value: number;
 }
 
 export interface TriadValue extends AnnotationValue {
-  type: "triad";
+  type: 'triad';
   vertexA: number;
   vertexB: number;
   vertexC: number;
 }
 
 export interface RatingValue extends AnnotationValue {
-  type: "rating";
+  type: 'rating';
   rating: number;
 }
 
 export interface SingleSelectValue extends AnnotationValue {
-  type: "singleSelect";
+  type: 'singleSelect';
   option: string;
 }
 
 export interface MultiSelectValue extends AnnotationValue {
-  type: "multiSelect";
+  type: 'multiSelect';
   options: string[];
 }
 

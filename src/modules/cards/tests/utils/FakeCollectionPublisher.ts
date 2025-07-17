@@ -1,11 +1,11 @@
-import { ICollectionPublisher } from "../../application/ports/ICollectionPublisher";
-import { Collection } from "../../domain/Collection";
-import { Card } from "../../domain/Card";
-import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
-import { ok, err, Result } from "../../../../shared/core/Result";
-import { UseCaseError } from "../../../../shared/core/UseCaseError";
-import { AppError } from "../../../../shared/core/AppError";
-import { CuratorId } from "../../domain/value-objects/CuratorId";
+import { ICollectionPublisher } from '../../application/ports/ICollectionPublisher';
+import { Collection } from '../../domain/Collection';
+import { Card } from '../../domain/Card';
+import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
+import { ok, err, Result } from '../../../../shared/core/Result';
+import { UseCaseError } from '../../../../shared/core/UseCaseError';
+import { AppError } from '../../../../shared/core/AppError';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
 
 export class FakeCollectionPublisher implements ICollectionPublisher {
   private publishedCollections: Map<string, Collection> = new Map();
@@ -19,13 +19,13 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
   private shouldFailUnpublish: boolean = false;
 
   async publish(
-    collection: Collection
+    collection: Collection,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     if (this.shouldFail) {
       return err(
         AppError.UnexpectedError.create(
-          new Error("Simulated collection publish failure")
-        )
+          new Error('Simulated collection publish failure'),
+        ),
       );
     }
 
@@ -44,7 +44,7 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     this.publishedCollections.set(collectionId, collection);
 
     console.log(
-      `[FakeCollectionPublisher] Published collection ${collectionId}`
+      `[FakeCollectionPublisher] Published collection ${collectionId}`,
     );
 
     return ok(collectionRecord);
@@ -53,13 +53,13 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
   async publishCardAddedToCollection(
     card: Card,
     collection: Collection,
-    curatorId: CuratorId
+    curatorId: CuratorId,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     if (this.shouldFail) {
       return err(
         AppError.UnexpectedError.create(
-          new Error("Simulated card-collection link publish failure")
-        )
+          new Error('Simulated card-collection link publish failure'),
+        ),
       );
     }
 
@@ -84,27 +84,27 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     this.publishedLinks.set(collectionId, existingLinks);
 
     console.log(
-      `[FakeCollectionPublisher] Published card ${cardId} added to collection ${collectionId} link at ${fakeLinkUri}`
+      `[FakeCollectionPublisher] Published card ${cardId} added to collection ${collectionId} link at ${fakeLinkUri}`,
     );
 
     return ok(linkRecord);
   }
 
   async unpublishCardAddedToCollection(
-    recordId: PublishedRecordId
+    recordId: PublishedRecordId,
   ): Promise<Result<void, UseCaseError>> {
     if (this.shouldFailUnpublish) {
       return err(
         AppError.UnexpectedError.create(
-          new Error("Simulated card-collection link unpublish failure")
-        )
+          new Error('Simulated card-collection link unpublish failure'),
+        ),
       );
     }
 
     // Find and remove the link by its published record ID
     for (const [collectionId, links] of this.publishedLinks.entries()) {
       const linkIndex = links.findIndex(
-        (link) => link.linkRecord.uri === recordId.uri
+        (link) => link.linkRecord.uri === recordId.uri,
       );
       if (linkIndex !== -1) {
         const removedLink = links.splice(linkIndex, 1)[0];
@@ -113,26 +113,26 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
           collectionId,
         });
         console.log(
-          `[FakeCollectionPublisher] Unpublished card-collection link ${recordId.uri}`
+          `[FakeCollectionPublisher] Unpublished card-collection link ${recordId.uri}`,
         );
         return ok(undefined);
       }
     }
 
     console.warn(
-      `[FakeCollectionPublisher] Card-collection link not found for unpublishing: ${recordId.uri}`
+      `[FakeCollectionPublisher] Card-collection link not found for unpublishing: ${recordId.uri}`,
     );
     return ok(undefined);
   }
 
   async unpublish(
-    recordId: PublishedRecordId
+    recordId: PublishedRecordId,
   ): Promise<Result<void, UseCaseError>> {
     if (this.shouldFailUnpublish) {
       return err(
         AppError.UnexpectedError.create(
-          new Error("Simulated collection unpublish failure")
-        )
+          new Error('Simulated collection unpublish failure'),
+        ),
       );
     }
 
@@ -149,7 +149,7 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
           cid: recordId.cid,
         });
         console.log(
-          `[FakeCollectionPublisher] Unpublished collection ${recordId.uri}`
+          `[FakeCollectionPublisher] Unpublished collection ${recordId.uri}`,
         );
         return ok(undefined);
       }
@@ -160,13 +160,13 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
         cid: recordId.cid,
       });
       console.log(
-        `[FakeCollectionPublisher] Unpublished collection ${recordId.uri} (not found in published collections)`
+        `[FakeCollectionPublisher] Unpublished collection ${recordId.uri} (not found in published collections)`,
       );
       return ok(undefined);
     }
 
     console.warn(
-      `[FakeCollectionPublisher] Collection not found for unpublishing: ${recordId.uri}`
+      `[FakeCollectionPublisher] Collection not found for unpublishing: ${recordId.uri}`,
     );
     return ok(undefined);
   }
@@ -193,7 +193,7 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
   }
 
   getPublishedLinksForCollection(
-    collectionId: string
+    collectionId: string,
   ): Array<{ cardId: string; linkRecord: PublishedRecordId }> {
     return this.publishedLinks.get(collectionId) || [];
   }
@@ -203,10 +203,10 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
   }
 
   getRemovedLinksForCollection(
-    collectionId: string
+    collectionId: string,
   ): Array<{ cardId: string; collectionId: string }> {
     return this.removedLinks.filter(
-      (link) => link.collectionId === collectionId
+      (link) => link.collectionId === collectionId,
     );
   }
 

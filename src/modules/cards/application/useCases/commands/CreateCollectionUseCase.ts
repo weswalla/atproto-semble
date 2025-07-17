@@ -1,11 +1,11 @@
-import { Result, ok, err } from "../../../../../shared/core/Result";
-import { UseCase } from "../../../../../shared/core/UseCase";
-import { UseCaseError } from "../../../../../shared/core/UseCaseError";
-import { AppError } from "../../../../../shared/core/AppError";
-import { ICollectionRepository } from "../../../domain/ICollectionRepository";
-import { Collection, CollectionAccessType } from "../../../domain/Collection";
-import { CuratorId } from "../../../domain/value-objects/CuratorId";
-import { ICollectionPublisher } from "../../ports/ICollectionPublisher";
+import { Result, ok, err } from '../../../../../shared/core/Result';
+import { UseCase } from '../../../../../shared/core/UseCase';
+import { UseCaseError } from '../../../../../shared/core/UseCaseError';
+import { AppError } from '../../../../../shared/core/AppError';
+import { ICollectionRepository } from '../../../domain/ICollectionRepository';
+import { Collection, CollectionAccessType } from '../../../domain/Collection';
+import { CuratorId } from '../../../domain/value-objects/CuratorId';
+import { ICollectionPublisher } from '../../ports/ICollectionPublisher';
 
 export interface CreateCollectionDTO {
   name: string;
@@ -35,11 +35,11 @@ export class CreateCollectionUseCase
 {
   constructor(
     private collectionRepository: ICollectionRepository,
-    private collectionPublisher: ICollectionPublisher
+    private collectionPublisher: ICollectionPublisher,
   ) {}
 
   async execute(
-    request: CreateCollectionDTO
+    request: CreateCollectionDTO,
   ): Promise<
     Result<
       CreateCollectionResponseDTO,
@@ -52,8 +52,8 @@ export class CreateCollectionUseCase
       if (curatorIdResult.isErr()) {
         return err(
           new ValidationError(
-            `Invalid curator ID: ${curatorIdResult.error.message}`
-          )
+            `Invalid curator ID: ${curatorIdResult.error.message}`,
+          ),
         );
       }
       const curatorId = curatorIdResult.value;
@@ -86,8 +86,8 @@ export class CreateCollectionUseCase
       if (publishResult.isErr()) {
         return err(
           new ValidationError(
-            `Failed to publish collection: ${publishResult.error.message}`
-          )
+            `Failed to publish collection: ${publishResult.error.message}`,
+          ),
         );
       }
 

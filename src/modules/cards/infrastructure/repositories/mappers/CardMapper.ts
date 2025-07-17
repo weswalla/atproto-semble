@@ -1,19 +1,19 @@
-import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
-import { Card } from "../../../domain/Card";
-import { CardId } from "../../../domain/value-objects/CardId";
-import { CardType, CardTypeEnum } from "../../../domain/value-objects/CardType";
-import { CardContent } from "../../../domain/value-objects/CardContent";
-import { CuratorId } from "../../../domain/value-objects/CuratorId";
-import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
-import { URL } from "../../../domain/value-objects/URL";
-import { UrlMetadata } from "../../../domain/value-objects/UrlMetadata";
-import { err, ok, Result } from "../../../../../shared/core/Result";
-import { v4 as uuid } from "uuid";
+import { UniqueEntityID } from '../../../../../shared/domain/UniqueEntityID';
+import { Card } from '../../../domain/Card';
+import { CardId } from '../../../domain/value-objects/CardId';
+import { CardType, CardTypeEnum } from '../../../domain/value-objects/CardType';
+import { CardContent } from '../../../domain/value-objects/CardContent';
+import { CuratorId } from '../../../domain/value-objects/CuratorId';
+import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
+import { URL } from '../../../domain/value-objects/URL';
+import { UrlMetadata } from '../../../domain/value-objects/UrlMetadata';
+import { err, ok, Result } from '../../../../../shared/core/Result';
+import { v4 as uuid } from 'uuid';
 import {
   UrlCardQueryResultDTO,
   CollectionCardQueryResultDTO,
   UrlCardViewDTO,
-} from "../../../domain/ICardQueryRepository";
+} from '../../../domain/ICardQueryRepository';
 
 // Type-safe content data interfaces
 interface UrlContentData {
@@ -90,7 +90,7 @@ export class CardMapper {
       // Create content based on type
       const contentOrError = this.createCardContent(
         dto.type as CardTypeEnum,
-        dto.contentData
+        dto.contentData,
       );
       if (contentOrError.isErr()) return err(contentOrError.error);
 
@@ -122,7 +122,7 @@ export class CardMapper {
         const curatorIdResult = CuratorId.create(membership.userId);
         if (curatorIdResult.isErr()) {
           throw new Error(
-            `Invalid curator ID in library membership: ${membership.userId}`
+            `Invalid curator ID in library membership: ${membership.userId}`,
           );
         }
         const curatorId = curatorIdResult.value;
@@ -155,7 +155,7 @@ export class CardMapper {
           createdAt: dto.createdAt,
           updatedAt: dto.updatedAt,
         },
-        new UniqueEntityID(dto.id)
+        new UniqueEntityID(dto.id),
       );
 
       if (cardOrError.isErr()) return err(cardOrError.error);
@@ -173,11 +173,11 @@ export class CardMapper {
 
   private static createCardContent(
     type: CardTypeEnum,
-    data: CardContentData
+    data: CardContentData,
   ): Result<CardContent> {
     try {
       switch (type) {
-        case CardTypeEnum.URL:
+        case CardTypeEnum.URL: {
           const urlData = data as UrlContentData;
           const urlOrError = URL.create(urlData.url);
           if (urlOrError.isErr()) return err(urlOrError.error);
@@ -202,12 +202,14 @@ export class CardMapper {
           }
 
           return CardContent.createUrlContent(urlOrError.value, metadata);
+        }
 
-        case CardTypeEnum.NOTE:
+        case CardTypeEnum.NOTE: {
           const noteData = data as NoteContentData;
           const authorIdResult = CuratorId.create(noteData.authorId);
           if (authorIdResult.isErr()) return err(authorIdResult.error);
           return CardContent.createNoteContent(noteData.text);
+        }
 
         default:
           return err(new Error(`Unknown card type: ${type}`));
@@ -338,7 +340,7 @@ export class CardMapper {
   }
 
   public static toUrlCardQueryResult(
-    raw: RawUrlCardData
+    raw: RawUrlCardData,
   ): UrlCardQueryResultDTO {
     // Extract URL metadata from contentData
     const cardContent = {
@@ -353,7 +355,7 @@ export class CardMapper {
     const note = raw.note
       ? {
           id: raw.note.id,
-          text: raw.note.contentData?.text || "",
+          text: raw.note.contentData?.text || '',
         }
       : undefined;
 
@@ -395,7 +397,7 @@ export class CardMapper {
     const note = raw.note
       ? {
           id: raw.note.id,
-          text: raw.note.contentData?.text || "",
+          text: raw.note.contentData?.text || '',
         }
       : undefined;
 
@@ -445,7 +447,7 @@ export class CardMapper {
     const note = raw.note
       ? {
           id: raw.note.id,
-          text: raw.note.contentData?.text || "",
+          text: raw.note.contentData?.text || '',
         }
       : undefined;
 

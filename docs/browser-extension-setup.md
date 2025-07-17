@@ -5,6 +5,7 @@ This guide walks through setting up a browser extension using Plasmo framework w
 ## Overview
 
 We'll use Plasmo (Option 3) which provides:
+
 - Built specifically for modern web extensions
 - Excellent TypeScript support
 - Hot reloading during development
@@ -73,6 +74,7 @@ src/
 ### 5. Create Extension Entry Points
 
 **popup.tsx:**
+
 ```typescript
 import { useAuth } from "./hooks/useAuth"
 import { Button, Center, Title } from "@mantine/core"
@@ -97,30 +99,32 @@ export default IndexPopup
 ```
 
 **content.ts:**
+
 ```typescript
-import type { PlasmoCSConfig } from "plasmo"
+import type { PlasmoCSConfig } from 'plasmo';
 
 export const config: PlasmoCSConfig = {
-  matches: ["<all_urls>"]
-}
+  matches: ['<all_urls>'],
+};
 
 // Add save-to-library functionality to pages
-console.log("Content script loaded")
+console.log('Content script loaded');
 ```
 
 ### 6. Update Your Auth Hook for Extension
 
 **hooks/useAuth.tsx:**
+
 ```typescript
 // Add extension-specific storage
-const isExtension = typeof chrome !== 'undefined' && chrome.storage
+const isExtension = typeof chrome !== 'undefined' && chrome.storage;
 
 const useAuth = () => {
   // Use chrome.storage for extension, localStorage for webapp
-  const storage = isExtension ? chrome.storage.local : localStorage
+  const storage = isExtension ? chrome.storage.local : localStorage;
 
   // Rest of your existing auth logic...
-}
+};
 ```
 
 ### 7. Shared Component Configuration
@@ -129,8 +133,7 @@ Create **shared/components/** and move reusable components:
 
 ```typescript
 // Move these to shared/components/
-- UrlCard.tsx
-- ui/ components
+-UrlCard.tsx - ui / components;
 ```
 
 Update imports in both webapp and extension to use shared components.
@@ -138,12 +141,14 @@ Update imports in both webapp and extension to use shared components.
 ### 8. Development Workflow
 
 **Terminal 1 - Webapp:**
+
 ```bash
 cd src/webapp
 pnpm dev
 ```
 
 **Terminal 2 - Extension:**
+
 ```bash
 cd src/webapp
 pnpm dev:extension
@@ -159,13 +164,14 @@ pnpm dev:extension
 ### 10. Handle Extension-Specific APIs
 
 **background.ts:**
+
 ```typescript
-import { ApiClient } from "./api-client/ApiClient"
+import { ApiClient } from './api-client/ApiClient';
 
 // Handle extension-specific functionality
 chrome.action.onClicked.addListener((tab) => {
   // Save current page to library
-})
+});
 ```
 
 ## Key Benefits of This Setup

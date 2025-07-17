@@ -1,19 +1,19 @@
-import { ATProtoCardPublisher } from "../publishers/ATProtoCardPublisher";
-import { CardBuilder } from "src/modules/cards/tests/utils/builders/CardBuilder";
-import { URL } from "src/modules/cards/domain/value-objects/URL";
-import { UrlMetadata } from "src/modules/cards/domain/value-objects/UrlMetadata";
-import { CuratorId } from "src/modules/cards/domain/value-objects/CuratorId";
-import dotenv from "dotenv";
-import { AppPasswordAgentService } from "./AppPasswordAgentService";
-import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
+import { ATProtoCardPublisher } from '../publishers/ATProtoCardPublisher';
+import { CardBuilder } from 'src/modules/cards/tests/utils/builders/CardBuilder';
+import { URL } from 'src/modules/cards/domain/value-objects/URL';
+import { UrlMetadata } from 'src/modules/cards/domain/value-objects/UrlMetadata';
+import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
+import dotenv from 'dotenv';
+import { AppPasswordAgentService } from './AppPasswordAgentService';
+import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
 
 // Load environment variables from .env.test
-dotenv.config({ path: ".env.test" });
+dotenv.config({ path: '.env.test' });
 
 // Set to false to skip unpublishing (useful for debugging published records)
 const UNPUBLISH = false;
 
-describe("ATProtoCardPublisher", () => {
+describe('ATProtoCardPublisher', () => {
   let publisher: ATProtoCardPublisher;
   let curatorId: CuratorId;
   let publishedCardIds: PublishedRecordId[] = [];
@@ -21,7 +21,7 @@ describe("ATProtoCardPublisher", () => {
   beforeAll(async () => {
     if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
       throw new Error(
-        "BSKY_DID and BSKY_APP_PASSWORD must be set in .env.test"
+        'BSKY_DID and BSKY_APP_PASSWORD must be set in .env.test',
       );
     }
 
@@ -38,7 +38,7 @@ describe("ATProtoCardPublisher", () => {
     // Skip cleanup if credentials are not available or UNPUBLISH is false
     if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD || !UNPUBLISH) {
       if (!UNPUBLISH) {
-        console.log("Skipping cleanup: UNPUBLISH is set to false");
+        console.log('Skipping cleanup: UNPUBLISH is set to false');
       }
       return;
     }
@@ -54,24 +54,24 @@ describe("ATProtoCardPublisher", () => {
     }
   });
 
-  describe("URL Card Publishing", () => {
-    it("should publish and unpublish a URL card", async () => {
+  describe('URL Card Publishing', () => {
+    it('should publish and unpublish a URL card', async () => {
       // Skip test if credentials are not available
       if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
-        console.warn("Skipping test: BSKY credentials not found in .env.test");
+        console.warn('Skipping test: BSKY credentials not found in .env.test');
         return;
       }
 
-      const testUrl = URL.create("https://example.com/test-article").unwrap();
+      const testUrl = URL.create('https://example.com/test-article').unwrap();
 
       // Create URL metadata
       const metadata = UrlMetadata.create({
         url: testUrl.value,
-        title: "Test Article",
-        description: "A test article for card publishing",
-        author: "Test Author",
-        siteName: "Example.com",
-        type: "article",
+        title: 'Test Article',
+        description: 'A test article for card publishing',
+        author: 'Test Author',
+        siteName: 'Example.com',
+        type: 'article',
         retrievedAt: new Date(),
       }).unwrap();
 
@@ -88,7 +88,7 @@ describe("ATProtoCardPublisher", () => {
       // 1. Publish the card
       const publishResult = await publisher.publishCardToLibrary(
         urlCard,
-        curatorId
+        curatorId,
       );
       expect(publishResult.isOk()).toBe(true);
 
@@ -103,7 +103,7 @@ describe("ATProtoCardPublisher", () => {
         // 2. Test updating the card
         const updateResult = await publisher.publishCardToLibrary(
           urlCard,
-          curatorId
+          curatorId,
         );
         expect(updateResult.isOk()).toBe(true);
 
@@ -116,35 +116,35 @@ describe("ATProtoCardPublisher", () => {
         if (UNPUBLISH) {
           const unpublishResult = await publisher.unpublishCardFromLibrary(
             publishedRecordId,
-            curatorId
+            curatorId,
           );
           expect(unpublishResult.isOk()).toBe(true);
 
-          console.log("Successfully unpublished URL card");
+          console.log('Successfully unpublished URL card');
 
           // Remove from cleanup list since we've already unpublished it
           publishedCardIds = publishedCardIds.filter(
-            (id) => id !== publishedRecordId
+            (id) => id !== publishedRecordId,
           );
         } else {
-          console.log("Skipping unpublish: UNPUBLISH is set to false");
+          console.log('Skipping unpublish: UNPUBLISH is set to false');
         }
       }
     }, 15000);
   });
 
-  describe("Note Card Publishing", () => {
-    it("should publish and unpublish a note card", async () => {
+  describe('Note Card Publishing', () => {
+    it('should publish and unpublish a note card', async () => {
       // Skip test if credentials are not available
       if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
-        console.warn("Skipping test: BSKY credentials not found in .env.test");
+        console.warn('Skipping test: BSKY credentials not found in .env.test');
         return;
       }
 
       // Create a note card
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard("This is a test note for publishing", "Test Note Title")
+        .withNoteCard('This is a test note for publishing', 'Test Note Title')
         .buildOrThrow();
 
       // Add card to curator's library first
@@ -153,7 +153,7 @@ describe("ATProtoCardPublisher", () => {
       // 1. Publish the card
       const publishResult = await publisher.publishCardToLibrary(
         noteCard,
-        curatorId
+        curatorId,
       );
       expect(publishResult.isOk()).toBe(true);
 
@@ -171,37 +171,37 @@ describe("ATProtoCardPublisher", () => {
         if (UNPUBLISH) {
           const unpublishResult = await publisher.unpublishCardFromLibrary(
             publishedRecordId,
-            curatorId
+            curatorId,
           );
           expect(unpublishResult.isOk()).toBe(true);
 
-          console.log("Successfully unpublished note card");
+          console.log('Successfully unpublished note card');
 
           // Remove from cleanup list since we've already unpublished it
           publishedCardIds = publishedCardIds.filter(
-            (id) => id !== publishedRecordId
+            (id) => id !== publishedRecordId,
           );
         } else {
-          console.log("Skipping unpublish: UNPUBLISH is set to false");
+          console.log('Skipping unpublish: UNPUBLISH is set to false');
         }
       }
     }, 15000);
   });
 
-  describe("Note Card with URL Publishing", () => {
-    it("should publish a note card with optional URL", async () => {
+  describe('Note Card with URL Publishing', () => {
+    it('should publish a note card with optional URL', async () => {
       // Skip test if credentials are not available
       if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
-        console.warn("Skipping test: BSKY credentials not found in .env.test");
+        console.warn('Skipping test: BSKY credentials not found in .env.test');
         return;
       }
 
-      const referenceUrl = URL.create("https://example.com/reference").unwrap();
+      const referenceUrl = URL.create('https://example.com/reference').unwrap();
 
       // Create a note card with optional URL
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard("This note references a URL", "Note with URL")
+        .withNoteCard('This note references a URL', 'Note with URL')
         .withUrl(referenceUrl)
         .buildOrThrow();
 
@@ -211,7 +211,7 @@ describe("ATProtoCardPublisher", () => {
       // 1. Publish the card
       const publishResult = await publisher.publishCardToLibrary(
         noteCard,
-        curatorId
+        curatorId,
       );
       expect(publishResult.isOk()).toBe(true);
 
@@ -220,7 +220,7 @@ describe("ATProtoCardPublisher", () => {
         publishedCardIds.push(publishedRecordId);
 
         console.log(
-          `Published note card with URL: ${publishedRecordId.getValue().uri}`
+          `Published note card with URL: ${publishedRecordId.getValue().uri}`,
         );
 
         // Verify the card has the URL
@@ -230,41 +230,41 @@ describe("ATProtoCardPublisher", () => {
         if (UNPUBLISH) {
           const unpublishResult = await publisher.unpublishCardFromLibrary(
             publishedRecordId,
-            curatorId
+            curatorId,
           );
           expect(unpublishResult.isOk()).toBe(true);
 
-          console.log("Successfully unpublished note card with URL");
+          console.log('Successfully unpublished note card with URL');
 
           // Remove from cleanup list since we've already unpublished it
           publishedCardIds = publishedCardIds.filter(
-            (id) => id !== publishedRecordId
+            (id) => id !== publishedRecordId,
           );
         } else {
-          console.log("Skipping unpublish: UNPUBLISH is set to false");
+          console.log('Skipping unpublish: UNPUBLISH is set to false');
         }
       }
     }, 15000);
 
-    it("should publish a note card that references a parent URL card", async () => {
+    it('should publish a note card that references a parent URL card', async () => {
       // Skip test if credentials are not available
       if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
-        console.warn("Skipping test: BSKY credentials not found in .env.test");
+        console.warn('Skipping test: BSKY credentials not found in .env.test');
         return;
       }
 
       const parentUrl = URL.create(
-        "https://example.com/parent-article"
+        'https://example.com/parent-article',
       ).unwrap();
 
       // Create URL metadata for parent card
       const metadata = UrlMetadata.create({
         url: parentUrl.value,
-        title: "Parent Article",
-        description: "An article that will be referenced by a note",
-        author: "Parent Author",
-        siteName: "Example.com",
-        type: "article",
+        title: 'Parent Article',
+        description: 'An article that will be referenced by a note',
+        author: 'Parent Author',
+        siteName: 'Example.com',
+        type: 'article',
         retrievedAt: new Date(),
       }).unwrap();
 
@@ -281,7 +281,7 @@ describe("ATProtoCardPublisher", () => {
       // Publish the parent URL card
       const parentPublishResult = await publisher.publishCardToLibrary(
         parentUrlCard,
-        curatorId
+        curatorId,
       );
       expect(parentPublishResult.isOk()).toBe(true);
 
@@ -292,17 +292,17 @@ describe("ATProtoCardPublisher", () => {
         // Mark parent card as published in library
         parentUrlCard.markCardInLibraryAsPublished(
           curatorId,
-          parentPublishedRecordId
+          parentPublishedRecordId,
         );
 
         console.log(
-          `Published parent URL card: ${parentPublishedRecordId.getValue().uri}`
+          `Published parent URL card: ${parentPublishedRecordId.getValue().uri}`,
         );
 
         // 2. Create a note card that references the parent URL card
         const noteCard = new CardBuilder()
           .withCuratorId(curatorId.value)
-          .withNoteCard("This is my note about the parent article", "My Notes")
+          .withNoteCard('This is my note about the parent article', 'My Notes')
           .withParentCard(parentUrlCard.cardId)
           .withUrl(parentUrl) // Optional: include the same URL as reference
           .buildOrThrow();
@@ -313,7 +313,7 @@ describe("ATProtoCardPublisher", () => {
         // 3. Publish the note card
         const notePublishResult = await publisher.publishCardToLibrary(
           noteCard,
-          curatorId
+          curatorId,
         );
         expect(notePublishResult.isOk()).toBe(true);
 
@@ -322,18 +322,18 @@ describe("ATProtoCardPublisher", () => {
           publishedCardIds.push(notePublishedRecordId);
 
           console.log(
-            `Published note card with parent reference: ${notePublishedRecordId.getValue().uri}`
+            `Published note card with parent reference: ${notePublishedRecordId.getValue().uri}`,
           );
 
           // Verify the note card has the parent card ID
           expect(noteCard.parentCardId!.equals(parentUrlCard.cardId)).toBe(
-            true
+            true,
           );
 
           // Mark note card as published in library
           noteCard.markCardInLibraryAsPublished(
             curatorId,
-            notePublishedRecordId
+            notePublishedRecordId,
           );
           expect(noteCard.isInLibrary(curatorId)).toBe(true);
 
@@ -342,19 +342,19 @@ describe("ATProtoCardPublisher", () => {
             const noteUnpublishResult =
               await publisher.unpublishCardFromLibrary(
                 notePublishedRecordId,
-                curatorId
+                curatorId,
               );
             expect(noteUnpublishResult.isOk()).toBe(true);
 
-            console.log("Successfully unpublished note card");
+            console.log('Successfully unpublished note card');
 
             // Remove from cleanup list since we've already unpublished it
             publishedCardIds = publishedCardIds.filter(
-              (id) => id !== notePublishedRecordId
+              (id) => id !== notePublishedRecordId,
             );
           } else {
             console.log(
-              "Skipping note card unpublish: UNPUBLISH is set to false"
+              'Skipping note card unpublish: UNPUBLISH is set to false',
             );
           }
         }
@@ -364,52 +364,52 @@ describe("ATProtoCardPublisher", () => {
           const parentUnpublishResult =
             await publisher.unpublishCardFromLibrary(
               parentPublishedRecordId,
-              curatorId
+              curatorId,
             );
           expect(parentUnpublishResult.isOk()).toBe(true);
 
-          console.log("Successfully unpublished parent URL card");
+          console.log('Successfully unpublished parent URL card');
 
           // Remove from cleanup list since we've already unpublished it
           publishedCardIds = publishedCardIds.filter(
-            (id) => id !== parentPublishedRecordId
+            (id) => id !== parentPublishedRecordId,
           );
         } else {
           console.log(
-            "Skipping parent card unpublish: UNPUBLISH is set to false"
+            'Skipping parent card unpublish: UNPUBLISH is set to false',
           );
         }
       }
     }, 20000);
   });
 
-  describe("Card with Original Published Record ID", () => {
-    it("should publish a card that references an original published record", async () => {
+  describe('Card with Original Published Record ID', () => {
+    it('should publish a card that references an original published record', async () => {
       // Skip test if credentials are not available
       if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
-        console.warn("Skipping test: BSKY credentials not found in .env.test");
+        console.warn('Skipping test: BSKY credentials not found in .env.test');
         return;
       }
 
       const testUrl = URL.create(
-        "https://example.com/original-article"
+        'https://example.com/original-article',
       ).unwrap();
 
       // Create URL metadata
       const metadata = UrlMetadata.create({
         url: testUrl.value,
-        title: "Original Article",
-        description: "An original article that will be referenced",
-        author: "Original Author",
-        siteName: "Example.com",
-        type: "article",
+        title: 'Original Article',
+        description: 'An original article that will be referenced',
+        author: 'Original Author',
+        siteName: 'Example.com',
+        type: 'article',
         retrievedAt: new Date(),
       }).unwrap();
 
       // Create a card with an original published record ID (simulating a card that references another published card)
       const originalRecordId = {
-        uri: "at://did:plc:example/network.cosmik.card/original123",
-        cid: "bafyoriginal123",
+        uri: 'at://did:plc:example/network.cosmik.card/original123',
+        cid: 'bafyoriginal123',
       };
 
       const cardWithOriginal = new CardBuilder()
@@ -425,7 +425,7 @@ describe("ATProtoCardPublisher", () => {
       // 1. Publish the card
       const publishResult = await publisher.publishCardToLibrary(
         cardWithOriginal,
-        curatorId
+        curatorId,
       );
       expect(publishResult.isOk()).toBe(true);
 
@@ -434,22 +434,22 @@ describe("ATProtoCardPublisher", () => {
         publishedCardIds.push(publishedRecordId);
 
         console.log(
-          `Published card with original record ID: ${publishedRecordId.getValue().uri}`
+          `Published card with original record ID: ${publishedRecordId.getValue().uri}`,
         );
 
         // Verify the card has the original published record ID
         expect(cardWithOriginal.originalPublishedRecordId).toBeDefined();
         expect(cardWithOriginal.originalPublishedRecordId!.getValue().uri).toBe(
-          originalRecordId.uri
+          originalRecordId.uri,
         );
         expect(cardWithOriginal.originalPublishedRecordId!.getValue().cid).toBe(
-          originalRecordId.cid
+          originalRecordId.cid,
         );
 
         // Mark card as published in library
         cardWithOriginal.markCardInLibraryAsPublished(
           curatorId,
-          publishedRecordId
+          publishedRecordId,
         );
         expect(cardWithOriginal.isInLibrary(curatorId)).toBe(true);
 
@@ -457,37 +457,37 @@ describe("ATProtoCardPublisher", () => {
         if (UNPUBLISH) {
           const unpublishResult = await publisher.unpublishCardFromLibrary(
             publishedRecordId,
-            curatorId
+            curatorId,
           );
           expect(unpublishResult.isOk()).toBe(true);
 
-          console.log("Successfully unpublished card with original record ID");
+          console.log('Successfully unpublished card with original record ID');
 
           // Remove from cleanup list since we've already unpublished it
           publishedCardIds = publishedCardIds.filter(
-            (id) => id !== publishedRecordId
+            (id) => id !== publishedRecordId,
           );
         } else {
-          console.log("Skipping unpublish: UNPUBLISH is set to false");
+          console.log('Skipping unpublish: UNPUBLISH is set to false');
         }
       }
     }, 15000);
   });
 
-  describe("Error Handling", () => {
-    it("should handle authentication errors gracefully", async () => {
+  describe('Error Handling', () => {
+    it('should handle authentication errors gracefully', async () => {
       // Create a publisher with invalid credentials
       const invalidAgentService = new AppPasswordAgentService({
-        did: "did:plc:invalid",
-        password: "invalid-password",
+        did: 'did:plc:invalid',
+        password: 'invalid-password',
       });
 
       const invalidPublisher = new ATProtoCardPublisher(invalidAgentService);
 
-      const invalidCuratorId = CuratorId.create("did:plc:invalid").unwrap();
+      const invalidCuratorId = CuratorId.create('did:plc:invalid').unwrap();
       const testCard = new CardBuilder()
-        .withCuratorId("did:plc:invalid")
-        .withNoteCard("Test note")
+        .withCuratorId('did:plc:invalid')
+        .withNoteCard('Test note')
         .buildOrThrow();
 
       // Add card to curator's library first
@@ -495,7 +495,7 @@ describe("ATProtoCardPublisher", () => {
 
       const result = await invalidPublisher.publishCardToLibrary(
         testCard,
-        invalidCuratorId
+        invalidCuratorId,
       );
       expect(result.isErr()).toBe(true);
 
@@ -504,21 +504,21 @@ describe("ATProtoCardPublisher", () => {
       }
     }, 10000);
 
-    it("should handle invalid record IDs for unpublishing", async () => {
+    it('should handle invalid record IDs for unpublishing', async () => {
       // Skip test if credentials are not available
       if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
-        console.warn("Skipping test: BSKY credentials not found in .env.test");
+        console.warn('Skipping test: BSKY credentials not found in .env.test');
         return;
       }
 
       const invalidRecordId = PublishedRecordId.create({
-        uri: "at://did:plc:invalid/network.cosmik.card/invalid",
-        cid: "bafyinvalid",
+        uri: 'at://did:plc:invalid/network.cosmik.card/invalid',
+        cid: 'bafyinvalid',
       });
 
       const result = await publisher.unpublishCardFromLibrary(
         invalidRecordId,
-        curatorId
+        curatorId,
       );
       expect(result.isErr()).toBe(true);
     }, 10000);

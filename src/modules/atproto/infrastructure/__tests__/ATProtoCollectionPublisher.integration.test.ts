@@ -1,23 +1,23 @@
-import { ATProtoCollectionPublisher } from "../publishers/ATProtoCollectionPublisher";
-import { FakeCardPublisher } from "src/modules/cards/tests/utils/FakeCardPublisher";
-import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
-import { CollectionBuilder } from "src/modules/cards/tests/utils/builders/CollectionBuilder";
-import { CardBuilder } from "src/modules/cards/tests/utils/builders/CardBuilder";
+import { ATProtoCollectionPublisher } from '../publishers/ATProtoCollectionPublisher';
+import { FakeCardPublisher } from 'src/modules/cards/tests/utils/FakeCardPublisher';
+import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
+import { CollectionBuilder } from 'src/modules/cards/tests/utils/builders/CollectionBuilder';
+import { CardBuilder } from 'src/modules/cards/tests/utils/builders/CardBuilder';
 import {
   Collection,
   CollectionAccessType,
-} from "src/modules/cards/domain/Collection";
-import { Card } from "src/modules/cards/domain/Card";
-import { URL } from "src/modules/cards/domain/value-objects/URL";
-import { UrlMetadata } from "src/modules/cards/domain/value-objects/UrlMetadata";
-import { CuratorId } from "src/modules/cards/domain/value-objects/CuratorId";
-import dotenv from "dotenv";
-import { AppPasswordAgentService } from "./AppPasswordAgentService";
+} from 'src/modules/cards/domain/Collection';
+import { Card } from 'src/modules/cards/domain/Card';
+import { URL } from 'src/modules/cards/domain/value-objects/URL';
+import { UrlMetadata } from 'src/modules/cards/domain/value-objects/UrlMetadata';
+import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
+import dotenv from 'dotenv';
+import { AppPasswordAgentService } from './AppPasswordAgentService';
 
 // Load environment variables from .env.test
-dotenv.config({ path: ".env.test" });
+dotenv.config({ path: '.env.test' });
 
-describe("ATProtoCollectionPublisher", () => {
+describe('ATProtoCollectionPublisher', () => {
   let collectionPublisher: ATProtoCollectionPublisher;
   let cardPublisher: FakeCardPublisher;
   let curatorId: CuratorId;
@@ -27,7 +27,7 @@ describe("ATProtoCollectionPublisher", () => {
   beforeAll(async () => {
     if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
       throw new Error(
-        "BSKY_DID and BSKY_APP_PASSWORD must be set in .env.test"
+        'BSKY_DID and BSKY_APP_PASSWORD must be set in .env.test',
       );
     }
 
@@ -71,19 +71,19 @@ describe("ATProtoCollectionPublisher", () => {
     cardPublisher.clear();
   });
 
-  describe("Collection Publishing", () => {
-    it("should publish and unpublish an empty collection", async () => {
+  describe('Collection Publishing', () => {
+    it('should publish and unpublish an empty collection', async () => {
       // Skip test if credentials are not available
       if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
-        console.warn("Skipping test: BSKY credentials not found in .env.test");
+        console.warn('Skipping test: BSKY credentials not found in .env.test');
         return;
       }
 
       // Create an empty collection
       const collection = new CollectionBuilder()
         .withAuthorId(curatorId.value)
-        .withName("Test Collection")
-        .withDescription("A test collection for publishing")
+        .withName('Test Collection')
+        .withDescription('A test collection for publishing')
         .withAccessType(CollectionAccessType.OPEN)
         .buildOrThrow();
 
@@ -96,7 +96,7 @@ describe("ATProtoCollectionPublisher", () => {
         publishedCollectionIds.push(collectionRecordId);
 
         console.log(
-          `Published empty collection: ${collectionRecordId.getValue().uri}`
+          `Published empty collection: ${collectionRecordId.getValue().uri}`,
         );
 
         // Mark collection as published
@@ -110,7 +110,7 @@ describe("ATProtoCollectionPublisher", () => {
         if (updateResult.isOk()) {
           expect(updateResult.value).toBe(collectionRecordId);
           console.log(
-            `Updated collection: ${collectionRecordId.getValue().uri}`
+            `Updated collection: ${collectionRecordId.getValue().uri}`,
           );
         }
 
@@ -119,28 +119,28 @@ describe("ATProtoCollectionPublisher", () => {
           await collectionPublisher.unpublish(collectionRecordId);
         expect(unpublishResult.isOk()).toBe(true);
 
-        console.log("Successfully unpublished empty collection");
+        console.log('Successfully unpublished empty collection');
 
         // Remove from cleanup list since we've already unpublished it
         publishedCollectionIds = publishedCollectionIds.filter(
-          (id) => id !== collectionRecordId
+          (id) => id !== collectionRecordId,
         );
       }
     }, 15000);
 
-    it("should publish a collection with cards and collection links", async () => {
+    it('should publish a collection with cards and collection links', async () => {
       // Skip test if credentials are not available
       if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
-        console.warn("Skipping test: BSKY credentials not found in .env.test");
+        console.warn('Skipping test: BSKY credentials not found in .env.test');
         return;
       }
 
       // 1. Create and publish some cards first
-      const testUrl1 = URL.create("https://example.com/article1").unwrap();
+      const testUrl1 = URL.create('https://example.com/article1').unwrap();
       const metadata1 = UrlMetadata.create({
         url: testUrl1.value,
-        title: "Test Article 1",
-        description: "First test article",
+        title: 'Test Article 1',
+        description: 'First test article',
         retrievedAt: new Date(),
       }).unwrap();
 
@@ -149,16 +149,16 @@ describe("ATProtoCollectionPublisher", () => {
         .withUrlCard(testUrl1, metadata1)
         .withUrl(testUrl1)
         .withOriginalPublishedRecordId({
-          uri: "at://did:plc:original/network.cosmik.card/original1",
-          cid: "bafyoriginal1",
+          uri: 'at://did:plc:original/network.cosmik.card/original1',
+          cid: 'bafyoriginal1',
         })
         .buildOrThrow();
 
-      const testUrl2 = URL.create("https://example.com/article2").unwrap();
+      const testUrl2 = URL.create('https://example.com/article2').unwrap();
       const metadata2 = UrlMetadata.create({
         url: testUrl2.value,
-        title: "Test Article 2",
-        description: "Second test article",
+        title: 'Test Article 2',
+        description: 'Second test article',
         retrievedAt: new Date(),
       }).unwrap();
 
@@ -167,8 +167,8 @@ describe("ATProtoCollectionPublisher", () => {
         .withUrlCard(testUrl2, metadata2)
         .withUrl(testUrl2)
         .withOriginalPublishedRecordId({
-          uri: "at://did:plc:original/network.cosmik.card/original2",
-          cid: "bafyoriginal2",
+          uri: 'at://did:plc:original/network.cosmik.card/original2',
+          cid: 'bafyoriginal2',
         })
         .buildOrThrow();
 
@@ -178,7 +178,7 @@ describe("ATProtoCollectionPublisher", () => {
 
       const card1PublishResult = await cardPublisher.publishCardToLibrary(
         card1,
-        curatorId
+        curatorId,
       );
       expect(card1PublishResult.isOk()).toBe(true);
       const card1RecordId = card1PublishResult.unwrap();
@@ -186,21 +186,21 @@ describe("ATProtoCollectionPublisher", () => {
 
       const card2PublishResult = await cardPublisher.publishCardToLibrary(
         card2,
-        curatorId
+        curatorId,
       );
       expect(card2PublishResult.isOk()).toBe(true);
       const card2RecordId = card2PublishResult.unwrap();
       card2.markCardInLibraryAsPublished(curatorId, card2RecordId);
 
       console.log(
-        `Published cards: ${card1RecordId.getValue().uri}, ${card2RecordId.getValue().uri}`
+        `Published cards: ${card1RecordId.getValue().uri}, ${card2RecordId.getValue().uri}`,
       );
 
       // 2. Create a collection and add the cards
       const collection = new CollectionBuilder()
         .withAuthorId(curatorId.value)
-        .withName("Test Collection with Cards")
-        .withDescription("A collection containing test cards")
+        .withName('Test Collection with Cards')
+        .withDescription('A collection containing test cards')
         .withAccessType(CollectionAccessType.OPEN)
         .buildOrThrow();
 
@@ -220,7 +220,7 @@ describe("ATProtoCollectionPublisher", () => {
         publishedCollectionIds.push(collectionRecordId);
 
         console.log(
-          `Published collection: ${collectionRecordId.getValue().uri}`
+          `Published collection: ${collectionRecordId.getValue().uri}`,
         );
 
         // Mark collection as published
@@ -231,7 +231,7 @@ describe("ATProtoCollectionPublisher", () => {
           await collectionPublisher.publishCardAddedToCollection(
             card1,
             collection,
-            curatorId
+            curatorId,
           );
         expect(link1PublishResult.isOk()).toBe(true);
         const link1RecordId = link1PublishResult.unwrap();
@@ -242,7 +242,7 @@ describe("ATProtoCollectionPublisher", () => {
           await collectionPublisher.publishCardAddedToCollection(
             card2,
             collection,
-            curatorId
+            curatorId,
           );
         expect(link2PublishResult.isOk()).toBe(true);
         const link2RecordId = link2PublishResult.unwrap();
@@ -250,15 +250,15 @@ describe("ATProtoCollectionPublisher", () => {
         collection.markCardLinkAsPublished(card2.cardId, link2RecordId);
 
         console.log(
-          `Published card links: ${link1RecordId.getValue().uri}, ${link2RecordId.getValue().uri}`
+          `Published card links: ${link1RecordId.getValue().uri}, ${link2RecordId.getValue().uri}`,
         );
 
         // 5. Test adding another card to the existing collection
-        const testUrl3 = URL.create("https://example.com/article3").unwrap();
+        const testUrl3 = URL.create('https://example.com/article3').unwrap();
         const metadata3 = UrlMetadata.create({
           url: testUrl3.value,
-          title: "Test Article 3",
-          description: "Third test article",
+          title: 'Test Article 3',
+          description: 'Third test article',
           retrievedAt: new Date(),
         }).unwrap();
 
@@ -267,15 +267,15 @@ describe("ATProtoCollectionPublisher", () => {
           .withUrlCard(testUrl3, metadata3)
           .withUrl(testUrl3)
           .withOriginalPublishedRecordId({
-            uri: "at://did:plc:original/network.cosmik.card/original3",
-            cid: "bafyoriginal3",
+            uri: 'at://did:plc:original/network.cosmik.card/original3',
+            cid: 'bafyoriginal3',
           })
           .buildOrThrow();
 
         card3.addToLibrary(curatorId);
         const card3PublishResult = await cardPublisher.publishCardToLibrary(
           card3,
-          curatorId
+          curatorId,
         );
         expect(card3PublishResult.isOk()).toBe(true);
         const card3RecordId = card3PublishResult.unwrap();
@@ -290,14 +290,14 @@ describe("ATProtoCollectionPublisher", () => {
           await collectionPublisher.publishCardAddedToCollection(
             card3,
             collection,
-            curatorId
+            curatorId,
           );
         expect(link3PublishResult.isOk()).toBe(true);
         const link3RecordId = link3PublishResult.unwrap();
         publishedLinkIds.push(link3RecordId);
 
         console.log(
-          `Published additional card link for card 3: ${link3RecordId.getValue().uri}`
+          `Published additional card link for card 3: ${link3RecordId.getValue().uri}`,
         );
 
         // 6. Unpublish the collection
@@ -305,31 +305,31 @@ describe("ATProtoCollectionPublisher", () => {
           await collectionPublisher.unpublish(collectionRecordId);
         expect(unpublishResult.isOk()).toBe(true);
 
-        console.log("Successfully unpublished collection with cards");
+        console.log('Successfully unpublished collection with cards');
 
         // Remove from cleanup list since we've already unpublished it
         publishedCollectionIds = publishedCollectionIds.filter(
-          (id) => id !== collectionRecordId
+          (id) => id !== collectionRecordId,
         );
       }
     }, 30000);
   });
 
-  describe.skip("Closed Collection Publishing", () => {
-    it("should publish a closed collection with collaborators", async () => {
+  describe.skip('Closed Collection Publishing', () => {
+    it('should publish a closed collection with collaborators', async () => {
       // Skip test if credentials are not available
       if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
-        console.warn("Skipping test: BSKY credentials not found in .env.test");
+        console.warn('Skipping test: BSKY credentials not found in .env.test');
         return;
       }
 
-      const collaboratorDid = "did:plc:collaborator123"; // Mock collaborator
+      const collaboratorDid = 'did:plc:collaborator123'; // Mock collaborator
 
       // Create a closed collection with collaborators
       const collection = new CollectionBuilder()
         .withAuthorId(curatorId.value)
-        .withName("Closed Test Collection")
-        .withDescription("A closed collection for testing")
+        .withName('Closed Test Collection')
+        .withDescription('A closed collection for testing')
         .withAccessType(CollectionAccessType.CLOSED)
         .withCollaborators([collaboratorDid])
         .buildOrThrow();
@@ -343,7 +343,7 @@ describe("ATProtoCollectionPublisher", () => {
         publishedCollectionIds.push(collectionRecordId);
 
         console.log(
-          `Published closed collection: ${collectionRecordId.getValue().uri}`
+          `Published closed collection: ${collectionRecordId.getValue().uri}`,
         );
 
         // Mark collection as published
@@ -359,31 +359,31 @@ describe("ATProtoCollectionPublisher", () => {
           await collectionPublisher.unpublish(collectionRecordId);
         expect(unpublishResult.isOk()).toBe(true);
 
-        console.log("Successfully unpublished closed collection");
+        console.log('Successfully unpublished closed collection');
 
         // Remove from cleanup list since we've already unpublished it
         publishedCollectionIds = publishedCollectionIds.filter(
-          (id) => id !== collectionRecordId
+          (id) => id !== collectionRecordId,
         );
       }
     }, 15000);
   });
 
-  describe("Error Handling", () => {
-    it("should handle authentication errors gracefully", async () => {
+  describe('Error Handling', () => {
+    it('should handle authentication errors gracefully', async () => {
       // Create a publisher with invalid credentials
       const invalidAgentService = new AppPasswordAgentService({
-        did: "did:plc:invalid",
-        password: "invalid-password",
+        did: 'did:plc:invalid',
+        password: 'invalid-password',
       });
 
       const invalidPublisher = new ATProtoCollectionPublisher(
-        invalidAgentService
+        invalidAgentService,
       );
 
       const testCollection = new CollectionBuilder()
-        .withAuthorId("did:plc:invalid")
-        .withName("Test Collection")
+        .withAuthorId('did:plc:invalid')
+        .withName('Test Collection')
         .withAccessType(CollectionAccessType.OPEN)
         .buildOrThrow();
 
@@ -395,46 +395,46 @@ describe("ATProtoCollectionPublisher", () => {
       }
     }, 10000);
 
-    it("should handle invalid record IDs for unpublishing", async () => {
+    it('should handle invalid record IDs for unpublishing', async () => {
       // Skip test if credentials are not available
       if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
-        console.warn("Skipping test: BSKY credentials not found in .env.test");
+        console.warn('Skipping test: BSKY credentials not found in .env.test');
         return;
       }
 
       const invalidRecordId = PublishedRecordId.create({
-        uri: "at://did:plc:invalid/network.cosmik.collection/invalid",
-        cid: "bafyinvalid",
+        uri: 'at://did:plc:invalid/network.cosmik.collection/invalid',
+        cid: 'bafyinvalid',
       });
 
       const result = await collectionPublisher.unpublish(invalidRecordId);
       expect(result.isErr()).toBe(true);
     }, 10000);
 
-    it("should handle collections with unpublished cards gracefully", async () => {
+    it('should handle collections with unpublished cards gracefully', async () => {
       // Skip test if credentials are not available
       if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
-        console.warn("Skipping test: BSKY credentials not found in .env.test");
+        console.warn('Skipping test: BSKY credentials not found in .env.test');
         return;
       }
 
       // Create a collection
       const collection = new CollectionBuilder()
         .withAuthorId(curatorId.value)
-        .withName("Collection with Unpublished Card")
+        .withName('Collection with Unpublished Card')
         .withAccessType(CollectionAccessType.OPEN)
         .buildOrThrow();
 
       // Create an unpublished card
       const unpublishedCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard("Unpublished note")
+        .withNoteCard('Unpublished note')
         .buildOrThrow();
 
       // Add unpublished card to collection
       const addCardResult = collection.addCard(
         unpublishedCard.cardId,
-        curatorId
+        curatorId,
       );
       expect(addCardResult.isOk()).toBe(true);
 
@@ -447,7 +447,7 @@ describe("ATProtoCollectionPublisher", () => {
         publishedCollectionIds.push(collectionRecordId);
 
         console.log(
-          `Published collection: ${collectionRecordId.getValue().uri}`
+          `Published collection: ${collectionRecordId.getValue().uri}`,
         );
 
         collection.markAsPublished(collectionRecordId);
@@ -457,13 +457,13 @@ describe("ATProtoCollectionPublisher", () => {
           await collectionPublisher.publishCardAddedToCollection(
             unpublishedCard,
             collection,
-            curatorId
+            curatorId,
           );
         expect(linkPublishResult.isErr()).toBe(true);
 
         if (linkPublishResult.isErr()) {
           expect(linkPublishResult.error.message).toMatch(
-            /published in curator's library/i
+            /published in curator's library/i,
           );
         }
 
@@ -472,7 +472,7 @@ describe("ATProtoCollectionPublisher", () => {
           await collectionPublisher.unpublish(collectionRecordId);
         expect(unpublishResult.isOk()).toBe(true);
         publishedCollectionIds = publishedCollectionIds.filter(
-          (id) => id !== collectionRecordId
+          (id) => id !== collectionRecordId,
         );
       }
     }, 15000);

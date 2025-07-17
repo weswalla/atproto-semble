@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { getAccessToken } from "@/services/auth";
-import { ApiClient } from "@/api-client/ApiClient";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { getAccessToken } from '@/services/auth';
+import { ApiClient } from '@/api-client/ApiClient';
 import {
   Box,
   Stack,
@@ -14,23 +14,23 @@ import {
   Textarea,
   Button,
   Group,
-} from "@mantine/core";
-import { useForm } from "@mantine/form";
+} from '@mantine/core';
+import { useForm } from '@mantine/form';
 
 export default function AddCardPage() {
   const form = useForm({
     initialValues: {
-      url: "",
-      note: "",
+      url: '',
+      note: '',
     },
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const router = useRouter();
 
   // Create API client instance
   const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     () => getAccessToken(),
   );
 
@@ -38,7 +38,7 @@ export default function AddCardPage() {
     e.preventDefault();
 
     if (!form.getValues().url.trim()) {
-      setError("URL is required");
+      setError('URL is required');
       return;
     }
 
@@ -46,12 +46,12 @@ export default function AddCardPage() {
     try {
       new URL(form.getValues().url);
     } catch {
-      setError("Please enter a valid URL");
+      setError('Please enter a valid URL');
       return;
     }
 
     setLoading(true);
-    setError("");
+    setError('');
 
     try {
       await apiClient.addUrlToLibrary({
@@ -60,10 +60,10 @@ export default function AddCardPage() {
       });
 
       // Redirect to dashboard or cards page on success
-      router.push("/library");
+      router.push('/library');
     } catch (error: any) {
-      console.error("Error adding card:", error);
-      setError(error.message || "Failed to add card. Please try again.");
+      console.error('Error adding card:', error);
+      setError(error.message || 'Failed to add card. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -74,7 +74,7 @@ export default function AddCardPage() {
       <Stack>
         <Stack gap={0}>
           <Title order={1}>Add Card</Title>
-          <Text c={"gray"}>
+          <Text c={'gray'}>
             Add a URL to your library with an optional note.
           </Text>
         </Stack>
@@ -94,8 +94,8 @@ export default function AddCardPage() {
                       placeholder="https://example.com"
                       disabled={loading}
                       required
-                      key={form.key("url")}
-                      {...form.getInputProps("url")}
+                      key={form.key('url')}
+                      {...form.getInputProps('url')}
                     />
 
                     <Textarea
@@ -104,16 +104,16 @@ export default function AddCardPage() {
                       placeholder="Add a note about this URL..."
                       disabled={loading}
                       rows={3}
-                      key={form.key("note")}
-                      {...form.getInputProps("note")}
+                      key={form.key('note')}
+                      {...form.getInputProps('note')}
                     />
                   </Stack>
 
-                  {error && <Text c={"red"}>{error}</Text>}
+                  {error && <Text c={'red'}>{error}</Text>}
 
                   <Group>
                     <Button type="submit" loading={loading}>
-                      {loading ? "Adding..." : "Add Card"}
+                      {loading ? 'Adding...' : 'Add Card'}
                     </Button>
                     <Button
                       type="button"

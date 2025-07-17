@@ -1,14 +1,14 @@
-import { CollectionId } from "src/modules/cards/domain/value-objects/CollectionId";
-import { err, ok, Result } from "src/shared/core/Result";
-import { UseCase } from "src/shared/core/UseCase";
+import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
+import { err, ok, Result } from 'src/shared/core/Result';
+import { UseCase } from 'src/shared/core/UseCase';
 import {
   ICardQueryRepository,
   CardSortField,
   SortOrder,
   UrlCardView,
-} from "../../../domain/ICardQueryRepository";
-import { ICollectionRepository } from "../../../domain/ICollectionRepository";
-import { IProfileService } from "../../../domain/services/IProfileService";
+} from '../../../domain/ICardQueryRepository';
+import { ICollectionRepository } from '../../../domain/ICollectionRepository';
+import { IProfileService } from '../../../domain/services/IProfileService';
 
 export interface GetCollectionPageQuery {
   collectionId: string;
@@ -46,14 +46,14 @@ export interface GetCollectionPageResult {
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "ValidationError";
+    this.name = 'ValidationError';
   }
 }
 
 export class CollectionNotFoundError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "CollectionNotFoundError";
+    this.name = 'CollectionNotFoundError';
   }
 }
 
@@ -63,11 +63,11 @@ export class GetCollectionPageUseCase
   constructor(
     private collectionRepo: ICollectionRepository,
     private cardQueryRepo: ICardQueryRepository,
-    private profileService: IProfileService
+    private profileService: IProfileService,
   ) {}
 
   async execute(
-    query: GetCollectionPageQuery
+    query: GetCollectionPageQuery,
   ): Promise<Result<GetCollectionPageResult>> {
     // Set defaults
     const page = query.page || 1;
@@ -77,41 +77,41 @@ export class GetCollectionPageUseCase
 
     // Validate collection ID
     const collectionIdResult = CollectionId.createFromString(
-      query.collectionId
+      query.collectionId,
     );
     if (collectionIdResult.isErr()) {
-      return err(new ValidationError("Invalid collection ID"));
+      return err(new ValidationError('Invalid collection ID'));
     }
 
     try {
       // Get the collection
       const collectionResult = await this.collectionRepo.findById(
-        collectionIdResult.value
+        collectionIdResult.value,
       );
 
       if (collectionResult.isErr()) {
         return err(
           new Error(
-            `Failed to fetch collection: ${collectionResult.error instanceof Error ? collectionResult.error.message : "Unknown error"}`
-          )
+            `Failed to fetch collection: ${collectionResult.error instanceof Error ? collectionResult.error.message : 'Unknown error'}`,
+          ),
         );
       }
 
       const collection = collectionResult.value;
       if (!collection) {
-        return err(new CollectionNotFoundError("Collection not found"));
+        return err(new CollectionNotFoundError('Collection not found'));
       }
 
       // Get author profile
       const profileResult = await this.profileService.getProfile(
-        collection.authorId.value
+        collection.authorId.value,
       );
 
       if (profileResult.isErr()) {
         return err(
           new Error(
-            `Failed to fetch author profile: ${profileResult.error instanceof Error ? profileResult.error.message : "Unknown error"}`
-          )
+            `Failed to fetch author profile: ${profileResult.error instanceof Error ? profileResult.error.message : 'Unknown error'}`,
+          ),
         );
       }
 
@@ -125,7 +125,7 @@ export class GetCollectionPageUseCase
           limit,
           sortBy,
           sortOrder,
-        }
+        },
       );
 
       // Transform raw card data to enriched DTOs
@@ -157,8 +157,8 @@ export class GetCollectionPageUseCase
     } catch (error) {
       return err(
         new Error(
-          `Failed to retrieve collection page: ${error instanceof Error ? error.message : "Unknown error"}`
-        )
+          `Failed to retrieve collection page: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
       );
     }
   }

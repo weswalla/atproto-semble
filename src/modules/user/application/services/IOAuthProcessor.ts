@@ -1,5 +1,5 @@
-import { Result } from "src/shared/core/Result";
-import { OAuthCallbackDTO } from "../dtos/OAuthCallbackDTO";
+import { Result } from 'src/shared/core/Result';
+import { OAuthCallbackDTO } from '../dtos/OAuthCallbackDTO';
 
 export interface AuthResult {
   did: string;

@@ -1,10 +1,10 @@
-import { ValueObject } from "../../../../shared/domain/ValueObject";
-import { Result, ok, err } from "../../../../shared/core/Result";
+import { ValueObject } from '../../../../shared/domain/ValueObject';
+import { Result, ok, err } from '../../../../shared/core/Result';
 
 export class InvalidCollectionNameError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "InvalidCollectionNameError";
+    this.name = 'InvalidCollectionNameError';
   }
 }
 
@@ -23,15 +23,23 @@ export class CollectionName extends ValueObject<CollectionNameProps> {
     super(props);
   }
 
-  public static create(name: string): Result<CollectionName, InvalidCollectionNameError> {
+  public static create(
+    name: string,
+  ): Result<CollectionName, InvalidCollectionNameError> {
     if (!name || name.trim().length === 0) {
-      return err(new InvalidCollectionNameError("Collection name cannot be empty"));
+      return err(
+        new InvalidCollectionNameError('Collection name cannot be empty'),
+      );
     }
 
     const trimmedName = name.trim();
 
     if (trimmedName.length > this.MAX_LENGTH) {
-      return err(new InvalidCollectionNameError(`Collection name cannot exceed ${this.MAX_LENGTH} characters`));
+      return err(
+        new InvalidCollectionNameError(
+          `Collection name cannot exceed ${this.MAX_LENGTH} characters`,
+        ),
+      );
     }
 
     return ok(new CollectionName({ value: trimmedName }));

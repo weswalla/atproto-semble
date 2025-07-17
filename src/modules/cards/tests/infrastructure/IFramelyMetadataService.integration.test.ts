@@ -1,40 +1,40 @@
-import { IFramelyMetadataService } from "../../infrastructure/IFramelyMetadataService";
-import { URL } from "../../domain/value-objects/URL";
+import { IFramelyMetadataService } from '../../infrastructure/IFramelyMetadataService';
+import { URL } from '../../domain/value-objects/URL';
 
-describe("IFramelyMetadataService Integration Tests", () => {
+describe('IFramelyMetadataService Integration Tests', () => {
   let service: IFramelyMetadataService;
-  const testApiKey = process.env.IFRAMELY_API_KEY || "test-api-key";
+  const testApiKey = process.env.IFRAMELY_API_KEY || 'test-api-key';
 
   beforeEach(() => {
     service = new IFramelyMetadataService(testApiKey);
   });
 
-  describe("constructor", () => {
-    it("should throw error if API key is not provided", () => {
-      expect(() => new IFramelyMetadataService("")).toThrow(
-        "Iframely API key is required"
+  describe('constructor', () => {
+    it('should throw error if API key is not provided', () => {
+      expect(() => new IFramelyMetadataService('')).toThrow(
+        'Iframely API key is required',
       );
     });
 
-    it("should throw error if API key is whitespace", () => {
-      expect(() => new IFramelyMetadataService("   ")).toThrow(
-        "Iframely API key is required"
+    it('should throw error if API key is whitespace', () => {
+      expect(() => new IFramelyMetadataService('   ')).toThrow(
+        'Iframely API key is required',
       );
     });
   });
 
-  describe("fetchMetadata", () => {
-    it("should fetch metadata for a YouTube video", async () => {
+  describe('fetchMetadata', () => {
+    it('should fetch metadata for a YouTube video', async () => {
       // Skip if no API key is provided
-      if (testApiKey === "test-api-key") {
+      if (testApiKey === 'test-api-key') {
         console.log(
-          "Skipping test - no IFRAMELY_API_KEY environment variable set"
+          'Skipping test - no IFRAMELY_API_KEY environment variable set',
         );
         return;
       }
 
       // Arrange
-      const youtubeUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+      const youtubeUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
       const urlResult = URL.create(youtubeUrl);
       expect(urlResult.isOk()).toBe(true);
       const url = urlResult.unwrap();
@@ -54,23 +54,23 @@ describe("IFramelyMetadataService Integration Tests", () => {
 
         // Content checks - YouTube videos should have these fields
         expect(metadata.title).toBeDefined();
-        expect(metadata.title).not.toBe("");
+        expect(metadata.title).not.toBe('');
 
         expect(metadata.description).toBeDefined();
-        expect(metadata.description).not.toBe("");
+        expect(metadata.description).not.toBe('');
 
         // YouTube specific checks
-        expect(metadata.siteName).toBe("YouTube");
-        expect(metadata.type).toBe("video");
+        expect(metadata.siteName).toBe('YouTube');
+        expect(metadata.type).toBe('video');
 
         // Should have thumbnail image
         expect(metadata.imageUrl).toBeDefined();
         expect(metadata.imageUrl).toMatch(/^https?:\/\//);
 
-        console.log("Fetched YouTube metadata:", {
+        console.log('Fetched YouTube metadata:', {
           title: metadata.title,
           author: metadata.author,
-          description: metadata.description?.substring(0, 100) + "...",
+          description: metadata.description?.substring(0, 100) + '...',
           type: metadata.type,
           siteName: metadata.siteName,
           imageUrl: metadata.imageUrl,
@@ -79,17 +79,17 @@ describe("IFramelyMetadataService Integration Tests", () => {
       }
     }, 15000); // 15 second timeout for network request
 
-    it("should fetch metadata for a news article", async () => {
+    it('should fetch metadata for a news article', async () => {
       // Skip if no API key is provided
-      if (testApiKey === "test-api-key") {
+      if (testApiKey === 'test-api-key') {
         console.log(
-          "Skipping test - no IFRAMELY_API_KEY environment variable set"
+          'Skipping test - no IFRAMELY_API_KEY environment variable set',
         );
         return;
       }
 
       // Arrange
-      const newsUrl = "https://www.bbc.com/news";
+      const newsUrl = 'https://www.bbc.com/news';
       const urlResult = URL.create(newsUrl);
       expect(urlResult.isOk()).toBe(true);
       const url = urlResult.unwrap();
@@ -105,28 +105,28 @@ describe("IFramelyMetadataService Integration Tests", () => {
         expect(metadata.title).toBeDefined();
         expect(metadata.siteName).toBeDefined();
 
-        console.log("Fetched news metadata:", {
+        console.log('Fetched news metadata:', {
           title: metadata.title,
           siteName: metadata.siteName,
-          description: metadata.description?.substring(0, 100) + "...",
+          description: metadata.description?.substring(0, 100) + '...',
         });
       } else {
         // Some news sites might block automated requests
-        console.log("News site blocked request:", result.error.message);
+        console.log('News site blocked request:', result.error.message);
       }
     }, 15000);
 
-    it("should handle invalid URLs gracefully", async () => {
+    it('should handle invalid URLs gracefully', async () => {
       // Skip if no API key is provided
-      if (testApiKey === "test-api-key") {
+      if (testApiKey === 'test-api-key') {
         console.log(
-          "Skipping test - no IFRAMELY_API_KEY environment variable set"
+          'Skipping test - no IFRAMELY_API_KEY environment variable set',
         );
         return;
       }
 
       // Arrange
-      const invalidUrl = "https://this-domain-should-not-exist-12345.com";
+      const invalidUrl = 'https://this-domain-should-not-exist-12345.com';
       const urlResult = URL.create(invalidUrl);
       expect(urlResult.isOk()).toBe(true);
       const url = urlResult.unwrap();
@@ -141,10 +141,10 @@ describe("IFramelyMetadataService Integration Tests", () => {
       }
     }, 15000);
 
-    it("should handle API errors gracefully", async () => {
+    it('should handle API errors gracefully', async () => {
       // Arrange - use invalid API key
-      const invalidService = new IFramelyMetadataService("invalid-key");
-      const testUrl = "https://example.com";
+      const invalidService = new IFramelyMetadataService('invalid-key');
+      const testUrl = 'https://example.com';
       const urlResult = URL.create(testUrl);
       expect(urlResult.isOk()).toBe(true);
       const url = urlResult.unwrap();
@@ -160,25 +160,25 @@ describe("IFramelyMetadataService Integration Tests", () => {
     }, 10000);
   });
 
-  describe("isAvailable", () => {
-    it("should check if Iframely service is available", async () => {
+  describe('isAvailable', () => {
+    it('should check if Iframely service is available', async () => {
       // Act
       const isAvailable = await service.isAvailable();
 
       // Assert
-      expect(typeof isAvailable).toBe("boolean");
+      expect(typeof isAvailable).toBe('boolean');
 
-      if (testApiKey !== "test-api-key") {
+      if (testApiKey !== 'test-api-key') {
         // With a real API key, service should be available
         expect(isAvailable).toBe(true);
       }
 
-      console.log("Iframely service availability:", isAvailable);
+      console.log('Iframely service availability:', isAvailable);
     }, 10000);
 
-    it("should return available for invalid API key", async () => {
+    it('should return available for invalid API key', async () => {
       // Arrange
-      const invalidService = new IFramelyMetadataService("invalid-key");
+      const invalidService = new IFramelyMetadataService('invalid-key');
 
       // Act
       const isAvailable = await invalidService.isAvailable();
@@ -188,18 +188,18 @@ describe("IFramelyMetadataService Integration Tests", () => {
     }, 10000);
   });
 
-  describe("date parsing", () => {
-    it("should parse publication dates correctly", async () => {
+  describe('date parsing', () => {
+    it('should parse publication dates correctly', async () => {
       // Skip if no API key is provided
-      if (testApiKey === "test-api-key") {
+      if (testApiKey === 'test-api-key') {
         console.log(
-          "Skipping test - no IFRAMELY_API_KEY environment variable set"
+          'Skipping test - no IFRAMELY_API_KEY environment variable set',
         );
         return;
       }
 
       // Arrange - use a URL that typically has a publication date
-      const articleUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+      const articleUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
       const urlResult = URL.create(articleUrl);
       expect(urlResult.isOk()).toBe(true);
       const url = urlResult.unwrap();
@@ -220,37 +220,37 @@ describe("IFramelyMetadataService Integration Tests", () => {
           const twentyYearsAgo = new Date(
             now.getFullYear() - 20,
             now.getMonth(),
-            now.getDate()
+            now.getDate(),
           );
 
           expect(metadata.publishedDate.getTime()).toBeLessThanOrEqual(
-            now.getTime()
+            now.getTime(),
           );
           expect(metadata.publishedDate.getTime()).toBeGreaterThanOrEqual(
-            twentyYearsAgo.getTime()
+            twentyYearsAgo.getTime(),
           );
 
           console.log(
-            "Parsed publication date:",
-            metadata.publishedDate.toISOString()
+            'Parsed publication date:',
+            metadata.publishedDate.toISOString(),
           );
         }
       }
     }, 15000);
   });
 
-  describe("image extraction", () => {
-    it("should extract thumbnail images when available", async () => {
+  describe('image extraction', () => {
+    it('should extract thumbnail images when available', async () => {
       // Skip if no API key is provided
-      if (testApiKey === "test-api-key") {
+      if (testApiKey === 'test-api-key') {
         console.log(
-          "Skipping test - no IFRAMELY_API_KEY environment variable set"
+          'Skipping test - no IFRAMELY_API_KEY environment variable set',
         );
         return;
       }
 
       // Arrange - YouTube videos typically have thumbnails
-      const videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+      const videoUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
       const urlResult = URL.create(videoUrl);
       expect(urlResult.isOk()).toBe(true);
       const url = urlResult.unwrap();
@@ -266,7 +266,7 @@ describe("IFramelyMetadataService Integration Tests", () => {
           expect(metadata.imageUrl).toMatch(/^https?:\/\//);
           expect(metadata.imageUrl).toMatch(/\.(jpg|jpeg|png|webp)/i);
 
-          console.log("Extracted image URL:", metadata.imageUrl);
+          console.log('Extracted image URL:', metadata.imageUrl);
         }
       }
     }, 15000);

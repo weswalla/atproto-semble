@@ -1,11 +1,11 @@
-import { ValueObject } from "../../../../shared/domain/ValueObject";
-import { CardTypeEnum } from "./CardType";
-import { ok, err, Result } from "../../../../shared/core/Result";
-import { UrlMetadata } from "./UrlMetadata";
-import { URL } from "./URL";
-import { UrlCardContent } from "./content/UrlCardContent";
-import { NoteCardContent } from "./content/NoteCardContent";
-import { CuratorId } from "./CuratorId";
+import { ValueObject } from '../../../../shared/domain/ValueObject';
+import { CardTypeEnum } from './CardType';
+import { ok, err, Result } from '../../../../shared/core/Result';
+import { UrlMetadata } from './UrlMetadata';
+import { URL } from './URL';
+import { UrlCardContent } from './content/UrlCardContent';
+import { NoteCardContent } from './content/NoteCardContent';
+import { CuratorId } from './CuratorId';
 
 // Union type for all card content types
 type CardContentUnion = UrlCardContent | NoteCardContent;
@@ -13,7 +13,7 @@ type CardContentUnion = UrlCardContent | NoteCardContent;
 export class CardContentValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "CardContentValidationError";
+    this.name = 'CardContentValidationError';
   }
 }
 
@@ -46,12 +46,12 @@ export class CardContent extends ValueObject<{ content: CardContentUnion }> {
   // Factory methods that delegate to specific content classes
   public static createUrlContent(
     url: URL,
-    metadata?: UrlMetadata
+    metadata?: UrlMetadata,
   ): Result<CardContent, CardContentValidationError> {
     const urlContentResult = UrlCardContent.create(url, metadata);
     if (urlContentResult.isErr()) {
       return err(
-        new CardContentValidationError(urlContentResult.error.message)
+        new CardContentValidationError(urlContentResult.error.message),
       );
     }
     return ok(new CardContent(urlContentResult.value));
@@ -60,14 +60,14 @@ export class CardContent extends ValueObject<{ content: CardContentUnion }> {
   public static createNoteContent(
     text: string,
     title?: string,
-    curatorId?: CuratorId
+    curatorId?: CuratorId,
   ): Result<CardContent, CardContentValidationError> {
     // Use provided curatorId or create a dummy one for backward compatibility
-    const authorId = curatorId || CuratorId.create("did:plc:dummy").unwrap();
+    const authorId = curatorId || CuratorId.create('did:plc:dummy').unwrap();
     const noteContentResult = NoteCardContent.create(authorId, text);
     if (noteContentResult.isErr()) {
       return err(
-        new CardContentValidationError(noteContentResult.error.message)
+        new CardContentValidationError(noteContentResult.error.message),
       );
     }
     return ok(new CardContent(noteContentResult.value));

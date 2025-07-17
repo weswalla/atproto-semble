@@ -1,7 +1,7 @@
-import { IMetadataService } from "../domain/services/IMetadataService";
-import { UrlMetadata } from "../domain/value-objects/UrlMetadata";
-import { URL } from "../domain/value-objects/URL";
-import { Result, ok, err } from "../../../shared/core/Result";
+import { IMetadataService } from '../domain/services/IMetadataService';
+import { UrlMetadata } from '../domain/value-objects/UrlMetadata';
+import { URL } from '../domain/value-objects/URL';
+import { Result, ok, err } from '../../../shared/core/Result';
 
 interface CitoidResponse {
   key?: string;
@@ -29,9 +29,9 @@ interface CitoidErrorResponse {
 
 export class CitoidMetadataService implements IMetadataService {
   private readonly baseUrl =
-    "https://en.wikipedia.org/api/rest_v1/data/citation/zotero/";
+    'https://en.wikipedia.org/api/rest_v1/data/citation/zotero/';
   private readonly headers = {
-    accept: "application/json; charset=utf-8;",
+    accept: 'application/json; charset=utf-8;',
   };
 
   async fetchMetadata(url: URL): Promise<Result<UrlMetadata>> {
@@ -41,35 +41,35 @@ export class CitoidMetadataService implements IMetadataService {
       const fullUrl = this.baseUrl + encodedUrl;
 
       const response = await fetch(fullUrl, {
-        method: "GET",
+        method: 'GET',
         headers: this.headers,
       });
 
       if (!response.ok) {
         return err(
           new Error(
-            `Citoid API request failed with status ${response.status} and message: ${response.statusText}`
-          )
+            `Citoid API request failed with status ${response.status} and message: ${response.statusText}`,
+          ),
         );
       }
 
       const data = (await response.json()) as any;
 
       // Check if the response is an error
-      if (data && typeof data === "object" && "Error" in data) {
+      if (data && typeof data === 'object' && 'Error' in data) {
         const errorResponse = data as CitoidErrorResponse;
         return err(new Error(`Citoid service error: ${errorResponse.Error}`));
       }
 
       // Check if it's an array response
       if (!Array.isArray(data) || data.length === 0) {
-        return err(new Error("No metadata found for the given URL"));
+        return err(new Error('No metadata found for the given URL'));
       }
 
       // Use the first result
       const citoidData = data[0] as CitoidResponse;
       if (!citoidData || !citoidData.itemType) {
-        return err(new Error("Invalid metadata format from Citoid"));
+        return err(new Error('Invalid metadata format from Citoid'));
       }
 
       // Extract author from creators array
@@ -97,8 +97,8 @@ export class CitoidMetadataService implements IMetadataService {
     } catch (error) {
       return err(
         new Error(
-          `Failed to fetch metadata from Citoid: ${error instanceof Error ? error.message : "Unknown error"}`
-        )
+          `Failed to fetch metadata from Citoid: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
       );
     }
   }
@@ -106,9 +106,9 @@ export class CitoidMetadataService implements IMetadataService {
   async isAvailable(): Promise<boolean> {
     try {
       // Test with a simple URL to check if the service is available
-      const testUrl = this.baseUrl + encodeURIComponent("https://example.com");
+      const testUrl = this.baseUrl + encodeURIComponent('https://example.com');
       const response = await fetch(testUrl, {
-        method: "HEAD",
+        method: 'HEAD',
         headers: this.headers,
       });
 
@@ -133,7 +133,7 @@ export class CitoidMetadataService implements IMetadataService {
       return firstName;
     }
 
-    return "";
+    return '';
   }
 
   private parseDate(dateString: string): Date | undefined {

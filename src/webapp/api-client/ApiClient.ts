@@ -1,4 +1,9 @@
-import { QueryClient, CardClient, CollectionClient, UserClient } from './clients';
+import {
+  QueryClient,
+  CardClient,
+  CollectionClient,
+  UserClient,
+} from './clients';
 import type {
   // Request types
   AddUrlToLibraryRequest,
@@ -49,7 +54,7 @@ export class ApiClient {
 
   constructor(
     private baseUrl: string,
-    private getAuthToken: () => string | null
+    private getAuthToken: () => string | null,
   ) {
     this.queryClient = new QueryClient(baseUrl, getAuthToken);
     this.cardClient = new CardClient(baseUrl, getAuthToken);
@@ -62,7 +67,9 @@ export class ApiClient {
     return this.queryClient.getUrlMetadata(url);
   }
 
-  async getMyUrlCards(params?: GetMyUrlCardsParams): Promise<GetMyUrlCardsResponse> {
+  async getMyUrlCards(
+    params?: GetMyUrlCardsParams,
+  ): Promise<GetMyUrlCardsResponse> {
     return this.queryClient.getMyUrlCards(params);
   }
 
@@ -70,7 +77,9 @@ export class ApiClient {
     return this.queryClient.getUrlCardView(cardId);
   }
 
-  async getLibrariesForCard(cardId: string): Promise<GetLibrariesForCardResponse> {
+  async getLibrariesForCard(
+    cardId: string,
+  ): Promise<GetLibrariesForCardResponse> {
     return this.queryClient.getLibrariesForCard(cardId);
   }
 
@@ -78,66 +87,97 @@ export class ApiClient {
     return this.queryClient.getMyProfile();
   }
 
-  async getCollectionPage(collectionId: string, params?: GetCollectionPageParams): Promise<GetCollectionPageResponse> {
+  async getCollectionPage(
+    collectionId: string,
+    params?: GetCollectionPageParams,
+  ): Promise<GetCollectionPageResponse> {
     return this.queryClient.getCollectionPage(collectionId, params);
   }
 
-  async getMyCollections(params?: GetMyCollectionsParams): Promise<GetMyCollectionsResponse> {
+  async getMyCollections(
+    params?: GetMyCollectionsParams,
+  ): Promise<GetMyCollectionsResponse> {
     return this.queryClient.getMyCollections(params);
   }
 
   // Card operations - delegate to CardClient
-  async addUrlToLibrary(request: AddUrlToLibraryRequest): Promise<AddUrlToLibraryResponse> {
+  async addUrlToLibrary(
+    request: AddUrlToLibraryRequest,
+  ): Promise<AddUrlToLibraryResponse> {
     return this.cardClient.addUrlToLibrary(request);
   }
 
-  async addCardToLibrary(request: AddCardToLibraryRequest): Promise<AddCardToLibraryResponse> {
+  async addCardToLibrary(
+    request: AddCardToLibraryRequest,
+  ): Promise<AddCardToLibraryResponse> {
     return this.cardClient.addCardToLibrary(request);
   }
 
-  async addCardToCollection(request: AddCardToCollectionRequest): Promise<AddCardToCollectionResponse> {
+  async addCardToCollection(
+    request: AddCardToCollectionRequest,
+  ): Promise<AddCardToCollectionResponse> {
     return this.cardClient.addCardToCollection(request);
   }
 
-  async updateNoteCard(request: UpdateNoteCardRequest): Promise<UpdateNoteCardResponse> {
+  async updateNoteCard(
+    request: UpdateNoteCardRequest,
+  ): Promise<UpdateNoteCardResponse> {
     return this.cardClient.updateNoteCard(request);
   }
 
-  async removeCardFromLibrary(request: RemoveCardFromLibraryRequest): Promise<RemoveCardFromLibraryResponse> {
+  async removeCardFromLibrary(
+    request: RemoveCardFromLibraryRequest,
+  ): Promise<RemoveCardFromLibraryResponse> {
     return this.cardClient.removeCardFromLibrary(request);
   }
 
-  async removeCardFromCollection(request: RemoveCardFromCollectionRequest): Promise<RemoveCardFromCollectionResponse> {
+  async removeCardFromCollection(
+    request: RemoveCardFromCollectionRequest,
+  ): Promise<RemoveCardFromCollectionResponse> {
     return this.cardClient.removeCardFromCollection(request);
   }
 
   // Collection operations - delegate to CollectionClient
-  async createCollection(request: CreateCollectionRequest): Promise<CreateCollectionResponse> {
+  async createCollection(
+    request: CreateCollectionRequest,
+  ): Promise<CreateCollectionResponse> {
     return this.collectionClient.createCollection(request);
   }
 
-  async updateCollection(request: UpdateCollectionRequest): Promise<UpdateCollectionResponse> {
+  async updateCollection(
+    request: UpdateCollectionRequest,
+  ): Promise<UpdateCollectionResponse> {
     return this.collectionClient.updateCollection(request);
   }
 
-  async deleteCollection(request: DeleteCollectionRequest): Promise<DeleteCollectionResponse> {
+  async deleteCollection(
+    request: DeleteCollectionRequest,
+  ): Promise<DeleteCollectionResponse> {
     return this.collectionClient.deleteCollection(request);
   }
 
   // User operations - delegate to UserClient
-  async loginWithAppPassword(request: LoginWithAppPasswordRequest): Promise<LoginWithAppPasswordResponse> {
+  async loginWithAppPassword(
+    request: LoginWithAppPasswordRequest,
+  ): Promise<LoginWithAppPasswordResponse> {
     return this.userClient.loginWithAppPassword(request);
   }
 
-  async initiateOAuthSignIn(request?: InitiateOAuthSignInRequest): Promise<InitiateOAuthSignInResponse> {
+  async initiateOAuthSignIn(
+    request?: InitiateOAuthSignInRequest,
+  ): Promise<InitiateOAuthSignInResponse> {
     return this.userClient.initiateOAuthSignIn(request);
   }
 
-  async completeOAuthSignIn(request: CompleteOAuthSignInRequest): Promise<CompleteOAuthSignInResponse> {
+  async completeOAuthSignIn(
+    request: CompleteOAuthSignInRequest,
+  ): Promise<CompleteOAuthSignInResponse> {
     return this.userClient.completeOAuthSignIn(request);
   }
 
-  async refreshAccessToken(request: RefreshAccessTokenRequest): Promise<RefreshAccessTokenResponse> {
+  async refreshAccessToken(
+    request: RefreshAccessTokenRequest,
+  ): Promise<RefreshAccessTokenResponse> {
     return this.userClient.refreshAccessToken(request);
   }
 }

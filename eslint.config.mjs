@@ -29,6 +29,7 @@ export default [
         require: 'readonly',
         exports: 'readonly',
         global: 'readonly',
+        fetch: 'readonly',
         // Jest globals
         describe: 'readonly',
         test: 'readonly',
@@ -64,6 +65,7 @@ export default [
         require: 'readonly',
         exports: 'readonly',
         global: 'readonly',
+        fetch: 'readonly',
         // Jest globals
         describe: 'readonly',
         test: 'readonly',

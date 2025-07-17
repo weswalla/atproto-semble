@@ -1,7 +1,7 @@
 import { IMetadataService } from '../domain/services/IMetadataService';
 import { UrlMetadata } from '../domain/value-objects/UrlMetadata';
 import { URL } from '../domain/value-objects/URL';
-import { Result, ok, err } from '../../../shared/core/Result';
+import { Result, err } from '../../../shared/core/Result';
 
 interface IFramelyMeta {
   title?: string;

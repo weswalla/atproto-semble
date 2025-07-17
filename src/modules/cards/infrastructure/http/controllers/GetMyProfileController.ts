@@ -1,7 +1,7 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Response } from "express";
-import { GetMyProfileUseCase } from "../../../application/useCases/queries/GetMyProfileUseCase";
-import { AuthenticatedRequest } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Response } from 'express';
+import { GetMyProfileUseCase } from '../../../application/useCases/queries/GetMyProfileUseCase';
+import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class GetMyProfileController extends Controller {
   constructor(private getMyProfileUseCase: GetMyProfileUseCase) {

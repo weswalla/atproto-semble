@@ -1,19 +1,19 @@
-import { ICollectionPublisher } from "src/modules/cards/application/ports/ICollectionPublisher";
-import { Collection } from "src/modules/cards/domain/Collection";
-import { Card } from "src/modules/cards/domain/Card";
-import { Result, ok, err } from "src/shared/core/Result";
-import { UseCaseError } from "src/shared/core/UseCaseError";
-import { PublishedRecordId } from "src/modules/cards/domain/value-objects/PublishedRecordId";
-import { CuratorId } from "src/modules/cards/domain/value-objects/CuratorId";
-import { CollectionMapper } from "../mappers/CollectionMapper";
-import { CollectionLinkMapper } from "../mappers/CollectionLinkMapper";
-import { StrongRef } from "../../domain";
-import { IAgentService } from "../../application/IAgentService";
-import { DID } from "../../domain/DID";
+import { ICollectionPublisher } from 'src/modules/cards/application/ports/ICollectionPublisher';
+import { Collection } from 'src/modules/cards/domain/Collection';
+import { Card } from 'src/modules/cards/domain/Card';
+import { Result, ok, err } from 'src/shared/core/Result';
+import { UseCaseError } from 'src/shared/core/UseCaseError';
+import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
+import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
+import { CollectionMapper } from '../mappers/CollectionMapper';
+import { CollectionLinkMapper } from '../mappers/CollectionLinkMapper';
+import { StrongRef } from '../../domain';
+import { IAgentService } from '../../application/IAgentService';
+import { DID } from '../../domain/DID';
 
 export class ATProtoCollectionPublisher implements ICollectionPublisher {
-  private readonly COLLECTION_COLLECTION = "network.cosmik.collection";
-  private readonly COLLECTION_LINK_COLLECTION = "network.cosmik.collectionLink";
+  private readonly COLLECTION_COLLECTION = 'network.cosmik.collection';
+  private readonly COLLECTION_LINK_COLLECTION = 'network.cosmik.collectionLink';
 
   constructor(private readonly agentService: IAgentService) {}
 
@@ -21,7 +21,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
    * Publishes a Collection record only (not the card links)
    */
   async publish(
-    collection: Collection
+    collection: Collection,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
       const curatorDid = new DID(collection.authorId.value);
@@ -32,14 +32,14 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
       if (agentResult.isErr()) {
         return err(
-          new Error(`Authentication error: ${agentResult.error.message}`)
+          new Error(`Authentication error: ${agentResult.error.message}`),
         );
       }
 
       const agent = agentResult.value;
 
       if (!agent) {
-        return err(new Error("No authenticated session found for curator"));
+        return err(new Error('No authenticated session found for curator'));
       }
 
       if (collection.publishedRecordId) {
@@ -75,12 +75,12 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
           PublishedRecordId.create({
             uri: createResult.data.uri,
             cid: createResult.data.cid,
-          })
+          }),
         );
       }
     } catch (error) {
       return err(
-        new Error(error instanceof Error ? error.message : String(error))
+        new Error(error instanceof Error ? error.message : String(error)),
       );
     }
   }
@@ -91,7 +91,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
   async publishCardAddedToCollection(
     card: Card,
     collection: Collection,
-    curatorId: CuratorId
+    curatorId: CuratorId,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
       const curatorDid = new DID(curatorId.value);
@@ -102,55 +102,55 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
       if (agentResult.isErr()) {
         return err(
-          new Error(`Authentication error: ${agentResult.error.message}`)
+          new Error(`Authentication error: ${agentResult.error.message}`),
         );
       }
 
       const agent = agentResult.value;
 
       if (!agent) {
-        return err(new Error("No authenticated session found for curator"));
+        return err(new Error('No authenticated session found for curator'));
       }
 
       // Ensure collection is published
       if (!collection.publishedRecordId) {
         return err(
-          new Error("Collection must be published before adding cards")
+          new Error('Collection must be published before adding cards'),
         );
       }
 
       // Get the card's library membership for this curator
       const libraryMembership = card.libraryMemberships.find((membership) =>
-        membership.curatorId.equals(curatorId)
+        membership.curatorId.equals(curatorId),
       );
 
       if (!libraryMembership?.publishedRecordId) {
         return err(
           new Error(
-            "Card must be published in curator's library before adding to collection"
-          )
+            "Card must be published in curator's library before adding to collection",
+          ),
         );
       }
 
       // Get the original published record ID
       if (!card.originalPublishedRecordId) {
-        return err(new Error("Card must have an original published record ID"));
+        return err(new Error('Card must have an original published record ID'));
       }
 
       // Find the card link in the collection
       const cardLink = collection.cardLinks.find((link) =>
-        link.cardId.equals(card.cardId)
+        link.cardId.equals(card.cardId),
       );
 
       if (!cardLink) {
-        return err(new Error("Card is not linked to this collection"));
+        return err(new Error('Card is not linked to this collection'));
       }
 
       const linkRecordDTO = CollectionLinkMapper.toCreateRecordDTO(
         cardLink,
         collection.publishedRecordId.getValue(),
         libraryMembership.publishedRecordId.getValue(),
-        card.originalPublishedRecordId.getValue()
+        card.originalPublishedRecordId.getValue(),
       );
 
       const createResult = await agent.com.atproto.repo.createRecord({
@@ -163,11 +163,11 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         PublishedRecordId.create({
           uri: createResult.data.uri,
           cid: createResult.data.cid,
-        })
+        }),
       );
     } catch (error) {
       return err(
-        new Error(error instanceof Error ? error.message : String(error))
+        new Error(error instanceof Error ? error.message : String(error)),
       );
     }
   }
@@ -176,7 +176,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
    * Unpublishes (deletes) a card-in-collection link
    */
   async unpublishCardAddedToCollection(
-    recordId: PublishedRecordId
+    recordId: PublishedRecordId,
   ): Promise<Result<void, UseCaseError>> {
     try {
       const publishedRecordId = recordId.getValue();
@@ -192,14 +192,14 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
       if (agentResult.isErr()) {
         return err(
-          new Error(`Authentication error: ${agentResult.error.message}`)
+          new Error(`Authentication error: ${agentResult.error.message}`),
         );
       }
 
       const agent = agentResult.value;
 
       if (!agent) {
-        return err(new Error("No authenticated session found for curator"));
+        return err(new Error('No authenticated session found for curator'));
       }
 
       await agent.com.atproto.repo.deleteRecord({
@@ -211,7 +211,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
       return ok(undefined);
     } catch (error) {
       return err(
-        new Error(error instanceof Error ? error.message : String(error))
+        new Error(error instanceof Error ? error.message : String(error)),
       );
     }
   }
@@ -220,7 +220,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
    * Unpublishes (deletes) a Collection record and all its links
    */
   async unpublish(
-    recordId: PublishedRecordId
+    recordId: PublishedRecordId,
   ): Promise<Result<void, UseCaseError>> {
     try {
       const publishedRecordId = recordId.getValue();
@@ -236,14 +236,14 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
       if (agentResult.isErr()) {
         return err(
-          new Error(`Authentication error: ${agentResult.error.message}`)
+          new Error(`Authentication error: ${agentResult.error.message}`),
         );
       }
 
       const agent = agentResult.value;
 
       if (!agent) {
-        return err(new Error("No authenticated session found for curator"));
+        return err(new Error('No authenticated session found for curator'));
       }
 
       // Delete the collection record
@@ -260,7 +260,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
       return ok(undefined);
     } catch (error) {
       return err(
-        new Error(error instanceof Error ? error.message : String(error))
+        new Error(error instanceof Error ? error.message : String(error)),
       );
     }
   }

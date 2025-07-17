@@ -1,28 +1,28 @@
-import { Result, ok, err } from "../../../../shared/core/Result";
-import { Card } from "../Card";
-import { CuratorId } from "../value-objects/CuratorId";
-import { ICardPublisher } from "../../application/ports/ICardPublisher";
-import { ICardRepository } from "../ICardRepository";
-import { AppError } from "../../../../shared/core/AppError";
-import { UseCaseError } from "../../../../shared/core/UseCaseError";
-import { DomainService } from "../../../../shared/domain/DomainService";
+import { Result, ok, err } from '../../../../shared/core/Result';
+import { Card } from '../Card';
+import { CuratorId } from '../value-objects/CuratorId';
+import { ICardPublisher } from '../../application/ports/ICardPublisher';
+import { ICardRepository } from '../ICardRepository';
+import { AppError } from '../../../../shared/core/AppError';
+import { UseCaseError } from '../../../../shared/core/UseCaseError';
+import { DomainService } from '../../../../shared/domain/DomainService';
 
 export class CardLibraryValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "CardLibraryValidationError";
+    this.name = 'CardLibraryValidationError';
   }
 }
 
 export class CardLibraryService implements DomainService {
   constructor(
     private cardRepository: ICardRepository,
-    private cardPublisher: ICardPublisher
+    private cardPublisher: ICardPublisher,
   ) {}
 
   async addCardToLibrary(
     card: Card,
-    curatorId: CuratorId
+    curatorId: CuratorId,
   ): Promise<
     Result<void, CardLibraryValidationError | AppError.UnexpectedError>
   > {
@@ -38,13 +38,13 @@ export class CardLibraryService implements DomainService {
       // Publish card to library
       const publishResult = await this.cardPublisher.publishCardToLibrary(
         card,
-        curatorId
+        curatorId,
       );
       if (publishResult.isErr()) {
         return err(
           new CardLibraryValidationError(
-            `Failed to publish card to library: ${publishResult.error.message}`
-          )
+            `Failed to publish card to library: ${publishResult.error.message}`,
+          ),
         );
       }
 
@@ -66,7 +66,7 @@ export class CardLibraryService implements DomainService {
 
   async removeCardFromLibrary(
     card: Card,
-    curatorId: CuratorId
+    curatorId: CuratorId,
   ): Promise<
     Result<void, CardLibraryValidationError | AppError.UnexpectedError>
   > {
@@ -86,13 +86,13 @@ export class CardLibraryService implements DomainService {
         const unpublishResult =
           await this.cardPublisher.unpublishCardFromLibrary(
             libraryInfo.publishedRecordId,
-            libraryInfo.curatorId
+            libraryInfo.curatorId,
           );
         if (unpublishResult.isErr()) {
           return err(
             new CardLibraryValidationError(
-              `Failed to unpublish card from library: ${unpublishResult.error.message}`
-            )
+              `Failed to unpublish card from library: ${unpublishResult.error.message}`,
+            ),
           );
         }
       }
@@ -102,8 +102,8 @@ export class CardLibraryService implements DomainService {
       if (removeResult.isErr()) {
         return err(
           new CardLibraryValidationError(
-            `Failed to remove card from library: ${removeResult.error.message}`
-          )
+            `Failed to remove card from library: ${removeResult.error.message}`,
+          ),
         );
       }
 

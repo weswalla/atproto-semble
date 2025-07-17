@@ -5,8 +5,8 @@ import {
   useContext,
   ReactNode,
   useCallback,
-} from "react";
-import { ApiClient } from "@/api-client/ApiClient";
+} from 'react';
+import { ApiClient } from '@/api-client/ApiClient';
 
 interface ExtensionAuthContextType {
   isAuthenticated: boolean;
@@ -35,7 +35,7 @@ export const ExtensionAuthProvider = ({
 
   const createApiClient = useCallback((token: string | null) => {
     return new ApiClient(
-      process.env.PLASMO_PUBLIC_API_URL || "http://localhost:3000",
+      process.env.PLASMO_PUBLIC_API_URL || 'http://localhost:3000',
       () => token,
     );
   }, []);
@@ -43,30 +43,30 @@ export const ExtensionAuthProvider = ({
   // Use chrome.storage instead of localStorage
   const getStoredToken = useCallback(async (): Promise<string | null> => {
     return new Promise((resolve) => {
-      if (typeof chrome !== "undefined" && chrome.storage) {
-        chrome.storage.local.get(["accessToken"], (result) => {
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        chrome.storage.local.get(['accessToken'], (result) => {
           resolve(result.accessToken || null);
         });
       } else {
         // Fallback to localStorage for development
-        resolve(localStorage.getItem("accessToken"));
+        resolve(localStorage.getItem('accessToken'));
       }
     });
   }, []);
 
   const setStoredToken = useCallback(async (token: string | null) => {
-    if (typeof chrome !== "undefined" && chrome.storage) {
+    if (typeof chrome !== 'undefined' && chrome.storage) {
       if (token) {
         chrome.storage.local.set({ accessToken: token });
       } else {
-        chrome.storage.local.remove(["accessToken"]);
+        chrome.storage.local.remove(['accessToken']);
       }
     } else {
       // Fallback to localStorage for development
       if (token) {
-        localStorage.setItem("accessToken", token);
+        localStorage.setItem('accessToken', token);
       } else {
-        localStorage.removeItem("accessToken");
+        localStorage.removeItem('accessToken');
       }
     }
   }, []);
@@ -84,10 +84,10 @@ export const ExtensionAuthProvider = ({
           setIsAuthenticated(true);
         }
       } catch (error) {
-        console.error("Auth initialization failed:", error);
+        console.error('Auth initialization failed:', error);
         // Token invalid, clear it
         await setStoredToken(null);
-        setError("Session expired. Please sign in again.");
+        setError('Session expired. Please sign in again.');
       } finally {
         setIsLoading(false);
       }
@@ -121,8 +121,8 @@ export const ExtensionAuthProvider = ({
       setUser(userData);
       setIsAuthenticated(true);
     } catch (error: any) {
-      console.error("App password login failed:", error);
-      setError(error.message || "Login failed. Please check your credentials.");
+      console.error('App password login failed:', error);
+      setError(error.message || 'Login failed. Please check your credentials.');
       throw error;
     } finally {
       setIsLoading(false);
@@ -137,7 +137,7 @@ export const ExtensionAuthProvider = ({
       setError(null);
       await setStoredToken(null);
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error('Logout failed:', error);
     }
   };
 
@@ -162,7 +162,7 @@ export const useExtensionAuth = () => {
   const context = useContext(ExtensionAuthContext);
   if (!context) {
     throw new Error(
-      "useExtensionAuth must be used within ExtensionAuthProvider",
+      'useExtensionAuth must be used within ExtensionAuthProvider',
     );
   }
   return context;

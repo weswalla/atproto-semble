@@ -5,6 +5,7 @@ This document outlines how to design and implement query use cases in our Domain
 ## Command vs Query Use Cases
 
 ### Command Use Cases (Write Side)
+
 - **Purpose**: Modify state (create, update, delete)
 - **Returns**: Minimal data (usually just IDs or success/failure)
 - **Flow**: Go through domain entities and aggregates
@@ -12,6 +13,7 @@ This document outlines how to design and implement query use cases in our Domain
 - **Examples**: `AddUrlToLibraryUseCase`, `CreateCollectionUseCase`, `UpdateNoteCardUseCase`
 
 ### Query Use Cases (Read Side)
+
 - **Purpose**: Read data without modifying state
 - **Returns**: Rich data optimized for display
 - **Flow**: Can bypass domain entities for performance
@@ -21,21 +23,23 @@ This document outlines how to design and implement query use cases in our Domain
 ## Query Use Case Patterns
 
 ### 1. Simple Query Through Repository
+
 Use when you need basic data retrieval with minimal complexity.
 
 ```typescript
 export class GetMyCardsUseCase {
   constructor(private cardRepository: ICardRepository) {}
-  
+
   async execute(request: { curatorId: string }): Promise<Result<CardDTO[]>> {
     // Query through domain repository
     const cards = await this.cardRepository.findByCuratorId(curatorId);
-    return ok(cards.map(card => this.toDTO(card)));
+    return ok(cards.map((card) => this.toDTO(card)));
   }
 }
 ```
 
 ### 2. Dedicated Query Repository (Recommended)
+
 Use for most query scenarios where you need optimized read operations.
 
 ```typescript
@@ -46,30 +50,36 @@ export interface ICardQueryRepository {
 
 export class GetMyCardsUseCase {
   constructor(private cardQueryRepo: ICardQueryRepository) {}
-  
+
   async execute(request: GetMyCardsQuery): Promise<Result<CardListDTO[]>> {
     // Optimized read-only queries
-    const cards = await this.cardQueryRepo.findCardsByLibraryMember(request.curatorId);
+    const cards = await this.cardQueryRepo.findCardsByLibraryMember(
+      request.curatorId,
+    );
     return ok(cards);
   }
 }
 ```
 
 ### 3. Query Service with Projections
+
 Use when you need to combine data from multiple sources or create complex projections.
 
 ```typescript
 export class CardQueryService {
   constructor(
     private cardQueryRepo: ICardQueryRepository,
-    private collectionQueryRepo: ICollectionQueryRepository
+    private collectionQueryRepo: ICollectionQueryRepository,
   ) {}
-  
-  async getMyCardsWithCollections(curatorId: string): Promise<EnrichedCardDTO[]> {
+
+  async getMyCardsWithCollections(
+    curatorId: string,
+  ): Promise<EnrichedCardDTO[]> {
     // Join data from multiple sources
     const cards = await this.cardQueryRepo.findCardsByLibraryMember(curatorId);
-    const collections = await this.collectionQueryRepo.findByCuratorId(curatorId);
-    
+    const collections =
+      await this.collectionQueryRepo.findByCuratorId(curatorId);
+
     // Project into view model
     return this.enrichCardsWithCollections(cards, collections);
   }
@@ -79,6 +89,7 @@ export class CardQueryService {
 ## DTOs: Command vs Query
 
 ### Command DTOs (Minimal)
+
 Focus on the data needed to perform the operation.
 
 ```typescript
@@ -90,6 +101,7 @@ export interface AddUrlToLibraryDTO {
 ```
 
 ### Query DTOs (Rich for Display)
+
 Focus on data optimized for UI consumption.
 
 ```typescript
@@ -116,6 +128,7 @@ When designing queries that need multiple pieces of related data (like a collect
 ### Option 1: Single Composite Use Case (Recommended)
 
 Use when:
+
 - The data represents a **cohesive business concept** (e.g., "collection page view")
 - The UI needs the data **atomically** (all or nothing)
 - The data has **natural relationships** that are always needed together
@@ -149,30 +162,32 @@ export interface GetCollectionPageResult {
 export class GetCollectionPageUseCase {
   constructor(
     private collectionQueryRepo: ICollectionQueryRepository,
-    private cardQueryRepo: ICardQueryRepository
+    private cardQueryRepo: ICardQueryRepository,
   ) {}
 
-  async execute(query: GetCollectionPageQuery): Promise<Result<GetCollectionPageResult>> {
+  async execute(
+    query: GetCollectionPageQuery,
+  ): Promise<Result<GetCollectionPageResult>> {
     // Get collection details
     const collection = await this.collectionQueryRepo.findByIdWithPermissions(
-      query.collectionId, 
-      query.curatorId
+      query.collectionId,
+      query.curatorId,
     );
-    
+
     // Get paginated cards in collection
     const cardsResult = await this.cardQueryRepo.findCardsInCollection(
       query.collectionId,
       {
         page: query.cardPage || 1,
         limit: query.cardLimit || 20,
-        searchTerm: query.cardSearchTerm
-      }
+        searchTerm: query.cardSearchTerm,
+      },
     );
 
     return ok({
       collection: collection.details,
       cards: cardsResult,
-      userPermissions: collection.permissions
+      userPermissions: collection.permissions,
     });
   }
 }
@@ -181,6 +196,7 @@ export class GetCollectionPageUseCase {
 ### Option 2: Separate Use Cases with Composition
 
 Use when:
+
 - Different **rates of change** (collection details change rarely, cards change often)
 - Different **caching strategies** needed
 - **Independent reusability** (cards list used elsewhere)
@@ -204,20 +220,20 @@ export class GetCollectionCardsUseCase {
 export class CollectionPageService {
   constructor(
     private getCollectionDetails: GetCollectionDetailsUseCase,
-    private getCollectionCards: GetCollectionCardsUseCase
+    private getCollectionCards: GetCollectionCardsUseCase,
   ) {}
 
   async getCollectionPage(query: GetCollectionPageQuery) {
     const [collection, cards] = await Promise.all([
       this.getCollectionDetails.execute({
         collectionId: query.collectionId,
-        curatorId: query.curatorId
+        curatorId: query.curatorId,
       }),
       this.getCollectionCards.execute({
         collectionId: query.collectionId,
         page: query.cardPage || 1,
-        limit: query.cardLimit || 20
-      })
+        limit: query.cardLimit || 20,
+      }),
     ]);
 
     return { collection: collection.value, cards: cards.value };
@@ -233,7 +249,8 @@ Query repositories can be optimized for read performance and bypass domain entit
 export class SqlCardQueryRepository implements ICardQueryRepository {
   async findCardsByLibraryMember(curatorId: string): Promise<CardListDTO[]> {
     // Raw SQL for performance, bypassing domain entities
-    return this.db.query(`
+    return this.db.query(
+      `
       SELECT c.id, c.type, c.title, c.created_at,
              array_agg(col.name) as collections
       FROM cards c
@@ -242,13 +259,15 @@ export class SqlCardQueryRepository implements ICardQueryRepository {
       LEFT JOIN collections col ON ccl.collection_id = col.id
       WHERE lm.curator_id = $1
       GROUP BY c.id
-    `, [curatorId]);
+    `,
+      [curatorId],
+    );
   }
 
   async findByIdWithCards(
-    collectionId: string, 
+    collectionId: string,
     curatorId: string,
-    cardPagination: PaginationOptions
+    cardPagination: PaginationOptions,
   ): Promise<CollectionPageData> {
     // Single optimized query with joins
     const query = `
@@ -264,7 +283,7 @@ export class SqlCardQueryRepository implements ICardQueryRepository {
       ORDER BY cards.created_at DESC
       LIMIT $2 OFFSET $3
     `;
-    
+
     // Transform to DTOs...
   }
 }
@@ -273,16 +292,19 @@ export class SqlCardQueryRepository implements ICardQueryRepository {
 ## Best Practices
 
 ### 1. Design for the UI
+
 - Structure query results to match what the UI actually needs
 - Include computed fields and aggregations
 - Consider pagination from the start
 
 ### 2. Optimize for Performance
+
 - Use dedicated query repositories that can leverage database-specific optimizations
 - Consider denormalized views for complex queries
 - Use appropriate indexing strategies
 
 ### 3. Handle Pagination Consistently
+
 ```typescript
 export interface PaginationOptions {
   page: number;
@@ -299,11 +321,13 @@ export interface PaginatedResult<T> {
 ```
 
 ### 4. Separate Query Models from Domain Models
+
 - Query DTOs should be optimized for display, not domain logic
 - Don't expose internal domain structure through query results
 - Use mapping/projection layers
 
 ### 5. Consider Caching
+
 - Query results are often good candidates for caching
 - Design cache keys that can be invalidated when related commands execute
 - Consider different cache strategies for different query types
@@ -326,21 +350,21 @@ export interface GetMyCardsResult {
   hasMore: boolean;
   filters: {
     availableTypes: CardTypeEnum[];
-    availableCollections: { id: string; name: string; }[];
+    availableCollections: { id: string; name: string }[];
   };
 }
 
 export class GetMyCardsUseCase {
   constructor(
     private cardQueryRepo: ICardQueryRepository,
-    private collectionQueryRepo: ICollectionQueryRepository
+    private collectionQueryRepo: ICollectionQueryRepository,
   ) {}
 
   async execute(query: GetMyCardsQuery): Promise<Result<GetMyCardsResult>> {
     // Validate curator ID
     const curatorIdResult = CuratorId.create(query.curatorId);
     if (curatorIdResult.isErr()) {
-      return err(new ValidationError("Invalid curator ID"));
+      return err(new ValidationError('Invalid curator ID'));
     }
 
     // Get paginated cards
@@ -351,21 +375,30 @@ export class GetMyCardsUseCase {
         limit: query.limit || 20,
         type: query.type,
         collectionId: query.collectionId,
-        searchTerm: query.searchTerm
-      }
+        searchTerm: query.searchTerm,
+      },
     );
 
     // Get filter options
-    const collections = await this.collectionQueryRepo.findByCuratorId(query.curatorId);
+    const collections = await this.collectionQueryRepo.findByCuratorId(
+      query.curatorId,
+    );
 
     return ok({
       cards: cardsResult.items,
       totalCount: cardsResult.totalCount,
       hasMore: cardsResult.hasMore,
       filters: {
-        availableTypes: [CardTypeEnum.URL, CardTypeEnum.NOTE, CardTypeEnum.HIGHLIGHT],
-        availableCollections: collections.map(c => ({ id: c.id, name: c.name }))
-      }
+        availableTypes: [
+          CardTypeEnum.URL,
+          CardTypeEnum.NOTE,
+          CardTypeEnum.HIGHLIGHT,
+        ],
+        availableCollections: collections.map((c) => ({
+          id: c.id,
+          name: c.name,
+        })),
+      },
     });
   }
 }

@@ -5,13 +5,11 @@ module.exports = {
   // Optional: If you have tests outside of src/ or tests/
   // roots: ['<rootDir>/src', '<rootDir>/tests'],
   // Optional: Match test files (adjust if your naming convention differs)
-  testMatch: [
-    '**/?(*.)+(spec|test).+(ts|tsx)',
-  ],
+  testMatch: ['**/?(*.)+(spec|test).+(ts|tsx)'],
   // Ignore test files in annotations module
   testPathIgnorePatterns: [
     '/node_modules/',
-    '/src/modules/annotations/.*\\.(spec|test)\\.(ts|tsx)$'
+    '/src/modules/annotations/.*\\.(spec|test)\\.(ts|tsx)$',
   ],
   // Optional: Module file extensions for importing
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],

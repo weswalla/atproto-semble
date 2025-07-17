@@ -1,9 +1,9 @@
-import { UseCaseError } from "src/shared/core/UseCaseError";
+import { UseCaseError } from 'src/shared/core/UseCaseError';
 
 export namespace LoginWithAppPasswordErrors {
   export class InvalidCredentialsError extends UseCaseError {
     constructor() {
-      super("Invalid identifier or app password");
+      super('Invalid identifier or app password');
     }
   }
 

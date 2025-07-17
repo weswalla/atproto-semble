@@ -1,4 +1,4 @@
-import { Result, ok, err } from "../../../../shared/core/Result";
+import { Result, ok, err } from '../../../../shared/core/Result';
 import {
   ICollectionQueryRepository,
   CollectionQueryOptions,
@@ -6,9 +6,9 @@ import {
   PaginatedQueryResult,
   CollectionSortField,
   SortOrder,
-} from "../../domain/ICollectionQueryRepository";
-import { Collection } from "../../domain/Collection";
-import { InMemoryCollectionRepository } from "./InMemoryCollectionRepository";
+} from '../../domain/ICollectionQueryRepository';
+import { Collection } from '../../domain/Collection';
+import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
 
 export class InMemoryCollectionQueryRepository
   implements ICollectionQueryRepository
@@ -17,20 +17,20 @@ export class InMemoryCollectionQueryRepository
 
   async findByCreator(
     curatorId: string,
-    options: CollectionQueryOptions
+    options: CollectionQueryOptions,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>> {
     try {
       // Get all collections and filter by creator
       const allCollections = this.collectionRepository.getAllCollections();
       const creatorCollections = allCollections.filter(
-        (collection) => collection.authorId.value === curatorId
+        (collection) => collection.authorId.value === curatorId,
       );
 
       // Sort collections
       const sortedCollections = this.sortCollections(
         creatorCollections,
         options.sortBy,
-        options.sortOrder
+        options.sortOrder,
       );
 
       // Apply pagination
@@ -38,7 +38,7 @@ export class InMemoryCollectionQueryRepository
       const endIndex = startIndex + options.limit;
       const paginatedCollections = sortedCollections.slice(
         startIndex,
-        endIndex
+        endIndex,
       );
 
       // Transform to DTOs
@@ -52,7 +52,7 @@ export class InMemoryCollectionQueryRepository
           cardCount: collection.cardCount,
           createdAt: collection.createdAt,
           updatedAt: collection.updatedAt,
-        })
+        }),
       );
 
       return {
@@ -62,7 +62,7 @@ export class InMemoryCollectionQueryRepository
       };
     } catch (error) {
       throw new Error(
-        `Failed to query collections: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to query collections: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -70,7 +70,7 @@ export class InMemoryCollectionQueryRepository
   private sortCollections(
     collections: Collection[],
     sortBy: CollectionSortField,
-    sortOrder: SortOrder
+    sortOrder: SortOrder,
   ): Collection[] {
     const sorted = [...collections].sort((a, b) => {
       let comparison = 0;

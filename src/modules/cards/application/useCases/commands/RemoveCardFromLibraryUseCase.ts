@@ -1,11 +1,11 @@
-import { Result, ok, err } from "../../../../../shared/core/Result";
-import { UseCase } from "../../../../../shared/core/UseCase";
-import { UseCaseError } from "../../../../../shared/core/UseCaseError";
-import { AppError } from "../../../../../shared/core/AppError";
-import { ICardRepository } from "../../../domain/ICardRepository";
-import { CardId } from "../../../domain/value-objects/CardId";
-import { CuratorId } from "../../../domain/value-objects/CuratorId";
-import { CardLibraryService } from "../../../domain/services/CardLibraryService";
+import { Result, ok, err } from '../../../../../shared/core/Result';
+import { UseCase } from '../../../../../shared/core/UseCase';
+import { UseCaseError } from '../../../../../shared/core/UseCaseError';
+import { AppError } from '../../../../../shared/core/AppError';
+import { ICardRepository } from '../../../domain/ICardRepository';
+import { CardId } from '../../../domain/value-objects/CardId';
+import { CuratorId } from '../../../domain/value-objects/CuratorId';
+import { CardLibraryService } from '../../../domain/services/CardLibraryService';
 
 export interface RemoveCardFromLibraryDTO {
   cardId: string;
@@ -34,11 +34,11 @@ export class RemoveCardFromLibraryUseCase
 {
   constructor(
     private cardRepository: ICardRepository,
-    private cardLibraryService: CardLibraryService
+    private cardLibraryService: CardLibraryService,
   ) {}
 
   async execute(
-    request: RemoveCardFromLibraryDTO
+    request: RemoveCardFromLibraryDTO,
   ): Promise<
     Result<
       RemoveCardFromLibraryResponseDTO,
@@ -51,8 +51,8 @@ export class RemoveCardFromLibraryUseCase
       if (curatorIdResult.isErr()) {
         return err(
           new ValidationError(
-            `Invalid curator ID: ${curatorIdResult.error.message}`
-          )
+            `Invalid curator ID: ${curatorIdResult.error.message}`,
+          ),
         );
       }
       const curatorId = curatorIdResult.value;
@@ -61,7 +61,7 @@ export class RemoveCardFromLibraryUseCase
       const cardIdResult = CardId.createFromString(request.cardId);
       if (cardIdResult.isErr()) {
         return err(
-          new ValidationError(`Invalid card ID: ${cardIdResult.error.message}`)
+          new ValidationError(`Invalid card ID: ${cardIdResult.error.message}`),
         );
       }
       const cardId = cardIdResult.value;

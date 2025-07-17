@@ -1,30 +1,30 @@
-import { Result, ok, err } from "../../../../shared/core/Result";
-import { Card } from "../Card";
-import { Collection } from "../Collection";
-import { CuratorId } from "../value-objects/CuratorId";
-import { CollectionId } from "../value-objects/CollectionId";
-import { ICollectionRepository } from "../ICollectionRepository";
-import { ICollectionPublisher } from "../../application/ports/ICollectionPublisher";
-import { AppError } from "../../../../shared/core/AppError";
-import { DomainService } from "../../../../shared/domain/DomainService";
+import { Result, ok, err } from '../../../../shared/core/Result';
+import { Card } from '../Card';
+import { Collection } from '../Collection';
+import { CuratorId } from '../value-objects/CuratorId';
+import { CollectionId } from '../value-objects/CollectionId';
+import { ICollectionRepository } from '../ICollectionRepository';
+import { ICollectionPublisher } from '../../application/ports/ICollectionPublisher';
+import { AppError } from '../../../../shared/core/AppError';
+import { DomainService } from '../../../../shared/domain/DomainService';
 
 export class CardCollectionValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "CardCollectionValidationError";
+    this.name = 'CardCollectionValidationError';
   }
 }
 
 export class CardCollectionService implements DomainService {
   constructor(
     private collectionRepository: ICollectionRepository,
-    private collectionPublisher: ICollectionPublisher
+    private collectionPublisher: ICollectionPublisher,
   ) {}
 
   async addCardToCollection(
     card: Card,
     collectionId: CollectionId,
-    curatorId: CuratorId
+    curatorId: CuratorId,
   ): Promise<
     Result<void, CardCollectionValidationError | AppError.UnexpectedError>
   > {
@@ -40,8 +40,8 @@ export class CardCollectionService implements DomainService {
       if (!collection) {
         return err(
           new CardCollectionValidationError(
-            `Collection not found: ${collectionId.getStringValue()}`
-          )
+            `Collection not found: ${collectionId.getStringValue()}`,
+          ),
         );
       }
 
@@ -50,8 +50,8 @@ export class CardCollectionService implements DomainService {
       if (addCardResult.isErr()) {
         return err(
           new CardCollectionValidationError(
-            `Failed to add card to collection: ${addCardResult.error.message}`
-          )
+            `Failed to add card to collection: ${addCardResult.error.message}`,
+          ),
         );
       }
 
@@ -60,13 +60,13 @@ export class CardCollectionService implements DomainService {
         await this.collectionPublisher.publishCardAddedToCollection(
           card,
           collection,
-          curatorId
+          curatorId,
         );
       if (publishLinkResult.isErr()) {
         return err(
           new CardCollectionValidationError(
-            `Failed to publish collection link: ${publishLinkResult.error.message}`
-          )
+            `Failed to publish collection link: ${publishLinkResult.error.message}`,
+          ),
         );
       }
 
@@ -89,7 +89,7 @@ export class CardCollectionService implements DomainService {
   async addCardToCollections(
     card: Card,
     collectionIds: CollectionId[],
-    curatorId: CuratorId
+    curatorId: CuratorId,
   ): Promise<
     Result<void, CardCollectionValidationError | AppError.UnexpectedError>
   > {
@@ -97,7 +97,7 @@ export class CardCollectionService implements DomainService {
       const result = await this.addCardToCollection(
         card,
         collectionId,
-        curatorId
+        curatorId,
       );
       if (result.isErr()) {
         return result;
@@ -109,7 +109,7 @@ export class CardCollectionService implements DomainService {
   async removeCardFromCollection(
     card: Card,
     collectionId: CollectionId,
-    curatorId: CuratorId
+    curatorId: CuratorId,
   ): Promise<
     Result<void, CardCollectionValidationError | AppError.UnexpectedError>
   > {
@@ -125,14 +125,14 @@ export class CardCollectionService implements DomainService {
       if (!collection) {
         return err(
           new CardCollectionValidationError(
-            `Collection not found: ${collectionId.getStringValue()}`
-          )
+            `Collection not found: ${collectionId.getStringValue()}`,
+          ),
         );
       }
 
       // Check if card is in collection
       const cardLink = collection.cardLinks.find((link) =>
-        link.cardId.equals(card.cardId)
+        link.cardId.equals(card.cardId),
       );
       if (!cardLink) {
         // Card is not in collection, nothing to do
@@ -143,13 +143,13 @@ export class CardCollectionService implements DomainService {
       if (cardLink.publishedRecordId) {
         const unpublishLinkResult =
           await this.collectionPublisher.unpublishCardAddedToCollection(
-            cardLink.publishedRecordId
+            cardLink.publishedRecordId,
           );
         if (unpublishLinkResult.isErr()) {
           return err(
             new CardCollectionValidationError(
-              `Failed to unpublish collection link: ${unpublishLinkResult.error.message}`
-            )
+              `Failed to unpublish collection link: ${unpublishLinkResult.error.message}`,
+            ),
           );
         }
       }
@@ -159,8 +159,8 @@ export class CardCollectionService implements DomainService {
       if (removeCardResult.isErr()) {
         return err(
           new CardCollectionValidationError(
-            `Failed to remove card from collection: ${removeCardResult.error.message}`
-          )
+            `Failed to remove card from collection: ${removeCardResult.error.message}`,
+          ),
         );
       }
 
@@ -180,7 +180,7 @@ export class CardCollectionService implements DomainService {
   async removeCardFromCollections(
     card: Card,
     collectionIds: CollectionId[],
-    curatorId: CuratorId
+    curatorId: CuratorId,
   ): Promise<
     Result<void, CardCollectionValidationError | AppError.UnexpectedError>
   > {
@@ -188,7 +188,7 @@ export class CardCollectionService implements DomainService {
       const result = await this.removeCardFromCollection(
         card,
         collectionId,
-        curatorId
+        curatorId,
       );
       if (result.isErr()) {
         return result;

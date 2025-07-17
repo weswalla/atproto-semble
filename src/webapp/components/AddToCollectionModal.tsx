@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { getAccessToken } from "@/services/auth";
-import { ApiClient } from "@/api-client/ApiClient";
-import type { GetMyCollectionsResponse } from "@/api-client/types";
+import { useState, useEffect } from 'react';
+import { getAccessToken } from '@/services/auth';
+import { ApiClient } from '@/api-client/ApiClient';
+import type { GetMyCollectionsResponse } from '@/api-client/types';
 import {
   Box,
   Button,
@@ -15,7 +15,7 @@ import {
   ScrollArea,
   Stack,
   Text,
-} from "@mantine/core";
+} from '@mantine/core';
 
 interface AddToCollectionModalProps {
   cardId: string;
@@ -31,18 +31,18 @@ export function AddToCollectionModal({
   onSuccess,
 }: AddToCollectionModalProps) {
   const [collections, setCollections] = useState<
-    GetMyCollectionsResponse["collections"]
+    GetMyCollectionsResponse['collections']
   >([]);
   const [selectedCollections, setSelectedCollections] = useState<Set<string>>(
     new Set(),
   );
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   // Create API client instance
   const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     () => getAccessToken(),
   );
 
@@ -55,12 +55,12 @@ export function AddToCollectionModal({
   const fetchCollections = async () => {
     try {
       setLoading(true);
-      setError("");
+      setError('');
       const response = await apiClient.getMyCollections({ limit: 100 });
       setCollections(response.collections);
     } catch (error: any) {
-      console.error("Error fetching collections:", error);
-      setError(error.message || "Failed to load collections");
+      console.error('Error fetching collections:', error);
+      setError(error.message || 'Failed to load collections');
     } finally {
       setLoading(false);
     }
@@ -78,12 +78,12 @@ export function AddToCollectionModal({
 
   const handleSubmit = async () => {
     if (selectedCollections.size === 0) {
-      setError("Please select at least one collection");
+      setError('Please select at least one collection');
       return;
     }
 
     setSubmitting(true);
-    setError("");
+    setError('');
 
     try {
       // Add card to all selected collections in a single request
@@ -97,8 +97,8 @@ export function AddToCollectionModal({
       onClose();
       setSelectedCollections(new Set());
     } catch (error: any) {
-      console.error("Error adding card to collections:", error);
-      setError(error.message || "Failed to add card to collections");
+      console.error('Error adding card to collections:', error);
+      setError(error.message || 'Failed to add card to collections');
     } finally {
       setSubmitting(false);
     }
@@ -108,7 +108,7 @@ export function AddToCollectionModal({
     if (!submitting) {
       onClose();
       setSelectedCollections(new Set());
-      setError("");
+      setError('');
     }
   };
 
@@ -121,23 +121,23 @@ export function AddToCollectionModal({
       title="Add to Collections"
       centered
     >
-      <Stack p={"sm"}>
+      <Stack p={'sm'}>
         {loading ? (
           <Center>
             <Loader />
           </Center>
         ) : error && collections.length === 0 ? (
           <Stack align="center">
-            <Text c={"red"}>{error}</Text>
+            <Text c={'red'}>{error}</Text>
             <Button onClick={fetchCollections} variant="outline" size="sm">
               Try Again
             </Button>
           </Stack>
         ) : collections.length === 0 ? (
           <Stack align="center">
-            <Text c={"red"}>No collections found</Text>
+            <Text c={'red'}>No collections found</Text>
             <Button
-              onClick={() => window.open("/collections/create", "_blank")}
+              onClick={() => window.open('/collections/create', '_blank')}
               variant="outline"
               size="sm"
             >
@@ -156,14 +156,14 @@ export function AddToCollectionModal({
                     disabled={submitting}
                   />
 
-                  <Stack gap={"0"}>
+                  <Stack gap={'0'}>
                     <Text fw={500}>{collection.name}</Text>
                     {collection.description && (
-                      <Text fz={"sm"} fw={500} c={"gray"} truncate="end">
+                      <Text fz={'sm'} fw={500} c={'gray'} truncate="end">
                         {collection.description}
                       </Text>
                     )}
-                    <Text fz={"sm"} fw={500} c={"gray.5"}>
+                    <Text fz={'sm'} fw={500} c={'gray.5'}>
                       {collection.cardCount} cards
                     </Text>
                   </Stack>
@@ -171,7 +171,7 @@ export function AddToCollectionModal({
               ))}
             </ScrollArea>
 
-            {error && <Text c={"red"}>{error}</Text>}
+            {error && <Text c={'red'}>{error}</Text>}
 
             <Group grow>
               <Button
@@ -180,8 +180,8 @@ export function AddToCollectionModal({
                 loading={submitting}
               >
                 {submitting
-                  ? "Adding..."
-                  : `Add to ${selectedCollections.size} Collection${selectedCollections.size !== 1 ? "s" : ""}`}
+                  ? 'Adding...'
+                  : `Add to ${selectedCollections.size} Collection${selectedCollections.size !== 1 ? 's' : ''}`}
               </Button>
               <Button
                 variant="outline"

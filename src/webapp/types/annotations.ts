@@ -1,4 +1,4 @@
-import { AnnotationValueType } from "./annotationValues";
+import { AnnotationValueType } from './annotationValues';
 
 // Field Definitions
 export interface FieldDefinition {
@@ -8,30 +8,30 @@ export interface FieldDefinition {
 }
 
 export interface DyadDefinition extends FieldDefinition {
-  type: "dyad";
+  type: 'dyad';
   sideA: string;
   sideB: string;
 }
 
 export interface TriadDefinition extends FieldDefinition {
-  type: "triad";
+  type: 'triad';
   vertexA: string;
   vertexB: string;
   vertexC: string;
 }
 
 export interface RatingDefinition extends FieldDefinition {
-  type: "rating";
+  type: 'rating';
   numberOfStars: number;
 }
 
 export interface SingleSelectDefinition extends FieldDefinition {
-  type: "singleSelect";
+  type: 'singleSelect';
   options: string[];
 }
 
 export interface MultiSelectDefinition extends FieldDefinition {
-  type: "multiSelect";
+  type: 'multiSelect';
   options: string[];
 }
 

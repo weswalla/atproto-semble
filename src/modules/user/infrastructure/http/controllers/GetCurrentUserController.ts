@@ -1,7 +1,7 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Response } from "express";
-import { GetCurrentUserUseCase } from "../../../application/use-cases/GetCurrentUserUseCase";
-import { AuthenticatedRequest } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Response } from 'express';
+import { GetCurrentUserUseCase } from '../../../application/use-cases/GetCurrentUserUseCase';
+import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class GetCurrentUserController extends Controller {
   constructor(private getCurrentUserUseCase: GetCurrentUserUseCase) {

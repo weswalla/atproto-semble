@@ -1,4 +1,7 @@
-import { NodeSavedState, NodeSavedStateStore } from "@atproto/oauth-client-node";
+import {
+  NodeSavedState,
+  NodeSavedStateStore,
+} from '@atproto/oauth-client-node';
 
 /**
  * In-memory implementation of NodeSavedStateStore for testing

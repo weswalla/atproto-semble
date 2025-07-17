@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { getAccessToken } from "@/services/auth";
-import { ApiClient } from "@/api-client/ApiClient";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { getAccessToken } from '@/services/auth';
+import { ApiClient } from '@/api-client/ApiClient';
 import {
   Stack,
   Title,
@@ -15,24 +15,24 @@ import {
   Textarea,
   Group,
   Alert,
-} from "@mantine/core";
-import { useForm } from "@mantine/form";
+} from '@mantine/core';
+import { useForm } from '@mantine/form';
 
 export default function CreateCollectionPage() {
   const form = useForm({
     initialValues: {
-      name: "",
-      description: "",
+      name: '',
+      description: '',
     },
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const router = useRouter();
 
   // Create API client instance
   const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     () => getAccessToken(),
   );
 
@@ -40,12 +40,12 @@ export default function CreateCollectionPage() {
     e.preventDefault();
 
     if (!form.getValues().name.trim()) {
-      setError("Collection name is required");
+      setError('Collection name is required');
       return;
     }
 
     setLoading(true);
-    setError("");
+    setError('');
 
     try {
       await apiClient.createCollection({
@@ -54,11 +54,11 @@ export default function CreateCollectionPage() {
       });
 
       // Redirect to collections page on success
-      router.push("/collections");
+      router.push('/collections');
     } catch (error: any) {
-      console.error("Error creating collection:", error);
+      console.error('Error creating collection:', error);
       setError(
-        error.message || "Failed to create collection. Please try again.",
+        error.message || 'Failed to create collection. Please try again.',
       );
     } finally {
       setLoading(false);
@@ -70,7 +70,7 @@ export default function CreateCollectionPage() {
       <Stack>
         <Stack gap={0}>
           <Title order={1}>Create Collection</Title>
-          <Text c={"gray"}>
+          <Text c={'gray'}>
             Create a new collection to organize your cards.
           </Text>
         </Stack>
@@ -91,8 +91,8 @@ export default function CreateCollectionPage() {
                       disabled={loading}
                       required
                       maxLength={100}
-                      key={form.key("name")}
-                      {...form.getInputProps("name")}
+                      key={form.key('name')}
+                      {...form.getInputProps('name')}
                     />
 
                     <Textarea
@@ -102,8 +102,8 @@ export default function CreateCollectionPage() {
                       disabled={loading}
                       rows={3}
                       maxLength={500}
-                      key={form.key("description")}
-                      {...form.getInputProps("description")}
+                      key={form.key('description')}
+                      {...form.getInputProps('description')}
                     />
                   </Stack>
 
@@ -111,7 +111,7 @@ export default function CreateCollectionPage() {
 
                   <Group>
                     <Button type="submit" loading={loading}>
-                      {loading ? "Creating..." : "Create Collection"}
+                      {loading ? 'Creating...' : 'Create Collection'}
                     </Button>
                     <Button
                       type="button"

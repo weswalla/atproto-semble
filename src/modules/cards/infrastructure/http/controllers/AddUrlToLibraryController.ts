@@ -1,7 +1,7 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Response } from "express";
-import { AddUrlToLibraryUseCase } from "../../../application/useCases/commands/AddUrlToLibraryUseCase";
-import { AuthenticatedRequest } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Response } from 'express';
+import { AddUrlToLibraryUseCase } from '../../../application/useCases/commands/AddUrlToLibraryUseCase';
+import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class AddUrlToLibraryController extends Controller {
   constructor(private addUrlToLibraryUseCase: AddUrlToLibraryUseCase) {
@@ -12,13 +12,13 @@ export class AddUrlToLibraryController extends Controller {
     try {
       const { url, note, collectionIds } = req.body;
       const curatorId = req.did;
-      
+
       if (!curatorId) {
         return this.unauthorized(res);
       }
 
       if (!url) {
-        return this.badRequest(res, "URL is required");
+        return this.badRequest(res, 'URL is required');
       }
 
       const result = await this.addUrlToLibraryUseCase.execute({

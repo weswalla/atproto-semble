@@ -1,20 +1,20 @@
-import { AtpAgent, Agent } from "@atproto/api";
-import { NodeOAuthClient } from "@atproto/oauth-client-node";
-import { Result, ok, err } from "src/shared/core/Result";
-import { IAgentService } from "../../application/IAgentService";
-import { DID } from "../../domain/DID";
-import { AppPasswordSessionService } from "./AppPasswordSessionService";
+import { AtpAgent, Agent } from '@atproto/api';
+import { NodeOAuthClient } from '@atproto/oauth-client-node';
+import { Result, ok, err } from 'src/shared/core/Result';
+import { IAgentService } from '../../application/IAgentService';
+import { DID } from '../../domain/DID';
+import { AppPasswordSessionService } from './AppPasswordSessionService';
 
 export class ATProtoAgentService implements IAgentService {
   constructor(
     private readonly oauthClient: NodeOAuthClient,
-    private readonly appPasswordSessionService: AppPasswordSessionService
+    private readonly appPasswordSessionService: AppPasswordSessionService,
   ) {}
   getUnauthenticatedAgent(): Result<Agent, Error> {
     return ok(
       new Agent({
-        service: "https://bsky.social",
-      })
+        service: 'https://bsky.social',
+      }),
     );
   }
   async getAuthenticatedAgent(did: DID): Promise<Result<Agent, Error>> {
@@ -27,8 +27,8 @@ export class ATProtoAgentService implements IAgentService {
       if (appPasswordAgentResult.isErr()) {
         return err(
           new Error(
-            `Failed to get authenticated agent: ${oauthAgentResult.error.message} | ${appPasswordAgentResult.error.message}`
-          )
+            `Failed to get authenticated agent: ${oauthAgentResult.error.message} | ${appPasswordAgentResult.error.message}`,
+          ),
         );
       }
       return appPasswordAgentResult;
@@ -36,7 +36,7 @@ export class ATProtoAgentService implements IAgentService {
     return oauthAgentResult;
   }
   async getAuthenticatedAgentByOAuthSession(
-    did: DID
+    did: DID,
   ): Promise<Result<Agent, Error>> {
     try {
       // Try to restore the session for the DID
@@ -48,17 +48,17 @@ export class ATProtoAgentService implements IAgentService {
       }
 
       // No session found
-      throw new Error("No session found for the provided DID");
+      throw new Error('No session found for the provided DID');
     } catch (error) {
       return err(
         new Error(
-          `Failed to get authenticated agent by OAuth session: ${error instanceof Error ? error.message : String(error)}`
-        )
+          `Failed to get authenticated agent by OAuth session: ${error instanceof Error ? error.message : String(error)}`,
+        ),
       );
     }
   }
   async getAuthenticatedAgentByAppPasswordSession(
-    did: DID
+    did: DID,
   ): Promise<Result<Agent, Error>> {
     try {
       // Try to restore the session for the DID
@@ -68,15 +68,15 @@ export class ATProtoAgentService implements IAgentService {
       if (appPasswordSessionResult.isErr()) {
         return err(
           new Error(
-            `Failed to get App Password session: ${appPasswordSessionResult.error.message}`
-          )
+            `Failed to get App Password session: ${appPasswordSessionResult.error.message}`,
+          ),
         );
       }
       const session = appPasswordSessionResult.value;
       if (session) {
         // Create an Agent with the session
         const agent = new AtpAgent({
-          service: "https://bsky.social",
+          service: 'https://bsky.social',
         });
 
         // Resume the session
@@ -87,12 +87,12 @@ export class ATProtoAgentService implements IAgentService {
       }
 
       // No session found
-      throw new Error("No session found for the provided DID");
+      throw new Error('No session found for the provided DID');
     } catch (error) {
       return err(
         new Error(
-          `Failed to get authenticated agent by App Password session: ${error instanceof Error ? error.message : String(error)}`
-        )
+          `Failed to get authenticated agent by App Password session: ${error instanceof Error ? error.message : String(error)}`,
+        ),
       );
     }
   }

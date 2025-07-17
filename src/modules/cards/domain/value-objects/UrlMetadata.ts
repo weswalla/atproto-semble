@@ -1,5 +1,5 @@
-import { ValueObject } from "../../../../shared/domain/ValueObject";
-import { Result, ok, err } from "../../../../shared/core/Result";
+import { ValueObject } from '../../../../shared/domain/ValueObject';
+import { Result, ok, err } from '../../../../shared/core/Result';
 
 interface UrlMetadataProps {
   url: string;
@@ -56,14 +56,14 @@ export class UrlMetadata extends ValueObject<UrlMetadataProps> {
 
   public static create(props: UrlMetadataProps): Result<UrlMetadata, Error> {
     if (!props.url || props.url.trim().length === 0) {
-      return err(new Error("URL is required for metadata"));
+      return err(new Error('URL is required for metadata'));
     }
 
     return ok(
       new UrlMetadata({
         ...props,
         retrievedAt: props.retrievedAt || new Date(),
-      })
+      }),
     );
   }
 

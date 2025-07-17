@@ -1,17 +1,17 @@
-import { AggregateRoot } from "../../../shared/domain/AggregateRoot";
-import { UniqueEntityID } from "../../../shared/domain/UniqueEntityID";
-import { ok, err, Result } from "../../../shared/core/Result";
-import { CardId } from "./value-objects/CardId";
-import { CardType, CardTypeEnum } from "./value-objects/CardType";
-import { CardContent } from "./value-objects/CardContent";
-import { CuratorId } from "./value-objects/CuratorId";
-import { PublishedRecordId } from "./value-objects/PublishedRecordId";
-import { URL } from "./value-objects/URL";
+import { AggregateRoot } from '../../../shared/domain/AggregateRoot';
+import { UniqueEntityID } from '../../../shared/domain/UniqueEntityID';
+import { ok, err, Result } from '../../../shared/core/Result';
+import { CardId } from './value-objects/CardId';
+import { CardType, CardTypeEnum } from './value-objects/CardType';
+import { CardContent } from './value-objects/CardContent';
+import { CuratorId } from './value-objects/CuratorId';
+import { PublishedRecordId } from './value-objects/PublishedRecordId';
+import { URL } from './value-objects/URL';
 
 export class CardValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "CardValidationError";
+    this.name = 'CardValidationError';
   }
 }
 
@@ -94,18 +94,18 @@ export class Card extends AggregateRoot<CardProps> {
   public static create(
     props: Omit<
       CardProps,
-      "createdAt" | "updatedAt" | "libraryMemberships" | "libraryCount"
+      'createdAt' | 'updatedAt' | 'libraryMemberships' | 'libraryCount'
     > & {
       libraryMemberships?: CardInLibraryLink[];
       libraryCount?: number;
       createdAt?: Date;
       updatedAt?: Date;
     },
-    id?: UniqueEntityID
+    id?: UniqueEntityID,
   ): Result<Card, CardValidationError> {
     // Validate content type matches card type
     if (props.type.value !== props.content.type) {
-      return err(new CardValidationError("Card type must match content type"));
+      return err(new CardValidationError('Card type must match content type'));
     }
 
     // Validate parent/source card relationships
@@ -130,20 +130,20 @@ export class Card extends AggregateRoot<CardProps> {
   private static validateCardRelationships(
     props: Omit<
       CardProps,
-      "createdAt" | "updatedAt" | "libraryMemberships" | "libraryCount"
+      'createdAt' | 'updatedAt' | 'libraryMemberships' | 'libraryCount'
     > & {
       libraryMemberships?: CardInLibraryLink[];
       libraryCount?: number;
-    }
+    },
   ): Result<void, CardValidationError> {
     // URL cards should not have parent cards
     if (props.type.value === CardTypeEnum.URL && props.parentCardId) {
-      return err(new CardValidationError("URL cards cannot have parent cards"));
+      return err(new CardValidationError('URL cards cannot have parent cards'));
     }
 
     // URL cards must have a URL property
     if (props.type.value === CardTypeEnum.URL && !props.url) {
-      return err(new CardValidationError("URL cards must have a url property"));
+      return err(new CardValidationError('URL cards must have a url property'));
     }
 
     // Validate libraryCount matches libraryMemberships length when both are provided
@@ -154,8 +154,8 @@ export class Card extends AggregateRoot<CardProps> {
     ) {
       return err(
         new CardValidationError(
-          `Library count (${props.libraryCount}) does not match library memberships length (${libraryMemberships.length})`
-        )
+          `Library count (${props.libraryCount}) does not match library memberships length (${libraryMemberships.length})`,
+        ),
       );
     }
 
@@ -163,11 +163,11 @@ export class Card extends AggregateRoot<CardProps> {
   }
 
   public updateContent(
-    newContent: CardContent
+    newContent: CardContent,
   ): Result<void, CardValidationError> {
     if (this.props.type.value !== newContent.type) {
       return err(
-        new CardValidationError("Cannot change card content to different type")
+        new CardValidationError('Cannot change card content to different type'),
       );
     }
 
@@ -180,7 +180,7 @@ export class Card extends AggregateRoot<CardProps> {
   public addToLibrary(userId: CuratorId): Result<void, CardValidationError> {
     if (
       this.props.libraryMemberships.find((link) =>
-        link.curatorId.equals(userId)
+        link.curatorId.equals(userId),
       )
     ) {
       return err(new CardValidationError("Card is already in user's library"));
@@ -197,18 +197,18 @@ export class Card extends AggregateRoot<CardProps> {
   }
 
   public removeFromLibrary(
-    userId: CuratorId
+    userId: CuratorId,
   ): Result<void, CardValidationError> {
     if (
       !this.props.libraryMemberships.find((link) =>
-        link.curatorId.equals(userId)
+        link.curatorId.equals(userId),
       )
     ) {
       return err(new CardValidationError("Card is not in user's library"));
     }
 
     this.props.libraryMemberships = this.props.libraryMemberships.filter(
-      (link) => !link.curatorId.equals(userId)
+      (link) => !link.curatorId.equals(userId),
     );
     this.props.libraryCount = this.props.libraryMemberships.length;
     this.props.updatedAt = new Date();
@@ -219,17 +219,17 @@ export class Card extends AggregateRoot<CardProps> {
   public isInLibrary(userId: CuratorId): boolean {
     return (
       this.props.libraryMemberships.find((link) =>
-        link.curatorId.equals(userId)
+        link.curatorId.equals(userId),
       ) !== undefined
     );
   }
 
   public markCardInLibraryAsPublished(
     userId: CuratorId,
-    publishedRecordId: PublishedRecordId
+    publishedRecordId: PublishedRecordId,
   ): Result<void, CardValidationError> {
     const membership = this.props.libraryMemberships.find((link) =>
-      link.curatorId.equals(userId)
+      link.curatorId.equals(userId),
     );
     if (!membership) {
       return err(new CardValidationError("Card is not in user's library"));
@@ -249,7 +249,7 @@ export class Card extends AggregateRoot<CardProps> {
 
   public getLibraryInfo(userId: CuratorId): CardInLibraryLink | undefined {
     return this.props.libraryMemberships.find((link) =>
-      link.curatorId.equals(userId)
+      link.curatorId.equals(userId),
     );
   }
 }

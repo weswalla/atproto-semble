@@ -1,14 +1,14 @@
-import { Collection, CollectionAccessType } from "../../../domain/Collection";
-import { CollectionName } from "../../../domain/value-objects/CollectionName";
-import { CollectionDescription } from "../../../domain/value-objects/CollectionDescription";
-import { CuratorId } from "../../../domain/value-objects/CuratorId";
-import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
-import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
+import { Collection, CollectionAccessType } from '../../../domain/Collection';
+import { CollectionName } from '../../../domain/value-objects/CollectionName';
+import { CollectionDescription } from '../../../domain/value-objects/CollectionDescription';
+import { CuratorId } from '../../../domain/value-objects/CuratorId';
+import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
+import { UniqueEntityID } from '../../../../../shared/domain/UniqueEntityID';
 
 export class CollectionBuilder {
   private _id?: UniqueEntityID;
-  private _authorId: string = "did:plc:defaultAuthor";
-  private _name: string = "Default Collection";
+  private _authorId: string = 'did:plc:defaultAuthor';
+  private _name: string = 'Default Collection';
   private _description?: string;
   private _accessType: CollectionAccessType = CollectionAccessType.OPEN;
   private _collaborators: string[] = [];
@@ -37,10 +37,10 @@ export class CollectionBuilder {
   }
 
   withAccessType(accessType: CollectionAccessType | string): CollectionBuilder {
-    if (typeof accessType === "string") {
+    if (typeof accessType === 'string') {
       // Handle string values like "OPEN", "CLOSED"
       this._accessType =
-        accessType === "OPEN"
+        accessType === 'OPEN'
           ? CollectionAccessType.OPEN
           : CollectionAccessType.CLOSED;
     } else {
@@ -57,8 +57,8 @@ export class CollectionBuilder {
   withPublished(published: boolean): CollectionBuilder {
     if (published) {
       // Create a fake published record ID when marking as published
-      const fakeUri = `at://fake-did/network.cosmik.collection/${this._id?.toString() || "fake-id"}`;
-      const fakeCid = `fake-collection-cid-${this._id?.toString() || "fake-id"}`;
+      const fakeUri = `at://fake-did/network.cosmik.collection/${this._id?.toString() || 'fake-id'}`;
+      const fakeCid = `fake-collection-cid-${this._id?.toString() || 'fake-id'}`;
       this._publishedRecordId = PublishedRecordId.create({
         uri: fakeUri,
         cid: fakeCid,
@@ -97,18 +97,18 @@ export class CollectionBuilder {
       const nameResult = CollectionName.create(this._name);
       if (nameResult.isErr()) {
         return new Error(
-          `Invalid collection name: ${nameResult.error.message}`
+          `Invalid collection name: ${nameResult.error.message}`,
         );
       }
 
       let description: CollectionDescription | undefined;
       if (this._description) {
         const descriptionResult = CollectionDescription.create(
-          this._description
+          this._description,
         );
         if (descriptionResult.isErr()) {
           return new Error(
-            `Invalid collection description: ${descriptionResult.error.message}`
+            `Invalid collection description: ${descriptionResult.error.message}`,
           );
         }
         description = descriptionResult.value;
@@ -118,7 +118,7 @@ export class CollectionBuilder {
         const collaboratorResult = CuratorId.create(collaborator);
         if (collaboratorResult.isErr()) {
           throw new Error(
-            `Invalid collaborator ID: ${collaboratorResult.error.message}`
+            `Invalid collaborator ID: ${collaboratorResult.error.message}`,
           );
         }
         return collaboratorResult.value;
@@ -135,7 +135,7 @@ export class CollectionBuilder {
           createdAt: this._createdAt ?? new Date(),
           updatedAt: this._updatedAt ?? new Date(),
         },
-        this._id
+        this._id,
       );
 
       if (collectionResult.isErr()) {

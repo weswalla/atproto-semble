@@ -1,19 +1,19 @@
-import { Result, err, ok } from "src/shared/core/Result";
-import { IUserRepository } from "../../domain/repositories/IUserRepository";
+import { Result, err, ok } from 'src/shared/core/Result';
+import { IUserRepository } from '../../domain/repositories/IUserRepository';
 import {
   IUserAuthenticationService,
   AuthenticationResult,
-} from "../../domain/services/IUserAuthenticationService";
-import { DID } from "../../domain/value-objects/DID";
-import { Handle } from "../../domain/value-objects/Handle";
-import { User } from "../../domain/User";
+} from '../../domain/services/IUserAuthenticationService';
+import { DID } from '../../domain/value-objects/DID';
+import { Handle } from '../../domain/value-objects/Handle';
+import { User } from '../../domain/User';
 
 export class UserAuthenticationService implements IUserAuthenticationService {
   constructor(private userRepository: IUserRepository) {}
 
   async validateUserCredentials(
     did: DID,
-    handle?: Handle
+    handle?: Handle,
   ): Promise<Result<AuthenticationResult>> {
     try {
       // Try to find existing user

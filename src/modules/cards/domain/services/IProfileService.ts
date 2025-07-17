@@ -1,4 +1,4 @@
-import { Result } from "src/shared/core/Result";
+import { Result } from 'src/shared/core/Result';
 
 export interface IProfileService {
   getProfile(userId: string): Promise<Result<UserProfile>>;

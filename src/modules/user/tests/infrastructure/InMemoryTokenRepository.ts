@@ -1,5 +1,8 @@
-import { Result, ok, err } from "src/shared/core/Result";
-import { ITokenRepository, RefreshToken } from "../../domain/repositories/ITokenRepository";
+import { Result, ok, err } from 'src/shared/core/Result';
+import {
+  ITokenRepository,
+  RefreshToken,
+} from '../../domain/repositories/ITokenRepository';
 
 export class InMemoryTokenRepository implements ITokenRepository {
   private tokens: Map<string, RefreshToken> = new Map();
@@ -13,7 +16,9 @@ export class InMemoryTokenRepository implements ITokenRepository {
     }
   }
 
-  async findRefreshToken(refreshToken: string): Promise<Result<RefreshToken | null>> {
+  async findRefreshToken(
+    refreshToken: string,
+  ): Promise<Result<RefreshToken | null>> {
     try {
       const token = this.tokens.get(refreshToken);
       if (!token || token.revoked) {

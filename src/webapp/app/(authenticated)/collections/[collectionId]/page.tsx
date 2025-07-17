@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
-import { getAccessToken } from "@/services/auth";
-import { ApiClient } from "@/api-client/ApiClient";
-import { UrlCard } from "@/components/UrlCard";
-import type { GetCollectionPageResponse } from "@/api-client/types";
+import { useEffect, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { getAccessToken } from '@/services/auth';
+import { ApiClient } from '@/api-client/ApiClient';
+import { UrlCard } from '@/components/UrlCard';
+import type { GetCollectionPageResponse } from '@/api-client/types';
 import {
   Button,
   Group,
@@ -16,20 +16,20 @@ import {
   Title,
   Box,
   SimpleGrid,
-} from "@mantine/core";
+} from '@mantine/core';
 
 export default function CollectionPage() {
   const [collection, setCollection] =
     useState<GetCollectionPageResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const router = useRouter();
   const params = useParams();
   const collectionId = params.collectionId as string;
 
   // Create API client instance
   const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     () => getAccessToken(),
   );
 
@@ -42,8 +42,8 @@ export default function CollectionPage() {
         });
         setCollection(response);
       } catch (error: any) {
-        console.error("Error fetching collection:", error);
-        setError(error.message || "Failed to load collection");
+        console.error('Error fetching collection:', error);
+        setError(error.message || 'Failed to load collection');
       } finally {
         setLoading(false);
       }
@@ -61,7 +61,7 @@ export default function CollectionPage() {
   if (error || !collection) {
     return (
       <Stack align="center">
-        <Text c={"red"}>{error || "Collection not found"}</Text>
+        <Text c={'red'}>{error || 'Collection not found'}</Text>
         <Button onClick={() => router.back()}>Go Back</Button>
       </Stack>
     );
@@ -81,7 +81,7 @@ export default function CollectionPage() {
             >
               Edit Collection
             </Button>
-            <Button onClick={() => router.push("/cards/add")}>Add Card</Button>
+            <Button onClick={() => router.push('/cards/add')}>Add Card</Button>
           </Group>
         </Group>
 
@@ -97,10 +97,10 @@ export default function CollectionPage() {
           </Stack>
 
           <Group>
-            <Text fz={"sm"} c={"gray"}>
+            <Text fz={'sm'} c={'gray'}>
               {collection.urlCards.length} cards
             </Text>
-            <Text fz={"sm"} c={"gray"}>
+            <Text fz={'sm'} c={'gray'}>
               By {collection.author.name} (@{collection.author.handle})
             </Text>
           </Group>
@@ -111,8 +111,8 @@ export default function CollectionPage() {
           <Group justify="space-between">
             <Title order={2}>Cards</Title>
             {collection.pagination && collection.pagination.totalCount > 0 && (
-              <Text fz={"sm"} c={"gray"}>
-                Showing {collection.urlCards.length} of{" "}
+              <Text fz={'sm'} c={'gray'}>
+                Showing {collection.urlCards.length} of{' '}
                 {collection.pagination.totalCount} cards
               </Text>
             )}
@@ -120,7 +120,7 @@ export default function CollectionPage() {
 
           {collection.urlCards.length > 0 ? (
             <Box>
-              <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing={"md"}>
+              <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing={'md'}>
                 {collection.urlCards.map((card) => (
                   <UrlCard
                     key={card.id}
@@ -145,8 +145,8 @@ export default function CollectionPage() {
             </Box>
           ) : (
             <Stack align="center">
-              <Text c={"gray"}>No cards in this collection yet</Text>
-              <Button onClick={() => router.push("/cards/add")}>
+              <Text c={'gray'}>No cards in this collection yet</Text>
+              <Button onClick={() => router.push('/cards/add')}>
                 Add Your First Card
               </Button>
             </Stack>

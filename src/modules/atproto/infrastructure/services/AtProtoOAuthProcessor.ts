@@ -1,10 +1,10 @@
-import { NodeOAuthClient } from "@atproto/oauth-client-node";
-import { Result, err, ok } from "src/shared/core/Result";
+import { NodeOAuthClient } from '@atproto/oauth-client-node';
+import { Result, err, ok } from 'src/shared/core/Result';
 import {
   IOAuthProcessor,
   AuthResult,
-} from "../../../user/application/services/IOAuthProcessor";
-import { OAuthCallbackDTO } from "../../../user/application/dtos/OAuthCallbackDTO";
+} from '../../../user/application/services/IOAuthProcessor';
+import { OAuthCallbackDTO } from '../../../user/application/dtos/OAuthCallbackDTO';
 
 export class AtProtoOAuthProcessor implements IOAuthProcessor {
   private client: NodeOAuthClient;
@@ -28,9 +28,9 @@ export class AtProtoOAuthProcessor implements IOAuthProcessor {
     try {
       // Convert params to URLSearchParams
       const searchParams = new URLSearchParams();
-      searchParams.append("code", params.code);
-      searchParams.append("state", params.state);
-      searchParams.append("iss", params.iss);
+      searchParams.append('code', params.code);
+      searchParams.append('state', params.state);
+      searchParams.append('iss', params.iss);
 
       const { session } = await this.client.callback(searchParams);
 

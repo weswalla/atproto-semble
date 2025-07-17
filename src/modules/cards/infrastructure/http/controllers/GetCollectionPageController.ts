@@ -1,8 +1,8 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Response } from "express";
-import { GetCollectionPageUseCase } from "../../../application/useCases/queries/GetCollectionPageUseCase";
-import { AuthenticatedRequest } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
-import { CardSortField, SortOrder } from "../../../domain/ICardQueryRepository";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Response } from 'express';
+import { GetCollectionPageUseCase } from '../../../application/useCases/queries/GetCollectionPageUseCase';
+import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
+import { CardSortField, SortOrder } from '../../../domain/ICardQueryRepository';
 
 export class GetCollectionPageController extends Controller {
   constructor(private getCollectionPageUseCase: GetCollectionPageUseCase) {
@@ -15,7 +15,7 @@ export class GetCollectionPageController extends Controller {
       const { page, limit, sortBy, sortOrder } = req.query;
 
       if (!collectionId) {
-        return this.badRequest(res, "Collection ID is required");
+        return this.badRequest(res, 'Collection ID is required');
       }
 
       const result = await this.getCollectionPageUseCase.execute({

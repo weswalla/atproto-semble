@@ -3,11 +3,11 @@ import {
   TextQuoteSelector,
   RangeSelector,
   HighlightSelector,
-} from "../../../../domain/value-objects/content/HighlightCardContent";
-import { JSDOM } from "jsdom";
+} from '../../../../domain/value-objects/content/HighlightCardContent';
+import { JSDOM } from 'jsdom';
 
-describe("HighlightCardContent Integration Tests", () => {
-  describe("HTML document annotation (browser extension simulation)", () => {
+describe('HighlightCardContent Integration Tests', () => {
+  describe('HTML document annotation (browser extension simulation)', () => {
     let dom: JSDOM;
     let document: Document;
 
@@ -51,7 +51,7 @@ describe("HighlightCardContent Integration Tests", () => {
       startNode: Node,
       startOffset: number,
       endNode: Node,
-      endOffset: number
+      endOffset: number,
     ) {
       const range = document.createRange();
       range.setStart(startNode, startOffset);
@@ -61,13 +61,13 @@ describe("HighlightCardContent Integration Tests", () => {
 
     // Helper function to get text content with position
     function getDocumentTextContent(): string {
-      return document.body.textContent || "";
+      return document.body.textContent || '';
     }
 
     // Helper function to find text position in document
     function findTextPosition(
       searchText: string,
-      documentText: string
+      documentText: string,
     ): { start: number; end: number } | null {
       const start = documentText.indexOf(searchText);
       if (start === -1) return null;
@@ -80,9 +80,9 @@ describe("HighlightCardContent Integration Tests", () => {
 
       if (element.nodeType === Node.TEXT_NODE) {
         const parent = element.parentNode;
-        if (!parent) return "";
+        if (!parent) return '';
         const textNodes = Array.from(parent.childNodes).filter(
-          (n) => n.nodeType === Node.TEXT_NODE
+          (n) => n.nodeType === Node.TEXT_NODE,
         );
         const index = textNodes.indexOf(element as Text);
         return `${getXPath(parent)}/text()[${index + 1}]`;
@@ -100,30 +100,30 @@ describe("HighlightCardContent Integration Tests", () => {
         }
 
         const siblings = Array.from(parent.children).filter(
-          (e) => e.tagName === elem.tagName
+          (e) => e.tagName === elem.tagName,
         );
         const index = siblings.indexOf(elem);
         return `${getXPath(parent)}/${elem.tagName.toLowerCase()}[${index + 1}]`;
       }
 
-      return "";
+      return '';
     }
 
-    it("should create highlight from browser text selection", () => {
+    it('should create highlight from browser text selection', () => {
       // Simulate user selecting text in the first paragraph
-      const firstParagraph = document.querySelector("p");
+      const firstParagraph = document.querySelector('p');
       expect(firstParagraph).toBeTruthy();
 
       const textNode = firstParagraph!.firstChild as Text;
       const selectedText =
-        "Web annotations are becoming increasingly important";
+        'Web annotations are becoming increasingly important';
 
       // Create a range selection (simulating browser selection)
       const range = simulateTextSelection(
         textNode,
         0,
         textNode,
-        selectedText.length
+        selectedText.length,
       );
       const rangeText = range.toString();
 
@@ -136,20 +136,20 @@ describe("HighlightCardContent Integration Tests", () => {
 
       // Generate selectors as a browser extension would
       const textQuoteSelector: TextQuoteSelector = {
-        type: "TextQuoteSelector",
+        type: 'TextQuoteSelector',
         exact: selectedText,
-        prefix: "",
-        suffix: " for collaborative research",
+        prefix: '',
+        suffix: ' for collaborative research',
       };
 
       const textPositionSelector = {
-        type: "TextPositionSelector" as const,
+        type: 'TextPositionSelector' as const,
         start: position!.start,
         end: position!.end,
       };
 
       const rangeSelector: RangeSelector = {
-        type: "RangeSelector",
+        type: 'RangeSelector',
         startContainer: getXPath(range.startContainer),
         startOffset: range.startOffset,
         endContainer: getXPath(range.endContainer),
@@ -161,23 +161,23 @@ describe("HighlightCardContent Integration Tests", () => {
         selectedText,
         [textQuoteSelector, textPositionSelector, rangeSelector],
         {
-          documentUrl: "https://example.com/article",
+          documentUrl: 'https://example.com/article',
           documentTitle: document.title,
           context: firstParagraph!.textContent || undefined,
-        }
+        },
       );
 
       expect(result.isOk()).toBe(true);
       const content = result.unwrap();
       expect(content.text).toBe(selectedText);
-      expect(content.documentTitle).toBe("Test Article");
+      expect(content.documentTitle).toBe('Test Article');
       expect(content.selectors).toHaveLength(3);
     });
 
-    it("should handle cross-element text selection", () => {
+    it('should handle cross-element text selection', () => {
       // Simulate selecting text that spans multiple elements
-      const firstP = document.querySelector("p");
-      const secondP = document.querySelectorAll("p")[1];
+      const firstP = document.querySelector('p');
+      const secondP = document.querySelectorAll('p')[1];
 
       expect(firstP && secondP).toBeTruthy();
 
@@ -192,7 +192,7 @@ describe("HighlightCardContent Integration Tests", () => {
         startText,
         startOffset,
         endText,
-        endOffset
+        endOffset,
       );
       const selectedText = range.toString();
 
@@ -200,7 +200,7 @@ describe("HighlightCardContent Integration Tests", () => {
       expect(selectedText.length).toBeGreaterThanOrEqual(0);
 
       const rangeSelector: RangeSelector = {
-        type: "RangeSelector",
+        type: 'RangeSelector',
         startContainer: getXPath(startText),
         startOffset: startOffset,
         endContainer: getXPath(endText),
@@ -211,12 +211,12 @@ describe("HighlightCardContent Integration Tests", () => {
       expect(result.isOk()).toBe(true);
     });
 
-    it("should handle blockquote selection", () => {
-      const blockquote = document.querySelector("blockquote");
+    it('should handle blockquote selection', () => {
+      const blockquote = document.querySelector('blockquote');
       expect(blockquote).toBeTruthy();
 
       const quoteText = blockquote!.textContent!.trim();
-      const selectedPortion = "annotate any web content";
+      const selectedPortion = 'annotate any web content';
 
       const textNode = blockquote!.firstChild as Text;
       const startOffset = quoteText.indexOf(selectedPortion);
@@ -226,18 +226,18 @@ describe("HighlightCardContent Integration Tests", () => {
         textNode,
         startOffset,
         textNode,
-        endOffset
+        endOffset,
       );
 
       const textQuoteSelector: TextQuoteSelector = {
-        type: "TextQuoteSelector",
+        type: 'TextQuoteSelector',
         exact: selectedPortion,
-        prefix: "The ability to ",
-        suffix: " opens up new",
+        prefix: 'The ability to ',
+        suffix: ' opens up new',
       };
 
       const rangeSelector: RangeSelector = {
-        type: "RangeSelector",
+        type: 'RangeSelector',
         startContainer: getXPath(textNode),
         startOffset: startOffset,
         endContainer: getXPath(textNode),
@@ -249,20 +249,20 @@ describe("HighlightCardContent Integration Tests", () => {
         [textQuoteSelector, rangeSelector],
         {
           context: quoteText,
-          documentUrl: "https://example.com/article",
-        }
+          documentUrl: 'https://example.com/article',
+        },
       );
 
       expect(result.isOk()).toBe(true);
       const content = result.unwrap();
       expect(content.context).toBe(quoteText);
-      expect(content.getTextQuoteSelector()?.prefix).toBe("The ability to ");
+      expect(content.getTextQuoteSelector()?.prefix).toBe('The ability to ');
     });
 
-    it("should generate robust selectors for annotation recovery", () => {
+    it('should generate robust selectors for annotation recovery', () => {
       // Test that we can "find" an annotation again using the selectors
-      const targetText = "multiple selector types";
-      const paragraph = document.querySelectorAll("p")[1];
+      const targetText = 'multiple selector types';
+      const paragraph = document.querySelectorAll('p')[1];
       const fullText = paragraph!.textContent!;
 
       // Get document text for position calculation
@@ -280,22 +280,22 @@ describe("HighlightCardContent Integration Tests", () => {
 
       const prefix = documentText.substring(
         Math.max(0, globalStartIndex - prefixLength),
-        globalStartIndex
+        globalStartIndex,
       );
       const suffix = documentText.substring(
         globalStartIndex + targetText.length,
-        globalStartIndex + targetText.length + suffixLength
+        globalStartIndex + targetText.length + suffixLength,
       );
 
       const selectors: HighlightSelector[] = [
         {
-          type: "TextQuoteSelector",
+          type: 'TextQuoteSelector',
           exact: exactMatch,
           prefix: prefix.trim(),
           suffix: suffix.trim(),
         },
         {
-          type: "TextPositionSelector",
+          type: 'TextPositionSelector',
           start: globalPosition!.start,
           end: globalPosition!.end,
         },
@@ -316,14 +316,14 @@ describe("HighlightCardContent Integration Tests", () => {
       // Verify the prefix and suffix match what we extracted
       const actualPrefix = documentText.substring(
         exactTextIndex - textQuoteSelector.prefix!.length - 1,
-        exactTextIndex - 1
+        exactTextIndex - 1,
       );
       const actualSuffix = documentText.substring(
         exactTextIndex + textQuoteSelector.exact.length + 1,
         exactTextIndex +
           textQuoteSelector.exact.length +
           textQuoteSelector.suffix!.length +
-          1
+          1,
       );
 
       expect(actualPrefix).toBe(textQuoteSelector.prefix);
@@ -333,14 +333,14 @@ describe("HighlightCardContent Integration Tests", () => {
       const positionSelector = content.getTextPositionSelector()!;
       const extractedText = documentText.substring(
         positionSelector.start,
-        positionSelector.end
+        positionSelector.end,
       );
       expect(extractedText).toBe(targetText);
     });
 
-    it("should handle edge cases in HTML documents", () => {
+    it('should handle edge cases in HTML documents', () => {
       // Test selection at document boundaries
-      const title = document.querySelector("h1");
+      const title = document.querySelector('h1');
       const titleText = title!.textContent!;
 
       // Select entire title
@@ -348,18 +348,18 @@ describe("HighlightCardContent Integration Tests", () => {
         title!.firstChild!,
         0,
         title!.firstChild!,
-        titleText.length
+        titleText.length,
       );
 
       const selectors: HighlightSelector[] = [
         {
-          type: "TextQuoteSelector",
+          type: 'TextQuoteSelector',
           exact: titleText,
-          prefix: "",
-          suffix: "",
+          prefix: '',
+          suffix: '',
         },
         {
-          type: "RangeSelector",
+          type: 'RangeSelector',
           startContainer: getXPath(title!.firstChild!),
           startOffset: 0,
           endContainer: getXPath(title!.firstChild!),
@@ -374,8 +374,8 @@ describe("HighlightCardContent Integration Tests", () => {
       expect(result.isOk()).toBe(true);
       const content = result.unwrap();
       expect(content.text).toBe(titleText);
-      expect(content.getTextQuoteSelector()?.prefix).toBe("");
-      expect(content.getTextQuoteSelector()?.suffix).toBe("");
+      expect(content.getTextQuoteSelector()?.prefix).toBe('');
+      expect(content.getTextQuoteSelector()?.suffix).toBe('');
     });
   });
 });

@@ -1,9 +1,9 @@
-import { UseCase } from "src/shared/core/UseCase";
-import { Result, err, ok } from "src/shared/core/Result";
-import { AppError } from "src/shared/core/AppError";
-import { ITokenService } from "../services/ITokenService";
-import { TokenPair } from "../dtos/TokenDTO";
-import { RefreshAccessTokenErrors } from "./errors/RefreshAccessTokenErrors";
+import { UseCase } from 'src/shared/core/UseCase';
+import { Result, err, ok } from 'src/shared/core/Result';
+import { AppError } from 'src/shared/core/AppError';
+import { ITokenService } from '../services/ITokenService';
+import { TokenPair } from '../dtos/TokenDTO';
+import { RefreshAccessTokenErrors } from './errors/RefreshAccessTokenErrors';
 
 export interface RefreshAccessTokenDTO {
   refreshToken: string;
@@ -20,11 +20,11 @@ export class RefreshAccessTokenUseCase
   constructor(private tokenService: ITokenService) {}
 
   async execute(
-    request: RefreshAccessTokenDTO
+    request: RefreshAccessTokenDTO,
   ): Promise<RefreshAccessTokenResponse> {
     try {
       const tokenResult = await this.tokenService.refreshToken(
-        request.refreshToken
+        request.refreshToken,
       );
 
       if (tokenResult.isErr()) {

@@ -1,20 +1,20 @@
-import { $Typed } from "@atproto/api";
-import { Card } from "src/modules/cards/domain/Card";
-import { CardTypeEnum } from "src/modules/cards/domain/value-objects/CardType";
+import { $Typed } from '@atproto/api';
+import { Card } from 'src/modules/cards/domain/Card';
+import { CardTypeEnum } from 'src/modules/cards/domain/value-objects/CardType';
 import {
   Record,
   UrlContent,
   NoteContent,
   UrlMetadata,
-} from "../lexicon/types/network/cosmik/card";
-import { StrongRef } from "../../domain";
+} from '../lexicon/types/network/cosmik/card';
+import { StrongRef } from '../../domain';
 
 type CardRecordDTO = Record;
 
 export class CardMapper {
   static toCreateRecordDTO(card: Card): CardRecordDTO {
     const record: CardRecordDTO = {
-      $type: "network.cosmik.card",
+      $type: 'network.cosmik.card',
       type: card.type.value,
       content: this.mapCardContent(card),
       createdAt: card.createdAt.toISOString(),
@@ -28,7 +28,7 @@ export class CardMapper {
     // Add optional original card reference
     if (card.originalPublishedRecordId) {
       const strongRef = new StrongRef(
-        card.originalPublishedRecordId.getValue()
+        card.originalPublishedRecordId.getValue(),
       );
       record.originalCard = {
         uri: strongRef.getValue().uri,
@@ -44,7 +44,7 @@ export class CardMapper {
       case CardTypeEnum.URL:
         const urlContent = card.content.urlContent!;
         const urlContentDTO: $Typed<UrlContent> = {
-          $type: "network.cosmik.card#urlContent",
+          $type: 'network.cosmik.card#urlContent',
           url: urlContent.url.value,
         };
 
@@ -57,7 +57,7 @@ export class CardMapper {
       case CardTypeEnum.NOTE:
         const noteContent = card.content.noteContent!;
         const noteContentDTO: $Typed<NoteContent> = {
-          $type: "network.cosmik.card#noteContent",
+          $type: 'network.cosmik.card#noteContent',
           text: noteContent.text,
         };
 
@@ -70,7 +70,7 @@ export class CardMapper {
 
   private static mapUrlMetadata(metadata: any): $Typed<UrlMetadata> {
     return {
-      $type: "network.cosmik.card#urlMetadata",
+      $type: 'network.cosmik.card#urlMetadata',
       url: metadata.url,
       title: metadata.title,
       description: metadata.description,

@@ -1,12 +1,12 @@
-import { RemoveCardFromLibraryUseCase } from "../../application/useCases/commands/RemoveCardFromLibraryUseCase";
-import { InMemoryCardRepository } from "../utils/InMemoryCardRepository";
-import { FakeCardPublisher } from "../utils/FakeCardPublisher";
-import { CardLibraryService } from "../../domain/services/CardLibraryService";
-import { CuratorId } from "../../domain/value-objects/CuratorId";
-import { CardBuilder } from "../utils/builders/CardBuilder";
-import { CardTypeEnum } from "../../domain/value-objects/CardType";
+import { RemoveCardFromLibraryUseCase } from '../../application/useCases/commands/RemoveCardFromLibraryUseCase';
+import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
+import { FakeCardPublisher } from '../utils/FakeCardPublisher';
+import { CardLibraryService } from '../../domain/services/CardLibraryService';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
+import { CardBuilder } from '../utils/builders/CardBuilder';
+import { CardTypeEnum } from '../../domain/value-objects/CardType';
 
-describe("RemoveCardFromLibraryUseCase", () => {
+describe('RemoveCardFromLibraryUseCase', () => {
   let useCase: RemoveCardFromLibraryUseCase;
   let cardRepository: InMemoryCardRepository;
   let cardPublisher: FakeCardPublisher;
@@ -21,11 +21,11 @@ describe("RemoveCardFromLibraryUseCase", () => {
 
     useCase = new RemoveCardFromLibraryUseCase(
       cardRepository,
-      cardLibraryService
+      cardLibraryService,
     );
 
-    curatorId = CuratorId.create("did:plc:testcurator").unwrap();
-    otherCuratorId = CuratorId.create("did:plc:othercurator").unwrap();
+    curatorId = CuratorId.create('did:plc:testcurator').unwrap();
+    otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
   });
 
   afterEach(() => {
@@ -47,17 +47,17 @@ describe("RemoveCardFromLibraryUseCase", () => {
   const addCardToLibrary = async (card: any, curatorId: CuratorId) => {
     const addResult = await cardLibraryService.addCardToLibrary(
       card,
-      curatorId
+      curatorId,
     );
     if (addResult.isErr()) {
       throw new Error(
-        `Failed to add card to library: ${addResult.error.message}`
+        `Failed to add card to library: ${addResult.error.message}`,
       );
     }
   };
 
-  describe("Basic card removal from library", () => {
-    it("should successfully remove card from library", async () => {
+  describe('Basic card removal from library', () => {
+    it('should successfully remove card from library', async () => {
       const card = await createCard();
 
       // Add card to library first
@@ -111,7 +111,7 @@ describe("RemoveCardFromLibraryUseCase", () => {
       expect(unpublishedCards).toHaveLength(1);
     });
 
-    it("should handle different card types", async () => {
+    it('should handle different card types', async () => {
       const urlCard = await createCard(CardTypeEnum.URL);
       const noteCard = await createCard(CardTypeEnum.NOTE);
 
@@ -138,10 +138,10 @@ describe("RemoveCardFromLibraryUseCase", () => {
 
       // Verify both cards were removed
       const updatedUrlCardResult = await cardRepository.findById(
-        urlCard.cardId
+        urlCard.cardId,
       );
       const updatedNoteCardResult = await cardRepository.findById(
-        noteCard.cardId
+        noteCard.cardId,
       );
 
       const updatedUrlCard = updatedUrlCardResult.unwrap()!;
@@ -152,10 +152,10 @@ describe("RemoveCardFromLibraryUseCase", () => {
     });
   });
 
-  describe("Validation", () => {
-    it("should fail with invalid card ID", async () => {
+  describe('Validation', () => {
+    it('should fail with invalid card ID', async () => {
       const request = {
-        cardId: "invalid-card-id",
+        cardId: 'invalid-card-id',
         curatorId: curatorId.value,
       };
 
@@ -163,29 +163,29 @@ describe("RemoveCardFromLibraryUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Card not found");
+        expect(result.error.message).toContain('Card not found');
       }
     });
 
-    it("should fail with invalid curator ID", async () => {
+    it('should fail with invalid curator ID', async () => {
       const card = await createCard();
 
       const request = {
         cardId: card.cardId.getStringValue(),
-        curatorId: "invalid-curator-id",
+        curatorId: 'invalid-curator-id',
       };
 
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Invalid curator ID");
+        expect(result.error.message).toContain('Invalid curator ID');
       }
     });
 
-    it("should fail when card does not exist", async () => {
+    it('should fail when card does not exist', async () => {
       const request = {
-        cardId: "non-existent-card-id",
+        cardId: 'non-existent-card-id',
         curatorId: curatorId.value,
       };
 
@@ -193,13 +193,13 @@ describe("RemoveCardFromLibraryUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Card not found");
+        expect(result.error.message).toContain('Card not found');
       }
     });
   });
 
-  describe("Publishing integration", () => {
-    it("should unpublish card from library when removed", async () => {
+  describe('Publishing integration', () => {
+    it('should unpublish card from library when removed', async () => {
       const card = await createCard();
       await addCardToLibrary(card, curatorId);
 
@@ -221,12 +221,12 @@ describe("RemoveCardFromLibraryUseCase", () => {
       // Verify the correct card was unpublished
       const unpublishedCards = cardPublisher.getUnpublishedCards();
       const unpublishedCard = unpublishedCards.find(
-        (uc) => uc.cardId === card.cardId.getStringValue()
+        (uc) => uc.cardId === card.cardId.getStringValue(),
       );
       expect(unpublishedCard).toBeDefined();
     });
 
-    it("should handle unpublish failure gracefully", async () => {
+    it('should handle unpublish failure gracefully', async () => {
       const card = await createCard();
       await addCardToLibrary(card, curatorId);
 
@@ -248,7 +248,7 @@ describe("RemoveCardFromLibraryUseCase", () => {
       expect(cardFromRepo.isInLibrary(curatorId)).toBe(true);
     });
 
-    it("should not unpublish if card was never published", async () => {
+    it('should not unpublish if card was never published', async () => {
       const card = await createCard();
 
       // Manually add to library without publishing
@@ -278,8 +278,8 @@ describe("RemoveCardFromLibraryUseCase", () => {
     });
   });
 
-  describe("Edge cases", () => {
-    it("should handle card with multiple library memberships", async () => {
+  describe('Edge cases', () => {
+    it('should handle card with multiple library memberships', async () => {
       const card = await createCard();
 
       // Add to multiple users' libraries
@@ -304,7 +304,7 @@ describe("RemoveCardFromLibraryUseCase", () => {
       expect(updatedCard.isInLibrary(otherCuratorId)).toBe(true);
     });
 
-    it("should handle repository save failure", async () => {
+    it('should handle repository save failure', async () => {
       const card = await createCard();
       await addCardToLibrary(card, curatorId);
 
@@ -321,7 +321,7 @@ describe("RemoveCardFromLibraryUseCase", () => {
       expect(result.isErr()).toBe(true);
     });
 
-    it("should preserve card properties when removing from library", async () => {
+    it('should preserve card properties when removing from library', async () => {
       const card = await createCard();
       await addCardToLibrary(card, curatorId);
 
@@ -346,7 +346,7 @@ describe("RemoveCardFromLibraryUseCase", () => {
       expect(updatedCard.type.value).toBe(originalType);
       expect(updatedCard.content).toEqual(originalContent);
       expect(updatedCard.updatedAt.getTime()).toBeGreaterThanOrEqual(
-        originalCreatedAt.getTime()
+        originalCreatedAt.getTime(),
       );
     });
   });

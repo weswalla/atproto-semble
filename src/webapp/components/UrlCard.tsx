@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { BiPlus, BiLinkExternal } from "react-icons/bi";
-import { AddToCollectionModal } from "./AddToCollectionModal";
+import { BiPlus, BiLinkExternal } from 'react-icons/bi';
+import { AddToCollectionModal } from './AddToCollectionModal';
 import {
   ActionIcon,
   Blockquote,
@@ -11,8 +11,8 @@ import {
   Image,
   Stack,
   Text,
-} from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+} from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 
 interface UrlCardProps {
   cardId: string;
@@ -40,10 +40,10 @@ export function UrlCard({
   const [modalOpened, { open, close }] = useDisclosure(false);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   };
 
@@ -57,7 +57,7 @@ export function UrlCard({
 
   const handleAddToCollectionSuccess = () => {
     // Could show a toast notification here
-    console.log("Card added to collection(s) successfully");
+    console.log('Card added to collection(s) successfully');
   };
 
   return (
@@ -69,7 +69,7 @@ export function UrlCard({
               <Text fw={600} lineClamp={1}>
                 {title || getDomain(url)}
               </Text>
-              <Text fz={"sm"} fw={500} lineClamp={1} c={"gray"}>
+              <Text fz={'sm'} fw={500} lineClamp={1} c={'gray'}>
                 {getDomain(url)} • {formatDate(addedAt)}
               </Text>
             </Stack>
@@ -77,13 +77,13 @@ export function UrlCard({
               {imageUrl && (
                 <Image
                   src={imageUrl}
-                  alt={title || "Card image"}
+                  alt={title || 'Card image'}
                   w={64}
                   h={64}
-                  radius={"md"}
+                  radius={'md'}
                 />
               )}
-              <Stack gap={"xs"}>
+              <Stack gap={'xs'}>
                 <ActionIcon
                   variant="transparent"
                   onClick={() => open()}
@@ -93,7 +93,7 @@ export function UrlCard({
                 </ActionIcon>
                 <ActionIcon
                   variant="transparent"
-                  onClick={() => window.open(url, "_blank")}
+                  onClick={() => window.open(url, '_blank')}
                   title="Open link"
                 >
                   <BiLinkExternal />
@@ -104,17 +104,17 @@ export function UrlCard({
 
           <Stack>
             {description && (
-              <Text lineClamp={2} fz={"sm"}>
+              <Text lineClamp={2} fz={'sm'}>
                 {description}
               </Text>
             )}
             {author && (
-              <Text fw={500} fz={"xs"} c={"gray"}>
+              <Text fw={500} fz={'xs'} c={'gray'}>
                 By {author}
               </Text>
             )}
             {note && (
-              <Blockquote color="yellow" p={"xs"} fz={"sm"}>
+              <Blockquote color="yellow" p={'xs'} fz={'sm'}>
                 {note}
               </Blockquote>
             )}

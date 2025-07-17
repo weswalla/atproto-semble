@@ -1,8 +1,8 @@
-import { Result, ok, err } from "src/shared/core/Result";
+import { Result, ok, err } from 'src/shared/core/Result';
 import {
   IAppPasswordSessionRepository,
   SessionWithAppPassword,
-} from "../../infrastructure/repositories/IAppPasswordSessionRepository";
+} from '../../infrastructure/repositories/IAppPasswordSessionRepository';
 
 export class InMemoryAppPasswordSessionRepository
   implements IAppPasswordSessionRepository
@@ -11,7 +11,7 @@ export class InMemoryAppPasswordSessionRepository
 
   async saveSession(
     did: string,
-    session: SessionWithAppPassword
+    session: SessionWithAppPassword,
   ): Promise<Result<void>> {
     try {
       this.sessions.set(did, session);
@@ -22,7 +22,7 @@ export class InMemoryAppPasswordSessionRepository
   }
 
   async getSession(
-    did: string
+    did: string,
   ): Promise<Result<SessionWithAppPassword | null>> {
     try {
       const session = this.sessions.get(did) || null;

@@ -1,7 +1,7 @@
-import { IMetadataService } from "../domain/services/IMetadataService";
-import { UrlMetadata } from "../domain/value-objects/UrlMetadata";
-import { URL } from "../domain/value-objects/URL";
-import { Result, ok, err } from "../../../shared/core/Result";
+import { IMetadataService } from '../domain/services/IMetadataService';
+import { UrlMetadata } from '../domain/value-objects/UrlMetadata';
+import { URL } from '../domain/value-objects/URL';
+import { Result, ok, err } from '../../../shared/core/Result';
 
 interface IFramelyMeta {
   title?: string;
@@ -35,12 +35,12 @@ interface IFramelyResponse {
 }
 
 export class IFramelyMetadataService implements IMetadataService {
-  private readonly baseUrl = "https://iframe.ly/api/iframely";
+  private readonly baseUrl = 'https://iframe.ly/api/iframely';
   private readonly apiKey: string;
 
   constructor(apiKey: string) {
     if (!apiKey || apiKey.trim().length === 0) {
-      throw new Error("Iframely API key is required");
+      throw new Error('Iframely API key is required');
     }
     this.apiKey = apiKey;
   }
@@ -51,17 +51,17 @@ export class IFramelyMetadataService implements IMetadataService {
       const fullUrl = `${this.baseUrl}?url=${encodedUrl}&api_key=${this.apiKey}`;
 
       const response = await fetch(fullUrl, {
-        method: "GET",
+        method: 'GET',
         headers: {
-          accept: "application/json",
+          accept: 'application/json',
         },
       });
 
       if (!response.ok) {
         return err(
           new Error(
-            `Iframely API request failed with status ${response.status} and message: ${response.statusText}`
-          )
+            `Iframely API request failed with status ${response.status} and message: ${response.statusText}`,
+          ),
         );
       }
 
@@ -74,7 +74,7 @@ export class IFramelyMetadataService implements IMetadataService {
 
       // Check if we have meta data
       if (!data.meta) {
-        return err(new Error("No metadata found for the given URL"));
+        return err(new Error('No metadata found for the given URL'));
       }
 
       const meta = data.meta;
@@ -100,8 +100,8 @@ export class IFramelyMetadataService implements IMetadataService {
     } catch (error) {
       return err(
         new Error(
-          `Failed to fetch metadata from Iframely: ${error instanceof Error ? error.message : "Unknown error"}`
-        )
+          `Failed to fetch metadata from Iframely: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
       );
     }
   }
@@ -109,9 +109,9 @@ export class IFramelyMetadataService implements IMetadataService {
   async isAvailable(): Promise<boolean> {
     try {
       // Test with a simple URL to check if the service is available
-      const testUrl = `${this.baseUrl}?url=${encodeURIComponent("https://example.com")}&api_key=${this.apiKey}`;
+      const testUrl = `${this.baseUrl}?url=${encodeURIComponent('https://example.com')}&api_key=${this.apiKey}`;
       const response = await fetch(testUrl, {
-        method: "HEAD",
+        method: 'HEAD',
       });
 
       // Service is available if we get any response (even 4xx errors are fine)

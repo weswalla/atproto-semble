@@ -1,8 +1,8 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Response } from "express";
-import { GetMyUrlCardsUseCase } from "../../../application/useCases/queries/GetMyUrlCardsUseCase";
-import { AuthenticatedRequest } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
-import { CardSortField, SortOrder } from "../../../domain/ICardQueryRepository";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Response } from 'express';
+import { GetMyUrlCardsUseCase } from '../../../application/useCases/queries/GetMyUrlCardsUseCase';
+import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
+import { CardSortField, SortOrder } from '../../../domain/ICardQueryRepository';
 
 export class GetMyUrlCardsController extends Controller {
   constructor(private getMyUrlCardsUseCase: GetMyUrlCardsUseCase) {

@@ -1,20 +1,20 @@
-import { Result, ok, err } from "../../../../../shared/core/Result";
-import { UseCase } from "../../../../../shared/core/UseCase";
-import { UseCaseError } from "../../../../../shared/core/UseCaseError";
-import { AppError } from "../../../../../shared/core/AppError";
-import { ICardRepository } from "../../../domain/ICardRepository";
+import { Result, ok, err } from '../../../../../shared/core/Result';
+import { UseCase } from '../../../../../shared/core/UseCase';
+import { UseCaseError } from '../../../../../shared/core/UseCaseError';
+import { AppError } from '../../../../../shared/core/AppError';
+import { ICardRepository } from '../../../domain/ICardRepository';
 import {
   CardFactory,
   IUrlCardInput,
   INoteCardInput,
-} from "../../../domain/CardFactory";
-import { CollectionId } from "../../../domain/value-objects/CollectionId";
-import { CuratorId } from "../../../domain/value-objects/CuratorId";
-import { IMetadataService } from "../../../domain/services/IMetadataService";
-import { CardTypeEnum } from "../../../domain/value-objects/CardType";
-import { URL } from "../../../domain/value-objects/URL";
-import { CardLibraryService } from "../../../domain/services/CardLibraryService";
-import { CardCollectionService } from "../../../domain/services/CardCollectionService";
+} from '../../../domain/CardFactory';
+import { CollectionId } from '../../../domain/value-objects/CollectionId';
+import { CuratorId } from '../../../domain/value-objects/CuratorId';
+import { IMetadataService } from '../../../domain/services/IMetadataService';
+import { CardTypeEnum } from '../../../domain/value-objects/CardType';
+import { URL } from '../../../domain/value-objects/URL';
+import { CardLibraryService } from '../../../domain/services/CardLibraryService';
+import { CardCollectionService } from '../../../domain/services/CardCollectionService';
 
 export interface AddUrlToLibraryDTO {
   url: string;
@@ -48,11 +48,11 @@ export class AddUrlToLibraryUseCase
     private cardRepository: ICardRepository,
     private metadataService: IMetadataService,
     private cardLibraryService: CardLibraryService,
-    private cardCollectionService: CardCollectionService
+    private cardCollectionService: CardCollectionService,
   ) {}
 
   async execute(
-    request: AddUrlToLibraryDTO
+    request: AddUrlToLibraryDTO,
   ): Promise<
     Result<
       AddUrlToLibraryResponseDTO,
@@ -65,8 +65,8 @@ export class AddUrlToLibraryUseCase
       if (curatorIdResult.isErr()) {
         return err(
           new ValidationError(
-            `Invalid curator ID: ${curatorIdResult.error.message}`
-          )
+            `Invalid curator ID: ${curatorIdResult.error.message}`,
+          ),
         );
       }
       const curatorId = curatorIdResult.value;
@@ -75,7 +75,7 @@ export class AddUrlToLibraryUseCase
       const urlResult = URL.create(request.url);
       if (urlResult.isErr()) {
         return err(
-          new ValidationError(`Invalid URL: ${urlResult.error.message}`)
+          new ValidationError(`Invalid URL: ${urlResult.error.message}`),
         );
       }
       const url = urlResult.value;
@@ -85,7 +85,7 @@ export class AddUrlToLibraryUseCase
         await this.cardRepository.findUrlCardByUrl(url);
       if (existingUrlCardResult.isErr()) {
         return err(
-          AppError.UnexpectedError.create(existingUrlCardResult.error)
+          AppError.UnexpectedError.create(existingUrlCardResult.error),
         );
       }
 
@@ -96,8 +96,8 @@ export class AddUrlToLibraryUseCase
         if (metadataResult.isErr()) {
           return err(
             new ValidationError(
-              `Failed to fetch metadata: ${metadataResult.error.message}`
-            )
+              `Failed to fetch metadata: ${metadataResult.error.message}`,
+            ),
           );
         }
 
@@ -136,7 +136,7 @@ export class AddUrlToLibraryUseCase
           return err(addUrlCardToLibraryResult.error);
         }
         return err(
-          new ValidationError(addUrlCardToLibraryResult.error.message)
+          new ValidationError(addUrlCardToLibraryResult.error.message),
         );
       }
 
@@ -178,7 +178,7 @@ export class AddUrlToLibraryUseCase
             return err(addNoteCardToLibraryResult.error);
           }
           return err(
-            new ValidationError(addNoteCardToLibraryResult.error.message)
+            new ValidationError(addNoteCardToLibraryResult.error.message),
           );
         }
       }
@@ -196,8 +196,8 @@ export class AddUrlToLibraryUseCase
           if (collectionIdResult.isErr()) {
             return err(
               new ValidationError(
-                `Invalid collection ID: ${collectionIdResult.error.message}`
-              )
+                `Invalid collection ID: ${collectionIdResult.error.message}`,
+              ),
             );
           }
           collectionIds.push(collectionIdResult.value);
@@ -208,7 +208,7 @@ export class AddUrlToLibraryUseCase
           await this.cardCollectionService.addCardToCollections(
             cardToAdd,
             collectionIds,
-            curatorId
+            curatorId,
           );
         if (addToCollectionsResult.isErr()) {
           if (

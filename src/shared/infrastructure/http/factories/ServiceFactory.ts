@@ -1,29 +1,29 @@
-import { EnvironmentConfigService } from "../../config/EnvironmentConfigService";
-import { jwtConfig, oauthConfig } from "../../config";
-import { DatabaseFactory } from "../../database/DatabaseFactory";
-import { JwtTokenService } from "../../../../modules/user/infrastructure/services/JwtTokenService";
+import { EnvironmentConfigService } from '../../config/EnvironmentConfigService';
+import { jwtConfig, oauthConfig } from '../../config';
+import { DatabaseFactory } from '../../database/DatabaseFactory';
+import { JwtTokenService } from '../../../../modules/user/infrastructure/services/JwtTokenService';
 import {
   AtProtoOAuthProcessor,
   OAuthClientFactory,
-} from "../../../../modules/user/infrastructure";
-import { UserAuthenticationService } from "../../../../modules/user/infrastructure/services/UserAuthenticationService";
-import { ATProtoAgentService } from "../../../../modules/atproto/infrastructure/services/ATProtoAgentService";
-import { IFramelyMetadataService } from "../../../../modules/cards/infrastructure/IFramelyMetadataService";
-import { BlueskyProfileService } from "../../../../modules/atproto/infrastructure/services/BlueskyProfileService";
-import { ATProtoCollectionPublisher } from "../../../../modules/atproto/infrastructure/publishers/ATProtoCollectionPublisher";
-import { ATProtoCardPublisher } from "../../../../modules/atproto/infrastructure/publishers/ATProtoCardPublisher";
-import { FakeCollectionPublisher } from "../../../../modules/cards/tests/utils/FakeCollectionPublisher";
-import { FakeCardPublisher } from "../../../../modules/cards/tests/utils/FakeCardPublisher";
-import { CardLibraryService } from "../../../../modules/cards/domain/services/CardLibraryService";
-import { CardCollectionService } from "../../../../modules/cards/domain/services/CardCollectionService";
-import { AuthMiddleware } from "../middleware/AuthMiddleware";
-import { Repositories } from "./RepositoryFactory";
-import { NodeOAuthClient } from "@atproto/oauth-client-node";
-import { AppPasswordSessionService } from "src/modules/atproto/infrastructure/services/AppPasswordSessionService";
-import { AtpAppPasswordProcessor } from "src/modules/atproto/infrastructure/services/AtpAppPasswordProcessor";
-import { ICollectionPublisher } from "src/modules/cards/application/ports/ICollectionPublisher";
-import { ICardPublisher } from "src/modules/cards/application/ports/ICardPublisher";
-import { IMetadataService } from "src/modules/cards/domain/services/IMetadataService";
+} from '../../../../modules/user/infrastructure';
+import { UserAuthenticationService } from '../../../../modules/user/infrastructure/services/UserAuthenticationService';
+import { ATProtoAgentService } from '../../../../modules/atproto/infrastructure/services/ATProtoAgentService';
+import { IFramelyMetadataService } from '../../../../modules/cards/infrastructure/IFramelyMetadataService';
+import { BlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/BlueskyProfileService';
+import { ATProtoCollectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCollectionPublisher';
+import { ATProtoCardPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCardPublisher';
+import { FakeCollectionPublisher } from '../../../../modules/cards/tests/utils/FakeCollectionPublisher';
+import { FakeCardPublisher } from '../../../../modules/cards/tests/utils/FakeCardPublisher';
+import { CardLibraryService } from '../../../../modules/cards/domain/services/CardLibraryService';
+import { CardCollectionService } from '../../../../modules/cards/domain/services/CardCollectionService';
+import { AuthMiddleware } from '../middleware/AuthMiddleware';
+import { Repositories } from './RepositoryFactory';
+import { NodeOAuthClient } from '@atproto/oauth-client-node';
+import { AppPasswordSessionService } from 'src/modules/atproto/infrastructure/services/AppPasswordSessionService';
+import { AtpAppPasswordProcessor } from 'src/modules/atproto/infrastructure/services/AtpAppPasswordProcessor';
+import { ICollectionPublisher } from 'src/modules/cards/application/ports/ICollectionPublisher';
+import { ICardPublisher } from 'src/modules/cards/application/ports/ICardPublisher';
+import { IMetadataService } from 'src/modules/cards/domain/services/IMetadataService';
 
 export interface Services {
   tokenService: JwtTokenService;
@@ -44,43 +44,43 @@ export interface Services {
 export class ServiceFactory {
   static create(
     configService: EnvironmentConfigService,
-    repositories: Repositories
+    repositories: Repositories,
   ): Services {
     const tokenService = new JwtTokenService(
       repositories.tokenRepository,
       jwtConfig.jwtSecret,
       jwtConfig.accessTokenExpiresIn,
-      jwtConfig.refreshTokenExpiresIn
+      jwtConfig.refreshTokenExpiresIn,
     );
 
     const nodeOauthClient = OAuthClientFactory.createClient(
       repositories.oauthStateStore,
       repositories.oauthSessionStore,
-      oauthConfig.baseUrl
+      oauthConfig.baseUrl,
     );
 
     const appPasswordSessionService = new AppPasswordSessionService(
-      repositories.appPasswordSessionRepository
+      repositories.appPasswordSessionRepository,
     );
 
     const appPasswordProcessor = new AtpAppPasswordProcessor(
-      appPasswordSessionService
+      appPasswordSessionService,
     );
     const oauthProcessor = new AtProtoOAuthProcessor(nodeOauthClient);
     const userAuthService = new UserAuthenticationService(
-      repositories.userRepository
+      repositories.userRepository,
     );
     const atProtoAgentService = new ATProtoAgentService(
       nodeOauthClient,
-      appPasswordSessionService
+      appPasswordSessionService,
     );
 
     const metadataService = new IFramelyMetadataService(
-      configService.getIFramelyApiKey()
+      configService.getIFramelyApiKey(),
     );
     const profileService = new BlueskyProfileService(atProtoAgentService);
 
-    const useFakePublishers = process.env.USE_FAKE_PUBLISHERS === "true";
+    const useFakePublishers = process.env.USE_FAKE_PUBLISHERS === 'true';
 
     const collectionPublisher = useFakePublishers
       ? new FakeCollectionPublisher()
@@ -92,11 +92,11 @@ export class ServiceFactory {
 
     const cardLibraryService = new CardLibraryService(
       repositories.cardRepository,
-      cardPublisher
+      cardPublisher,
     );
     const cardCollectionService = new CardCollectionService(
       repositories.collectionRepository,
-      collectionPublisher
+      collectionPublisher,
     );
 
     const authMiddleware = new AuthMiddleware(tokenService);

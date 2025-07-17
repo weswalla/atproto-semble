@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
-import { useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { ActionIcon, AppShell, Group, NavLink, Text } from "@mantine/core";
-import { FiSidebar } from "react-icons/fi";
-import { IoDocumentTextOutline } from "react-icons/io5";
-import { BsFolder2 } from "react-icons/bs";
-import { BiUser } from "react-icons/bi";
+import { useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { ActionIcon, AppShell, Group, NavLink, Text } from '@mantine/core';
+import { FiSidebar } from 'react-icons/fi';
+import { IoDocumentTextOutline } from 'react-icons/io5';
+import { BsFolder2 } from 'react-icons/bs';
+import { BiUser } from 'react-icons/bi';
 
 export default function AuthenticatedLayout({
   children,
@@ -20,13 +20,13 @@ export default function AuthenticatedLayout({
 
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const pathname = usePathname();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/login");
+      router.push('/login');
     }
   }, [isAuthenticated, isLoading, router]);
 
@@ -39,13 +39,13 @@ export default function AuthenticatedLayout({
       header={{ height: 60 }}
       navbar={{
         width: 300,
-        breakpoint: "sm",
+        breakpoint: 'sm',
         collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
       }}
       padding="md"
     >
       <AppShell.Header>
-        <Group h="100%" px="md" gap={"xs"}>
+        <Group h="100%" px="md" gap={'xs'}>
           <ActionIcon
             variant="subtle"
             size="lg"
@@ -63,19 +63,19 @@ export default function AuthenticatedLayout({
         <NavLink
           href="/library"
           label="My cards"
-          active={pathname === "/library"}
+          active={pathname === '/library'}
           leftSection={<IoDocumentTextOutline />}
         />
         <NavLink
           href="/collections"
           label="My collections"
-          active={pathname === "/collections"}
+          active={pathname === '/collections'}
           leftSection={<BsFolder2 />}
         />
         <NavLink
           href="/profile"
           label="Profile"
-          active={pathname === "/profile"}
+          active={pathname === '/profile'}
           leftSection={<BiUser />}
           mt="auto"
         />

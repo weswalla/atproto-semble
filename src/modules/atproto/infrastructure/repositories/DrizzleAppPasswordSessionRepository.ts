@@ -1,12 +1,12 @@
-import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { eq } from "drizzle-orm";
-import { AtpSessionData } from "@atproto/api";
-import { Result, err, ok } from "src/shared/core/Result";
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { eq } from 'drizzle-orm';
+import { AtpSessionData } from '@atproto/api';
+import { Result, err, ok } from 'src/shared/core/Result';
 import {
   IAppPasswordSessionRepository,
   SessionWithAppPassword,
-} from "./IAppPasswordSessionRepository";
-import { appPasswordSessions } from "./schema/appPasswordSession.sql";
+} from './IAppPasswordSessionRepository';
+import { appPasswordSessions } from './schema/appPasswordSession.sql';
 
 export class DrizzleAppPasswordSessionRepository
   implements IAppPasswordSessionRepository
@@ -15,7 +15,7 @@ export class DrizzleAppPasswordSessionRepository
 
   async saveSession(
     did: string,
-    session: SessionWithAppPassword
+    session: SessionWithAppPassword,
   ): Promise<Result<void>> {
     try {
       await this.db
@@ -42,7 +42,7 @@ export class DrizzleAppPasswordSessionRepository
   }
 
   async getSession(
-    did: string
+    did: string,
   ): Promise<Result<SessionWithAppPassword | null>> {
     try {
       const result = await this.db

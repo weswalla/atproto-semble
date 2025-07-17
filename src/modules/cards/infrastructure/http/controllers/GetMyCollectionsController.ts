@@ -1,8 +1,11 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Response } from "express";
-import { GetMyCollectionsUseCase } from "../../../application/useCases/queries/GetMyCollectionsUseCase";
-import { AuthenticatedRequest } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
-import { CollectionSortField, SortOrder } from "../../../domain/ICollectionQueryRepository";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Response } from 'express';
+import { GetMyCollectionsUseCase } from '../../../application/useCases/queries/GetMyCollectionsUseCase';
+import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
+import {
+  CollectionSortField,
+  SortOrder,
+} from '../../../domain/ICollectionQueryRepository';
 
 export class GetMyCollectionsController extends Controller {
   constructor(private getMyCollectionsUseCase: GetMyCollectionsUseCase) {

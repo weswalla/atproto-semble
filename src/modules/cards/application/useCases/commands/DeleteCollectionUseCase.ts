@@ -1,11 +1,11 @@
-import { Result, ok, err } from "../../../../../shared/core/Result";
-import { UseCase } from "../../../../../shared/core/UseCase";
-import { UseCaseError } from "../../../../../shared/core/UseCaseError";
-import { AppError } from "../../../../../shared/core/AppError";
-import { ICollectionRepository } from "../../../domain/ICollectionRepository";
-import { CollectionId } from "../../../domain/value-objects/CollectionId";
-import { CuratorId } from "../../../domain/value-objects/CuratorId";
-import { ICollectionPublisher } from "../../ports/ICollectionPublisher";
+import { Result, ok, err } from '../../../../../shared/core/Result';
+import { UseCase } from '../../../../../shared/core/UseCase';
+import { UseCaseError } from '../../../../../shared/core/UseCaseError';
+import { AppError } from '../../../../../shared/core/AppError';
+import { ICollectionRepository } from '../../../domain/ICollectionRepository';
+import { CollectionId } from '../../../domain/value-objects/CollectionId';
+import { CuratorId } from '../../../domain/value-objects/CuratorId';
+import { ICollectionPublisher } from '../../ports/ICollectionPublisher';
 
 export interface DeleteCollectionDTO {
   collectionId: string;
@@ -34,11 +34,11 @@ export class DeleteCollectionUseCase
 {
   constructor(
     private collectionRepository: ICollectionRepository,
-    private collectionPublisher: ICollectionPublisher
+    private collectionPublisher: ICollectionPublisher,
   ) {}
 
   async execute(
-    request: DeleteCollectionDTO
+    request: DeleteCollectionDTO,
   ): Promise<
     Result<
       DeleteCollectionResponseDTO,
@@ -51,21 +51,21 @@ export class DeleteCollectionUseCase
       if (curatorIdResult.isErr()) {
         return err(
           new ValidationError(
-            `Invalid curator ID: ${curatorIdResult.error.message}`
-          )
+            `Invalid curator ID: ${curatorIdResult.error.message}`,
+          ),
         );
       }
       const curatorId = curatorIdResult.value;
 
       // Validate and create CollectionId
       const collectionIdResult = CollectionId.createFromString(
-        request.collectionId
+        request.collectionId,
       );
       if (collectionIdResult.isErr()) {
         return err(
           new ValidationError(
-            `Invalid collection ID: ${collectionIdResult.error.message}`
-          )
+            `Invalid collection ID: ${collectionIdResult.error.message}`,
+          ),
         );
       }
       const collectionId = collectionIdResult.value;
@@ -80,7 +80,7 @@ export class DeleteCollectionUseCase
       const collection = collectionResult.value;
       if (!collection) {
         return err(
-          new ValidationError(`Collection not found: ${request.collectionId}`)
+          new ValidationError(`Collection not found: ${request.collectionId}`),
         );
       }
 
@@ -88,21 +88,21 @@ export class DeleteCollectionUseCase
       if (!collection.authorId.equals(curatorId)) {
         return err(
           new ValidationError(
-            "Only the collection author can delete the collection"
-          )
+            'Only the collection author can delete the collection',
+          ),
         );
       }
 
       // Unpublish collection if it was published
       if (collection.isPublished && collection.publishedRecordId) {
         const unpublishResult = await this.collectionPublisher.unpublish(
-          collection.publishedRecordId
+          collection.publishedRecordId,
         );
         if (unpublishResult.isErr()) {
           return err(
             new ValidationError(
-              `Failed to unpublish collection: ${unpublishResult.error.message}`
-            )
+              `Failed to unpublish collection: ${unpublishResult.error.message}`,
+            ),
           );
         }
       }

@@ -1,12 +1,12 @@
-import { UniqueEntityID } from "../../../../../shared/domain/UniqueEntityID";
-import { Collection, CollectionAccessType } from "../../../domain/Collection";
-import { CollectionId } from "../../../domain/value-objects/CollectionId";
-import { CardId } from "../../../domain/value-objects/CardId";
-import { CuratorId } from "../../../domain/value-objects/CuratorId";
-import { PublishedRecordId } from "../../../domain/value-objects/PublishedRecordId";
-import { PublishedRecordDTO, PublishedRecordRefDTO } from "./DTOTypes";
-import { CollectionQueryResultDTO } from "../../../domain/ICollectionQueryRepository";
-import { err, ok, Result } from "../../../../../shared/core/Result";
+import { UniqueEntityID } from '../../../../../shared/domain/UniqueEntityID';
+import { Collection, CollectionAccessType } from '../../../domain/Collection';
+import { CollectionId } from '../../../domain/value-objects/CollectionId';
+import { CardId } from '../../../domain/value-objects/CardId';
+import { CuratorId } from '../../../domain/value-objects/CuratorId';
+import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
+import { PublishedRecordDTO, PublishedRecordRefDTO } from './DTOTypes';
+import { CollectionQueryResultDTO } from '../../../domain/ICollectionQueryRepository';
+import { err, ok, Result } from '../../../../../shared/core/Result';
 
 // Database representation of a collection
 export interface CollectionDTO extends PublishedRecordRefDTO {
@@ -115,7 +115,7 @@ export class CollectionMapper {
           createdAt: dto.createdAt,
           updatedAt: dto.updatedAt,
         },
-        new UniqueEntityID(dto.id)
+        new UniqueEntityID(dto.id),
       );
 
       if (collectionOrError.isErr()) return err(collectionOrError.error);

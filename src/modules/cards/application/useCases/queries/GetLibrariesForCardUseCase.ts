@@ -1,7 +1,7 @@
-import { UseCase } from "src/shared/core/UseCase";
-import { ICardQueryRepository } from "../../../domain/ICardQueryRepository";
-import { IProfileService } from "../../../domain/services/IProfileService";
-import { err, ok, Result } from "src/shared/core/Result";
+import { UseCase } from 'src/shared/core/UseCase';
+import { ICardQueryRepository } from '../../../domain/ICardQueryRepository';
+import { IProfileService } from '../../../domain/services/IProfileService';
+import { err, ok, Result } from 'src/shared/core/Result';
 
 export interface GetLibrariesForCardQuery {
   cardId: string;
@@ -23,7 +23,7 @@ export interface GetLibrariesForCardResult {
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "ValidationError";
+    this.name = 'ValidationError';
   }
 }
 
@@ -33,26 +33,26 @@ export class GetLibrariesForCardUseCase
 {
   constructor(
     private cardQueryRepo: ICardQueryRepository,
-    private profileService: IProfileService
+    private profileService: IProfileService,
   ) {}
 
   async execute(
-    query: GetLibrariesForCardQuery
+    query: GetLibrariesForCardQuery,
   ): Promise<Result<GetLibrariesForCardResult>> {
     // Validate card ID
     if (!query.cardId || query.cardId.trim().length === 0) {
-      return err(new ValidationError("Card ID is required"));
+      return err(new ValidationError('Card ID is required'));
     }
 
     try {
       // Get user IDs who have this card in their library
       const userIds = await this.cardQueryRepo.getLibrariesForCard(
-        query.cardId
+        query.cardId,
       );
 
       // Fetch profiles for all users
       const profilePromises = userIds.map((userId) =>
-        this.profileService.getProfile(userId)
+        this.profileService.getProfile(userId),
       );
 
       const profileResults = await Promise.all(profilePromises);
@@ -77,14 +77,14 @@ export class GetLibrariesForCardUseCase
           });
         } else {
           errors.push(
-            `Failed to fetch profile for user ${userIds[i]}: ${result.error.message}`
+            `Failed to fetch profile for user ${userIds[i]}: ${result.error.message}`,
           );
         }
       }
 
       // Log errors but don't fail the entire operation
       if (errors.length > 0) {
-        console.warn("Some profile fetches failed:", errors);
+        console.warn('Some profile fetches failed:', errors);
       }
 
       return ok({
@@ -95,8 +95,8 @@ export class GetLibrariesForCardUseCase
     } catch (error) {
       return err(
         new Error(
-          `Failed to get libraries for card: ${error instanceof Error ? error.message : "Unknown error"}`
-        )
+          `Failed to get libraries for card: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
       );
     }
   }

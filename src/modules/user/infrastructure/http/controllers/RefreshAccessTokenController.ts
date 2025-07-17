@@ -1,6 +1,6 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Request, Response } from "express";
-import { RefreshAccessTokenUseCase } from "../../../application/use-cases/RefreshAccessTokenUseCase";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Request, Response } from 'express';
+import { RefreshAccessTokenUseCase } from '../../../application/use-cases/RefreshAccessTokenUseCase';
 
 export class RefreshAccessTokenController extends Controller {
   constructor(private refreshAccessTokenUseCase: RefreshAccessTokenUseCase) {
@@ -12,7 +12,7 @@ export class RefreshAccessTokenController extends Controller {
       const { refreshToken } = req.body;
 
       if (!refreshToken) {
-        return this.badRequest(res, "Refresh token is required");
+        return this.badRequest(res, 'Refresh token is required');
       }
 
       const result = await this.refreshAccessTokenUseCase.execute({

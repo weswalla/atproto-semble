@@ -1,26 +1,26 @@
-import express, { Express } from "express";
-import cors from "cors";
-import { Router } from "express";
-import { createUserRoutes } from "../../../modules/user/infrastructure/http/routes/userRoutes";
-import { createAtprotoRoutes } from "../../../modules/atproto/infrastructure/atprotoRoutes";
-import { createCardsModuleRoutes } from "../../../modules/cards/infrastructure/http/routes";
-import { EnvironmentConfigService } from "../config/EnvironmentConfigService";
-import { RepositoryFactory } from "./factories/RepositoryFactory";
-import { ServiceFactory } from "./factories/ServiceFactory";
-import { UseCaseFactory } from "./factories/UseCaseFactory";
-import { ControllerFactory } from "./factories/ControllerFactory";
+import express, { Express } from 'express';
+import cors from 'cors';
+import { Router } from 'express';
+import { createUserRoutes } from '../../../modules/user/infrastructure/http/routes/userRoutes';
+import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atprotoRoutes';
+import { createCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
+import { EnvironmentConfigService } from '../config/EnvironmentConfigService';
+import { RepositoryFactory } from './factories/RepositoryFactory';
+import { ServiceFactory } from './factories/ServiceFactory';
+import { UseCaseFactory } from './factories/UseCaseFactory';
+import { ControllerFactory } from './factories/ControllerFactory';
 
 export const createExpressApp = (
-  configService: EnvironmentConfigService
+  configService: EnvironmentConfigService,
 ): Express => {
   const app = express();
 
   app.use(
     cors({
-      origin: "*",
-      methods: ["GET", "POST", "PUT", "DELETE"],
+      origin: '*',
+      methods: ['GET', 'POST', 'PUT', 'DELETE'],
       credentials: false,
-    })
+    }),
   );
 
   // Middleware setup
@@ -44,7 +44,7 @@ export const createExpressApp = (
     controllers.completeOAuthSignInController,
     controllers.loginWithAppPasswordController,
     controllers.getMyProfileController,
-    controllers.refreshAccessTokenController
+    controllers.refreshAccessTokenController,
   );
 
   createAtprotoRoutes(atprotoRouter, services.nodeOauthClient);
@@ -67,13 +67,13 @@ export const createExpressApp = (
     controllers.updateCollectionController,
     controllers.deleteCollectionController,
     controllers.getCollectionPageController,
-    controllers.getMyCollectionsController
+    controllers.getMyCollectionsController,
   );
 
   // Register routes
-  app.use("/api/users", userRouter);
-  app.use("/atproto", atprotoRouter);
-  app.use("/api", cardsRouter);
+  app.use('/api/users', userRouter);
+  app.use('/atproto', atprotoRouter);
+  app.use('/api', cardsRouter);
 
   return app;
 };

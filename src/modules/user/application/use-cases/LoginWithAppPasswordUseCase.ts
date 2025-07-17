@@ -1,15 +1,15 @@
-import { UseCase } from "src/shared/core/UseCase";
-import { Result, err, ok } from "src/shared/core/Result";
-import { AppError } from "src/shared/core/AppError";
-import { IAppPasswordProcessor } from "src/modules/atproto/application/IAppPasswordProcessor";
-import { ITokenService } from "../services/ITokenService";
-import { IUserRepository } from "../../domain/repositories/IUserRepository";
-import { LoginWithAppPasswordDTO } from "../dtos/LoginWithAppPasswordDTO";
-import { TokenPair } from "../dtos/TokenDTO";
-import { DID } from "../../domain/value-objects/DID";
-import { Handle } from "../../domain/value-objects/Handle";
-import { LoginWithAppPasswordErrors } from "./errors/LoginWithAppPasswordErrors";
-import { IUserAuthenticationService } from "../../domain/services/IUserAuthenticationService";
+import { UseCase } from 'src/shared/core/UseCase';
+import { Result, err, ok } from 'src/shared/core/Result';
+import { AppError } from 'src/shared/core/AppError';
+import { IAppPasswordProcessor } from 'src/modules/atproto/application/IAppPasswordProcessor';
+import { ITokenService } from '../services/ITokenService';
+import { IUserRepository } from '../../domain/repositories/IUserRepository';
+import { LoginWithAppPasswordDTO } from '../dtos/LoginWithAppPasswordDTO';
+import { TokenPair } from '../dtos/TokenDTO';
+import { DID } from '../../domain/value-objects/DID';
+import { Handle } from '../../domain/value-objects/Handle';
+import { LoginWithAppPasswordErrors } from './errors/LoginWithAppPasswordErrors';
+import { IUserAuthenticationService } from '../../domain/services/IUserAuthenticationService';
 
 export type LoginWithAppPasswordResponse = Result<
   TokenPair,
@@ -20,17 +20,18 @@ export type LoginWithAppPasswordResponse = Result<
 >;
 
 export class LoginWithAppPasswordUseCase
-  implements UseCase<LoginWithAppPasswordDTO, Promise<LoginWithAppPasswordResponse>>
+  implements
+    UseCase<LoginWithAppPasswordDTO, Promise<LoginWithAppPasswordResponse>>
 {
   constructor(
     private appPasswordProcessor: IAppPasswordProcessor,
     private tokenService: ITokenService,
     private userRepository: IUserRepository,
-    private userAuthService: IUserAuthenticationService
+    private userAuthService: IUserAuthenticationService,
   ) {}
 
   async execute(
-    request: LoginWithAppPasswordDTO
+    request: LoginWithAppPasswordDTO,
   ): Promise<LoginWithAppPasswordResponse> {
     try {
       // Validate input parameters
@@ -41,14 +42,14 @@ export class LoginWithAppPasswordUseCase
       // Process app password authentication
       const authResult = await this.appPasswordProcessor.processAppPassword(
         request.identifier,
-        request.appPassword
+        request.appPassword,
       );
 
       if (authResult.isErr()) {
         return err(
           new LoginWithAppPasswordErrors.AuthenticationFailedError(
-            authResult.error.message
-          )
+            authResult.error.message,
+          ),
         );
       }
 
@@ -57,8 +58,8 @@ export class LoginWithAppPasswordUseCase
       if (didOrError.isErr()) {
         return err(
           new LoginWithAppPasswordErrors.AuthenticationFailedError(
-            didOrError.error.message
-          )
+            didOrError.error.message,
+          ),
         );
       }
       const did = didOrError.value;
@@ -79,8 +80,8 @@ export class LoginWithAppPasswordUseCase
       if (authenticationResult.isErr()) {
         return err(
           new LoginWithAppPasswordErrors.AuthenticationFailedError(
-            authenticationResult.error.message
-          )
+            authenticationResult.error.message,
+          ),
         );
       }
 
@@ -98,8 +99,8 @@ export class LoginWithAppPasswordUseCase
       if (tokenResult.isErr()) {
         return err(
           new LoginWithAppPasswordErrors.TokenGenerationError(
-            tokenResult.error.message
-          )
+            tokenResult.error.message,
+          ),
         );
       }
 

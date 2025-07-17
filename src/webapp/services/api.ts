@@ -8,13 +8,13 @@ import {
   Annotation,
   AnnotationDetail,
   CreateTemplateResponse,
-  CreateAnnotationsResponse
-} from "@/types/api";
-import { ApiClient, ApiError } from "@/api-client/ApiClient";
+  CreateAnnotationsResponse,
+} from '@/types/api';
+import { ApiClient, ApiError } from '@/api-client/ApiClient';
 
 // Get the base URL for API requests from environment variables
 const getApiBaseUrl = (): string => {
-  return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+  return process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 };
 
 // Create a singleton API client instance for auth operations (no token needed)
@@ -32,9 +32,11 @@ export const authService = {
   /**
    * Refresh access token using refresh token
    */
-  refreshToken: async (refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> => {
+  refreshToken: async (
+    refreshToken: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> => {
     if (!refreshToken) {
-      throw new ApiError("Refresh token is required", 400);
+      throw new ApiError('Refresh token is required', 400);
     }
 
     try {
@@ -44,8 +46,8 @@ export const authService = {
       if (error instanceof ApiError) {
         throw error;
       }
-      console.error("Token refresh error:", error);
-      throw new ApiError("An error occurred during token refresh", 500);
+      console.error('Token refresh error:', error);
+      throw new ApiError('An error occurred during token refresh', 500);
     }
   },
 
@@ -54,7 +56,7 @@ export const authService = {
    */
   initiateLogin: async (handle: string): Promise<{ authUrl: string }> => {
     if (!handle) {
-      throw new ApiError("Handle is required", 400);
+      throw new ApiError('Handle is required', 400);
     }
 
     try {
@@ -64,8 +66,8 @@ export const authService = {
       if (error instanceof ApiError) {
         throw error;
       }
-      console.error("Login error:", error);
-      throw new ApiError("An error occurred during login", 500);
+      console.error('Login error:', error);
+      throw new ApiError('An error occurred during login', 500);
     }
   },
 
@@ -75,10 +77,10 @@ export const authService = {
   completeOAuth: async (
     code: string,
     state: string,
-    iss: string
+    iss: string,
   ): Promise<{ accessToken: string; refreshToken: string }> => {
     if (!code || !state || !iss) {
-      throw new ApiError("Code and state are required", 400);
+      throw new ApiError('Code and state are required', 400);
     }
 
     try {
@@ -88,8 +90,8 @@ export const authService = {
       if (error instanceof ApiError) {
         throw error;
       }
-      console.error("OAuth completion error:", error);
-      throw new ApiError("An error occurred during authentication", 500);
+      console.error('OAuth completion error:', error);
+      throw new ApiError('An error occurred during authentication', 500);
     }
   },
 
@@ -98,7 +100,7 @@ export const authService = {
    */
   getCurrentUser: async (accessToken: string): Promise<any> => {
     if (!accessToken) {
-      throw new ApiError("Access token is required", 401);
+      throw new ApiError('Access token is required', 401);
     }
 
     try {
@@ -108,8 +110,8 @@ export const authService = {
       if (error instanceof ApiError) {
         throw error;
       }
-      console.error("Get user error:", error);
-      throw new ApiError("An error occurred while fetching user data", 500);
+      console.error('Get user error:', error);
+      throw new ApiError('An error occurred while fetching user data', 500);
     }
   },
 
@@ -124,19 +126,19 @@ export const authService = {
     try {
       const apiBaseUrl = getApiBaseUrl();
       const response = await fetch(`${apiBaseUrl}/api/users/logout`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ refreshToken }),
       });
 
       if (!response.ok) {
         const data = await response.json();
-        throw new ApiError(data.message || "Logout failed", response.status);
+        throw new ApiError(data.message || 'Logout failed', response.status);
       }
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error('Logout error:', error);
       // Don't throw on logout errors, just log them
     }
   },
@@ -160,17 +162,17 @@ export const annotationService = {
         definition: any;
         required: boolean;
       }>;
-    }
+    },
   ): Promise<CreateTemplateResponse> => {
     // For now, keeping direct implementation since ApiClient may not have annotation methods
     const apiBaseUrl = getApiBaseUrl();
     const headers: HeadersInit = {
       Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     };
 
     const response = await fetch(`${apiBaseUrl}/api/annotations/templates`, {
-      method: "POST",
+      method: 'POST',
       headers,
       body: JSON.stringify(templateData),
     });
@@ -180,7 +182,7 @@ export const annotationService = {
     if (!response.ok) {
       throw new ApiError(
         data.message || `Request failed with status ${response.status}`,
-        response.status
+        response.status,
       );
     }
 
@@ -201,27 +203,30 @@ export const annotationService = {
         value: any;
         note?: string;
       }>;
-    }
+    },
   ): Promise<CreateAnnotationsResponse> => {
     // For now, keeping direct implementation since ApiClient may not have annotation methods
     const apiBaseUrl = getApiBaseUrl();
     const headers: HeadersInit = {
       Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     };
 
-    const response = await fetch(`${apiBaseUrl}/api/annotations/from-template`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(annotationData),
-    });
+    const response = await fetch(
+      `${apiBaseUrl}/api/annotations/from-template`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(annotationData),
+      },
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
       throw new ApiError(
         data.message || `Request failed with status ${response.status}`,
-        response.status
+        response.status,
       );
     }
 
@@ -231,18 +236,16 @@ export const annotationService = {
   /**
    * Get templates created by the current user
    */
-  getTemplates: async (
-    accessToken: string
-  ): Promise<Template[]> => {
+  getTemplates: async (accessToken: string): Promise<Template[]> => {
     // For now, keeping direct implementation since ApiClient may not have annotation methods
     const apiBaseUrl = getApiBaseUrl();
     const headers: HeadersInit = {
       Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     };
 
     const response = await fetch(`${apiBaseUrl}/api/annotations/templates`, {
-      method: "GET",
+      method: 'GET',
       headers,
     });
 
@@ -251,7 +254,7 @@ export const annotationService = {
     if (!response.ok) {
       throw new ApiError(
         data.message || `Request failed with status ${response.status}`,
-        response.status
+        response.status,
       );
     }
 
@@ -263,26 +266,29 @@ export const annotationService = {
    */
   getTemplateById: async (
     accessToken: string,
-    templateId: string
+    templateId: string,
   ): Promise<TemplateDetail> => {
     // For now, keeping direct implementation since ApiClient may not have annotation methods
     const apiBaseUrl = getApiBaseUrl();
     const headers: HeadersInit = {
       Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     };
 
-    const response = await fetch(`${apiBaseUrl}/api/annotations/templates/${templateId}`, {
-      method: "GET",
-      headers,
-    });
+    const response = await fetch(
+      `${apiBaseUrl}/api/annotations/templates/${templateId}`,
+      {
+        method: 'GET',
+        headers,
+      },
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
       throw new ApiError(
         data.message || `Request failed with status ${response.status}`,
-        response.status
+        response.status,
       );
     }
 
@@ -292,27 +298,28 @@ export const annotationService = {
   /**
    * Get annotations created by the current user
    */
-  getMyAnnotations: async (
-    accessToken: string
-  ): Promise<Annotation[]> => {
+  getMyAnnotations: async (accessToken: string): Promise<Annotation[]> => {
     // For now, keeping direct implementation since ApiClient may not have annotation methods
     const apiBaseUrl = getApiBaseUrl();
     const headers: HeadersInit = {
       Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     };
 
-    const response = await fetch(`${apiBaseUrl}/api/annotations/my-annotations`, {
-      method: "GET",
-      headers,
-    });
+    const response = await fetch(
+      `${apiBaseUrl}/api/annotations/my-annotations`,
+      {
+        method: 'GET',
+        headers,
+      },
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
       throw new ApiError(
         data.message || `Request failed with status ${response.status}`,
-        response.status
+        response.status,
       );
     }
 
@@ -324,26 +331,29 @@ export const annotationService = {
    */
   getAnnotationById: async (
     accessToken: string,
-    annotationId: string
+    annotationId: string,
   ): Promise<AnnotationDetail> => {
     // For now, keeping direct implementation since ApiClient may not have annotation methods
     const apiBaseUrl = getApiBaseUrl();
     const headers: HeadersInit = {
       Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     };
 
-    const response = await fetch(`${apiBaseUrl}/api/annotations/${annotationId}`, {
-      method: "GET",
-      headers,
-    });
+    const response = await fetch(
+      `${apiBaseUrl}/api/annotations/${annotationId}`,
+      {
+        method: 'GET',
+        headers,
+      },
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
       throw new ApiError(
         data.message || `Request failed with status ${response.status}`,
-        response.status
+        response.status,
       );
     }
 

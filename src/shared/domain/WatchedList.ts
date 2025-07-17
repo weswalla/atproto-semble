@@ -48,7 +48,7 @@ export abstract class WatchedList<T> {
 
   private removeFromCurrent(item: T): void {
     this.currentItems = this.currentItems.filter(
-      (v) => !this.compareItems(item, v)
+      (v) => !this.compareItems(item, v),
     );
   }
 

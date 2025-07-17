@@ -13,6 +13,7 @@ Create a **separate npm package** (e.g., `@yourapp/api-client` or `@yourapp/shar
 ### Why This Approach?
 
 **Pros:**
+
 - **Single source of truth** for API contracts
 - **Type safety** between frontend and backend
 - **Reusable** across multiple frontends (web, mobile, etc.)
@@ -20,6 +21,7 @@ Create a **separate npm package** (e.g., `@yourapp/api-client` or `@yourapp/shar
 - **Testable** in isolation
 
 **Cons:**
+
 - Additional build/publish complexity
 - Need to manage package versioning
 
@@ -58,14 +60,21 @@ export interface AddUrlToLibraryResponse {
 
 // packages/api-client/src/client/ApiClient.ts
 export class ApiClient {
-  constructor(private baseUrl: string, private getAuthToken: () => string | null) {}
+  constructor(
+    private baseUrl: string,
+    private getAuthToken: () => string | null,
+  ) {}
 
-  async addUrlToLibrary(request: AddUrlToLibraryRequest): Promise<AddUrlToLibraryResponse> {
+  async addUrlToLibrary(
+    request: AddUrlToLibraryRequest,
+  ): Promise<AddUrlToLibraryResponse> {
     const response = await this.post('/api/cards/library/urls', request);
     return response.json();
   }
 
-  async createCollection(request: CreateCollectionRequest): Promise<CreateCollectionResponse> {
+  async createCollection(
+    request: CreateCollectionRequest,
+  ): Promise<CreateCollectionResponse> {
     const response = await this.post('/api/collections', request);
     return response.json();
   }
@@ -76,9 +85,9 @@ export class ApiClient {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
   }
 }
@@ -87,6 +96,7 @@ export class ApiClient {
 ## Type Sharing Strategy
 
 **Extract from your existing backend types:**
+
 - Take the DTO interfaces from your use cases
 - Create clean, frontend-friendly versions
 - Add any additional client-side types needed
@@ -112,16 +122,19 @@ export interface AddUrlToLibraryRequest {
 ## Alternative Approaches
 
 ### 1. Frontend-Only Client
+
 - Keep API client in frontend repo
 - Duplicate types or use code generation
 - Simpler but less maintainable
 
 ### 2. Backend Exports Client
+
 - Export client from backend
 - Frontend imports it
 - Can work but creates coupling
 
 ### 3. Code Generation
+
 - Generate client from OpenAPI spec
 - Tools like `openapi-generator` or `swagger-codegen`
 - Great for large APIs but adds complexity

@@ -1,10 +1,10 @@
 import {
   NodeSavedState,
   NodeSavedStateStore,
-} from "@atproto/oauth-client-node";
-import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { eq } from "drizzle-orm";
-import { authState } from "../repositories/schema/authState.sql";
+} from '@atproto/oauth-client-node';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { eq } from 'drizzle-orm';
+import { authState } from '../repositories/schema/authState.sql';
 
 export class DrizzleStateStore implements NodeSavedStateStore {
   constructor(private db: PostgresJsDatabase) {}

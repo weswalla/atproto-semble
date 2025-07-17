@@ -1,7 +1,7 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Response } from "express";
-import { UpdateCollectionUseCase } from "../../../application/useCases/commands/UpdateCollectionUseCase";
-import { AuthenticatedRequest } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Response } from 'express';
+import { UpdateCollectionUseCase } from '../../../application/useCases/commands/UpdateCollectionUseCase';
+import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class UpdateCollectionController extends Controller {
   constructor(private updateCollectionUseCase: UpdateCollectionUseCase) {
@@ -13,17 +13,17 @@ export class UpdateCollectionController extends Controller {
       const { collectionId } = req.params;
       const { name, description } = req.body;
       const curatorId = req.did;
-      
+
       if (!curatorId) {
         return this.unauthorized(res);
       }
 
       if (!collectionId) {
-        return this.badRequest(res, "Collection ID is required");
+        return this.badRequest(res, 'Collection ID is required');
       }
 
       if (!name) {
-        return this.badRequest(res, "Collection name is required");
+        return this.badRequest(res, 'Collection name is required');
       }
 
       const result = await this.updateCollectionUseCase.execute({

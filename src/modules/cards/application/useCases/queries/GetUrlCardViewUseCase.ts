@@ -1,12 +1,12 @@
-import { CardId } from "src/modules/cards/domain/value-objects/CardId";
-import { err, ok, Result } from "src/shared/core/Result";
-import { UseCase } from "src/shared/core/UseCase";
+import { CardId } from 'src/modules/cards/domain/value-objects/CardId';
+import { err, ok, Result } from 'src/shared/core/Result';
+import { UseCase } from 'src/shared/core/UseCase';
 import {
   ICardQueryRepository,
   UrlCardView,
   WithCollections,
-} from "../../../domain/ICardQueryRepository";
-import { IProfileService } from "../../../domain/services/IProfileService";
+} from '../../../domain/ICardQueryRepository';
+import { IProfileService } from '../../../domain/services/IProfileService';
 
 export interface GetUrlCardViewQuery {
   cardId: string;
@@ -26,14 +26,14 @@ export type UrlCardViewResult = UrlCardView &
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "ValidationError";
+    this.name = 'ValidationError';
   }
 }
 
 export class CardNotFoundError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "CardNotFoundError";
+    this.name = 'CardNotFoundError';
   }
 }
 
@@ -42,16 +42,16 @@ export class GetUrlCardViewUseCase
 {
   constructor(
     private cardQueryRepo: ICardQueryRepository,
-    private profileService: IProfileService
+    private profileService: IProfileService,
   ) {}
 
   async execute(
-    query: GetUrlCardViewQuery
+    query: GetUrlCardViewQuery,
   ): Promise<Result<UrlCardViewResult>> {
     // Validate card ID
     const cardIdResult = CardId.createFromString(query.cardId);
     if (cardIdResult.isErr()) {
-      return err(new ValidationError("Invalid card ID"));
+      return err(new ValidationError('Invalid card ID'));
     }
 
     try {
@@ -59,13 +59,13 @@ export class GetUrlCardViewUseCase
       const cardView = await this.cardQueryRepo.getUrlCardView(query.cardId);
 
       if (!cardView) {
-        return err(new CardNotFoundError("URL card not found"));
+        return err(new CardNotFoundError('URL card not found'));
       }
 
       // Get profiles for all users in libraries
       const userIds = cardView.libraries.map((lib) => lib.userId);
       const profilePromises = userIds.map((userId) =>
-        this.profileService.getProfile(userId)
+        this.profileService.getProfile(userId),
       );
 
       const profileResults = await Promise.all(profilePromises);
@@ -76,8 +76,8 @@ export class GetUrlCardViewUseCase
         const firstError = failedProfiles[0]!.error;
         return err(
           new Error(
-            `Failed to fetch user profiles: ${firstError instanceof Error ? firstError.message : "Unknown error"}`
-          )
+            `Failed to fetch user profiles: ${firstError instanceof Error ? firstError.message : 'Unknown error'}`,
+          ),
         );
       }
 
@@ -86,7 +86,7 @@ export class GetUrlCardViewUseCase
         const profileResult = profileResults[index]!;
         if (profileResult.isErr()) {
           throw new Error(
-            `Failed to fetch profile for user ${lib.userId}: ${profileResult.error instanceof Error ? profileResult.error.message : "Unknown error"}`
+            `Failed to fetch profile for user ${lib.userId}: ${profileResult.error instanceof Error ? profileResult.error.message : 'Unknown error'}`,
           );
         }
         const profile = profileResult.value;
@@ -108,8 +108,8 @@ export class GetUrlCardViewUseCase
     } catch (error) {
       return err(
         new Error(
-          `Failed to retrieve URL card view: ${error instanceof Error ? error.message : "Unknown error"}`
-        )
+          `Failed to retrieve URL card view: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
       );
     }
   }

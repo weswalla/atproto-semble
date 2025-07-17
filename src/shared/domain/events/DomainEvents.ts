@@ -1,6 +1,6 @@
-import { IDomainEvent } from "./IDomainEvent";
-import { AggregateRoot } from "../AggregateRoot";
-import { UniqueEntityID } from "../UniqueEntityID";
+import { IDomainEvent } from './IDomainEvent';
+import { AggregateRoot } from '../AggregateRoot';
+import { UniqueEntityID } from '../UniqueEntityID';
 
 export class DomainEvents {
   private static handlersMap: Record<
@@ -27,19 +27,19 @@ export class DomainEvents {
 
   private static dispatchAggregateEvents(aggregate: AggregateRoot<any>): void {
     aggregate.domainEvents.forEach((event: IDomainEvent) =>
-      this.dispatch(event)
+      this.dispatch(event),
     );
   }
 
   private static removeAggregateFromMarkedDispatchList(
-    aggregate: AggregateRoot<any>
+    aggregate: AggregateRoot<any>,
   ): void {
     const index = this.markedAggregates.findIndex((a) => a.equals(aggregate));
     this.markedAggregates.splice(index, 1);
   }
 
   private static findMarkedAggregateByID(
-    id: UniqueEntityID
+    id: UniqueEntityID,
   ): AggregateRoot<any> {
     let found: AggregateRoot<any> | null = null;
     for (let aggregate of this.markedAggregates) {
@@ -49,7 +49,7 @@ export class DomainEvents {
     }
     if (!found) {
       throw new Error(
-        `Aggregate with id ${id.toString()} not found in marked aggregates.`
+        `Aggregate with id ${id.toString()} not found in marked aggregates.`,
       );
     }
 
@@ -68,7 +68,7 @@ export class DomainEvents {
 
   public static register(
     callback: (event: IDomainEvent) => void,
-    eventClassName: string
+    eventClassName: string,
   ): void {
     if (!this.handlersMap.hasOwnProperty(eventClassName)) {
       this.handlersMap[eventClassName] = [];

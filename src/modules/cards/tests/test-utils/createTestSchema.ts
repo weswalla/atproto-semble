@@ -1,13 +1,13 @@
-import { sql } from "drizzle-orm";
-import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { publishedRecords } from "../../infrastructure/repositories/schema/publishedRecord.sql";
-import { cards } from "../../infrastructure/repositories/schema/card.sql";
-import { libraryMemberships } from "../../infrastructure/repositories/schema/libraryMembership.sql";
+import { sql } from 'drizzle-orm';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { publishedRecords } from '../../infrastructure/repositories/schema/publishedRecord.sql';
+import { cards } from '../../infrastructure/repositories/schema/card.sql';
+import { libraryMemberships } from '../../infrastructure/repositories/schema/libraryMembership.sql';
 import {
   collections,
   collectionCollaborators,
   collectionCards,
-} from "../../infrastructure/repositories/schema/collection.sql";
+} from '../../infrastructure/repositories/schema/collection.sql';
 
 export async function createTestSchema(db: PostgresJsDatabase) {
   // Create extension
@@ -86,9 +86,9 @@ export async function createTestSchema(db: PostgresJsDatabase) {
 
   // Create indexes
   await db.execute(
-    sql`CREATE INDEX IF NOT EXISTS idx_user_cards ON library_memberships(user_id)`
+    sql`CREATE INDEX IF NOT EXISTS idx_user_cards ON library_memberships(user_id)`,
   );
   await db.execute(
-    sql`CREATE INDEX IF NOT EXISTS idx_card_users ON library_memberships(card_id)`
+    sql`CREATE INDEX IF NOT EXISTS idx_card_users ON library_memberships(card_id)`,
   );
 }

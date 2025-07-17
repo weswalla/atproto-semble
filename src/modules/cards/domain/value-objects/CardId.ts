@@ -1,7 +1,7 @@
-import { ok, Result, err } from "src/shared/core/Result";
-import { Guard } from "src/shared/core/Guard";
-import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
-import { ValueObject } from "src/shared/domain/ValueObject";
+import { ok, Result, err } from 'src/shared/core/Result';
+import { Guard } from 'src/shared/core/Guard';
+import { UniqueEntityID } from 'src/shared/domain/UniqueEntityID';
+import { ValueObject } from 'src/shared/domain/ValueObject';
 
 interface CardIdProps {
   value: UniqueEntityID;
@@ -21,7 +21,7 @@ export class CardId extends ValueObject<CardIdProps> {
   }
 
   public static create(id: UniqueEntityID): Result<CardId> {
-    const guardResult = Guard.againstNullOrUndefined(id, "id");
+    const guardResult = Guard.againstNullOrUndefined(id, 'id');
     if (guardResult.isErr()) {
       return err(new Error(guardResult.error));
     }
@@ -29,7 +29,7 @@ export class CardId extends ValueObject<CardIdProps> {
   }
 
   public static createFromString(value: string): Result<CardId> {
-    const guardResult = Guard.againstNullOrUndefined(value, "value");
+    const guardResult = Guard.againstNullOrUndefined(value, 'value');
     if (guardResult.isErr()) {
       return err(new Error(guardResult.error));
     }

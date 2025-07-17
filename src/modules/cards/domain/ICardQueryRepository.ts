@@ -1,4 +1,4 @@
-import { CardTypeEnum } from "./value-objects/CardType";
+import { CardTypeEnum } from './value-objects/CardType';
 
 export interface CardQueryOptions {
   page: number;
@@ -14,14 +14,14 @@ export interface PaginatedQueryResult<T> {
 }
 
 export enum CardSortField {
-  CREATED_AT = "createdAt",
-  UPDATED_AT = "updatedAt",
-  LIBRARY_COUNT = "libraryCount",
+  CREATED_AT = 'createdAt',
+  UPDATED_AT = 'updatedAt',
+  LIBRARY_COUNT = 'libraryCount',
 }
 
 export enum SortOrder {
-  ASC = "asc",
-  DESC = "desc",
+  ASC = 'asc',
+  DESC = 'desc',
 }
 
 // Simplified DTO for cards in a collection (no collections array to avoid circular data)
@@ -62,12 +62,12 @@ export type UrlCardViewDTO = UrlCardView & WithCollections & WithLibraries;
 export interface ICardQueryRepository {
   getUrlCardsOfUser(
     userId: string,
-    options: CardQueryOptions
+    options: CardQueryOptions,
   ): Promise<PaginatedQueryResult<UrlCardQueryResultDTO>>;
 
   getCardsInCollection(
     collectionId: string,
-    options: CardQueryOptions
+    options: CardQueryOptions,
   ): Promise<PaginatedQueryResult<CollectionCardQueryResultDTO>>;
 
   getUrlCardView(cardId: string): Promise<UrlCardViewDTO | null>;

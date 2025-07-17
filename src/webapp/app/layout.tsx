@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 import {
   ColorSchemeScript,
   mantineHtmlProps,
   MantineProvider,
-} from "@mantine/core";
-import "@mantine/core/styles.css";
-import { AuthProvider } from "@/hooks/useAuth";
-import { theme } from "@/styles/theme";
+} from '@mantine/core';
+import '@mantine/core/styles.css';
+import { AuthProvider } from '@/hooks/useAuth';
+import { theme } from '@/styles/theme';
 
 export const metadata: Metadata = {
-  title: "Annos",
-  description: "Annotation platform",
+  title: 'Annos',
+  description: 'Annotation platform',
 };
 
 export default function RootLayout({

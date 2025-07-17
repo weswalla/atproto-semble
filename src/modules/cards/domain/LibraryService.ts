@@ -1,15 +1,15 @@
-import { err, Result } from "../../../shared/core/Result";
-import { ICardRepository } from "./ICardRepository";
-import { ICollectionRepository } from "./ICollectionRepository";
-import { Card } from "./Card";
-import { CardId } from "./value-objects/CardId";
-import { CollectionId } from "./value-objects/CollectionId";
-import { CuratorId } from "./value-objects/CuratorId";
+import { err, Result } from '../../../shared/core/Result';
+import { ICardRepository } from './ICardRepository';
+import { ICollectionRepository } from './ICollectionRepository';
+import { Card } from './Card';
+import { CardId } from './value-objects/CardId';
+import { CollectionId } from './value-objects/CollectionId';
+import { CuratorId } from './value-objects/CuratorId';
 
 export class LibraryService {
   constructor(
     private cardRepository: ICardRepository,
-    private collectionRepository: ICollectionRepository
+    private collectionRepository: ICollectionRepository,
   ) {}
 
   async addCardToLibrary(card: Card): Promise<Result<void>> {
@@ -19,7 +19,7 @@ export class LibraryService {
   async addCardToCollection(
     cardId: CardId,
     collectionId: CollectionId,
-    authorId: CuratorId
+    authorId: CuratorId,
   ): Promise<Result<void>> {
     const collectionResult =
       await this.collectionRepository.findById(collectionId);
@@ -31,7 +31,7 @@ export class LibraryService {
     const collection = collectionResult.value;
 
     if (!collection) {
-      return err(new Error("Collection not found"));
+      return err(new Error('Collection not found'));
     }
 
     const addResult = collection.addCard(cardId, authorId);

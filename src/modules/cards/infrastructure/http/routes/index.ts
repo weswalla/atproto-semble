@@ -1,22 +1,22 @@
-import { Router } from "express";
-import { createCardRoutes } from "./cardRoutes";
-import { createCollectionRoutes } from "./collectionRoutes";
-import { AddUrlToLibraryController } from "../controllers/AddUrlToLibraryController";
-import { AddCardToLibraryController } from "../controllers/AddCardToLibraryController";
-import { AddCardToCollectionController } from "../controllers/AddCardToCollectionController";
-import { UpdateNoteCardController } from "../controllers/UpdateNoteCardController";
-import { RemoveCardFromLibraryController } from "../controllers/RemoveCardFromLibraryController";
-import { RemoveCardFromCollectionController } from "../controllers/RemoveCardFromCollectionController";
-import { GetUrlMetadataController } from "../controllers/GetUrlMetadataController";
-import { GetUrlCardViewController } from "../controllers/GetUrlCardViewController";
-import { GetLibrariesForCardController } from "../controllers/GetLibrariesForCardController";
-import { GetMyUrlCardsController } from "../controllers/GetMyUrlCardsController";
-import { CreateCollectionController } from "../controllers/CreateCollectionController";
-import { UpdateCollectionController } from "../controllers/UpdateCollectionController";
-import { DeleteCollectionController } from "../controllers/DeleteCollectionController";
-import { GetCollectionPageController } from "../controllers/GetCollectionPageController";
-import { AuthMiddleware } from "src/shared/infrastructure/http/middleware";
-import { GetMyCollectionsController } from "../controllers/GetMyCollectionsController";
+import { Router } from 'express';
+import { createCardRoutes } from './cardRoutes';
+import { createCollectionRoutes } from './collectionRoutes';
+import { AddUrlToLibraryController } from '../controllers/AddUrlToLibraryController';
+import { AddCardToLibraryController } from '../controllers/AddCardToLibraryController';
+import { AddCardToCollectionController } from '../controllers/AddCardToCollectionController';
+import { UpdateNoteCardController } from '../controllers/UpdateNoteCardController';
+import { RemoveCardFromLibraryController } from '../controllers/RemoveCardFromLibraryController';
+import { RemoveCardFromCollectionController } from '../controllers/RemoveCardFromCollectionController';
+import { GetUrlMetadataController } from '../controllers/GetUrlMetadataController';
+import { GetUrlCardViewController } from '../controllers/GetUrlCardViewController';
+import { GetLibrariesForCardController } from '../controllers/GetLibrariesForCardController';
+import { GetMyUrlCardsController } from '../controllers/GetMyUrlCardsController';
+import { CreateCollectionController } from '../controllers/CreateCollectionController';
+import { UpdateCollectionController } from '../controllers/UpdateCollectionController';
+import { DeleteCollectionController } from '../controllers/DeleteCollectionController';
+import { GetCollectionPageController } from '../controllers/GetCollectionPageController';
+import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
+import { GetMyCollectionsController } from '../controllers/GetMyCollectionsController';
 
 export function createCardsModuleRoutes(
   authMiddleware: AuthMiddleware,
@@ -36,13 +36,13 @@ export function createCardsModuleRoutes(
   updateCollectionController: UpdateCollectionController,
   deleteCollectionController: DeleteCollectionController,
   getCollectionPageController: GetCollectionPageController,
-  getMyCollectionsController: GetMyCollectionsController
+  getMyCollectionsController: GetMyCollectionsController,
 ): Router {
   const router = Router();
 
   // Mount card routes at /api/cards
   router.use(
-    "/cards",
+    '/cards',
     createCardRoutes(
       authMiddleware,
       addUrlToLibraryController,
@@ -54,21 +54,21 @@ export function createCardsModuleRoutes(
       getUrlMetadataController,
       getUrlCardViewController,
       getLibrariesForCardController,
-      getMyUrlCardsController
-    )
+      getMyUrlCardsController,
+    ),
   );
 
   // Mount collection routes at /api/collections
   router.use(
-    "/collections",
+    '/collections',
     createCollectionRoutes(
       authMiddleware,
       createCollectionController,
       updateCollectionController,
       deleteCollectionController,
       getCollectionPageController,
-      getMyCollectionsController
-    )
+      getMyCollectionsController,
+    ),
   );
 
   return router;

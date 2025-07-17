@@ -1,10 +1,10 @@
-import { CreateCollectionUseCase } from "../../application/useCases/commands/CreateCollectionUseCase";
-import { InMemoryCollectionRepository } from "../utils/InMemoryCollectionRepository";
-import { FakeCollectionPublisher } from "../utils/FakeCollectionPublisher";
-import { CuratorId } from "../../domain/value-objects/CuratorId";
-import { CollectionAccessType } from "../../domain/Collection";
+import { CreateCollectionUseCase } from '../../application/useCases/commands/CreateCollectionUseCase';
+import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
+import { FakeCollectionPublisher } from '../utils/FakeCollectionPublisher';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
+import { CollectionAccessType } from '../../domain/Collection';
 
-describe("CreateCollectionUseCase", () => {
+describe('CreateCollectionUseCase', () => {
   let useCase: CreateCollectionUseCase;
   let collectionRepository: InMemoryCollectionRepository;
   let collectionPublisher: FakeCollectionPublisher;
@@ -15,9 +15,9 @@ describe("CreateCollectionUseCase", () => {
     collectionPublisher = new FakeCollectionPublisher();
     useCase = new CreateCollectionUseCase(
       collectionRepository,
-      collectionPublisher
+      collectionPublisher,
     );
-    curatorId = CuratorId.create("did:plc:testcurator").unwrap();
+    curatorId = CuratorId.create('did:plc:testcurator').unwrap();
   });
 
   afterEach(() => {
@@ -25,11 +25,11 @@ describe("CreateCollectionUseCase", () => {
     collectionPublisher.clear();
   });
 
-  describe("Basic collection creation", () => {
-    it("should successfully create a collection", async () => {
+  describe('Basic collection creation', () => {
+    it('should successfully create a collection', async () => {
       const request = {
-        name: "My Test Collection",
-        description: "A collection for testing purposes",
+        name: 'My Test Collection',
+        description: 'A collection for testing purposes',
         curatorId: curatorId.value,
       };
 
@@ -44,9 +44,9 @@ describe("CreateCollectionUseCase", () => {
       expect(savedCollections).toHaveLength(1);
 
       const savedCollection = savedCollections[0]!;
-      expect(savedCollection.name.value).toBe("My Test Collection");
+      expect(savedCollection.name.value).toBe('My Test Collection');
       expect(savedCollection.description?.value).toBe(
-        "A collection for testing purposes"
+        'A collection for testing purposes',
       );
       expect(savedCollection.authorId.equals(curatorId)).toBe(true);
       expect(savedCollection.accessType).toBe(CollectionAccessType.CLOSED);
@@ -54,9 +54,9 @@ describe("CreateCollectionUseCase", () => {
       expect(savedCollection.publishedRecordId).toBeDefined();
     });
 
-    it("should create collection without description", async () => {
+    it('should create collection without description', async () => {
       const request = {
-        name: "Collection Without Description",
+        name: 'Collection Without Description',
         curatorId: curatorId.value,
       };
 
@@ -71,13 +71,13 @@ describe("CreateCollectionUseCase", () => {
       expect(savedCollections).toHaveLength(1);
 
       const savedCollection = savedCollections[0]!;
-      expect(savedCollection.name.value).toBe("Collection Without Description");
+      expect(savedCollection.name.value).toBe('Collection Without Description');
       expect(savedCollection.description).toBeUndefined();
     });
 
-    it("should publish collection after creation", async () => {
+    it('should publish collection after creation', async () => {
       const request = {
-        name: "Published Collection",
+        name: 'Published Collection',
         curatorId: curatorId.value,
       };
 
@@ -91,28 +91,28 @@ describe("CreateCollectionUseCase", () => {
       expect(publishedCollections).toHaveLength(1);
 
       const publishedCollection = publishedCollections[0]!;
-      expect(publishedCollection.name.value).toBe("Published Collection");
+      expect(publishedCollection.name.value).toBe('Published Collection');
     });
   });
 
-  describe("Validation", () => {
-    it("should fail with invalid curator ID", async () => {
+  describe('Validation', () => {
+    it('should fail with invalid curator ID', async () => {
       const request = {
-        name: "Test Collection",
-        curatorId: "invalid-curator-id",
+        name: 'Test Collection',
+        curatorId: 'invalid-curator-id',
       };
 
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Invalid curator ID");
+        expect(result.error.message).toContain('Invalid curator ID');
       }
     });
 
-    it("should fail with empty collection name", async () => {
+    it('should fail with empty collection name', async () => {
       const request = {
-        name: "",
+        name: '',
         curatorId: curatorId.value,
       };
 
@@ -121,14 +121,14 @@ describe("CreateCollectionUseCase", () => {
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
         expect(result.error.message).toContain(
-          "Collection name cannot be empty"
+          'Collection name cannot be empty',
         );
       }
     });
 
-    it("should fail with collection name that is too long", async () => {
+    it('should fail with collection name that is too long', async () => {
       const request = {
-        name: "a".repeat(101), // Exceeds MAX_LENGTH
+        name: 'a'.repeat(101), // Exceeds MAX_LENGTH
         curatorId: curatorId.value,
       };
 
@@ -136,14 +136,14 @@ describe("CreateCollectionUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Collection name cannot exceed");
+        expect(result.error.message).toContain('Collection name cannot exceed');
       }
     });
 
-    it("should fail with description that is too long", async () => {
+    it('should fail with description that is too long', async () => {
       const request = {
-        name: "Valid Collection Name",
-        description: "a".repeat(501), // Exceeds MAX_LENGTH
+        name: 'Valid Collection Name',
+        description: 'a'.repeat(501), // Exceeds MAX_LENGTH
         curatorId: curatorId.value,
       };
 
@@ -152,14 +152,14 @@ describe("CreateCollectionUseCase", () => {
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
         expect(result.error.message).toContain(
-          "Collection description cannot exceed"
+          'Collection description cannot exceed',
         );
       }
     });
 
-    it("should trim whitespace from collection name", async () => {
+    it('should trim whitespace from collection name', async () => {
       const request = {
-        name: "  Collection With Whitespace  ",
+        name: '  Collection With Whitespace  ',
         curatorId: curatorId.value,
       };
 
@@ -170,13 +170,13 @@ describe("CreateCollectionUseCase", () => {
       // Verify name was trimmed
       const savedCollections = collectionRepository.getAllCollections();
       const savedCollection = savedCollections[0]!;
-      expect(savedCollection.name.value).toBe("Collection With Whitespace");
+      expect(savedCollection.name.value).toBe('Collection With Whitespace');
     });
 
-    it("should trim whitespace from description", async () => {
+    it('should trim whitespace from description', async () => {
       const request = {
-        name: "Test Collection",
-        description: "  Description with whitespace  ",
+        name: 'Test Collection',
+        description: '  Description with whitespace  ',
         curatorId: curatorId.value,
       };
 
@@ -188,18 +188,18 @@ describe("CreateCollectionUseCase", () => {
       const savedCollections = collectionRepository.getAllCollections();
       const savedCollection = savedCollections[0]!;
       expect(savedCollection.description?.value).toBe(
-        "Description with whitespace"
+        'Description with whitespace',
       );
     });
   });
 
-  describe("Publishing integration", () => {
-    it("should handle publishing failure gracefully", async () => {
+  describe('Publishing integration', () => {
+    it('should handle publishing failure gracefully', async () => {
       // Configure publisher to fail
       collectionPublisher.setShouldFail(true);
 
       const request = {
-        name: "Collection That Fails to Publish",
+        name: 'Collection That Fails to Publish',
         curatorId: curatorId.value,
       };
 
@@ -207,7 +207,7 @@ describe("CreateCollectionUseCase", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain("Failed to publish collection");
+        expect(result.error.message).toContain('Failed to publish collection');
       }
 
       // Verify collection was not saved if publishing failed
@@ -215,9 +215,9 @@ describe("CreateCollectionUseCase", () => {
       expect(savedCollections).toHaveLength(1); // Collection is saved before publishing
     });
 
-    it("should save collection with published record ID after successful publish", async () => {
+    it('should save collection with published record ID after successful publish', async () => {
       const request = {
-        name: "Successfully Published Collection",
+        name: 'Successfully Published Collection',
         curatorId: curatorId.value,
       };
 
@@ -235,10 +235,10 @@ describe("CreateCollectionUseCase", () => {
     });
   });
 
-  describe("Edge cases", () => {
-    it("should handle maximum length collection name", async () => {
+  describe('Edge cases', () => {
+    it('should handle maximum length collection name', async () => {
       const request = {
-        name: "a".repeat(100), // Exactly MAX_LENGTH
+        name: 'a'.repeat(100), // Exactly MAX_LENGTH
         curatorId: curatorId.value,
       };
 
@@ -252,10 +252,10 @@ describe("CreateCollectionUseCase", () => {
       expect(savedCollection.name.value.length).toBe(100);
     });
 
-    it("should handle maximum length description", async () => {
+    it('should handle maximum length description', async () => {
       const request = {
-        name: "Test Collection",
-        description: "a".repeat(500), // Exactly MAX_LENGTH
+        name: 'Test Collection',
+        description: 'a'.repeat(500), // Exactly MAX_LENGTH
         curatorId: curatorId.value,
       };
 
@@ -269,14 +269,14 @@ describe("CreateCollectionUseCase", () => {
       expect(savedCollection.description?.value.length).toBe(500);
     });
 
-    it("should create multiple collections for same curator", async () => {
+    it('should create multiple collections for same curator', async () => {
       const firstRequest = {
-        name: "First Collection",
+        name: 'First Collection',
         curatorId: curatorId.value,
       };
 
       const secondRequest = {
-        name: "Second Collection",
+        name: 'Second Collection',
         curatorId: curatorId.value,
       };
 
@@ -291,8 +291,8 @@ describe("CreateCollectionUseCase", () => {
       expect(savedCollections).toHaveLength(2);
 
       const collectionNames = savedCollections.map((c) => c.name.value);
-      expect(collectionNames).toContain("First Collection");
-      expect(collectionNames).toContain("Second Collection");
+      expect(collectionNames).toContain('First Collection');
+      expect(collectionNames).toContain('Second Collection');
     });
   });
 });

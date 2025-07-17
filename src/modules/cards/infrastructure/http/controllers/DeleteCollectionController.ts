@@ -1,7 +1,7 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Response } from "express";
-import { DeleteCollectionUseCase } from "../../../application/useCases/commands/DeleteCollectionUseCase";
-import { AuthenticatedRequest } from "../../../../../shared/infrastructure/http/middleware/AuthMiddleware";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Response } from 'express';
+import { DeleteCollectionUseCase } from '../../../application/useCases/commands/DeleteCollectionUseCase';
+import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class DeleteCollectionController extends Controller {
   constructor(private deleteCollectionUseCase: DeleteCollectionUseCase) {
@@ -12,13 +12,13 @@ export class DeleteCollectionController extends Controller {
     try {
       const { collectionId } = req.params;
       const curatorId = req.did;
-      
+
       if (!curatorId) {
         return this.unauthorized(res);
       }
 
       if (!collectionId) {
-        return this.badRequest(res, "Collection ID is required");
+        return this.badRequest(res, 'Collection ID is required');
       }
 
       const result = await this.deleteCollectionUseCase.execute({

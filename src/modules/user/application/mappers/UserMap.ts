@@ -1,8 +1,8 @@
-import { User } from "../../domain/User";
-import { UserDTO } from "../dtos/UserDTO";
-import { DID } from "../../domain/value-objects/DID";
-import { Handle } from "../../domain/value-objects/Handle";
-import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
+import { User } from '../../domain/User';
+import { UserDTO } from '../dtos/UserDTO';
+import { DID } from '../../domain/value-objects/DID';
+import { Handle } from '../../domain/value-objects/Handle';
+import { UniqueEntityID } from 'src/shared/domain/UniqueEntityID';
 
 export class UserMap {
   public static toDTO(user: User): UserDTO {
@@ -36,7 +36,7 @@ export class UserMap {
         linkedAt: dto.linkedAt,
         lastLoginAt: dto.lastLoginAt,
       },
-      new UniqueEntityID(dto.did)
+      new UniqueEntityID(dto.did),
     );
 
     if (userOrError.isErr()) {

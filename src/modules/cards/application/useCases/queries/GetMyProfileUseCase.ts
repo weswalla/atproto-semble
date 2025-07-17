@@ -1,6 +1,6 @@
-import { UseCase } from "src/shared/core/UseCase";
-import { IProfileService } from "../../../domain/services/IProfileService";
-import { err, ok, Result } from "src/shared/core/Result";
+import { UseCase } from 'src/shared/core/UseCase';
+import { IProfileService } from '../../../domain/services/IProfileService';
+import { err, ok, Result } from 'src/shared/core/Result';
 
 export interface GetMyProfileQuery {
   userId: string;
@@ -17,7 +17,7 @@ export interface GetMyProfileResult {
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "ValidationError";
+    this.name = 'ValidationError';
   }
 }
 
@@ -29,7 +29,7 @@ export class GetMyProfileUseCase
   async execute(query: GetMyProfileQuery): Promise<Result<GetMyProfileResult>> {
     // Validate user ID
     if (!query.userId || query.userId.trim().length === 0) {
-      return err(new ValidationError("User ID is required"));
+      return err(new ValidationError('User ID is required'));
     }
 
     try {
@@ -39,8 +39,8 @@ export class GetMyProfileUseCase
       if (profileResult.isErr()) {
         return err(
           new Error(
-            `Failed to fetch user profile: ${profileResult.error instanceof Error ? profileResult.error.message : "Unknown error"}`
-          )
+            `Failed to fetch user profile: ${profileResult.error instanceof Error ? profileResult.error.message : 'Unknown error'}`,
+          ),
         );
       }
 
@@ -56,8 +56,8 @@ export class GetMyProfileUseCase
     } catch (error) {
       return err(
         new Error(
-          `Failed to get user profile: ${error instanceof Error ? error.message : "Unknown error"}`
-        )
+          `Failed to get user profile: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
       );
     }
   }

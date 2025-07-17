@@ -1,9 +1,9 @@
-import { Result, ok, err } from "../../../../shared/core/Result";
-import { ICollectionRepository } from "../../domain/ICollectionRepository";
-import { Collection } from "../../domain/Collection";
-import { CollectionId } from "../../domain/value-objects/CollectionId";
-import { CardId } from "../../domain/value-objects/CardId";
-import { CuratorId } from "../../domain/value-objects/CuratorId";
+import { Result, ok, err } from '../../../../shared/core/Result';
+import { ICollectionRepository } from '../../domain/ICollectionRepository';
+import { Collection } from '../../domain/Collection';
+import { CollectionId } from '../../domain/value-objects/CollectionId';
+import { CardId } from '../../domain/value-objects/CardId';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
 
 export class InMemoryCollectionRepository implements ICollectionRepository {
   private collections: Map<string, Collection> = new Map();
@@ -23,12 +23,12 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
         createdAt: collection.createdAt,
         updatedAt: collection.updatedAt,
       },
-      collection.id
+      collection.id,
     );
 
     if (collectionResult.isErr()) {
       throw new Error(
-        `Failed to clone collection: ${collectionResult.error.message}`
+        `Failed to clone collection: ${collectionResult.error.message}`,
       );
     }
 
@@ -49,7 +49,7 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
       const collections = Array.from(this.collections.values()).filter(
         (collection) =>
           collection.authorId.value === curatorId.value ||
-          collection.collaboratorIds.some((id) => id.value === curatorId.value)
+          collection.collaboratorIds.some((id) => id.value === curatorId.value),
       );
       return ok(collections.map((collection) => this.clone(collection)));
     } catch (error) {
@@ -62,8 +62,8 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
       const collections = Array.from(this.collections.values()).filter(
         (collection) =>
           collection.cardLinks.some(
-            (link) => link.cardId.getStringValue() === cardId.getStringValue()
-          )
+            (link) => link.cardId.getStringValue() === cardId.getStringValue(),
+          ),
       );
       return ok(collections.map((collection) => this.clone(collection)));
     } catch (error) {
@@ -75,7 +75,7 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
     try {
       this.collections.set(
         collection.collectionId.getStringValue(),
-        this.clone(collection)
+        this.clone(collection),
       );
       return ok(undefined);
     } catch (error) {
@@ -103,7 +103,7 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
 
   public getAllCollections(): Collection[] {
     return Array.from(this.collections.values()).map((collection) =>
-      this.clone(collection)
+      this.clone(collection),
     );
   }
 }

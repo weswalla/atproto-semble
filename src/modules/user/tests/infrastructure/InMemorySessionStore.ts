@@ -1,4 +1,7 @@
-import { NodeSavedSession, NodeSavedSessionStore } from "@atproto/oauth-client-node";
+import {
+  NodeSavedSession,
+  NodeSavedSessionStore,
+} from '@atproto/oauth-client-node';
 
 /**
  * In-memory implementation of NodeSavedSessionStore for testing

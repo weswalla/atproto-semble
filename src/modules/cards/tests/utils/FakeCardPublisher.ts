@@ -1,10 +1,10 @@
-import { ICardPublisher } from "../../application/ports/ICardPublisher";
-import { Card } from "../../domain/Card";
-import { PublishedRecordId } from "../../domain/value-objects/PublishedRecordId";
-import { ok, err, Result } from "../../../../shared/core/Result";
-import { UseCaseError } from "../../../../shared/core/UseCaseError";
-import { AppError } from "../../../../shared/core/AppError";
-import { CuratorId } from "src/modules/cards/domain/value-objects/CuratorId";
+import { ICardPublisher } from '../../application/ports/ICardPublisher';
+import { Card } from '../../domain/Card';
+import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
+import { ok, err, Result } from '../../../../shared/core/Result';
+import { UseCaseError } from '../../../../shared/core/UseCaseError';
+import { AppError } from '../../../../shared/core/AppError';
+import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 
 export class FakeCardPublisher implements ICardPublisher {
   private publishedRecords: Map<string, Card> = new Map();
@@ -18,11 +18,11 @@ export class FakeCardPublisher implements ICardPublisher {
 
   async publishCardToLibrary(
     card: Card,
-    curatorId: CuratorId
+    curatorId: CuratorId,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     if (this.shouldFail) {
       return err(
-        AppError.UnexpectedError.create(new Error("Simulated publish failure"))
+        AppError.UnexpectedError.create(new Error('Simulated publish failure')),
       );
     }
 
@@ -40,20 +40,20 @@ export class FakeCardPublisher implements ICardPublisher {
     this.publishedRecords.set(compositeKey, card);
 
     console.log(
-      `[FakeCardPublisher] Published card ${cardId} to curator ${curatorId.value} library at ${fakeUri}`
+      `[FakeCardPublisher] Published card ${cardId} to curator ${curatorId.value} library at ${fakeUri}`,
     );
     return ok(publishedRecordId);
   }
 
   async unpublishCardFromLibrary(
     recordId: PublishedRecordId,
-    curatorId: CuratorId
+    curatorId: CuratorId,
   ): Promise<Result<void, UseCaseError>> {
     if (this.shouldFailUnpublish) {
       return err(
         AppError.UnexpectedError.create(
-          new Error("Simulated unpublish failure")
-        )
+          new Error('Simulated unpublish failure'),
+        ),
       );
     }
 
@@ -63,11 +63,11 @@ export class FakeCardPublisher implements ICardPublisher {
       card = this.publishedRecords.get(compositeKey);
       this.publishedRecords.delete(compositeKey);
       console.log(
-        `[FakeCardPublisher] Unpublished record ${recordId.uri} from curator ${curatorId.value} library`
+        `[FakeCardPublisher] Unpublished record ${recordId.uri} from curator ${curatorId.value} library`,
       );
     }
     this.unpublishedRecords.push({
-      cardId: card?.cardId.getStringValue() || "",
+      cardId: card?.cardId.getStringValue() || '',
       uri: recordId.uri,
       cid: recordId.cid,
     });

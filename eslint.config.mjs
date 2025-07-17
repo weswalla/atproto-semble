@@ -74,6 +74,11 @@ export default [
         afterAll: 'readonly',
         afterEach: 'readonly',
         jest: 'readonly',
+        // Browser globals for e2e tests using Playwright
+        document: 'readonly',
+        window: 'readonly',
+        navigator: 'readonly',
+        location: 'readonly',
       },
     },
     plugins: {

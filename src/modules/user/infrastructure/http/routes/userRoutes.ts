@@ -35,8 +35,10 @@ export const createUserRoutes = (
   router.get('/me', authMiddleware.ensureAuthenticated(), (req, res) =>
     getMyProfileController.execute(req, res),
   );
-  router.get('/extension/tokens', authMiddleware.ensureAuthenticated(), (req, res) =>
-    generateExtensionTokensController.execute(req, res),
+  router.get(
+    '/extension/tokens',
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => generateExtensionTokensController.execute(req, res),
   );
 
   return router;

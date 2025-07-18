@@ -29,9 +29,10 @@ export class GenerateExtensionTokensController extends Controller {
       });
 
       if (result.isErr()) {
-        const errorMessage = result.error instanceof Error 
-          ? result.error.message 
-          : 'Failed to generate extension tokens';
+        const errorMessage =
+          result.error instanceof Error
+            ? result.error.message
+            : 'Failed to generate extension tokens';
         return this.fail(res, errorMessage);
       }
 

@@ -11,12 +11,15 @@ export interface GenerateExtensionTokensRequest {
 
 export type GenerateExtensionTokensResponse = Result<
   TokenPair,
-  | GenerateExtensionTokensErrors.TokenGenerationError
-  | AppError.UnexpectedError
+  GenerateExtensionTokensErrors.TokenGenerationError | AppError.UnexpectedError
 >;
 
 export class GenerateExtensionTokensUseCase
-  implements UseCase<GenerateExtensionTokensRequest, Promise<GenerateExtensionTokensResponse>>
+  implements
+    UseCase<
+      GenerateExtensionTokensRequest,
+      Promise<GenerateExtensionTokensResponse>
+    >
 {
   constructor(private tokenService: ITokenService) {}
 
@@ -25,7 +28,9 @@ export class GenerateExtensionTokensUseCase
   ): Promise<GenerateExtensionTokensResponse> {
     try {
       // Generate new tokens for the authenticated user
-      const tokenResult = await this.tokenService.generateToken(request.userDid);
+      const tokenResult = await this.tokenService.generateToken(
+        request.userDid,
+      );
 
       if (tokenResult.isErr()) {
         return err(

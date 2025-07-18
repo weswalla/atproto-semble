@@ -29,7 +29,10 @@ export class GenerateExtensionTokensController extends Controller {
       });
 
       if (result.isErr()) {
-        return this.fail(res, result.error.message);
+        const errorMessage = result.error instanceof Error 
+          ? result.error.message 
+          : 'Failed to generate extension tokens';
+        return this.fail(res, errorMessage);
       }
 
       // Redirect to chrome extension with tokens

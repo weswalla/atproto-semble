@@ -4,10 +4,12 @@ import {
   InitiateOAuthSignInRequest,
   CompleteOAuthSignInRequest,
   RefreshAccessTokenRequest,
+  GenerateExtensionTokensRequest,
   LoginWithAppPasswordResponse,
   InitiateOAuthSignInResponse,
   CompleteOAuthSignInResponse,
   RefreshAccessTokenResponse,
+  GenerateExtensionTokensResponse,
 } from '../types';
 
 export class UserClient extends BaseClient {
@@ -56,6 +58,15 @@ export class UserClient extends BaseClient {
       'POST',
       '/api/users/oauth/refresh',
       request,
+    );
+  }
+
+  async generateExtensionTokens(
+    request?: GenerateExtensionTokensRequest,
+  ): Promise<GenerateExtensionTokensResponse> {
+    return this.request<GenerateExtensionTokensResponse>(
+      'GET',
+      '/api/users/extension/tokens',
     );
   }
 }

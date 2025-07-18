@@ -85,3 +85,7 @@ export interface CompleteOAuthSignInRequest {
 export interface RefreshAccessTokenRequest {
   refreshToken: string;
 }
+
+export interface GenerateExtensionTokensRequest {
+  // No additional parameters needed - user is authenticated via middleware
+}

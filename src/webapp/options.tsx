@@ -1,12 +1,21 @@
 import { useEffect, useState } from 'react';
 import { ExtensionAuthProvider } from './hooks/useExtensionAuth';
 import { ApiClient } from './api-client/ApiClient';
-import { Card, Center, Loader, MantineProvider, Stack, Text } from '@mantine/core';
+import {
+  Card,
+  Center,
+  Loader,
+  MantineProvider,
+  Stack,
+  Text,
+} from '@mantine/core';
 import '@mantine/core/styles.css';
 import { theme } from '@/styles/theme';
 
 function AuthContent() {
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
+    'loading',
+  );
   const [message, setMessage] = useState('Validating authentication...');
 
   useEffect(() => {
@@ -24,7 +33,7 @@ function AuthContent() {
 
         // Create API client with the access token
         const apiClient = new ApiClient(
-          process.env.PLASMO_PUBLIC_API_URL || 'http://localhost:3000',
+          process.env.PLASMO_PUBLIC_API_URL || 'http://localhost:4000',
           () => accessToken,
         );
 
@@ -34,12 +43,15 @@ function AuthContent() {
         // Store tokens in chrome storage
         if (typeof chrome !== 'undefined' && chrome.storage) {
           await new Promise<void>((resolve) => {
-            chrome.storage.local.set({ 
-              accessToken,
-              refreshToken 
-            }, () => {
-              resolve();
-            });
+            chrome.storage.local.set(
+              {
+                accessToken,
+                refreshToken,
+              },
+              () => {
+                resolve();
+              },
+            );
           });
         } else {
           // Fallback to localStorage for development
@@ -52,9 +64,8 @@ function AuthContent() {
 
         // Redirect to the library page
         setTimeout(() => {
-          window.location.href = `${process.env.PLASMO_PUBLIC_APP_URL || 'http://localhost:3000'}/library`;
+          window.location.href = `${process.env.PLASMO_PUBLIC_APP_URL || 'http://localhost:4000'}/library`;
         }, 1500);
-
       } catch (error: any) {
         console.error('Authentication failed:', error);
         setStatus('error');
@@ -62,7 +73,7 @@ function AuthContent() {
 
         // Redirect to login page after a delay
         setTimeout(() => {
-          window.location.href = `${process.env.PLASMO_PUBLIC_APP_URL || 'http://localhost:3000'}/login`;
+          window.location.href = `${process.env.PLASMO_PUBLIC_APP_URL || 'http://localhost:4000'}/login`;
         }, 2000);
       }
     };

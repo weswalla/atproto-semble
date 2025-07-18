@@ -45,6 +45,7 @@ export const createExpressApp = (
     controllers.loginWithAppPasswordController,
     controllers.getMyProfileController,
     controllers.refreshAccessTokenController,
+    controllers.generateExtensionTokensController,
   );
 
   createAtprotoRoutes(atprotoRouter, services.nodeOauthClient);

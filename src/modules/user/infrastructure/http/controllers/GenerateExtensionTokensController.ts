@@ -5,7 +5,9 @@ import { GenerateExtensionTokensUseCase } from '../../../application/use-cases/G
 import { configService } from 'src/shared/infrastructure/config';
 
 export class GenerateExtensionTokensController extends Controller {
-  constructor(private generateExtensionTokensUseCase: GenerateExtensionTokensUseCase) {
+  constructor(
+    private generateExtensionTokensUseCase: GenerateExtensionTokensUseCase,
+  ) {
     super();
   }
 
@@ -32,7 +34,7 @@ export class GenerateExtensionTokensController extends Controller {
 
       // Redirect to chrome extension with tokens
       const redirectUrl = `chrome-extension://${extensionId}/options.html#accessToken=${encodeURIComponent(result.value.accessToken)}&refreshToken=${encodeURIComponent(result.value.refreshToken)}`;
-      
+
       return res.redirect(redirectUrl);
     } catch (error: any) {
       return this.fail(res, error.message || 'Unknown error');

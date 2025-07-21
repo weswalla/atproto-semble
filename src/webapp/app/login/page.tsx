@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { ApiClient } from '@/api-client/ApiClient';
 import {
@@ -23,13 +23,53 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [useAppPassword, setUseAppPassword] = useState(false);
   const router = useRouter();
-  const { setTokens } = useAuth();
+  const searchParams = useSearchParams();
+  const { setTokens, isAuthenticated, getAccessToken } = useAuth();
+
+  const isExtensionLogin = searchParams.get('extension-login') === 'true';
 
   // Create API client instance
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    () => null, // No auth token needed for login
+    () => getAccessToken(), // Use auth token when available
   );
+
+  // Handle extension login if user is already authenticated
+  useEffect(() => {
+    if (isExtensionLogin && isAuthenticated) {
+      handleExtensionTokenGeneration();
+    }
+  }, [isExtensionLogin, isAuthenticated]);
+
+  const handleExtensionTokenGeneration = async () => {
+    try {
+      setIsLoading(true);
+      const { accessToken, refreshToken } = await apiClient.generateExtensionTokens();
+      
+      // Send tokens to extension via postMessage
+      const extensionId = process.env.PLASMO_PUBLIC_EXTENSION_ID;
+      if (extensionId && window.chrome?.runtime) {
+        window.chrome.runtime.sendMessage(extensionId, {
+          type: 'EXTENSION_TOKENS',
+          accessToken,
+          refreshToken,
+        });
+      } else {
+        // Fallback to postMessage for development or other scenarios
+        window.postMessage({
+          type: 'EXTENSION_TOKENS',
+          accessToken,
+          refreshToken,
+        }, '*');
+      }
+      
+      setError('');
+    } catch (err: any) {
+      setError(err.message || 'Failed to generate extension tokens');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleOAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,9 +112,15 @@ export default function LoginPage() {
           appPassword: appPassword,
         });
 
-      // Set tokens and redirect to dashboard
+      // Set tokens
       setTokens(accessToken, refreshToken);
-      router.push('/library');
+      
+      // Handle extension login or redirect to dashboard
+      if (isExtensionLogin) {
+        await handleExtensionTokenGeneration();
+      } else {
+        router.push('/library');
+      }
     } catch (err: any) {
       setError(err.message || 'Invalid credentials');
     } finally {
@@ -85,7 +131,9 @@ export default function LoginPage() {
   return (
     <Center h={'100svh'}>
       <Stack align="center">
-        <Title order={1}>Sign in with Bluesky</Title>
+        <Title order={1}>
+          {isExtensionLogin ? 'Sign in for Extension' : 'Sign in with Bluesky'}
+        </Title>
 
         <Card withBorder w={400}>
           {!useAppPassword ? (

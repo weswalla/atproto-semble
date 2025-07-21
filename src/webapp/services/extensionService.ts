@@ -10,7 +10,7 @@ export class ExtensionService {
   private static readonly EXTENSION_TOKENS_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
   static async sendTokensToExtension(tokens: ExtensionTokens): Promise<void> {
-    const extensionId = process.env.PLASMO_PUBLIC_EXTENSION_ID;
+    const extensionId = process.env.NEXT_PUBLIC_EXTENSION_ID;
 
     try {
       // Try Chrome extension API first
@@ -37,7 +37,7 @@ export class ExtensionService {
   }
 
   static isExtensionAvailable(): boolean {
-    const extensionId = process.env.PLASMO_PUBLIC_EXTENSION_ID;
+    const extensionId = process.env.NEXT_PUBLIC_EXTENSION_ID;
     return !!(extensionId && window.chrome?.runtime);
   }
 

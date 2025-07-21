@@ -5,29 +5,32 @@
       "name": "Backend (dev:mock)",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/node_modules/.bin/npm",
-      "args": ["run", "dev:mock"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:mock"],
       "console": "integratedTerminal",
       "envFile": "${workspaceFolder}/.env.local",
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": ["<node_internals>/**"],
+      "restart": true
     },
     {
       "name": "Webapp Dev",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/node_modules/.bin/npm",
-      "args": ["run", "webapp:dev"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "webapp:dev"],
       "console": "integratedTerminal",
-      "cwd": "${workspaceFolder}/src/webapp"
+      "cwd": "${workspaceFolder}",
+      "restart": true
     },
     {
       "name": "Webapp Extension Dev",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/node_modules/.bin/npm",
-      "args": ["run", "webapp:extension:dev"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "webapp:extension:dev"],
       "console": "integratedTerminal",
-      "cwd": "${workspaceFolder}/src/webapp"
+      "cwd": "${workspaceFolder}",
+      "restart": true
     }
   ],
   "compounds": [

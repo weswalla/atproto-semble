@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,7 +20,7 @@ import {
 } from '@mantine/core';
 import { getAccessToken } from '@/services/auth';
 
-export default function LoginPage() {
+function LoginForm() {
   const [handle, setHandle] = useState('');
   const [appPassword, setAppPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -239,5 +240,21 @@ export default function LoginPage() {
         </Card>
       </Stack>
     </Center>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <Center h={'100svh'}>
+          <Stack align="center">
+            <Loader size="lg" />
+          </Stack>
+        </Center>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

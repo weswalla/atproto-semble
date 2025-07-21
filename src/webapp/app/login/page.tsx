@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { ApiClient } from '@/api-client/ApiClient';
+import { ExtensionService } from '@/services/extensionService';
 import {
   Title,
   Button,
@@ -14,22 +16,64 @@ import {
   PasswordInput,
   Text,
   Group,
+  Loader,
 } from '@mantine/core';
+import { getAccessToken } from '@/services/auth';
 
-export default function LoginPage() {
+function LoginForm() {
   const [handle, setHandle] = useState('');
   const [appPassword, setAppPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [useAppPassword, setUseAppPassword] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const router = useRouter();
-  const { setTokens } = useAuth();
+  const searchParams = useSearchParams();
+  const { setTokens, isAuthenticated } = useAuth();
+
+  const isExtensionLogin = searchParams.get('extension-login') === 'true';
 
   // Create API client instance
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    () => null, // No auth token needed for login
+    () => getAccessToken(), // Use auth token when available
   );
+
+  // Handle extension login if user is already authenticated
+  useEffect(() => {
+    if (isExtensionLogin && isAuthenticated) {
+      handleExtensionTokenGeneration();
+    } else if (isAuthenticated && !isExtensionLogin) {
+      // If user is already authenticated and not doing extension login, redirect to library
+      router.push('/library');
+    } else {
+      // Auth check is complete, show the login form
+      setIsCheckingAuth(false);
+    }
+  }, [isExtensionLogin, isAuthenticated]);
+
+  const handleExtensionTokenGeneration = async () => {
+    try {
+      setIsLoading(true);
+      const tokens = await apiClient.generateExtensionTokens();
+
+      await ExtensionService.sendTokensToExtension(tokens);
+
+      setError('');
+
+      // Clear the extension tokens requested flag
+      ExtensionService.clearExtensionTokensRequested();
+
+      // Redirect to library after successful extension token generation
+      router.push('/library');
+    } catch (err: any) {
+      setError(err.message || 'Failed to generate extension tokens');
+      // Clear the flag even on failure
+      ExtensionService.clearExtensionTokensRequested();
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleOAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +87,11 @@ export default function LoginPage() {
     setError('');
 
     try {
+      // If this is an extension login, persist the flag before redirect
+      if (searchParams.get('extension-login') === 'true') {
+        ExtensionService.setExtensionTokensRequested();
+      }
+
       const { authUrl } = await apiClient.initiateOAuthSignIn({ handle });
 
       // Redirect to the auth URL from the API
@@ -72,9 +121,15 @@ export default function LoginPage() {
           appPassword: appPassword,
         });
 
-      // Set tokens and redirect to dashboard
+      // Set tokens
       setTokens(accessToken, refreshToken);
-      router.push('/library');
+
+      // Handle extension login or redirect to dashboard
+      if (isExtensionLogin) {
+        await handleExtensionTokenGeneration();
+      } else {
+        router.push('/library');
+      }
     } catch (err: any) {
       setError(err.message || 'Invalid credentials');
     } finally {
@@ -82,10 +137,23 @@ export default function LoginPage() {
     }
   };
 
+  // Show loading while checking authentication status
+  if (isCheckingAuth || isAuthenticated) {
+    return (
+      <Center h={'100svh'}>
+        <Stack align="center">
+          <Loader size="lg" />
+        </Stack>
+      </Center>
+    );
+  }
+
   return (
     <Center h={'100svh'}>
       <Stack align="center">
-        <Title order={1}>Sign in with Bluesky</Title>
+        <Title order={1}>
+          {isExtensionLogin ? 'Sign in for Extension' : 'Sign in with Bluesky'}
+        </Title>
 
         <Card withBorder w={400}>
           {!useAppPassword ? (
@@ -172,5 +240,21 @@ export default function LoginPage() {
         </Card>
       </Stack>
     </Center>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <Center h={'100svh'}>
+          <Stack align="center">
+            <Loader size="lg" />
+          </Stack>
+        </Center>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

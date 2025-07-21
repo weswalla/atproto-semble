@@ -19,6 +19,7 @@ import { GetMyCollectionsController } from '../../../../modules/cards/infrastruc
 import { UseCases } from './UseCaseFactory';
 import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetMyProfileController';
 import { LoginWithAppPasswordController } from 'src/modules/user/infrastructure/http/controllers/LoginWithAppPasswordController';
+import { GenerateExtensionTokensController } from 'src/modules/user/infrastructure/http/controllers/GenerateExtensionTokensController';
 
 export interface Controllers {
   // User controllers
@@ -27,6 +28,7 @@ export interface Controllers {
   completeOAuthSignInController: CompleteOAuthSignInController;
   getMyProfileController: GetMyProfileController;
   refreshAccessTokenController: RefreshAccessTokenController;
+  generateExtensionTokensController: GenerateExtensionTokensController;
   // Card controllers
   addUrlToLibraryController: AddUrlToLibraryController;
   addCardToLibraryController: AddCardToLibraryController;
@@ -63,6 +65,9 @@ export class ControllerFactory {
       ),
       refreshAccessTokenController: new RefreshAccessTokenController(
         useCases.refreshAccessTokenUseCase,
+      ),
+      generateExtensionTokensController: new GenerateExtensionTokensController(
+        useCases.generateExtensionTokensUseCase,
       ),
 
       // Card controllers

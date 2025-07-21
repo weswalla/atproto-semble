@@ -5,8 +5,10 @@
   "manifest": {
     "name": "Annos Browser Extension",
     "permissions": [
-      "activeTab"
-    ]
+      "activeTab",
+      "storage"
+    ],
+    "key": "$CRX_PUBLIC_KEY"
   },
   "scripts": {
     "dev": "PORT=4000 next dev --turbopack",

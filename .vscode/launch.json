@@ -1,0 +1,47 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Backend (dev:mock)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:mock"],
+      "console": "integratedTerminal",
+      "envFile": "${workspaceFolder}/.env.local",
+      "skipFiles": ["<node_internals>/**"],
+      "restart": true
+    },
+    {
+      "name": "Webapp Dev",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "webapp:dev"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "restart": true
+    },
+    {
+      "name": "Webapp Extension Dev",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "webapp:extension:dev"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "restart": true
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Launch All Services",
+      "configurations": [
+        "Backend (dev:mock)",
+        "Webapp Dev",
+        "Webapp Extension Dev"
+      ],
+      "stopAll": true
+    }
+  ]
+}

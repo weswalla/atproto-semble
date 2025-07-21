@@ -228,3 +228,8 @@ export interface RefreshAccessTokenResponse {
   accessToken: string;
   refreshToken: string;
 }
+
+export interface GenerateExtensionTokensResponse {
+  accessToken: string;
+  refreshToken: string;
+}

@@ -19,6 +19,7 @@ import type {
   InitiateOAuthSignInRequest,
   CompleteOAuthSignInRequest,
   RefreshAccessTokenRequest,
+  GenerateExtensionTokensRequest,
   GetMyUrlCardsParams,
   GetCollectionPageParams,
   GetMyCollectionsParams,
@@ -36,6 +37,7 @@ import type {
   InitiateOAuthSignInResponse,
   CompleteOAuthSignInResponse,
   RefreshAccessTokenResponse,
+  GenerateExtensionTokensResponse,
   GetUrlMetadataResponse,
   GetMyUrlCardsResponse,
   GetUrlCardViewResponse,
@@ -179,6 +181,12 @@ export class ApiClient {
     request: RefreshAccessTokenRequest,
   ): Promise<RefreshAccessTokenResponse> {
     return this.userClient.refreshAccessToken(request);
+  }
+
+  async generateExtensionTokens(
+    request?: GenerateExtensionTokensRequest,
+  ): Promise<GenerateExtensionTokensResponse> {
+    return this.userClient.generateExtensionTokens(request);
   }
 }
 

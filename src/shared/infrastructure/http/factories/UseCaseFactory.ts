@@ -20,6 +20,7 @@ import { Repositories } from './RepositoryFactory';
 import { Services } from './ServiceFactory';
 import { GetMyProfileUseCase } from 'src/modules/cards/application/useCases/queries/GetMyProfileUseCase';
 import { LoginWithAppPasswordUseCase } from 'src/modules/user/application/use-cases/LoginWithAppPasswordUseCase';
+import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use-cases/GenerateExtensionTokensUseCase';
 
 export interface UseCases {
   // User use cases
@@ -28,6 +29,7 @@ export interface UseCases {
   completeOAuthSignInUseCase: CompleteOAuthSignInUseCase;
   getMyProfileUseCase: GetMyProfileUseCase;
   refreshAccessTokenUseCase: RefreshAccessTokenUseCase;
+  generateExtensionTokensUseCase: GenerateExtensionTokensUseCase;
   // Card use cases
   addUrlToLibraryUseCase: AddUrlToLibraryUseCase;
   addCardToLibraryUseCase: AddCardToLibraryUseCase;
@@ -67,6 +69,9 @@ export class UseCaseFactory {
       ),
       getMyProfileUseCase: new GetMyProfileUseCase(services.profileService),
       refreshAccessTokenUseCase: new RefreshAccessTokenUseCase(
+        services.tokenService,
+      ),
+      generateExtensionTokensUseCase: new GenerateExtensionTokensUseCase(
         services.tokenService,
       ),
 

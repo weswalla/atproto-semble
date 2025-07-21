@@ -16,6 +16,7 @@ import {
   Text,
   Group,
 } from '@mantine/core';
+import { getAccessToken } from '@/services/auth';
 
 export default function LoginPage() {
   const [handle, setHandle] = useState('');
@@ -25,7 +26,7 @@ export default function LoginPage() {
   const [useAppPassword, setUseAppPassword] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setTokens, isAuthenticated, getAccessToken } = useAuth();
+  const { setTokens, isAuthenticated } = useAuth();
 
   const isExtensionLogin = searchParams.get('extension-login') === 'true';
 
@@ -46,9 +47,10 @@ export default function LoginPage() {
     try {
       setIsLoading(true);
       const tokens = await apiClient.generateExtensionTokens();
-      
+      console.log('Generated extension tokens:', tokens);
+
       await ExtensionService.sendTokensToExtension(tokens);
-      
+
       setError('');
     } catch (err: any) {
       setError(err.message || 'Failed to generate extension tokens');
@@ -100,7 +102,7 @@ export default function LoginPage() {
 
       // Set tokens
       setTokens(accessToken, refreshToken);
-      
+
       // Handle extension login or redirect to dashboard
       if (isExtensionLogin) {
         await handleExtensionTokenGeneration();

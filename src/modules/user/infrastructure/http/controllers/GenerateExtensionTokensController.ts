@@ -14,14 +14,9 @@ export class GenerateExtensionTokensController extends Controller {
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const userDid = req.did;
-      const extensionId = configService.getExtensionConfig().extensionId;
 
       if (!userDid) {
         return this.unauthorized(res, 'User not authenticated');
-      }
-
-      if (!extensionId) {
-        return this.badRequest(res, 'Extension ID not configured');
       }
 
       const result = await this.generateExtensionTokensUseCase.execute({

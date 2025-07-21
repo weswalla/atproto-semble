@@ -5,6 +5,8 @@ export interface ExtensionTokens {
 
 export class ExtensionService {
   private static readonly EXTENSION_MESSAGE_TYPE = 'EXTENSION_TOKENS';
+  private static readonly EXTENSION_TOKENS_REQUESTED_KEY = 'EXTENSION_TOKENS_REQUESTED';
+  private static readonly EXTENSION_TOKENS_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
   static async sendTokensToExtension(tokens: ExtensionTokens): Promise<void> {
     const extensionId = process.env.PLASMO_PUBLIC_EXTENSION_ID;
@@ -33,5 +35,24 @@ export class ExtensionService {
   static isExtensionAvailable(): boolean {
     const extensionId = process.env.PLASMO_PUBLIC_EXTENSION_ID;
     return !!(extensionId && window.chrome?.runtime);
+  }
+
+  static setExtensionTokensRequested(): void {
+    localStorage.setItem(this.EXTENSION_TOKENS_REQUESTED_KEY, Date.now().toString());
+  }
+
+  static isExtensionTokensRequested(): boolean {
+    const timestamp = localStorage.getItem(this.EXTENSION_TOKENS_REQUESTED_KEY);
+    if (!timestamp) return false;
+
+    const requestTime = parseInt(timestamp, 10);
+    const now = Date.now();
+    
+    // Check if request was made within the last 5 minutes
+    return (now - requestTime) < this.EXTENSION_TOKENS_TIMEOUT;
+  }
+
+  static clearExtensionTokensRequested(): void {
+    localStorage.removeItem(this.EXTENSION_TOKENS_REQUESTED_KEY);
   }
 }

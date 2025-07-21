@@ -28,7 +28,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const { setTokens, isAuthenticated } = useAuth();
 
-  const isExtensionLogin = searchParams.get('extension-login') === 'true';
+  const isExtensionLogin = searchParams.get('extension-login') === 'true' || ExtensionService.isExtensionTokensRequested();
 
   // Create API client instance
   const apiClient = new ApiClient(
@@ -54,11 +54,16 @@ export default function LoginPage() {
       await ExtensionService.sendTokensToExtension(tokens);
 
       setError('');
+      
+      // Clear the extension tokens requested flag
+      ExtensionService.clearExtensionTokensRequested();
 
       // Redirect to library after successful extension token generation
       router.push('/library');
     } catch (err: any) {
       setError(err.message || 'Failed to generate extension tokens');
+      // Clear the flag even on failure
+      ExtensionService.clearExtensionTokensRequested();
     } finally {
       setIsLoading(false);
     }
@@ -76,6 +81,11 @@ export default function LoginPage() {
     setError('');
 
     try {
+      // If this is an extension login, persist the flag before redirect
+      if (searchParams.get('extension-login') === 'true') {
+        ExtensionService.setExtensionTokensRequested();
+      }
+
       const { authUrl } = await apiClient.initiateOAuthSignIn({ handle });
 
       // Redirect to the auth URL from the API

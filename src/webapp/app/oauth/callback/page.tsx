@@ -3,6 +3,9 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { ExtensionService } from '@/services/extensionService';
+import { ApiClient } from '@/api-client/ApiClient';
+import { getAccessToken } from '@/services/auth';
 import {
   Button,
   Stack,
@@ -21,6 +24,12 @@ function CallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { completeOAuth } = useAuth();
+
+  // Create API client instance
+  const apiClient = new ApiClient(
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+    () => getAccessToken(),
+  );
 
   useEffect(() => {
     // Store params immediately to avoid race conditions
@@ -41,8 +50,26 @@ function CallbackContent() {
         // Use the auth context to complete the OAuth flow
         await completeOAuth(code, state, iss);
 
+        // Check if extension tokens were requested
+        if (ExtensionService.isExtensionTokensRequested()) {
+          setMessage('Generating extension tokens...');
+          
+          try {
+            const tokens = await apiClient.generateExtensionTokens();
+            await ExtensionService.sendTokensToExtension(tokens);
+            ExtensionService.clearExtensionTokensRequested();
+            setMessage('Extension tokens generated successfully!');
+          } catch (extensionError: any) {
+            console.error('Failed to generate extension tokens:', extensionError);
+            ExtensionService.clearExtensionTokensRequested();
+            setMessage('Login successful, but failed to generate extension tokens');
+          }
+        }
+
         setStatus('success');
-        setMessage('Login successful!');
+        if (!ExtensionService.isExtensionTokensRequested()) {
+          setMessage('Login successful!');
+        }
       } catch (err: any) {
         setStatus('error');
         setMessage(err.message || 'An error occurred during authentication');
@@ -77,7 +104,7 @@ function CallbackContent() {
             </Title>
             <Text>{message}</Text>
           </Stack>
-          <Text>Redirecting you to your dashboard...</Text>
+          <Text>Redirecting you to your library...</Text>
         </Stack>
       )}
 

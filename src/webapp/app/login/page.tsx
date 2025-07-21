@@ -15,6 +15,7 @@ import {
   PasswordInput,
   Text,
   Group,
+  Loader,
 } from '@mantine/core';
 import { getAccessToken } from '@/services/auth';
 
@@ -24,6 +25,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [useAppPassword, setUseAppPassword] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setTokens, isAuthenticated } = useAuth();
@@ -43,6 +45,9 @@ export default function LoginPage() {
     } else if (isAuthenticated && !isExtensionLogin) {
       // If user is already authenticated and not doing extension login, redirect to library
       router.push('/library');
+    } else {
+      // Auth check is complete, show the login form
+      setIsCheckingAuth(false);
     }
   }, [isExtensionLogin, isAuthenticated]);
 
@@ -130,6 +135,17 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  // Show loading while checking authentication status
+  if (isCheckingAuth || isAuthenticated) {
+    return (
+      <Center h={'100svh'}>
+        <Stack align="center">
+          <Loader size="lg" />
+        </Stack>
+      </Center>
+    );
+  }
 
   return (
     <Center h={'100svh'}>

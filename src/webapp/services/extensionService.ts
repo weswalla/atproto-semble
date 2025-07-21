@@ -19,11 +19,11 @@ export class ExtensionService {
         return;
       }
 
-      // Fallback to postMessage for development or other scenarios
+      // Fallback to postMessage - content script will forward to background
       window.postMessage({
         type: this.EXTENSION_MESSAGE_TYPE,
         ...tokens,
-      }, '*');
+      }, window.location.origin);
     } catch (error) {
       console.error('Failed to send tokens to extension:', error);
       throw new Error('Failed to communicate with extension');

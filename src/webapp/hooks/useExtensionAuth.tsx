@@ -84,119 +84,58 @@ export const ExtensionAuthProvider = ({
     }
   }, []);
 
-  // Initialize auth state
+  // Initialize auth state on mount
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const token = await getStoredToken();
-        if (token) {
-          setAccessToken(token);
-          const apiClient = createApiClient(token);
-          const userData = await apiClient.getMyProfile();
-          setUser(userData);
-          setIsAuthenticated(true);
-        }
-      } catch (error) {
-        console.error('Auth initialization failed:', error);
-        // Token invalid, clear it
-        await setStoredToken(null);
-        setError('Session expired. Please sign in again.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     initAuth();
-  }, [getStoredToken, setStoredToken, createApiClient]);
+  }, [initAuth]);
 
-  // Listen for extension tokens from webapp
+  // Listen for auth state changes from background script
   useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
-      // Handle postMessage from webapp
-      if (event.data?.type === 'EXTENSION_TOKENS') {
-        const { accessToken: newToken, refreshToken } = event.data;
-        if (newToken) {
-          try {
-            setError(null);
-            setIsLoading(true);
-            
-            setAccessToken(newToken);
-            await setStoredToken(newToken);
-            
-            // Store refresh token if provided
-            if (refreshToken && typeof chrome !== 'undefined' && chrome.storage) {
-              chrome.storage.local.set({ refreshToken });
-            } else if (refreshToken) {
-              localStorage.setItem('refreshToken', refreshToken);
-            }
-
-            // Fetch user data with new token
-            const authenticatedClient = createApiClient(newToken);
-            const userData = await authenticatedClient.getMyProfile();
-            setUser(userData);
-            setIsAuthenticated(true);
-          } catch (error: any) {
-            console.error('Failed to authenticate with received tokens:', error);
-            setError('Failed to authenticate with received tokens');
-          } finally {
-            setIsLoading(false);
-          }
-        }
+    const handleAuthStateChange = (message: any) => {
+      if (message.type === 'AUTH_STATE_CHANGED') {
+        // Reload auth state from storage when background script notifies us
+        initAuth();
       }
     };
 
-    const handleChromeMessage = async (message: any, sender: any, sendResponse: any) => {
-      // Handle chrome.runtime.sendMessage from webapp
-      if (message?.type === 'EXTENSION_TOKENS') {
-        const { accessToken: newToken, refreshToken } = message;
-        if (newToken) {
-          try {
-            setError(null);
-            setIsLoading(true);
-            
-            setAccessToken(newToken);
-            await setStoredToken(newToken);
-            
-            // Store refresh token if provided
-            if (refreshToken && typeof chrome !== 'undefined' && chrome.storage) {
-              chrome.storage.local.set({ refreshToken });
-            } else if (refreshToken) {
-              localStorage.setItem('refreshToken', refreshToken);
-            }
-
-            // Fetch user data with new token
-            const authenticatedClient = createApiClient(newToken);
-            const userData = await authenticatedClient.getMyProfile();
-            setUser(userData);
-            setIsAuthenticated(true);
-            
-            sendResponse({ success: true });
-          } catch (error: any) {
-            console.error('Failed to authenticate with received tokens:', error);
-            setError('Failed to authenticate with received tokens');
-            sendResponse({ success: false, error: error.message });
-          } finally {
-            setIsLoading(false);
-          }
-        }
-      }
-    };
-
-    // Listen for postMessage
-    window.addEventListener('message', handleMessage);
-    
-    // Listen for chrome.runtime.sendMessage
     if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
-      chrome.runtime.onMessage.addListener(handleChromeMessage);
+      chrome.runtime.onMessage.addListener(handleAuthStateChange);
+      
+      return () => {
+        chrome.runtime.onMessage.removeListener(handleAuthStateChange);
+      };
     }
+  }, []);
 
-    return () => {
-      window.removeEventListener('message', handleMessage);
-      if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
-        chrome.runtime.onMessage.removeListener(handleChromeMessage);
+  // Helper function to initialize auth state (extracted for reuse)
+  const initAuth = useCallback(async () => {
+    try {
+      const token = await getStoredToken();
+      if (token) {
+        setAccessToken(token);
+        const apiClient = createApiClient(token);
+        const userData = await apiClient.getMyProfile();
+        setUser(userData);
+        setIsAuthenticated(true);
+      } else {
+        // No token found, ensure we're in unauthenticated state
+        setAccessToken(null);
+        setUser(null);
+        setIsAuthenticated(false);
       }
-    };
-  }, [setStoredToken, createApiClient]);
+      setError(null);
+    } catch (error) {
+      console.error('Auth initialization failed:', error);
+      // Token invalid, clear it
+      await setStoredToken(null);
+      setAccessToken(null);
+      setUser(null);
+      setIsAuthenticated(false);
+      setError('Session expired. Please sign in again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [getStoredToken, setStoredToken, createApiClient]);
 
   const loginWithAppPassword = async (
     identifier: string,
@@ -233,16 +172,16 @@ export const ExtensionAuthProvider = ({
 
   const logout = async () => {
     try {
-      setAccessToken(null);
-      setUser(null);
-      setIsAuthenticated(false);
-      setError(null);
-      await setStoredToken(null);
-      
-      // Clear refresh token as well
-      if (typeof chrome !== 'undefined' && chrome.storage) {
-        chrome.storage.local.remove(['refreshToken']);
+      // Notify background script to handle logout
+      if (typeof chrome !== 'undefined' && chrome.runtime) {
+        chrome.runtime.sendMessage({ type: 'LOGOUT' });
       } else {
+        // Fallback for development
+        setAccessToken(null);
+        setUser(null);
+        setIsAuthenticated(false);
+        setError(null);
+        await setStoredToken(null);
         localStorage.removeItem('refreshToken');
       }
     } catch (error) {

@@ -28,7 +28,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const { setTokens, isAuthenticated } = useAuth();
 
-  const isExtensionLogin = searchParams.get('extension-login') === 'true' || ExtensionService.isExtensionTokensRequested();
+  const isExtensionLogin = searchParams.get('extension-login') === 'true';
 
   // Create API client instance
   const apiClient = new ApiClient(
@@ -54,7 +54,7 @@ export default function LoginPage() {
       await ExtensionService.sendTokensToExtension(tokens);
 
       setError('');
-      
+
       // Clear the extension tokens requested flag
       ExtensionService.clearExtensionTokensRequested();
 

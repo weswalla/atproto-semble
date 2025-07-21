@@ -50,12 +50,11 @@ export default function LoginPage() {
     try {
       setIsLoading(true);
       const tokens = await apiClient.generateExtensionTokens();
-      console.log('Generated extension tokens:', tokens);
 
       await ExtensionService.sendTokensToExtension(tokens);
 
       setError('');
-      
+
       // Redirect to library after successful extension token generation
       router.push('/library');
     } catch (err: any) {

@@ -4,7 +4,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     handleExtensionTokens(message, sendResponse);
     return true; // Keep message channel open for async response
   }
-  
+
   if (message.type === 'WEBAPP_TOKENS_RECEIVED') {
     handleWebappTokens(message, sendResponse);
     return true;
@@ -12,10 +12,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // Handle tokens received directly via chrome.runtime.sendMessage
-async function handleExtensionTokens(message: any, sendResponse: (response: any) => void) {
+async function handleExtensionTokens(
+  message: any,
+  sendResponse: (response: any) => void,
+) {
   try {
     const { accessToken, refreshToken } = message;
-    
+
     if (!accessToken) {
       sendResponse({ success: false, error: 'No access token provided' });
       return;
@@ -26,16 +29,18 @@ async function handleExtensionTokens(message: any, sendResponse: (response: any)
       accessToken,
       refreshToken,
       isAuthenticated: true,
-      authTimestamp: Date.now()
+      authTimestamp: Date.now(),
     });
 
     // Notify all extension pages about the auth change
-    chrome.runtime.sendMessage({
-      type: 'AUTH_STATE_CHANGED',
-      isAuthenticated: true
-    }).catch(() => {
-      // Ignore errors if no listeners
-    });
+    chrome.runtime
+      .sendMessage({
+        type: 'AUTH_STATE_CHANGED',
+        isAuthenticated: true,
+      })
+      .catch(() => {
+        // Ignore errors if no listeners
+      });
 
     sendResponse({ success: true });
   } catch (error) {
@@ -45,10 +50,13 @@ async function handleExtensionTokens(message: any, sendResponse: (response: any)
 }
 
 // Handle tokens forwarded from content script (postMessage)
-async function handleWebappTokens(message: any, sendResponse: (response: any) => void) {
+async function handleWebappTokens(
+  message: any,
+  sendResponse: (response: any) => void,
+) {
   try {
     const { accessToken, refreshToken } = message;
-    
+
     if (!accessToken) {
       sendResponse({ success: false, error: 'No access token provided' });
       return;
@@ -59,16 +67,18 @@ async function handleWebappTokens(message: any, sendResponse: (response: any) =>
       accessToken,
       refreshToken,
       isAuthenticated: true,
-      authTimestamp: Date.now()
+      authTimestamp: Date.now(),
     });
 
     // Notify all extension pages about the auth change
-    chrome.runtime.sendMessage({
-      type: 'AUTH_STATE_CHANGED',
-      isAuthenticated: true
-    }).catch(() => {
-      // Ignore errors if no listeners
-    });
+    chrome.runtime
+      .sendMessage({
+        type: 'AUTH_STATE_CHANGED',
+        isAuthenticated: true,
+      })
+      .catch(() => {
+        // Ignore errors if no listeners
+      });
 
     sendResponse({ success: true });
   } catch (error) {
@@ -92,16 +102,18 @@ async function handleLogout(sendResponse: (response: any) => void) {
       'accessToken',
       'refreshToken',
       'isAuthenticated',
-      'authTimestamp'
+      'authTimestamp',
     ]);
 
     // Notify all extension pages about the auth change
-    chrome.runtime.sendMessage({
-      type: 'AUTH_STATE_CHANGED',
-      isAuthenticated: false
-    }).catch(() => {
-      // Ignore errors if no listeners
-    });
+    chrome.runtime
+      .sendMessage({
+        type: 'AUTH_STATE_CHANGED',
+        isAuthenticated: false,
+      })
+      .catch(() => {
+        // Ignore errors if no listeners
+      });
 
     sendResponse({ success: true });
   } catch (error) {

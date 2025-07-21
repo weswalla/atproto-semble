@@ -36,10 +36,7 @@ export class GenerateExtensionTokensController extends Controller {
         return this.fail(res, errorMessage);
       }
 
-      // Redirect to chrome extension with tokens
-      const redirectUrl = `chrome-extension://${extensionId}/options.html#accessToken=${encodeURIComponent(result.value.accessToken)}&refreshToken=${encodeURIComponent(result.value.refreshToken)}`;
-
-      return res.redirect(redirectUrl);
+      return this.ok(res, result.value);
     } catch (error: any) {
       return this.fail(res, error.message || 'Unknown error');
     }

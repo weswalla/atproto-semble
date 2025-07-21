@@ -62,7 +62,7 @@ function AuthCompleteContent() {
       setMessage('Extension tokens generated successfully!');
 
       // Redirect to extension success page after successful extension token generation
-      setTimeout(() => router.push('/login/extension'), 1000);
+      setTimeout(() => router.push('/extension/auth/complete'), 1000);
     } catch (extensionError: any) {
       console.error('Failed to generate extension tokens:', extensionError);
       ExtensionService.clearExtensionTokensRequested();

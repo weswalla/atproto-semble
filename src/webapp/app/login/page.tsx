@@ -65,7 +65,7 @@ function LoginForm() {
       ExtensionService.clearExtensionTokensRequested();
 
       // Redirect to extension success page after successful extension token generation
-      router.push('/login/extension');
+      router.push('/extension/auth/complete');
     } catch (err: any) {
       setError(err.message || 'Failed to generate extension tokens');
       // Clear the flag even on failure

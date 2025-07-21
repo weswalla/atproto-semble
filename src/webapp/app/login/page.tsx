@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { ApiClient } from '@/api-client/ApiClient';
+import { ExtensionService } from '@/services/extensionService';
 import {
   Title,
   Button,
@@ -44,24 +45,9 @@ export default function LoginPage() {
   const handleExtensionTokenGeneration = async () => {
     try {
       setIsLoading(true);
-      const { accessToken, refreshToken } = await apiClient.generateExtensionTokens();
+      const tokens = await apiClient.generateExtensionTokens();
       
-      // Send tokens to extension via postMessage
-      const extensionId = process.env.PLASMO_PUBLIC_EXTENSION_ID;
-      if (extensionId && window.chrome?.runtime) {
-        window.chrome.runtime.sendMessage(extensionId, {
-          type: 'EXTENSION_TOKENS',
-          accessToken,
-          refreshToken,
-        });
-      } else {
-        // Fallback to postMessage for development or other scenarios
-        window.postMessage({
-          type: 'EXTENSION_TOKENS',
-          accessToken,
-          refreshToken,
-        }, '*');
-      }
+      await ExtensionService.sendTokensToExtension(tokens);
       
       setError('');
     } catch (err: any) {

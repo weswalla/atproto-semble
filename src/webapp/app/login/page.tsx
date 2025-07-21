@@ -40,6 +40,9 @@ export default function LoginPage() {
   useEffect(() => {
     if (isExtensionLogin && isAuthenticated) {
       handleExtensionTokenGeneration();
+    } else if (isAuthenticated && !isExtensionLogin) {
+      // If user is already authenticated and not doing extension login, redirect to library
+      router.push('/library');
     }
   }, [isExtensionLogin, isAuthenticated]);
 
@@ -52,6 +55,9 @@ export default function LoginPage() {
       await ExtensionService.sendTokensToExtension(tokens);
 
       setError('');
+      
+      // Redirect to library after successful extension token generation
+      router.push('/library');
     } catch (err: any) {
       setError(err.message || 'Failed to generate extension tokens');
     } finally {

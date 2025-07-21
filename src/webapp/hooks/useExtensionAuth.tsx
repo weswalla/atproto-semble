@@ -84,29 +84,6 @@ export const ExtensionAuthProvider = ({
     }
   }, []);
 
-  // Initialize auth state on mount
-  useEffect(() => {
-    initAuth();
-  }, [initAuth]);
-
-  // Listen for auth state changes from background script
-  useEffect(() => {
-    const handleAuthStateChange = (message: any) => {
-      if (message.type === 'AUTH_STATE_CHANGED') {
-        // Reload auth state from storage when background script notifies us
-        initAuth();
-      }
-    };
-
-    if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
-      chrome.runtime.onMessage.addListener(handleAuthStateChange);
-      
-      return () => {
-        chrome.runtime.onMessage.removeListener(handleAuthStateChange);
-      };
-    }
-  }, []);
-
   // Helper function to initialize auth state (extracted for reuse)
   const initAuth = useCallback(async () => {
     try {
@@ -136,6 +113,29 @@ export const ExtensionAuthProvider = ({
       setIsLoading(false);
     }
   }, [getStoredToken, setStoredToken, createApiClient]);
+
+  // Initialize auth state on mount
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
+
+  // Listen for auth state changes from background script
+  useEffect(() => {
+    const handleAuthStateChange = (message: any) => {
+      if (message.type === 'AUTH_STATE_CHANGED') {
+        // Reload auth state from storage when background script notifies us
+        initAuth();
+      }
+    };
+
+    if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
+      chrome.runtime.onMessage.addListener(handleAuthStateChange);
+      
+      return () => {
+        chrome.runtime.onMessage.removeListener(handleAuthStateChange);
+      };
+    }
+  }, [initAuth]);
 
   const loginWithAppPassword = async (
     identifier: string,

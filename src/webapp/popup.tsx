@@ -3,7 +3,14 @@ import {
   useExtensionAuth,
 } from './hooks/useExtensionAuth';
 import { SaveCardPage } from './components/extension/SaveCardPage';
-import { Card, MantineProvider, ScrollArea, Button, Text, Stack } from '@mantine/core';
+import {
+  Card,
+  MantineProvider,
+  ScrollArea,
+  Button,
+  Text,
+  Stack,
+} from '@mantine/core';
 import '@mantine/core/styles.css';
 import { theme } from '@/styles/theme';
 
@@ -20,7 +27,8 @@ function PopupContent() {
 
   if (!isAuthenticated) {
     const handleSignIn = () => {
-      const appUrl = process.env.PLASMO_PUBLIC_APP_URL || 'http://localhost:3000';
+      const appUrl =
+        process.env.PLASMO_PUBLIC_APP_URL || 'http://localhost:3000';
       const loginUrl = `${appUrl}/login?extension-login=true`;
       chrome.tabs.create({ url: loginUrl });
       window.close();

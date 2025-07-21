@@ -54,7 +54,9 @@ export const ExtensionAuthProvider = ({
     });
   }, []);
 
-  const getStoredRefreshToken = useCallback(async (): Promise<string | null> => {
+  const getStoredRefreshToken = useCallback(async (): Promise<
+    string | null
+  > => {
     return new Promise((resolve) => {
       if (typeof chrome !== 'undefined' && chrome.storage) {
         chrome.storage.local.get(['refreshToken'], (result) => {
@@ -130,7 +132,7 @@ export const ExtensionAuthProvider = ({
 
     if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
       chrome.runtime.onMessage.addListener(handleAuthStateChange);
-      
+
       return () => {
         chrome.runtime.onMessage.removeListener(handleAuthStateChange);
       };

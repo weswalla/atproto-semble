@@ -38,7 +38,7 @@
       "name": "Launch All Services",
       "configurations": [
         "Backend (dev:mock)",
-        "Webapp Dev", 
+        "Webapp Dev",
         "Webapp Extension Dev"
       ],
       "stopAll": true

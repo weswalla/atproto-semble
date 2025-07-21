@@ -7,12 +7,14 @@ window.addEventListener('message', (event) => {
 
   if (event.data?.type === 'EXTENSION_TOKENS') {
     // Forward tokens to background script
-    chrome.runtime.sendMessage({
-      type: 'WEBAPP_TOKENS_RECEIVED',
-      accessToken: event.data.accessToken,
-      refreshToken: event.data.refreshToken
-    }).catch((error) => {
-      console.error('Failed to forward tokens to background script:', error);
-    });
+    chrome.runtime
+      .sendMessage({
+        type: 'WEBAPP_TOKENS_RECEIVED',
+        accessToken: event.data.accessToken,
+        refreshToken: event.data.refreshToken,
+      })
+      .catch((error) => {
+        console.error('Failed to forward tokens to background script:', error);
+      });
   }
 });

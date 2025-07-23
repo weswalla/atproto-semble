@@ -18,6 +18,7 @@ import { useForm } from '@mantine/form';
 
 export function SignInPage() {
   const { loginWithAppPassword, error, isLoading } = useExtensionAuth();
+  const [useAppPassword, setUseAppPassword] = useState(false);
   const form = useForm({
     initialValues: {
       handle: '',
@@ -26,7 +27,26 @@ export function SignInPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleOAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.getValues().handle.trim()) return;
+
+    try {
+      setIsSubmitting(true);
+      
+      // Open the main app login page with extension login flag
+      const appUrl = process.env.PLASMO_PUBLIC_APP_URL || 'http://localhost:3000';
+      const loginUrl = `${appUrl}/login?extension-login=true`;
+      chrome.tabs.create({ url: loginUrl });
+      window.close();
+    } catch (error) {
+      // Error handling if needed
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAppPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.getValues().handle.trim() || !form.getValues().password.trim())
       return;
@@ -65,40 +85,83 @@ export function SignInPage() {
 
       <Divider />
 
-      <form onSubmit={handleLogin}>
-        <Stack>
-          {error && <Alert color={'red'} title={error} />}
+      {!useAppPassword ? (
+        <form onSubmit={handleOAuthSubmit}>
+          <Stack>
+            {error && <Alert color={'red'} title={error} />}
 
-          <TextInput
-            type="text"
-            label="Handle"
-            placeholder="user.bsky.social"
-            disabled={isSubmitting}
-            key={form.key('handle')}
-            {...form.getInputProps('handle')}
-          />
+            <TextInput
+              type="text"
+              label="Enter your Bluesky handle"
+              placeholder="user.bsky.social"
+              disabled={isSubmitting}
+              key={form.key('handle')}
+              {...form.getInputProps('handle')}
+            />
 
-          <PasswordInput
-            label="App Password"
-            placeholder="xxxx-xxxx-xxxx-xxxx"
-            disabled={isSubmitting}
-            key={form.key('password')}
-            {...form.getInputProps('password')}
-          />
+            <Button
+              type="submit"
+              disabled={!form.getValues().handle.trim() || isSubmitting}
+              loading={isSubmitting}
+            >
+              {isSubmitting ? 'Connecting...' : 'Continue'}
+            </Button>
 
-          <Button
-            type="submit"
-            disabled={
-              !form.getValues().handle.trim() ||
-              !form.getValues().password.trim() ||
-              isSubmitting
-            }
-            loading={isSubmitting}
-          >
-            {isSubmitting ? 'Signing in...' : 'Sign In'}
-          </Button>
-        </Stack>
-      </form>
+            <Button
+              type="button"
+              onClick={() => setUseAppPassword(true)}
+              variant="transparent"
+              color="blue"
+            >
+              Sign in with app password
+            </Button>
+          </Stack>
+        </form>
+      ) : (
+        <form onSubmit={handleAppPasswordSubmit}>
+          <Stack>
+            {error && <Alert color={'red'} title={error} />}
+
+            <TextInput
+              type="text"
+              label="Bluesky handle"
+              placeholder="user.bsky.social"
+              disabled={isSubmitting}
+              key={form.key('handle')}
+              {...form.getInputProps('handle')}
+            />
+
+            <PasswordInput
+              label="App password"
+              placeholder="xxxx-xxxx-xxxx-xxxx"
+              disabled={isSubmitting}
+              key={form.key('password')}
+              {...form.getInputProps('password')}
+            />
+
+            <Button
+              type="submit"
+              disabled={
+                !form.getValues().handle.trim() ||
+                !form.getValues().password.trim() ||
+                isSubmitting
+              }
+              loading={isSubmitting}
+            >
+              {isSubmitting ? 'Signing in...' : 'Sign In'}
+            </Button>
+
+            <Button
+              type="button"
+              onClick={() => setUseAppPassword(false)}
+              variant="transparent"
+              color="blue"
+            >
+              Back to regular sign in
+            </Button>
+          </Stack>
+        </form>
+      )}
     </Stack>
   );
 }

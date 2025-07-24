@@ -3,11 +3,11 @@ import {
   useExtensionAuth,
 } from './hooks/useExtensionAuth';
 import { SaveCardPage } from './components/extension/SaveCardPage';
+import { SignInPage } from './components/extension/SignInPage';
 import {
   Card,
   MantineProvider,
   ScrollArea,
-  Button,
   Text,
   Stack,
 } from '@mantine/core';
@@ -26,24 +26,7 @@ function PopupContent() {
   }
 
   if (!isAuthenticated) {
-    const handleSignIn = () => {
-      const appUrl =
-        process.env.PLASMO_PUBLIC_APP_URL || 'http://localhost:3000';
-      const loginUrl = `${appUrl}/login?extension-login=true`;
-      chrome.tabs.create({ url: loginUrl });
-      window.close();
-    };
-
-    return (
-      <Stack align="center" p="md" gap="md">
-        <Text size="sm" ta="center">
-          Sign in to your account to save cards
-        </Text>
-        <Button onClick={handleSignIn} fullWidth>
-          Sign In
-        </Button>
-      </Stack>
-    );
+    return <SignInPage />;
   }
 
   return <SaveCardPage />;

@@ -1,104 +1,104 @@
-'use client';
-
 import { useState } from 'react';
+import { Button, Text, Stack, TextInput, Alert, Anchor } from '@mantine/core';
 import { useExtensionAuth } from '../../hooks/useExtensionAuth';
-import {
-  Alert,
-  Button,
-  Center,
-  Divider,
-  Loader,
-  PasswordInput,
-  Stack,
-  Text,
-  TextInput,
-  Title,
-} from '@mantine/core';
-import { useForm } from '@mantine/form';
 
 export function SignInPage() {
   const { loginWithAppPassword, error, isLoading } = useExtensionAuth();
-  const form = useForm({
-    initialValues: {
-      handle: '',
-      password: '',
-    },
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAppPasswordForm, setShowAppPasswordForm] = useState(false);
+  const [handle, setHandle] = useState('');
+  const [appPassword, setAppPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.getValues().handle.trim() || !form.getValues().password.trim())
+  const handleSignIn = () => {
+    const appUrl = process.env.PLASMO_PUBLIC_APP_URL || 'http://localhost:3000';
+    const loginUrl = `${appUrl}/login?extension-login=true`;
+    chrome.tabs.create({ url: loginUrl });
+    window.close();
+  };
+
+  const handleAppPasswordLogin = async () => {
+    if (!handle.trim() || !appPassword.trim()) {
+      setLoginError('Please enter both handle and app password');
       return;
+    }
 
+    setLoginError('');
     try {
-      setIsSubmitting(true);
-      await loginWithAppPassword(
-        form.getValues().handle.trim(),
-        form.getValues().password.trim(),
+      await loginWithAppPassword(handle.trim(), appPassword.trim());
+      // Success - the auth context will handle the state update
+    } catch (error: any) {
+      setLoginError(
+        error.message || 'Login failed. Please check your credentials.',
       );
-    } catch (error) {
-      // Error is handled by the auth context
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  if (isLoading) {
+  if (showAppPasswordForm) {
     return (
-      <Center>
-        <Loader />
-      </Center>
+      <Stack p="md" gap="md">
+        <Text size="sm" ta="center">
+          Sign in with App Password
+        </Text>
+
+        <TextInput
+          label="Handle"
+          placeholder="your-handle.bsky.social"
+          value={handle}
+          onChange={(e) => setHandle(e.target.value)}
+          disabled={isLoading}
+        />
+
+        <TextInput
+          label="App Password"
+          type="password"
+          placeholder="xxxx-xxxx-xxxx-xxxx"
+          value={appPassword}
+          onChange={(e) => setAppPassword(e.target.value)}
+          disabled={isLoading}
+        />
+
+        {(loginError || error) && (
+          <Alert color="red">{loginError || error}</Alert>
+        )}
+
+        <Stack gap="xs">
+          <Button
+            onClick={handleAppPasswordLogin}
+            loading={isLoading}
+            disabled={!handle.trim() || !appPassword.trim()}
+            fullWidth
+          >
+            Sign In
+          </Button>
+
+          <Button
+            variant="subtle"
+            onClick={() => setShowAppPasswordForm(false)}
+            disabled={isLoading}
+            fullWidth
+          >
+            Back
+          </Button>
+        </Stack>
+      </Stack>
     );
   }
 
   return (
-    <Stack>
-      <Stack gap={0}>
-        <Title order={1} fz={'xl'}>
-          Card Extension
-        </Title>
-        <Text c={'gray'} fz={'sm'} fw={500}>
-          Sign in to save content
-        </Text>
-      </Stack>
-
-      <Divider />
-
-      <form onSubmit={handleLogin}>
-        <Stack>
-          {error && <Alert color={'red'} title={error} />}
-
-          <TextInput
-            type="text"
-            label="Handle"
-            placeholder="user.bsky.social"
-            disabled={isSubmitting}
-            key={form.key('handle')}
-            {...form.getInputProps('handle')}
-          />
-
-          <PasswordInput
-            label="App Password"
-            placeholder="xxxx-xxxx-xxxx-xxxx"
-            disabled={isSubmitting}
-            key={form.key('password')}
-            {...form.getInputProps('password')}
-          />
-
-          <Button
-            type="submit"
-            disabled={
-              !form.getValues().handle.trim() ||
-              !form.getValues().password.trim() ||
-              isSubmitting
-            }
-            loading={isSubmitting}
-          >
-            {isSubmitting ? 'Signing in...' : 'Sign In'}
-          </Button>
-        </Stack>
-      </form>
+    <Stack align="center" p="md" gap="md">
+      <Text size="sm" ta="center">
+        Sign in to your account to save cards
+      </Text>
+      <Button onClick={handleSignIn} fullWidth>
+        Sign In
+      </Button>
+      <Anchor
+        size="sm"
+        onClick={() => setShowAppPasswordForm(true)}
+        style={{ cursor: 'pointer' }}
+      >
+        Sign in with App Password
+      </Anchor>
     </Stack>
   );
 }

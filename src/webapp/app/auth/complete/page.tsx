@@ -66,10 +66,9 @@ function AuthCompleteContent() {
     } catch (extensionError: any) {
       console.error('Failed to generate extension tokens:', extensionError);
       ExtensionService.clearExtensionTokensRequested();
-      setMessage('Login successful, but failed to generate extension tokens');
 
-      // Still redirect to library after a delay
-      setTimeout(() => router.push('/library'), 2000);
+      // Redirect to extension error page
+      router.push('/extension/auth/error');
     }
   };
 

@@ -4,13 +4,7 @@ import {
 } from './hooks/useExtensionAuth';
 import { SaveCardPage } from './components/extension/SaveCardPage';
 import { SignInPage } from './components/extension/SignInPage';
-import {
-  Card,
-  MantineProvider,
-  ScrollArea,
-  Text,
-  Stack,
-} from '@mantine/core';
+import { Card, MantineProvider, ScrollArea, Text, Stack } from '@mantine/core';
 import '@mantine/core/styles.css';
 import { theme } from '@/styles/theme';
 

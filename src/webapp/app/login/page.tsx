@@ -69,7 +69,7 @@ function LoginForm() {
     } catch (err: any) {
       // Clear the flag even on failure
       ExtensionService.clearExtensionTokensRequested();
-      
+
       // Redirect to extension error page
       router.push('/extension/auth/error');
     } finally {

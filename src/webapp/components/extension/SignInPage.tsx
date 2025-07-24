@@ -10,8 +10,7 @@ export function SignInPage() {
   const [loginError, setLoginError] = useState('');
 
   const handleSignIn = () => {
-    const appUrl =
-      process.env.PLASMO_PUBLIC_APP_URL || 'http://localhost:3000';
+    const appUrl = process.env.PLASMO_PUBLIC_APP_URL || 'http://localhost:3000';
     const loginUrl = `${appUrl}/login?extension-login=true`;
     chrome.tabs.create({ url: loginUrl });
     window.close();
@@ -28,7 +27,9 @@ export function SignInPage() {
       await loginWithAppPassword(handle.trim(), appPassword.trim());
       // Success - the auth context will handle the state update
     } catch (error: any) {
-      setLoginError(error.message || 'Login failed. Please check your credentials.');
+      setLoginError(
+        error.message || 'Login failed. Please check your credentials.',
+      );
     }
   };
 
@@ -38,7 +39,7 @@ export function SignInPage() {
         <Text size="sm" ta="center">
           Sign in with App Password
         </Text>
-        
+
         <TextInput
           label="Handle"
           placeholder="your-handle.bsky.social"
@@ -46,7 +47,7 @@ export function SignInPage() {
           onChange={(e) => setHandle(e.target.value)}
           disabled={isLoading}
         />
-        
+
         <TextInput
           label="App Password"
           type="password"
@@ -63,17 +64,17 @@ export function SignInPage() {
         )}
 
         <Stack gap="xs">
-          <Button 
-            onClick={handleAppPasswordLogin} 
+          <Button
+            onClick={handleAppPasswordLogin}
             loading={isLoading}
             disabled={!handle.trim() || !appPassword.trim()}
             fullWidth
           >
             Sign In
           </Button>
-          
-          <Button 
-            variant="subtle" 
+
+          <Button
+            variant="subtle"
             onClick={() => setShowAppPasswordForm(false)}
             disabled={isLoading}
             fullWidth
@@ -93,8 +94,8 @@ export function SignInPage() {
       <Button onClick={handleSignIn} fullWidth>
         Sign In
       </Button>
-      <Anchor 
-        size="sm" 
+      <Anchor
+        size="sm"
         onClick={() => setShowAppPasswordForm(true)}
         style={{ cursor: 'pointer' }}
       >

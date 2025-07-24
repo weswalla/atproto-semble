@@ -58,9 +58,7 @@ export function SignInPage() {
         />
 
         {(loginError || error) && (
-          <Alert color="red" size="sm">
-            {loginError || error}
-          </Alert>
+          <Alert color="red">{loginError || error}</Alert>
         )}
 
         <Stack gap="xs">

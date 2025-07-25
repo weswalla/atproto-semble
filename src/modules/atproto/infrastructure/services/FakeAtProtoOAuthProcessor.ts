@@ -9,7 +9,7 @@ export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
   async generateAuthUrl(handle?: string): Promise<Result<string>> {
     try {
       // Return a mock auth URL
-      const mockUrl = `https://mock-oauth.example.com/auth?handle=${handle || 'mock'}`;
+      const mockUrl = `localhost:4000/auth/complete?accessToken=${process.env.MOCK_ACCESS_TOKEN}&refreshToken=${process.env.MOCK_REFRESH_TOKEN}`;
       return ok(mockUrl);
     } catch (error: any) {
       return err(error);

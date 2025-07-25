@@ -1,6 +1,7 @@
 import { Result, ok, err } from 'src/shared/core/Result';
-import { ITokenService, TokenPair } from '../../application/services/ITokenService';
+import { ITokenService } from '../../application/services/ITokenService';
 import { ITokenRepository } from '../../domain/repositories/ITokenRepository';
+import { TokenPair } from '../../application/dtos/TokenDTO';
 
 export class FakeJwtTokenService implements ITokenService {
   constructor(private tokenRepository: ITokenRepository) {}
@@ -8,12 +9,15 @@ export class FakeJwtTokenService implements ITokenService {
   async generateToken(did: string): Promise<Result<TokenPair>> {
     try {
       // Use mock tokens from environment variables
-      const mockAccessToken = process.env.MOCK_ACCESS_TOKEN || 'mock-access-token-123';
-      const mockRefreshToken = process.env.MOCK_REFRESH_TOKEN || 'mock-refresh-token-456';
+      const mockAccessToken =
+        process.env.MOCK_ACCESS_TOKEN || 'mock-access-token-123';
+      const mockRefreshToken =
+        process.env.MOCK_REFRESH_TOKEN || 'mock-refresh-token-456';
 
       return ok({
         accessToken: mockAccessToken,
         refreshToken: mockRefreshToken,
+        expiresIn: 3600, // 1 hour
       });
     } catch (error: any) {
       return err(error);
@@ -23,7 +27,8 @@ export class FakeJwtTokenService implements ITokenService {
   async validateToken(token: string): Promise<Result<string | null>> {
     try {
       // Use mock data from environment variables
-      const mockAccessToken = process.env.MOCK_ACCESS_TOKEN || 'mock-access-token-123';
+      const mockAccessToken =
+        process.env.MOCK_ACCESS_TOKEN || 'mock-access-token-123';
       const mockDid = process.env.BSKY_DID || 'did:plc:mock123';
 
       // Return mock DID if token matches mock token
@@ -40,14 +45,17 @@ export class FakeJwtTokenService implements ITokenService {
   async refreshToken(refreshToken: string): Promise<Result<TokenPair | null>> {
     try {
       // Use mock tokens from environment variables
-      const mockRefreshToken = process.env.MOCK_REFRESH_TOKEN || 'mock-refresh-token-456';
-      const mockAccessToken = process.env.MOCK_ACCESS_TOKEN || 'mock-access-token-123';
+      const mockRefreshToken =
+        process.env.MOCK_REFRESH_TOKEN || 'mock-refresh-token-456';
+      const mockAccessToken =
+        process.env.MOCK_ACCESS_TOKEN || 'mock-access-token-123';
 
       // Return new tokens if refresh token matches mock token
       if (refreshToken === mockRefreshToken) {
         return ok({
           accessToken: mockAccessToken,
           refreshToken: mockRefreshToken,
+          expiresIn: 3600, // 1 hour
         });
       }
 

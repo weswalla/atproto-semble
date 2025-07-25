@@ -670,6 +670,285 @@ describe('DrizzleCollectionQueryRepository', () => {
     });
   });
 
+  describe('text search', () => {
+    beforeEach(async () => {
+      // Create collections with different names and descriptions for search testing
+      const collections = [
+        {
+          name: 'Machine Learning Papers',
+          description: 'Collection of AI and ML research papers',
+        },
+        {
+          name: 'Web Development',
+          description: 'Frontend and backend development resources',
+        },
+        {
+          name: 'Data Science',
+          description: 'Statistics, machine learning, and data analysis',
+        },
+        {
+          name: 'JavaScript Tutorials',
+          description: 'Learning resources for JS development',
+        },
+        {
+          name: 'Python Scripts',
+          description: 'Useful Python automation and data scripts',
+        },
+        {
+          name: 'No Description Collection',
+          description: undefined, // No description
+        },
+      ];
+
+      for (const collectionData of collections) {
+        const collection = Collection.create(
+          {
+            authorId: curatorId,
+            name: collectionData.name,
+            description: collectionData.description,
+            accessType: CollectionAccessType.OPEN,
+            collaboratorIds: [],
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          new UniqueEntityID(),
+        ).unwrap();
+
+        await collectionRepository.save(collection);
+      }
+    });
+
+    it('should return all collections when no search text provided', async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+      });
+
+      expect(result.items).toHaveLength(6);
+      expect(result.totalCount).toBe(6);
+    });
+
+    it('should search by collection name (case insensitive)', async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+        searchText: 'MACHINE',
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]?.name).toBe('Machine Learning Papers');
+      expect(result.totalCount).toBe(1);
+    });
+
+    it('should search by collection description', async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+        searchText: 'development',
+      });
+
+      expect(result.items).toHaveLength(2);
+      expect(result.totalCount).toBe(2);
+      
+      const names = result.items.map(item => item.name).sort();
+      expect(names).toEqual(['JavaScript Tutorials', 'Web Development']);
+    });
+
+    it('should search across both name and description', async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+        searchText: 'python',
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]?.name).toBe('Python Scripts');
+      expect(result.totalCount).toBe(1);
+    });
+
+    it('should return multiple matches for broad search terms', async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+        searchText: 'learning',
+      });
+
+      expect(result.items).toHaveLength(2);
+      expect(result.totalCount).toBe(2);
+      
+      const names = result.items.map(item => item.name).sort();
+      expect(names).toEqual(['JavaScript Tutorials', 'Machine Learning Papers']);
+    });
+
+    it('should return empty results for non-matching search', async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+        searchText: 'nonexistent',
+      });
+
+      expect(result.items).toHaveLength(0);
+      expect(result.totalCount).toBe(0);
+      expect(result.hasMore).toBe(false);
+    });
+
+    it('should handle empty search text as no filter', async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+        searchText: '',
+      });
+
+      expect(result.items).toHaveLength(6);
+      expect(result.totalCount).toBe(6);
+    });
+
+    it('should handle whitespace-only search text as no filter', async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+        searchText: '   ',
+      });
+
+      expect(result.items).toHaveLength(6);
+      expect(result.totalCount).toBe(6);
+    });
+
+    it('should combine search with pagination', async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 1,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+        searchText: 'learning',
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.totalCount).toBe(2);
+      expect(result.hasMore).toBe(true);
+      expect(result.items[0]?.name).toBe('JavaScript Tutorials');
+    });
+
+    it('should combine search with sorting by name desc', async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.DESC,
+        searchText: 'learning',
+      });
+
+      expect(result.items).toHaveLength(2);
+      expect(result.items[0]?.name).toBe('Machine Learning Papers');
+      expect(result.items[1]?.name).toBe('JavaScript Tutorials');
+    });
+
+    it('should search collections with null descriptions', async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+        searchText: 'description',
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]?.name).toBe('No Description Collection');
+      expect(result.totalCount).toBe(1);
+    });
+
+    it('should handle special characters in search text', async () => {
+      // Create a collection with special characters
+      const collection = Collection.create(
+        {
+          authorId: curatorId,
+          name: 'C++ Programming',
+          description: 'Advanced C++ & system programming',
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID(),
+      ).unwrap();
+
+      await collectionRepository.save(collection);
+
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+        searchText: 'C++',
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]?.name).toBe('C++ Programming');
+    });
+
+    it('should handle partial word matches', async () => {
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+        searchText: 'script',
+      });
+
+      expect(result.items).toHaveLength(2);
+      expect(result.totalCount).toBe(2);
+      
+      const names = result.items.map(item => item.name).sort();
+      expect(names).toEqual(['JavaScript Tutorials', 'Python Scripts']);
+    });
+
+    it('should not return collections from other curators in search', async () => {
+      // Create collection for other curator
+      const otherCollection = Collection.create(
+        {
+          authorId: otherCuratorId,
+          name: 'Other Machine Learning',
+          description: 'Another ML collection',
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID(),
+      ).unwrap();
+
+      await collectionRepository.save(otherCollection);
+
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+        searchText: 'machine',
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]?.name).toBe('Machine Learning Papers');
+      expect(result.items[0]?.authorId).toBe(curatorId.value);
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle curator with no collections gracefully', async () => {
       const result = await queryRepository.findByCreator(

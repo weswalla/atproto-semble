@@ -311,6 +311,228 @@ describe('GetMyCollectionsUseCase', () => {
     });
   });
 
+  describe('Text search', () => {
+    beforeEach(async () => {
+      // Create collections with different names and descriptions for search testing
+      const collections = [
+        {
+          name: 'Machine Learning Papers',
+          description: 'Collection of AI and ML research papers',
+        },
+        {
+          name: 'Web Development',
+          description: 'Frontend and backend development resources',
+        },
+        {
+          name: 'Data Science',
+          description: 'Statistics, machine learning, and data analysis',
+        },
+        {
+          name: 'JavaScript Tutorials',
+          description: 'Learning resources for JS development',
+        },
+        {
+          name: 'Python Scripts',
+          description: 'Useful Python automation and data scripts',
+        },
+      ];
+
+      for (const collectionData of collections) {
+        const collectionResult = Collection.create({
+          name: collectionData.name,
+          description: collectionData.description,
+          authorId: curatorId,
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+
+        if (collectionResult.isErr()) {
+          throw new Error(`Failed to create collection: ${collectionData.name}`);
+        }
+
+        await collectionRepo.save(collectionResult.value);
+      }
+    });
+
+    it('should return all collections when no search text provided', async () => {
+      const query = {
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(query);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.collections).toHaveLength(5);
+    });
+
+    it('should search by collection name (case insensitive)', async () => {
+      const query = {
+        curatorId: curatorId.value,
+        searchText: 'machine',
+      };
+
+      const result = await useCase.execute(query);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.collections).toHaveLength(1);
+      expect(response.collections[0]!.name).toBe('Machine Learning Papers');
+    });
+
+    it('should search by collection description', async () => {
+      const query = {
+        curatorId: curatorId.value,
+        searchText: 'development',
+      };
+
+      const result = await useCase.execute(query);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.collections).toHaveLength(2);
+      
+      const names = response.collections.map(c => c.name).sort();
+      expect(names).toEqual(['JavaScript Tutorials', 'Web Development']);
+    });
+
+    it('should search across both name and description', async () => {
+      const query = {
+        curatorId: curatorId.value,
+        searchText: 'python',
+      };
+
+      const result = await useCase.execute(query);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.collections).toHaveLength(1);
+      expect(response.collections[0]!.name).toBe('Python Scripts');
+    });
+
+    it('should return multiple matches for broad search terms', async () => {
+      const query = {
+        curatorId: curatorId.value,
+        searchText: 'learning',
+      };
+
+      const result = await useCase.execute(query);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.collections).toHaveLength(2);
+      
+      const names = response.collections.map(c => c.name).sort();
+      expect(names).toEqual(['JavaScript Tutorials', 'Machine Learning Papers']);
+    });
+
+    it('should return empty results for non-matching search', async () => {
+      const query = {
+        curatorId: curatorId.value,
+        searchText: 'nonexistent',
+      };
+
+      const result = await useCase.execute(query);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.collections).toHaveLength(0);
+      expect(response.pagination.totalCount).toBe(0);
+    });
+
+    it('should handle empty search text as no filter', async () => {
+      const query = {
+        curatorId: curatorId.value,
+        searchText: '',
+      };
+
+      const result = await useCase.execute(query);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.collections).toHaveLength(5);
+    });
+
+    it('should handle whitespace-only search text as no filter', async () => {
+      const query = {
+        curatorId: curatorId.value,
+        searchText: '   ',
+      };
+
+      const result = await useCase.execute(query);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.collections).toHaveLength(5);
+    });
+
+    it('should combine search with pagination', async () => {
+      const query = {
+        curatorId: curatorId.value,
+        searchText: 'learning',
+        page: 1,
+        limit: 1,
+      };
+
+      const result = await useCase.execute(query);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.collections).toHaveLength(1);
+      expect(response.pagination.totalCount).toBe(2);
+      expect(response.pagination.hasMore).toBe(true);
+    });
+
+    it('should combine search with sorting', async () => {
+      const query = {
+        curatorId: curatorId.value,
+        searchText: 'learning',
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
+      };
+
+      const result = await useCase.execute(query);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.collections).toHaveLength(2);
+      expect(response.collections[0]!.name).toBe('JavaScript Tutorials');
+      expect(response.collections[1]!.name).toBe('Machine Learning Papers');
+    });
+
+    it('should search collections with no description', async () => {
+      // Create a collection without description
+      const collectionResult = Collection.create({
+        name: 'No Description Collection',
+        authorId: curatorId,
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      if (collectionResult.isErr()) {
+        throw new Error('Failed to create collection without description');
+      }
+
+      await collectionRepo.save(collectionResult.value);
+
+      const query = {
+        curatorId: curatorId.value,
+        searchText: 'description',
+      };
+
+      const result = await useCase.execute(query);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.collections).toHaveLength(1);
+      expect(response.collections[0]!.name).toBe('No Description Collection');
+    });
+  });
+
   describe('Error handling', () => {
     it('should fail with invalid curator ID', async () => {
       const query = {

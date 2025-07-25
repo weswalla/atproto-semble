@@ -29,15 +29,15 @@ export class DrizzleCollectionQueryRepository
 
       // Build where conditions
       const whereConditions = [eq(collections.authorId, curatorId)];
-      
+
       // Add search condition if searchText is provided
       if (searchText && searchText.trim()) {
         const searchTerm = `%${searchText.trim()}%`;
         whereConditions.push(
           or(
             ilike(collections.name, searchTerm),
-            ilike(collections.description, searchTerm)
-          )!
+            ilike(collections.description, searchTerm),
+          )!,
         );
       }
 
@@ -53,9 +53,11 @@ export class DrizzleCollectionQueryRepository
           cardCount: collections.cardCount,
         })
         .from(collections)
-        .where(sql`${whereConditions.reduce((acc, condition, index) => 
-          index === 0 ? condition : sql`${acc} AND ${condition}`
-        )}`)
+        .where(
+          sql`${whereConditions.reduce((acc, condition, index) =>
+            index === 0 ? condition : sql`${acc} AND ${condition}`,
+          )}`,
+        )
         .orderBy(orderDirection(this.getSortColumn(sortBy)))
         .limit(limit)
         .offset(offset);
@@ -66,9 +68,11 @@ export class DrizzleCollectionQueryRepository
       const totalCountResult = await this.db
         .select({ count: count() })
         .from(collections)
-        .where(sql`${whereConditions.reduce((acc, condition, index) => 
-          index === 0 ? condition : sql`${acc} AND ${condition}`
-        )}`);
+        .where(
+          sql`${whereConditions.reduce((acc, condition, index) =>
+            index === 0 ? condition : sql`${acc} AND ${condition}`,
+          )}`,
+        );
 
       const totalCount = totalCountResult[0]?.count || 0;
       const hasMore = offset + collectionsResult.length < totalCount;

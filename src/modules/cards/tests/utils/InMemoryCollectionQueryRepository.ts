@@ -30,8 +30,12 @@ export class InMemoryCollectionQueryRepository
       if (options.searchText && options.searchText.trim()) {
         const searchTerm = options.searchText.trim().toLowerCase();
         creatorCollections = creatorCollections.filter((collection) => {
-          const nameMatch = collection.name.value.toLowerCase().includes(searchTerm);
-          const descriptionMatch = collection.description?.value.toLowerCase().includes(searchTerm) || false;
+          const nameMatch = collection.name.value
+            .toLowerCase()
+            .includes(searchTerm);
+          const descriptionMatch =
+            collection.description?.value.toLowerCase().includes(searchTerm) ||
+            false;
           return nameMatch || descriptionMatch;
         });
       }

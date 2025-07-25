@@ -3,6 +3,7 @@ export interface CollectionQueryOptions {
   limit: number;
   sortBy: CollectionSortField;
   sortOrder: SortOrder;
+  searchText?: string;
 }
 
 export interface PaginatedQueryResult<T> {

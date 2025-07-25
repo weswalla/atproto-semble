@@ -15,7 +15,7 @@ export class GetMyCollectionsController extends Controller {
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const curatorId = req.did;
-      const { page, limit, sortBy, sortOrder } = req.query;
+      const { page, limit, sortBy, sortOrder, searchText } = req.query;
 
       if (!curatorId) {
         return this.unauthorized(res);
@@ -27,6 +27,7 @@ export class GetMyCollectionsController extends Controller {
         limit: limit ? parseInt(limit as string) : undefined,
         sortBy: sortBy as CollectionSortField,
         sortOrder: sortOrder as SortOrder,
+        searchText: searchText as string,
       });
 
       if (result.isErr()) {

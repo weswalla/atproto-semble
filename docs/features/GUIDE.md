@@ -48,8 +48,10 @@ We implement CQRS to separate read and write operations:
 
 #### Repository Interfaces
 - **Location**: `src/modules/{module}/domain/`
-- **Files**: `I{Entity}Repository.ts`, `I{Entity}QueryRepository.ts`
-- **Example**: `ICardRepository.ts`, `ICardQueryRepository.ts`
+- **Files**: 
+  - `I{Entity}Repository.ts` - For command operations (write/modify state)
+  - `I{Entity}QueryRepository.ts` - For query operations (read-only, optimized for specific views)
+- **Example**: `ICardRepository.ts`, `ICardQueryRepository.ts`, `ICollectionRepository.ts`, `ICollectionQueryRepository.ts`
 
 ### 2. Application Layer
 
@@ -118,8 +120,11 @@ export class GetCollectionPageUseCase implements UseCase<GetCollectionPageQuery,
 
 #### Repository Implementations
 - **Location**: `src/modules/{module}/infrastructure/repositories/`
-- **Files**: `Drizzle{Entity}Repository.ts`, `Drizzle{Entity}QueryRepository.ts`
+- **Files**: 
+  - `Drizzle{Entity}Repository.ts` - Implements command repository interface
+  - `Drizzle{Entity}QueryRepository.ts` - Implements query repository interface with optimized read operations
 - **Purpose**: Implement domain repository interfaces with specific technology (Drizzle ORM)
+- **Pattern**: Query repositories often return DTOs optimized for specific views, while command repositories work with full domain entities
 
 #### HTTP Controllers
 - **Location**: `src/modules/{module}/infrastructure/http/controllers/`
@@ -153,7 +158,7 @@ export class {Feature}Controller extends Controller {
 All new components must be registered in the appropriate factories:
 
 1. **RepositoryFactory** (`src/shared/infrastructure/http/factories/RepositoryFactory.ts`)
-   - Register repository implementations
+   - Register both command and query repository implementations
 
 2. **ServiceFactory** (`src/shared/infrastructure/http/factories/ServiceFactory.ts`)
    - Register domain services and external services
@@ -194,7 +199,8 @@ When implementing a new feature, follow this checklist:
 ### Domain Layer
 - [ ] Create/update domain entities if needed
 - [ ] Create/update value objects if needed
-- [ ] Define repository interfaces
+- [ ] Define command repository interfaces (for write operations)
+- [ ] Define query repository interfaces (for read operations with specific DTOs)
 - [ ] Implement domain services for complex business logic
 
 ### Application Layer
@@ -204,7 +210,8 @@ When implementing a new feature, follow this checklist:
 - [ ] Handle error cases appropriately
 
 ### Infrastructure Layer
-- [ ] Implement repository (if new entity)
+- [ ] Implement command repository (if new entity)
+- [ ] Implement query repository (if new entity) 
 - [ ] Create HTTP controller
 - [ ] Define routes
 - [ ] Register in factories
@@ -218,6 +225,12 @@ When implementing a new feature, follow this checklist:
 - [ ] Register all components in factories
 - [ ] Wire routes in main app
 - [ ] Test end-to-end flow
+
+### Repository Pattern (CQRS)
+- **Command Repositories**: Handle write operations, work with full domain entities, enforce business rules
+- **Query Repositories**: Handle read operations, return optimized DTOs, support pagination and sorting
+- **Separation**: Commands use `I{Entity}Repository`, queries use `I{Entity}QueryRepository`
+- **DTOs**: Query repositories return view-specific DTOs (e.g., `UrlCardView`, `CollectionQueryResultDTO`)
 
 ## Key Patterns & Conventions
 
@@ -266,8 +279,10 @@ When implementing a new feature, follow this checklist:
 - Controller: `src/modules/cards/infrastructure/http/controllers/GetCollectionPageController.ts`
 
 ### Repository Examples
-- Domain Interface: `src/modules/cards/domain/ICardRepository.ts`
-- Implementation: Check existing Drizzle repositories for patterns
+- Command Repository Interface: `src/modules/cards/domain/ICardRepository.ts`
+- Query Repository Interface: `src/modules/cards/domain/ICardQueryRepository.ts`
+- Command Repository Implementation: `src/modules/cards/infrastructure/repositories/DrizzleCardRepository.ts`
+- Query Repository Implementation: `src/modules/cards/infrastructure/repositories/DrizzleCardQueryRepository.ts`
 
 ### Factory Examples
 - All factories in `src/shared/infrastructure/http/factories/`

@@ -14,6 +14,7 @@ export interface GetMyCollectionsQuery {
   limit?: number;
   sortBy?: CollectionSortField;
   sortOrder?: SortOrder;
+  searchText?: string;
 }
 
 // Enriched data for the final use case result
@@ -85,6 +86,7 @@ export class GetMyCollectionsUseCase
           limit,
           sortBy,
           sortOrder,
+          searchText: query.searchText,
         },
       );
 

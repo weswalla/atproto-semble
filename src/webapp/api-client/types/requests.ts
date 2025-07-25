@@ -64,6 +64,7 @@ export interface GetMyCollectionsParams {
   limit?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  searchText?: string;
 }
 
 // User authentication request types

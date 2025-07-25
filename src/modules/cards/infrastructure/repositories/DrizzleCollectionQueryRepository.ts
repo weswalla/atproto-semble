@@ -1,4 +1,4 @@
-import { eq, desc, asc, count, sql } from 'drizzle-orm';
+import { eq, desc, asc, count, sql, or, ilike } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   ICollectionQueryRepository,
@@ -21,11 +21,25 @@ export class DrizzleCollectionQueryRepository
     options: CollectionQueryOptions,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>> {
     try {
-      const { page, limit, sortBy, sortOrder } = options;
+      const { page, limit, sortBy, sortOrder, searchText } = options;
       const offset = (page - 1) * limit;
 
       // Build the sort order
       const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
+
+      // Build where conditions
+      const whereConditions = [eq(collections.authorId, curatorId)];
+
+      // Add search condition if searchText is provided
+      if (searchText && searchText.trim()) {
+        const searchTerm = `%${searchText.trim()}%`;
+        whereConditions.push(
+          or(
+            ilike(collections.name, searchTerm),
+            ilike(collections.description, searchTerm),
+          )!,
+        );
+      }
 
       // Simple query: get collections with their stored card counts
       const collectionsQuery = this.db
@@ -39,18 +53,26 @@ export class DrizzleCollectionQueryRepository
           cardCount: collections.cardCount,
         })
         .from(collections)
-        .where(eq(collections.authorId, curatorId))
+        .where(
+          sql`${whereConditions.reduce((acc, condition, index) =>
+            index === 0 ? condition : sql`${acc} AND ${condition}`,
+          )}`,
+        )
         .orderBy(orderDirection(this.getSortColumn(sortBy)))
         .limit(limit)
         .offset(offset);
 
       const collectionsResult = await collectionsQuery;
 
-      // Get total count
+      // Get total count with same search conditions
       const totalCountResult = await this.db
         .select({ count: count() })
         .from(collections)
-        .where(eq(collections.authorId, curatorId));
+        .where(
+          sql`${whereConditions.reduce((acc, condition, index) =>
+            index === 0 ? condition : sql`${acc} AND ${condition}`,
+          )}`,
+        );
 
       const totalCount = totalCountResult[0]?.count || 0;
       const hasMore = offset + collectionsResult.length < totalCount;

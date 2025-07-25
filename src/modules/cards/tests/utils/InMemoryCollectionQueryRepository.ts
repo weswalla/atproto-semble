@@ -22,9 +22,23 @@ export class InMemoryCollectionQueryRepository
     try {
       // Get all collections and filter by creator
       const allCollections = this.collectionRepository.getAllCollections();
-      const creatorCollections = allCollections.filter(
+      let creatorCollections = allCollections.filter(
         (collection) => collection.authorId.value === curatorId,
       );
+
+      // Apply text search if provided
+      if (options.searchText && options.searchText.trim()) {
+        const searchTerm = options.searchText.trim().toLowerCase();
+        creatorCollections = creatorCollections.filter((collection) => {
+          const nameMatch = collection.name.value
+            .toLowerCase()
+            .includes(searchTerm);
+          const descriptionMatch =
+            collection.description?.value.toLowerCase().includes(searchTerm) ||
+            false;
+          return nameMatch || descriptionMatch;
+        });
+      }
 
       // Sort collections
       const sortedCollections = this.sortCollections(

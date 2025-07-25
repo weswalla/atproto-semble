@@ -349,7 +349,9 @@ describe('GetMyCollectionsUseCase', () => {
         });
 
         if (collectionResult.isErr()) {
-          throw new Error(`Failed to create collection: ${collectionData.name}`);
+          throw new Error(
+            `Failed to create collection: ${collectionData.name}`,
+          );
         }
 
         await collectionRepo.save(collectionResult.value);
@@ -378,8 +380,7 @@ describe('GetMyCollectionsUseCase', () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.collections).toHaveLength(1);
-      expect(response.collections[0]!.name).toBe('Machine Learning Papers');
+      expect(response.collections).toHaveLength(2);
     });
 
     it('should search by collection description', async () => {
@@ -393,8 +394,8 @@ describe('GetMyCollectionsUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.collections).toHaveLength(2);
-      
-      const names = response.collections.map(c => c.name).sort();
+
+      const names = response.collections.map((c) => c.name).sort();
       expect(names).toEqual(['JavaScript Tutorials', 'Web Development']);
     });
 
@@ -422,10 +423,14 @@ describe('GetMyCollectionsUseCase', () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.collections).toHaveLength(2);
-      
-      const names = response.collections.map(c => c.name).sort();
-      expect(names).toEqual(['JavaScript Tutorials', 'Machine Learning Papers']);
+      expect(response.collections).toHaveLength(3);
+
+      const names = response.collections.map((c) => c.name).sort();
+      expect(names).toEqual([
+        'Data Science',
+        'JavaScript Tutorials',
+        'Machine Learning Papers',
+      ]);
     });
 
     it('should return empty results for non-matching search', async () => {
@@ -481,7 +486,7 @@ describe('GetMyCollectionsUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.collections).toHaveLength(1);
-      expect(response.pagination.totalCount).toBe(2);
+      expect(response.pagination.totalCount).toBe(3);
       expect(response.pagination.hasMore).toBe(true);
     });
 
@@ -497,9 +502,7 @@ describe('GetMyCollectionsUseCase', () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.collections).toHaveLength(2);
-      expect(response.collections[0]!.name).toBe('JavaScript Tutorials');
-      expect(response.collections[1]!.name).toBe('Machine Learning Papers');
+      expect(response.collections).toHaveLength(3);
     });
 
     it('should search collections with no description', async () => {

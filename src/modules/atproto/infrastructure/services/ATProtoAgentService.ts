@@ -3,12 +3,12 @@ import { NodeOAuthClient } from '@atproto/oauth-client-node';
 import { Result, ok, err } from 'src/shared/core/Result';
 import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
-import { AppPasswordSessionService } from './AppPasswordSessionService';
+import { IAppPasswordSessionService } from '../../application/IAppPasswordSessionService';
 
 export class ATProtoAgentService implements IAgentService {
   constructor(
     private readonly oauthClient: NodeOAuthClient,
-    private readonly appPasswordSessionService: AppPasswordSessionService,
+    private readonly appPasswordSessionService: IAppPasswordSessionService,
   ) {}
   getUnauthenticatedAgent(): Result<Agent, Error> {
     return ok(

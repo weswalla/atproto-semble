@@ -1,6 +1,5 @@
 import { EnvironmentConfigService } from '../../config/EnvironmentConfigService';
 import { jwtConfig, oauthConfig } from '../../config';
-import { DatabaseFactory } from '../../database/DatabaseFactory';
 import { JwtTokenService } from '../../../../modules/user/infrastructure/services/JwtTokenService';
 import {
   AtProtoOAuthProcessor,
@@ -32,16 +31,22 @@ import { FakeAgentService } from '../../../../modules/atproto/infrastructure/ser
 import { FakeBlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/FakeBlueskyProfileService';
 import { FakeAppPasswordSessionService } from '../../../../modules/atproto/infrastructure/services/FakeAppPasswordSessionService';
 import { FakeAtpAppPasswordProcessor } from '../../../../modules/atproto/infrastructure/services/FakeAtpAppPasswordProcessor';
+import { ITokenService } from 'src/modules/user/application/services/ITokenService';
+import { IOAuthProcessor } from 'src/modules/user/application/services/IOAuthProcessor';
+import { IAppPasswordProcessor } from 'src/modules/atproto/application/IAppPasswordProcessor';
+import { IUserAuthenticationService } from 'src/modules/user/domain/services/IUserAuthenticationService';
+import { IAgentService } from 'src/modules/atproto/application/IAgentService';
+import { IProfileService } from 'src/modules/cards/domain/services/IProfileService';
 
 export interface Services {
-  tokenService: JwtTokenService | FakeJwtTokenService;
+  tokenService: ITokenService;
   nodeOauthClient: NodeOAuthClient;
-  oauthProcessor: AtProtoOAuthProcessor | FakeAtProtoOAuthProcessor;
-  appPasswordProcessor: AtpAppPasswordProcessor | FakeAtpAppPasswordProcessor;
-  userAuthService: UserAuthenticationService | FakeUserAuthenticationService;
-  atProtoAgentService: ATProtoAgentService | FakeAgentService;
+  oauthProcessor: IOAuthProcessor;
+  appPasswordProcessor: IAppPasswordProcessor;
+  userAuthService: IUserAuthenticationService;
+  atProtoAgentService: IAgentService;
   metadataService: IMetadataService;
-  profileService: BlueskyProfileService | FakeBlueskyProfileService;
+  profileService: IProfileService;
   collectionPublisher: ICollectionPublisher;
   cardPublisher: ICardPublisher;
   cardLibraryService: CardLibraryService;
@@ -76,7 +81,9 @@ export class ServiceFactory {
     // App Password Session Service
     const appPasswordSessionService = useMockAuth
       ? new FakeAppPasswordSessionService()
-      : new AppPasswordSessionService(repositories.appPasswordSessionRepository);
+      : new AppPasswordSessionService(
+          repositories.appPasswordSessionRepository,
+        );
 
     // App Password Processor
     const appPasswordProcessor = useMockAuth

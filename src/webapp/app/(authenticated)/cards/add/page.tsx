@@ -105,7 +105,7 @@ export default function AddCardPage() {
   };
 
   return (
-    <Box>
+    <Box maw={600} mx="auto" p="md">
       <Stack>
         <Stack gap={0}>
           <Title order={1}>Add Card</Title>

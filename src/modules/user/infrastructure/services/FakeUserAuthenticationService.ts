@@ -8,7 +8,9 @@ import { DID } from '../../domain/value-objects/DID';
 import { Handle } from '../../domain/value-objects/Handle';
 import { User } from '../../domain/User';
 
-export class FakeUserAuthenticationService implements IUserAuthenticationService {
+export class FakeUserAuthenticationService
+  implements IUserAuthenticationService
+{
   constructor(private userRepository: IUserRepository) {}
 
   async validateUserCredentials(
@@ -32,7 +34,9 @@ export class FakeUserAuthenticationService implements IUserAuthenticationService
       }
 
       // Try to find existing user
-      const userResult = await this.userRepository.findByDID(mockDIDResult.value);
+      const userResult = await this.userRepository.findByDID(
+        mockDIDResult.value,
+      );
 
       if (userResult.isErr()) {
         return err(userResult.error);
@@ -49,7 +53,10 @@ export class FakeUserAuthenticationService implements IUserAuthenticationService
       }
 
       // Create new user with mock data
-      const newUserResult = User.createNew(mockDIDResult.value, mockHandleResult.value);
+      const newUserResult = User.createNew(
+        mockDIDResult.value,
+        mockHandleResult.value,
+      );
 
       if (newUserResult.isErr()) {
         return err(newUserResult.error);

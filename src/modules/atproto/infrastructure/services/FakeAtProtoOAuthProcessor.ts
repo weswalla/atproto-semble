@@ -14,7 +14,7 @@ export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
       // Generate tokens for the mock DID
       const mockDid = process.env.BSKY_DID || 'did:plc:mock123';
       const tokenResult = await this.tokenService.generateToken(mockDid);
-      
+
       if (tokenResult.isErr()) {
         return err(tokenResult.error);
       }

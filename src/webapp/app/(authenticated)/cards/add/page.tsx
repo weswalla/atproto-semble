@@ -156,14 +156,43 @@ export default function AddCardPage() {
                       ) : collections.length > 0 ? (
                         <Stack gap="xs">
                           {collections.map((collection) => (
-                            <Checkbox
+                            <Card
                               key={collection.id}
-                              label={collection.name}
-                              description={collection.description}
-                              checked={selectedCollectionIds.includes(collection.id)}
-                              onChange={() => handleCollectionToggle(collection.id)}
-                              disabled={loading}
-                            />
+                              withBorder
+                              p="sm"
+                              style={{
+                                cursor: 'pointer',
+                                backgroundColor: selectedCollectionIds.includes(collection.id) 
+                                  ? 'var(--mantine-color-blue-0)' 
+                                  : undefined,
+                                borderColor: selectedCollectionIds.includes(collection.id)
+                                  ? 'var(--mantine-color-blue-4)'
+                                  : undefined,
+                              }}
+                              onClick={() => handleCollectionToggle(collection.id)}
+                            >
+                              <Group justify="space-between" align="flex-start">
+                                <Stack gap={2} style={{ flex: 1 }}>
+                                  <Text fw={500} size="sm">
+                                    {collection.name}
+                                  </Text>
+                                  {collection.description && (
+                                    <Text size="xs" c="dimmed">
+                                      {collection.description}
+                                    </Text>
+                                  )}
+                                  <Text size="xs" c="dimmed">
+                                    {collection.cardCount} cards
+                                  </Text>
+                                </Stack>
+                                <Checkbox
+                                  checked={selectedCollectionIds.includes(collection.id)}
+                                  onChange={() => handleCollectionToggle(collection.id)}
+                                  disabled={loading}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </Group>
+                            </Card>
                           ))}
                         </Stack>
                       ) : (

@@ -4,11 +4,12 @@ import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
-import { ActionIcon, AppShell, Group, NavLink, Text } from '@mantine/core';
+import { ActionIcon, AppShell, Group, NavLink, Text, Affix, Fab } from '@mantine/core';
 import { FiSidebar } from 'react-icons/fi';
 import { IoDocumentTextOutline } from 'react-icons/io5';
 import { BsFolder2 } from 'react-icons/bs';
 import { BiUser } from 'react-icons/bi';
+import { FiPlus } from 'react-icons/fi';
 
 export default function AuthenticatedLayout({
   children,
@@ -81,7 +82,18 @@ export default function AuthenticatedLayout({
         />
       </AppShell.Navbar>
 
-      <AppShell.Main>{children}</AppShell.Main>
+      <AppShell.Main>
+        {children}
+        <Affix position={{ bottom: 20, right: 20 }}>
+          <Fab
+            onClick={() => router.push('/cards/add')}
+            size="lg"
+            color="blue"
+          >
+            <FiPlus size={24} />
+          </Fab>
+        </Affix>
+      </AppShell.Main>
     </AppShell>
   );
 }

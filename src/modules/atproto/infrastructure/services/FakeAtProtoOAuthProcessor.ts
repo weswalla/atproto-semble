@@ -4,12 +4,23 @@ import {
   AuthResult,
 } from '../../../user/application/services/IOAuthProcessor';
 import { OAuthCallbackDTO } from '../../../user/application/dtos/OAuthCallbackDTO';
+import { ITokenService } from '../../../user/application/services/ITokenService';
 
 export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
+  constructor(private tokenService: ITokenService) {}
+
   async generateAuthUrl(handle?: string): Promise<Result<string>> {
     try {
-      // Return a mock auth URL
-      const mockUrl = `http://localhost:4000/auth/complete?accessToken=${process.env.MOCK_ACCESS_TOKEN}&refreshToken=${process.env.MOCK_REFRESH_TOKEN}`;
+      // Generate tokens for the mock DID
+      const mockDid = process.env.BSKY_DID || 'did:plc:mock123';
+      const tokenResult = await this.tokenService.generateToken(mockDid);
+      
+      if (tokenResult.isErr()) {
+        return err(tokenResult.error);
+      }
+
+      const tokens = tokenResult.unwrap();
+      const mockUrl = `http://localhost:4000/auth/complete?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`;
       return ok(mockUrl);
     } catch (error: any) {
       return err(error);

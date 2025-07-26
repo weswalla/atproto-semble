@@ -92,7 +92,7 @@ export class ServiceFactory {
 
     // OAuth Processor
     const oauthProcessor = useMockAuth
-      ? new FakeAtProtoOAuthProcessor()
+      ? new FakeAtProtoOAuthProcessor(tokenService)
       : new AtProtoOAuthProcessor(nodeOauthClient);
 
     // User Authentication Service

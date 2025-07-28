@@ -14,15 +14,20 @@ import {
   Alert,
   LoadingOverlay,
 } from '@mantine/core';
-import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
-import { useApiClient } from '@/hooks/useApiClient';
+import { getAccessToken } from '@/services/auth';
+import { ApiClient } from '@/api-client/ApiClient';
 import type { GetCollectionPageResponse } from '@/api-client/types';
 
 export default function EditCollectionPage() {
   const router = useRouter();
   const params = useParams();
-  const apiClient = useApiClient();
   const collectionId = params.collectionId as string;
+
+  // Create API client instance
+  const apiClient = new ApiClient(
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+    () => getAccessToken(),
+  );
 
   const [collection, setCollection] =
     useState<GetCollectionPageResponse | null>(null);
@@ -100,9 +105,7 @@ export default function EditCollectionPage() {
   if (!collection) {
     return (
       <Container size="md" py="xl">
-        <Alert icon={<IconAlertCircle size="1rem" />} color="red">
-          Collection not found
-        </Alert>
+        <Alert color="red" title="Collection not found" />
       </Container>
     );
   }
@@ -114,16 +117,10 @@ export default function EditCollectionPage() {
 
         <Card withBorder p="lg">
           <Stack gap="md">
-            {error && (
-              <Alert icon={<IconAlertCircle size="1rem" />} color="red">
-                {error}
-              </Alert>
-            )}
+            {error && <Alert color="red" title={error} />}
 
             {success && (
-              <Alert icon={<IconCheck size="1rem" />} color="green">
-                Collection updated successfully! Redirecting...
-              </Alert>
+              <Alert color="green" title="Collection updated successfully! Redirecting..." />
             )}
 
             <TextInput

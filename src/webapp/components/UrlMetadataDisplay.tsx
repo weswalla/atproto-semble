@@ -72,10 +72,10 @@ export function UrlMetadataDisplay({
         )}
         <Stack gap="xs">
           <Stack gap={0}>
-            <Title 
-              order={compact ? 4 : 3} 
-              lineClamp={2} 
-              fz={compact ? 'sm' : 'md'} 
+            <Title
+              order={compact ? 4 : 3}
+              lineClamp={2}
+              fz={compact ? 'sm' : 'md'}
               fw={500}
             >
               {metadata.title || 'Untitled'}

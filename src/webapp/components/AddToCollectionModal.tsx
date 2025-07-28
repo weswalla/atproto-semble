@@ -3,13 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getAccessToken } from '@/services/auth';
 import { ApiClient } from '@/api-client/ApiClient';
-import {
-  Button,
-  Group,
-  Modal,
-  Stack,
-  Text,
-} from '@mantine/core';
+import { Button, Group, Modal, Stack, Text } from '@mantine/core';
 import { CollectionSelector } from './CollectionSelector';
 
 interface Collection {
@@ -33,7 +27,9 @@ export function AddToCollectionModal({
   onClose,
   onSuccess,
 }: AddToCollectionModalProps) {
-  const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>([]);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>(
+    [],
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [card, setCard] = useState<any>(null);
@@ -141,7 +137,11 @@ export function AddToCollectionModal({
               placeholder="Search collections to add..."
             />
 
-            {error && <Text c="red" size="sm">{error}</Text>}
+            {error && (
+              <Text c="red" size="sm">
+                {error}
+              </Text>
+            )}
 
             <Group grow>
               <Button

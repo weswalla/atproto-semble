@@ -126,7 +126,10 @@ export default function EditCollectionPage() {
             {error && <Alert color="red" title={error} />}
 
             {success && (
-              <Alert color="green" title="Collection updated successfully! Redirecting..." />
+              <Alert
+                color="green"
+                title="Collection updated successfully! Redirecting..."
+              />
             )}
 
             <TextInput

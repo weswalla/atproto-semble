@@ -1,14 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import {
-  Stack,
-  TextInput,
-  Textarea,
-  Button,
-  Group,
-  Text,
-} from '@mantine/core';
+import { Stack, TextInput, Textarea, Button, Group, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { ApiClient } from '@/api-client/ApiClient';
 import { UrlMetadataDisplay } from './UrlMetadataDisplay';
@@ -48,11 +41,16 @@ export function UrlCardForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>(
-    preSelectedCollectionId ? [preSelectedCollectionId] : []
+    preSelectedCollectionId ? [preSelectedCollectionId] : [],
   );
 
   // URL metadata hook
-  const { metadata, existingCard, loading: metadataLoading, error: metadataError } = useUrlMetadata({
+  const {
+    metadata,
+    existingCard,
+    loading: metadataLoading,
+    error: metadataError,
+  } = useUrlMetadata({
     apiClient,
     url: form.getValues().url,
     autoFetch: !!form.getValues().url,
@@ -61,9 +59,10 @@ export function UrlCardForm({
   // Get existing collections for this card (filtered by current user)
   const existingCollections = useMemo(() => {
     if (!existingCard || !userId) return [];
-    return existingCard.collections.filter(collection => collection.authorId === userId);
+    return existingCard.collections.filter(
+      (collection) => collection.authorId === userId,
+    );
   }, [existingCard, userId]);
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +88,8 @@ export function UrlCardForm({
       await apiClient.addUrlToLibrary({
         url,
         note: form.getValues().note.trim() || undefined,
-        collectionIds: selectedCollectionIds.length > 0 ? selectedCollectionIds : undefined,
+        collectionIds:
+          selectedCollectionIds.length > 0 ? selectedCollectionIds : undefined,
       });
 
       onSuccess?.();
@@ -100,7 +100,6 @@ export function UrlCardForm({
       setLoading(false);
     }
   };
-
 
   return (
     <>
@@ -177,7 +176,6 @@ export function UrlCardForm({
           </Group>
         </Stack>
       </form>
-
     </>
   );
 }

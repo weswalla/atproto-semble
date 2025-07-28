@@ -8,40 +8,48 @@ interface UseCollectionSearchProps {
   debounceMs?: number;
 }
 
-export function useCollectionSearch({ 
-  apiClient, 
-  initialLoad = true, 
-  debounceMs = 300 
+export function useCollectionSearch({
+  apiClient,
+  initialLoad = true,
+  debounceMs = 300,
 }: UseCollectionSearchProps) {
-  const [collections, setCollections] = useState<GetMyCollectionsResponse['collections']>([]);
+  const [collections, setCollections] = useState<
+    GetMyCollectionsResponse['collections']
+  >([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [hasInitialized, setHasInitialized] = useState(false);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Memoized search parameters to avoid unnecessary API calls
-  const searchParams = useMemo(() => ({
-    limit: 20,
-    sortBy: 'updatedAt' as const,
-    sortOrder: 'desc' as const,
-  }), []);
+  const searchParams = useMemo(
+    () => ({
+      limit: 20,
+      sortBy: 'updatedAt' as const,
+      sortOrder: 'desc' as const,
+    }),
+    [],
+  );
 
   // Memoized load function that only changes when apiClient changes
-  const loadCollections = useCallback(async (search?: string) => {
-    setLoading(true);
-    try {
-      const response = await apiClient.getMyCollections({
-        ...searchParams,
-        searchText: search || undefined,
-      });
-      setCollections(response.collections);
-    } catch (error) {
-      console.error('Error loading collections:', error);
-      // Don't clear collections on error, keep showing previous results
-    } finally {
-      setLoading(false);
-    }
-  }, [apiClient, searchParams]);
+  const loadCollections = useCallback(
+    async (search?: string) => {
+      setLoading(true);
+      try {
+        const response = await apiClient.getMyCollections({
+          ...searchParams,
+          searchText: search || undefined,
+        });
+        setCollections(response.collections);
+      } catch (error) {
+        console.error('Error loading collections:', error);
+        // Don't clear collections on error, keep showing previous results
+      } finally {
+        setLoading(false);
+      }
+    },
+    [apiClient, searchParams],
+  );
 
   // Initial load effect - only runs once when component mounts
   useEffect(() => {
@@ -80,7 +88,7 @@ export function useCollectionSearch({
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
-    
+
     const trimmedSearch = searchText.trim();
     loadCollections(trimmedSearch || undefined);
   }, [searchText, loadCollections]);
@@ -91,11 +99,14 @@ export function useCollectionSearch({
   }, []);
 
   // Handle search on Enter key press (immediate search, no debounce)
-  const handleSearchKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  }, [handleSearch]);
+  const handleSearchKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        handleSearch();
+      }
+    },
+    [handleSearch],
+  );
 
   return {
     collections,

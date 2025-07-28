@@ -81,7 +81,13 @@ export default function CollectionPage() {
             >
               Edit Collection
             </Button>
-            <Button onClick={() => router.push(`/cards/add?collectionId=${collectionId}`)}>Add Card</Button>
+            <Button
+              onClick={() =>
+                router.push(`/cards/add?collectionId=${collectionId}`)
+              }
+            >
+              Add Card
+            </Button>
           </Group>
         </Group>
 
@@ -146,7 +152,11 @@ export default function CollectionPage() {
           ) : (
             <Stack align="center">
               <Text c={'gray'}>No cards in this collection yet</Text>
-              <Button onClick={() => router.push(`/cards/add?collectionId=${collectionId}`)}>
+              <Button
+                onClick={() =>
+                  router.push(`/cards/add?collectionId=${collectionId}`)
+                }
+              >
                 Add Your First Card
               </Button>
             </Stack>

@@ -139,38 +139,40 @@ export const ExtensionAuthProvider = ({
     }
   }, [initAuth]);
 
-  const loginWithAppPassword = useCallback(async (
-    identifier: string,
-    appPassword: string,
-  ) => {
-    try {
-      setError(null);
-      setIsLoading(true);
+  const loginWithAppPassword = useCallback(
+    async (identifier: string, appPassword: string) => {
+      try {
+        setError(null);
+        setIsLoading(true);
 
-      // Use unauthenticated client for login
-      const unauthenticatedClient = createApiClient(null);
-      const response = await unauthenticatedClient.loginWithAppPassword({
-        identifier,
-        appPassword,
-      });
-      const { accessToken: newToken } = response;
+        // Use unauthenticated client for login
+        const unauthenticatedClient = createApiClient(null);
+        const response = await unauthenticatedClient.loginWithAppPassword({
+          identifier,
+          appPassword,
+        });
+        const { accessToken: newToken } = response;
 
-      setAccessToken(newToken);
-      await setStoredToken(newToken);
+        setAccessToken(newToken);
+        await setStoredToken(newToken);
 
-      // Create new authenticated client for profile fetch
-      const authenticatedClient = createApiClient(newToken);
-      const userData = await authenticatedClient.getMyProfile();
-      setUser(userData);
-      setIsAuthenticated(true);
-    } catch (error: any) {
-      console.error('App password login failed:', error);
-      setError(error.message || 'Login failed. Please check your credentials.');
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [createApiClient, setStoredToken]);
+        // Create new authenticated client for profile fetch
+        const authenticatedClient = createApiClient(newToken);
+        const userData = await authenticatedClient.getMyProfile();
+        setUser(userData);
+        setIsAuthenticated(true);
+      } catch (error: any) {
+        console.error('App password login failed:', error);
+        setError(
+          error.message || 'Login failed. Please check your credentials.',
+        );
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [createApiClient, setStoredToken],
+  );
 
   const logout = useCallback(async () => {
     try {

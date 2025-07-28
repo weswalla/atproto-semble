@@ -18,7 +18,7 @@ interface Collection {
   id: string;
   name: string;
   description?: string;
-  cardCount: number;
+  cardCount?: number;
   authorId: string;
 }
 
@@ -42,14 +42,14 @@ export function CollectionSelector({
   existingCollections = [],
   disabled = false,
   showCreateOption = true,
-  placeholder = "Search collections...",
+  placeholder = 'Search collections...',
   preSelectedCollectionId,
 }: CollectionSelectorProps) {
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
   // Get existing collection IDs for filtering
   const existingCollectionIds = useMemo(() => {
-    return existingCollections.map(collection => collection.id);
+    return existingCollections.map((collection) => collection.id);
   }, [existingCollections]);
 
   // Collection search hook
@@ -60,19 +60,21 @@ export function CollectionSelector({
     setSearchText,
     handleSearchKeyPress,
     loadCollections,
-  } = useCollectionSearch({ 
-    apiClient, 
-    initialLoad: true 
+  } = useCollectionSearch({
+    apiClient,
+    initialLoad: true,
   });
 
   // Filter out existing collections from search results
   const availableCollections = useMemo(() => {
-    return allCollections.filter(collection => !existingCollectionIds.includes(collection.id));
+    return allCollections.filter(
+      (collection) => !existingCollectionIds.includes(collection.id),
+    );
   }, [allCollections, existingCollectionIds]);
 
   const handleCollectionToggle = (collectionId: string) => {
     const newSelection = selectedCollectionIds.includes(collectionId)
-      ? selectedCollectionIds.filter(id => id !== collectionId)
+      ? selectedCollectionIds.filter((id) => id !== collectionId)
       : [...selectedCollectionIds, collectionId];
     onSelectionChange(newSelection);
   };
@@ -81,7 +83,10 @@ export function CollectionSelector({
     setCreateModalOpen(true);
   };
 
-  const handleCreateCollectionSuccess = (collectionId: string, collectionName: string) => {
+  const handleCreateCollectionSuccess = (
+    collectionId: string,
+    collectionName: string,
+  ) => {
     onSelectionChange([...selectedCollectionIds, collectionId]);
     loadCollections(searchText.trim() || undefined);
     setCreateModalOpen(false);
@@ -98,7 +103,8 @@ export function CollectionSelector({
         {existingCollections.length > 0 && (
           <Box>
             <Text size="xs" c="dimmed" mb="xs">
-              Already in {existingCollections.length} collection{existingCollections.length !== 1 ? 's' : ''}:
+              Already in {existingCollections.length} collection
+              {existingCollections.length !== 1 ? 's' : ''}:
             </Text>
             <Group gap="xs">
               {existingCollections.map((collection) => (
@@ -109,11 +115,13 @@ export function CollectionSelector({
             </Group>
           </Box>
         )}
-        
+
         <Text size="sm" c="dimmed">
-          {existingCollections.length > 0 ? 'Add to additional collections (optional)' : 'Select collections (optional)'}
+          {existingCollections.length > 0
+            ? 'Add to additional collections (optional)'
+            : 'Select collections (optional)'}
         </Text>
-        
+
         <TextInput
           placeholder={placeholder}
           value={searchText}
@@ -127,7 +135,8 @@ export function CollectionSelector({
           {availableCollections.length > 0 ? (
             <Stack gap={0}>
               <Text size="xs" c="dimmed" mb="xs">
-                {availableCollections.length} collection{availableCollections.length !== 1 ? 's' : ''} found
+                {availableCollections.length} collection
+                {availableCollections.length !== 1 ? 's' : ''} found
               </Text>
               {searchText.trim() && showCreateOption && (
                 <Box
@@ -162,10 +171,12 @@ export function CollectionSelector({
                   p="sm"
                   style={{
                     cursor: 'pointer',
-                    backgroundColor: selectedCollectionIds.includes(collection.id) 
-                      ? 'var(--mantine-color-blue-0)' 
-                      : index % 2 === 0 
-                        ? 'var(--mantine-color-gray-0)' 
+                    backgroundColor: selectedCollectionIds.includes(
+                      collection.id,
+                    )
+                      ? 'var(--mantine-color-blue-0)'
+                      : index % 2 === 0
+                        ? 'var(--mantine-color-gray-0)'
                         : 'transparent',
                     borderRadius: '4px',
                     border: selectedCollectionIds.includes(collection.id)
@@ -237,7 +248,8 @@ export function CollectionSelector({
             </Stack>
           ) : (
             <Text size="sm" c="dimmed" py="md" ta="center">
-              No collections found. You can create collections from your library.
+              No collections found. You can create collections from your
+              library.
             </Text>
           )}
         </Box>

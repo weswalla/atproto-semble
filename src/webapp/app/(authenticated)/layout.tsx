@@ -4,7 +4,14 @@ import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
-import { ActionIcon, AppShell, Group, NavLink, Text, Affix } from '@mantine/core';
+import {
+  ActionIcon,
+  AppShell,
+  Group,
+  NavLink,
+  Text,
+  Affix,
+} from '@mantine/core';
 import { FiSidebar } from 'react-icons/fi';
 import { IoDocumentTextOutline } from 'react-icons/io5';
 import { BsFolder2 } from 'react-icons/bs';

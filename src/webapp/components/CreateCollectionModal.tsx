@@ -40,6 +40,7 @@ export function CreateCollectionModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
 
     if (!form.getValues().name.trim()) {
       setError('Collection name is required');

@@ -135,7 +135,7 @@ export default function AddCardPage() {
                     />
 
                     {/* Collections Selection */}
-                    <Stack gap="xs">
+                    <Stack gap="sm">
                       <Text fw={500} size="sm">
                         Add to Collections (optional)
                       </Text>
@@ -147,60 +147,76 @@ export default function AddCardPage() {
                         onChange={(e) => setSearchText(e.currentTarget.value)}
                         onKeyPress={handleSearchKeyPress}
                         disabled={loading}
+                        size="sm"
                       />
 
-                      {collectionsLoading ? (
-                        <Group>
-                          <Loader size="xs" />
-                          <Text size="sm" c="dimmed">Loading collections...</Text>
-                        </Group>
-                      ) : collections.length > 0 ? (
-                        <Stack gap="xs">
-                          {collections.map((collection) => (
-                            <Card
-                              key={collection.id}
-                              withBorder
-                              p="sm"
-                              style={{
-                                cursor: 'pointer',
-                                backgroundColor: selectedCollectionIds.includes(collection.id) 
-                                  ? 'var(--mantine-color-blue-0)' 
-                                  : undefined,
-                                borderColor: selectedCollectionIds.includes(collection.id)
-                                  ? 'var(--mantine-color-blue-4)'
-                                  : undefined,
-                              }}
-                              onClick={() => handleCollectionToggle(collection.id)}
-                            >
-                              <Group justify="space-between" align="flex-start">
-                                <Stack gap={2} style={{ flex: 1 }}>
-                                  <Text fw={500} size="sm">
-                                    {collection.name}
-                                  </Text>
-                                  {collection.description && (
-                                    <Text size="xs" c="dimmed">
-                                      {collection.description}
-                                    </Text>
-                                  )}
-                                  <Text size="xs" c="dimmed">
-                                    {collection.cardCount} cards
-                                  </Text>
-                                </Stack>
-                                <Checkbox
-                                  checked={selectedCollectionIds.includes(collection.id)}
-                                  onChange={() => handleCollectionToggle(collection.id)}
-                                  disabled={loading}
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                              </Group>
-                            </Card>
-                          ))}
-                        </Stack>
-                      ) : (
-                        <Text size="sm" c="dimmed">
-                          No collections found. You can create collections from your library.
-                        </Text>
-                      )}
+                      {/* Search Results */}
+                      <Box>
+                        {collectionsLoading ? (
+                          <Group gap="xs" py="md">
+                            <Loader size="xs" />
+                            <Text size="sm" c="dimmed">Searching collections...</Text>
+                          </Group>
+                        ) : collections.length > 0 ? (
+                          <Stack gap={0}>
+                            <Text size="xs" c="dimmed" mb="xs">
+                              {collections.length} collection{collections.length !== 1 ? 's' : ''} found
+                            </Text>
+                            {collections.map((collection, index) => (
+                              <Box
+                                key={collection.id}
+                                p="sm"
+                                style={{
+                                  cursor: 'pointer',
+                                  backgroundColor: selectedCollectionIds.includes(collection.id) 
+                                    ? 'var(--mantine-color-blue-0)' 
+                                    : index % 2 === 0 
+                                      ? 'var(--mantine-color-gray-0)' 
+                                      : 'transparent',
+                                  borderRadius: '4px',
+                                  border: selectedCollectionIds.includes(collection.id)
+                                    ? '1px solid var(--mantine-color-blue-4)'
+                                    : '1px solid transparent',
+                                }}
+                                onClick={() => handleCollectionToggle(collection.id)}
+                              >
+                                <Group justify="space-between" align="center" wrap="nowrap">
+                                  <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
+                                    <Group gap="xs" align="center">
+                                      <Text fw={500} size="sm" truncate>
+                                        {collection.name}
+                                      </Text>
+                                      <Text size="xs" c="dimmed">
+                                        {collection.cardCount} cards
+                                      </Text>
+                                    </Group>
+                                    {collection.description && (
+                                      <Text size="xs" c="dimmed" lineClamp={1}>
+                                        {collection.description}
+                                      </Text>
+                                    )}
+                                  </Stack>
+                                  <Checkbox
+                                    checked={selectedCollectionIds.includes(collection.id)}
+                                    onChange={() => handleCollectionToggle(collection.id)}
+                                    disabled={loading}
+                                    onClick={(e) => e.stopPropagation()}
+                                    size="sm"
+                                  />
+                                </Group>
+                              </Box>
+                            ))}
+                          </Stack>
+                        ) : searchText.trim() ? (
+                          <Text size="sm" c="dimmed" py="md" ta="center">
+                            No collections found for "{searchText.trim()}"
+                          </Text>
+                        ) : (
+                          <Text size="sm" c="dimmed" py="md" ta="center">
+                            No collections found. You can create collections from your library.
+                          </Text>
+                        )}
+                      </Box>
                     </Stack>
                   </Stack>
 

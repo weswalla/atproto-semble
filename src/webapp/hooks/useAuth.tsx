@@ -9,7 +9,7 @@ import {
   useCallback,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { ApiClient } from '@/api-client/ApiClient';
+import { ApiClient, UserProfile } from '@/api-client/ApiClient';
 import { getAccessToken, getRefreshToken, clearAuth } from '@/services/auth';
 
 interface AuthContextType {
@@ -17,7 +17,7 @@ interface AuthContextType {
   isLoading: boolean;
   accessToken: string | null;
   refreshToken: string | null;
-  user: any | null;
+  user: UserProfile | null;
   login: (handle: string) => Promise<{ authUrl: string }>;
   logout: () => Promise<void>;
   refreshTokens: () => Promise<boolean>;
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const router = useRouter();
 
   // Create API client instance
@@ -164,15 +164,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => clearInterval(interval);
   }, [accessToken, refreshToken, refreshTokens]);
 
-  const login = useCallback(async (handle: string) => {
-    try {
-      const apiClient = createApiClient();
-      return await apiClient.initiateOAuthSignIn({ handle });
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
-  }, [createApiClient]);
+  const login = useCallback(
+    async (handle: string) => {
+      try {
+        const apiClient = createApiClient();
+        return await apiClient.initiateOAuthSignIn({ handle });
+      } catch (error) {
+        console.error('Login error:', error);
+        throw error;
+      }
+    },
+    [createApiClient],
+  );
 
   const setTokens = useCallback((accessToken: string, refreshToken: string) => {
     // Store tokens

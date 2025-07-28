@@ -17,7 +17,6 @@ import {
 } from '@mantine/core';
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
   const [urlCards, setUrlCards] = useState<GetMyUrlCardsResponse['cards']>([]);
   const [loading, setLoading] = useState(true);
   const [cardsLoading, setCardsLoading] = useState(true);
@@ -36,10 +35,6 @@ export default function DashboardPage() {
   // Memoize the fetch function to prevent useEffect from running on every render
   const fetchData = useCallback(async () => {
     try {
-      // Fetch user data
-      const userData = await apiClient.getMyProfile();
-      setUser(userData);
-
       // Fetch URL cards
       setCardsLoading(true);
       const cardsResponse = await apiClient.getMyUrlCards({ limit: 10 });

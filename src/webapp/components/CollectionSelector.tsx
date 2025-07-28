@@ -153,7 +153,7 @@ export function CollectionSelector({
                   <Group justify="space-between" align="center" wrap="nowrap">
                     <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
                       <Text fw={500} size="sm" c="green.7">
-                        Create new collection "{searchText.trim()}"
+                        {`Create new collection "${searchText.trim()}"`}
                       </Text>
                       <Text size="xs" c="green.6">
                         Click to create a new collection with this name
@@ -216,7 +216,7 @@ export function CollectionSelector({
             <Stack gap="sm" py="md">
               {!collectionsLoading && (
                 <Text size="sm" c="dimmed" ta="center">
-                  No collections found for "{searchText.trim()}"
+                  {`No collections found for "${searchText.trim()}"`}
                 </Text>
               )}
               {showCreateOption && (
@@ -233,7 +233,7 @@ export function CollectionSelector({
                   <Group justify="space-between" align="center" wrap="nowrap">
                     <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
                       <Text fw={500} size="sm" c="green.7">
-                        Create new collection "{searchText.trim()}"
+                        {`Create new collection "${searchText.trim()}"`}
                       </Text>
                       <Text size="xs" c="green.6">
                         Click to create a new collection with this name

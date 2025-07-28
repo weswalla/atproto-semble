@@ -9,7 +9,6 @@ import {
   Textarea,
   Button,
   Group,
-  Text,
   Alert,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
@@ -113,7 +112,11 @@ export function CreateCollectionModal({
             {...form.getInputProps('description')}
           />
 
-          {error && <Alert color="red" title="Error" children={error} />}
+          {error && (
+            <Alert color="red" title="Error">
+              {error}
+            </Alert>
+          )}
 
           <Group justify="flex-end">
             <Button

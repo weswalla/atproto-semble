@@ -19,10 +19,10 @@ import { UrlMetadataDisplay } from './UrlMetadataDisplay';
 import { useUrlMetadata } from '@/hooks/useUrlMetadata';
 import { useCollectionSearch } from '@/hooks/useCollectionSearch';
 import { CreateCollectionModal } from './CreateCollectionModal';
-import { useAuth } from '@/hooks/useAuth';
 
 interface UrlCardFormProps {
   apiClient: ApiClient;
+  userId?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
   initialUrl?: string;
@@ -33,6 +33,7 @@ interface UrlCardFormProps {
 
 export function UrlCardForm({
   apiClient,
+  userId,
   onSuccess,
   onCancel,
   initialUrl = '',
@@ -52,9 +53,6 @@ export function UrlCardForm({
   const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
-  // Get current user for filtering
-  const { user } = useAuth();
-
   // URL metadata hook
   const { metadata, existingCard, loading: metadataLoading, error: metadataError } = useUrlMetadata({
     apiClient,
@@ -64,9 +62,9 @@ export function UrlCardForm({
 
   // Get existing collections for this card (filtered by current user)
   const existingCollections = useMemo(() => {
-    if (!existingCard || !user) return [];
-    return existingCard.collections.filter(collection => collection.authorId === user.id);
-  }, [existingCard, user]);
+    if (!existingCard || !userId) return [];
+    return existingCard.collections.filter(collection => collection.authorId === userId);
+  }, [existingCard, userId]);
 
   // Get existing collection IDs for filtering
   const existingCollectionIds = useMemo(() => {

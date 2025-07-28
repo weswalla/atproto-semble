@@ -15,7 +15,7 @@ import {
 import { UrlCardForm } from '../UrlCardForm';
 
 export function SaveCardPage() {
-  const { logout, accessToken } = useExtensionAuth();
+  const { logout, accessToken, user } = useExtensionAuth();
   const [currentUrl, setCurrentUrl] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -95,6 +95,7 @@ export function SaveCardPage() {
         {currentUrl ? (
           <UrlCardForm
             apiClient={apiClient}
+            userId={user?.id}
             onSuccess={handleSuccess}
             onCancel={() => window.close()}
             initialUrl={currentUrl}

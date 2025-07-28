@@ -12,9 +12,11 @@ import {
   Card,
 } from '@mantine/core';
 import { UrlCardForm } from '@/components/UrlCardForm';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function AddCardPage() {
   const router = useRouter();
+  const { user } = useAuth();
 
   // Create API client instance - memoized to avoid recreating on every render
   const apiClient = useMemo(
@@ -48,6 +50,7 @@ export default function AddCardPage() {
             <Title order={3}>Add URL to Library</Title>
             <UrlCardForm
               apiClient={apiClient}
+              userId={user?.id}
               onSuccess={handleSuccess}
               onCancel={handleCancel}
               submitButtonText="Add Card"

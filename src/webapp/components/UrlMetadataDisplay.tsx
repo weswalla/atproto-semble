@@ -12,6 +12,8 @@ import {
   Group,
 } from '@mantine/core';
 
+import type { UrlCardView } from '@/api-client/types';
+
 export interface UrlMetadata {
   url: string;
   title?: string;
@@ -24,6 +26,7 @@ export interface UrlMetadata {
 
 interface UrlMetadataDisplayProps {
   metadata: UrlMetadata | null;
+  existingCard?: UrlCardView | null;
   isLoading: boolean;
   currentUrl: string;
   compact?: boolean;
@@ -31,6 +34,7 @@ interface UrlMetadataDisplayProps {
 
 export function UrlMetadataDisplay({
   metadata,
+  existingCard,
   isLoading,
   currentUrl,
   compact = false,
@@ -86,9 +90,30 @@ export function UrlMetadataDisplay({
               </Text>
             )}
           </Stack>
-          <Text fz="xs" c="gray">
-            {metadata.siteName || new URL(currentUrl).hostname}
-          </Text>
+          <Group justify="space-between" align="center">
+            <Text fz="xs" c="gray">
+              {metadata.siteName || new URL(currentUrl).hostname}
+            </Text>
+            {existingCard && (
+              <Text fz="xs" c="blue" fw={500}>
+                Already in library
+              </Text>
+            )}
+          </Group>
+          
+          {existingCard && existingCard.collections.length > 0 && (
+            <Group gap="xs" mt="xs">
+              <Text fz="xs" c="gray">
+                Collections:
+              </Text>
+              {existingCard.collections.map((collection, index) => (
+                <Text key={collection.id} fz="xs" c="blue">
+                  {collection.name}
+                  {index < existingCard.collections.length - 1 && ','}
+                </Text>
+              ))}
+            </Group>
+          )}
         </Stack>
       </Stack>
     </Paper>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
   Container,
@@ -23,10 +23,14 @@ export default function EditCollectionPage() {
   const params = useParams();
   const collectionId = params.collectionId as string;
 
-  // Create API client instance
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    () => getAccessToken(),
+  // Memoize API client to prevent recreation on every render
+  const apiClient = useMemo(
+    () =>
+      new ApiClient(
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+        () => getAccessToken(),
+      ),
+    [],
   );
 
   const [collection, setCollection] =
@@ -38,29 +42,31 @@ export default function EditCollectionPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  // Load collection data
-  useEffect(() => {
-    const loadCollection = async () => {
-      try {
-        setIsLoading(true);
-        const response = await apiClient.getCollectionPage(collectionId);
-        setCollection(response);
-        setName(response.name);
-        setDescription(response.description || '');
-      } catch (err) {
-        setError('Failed to load collection');
-        console.error('Error loading collection:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // Memoize the load collection function to prevent recreation
+  const loadCollection = useCallback(async () => {
+    if (!collectionId) return;
 
-    if (collectionId) {
-      loadCollection();
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await apiClient.getCollectionPage(collectionId);
+      setCollection(response);
+      setName(response.name);
+      setDescription(response.description || '');
+    } catch (err) {
+      setError('Failed to load collection');
+      console.error('Error loading collection:', err);
+    } finally {
+      setIsLoading(false);
     }
   }, [collectionId, apiClient]);
 
-  const handleSave = async () => {
+  // Load collection data
+  useEffect(() => {
+    loadCollection();
+  }, [loadCollection]);
+
+  const handleSave = useCallback(async () => {
     if (!name.trim()) {
       setError('Collection name is required');
       return;
@@ -88,11 +94,11 @@ export default function EditCollectionPage() {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [name, description, collectionId, apiClient, router]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     router.push(`/collections/${collectionId}`);
-  };
+  }, [router, collectionId]);
 
   if (isLoading) {
     return (

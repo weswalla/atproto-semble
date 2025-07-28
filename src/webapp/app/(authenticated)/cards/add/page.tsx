@@ -32,6 +32,7 @@ export default function AddCardPage() {
   const [collections, setCollections] = useState<GetMyCollectionsResponse['collections']>([]);
   const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>([]);
   const [collectionsLoading, setCollectionsLoading] = useState(true);
+  const [searchText, setSearchText] = useState('');
   const router = useRouter();
 
   // Create API client instance
@@ -40,23 +41,26 @@ export default function AddCardPage() {
     () => getAccessToken(),
   );
 
+  // Load collections function
+  const loadCollections = async (search?: string) => {
+    setCollectionsLoading(true);
+    try {
+      const response = await apiClient.getMyCollections({
+        limit: 20,
+        sortBy: 'updatedAt',
+        sortOrder: 'desc',
+        searchText: search || undefined,
+      });
+      setCollections(response.collections);
+    } catch (error) {
+      console.error('Error loading collections:', error);
+    } finally {
+      setCollectionsLoading(false);
+    }
+  };
+
   // Load collections on component mount
   useEffect(() => {
-    const loadCollections = async () => {
-      try {
-        const response = await apiClient.getMyCollections({
-          limit: 20,
-          sortBy: 'updatedAt',
-          sortOrder: 'desc',
-        });
-        setCollections(response.collections);
-      } catch (error) {
-        console.error('Error loading collections:', error);
-      } finally {
-        setCollectionsLoading(false);
-      }
-    };
-
     loadCollections();
   }, []);
 
@@ -104,6 +108,16 @@ export default function AddCardPage() {
     );
   };
 
+  const handleSearchCollections = () => {
+    loadCollections(searchText.trim() || undefined);
+  };
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearchCollections();
+    }
+  };
+
   return (
     <Box maw={600} mx="auto" p="md">
       <Stack>
@@ -148,6 +162,27 @@ export default function AddCardPage() {
                       <Text fw={500} size="sm">
                         Add to Collections (optional)
                       </Text>
+                      
+                      {/* Search Collections */}
+                      <Group>
+                        <TextInput
+                          placeholder="Search collections..."
+                          value={searchText}
+                          onChange={(e) => setSearchText(e.currentTarget.value)}
+                          onKeyPress={handleSearchKeyPress}
+                          disabled={loading}
+                          style={{ flex: 1 }}
+                        />
+                        <Button
+                          variant="outline"
+                          onClick={handleSearchCollections}
+                          disabled={loading || collectionsLoading}
+                          size="sm"
+                        >
+                          Search
+                        </Button>
+                      </Group>
+
                       {collectionsLoading ? (
                         <Group>
                           <Loader size="xs" />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Stack,
   TextInput,
@@ -11,6 +11,7 @@ import {
   Box,
   Checkbox,
   Loader,
+  Badge,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { ApiClient } from '@/api-client/ApiClient';
@@ -18,6 +19,7 @@ import { UrlMetadataDisplay } from './UrlMetadataDisplay';
 import { useUrlMetadata } from '@/hooks/useUrlMetadata';
 import { useCollectionSearch } from '@/hooks/useCollectionSearch';
 import { CreateCollectionModal } from './CreateCollectionModal';
+import { useAuth } from '@/hooks/useAuth';
 
 interface UrlCardFormProps {
   apiClient: ApiClient;
@@ -50,16 +52,30 @@ export function UrlCardForm({
   const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
+  // Get current user for filtering
+  const { user } = useAuth();
+
   // URL metadata hook
-  const { metadata, loading: metadataLoading, error: metadataError } = useUrlMetadata({
+  const { metadata, existingCard, loading: metadataLoading, error: metadataError } = useUrlMetadata({
     apiClient,
     url: form.getValues().url,
     autoFetch: !!form.getValues().url,
   });
 
+  // Get existing collections for this card (filtered by current user)
+  const existingCollections = useMemo(() => {
+    if (!existingCard || !user) return [];
+    return existingCard.collections.filter(collection => collection.authorId === user.id);
+  }, [existingCard, user]);
+
+  // Get existing collection IDs for filtering
+  const existingCollectionIds = useMemo(() => {
+    return existingCollections.map(collection => collection.id);
+  }, [existingCollections]);
+
   // Collection search hook
   const {
-    collections,
+    collections: allCollections,
     loading: collectionsLoading,
     searchText,
     setSearchText,
@@ -69,6 +85,11 @@ export function UrlCardForm({
     apiClient, 
     initialLoad: showCollections 
   });
+
+  // Filter out existing collections from search results
+  const availableCollections = useMemo(() => {
+    return allCollections.filter(collection => !existingCollectionIds.includes(collection.id));
+  }, [allCollections, existingCollectionIds]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,7 +190,27 @@ export function UrlCardForm({
           {showCollections && (
             <Stack gap="sm">
               <Text fw={500} size="sm">
-                Add to Collections (optional)
+                Collections
+              </Text>
+
+              {/* Show existing collections */}
+              {existingCollections.length > 0 && (
+                <Box>
+                  <Text size="xs" c="dimmed" mb="xs">
+                    Already in {existingCollections.length} collection{existingCollections.length !== 1 ? 's' : ''}:
+                  </Text>
+                  <Group gap="xs">
+                    {existingCollections.map((collection) => (
+                      <Badge key={collection.id} variant="light" color="blue">
+                        {collection.name}
+                      </Badge>
+                    ))}
+                  </Group>
+                </Box>
+              )}
+              
+              <Text size="sm" c="dimmed">
+                Add to additional collections (optional)
               </Text>
               
               <TextInput
@@ -187,10 +228,10 @@ export function UrlCardForm({
                     <Loader size="xs" />
                     <Text size="sm" c="dimmed">Searching collections...</Text>
                   </Group>
-                ) : collections.length > 0 ? (
+                ) : availableCollections.length > 0 ? (
                   <Stack gap={0}>
                     <Text size="xs" c="dimmed" mb="xs">
-                      {collections.length} collection{collections.length !== 1 ? 's' : ''} found
+                      {availableCollections.length} collection{availableCollections.length !== 1 ? 's' : ''} found
                     </Text>
                     {searchText.trim() && (
                       <Box
@@ -219,7 +260,7 @@ export function UrlCardForm({
                         </Group>
                       </Box>
                     )}
-                    {collections.map((collection, index) => (
+                    {availableCollections.map((collection, index) => (
                       <Box
                         key={collection.id}
                         p="sm"

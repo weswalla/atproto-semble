@@ -18,7 +18,7 @@ import {
   Loader,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useCollectionSearch } from '@/hooks/useCollectionSearch';
+import type { GetMyCollectionsResponse } from '@/api-client/types';
 
 export default function AddCardPage() {
   const form = useForm({
@@ -29,12 +29,11 @@ export default function AddCardPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [collections, setCollections] = useState<GetMyCollectionsResponse['collections']>([]);
   const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>([]);
+  const [collectionsLoading, setCollectionsLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
   const router = useRouter();
-
-  // Use collection search hook
-  const { collections, loading: collectionsLoading, searchCollections } = useCollectionSearch();
 
   // Create API client instance
   const apiClient = new ApiClient(
@@ -42,10 +41,28 @@ export default function AddCardPage() {
     () => getAccessToken(),
   );
 
+  // Load collections function
+  const loadCollections = async (search?: string) => {
+    setCollectionsLoading(true);
+    try {
+      const response = await apiClient.getMyCollections({
+        limit: 20,
+        sortBy: 'updatedAt',
+        sortOrder: 'desc',
+        searchText: search || undefined,
+      });
+      setCollections(response.collections);
+    } catch (error) {
+      console.error('Error loading collections:', error);
+    } finally {
+      setCollectionsLoading(false);
+    }
+  };
+
   // Load collections on component mount
   useEffect(() => {
-    searchCollections();
-  }, [searchCollections]);
+    loadCollections();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +109,13 @@ export default function AddCardPage() {
   };
 
   const handleSearchCollections = () => {
-    searchCollections(searchText.trim() || undefined);
+    loadCollections(searchText.trim() || undefined);
+  };
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearchCollections();
+    }
   };
 
   return (
@@ -146,6 +169,7 @@ export default function AddCardPage() {
                           placeholder="Search collections..."
                           value={searchText}
                           onChange={(e) => setSearchText(e.currentTarget.value)}
+                          onKeyPress={handleSearchKeyPress}
                           disabled={loading}
                           style={{ flex: 1 }}
                         />

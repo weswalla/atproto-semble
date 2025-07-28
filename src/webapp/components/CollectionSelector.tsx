@@ -79,7 +79,9 @@ export function CollectionSelector({
     onSelectionChange(newSelection);
   };
 
-  const handleCreateCollection = () => {
+  const handleCreateCollection = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     setCreateModalOpen(true);
   };
 
@@ -148,7 +150,7 @@ export function CollectionSelector({
                     border: '1px solid var(--mantine-color-green-4)',
                     marginBottom: '4px',
                   }}
-                  onClick={handleCreateCollection}
+                  onClick={(e) => handleCreateCollection(e)}
                 >
                   <Group justify="space-between" align="center" wrap="nowrap">
                     <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
@@ -228,7 +230,7 @@ export function CollectionSelector({
                     borderRadius: '4px',
                     border: '1px solid var(--mantine-color-green-4)',
                   }}
-                  onClick={handleCreateCollection}
+                  onClick={(e) => handleCreateCollection(e)}
                 >
                   <Group justify="space-between" align="center" wrap="nowrap">
                     <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>

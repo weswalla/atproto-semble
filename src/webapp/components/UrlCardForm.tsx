@@ -51,7 +51,7 @@ export function UrlCardForm({
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
   // URL metadata hook
-  const { metadata, existingCard, loading: metadataLoading, error: metadataError } = useUrlMetadata({
+  const { metadata, loading: metadataLoading, error: metadataError } = useUrlMetadata({
     apiClient,
     url: form.getValues().url,
     autoFetch: !!form.getValues().url,
@@ -144,7 +144,6 @@ export function UrlCardForm({
           {(form.getValues().url || initialUrl) && (
             <UrlMetadataDisplay
               metadata={metadata}
-              existingCard={existingCard}
               isLoading={metadataLoading}
               currentUrl={form.getValues().url || initialUrl}
               compact={!showUrlInput}

@@ -59,13 +59,6 @@ export default function DashboardPage() {
     <div>
       {/* Recent Cards Section */}
       <Stack>
-        <Group justify="space-between">
-          <Title order={1}>Recent Cards</Title>
-          <Button variant="outline" onClick={() => router.push('/cards')}>
-            View All Cards
-          </Button>
-        </Group>
-
         {cardsLoading ? (
           <Loader />
         ) : urlCards.length > 0 ? (

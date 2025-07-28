@@ -55,6 +55,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const handleLogout = useCallback(async () => {
+    try {
+      // Note: No logout endpoint call needed since refresh tokens are handled server-side
+      // and will naturally expire
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear auth state
+      clearAuth();
+      setAccessToken(null);
+      setRefreshToken(null);
+      setUser(null);
+      setIsAuthenticated(false);
+
+      // Redirect to login
+      router.push('/login');
+    }
+  }, [router]);
+
   const refreshTokens = useCallback(async (): Promise<boolean> => {
     if (!refreshToken) return false;
 
@@ -70,7 +89,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       handleLogout();
       return false;
     }
-  }, [refreshToken, createApiClient]);
+  }, [refreshToken, createApiClient, handleLogout]);
+
   useEffect(() => {
     // Check if user is already authenticated
     const storedAccessToken = getAccessToken();
@@ -144,7 +164,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => clearInterval(interval);
   }, [accessToken, refreshToken, refreshTokens]);
 
-  const login = async (handle: string) => {
+  const login = useCallback(async (handle: string) => {
     try {
       const apiClient = createApiClient();
       return await apiClient.initiateOAuthSignIn({ handle });
@@ -152,26 +172,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('Login error:', error);
       throw error;
     }
-  };
-
-  const handleLogout = async () => {
-    try {
-      // Note: No logout endpoint call needed since refresh tokens are handled server-side
-      // and will naturally expire
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      // Clear auth state
-      clearAuth();
-      setAccessToken(null);
-      setRefreshToken(null);
-      setUser(null);
-      setIsAuthenticated(false);
-
-      // Redirect to login
-      router.push('/login');
-    }
-  };
+  }, [createApiClient]);
 
   const setTokens = useCallback((accessToken: string, refreshToken: string) => {
     // Store tokens

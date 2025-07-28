@@ -139,7 +139,7 @@ export const ExtensionAuthProvider = ({
     }
   }, [initAuth]);
 
-  const loginWithAppPassword = async (
+  const loginWithAppPassword = useCallback(async (
     identifier: string,
     appPassword: string,
   ) => {
@@ -170,9 +170,9 @@ export const ExtensionAuthProvider = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [createApiClient, setStoredToken]);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       // Notify background script to handle logout
       if (typeof chrome !== 'undefined' && chrome.runtime) {
@@ -189,7 +189,7 @@ export const ExtensionAuthProvider = ({
     } catch (error) {
       console.error('Logout failed:', error);
     }
-  };
+  }, [setStoredToken]);
 
   return (
     <ExtensionAuthContext.Provider

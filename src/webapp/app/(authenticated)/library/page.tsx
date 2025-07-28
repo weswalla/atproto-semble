@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ApiClient } from '@/api-client/ApiClient';
 import { getAccessToken } from '@/services/auth';
@@ -23,33 +23,38 @@ export default function DashboardPage() {
   const [cardsLoading, setCardsLoading] = useState(true);
   const router = useRouter();
 
-  // Create API client instance
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    () => getAccessToken(),
+  // Memoize API client instance to prevent recreation on every render
+  const apiClient = useMemo(
+    () =>
+      new ApiClient(
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+        () => getAccessToken(),
+      ),
+    [],
   );
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch user data
-        const userData = await apiClient.getMyProfile();
-        setUser(userData);
+  // Memoize the fetch function to prevent useEffect from running on every render
+  const fetchData = useCallback(async () => {
+    try {
+      // Fetch user data
+      const userData = await apiClient.getMyProfile();
+      setUser(userData);
 
-        // Fetch URL cards
-        setCardsLoading(true);
-        const cardsResponse = await apiClient.getMyUrlCards({ limit: 10 });
-        setUrlCards(cardsResponse.cards);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
-        setCardsLoading(false);
-      }
-    };
-
-    fetchData();
+      // Fetch URL cards
+      setCardsLoading(true);
+      const cardsResponse = await apiClient.getMyUrlCards({ limit: 10 });
+      setUrlCards(cardsResponse.cards);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+      setCardsLoading(false);
+    }
   }, [apiClient]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (loading) {
     return <Loader />;

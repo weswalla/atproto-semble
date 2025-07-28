@@ -81,6 +81,7 @@ export class QueryClient extends BaseClient {
     if (params?.limit) searchParams.set('limit', params.limit.toString());
     if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
     if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    if (params?.searchText) searchParams.set('searchText', params.searchText);
 
     const queryString = searchParams.toString();
     const endpoint = queryString

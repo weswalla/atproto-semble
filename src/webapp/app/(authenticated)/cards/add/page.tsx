@@ -19,6 +19,7 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useCollectionSearch } from '@/hooks/useCollectionSearch';
+import { CreateCollectionModal } from '@/components/CreateCollectionModal';
 
 export default function AddCardPage() {
   const form = useForm({
@@ -30,6 +31,7 @@ export default function AddCardPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>([]);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const router = useRouter();
 
   // Create API client instance - memoized to avoid recreating on every render
@@ -49,6 +51,7 @@ export default function AddCardPage() {
     setSearchText,
     handleSearch,
     handleSearchKeyPress,
+    loadCollections,
   } = useCollectionSearch({ apiClient });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,6 +96,18 @@ export default function AddCardPage() {
         ? prev.filter(id => id !== collectionId)
         : [...prev, collectionId]
     );
+  };
+
+  const handleCreateCollection = () => {
+    setCreateModalOpen(true);
+  };
+
+  const handleCreateCollectionSuccess = (collectionId: string, collectionName: string) => {
+    // Add the new collection to selected collections
+    setSelectedCollectionIds(prev => [...prev, collectionId]);
+    // Reload collections to show the new one
+    loadCollections(searchText.trim() || undefined);
+    setCreateModalOpen(false);
   };
 
   return (
@@ -162,6 +177,34 @@ export default function AddCardPage() {
                             <Text size="xs" c="dimmed" mb="xs">
                               {collections.length} collection{collections.length !== 1 ? 's' : ''} found
                             </Text>
+                            {/* Show create new collection option when searching */}
+                            {searchText.trim() && (
+                              <Box
+                                p="sm"
+                                style={{
+                                  cursor: 'pointer',
+                                  backgroundColor: 'var(--mantine-color-green-0)',
+                                  borderRadius: '4px',
+                                  border: '1px solid var(--mantine-color-green-4)',
+                                  marginBottom: '4px',
+                                }}
+                                onClick={handleCreateCollection}
+                              >
+                                <Group justify="space-between" align="center" wrap="nowrap">
+                                  <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
+                                    <Text fw={500} size="sm" c="green.7">
+                                      Create new collection "{searchText.trim()}"
+                                    </Text>
+                                    <Text size="xs" c="green.6">
+                                      Click to create a new collection with this name
+                                    </Text>
+                                  </Stack>
+                                  <Text size="xs" c="green.6" fw={500}>
+                                    + New
+                                  </Text>
+                                </Group>
+                              </Box>
+                            )}
                             {collections.map((collection, index) => (
                               <Box
                                 key={collection.id}
@@ -208,9 +251,35 @@ export default function AddCardPage() {
                             ))}
                           </Stack>
                         ) : searchText.trim() ? (
-                          <Text size="sm" c="dimmed" py="md" ta="center">
-                            No collections found for "{searchText.trim()}"
-                          </Text>
+                          <Stack gap="sm" py="md">
+                            <Text size="sm" c="dimmed" ta="center">
+                              No collections found for "{searchText.trim()}"
+                            </Text>
+                            <Box
+                              p="sm"
+                              style={{
+                                cursor: 'pointer',
+                                backgroundColor: 'var(--mantine-color-green-0)',
+                                borderRadius: '4px',
+                                border: '1px solid var(--mantine-color-green-4)',
+                              }}
+                              onClick={handleCreateCollection}
+                            >
+                              <Group justify="space-between" align="center" wrap="nowrap">
+                                <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
+                                  <Text fw={500} size="sm" c="green.7">
+                                    Create new collection "{searchText.trim()}"
+                                  </Text>
+                                  <Text size="xs" c="green.6">
+                                    Click to create a new collection with this name
+                                  </Text>
+                                </Stack>
+                                <Text size="xs" c="green.6" fw={500}>
+                                  + New
+                                </Text>
+                              </Group>
+                            </Box>
+                          </Stack>
                         ) : (
                           <Text size="sm" c="dimmed" py="md" ta="center">
                             No collections found. You can create collections from your library.
@@ -240,6 +309,14 @@ export default function AddCardPage() {
             </Stack>
           </Stack>
         </Card>
+
+        <CreateCollectionModal
+          isOpen={createModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+          onSuccess={handleCreateCollectionSuccess}
+          apiClient={apiClient}
+          initialName={searchText.trim()}
+        />
       </Stack>
     </Box>
   );

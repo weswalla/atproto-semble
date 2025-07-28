@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getAccessToken } from '@/services/auth';
 import { ApiClient } from '@/api-client/ApiClient';
 import {
@@ -16,7 +16,10 @@ import { useAuth } from '@/hooks/useAuth';
 
 export default function AddCardPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
+  
+  const preSelectedCollectionId = searchParams.get('collectionId');
 
   // Create API client instance - memoized to avoid recreating on every render
   const apiClient = useMemo(
@@ -55,6 +58,7 @@ export default function AddCardPage() {
               onCancel={handleCancel}
               submitButtonText="Add Card"
               showCollections={true}
+              preSelectedCollectionId={preSelectedCollectionId}
             />
           </Stack>
         </Card>

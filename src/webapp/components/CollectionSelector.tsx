@@ -31,6 +31,7 @@ interface CollectionSelectorProps {
   disabled?: boolean;
   showCreateOption?: boolean;
   placeholder?: string;
+  preSelectedCollectionId?: string | null;
 }
 
 export function CollectionSelector({
@@ -42,6 +43,7 @@ export function CollectionSelector({
   disabled = false,
   showCreateOption = true,
   placeholder = "Search collections...",
+  preSelectedCollectionId,
 }: CollectionSelectorProps) {
   const [createModalOpen, setCreateModalOpen] = useState(false);
 

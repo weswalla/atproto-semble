@@ -24,6 +24,7 @@ interface UrlCardFormProps {
   showUrlInput?: boolean;
   submitButtonText?: string;
   showCollections?: boolean;
+  preSelectedCollectionId?: string | null;
 }
 
 export function UrlCardForm({
@@ -35,6 +36,7 @@ export function UrlCardForm({
   showUrlInput = true,
   submitButtonText = 'Save Card',
   showCollections = true,
+  preSelectedCollectionId,
 }: UrlCardFormProps) {
   const form = useForm({
     initialValues: {
@@ -45,7 +47,9 @@ export function UrlCardForm({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>([]);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>(
+    preSelectedCollectionId ? [preSelectedCollectionId] : []
+  );
 
   // URL metadata hook
   const { metadata, existingCard, loading: metadataLoading, error: metadataError } = useUrlMetadata({
@@ -150,6 +154,7 @@ export function UrlCardForm({
               disabled={loading}
               showCreateOption={true}
               placeholder="Search collections..."
+              preSelectedCollectionId={preSelectedCollectionId}
             />
           )}
 

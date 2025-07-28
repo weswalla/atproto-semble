@@ -9,7 +9,7 @@ import {
   useCallback,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { authService } from '@/services/api';
+import { ApiClient, UserProfile } from '@/api-client/ApiClient';
 import { getAccessToken, getRefreshToken, clearAuth } from '@/services/auth';
 
 interface AuthContextType {
@@ -17,9 +17,8 @@ interface AuthContextType {
   isLoading: boolean;
   accessToken: string | null;
   refreshToken: string | null;
-  user: any | null;
+  user: UserProfile | null;
   login: (handle: string) => Promise<{ authUrl: string }>;
-  completeOAuth: (code: string, state: string, iss: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshTokens: () => Promise<boolean>;
   setTokens: (accessToken: string, refreshToken: string) => void;
@@ -32,8 +31,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const router = useRouter();
+
+  // Create API client instance
+  const createApiClient = useCallback(() => {
+    return new ApiClient(
+      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+      () => getAccessToken(),
+    );
+  }, []);
 
   // Helper function to check if a JWT token is expired
   const isTokenExpired = (token: string): boolean => {
@@ -48,12 +55,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const handleLogout = useCallback(async () => {
+    try {
+      // Note: No logout endpoint call needed since refresh tokens are handled server-side
+      // and will naturally expire
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear auth state
+      clearAuth();
+      setAccessToken(null);
+      setRefreshToken(null);
+      setUser(null);
+      setIsAuthenticated(false);
+
+      // Redirect to login
+      router.push('/login');
+    }
+  }, [router]);
+
   const refreshTokens = useCallback(async (): Promise<boolean> => {
     if (!refreshToken) return false;
 
     try {
+      const apiClient = createApiClient();
       const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-        await authService.refreshToken(refreshToken);
+        await apiClient.refreshAccessToken({ refreshToken });
 
       setTokens(newAccessToken, newRefreshToken);
       return true;
@@ -62,7 +89,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       handleLogout();
       return false;
     }
-  }, [refreshToken]);
+  }, [refreshToken, createApiClient, handleLogout]);
+
   useEffect(() => {
     // Check if user is already authenticated
     const storedAccessToken = getAccessToken();
@@ -80,7 +108,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           .then((success) => {
             if (success) {
               // Token refreshed, now fetch user data with new token
-              return authService.getCurrentUser(getAccessToken() || '');
+              const apiClient = createApiClient();
+              return apiClient.getMyProfile();
             }
             throw new Error('Token refresh failed');
           })
@@ -99,8 +128,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           });
       } else {
         // Token is still valid, fetch user data
-        authService
-          .getCurrentUser(storedAccessToken)
+        const apiClient = createApiClient();
+        apiClient
+          .getMyProfile()
           .then((userData) => {
             setUser(userData);
           })
@@ -134,55 +164,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => clearInterval(interval);
   }, [accessToken, refreshToken, refreshTokens]);
 
-  const login = async (handle: string) => {
-    try {
-      return await authService.initiateLogin(handle);
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
-  };
-
-  const completeOAuth = async (code: string, state: string, iss: string) => {
-    try {
-      const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-        await authService.completeOAuth(code, state, iss);
-
-      setTokens(newAccessToken, newRefreshToken);
-
-      // Fetch user data
-      const userData = await authService.getCurrentUser(newAccessToken);
-      setUser(userData);
-
-      // Redirect to dashboard after a short delay
-      setTimeout(() => {
-        router.push('/library');
-      }, 1000);
-    } catch (error) {
-      console.error('OAuth completion error:', error);
-      throw error;
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      if (refreshToken) {
-        await authService.logout(refreshToken);
+  const login = useCallback(
+    async (handle: string) => {
+      try {
+        const apiClient = createApiClient();
+        return await apiClient.initiateOAuthSignIn({ handle });
+      } catch (error) {
+        console.error('Login error:', error);
+        throw error;
       }
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      // Clear auth state
-      clearAuth();
-      setAccessToken(null);
-      setRefreshToken(null);
-      setUser(null);
-      setIsAuthenticated(false);
-
-      // Redirect to login
-      router.push('/login');
-    }
-  };
+    },
+    [createApiClient],
+  );
 
   const setTokens = useCallback((accessToken: string, refreshToken: string) => {
     // Store tokens
@@ -204,7 +197,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         refreshToken,
         user,
         login,
-        completeOAuth,
         logout: handleLogout,
         refreshTokens,
         setTokens,

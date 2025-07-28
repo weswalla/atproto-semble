@@ -1,21 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getAccessToken } from '@/services/auth';
 import { ApiClient } from '@/api-client/ApiClient';
-import type { GetMyCollectionsResponse } from '@/api-client/types';
-import {
-  Box,
-  Button,
-  Center,
-  Checkbox,
-  Group,
-  Loader,
-  Modal,
-  ScrollArea,
-  Stack,
-  Text,
-} from '@mantine/core';
+import { Button, Group, Modal, Stack, Text } from '@mantine/core';
+import { CollectionSelector } from './CollectionSelector';
+
+interface Collection {
+  id: string;
+  name: string;
+  description?: string;
+  cardCount: number;
+  authorId: string;
+}
 
 interface AddToCollectionModalProps {
   cardId: string;
@@ -30,15 +27,13 @@ export function AddToCollectionModal({
   onClose,
   onSuccess,
 }: AddToCollectionModalProps) {
-  const [collections, setCollections] = useState<
-    GetMyCollectionsResponse['collections']
-  >([]);
-  const [selectedCollections, setSelectedCollections] = useState<Set<string>>(
-    new Set(),
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>(
+    [],
   );
-  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [card, setCard] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
   // Create API client instance
   const apiClient = new ApiClient(
@@ -46,38 +41,34 @@ export function AddToCollectionModal({
     () => getAccessToken(),
   );
 
+  // Get existing collections for this card
+  const existingCollections = useMemo(() => {
+    if (!card) return [];
+    return card.collections || [];
+  }, [card]);
+
   useEffect(() => {
     if (isOpen) {
-      fetchCollections();
+      fetchCard();
     }
-  }, [isOpen]);
+  }, [isOpen, cardId]);
 
-  const fetchCollections = async () => {
+  const fetchCard = async () => {
     try {
       setLoading(true);
       setError('');
-      const response = await apiClient.getMyCollections({ limit: 100 });
-      setCollections(response.collections);
+      const response = await apiClient.getUrlCardView(cardId);
+      setCard(response);
     } catch (error: any) {
-      console.error('Error fetching collections:', error);
-      setError(error.message || 'Failed to load collections');
+      console.error('Error fetching card:', error);
+      setError(error.message || 'Failed to load card details');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCollectionToggle = (collectionId: string) => {
-    const newSelected = new Set(selectedCollections);
-    if (newSelected.has(collectionId)) {
-      newSelected.delete(collectionId);
-    } else {
-      newSelected.add(collectionId);
-    }
-    setSelectedCollections(newSelected);
-  };
-
   const handleSubmit = async () => {
-    if (selectedCollections.size === 0) {
+    if (selectedCollectionIds.length === 0) {
       setError('Please select at least one collection');
       return;
     }
@@ -89,13 +80,13 @@ export function AddToCollectionModal({
       // Add card to all selected collections in a single request
       await apiClient.addCardToCollection({
         cardId,
-        collectionIds: Array.from(selectedCollections),
+        collectionIds: selectedCollectionIds,
       });
 
       // Success
       onSuccess?.();
       onClose();
-      setSelectedCollections(new Set());
+      setSelectedCollectionIds([]);
     } catch (error: any) {
       console.error('Error adding card to collections:', error);
       setError(error.message || 'Failed to add card to collections');
@@ -107,7 +98,7 @@ export function AddToCollectionModal({
   const handleClose = () => {
     if (!submitting) {
       onClose();
-      setSelectedCollections(new Set());
+      setSelectedCollectionIds([]);
       setError('');
     }
   };
@@ -117,71 +108,50 @@ export function AddToCollectionModal({
   return (
     <Modal
       opened={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title="Add to Collections"
       centered
+      size="md"
     >
-      <Stack p={'sm'}>
+      <Stack p="sm">
         {loading ? (
-          <Center>
-            <Loader />
-          </Center>
-        ) : error && collections.length === 0 ? (
+          <Text size="sm" c="dimmed" ta="center" py="md">
+            Loading card details...
+          </Text>
+        ) : error ? (
           <Stack align="center">
-            <Text c={'red'}>{error}</Text>
-            <Button onClick={fetchCollections} variant="outline" size="sm">
+            <Text c="red">{error}</Text>
+            <Button onClick={fetchCard} variant="outline" size="sm">
               Try Again
             </Button>
           </Stack>
-        ) : collections.length === 0 ? (
-          <Stack align="center">
-            <Text c={'red'}>No collections found</Text>
-            <Button
-              onClick={() => window.open('/collections/create', '_blank')}
-              variant="outline"
-              size="sm"
-            >
-              Create Collection
-            </Button>
-          </Stack>
         ) : (
-          <Box>
-            <ScrollArea h={250}>
-              {collections.map((collection) => (
-                <Group key={collection.id}>
-                  <Checkbox
-                    id={collection.id}
-                    checked={selectedCollections.has(collection.id)}
-                    onChange={() => handleCollectionToggle(collection.id)}
-                    disabled={submitting}
-                  />
+          <>
+            <CollectionSelector
+              apiClient={apiClient}
+              selectedCollectionIds={selectedCollectionIds}
+              onSelectionChange={setSelectedCollectionIds}
+              existingCollections={existingCollections}
+              disabled={submitting}
+              showCreateOption={true}
+              placeholder="Search collections to add..."
+            />
 
-                  <Stack gap={'0'}>
-                    <Text fw={500}>{collection.name}</Text>
-                    {collection.description && (
-                      <Text fz={'sm'} fw={500} c={'gray'} truncate="end">
-                        {collection.description}
-                      </Text>
-                    )}
-                    <Text fz={'sm'} fw={500} c={'gray.5'}>
-                      {collection.cardCount} cards
-                    </Text>
-                  </Stack>
-                </Group>
-              ))}
-            </ScrollArea>
-
-            {error && <Text c={'red'}>{error}</Text>}
+            {error && (
+              <Text c="red" size="sm">
+                {error}
+              </Text>
+            )}
 
             <Group grow>
               <Button
                 onClick={handleSubmit}
-                disabled={submitting || selectedCollections.size === 0}
+                disabled={submitting || selectedCollectionIds.length === 0}
                 loading={submitting}
               >
                 {submitting
                   ? 'Adding...'
-                  : `Add to ${selectedCollections.size} Collection${selectedCollections.size !== 1 ? 's' : ''}`}
+                  : `Add to ${selectedCollectionIds.length} Collection${selectedCollectionIds.length !== 1 ? 's' : ''}`}
               </Button>
               <Button
                 variant="outline"
@@ -191,7 +161,7 @@ export function AddToCollectionModal({
                 Cancel
               </Button>
             </Group>
-          </Box>
+          </>
         )}
       </Stack>
     </Modal>

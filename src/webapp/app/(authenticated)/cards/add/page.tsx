@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAccessToken } from '@/services/auth';
 import { ApiClient } from '@/api-client/ApiClient';
@@ -18,7 +18,7 @@ import {
   Loader,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import type { GetMyCollectionsResponse } from '@/api-client/types';
+import { useCollectionSearch } from '@/hooks/useCollectionSearch';
 
 export default function AddCardPage() {
   const form = useForm({
@@ -29,40 +29,27 @@ export default function AddCardPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [collections, setCollections] = useState<GetMyCollectionsResponse['collections']>([]);
   const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>([]);
-  const [collectionsLoading, setCollectionsLoading] = useState(true);
-  const [searchText, setSearchText] = useState('');
   const router = useRouter();
 
-  // Create API client instance
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    () => getAccessToken(),
+  // Create API client instance - memoized to avoid recreating on every render
+  const apiClient = useMemo(
+    () => new ApiClient(
+      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+      () => getAccessToken(),
+    ),
+    []
   );
 
-  // Load collections function
-  const loadCollections = async (search?: string) => {
-    setCollectionsLoading(true);
-    try {
-      const response = await apiClient.getMyCollections({
-        limit: 20,
-        sortBy: 'updatedAt',
-        sortOrder: 'desc',
-        searchText: search || undefined,
-      });
-      setCollections(response.collections);
-    } catch (error) {
-      console.error('Error loading collections:', error);
-    } finally {
-      setCollectionsLoading(false);
-    }
-  };
-
-  // Load collections on component mount
-  useEffect(() => {
-    loadCollections();
-  }, []);
+  // Use the collection search hook
+  const {
+    collections,
+    loading: collectionsLoading,
+    searchText,
+    setSearchText,
+    handleSearch,
+    handleSearchKeyPress,
+  } = useCollectionSearch({ apiClient });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,16 +93,6 @@ export default function AddCardPage() {
         ? prev.filter(id => id !== collectionId)
         : [...prev, collectionId]
     );
-  };
-
-  const handleSearchCollections = () => {
-    loadCollections(searchText.trim() || undefined);
-  };
-
-  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearchCollections();
-    }
   };
 
   return (
@@ -175,7 +152,7 @@ export default function AddCardPage() {
                         />
                         <Button
                           variant="outline"
-                          onClick={handleSearchCollections}
+                          onClick={handleSearch}
                           disabled={loading || collectionsLoading}
                           size="sm"
                         >

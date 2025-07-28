@@ -1,17 +1,23 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ApiClient } from '@/api-client/ApiClient';
 import type { GetMyCollectionsResponse } from '@/api-client/types';
 
 interface UseCollectionSearchProps {
   apiClient: ApiClient;
   initialLoad?: boolean;
+  debounceMs?: number;
 }
 
-export function useCollectionSearch({ apiClient, initialLoad = true }: UseCollectionSearchProps) {
+export function useCollectionSearch({ 
+  apiClient, 
+  initialLoad = true, 
+  debounceMs = 300 
+}: UseCollectionSearchProps) {
   const [collections, setCollections] = useState<GetMyCollectionsResponse['collections']>([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [hasInitialized, setHasInitialized] = useState(false);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Memoized search parameters to avoid unnecessary API calls
   const searchParams = useMemo(() => ({
@@ -45,8 +51,36 @@ export function useCollectionSearch({ apiClient, initialLoad = true }: UseCollec
     }
   }, [initialLoad, hasInitialized, loadCollections]);
 
-  // Search function that only triggers when explicitly called
+  // Debounced search effect - triggers when searchText changes
+  useEffect(() => {
+    // Clear existing timeout
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    // Only set up debounced search if we've initialized
+    if (hasInitialized) {
+      debounceTimeoutRef.current = setTimeout(() => {
+        const trimmedSearch = searchText.trim();
+        loadCollections(trimmedSearch || undefined);
+      }, debounceMs);
+    }
+
+    // Cleanup timeout on unmount or when dependencies change
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [searchText, loadCollections, hasInitialized, debounceMs]);
+
+  // Manual search function (kept for backward compatibility)
   const handleSearch = useCallback(() => {
+    // Clear any pending debounced search
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
     const trimmedSearch = searchText.trim();
     loadCollections(trimmedSearch || undefined);
   }, [searchText, loadCollections]);
@@ -56,7 +90,7 @@ export function useCollectionSearch({ apiClient, initialLoad = true }: UseCollec
     setSearchText(value);
   }, []);
 
-  // Handle search on Enter key press
+  // Handle search on Enter key press (immediate search, no debounce)
   const handleSearchKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();

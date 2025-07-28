@@ -141,24 +141,13 @@ export default function AddCardPage() {
                       </Text>
                       
                       {/* Search Collections */}
-                      <Group>
-                        <TextInput
-                          placeholder="Search collections..."
-                          value={searchText}
-                          onChange={(e) => setSearchText(e.currentTarget.value)}
-                          onKeyPress={handleSearchKeyPress}
-                          disabled={loading}
-                          style={{ flex: 1 }}
-                        />
-                        <Button
-                          variant="outline"
-                          onClick={handleSearch}
-                          disabled={loading || collectionsLoading}
-                          size="sm"
-                        >
-                          Search
-                        </Button>
-                      </Group>
+                      <TextInput
+                        placeholder="Search collections..."
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.currentTarget.value)}
+                        onKeyPress={handleSearchKeyPress}
+                        disabled={loading}
+                      />
 
                       {collectionsLoading ? (
                         <Group>

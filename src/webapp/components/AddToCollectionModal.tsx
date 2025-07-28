@@ -61,7 +61,7 @@ export function AddToCollectionModal({
     try {
       setLoading(true);
       setError('');
-      const response = await apiClient.getCard(cardId);
+      const response = await apiClient.getUrlCardView(cardId);
       setCard(response);
     } catch (error: any) {
       console.error('Error fetching card:', error);

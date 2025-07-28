@@ -37,7 +37,7 @@ export function useCollectionSearch({
       setCollections(response.collections);
     } catch (error) {
       console.error('Error loading collections:', error);
-      setCollections([]);
+      // Don't clear collections on error, keep showing previous results
     } finally {
       setLoading(false);
     }

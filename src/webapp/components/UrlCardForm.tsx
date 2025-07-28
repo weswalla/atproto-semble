@@ -221,12 +221,7 @@ export function UrlCardForm({
               />
 
               <Box>
-                {collectionsLoading ? (
-                  <Group gap="xs" py="md">
-                    <Loader size="xs" />
-                    <Text size="sm" c="dimmed">Searching collections...</Text>
-                  </Group>
-                ) : availableCollections.length > 0 ? (
+                {availableCollections.length > 0 ? (
                   <Stack gap={0}>
                     <Text size="xs" c="dimmed" mb="xs">
                       {availableCollections.length} collection{availableCollections.length !== 1 ? 's' : ''} found
@@ -305,9 +300,11 @@ export function UrlCardForm({
                   </Stack>
                 ) : searchText.trim() ? (
                   <Stack gap="sm" py="md">
-                    <Text size="sm" c="dimmed" ta="center">
-                      No collections found for "{searchText.trim()}"
-                    </Text>
+                    {!collectionsLoading && (
+                      <Text size="sm" c="dimmed" ta="center">
+                        No collections found for "{searchText.trim()}"
+                      </Text>
+                    )}
                     <Box
                       p="sm"
                       style={{

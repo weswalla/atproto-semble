@@ -21,11 +21,12 @@ export function SaveCardPage() {
   const [success, setSuccess] = useState(false);
 
   const apiClient = useMemo(
-    () => new ApiClient(
-      process.env.PLASMO_PUBLIC_API_URL || 'http://localhost:3000',
-      () => accessToken,
-    ),
-    [accessToken]
+    () =>
+      new ApiClient(
+        process.env.PLASMO_PUBLIC_API_URL || 'http://localhost:3000',
+        () => accessToken,
+      ),
+    [accessToken],
   );
 
   // Get current tab URL when popup opens
@@ -99,7 +100,7 @@ export function SaveCardPage() {
             initialUrl={currentUrl}
             showUrlInput={false}
             submitButtonText="Save Card"
-            showCollections={false}
+            showCollections={true}
           />
         ) : (
           <Text c="gray" ta="center" py="md">

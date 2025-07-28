@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { authService } from '@/services/api';
-import { getAccessToken } from '@/services/auth';
 import { ApiClient } from '@/api-client/ApiClient';
+import { getAccessToken } from '@/services/auth';
 import { UrlCard } from '@/components/UrlCard';
 import type { GetMyUrlCardsResponse } from '@/api-client/types';
 import {
@@ -33,10 +32,8 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const accessToken = getAccessToken();
-
         // Fetch user data
-        const userData = await authService.getCurrentUser(accessToken!);
+        const userData = await apiClient.getMyProfile();
         setUser(userData);
 
         // Fetch URL cards
@@ -52,7 +49,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, []);
+  }, [apiClient]);
 
   if (loading) {
     return <Loader />;

@@ -15,6 +15,7 @@ import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 import { URL } from '../../../domain/value-objects/URL';
 import { CardLibraryService } from '../../../domain/services/CardLibraryService';
 import { CardCollectionService } from '../../../domain/services/CardCollectionService';
+import { DomainEvents } from '../../../../../shared/domain/events/DomainEvents';
 
 export interface AddUrlToLibraryDTO {
   url: string;
@@ -218,6 +219,14 @@ export class AddUrlToLibraryUseCase
           }
           return err(new ValidationError(addToCollectionsResult.error.message));
         }
+      }
+
+      // Dispatch events for URL card (events are raised in addToLibrary method)
+      DomainEvents.dispatchEventsForAggregate(urlCard.id);
+
+      // Dispatch events for note card if it exists
+      if (noteCard) {
+        DomainEvents.dispatchEventsForAggregate(noteCard.id);
       }
 
       return ok({

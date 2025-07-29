@@ -7,6 +7,7 @@ import { CardContent } from './value-objects/CardContent';
 import { CuratorId } from './value-objects/CuratorId';
 import { PublishedRecordId } from './value-objects/PublishedRecordId';
 import { URL } from './value-objects/URL';
+import { CardAddedToLibraryEvent } from './events/CardAddedToLibraryEvent';
 
 export class CardValidationError extends Error {
   constructor(message: string) {
@@ -193,6 +194,17 @@ export class Card extends AggregateRoot<CardProps> {
     this.props.libraryCount = this.props.libraryMemberships.length;
     this.props.updatedAt = new Date();
 
+    // Raise domain event
+    this.addDomainEvent(
+      new CardAddedToLibraryEvent(
+        this.cardId,
+        userId,
+        this.props.type.value,
+        this.props.url?.value,
+        this.getCardTitle(),
+      ),
+    );
+
     return ok(undefined);
   }
 
@@ -251,5 +263,20 @@ export class Card extends AggregateRoot<CardProps> {
     return this.props.libraryMemberships.find((link) =>
       link.curatorId.equals(userId),
     );
+  }
+
+  private getCardTitle(): string | undefined {
+    if (this.isUrlCard) {
+      const urlContent = this.props.content.content;
+      if ('metadata' in urlContent) {
+        return urlContent.metadata.title;
+      }
+    } else if (this.isNoteCard) {
+      const noteContent = this.props.content.content;
+      if ('title' in noteContent) {
+        return noteContent.title;
+      }
+    }
+    return undefined;
   }
 }

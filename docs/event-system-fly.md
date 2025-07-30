@@ -585,24 +585,77 @@ export class AddCardToLibraryUseCase extends BaseUseCase<AddCardToLibraryRequest
 
 ## Deployment Strategy
 
-### Initial Deployment
+### Step-by-Step Deployment Process
+
+#### 1. Create and Configure Redis
 
 ```bash
-# First, create your Redis database
+# Create Redis database with replicas for better performance
 fly redis create --name myapp-redis --region ord --replica-regions fra,iad
 
-# Attach the Redis database to your app (this sets the REDIS_URL environment variable)
+# Attach Redis to your app (sets REDIS_URL environment variable)
 fly redis attach myapp-redis
 
-# Deploy the application
+# Verify Redis connection details
+fly redis status myapp-redis
+```
+
+#### 2. Update Your Application Configuration
+
+Ensure your `fly.toml` includes worker processes:
+
+```toml
+[processes]
+  web = "npm start"
+  notification-worker = "npm run worker:notifications" 
+  feed-worker = "npm run worker:feeds"
+
+[http_service]
+  processes = ['web']  # Only web processes handle HTTP
+```
+
+#### 3. Deploy All Processes
+
+```bash
+# Deploy the entire application (web + workers)
 fly deploy
 
-# Scale workers based on expected load
+# Check deployment status
+fly status
+
+# View all running processes
+fly ps
+```
+
+#### 4. Scale Worker Processes
+
+```bash
+# Scale different process types independently
 fly scale count web=2 notification-worker=2 feed-worker=3
 
-# Add workers to multiple regions for better performance
-fly regions add notification-worker fra ord
-fly regions add feed-worker fra ord
+# Scale to specific regions
+fly scale count web=2 --region ord
+fly scale count notification-worker=1 --region ord
+fly scale count notification-worker=1 --region fra
+fly scale count feed-worker=2 --region ord
+fly scale count feed-worker=1 --region fra
+
+# Check current scaling
+fly scale show
+```
+
+#### 5. Monitor Worker Health
+
+```bash
+# Monitor worker logs
+fly logs --process notification-worker
+fly logs --process feed-worker
+
+# Check specific worker instances
+fly logs --process notification-worker --region ord
+
+# Monitor Redis connectivity
+fly redis connect myapp-redis
 ```
 
 ### Understanding Fly.io Worker Deployment

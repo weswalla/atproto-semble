@@ -23,6 +23,9 @@ export interface EnvironmentConfig {
   iframely: {
     apiKey: string;
   };
+  workers: {
+    redisUrl: string;
+  };
 }
 
 export class EnvironmentConfigService {
@@ -68,6 +71,9 @@ export class EnvironmentConfigService {
       },
       iframely: {
         apiKey: process.env.IFRAMELY_API_KEY || '',
+      },
+      workers: {
+        redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
       },
     };
 
@@ -119,5 +125,8 @@ export class EnvironmentConfigService {
 
   public getIFramelyApiKey(): string {
     return this.config.iframely.apiKey;
+  }
+  public getWorkersConfig() {
+    return this.config.workers;
   }
 }

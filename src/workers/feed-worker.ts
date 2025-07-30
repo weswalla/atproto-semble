@@ -5,18 +5,17 @@ import { EnvironmentConfigService } from '../shared/infrastructure/config/Enviro
 
 async function startFeedWorker() {
   console.log('Starting feed worker...');
-  
+
   const configService = new EnvironmentConfigService();
-  
+
   // Connect to Redis
-  const redisUrl = configService.get('REDIS_URL');
+  const redisUrl = configService.getWorkersConfig().redisUrl;
   if (!redisUrl) {
     throw new Error('REDIS_URL environment variable is required');
   }
-  
+
   const redis = new Redis(redisUrl, {
     maxRetriesPerRequest: 3,
-    retryDelayOnFailover: 100,
     lazyConnect: true,
   });
 
@@ -28,10 +27,10 @@ async function startFeedWorker() {
     console.error('Failed to connect to Redis:', error);
     process.exit(1);
   }
-  
+
   // Create subscriber
   const eventSubscriber = new BullMQEventSubscriber(redis);
-  
+
   // Create event handlers (you'll need to inject dependencies here)
   // For now, creating a simple handler - you'll need to wire up your services
   const feedService = {
@@ -39,17 +38,17 @@ async function startFeedWorker() {
       console.log('Processing feed update for card added to library:', event);
       // Your feed logic here
       return { isOk: () => true, isErr: () => false };
-    }
+    },
   };
-  
+
   const feedHandler = new CardAddedToLibraryEventHandler(feedService as any);
-  
+
   // Register handlers
   await eventSubscriber.subscribe('CardAddedToLibraryEvent', feedHandler);
-  
+
   // Start the worker
   await eventSubscriber.start();
-  
+
   console.log('Feed worker started and listening for events...');
 
   // Graceful shutdown

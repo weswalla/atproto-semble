@@ -4,7 +4,6 @@ import { CuratorId } from '../value-objects/CuratorId';
 import { ICardPublisher } from '../../application/ports/ICardPublisher';
 import { ICardRepository } from '../ICardRepository';
 import { AppError } from '../../../../shared/core/AppError';
-import { UseCaseError } from '../../../../shared/core/UseCaseError';
 import { DomainService } from '../../../../shared/domain/DomainService';
 
 export class CardLibraryValidationError extends Error {

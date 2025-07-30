@@ -22,7 +22,7 @@ describe('BullMQ Event System Integration', () => {
 
     // Create Redis connection
     const connectionUrl = redisContainer.getConnectionUrl();
-    redis = new Redis(connectionUrl);
+    redis = new Redis(connectionUrl, { maxRetriesPerRequest: null });
 
     // Create publisher and subscriber
     publisher = new BullMQEventPublisher(redis);
@@ -55,10 +55,12 @@ describe('BullMQ Event System Integration', () => {
       // Arrange
       const receivedEvents: CardAddedToLibraryEvent[] = [];
       const mockHandler: IEventHandler<CardAddedToLibraryEvent> = {
-        handle: jest.fn().mockImplementation(async (event: CardAddedToLibraryEvent) => {
-          receivedEvents.push(event);
-          return ok(undefined);
-        }),
+        handle: jest
+          .fn()
+          .mockImplementation(async (event: CardAddedToLibraryEvent) => {
+            receivedEvents.push(event);
+            return ok(undefined);
+          }),
       };
 
       // Subscribe to events
@@ -66,7 +68,7 @@ describe('BullMQ Event System Integration', () => {
       await subscriber.start();
 
       // Create test event
-      const cardId = CardId.create('test-card-123').unwrap();
+      const cardId = CardId.createFromString('test-card-123').unwrap();
       const curatorId = CuratorId.create('did:plc:testuser123').unwrap();
       const event = new CardAddedToLibraryEvent(cardId, curatorId);
 
@@ -77,7 +79,7 @@ describe('BullMQ Event System Integration', () => {
       expect(publishResult.isOk()).toBe(true);
 
       // Wait for event processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Assert - Event was received and processed
       expect(mockHandler.handle).toHaveBeenCalledTimes(1);
@@ -85,19 +87,23 @@ describe('BullMQ Event System Integration', () => {
 
       const receivedEvent = receivedEvents[0];
       expect(receivedEvent).toBeInstanceOf(CardAddedToLibraryEvent);
-      expect(receivedEvent.cardId.getStringValue()).toBe(cardId.getStringValue());
-      expect(receivedEvent.curatorId.value).toBe(curatorId.value);
-      expect(receivedEvent.dateTimeOccurred).toBeInstanceOf(Date);
+      expect(receivedEvent!.cardId.getStringValue()).toBe(
+        cardId.getStringValue(),
+      );
+      expect(receivedEvent!.curatorId.value).toBe(curatorId.value);
+      expect(receivedEvent!.dateTimeOccurred).toBeInstanceOf(Date);
     }, 15000);
 
     it('should publish and receive multiple events in sequence', async () => {
       // Arrange
       const receivedEvents: CardAddedToLibraryEvent[] = [];
       const mockHandler: IEventHandler<CardAddedToLibraryEvent> = {
-        handle: jest.fn().mockImplementation(async (event: CardAddedToLibraryEvent) => {
-          receivedEvents.push(event);
-          return ok(undefined);
-        }),
+        handle: jest
+          .fn()
+          .mockImplementation(async (event: CardAddedToLibraryEvent) => {
+            receivedEvents.push(event);
+            return ok(undefined);
+          }),
       };
 
       await subscriber.subscribe('CardAddedToLibraryEvent', mockHandler);
@@ -106,16 +112,16 @@ describe('BullMQ Event System Integration', () => {
       // Create multiple test events
       const events = [
         new CardAddedToLibraryEvent(
-          CardId.create('card-1').unwrap(),
-          CuratorId.create('did:plc:user1').unwrap()
+          CardId.createFromString('card-1').unwrap(),
+          CuratorId.create('did:plc:user1').unwrap(),
         ),
         new CardAddedToLibraryEvent(
-          CardId.create('card-2').unwrap(),
-          CuratorId.create('did:plc:user2').unwrap()
+          CardId.createFromString('card-2').unwrap(),
+          CuratorId.create('did:plc:user2').unwrap(),
         ),
         new CardAddedToLibraryEvent(
-          CardId.create('card-3').unwrap(),
-          CuratorId.create('did:plc:user3').unwrap()
+          CardId.createFromString('card-3').unwrap(),
+          CuratorId.create('did:plc:user3').unwrap(),
         ),
       ];
 
@@ -126,14 +132,14 @@ describe('BullMQ Event System Integration', () => {
       expect(publishResult.isOk()).toBe(true);
 
       // Wait for event processing
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
       // Assert - All events were received
       expect(mockHandler.handle).toHaveBeenCalledTimes(3);
       expect(receivedEvents).toHaveLength(3);
 
       // Verify each event was processed correctly
-      const cardIds = receivedEvents.map(e => e.cardId.getStringValue());
+      const cardIds = receivedEvents.map((e) => e.cardId.getStringValue());
       expect(cardIds).toContain('card-1');
       expect(cardIds).toContain('card-2');
       expect(cardIds).toContain('card-3');
@@ -158,8 +164,8 @@ describe('BullMQ Event System Integration', () => {
       await subscriber.start();
 
       const event = new CardAddedToLibraryEvent(
-        CardId.create('failing-card').unwrap(),
-        CuratorId.create('did:plc:failuser').unwrap()
+        CardId.createFromString('failing-card').unwrap(),
+        CuratorId.create('did:plc:failuser').unwrap(),
       );
 
       // Act - Publish event that will initially fail
@@ -169,7 +175,7 @@ describe('BullMQ Event System Integration', () => {
       expect(publishResult.isOk()).toBe(true);
 
       // Wait for initial processing and potential retries
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       // Assert - Handler was called (at least once for initial attempt)
       expect(mockHandler.handle).toHaveBeenCalled();
@@ -180,8 +186,8 @@ describe('BullMQ Event System Integration', () => {
       await subscriber.start();
 
       const event = new CardAddedToLibraryEvent(
-        CardId.create('unhandled-card').unwrap(),
-        CuratorId.create('did:plc:unhandleduser').unwrap()
+        CardId.createFromString('unhandled-card').unwrap(),
+        CuratorId.create('did:plc:unhandleduser').unwrap(),
       );
 
       // Act - Publish event
@@ -191,7 +197,7 @@ describe('BullMQ Event System Integration', () => {
       expect(publishResult.isOk()).toBe(true);
 
       // Wait to ensure no processing occurs
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // No assertions needed - test passes if no errors are thrown
     }, 10000);
@@ -200,31 +206,46 @@ describe('BullMQ Event System Integration', () => {
       // Arrange
       let receivedEvent: CardAddedToLibraryEvent | null = null;
       const mockHandler: IEventHandler<CardAddedToLibraryEvent> = {
-        handle: jest.fn().mockImplementation(async (event: CardAddedToLibraryEvent) => {
-          receivedEvent = event;
-          return ok(undefined);
-        }),
+        handle: jest
+          .fn()
+          .mockImplementation(async (event: CardAddedToLibraryEvent) => {
+            receivedEvent = event;
+            return ok(undefined);
+          }),
       };
 
       await subscriber.subscribe('CardAddedToLibraryEvent', mockHandler);
       await subscriber.start();
 
       // Create event with specific data
-      const originalCardId = CardId.create('integrity-test-card-456').unwrap();
-      const originalCuratorId = CuratorId.create('did:plc:integrityuser789').unwrap();
-      const originalEvent = new CardAddedToLibraryEvent(originalCardId, originalCuratorId);
+      const originalCardId = CardId.createFromString(
+        'integrity-test-card-456',
+      ).unwrap();
+      const originalCuratorId = CuratorId.create(
+        'did:plc:integrityuser789',
+      ).unwrap();
+      const originalEvent = new CardAddedToLibraryEvent(
+        originalCardId,
+        originalCuratorId,
+      );
       const originalTimestamp = originalEvent.dateTimeOccurred;
 
       // Act
       await publisher.publishEvents([originalEvent]);
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Assert - Event data was preserved through serialization/deserialization
       expect(receivedEvent).not.toBeNull();
-      expect(receivedEvent!.cardId.getStringValue()).toBe(originalCardId.getStringValue());
+      expect(receivedEvent!.cardId.getStringValue()).toBe(
+        originalCardId.getStringValue(),
+      );
       expect(receivedEvent!.curatorId.value).toBe(originalCuratorId.value);
-      expect(receivedEvent!.dateTimeOccurred.getTime()).toBe(originalTimestamp.getTime());
-      expect(receivedEvent!.getAggregateId().toString()).toBe(originalCardId.getValue().toString());
+      expect(receivedEvent!.dateTimeOccurred.getTime()).toBe(
+        originalTimestamp.getTime(),
+      );
+      expect(receivedEvent!.getAggregateId().toString()).toBe(
+        originalCardId.getValue().toString(),
+      );
     }, 15000);
   });
 
@@ -232,8 +253,8 @@ describe('BullMQ Event System Integration', () => {
     it('should route CardAddedToLibraryEvent to notifications queue', async () => {
       // This test verifies the queue routing logic by checking Redis directly
       const event = new CardAddedToLibraryEvent(
-        CardId.create('queue-test-card').unwrap(),
-        CuratorId.create('did:plc:queueuser').unwrap()
+        CardId.createFromString('queue-test-card').unwrap(),
+        CuratorId.create('did:plc:queueuser').unwrap(),
       );
 
       await publisher.publishEvents([event]);
@@ -243,7 +264,11 @@ describe('BullMQ Event System Integration', () => {
       expect(queueKeys.length).toBeGreaterThan(0);
 
       // Verify the job data structure
-      const waitingJobs = await redis.lrange('bull:notifications:waiting', 0, -1);
+      const waitingJobs = await redis.lrange(
+        'bull:notifications:waiting',
+        0,
+        -1,
+      );
       expect(waitingJobs.length).toBe(1);
     }, 10000);
   });

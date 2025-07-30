@@ -1,7 +1,8 @@
 import { Result, ok, err } from '../../../../../shared/core/Result';
-import { UseCase } from '../../../../../shared/core/UseCase';
+import { BaseUseCase } from '../../../../../shared/core/UseCase';
 import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
+import { IEventPublisher } from '../../../../../shared/application/events/IEventPublisher';
 import { ICardRepository } from '../../../domain/ICardRepository';
 import {
   CardFactory,
@@ -15,7 +16,6 @@ import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 import { URL } from '../../../domain/value-objects/URL';
 import { CardLibraryService } from '../../../domain/services/CardLibraryService';
 import { CardCollectionService } from '../../../domain/services/CardCollectionService';
-import { DomainEvents } from '../../../../../shared/domain/events/DomainEvents';
 
 export interface AddUrlToLibraryDTO {
   url: string;
@@ -35,22 +35,22 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class AddUrlToLibraryUseCase
-  implements
-    UseCase<
-      AddUrlToLibraryDTO,
-      Result<
-        AddUrlToLibraryResponseDTO,
-        ValidationError | AppError.UnexpectedError
-      >
-    >
-{
+export class AddUrlToLibraryUseCase extends BaseUseCase<
+  AddUrlToLibraryDTO,
+  Result<
+    AddUrlToLibraryResponseDTO,
+    ValidationError | AppError.UnexpectedError
+  >
+> {
   constructor(
     private cardRepository: ICardRepository,
     private metadataService: IMetadataService,
     private cardLibraryService: CardLibraryService,
     private cardCollectionService: CardCollectionService,
-  ) {}
+    eventPublisher: IEventPublisher,
+  ) {
+    super(eventPublisher);
+  }
 
   async execute(
     request: AddUrlToLibraryDTO,
@@ -221,8 +221,21 @@ export class AddUrlToLibraryUseCase
         }
       }
 
-      // Dispatch events for URL card (events are raised in addToLibrary method)
-      DomainEvents.dispatchEventsForAggregate(urlCard.id);
+      // Publish events for URL card (events are raised in addToLibrary method)
+      const publishResult = await this.publishEventsForAggregate(urlCard);
+      if (publishResult.isErr()) {
+        console.error('Failed to publish events for URL card:', publishResult.error);
+        // Don't fail the operation if event publishing fails
+      }
+
+      // Publish events for note card if it exists
+      if (noteCard) {
+        const notePublishResult = await this.publishEventsForAggregate(noteCard);
+        if (notePublishResult.isErr()) {
+          console.error('Failed to publish events for note card:', notePublishResult.error);
+          // Don't fail the operation if event publishing fails
+        }
+      }
 
       return ok({
         urlCardId: urlCard.cardId.getStringValue(),

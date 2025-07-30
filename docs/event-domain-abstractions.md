@@ -1,19 +1,23 @@
-# Domain Event Abstractions in a Distributed System
+# Domain Event Abstractions in a Clean Architecture
 
-This document explains how implementing a distributed event system with BullMQ and Redis affects your core domain abstractions, and how to maintain clean architecture principles while scaling across multiple Fly.io instances.
+This document explains how to implement a clean, layered domain event system that adheres to clean architecture principles, with clear separation between domain, application, and infrastructure layers.
 
 ## Overview
 
-Your current domain event system follows clean DDD principles with clear separation of concerns. When moving to a distributed system, the **core domain abstractions remain unchanged** - we only extend the infrastructure layer to support distributed processing.
+Our domain event system follows a simple, direct approach where:
+1. **Domain layer** raises events through aggregates
+2. **Application layer** defines interfaces for event publishing
+3. **Infrastructure layer** provides concrete implementations
+4. **Use cases** explicitly publish events after successful operations
 
-## Core Principle: Domain Stays Pure
+## Core Principle: Dependency Inversion
 
-The most important principle is that **your domain layer should not know about BullMQ, Redis, or any distributed infrastructure**. The domain continues to:
+The key principle is **dependency inversion** - higher layers define interfaces, lower layers implement them:
 
-1. Raise events through `AggregateRoot.addDomainEvent()`
-2. Use the same `IDomainEvent` interface
-3. Maintain the same event classes (e.g., `CardAddedToLibraryEvent`)
-4. Follow the same aggregate lifecycle
+- **Domain Layer**: Pure business logic, no dependencies
+- **Application Layer**: Defines event publishing interfaces
+- **Infrastructure Layer**: Implements interfaces with concrete technologies
+- **Use Cases**: Orchestrate domain logic and event publishing
 
 ## Architecture Layers
 
@@ -31,31 +35,30 @@ The most important principle is that **your domain layer should not know about B
                                 ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                Application Layer                            │
-│  ┌─────────────────┐  ┌─────────────────┐                  │
-│  │  Event Handlers │  │   Use Cases     │                  │
-│  │                 │  │                 │                  │
-│  │ NotificationH.. │  │ AddCardToLib... │                  │
-│  │ FeedHandler...  │  │                 │                  │
-│  └─────────────────┘  └─────────────────┘                  │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
+│  │   Use Cases     │  │   Interfaces    │  │ Event Handlers│ │
+│  │                 │  │                 │  │              │ │
+│  │ AddCardToLib... │  │ IEventPublisher │  │ Notification │ │
+│  │ ↓ publishEvents │  │ IEventSubscriber│  │ Feed Handler │ │
+│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
 └─────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────┐
 │              Infrastructure Layer                           │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
-│  │ DomainEvents    │  │ EventRegistry   │  │ BullMQ Pub   │ │
-│  │ (unchanged)     │  │ (extended)      │  │ (new)        │ │
-│  │                 │  │                 │  │              │ │
-│  │ Static dispatch │  │ Local + Remote  │  │ Redis Queue  │ │
+│  │ BullMQPublisher │  │ BullMQSubscriber│  │ DomainEvents │ │
+│  │ (implements     │  │ (implements     │  │ (simplified) │ │
+│  │ IEventPublisher)│  │ IEventSubscriber│  │              │ │
 │  └─────────────────┘  └─────────────────┘  └──────────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## What Stays the Same
+## Layer Responsibilities
 
-### 1. Domain Events Interface
+### 1. Domain Layer (Pure Business Logic)
 
-Your `IDomainEvent` interface remains unchanged:
+The domain layer remains completely pure and has no dependencies on infrastructure:
 
 ```typescript
 // src/shared/domain/events/IDomainEvent.ts - NO CHANGES
@@ -65,10 +68,6 @@ export interface IDomainEvent {
 }
 ```
 
-### 2. Event Classes
-
-Your event classes remain pure domain objects:
-
 ```typescript
 // src/modules/cards/domain/events/CardAddedToLibraryEvent.ts - NO CHANGES
 export class CardAddedToLibraryEvent implements IDomainEvent {
@@ -77,9 +76,6 @@ export class CardAddedToLibraryEvent implements IDomainEvent {
   constructor(
     public readonly cardId: CardId,
     public readonly curatorId: CuratorId,
-    public readonly cardType: CardTypeEnum,
-    public readonly url?: string,
-    public readonly title?: string,
   ) {
     this.dateTimeOccurred = new Date();
   }
@@ -89,10 +85,6 @@ export class CardAddedToLibraryEvent implements IDomainEvent {
   }
 }
 ```
-
-### 3. Aggregate Root
-
-Your `AggregateRoot` continues to work exactly the same:
 
 ```typescript
 // src/shared/domain/AggregateRoot.ts - NO CHANGES
@@ -109,10 +101,6 @@ export abstract class AggregateRoot<T> extends Entity<T> {
 }
 ```
 
-### 4. Domain Logic
-
-Your domain logic remains pure:
-
 ```typescript
 // src/modules/cards/domain/Card.ts - Domain logic unchanged
 public addToLibrary(userId: CuratorId): Result<void, CardValidationError> {
@@ -123,78 +111,105 @@ public addToLibrary(userId: CuratorId): Result<void, CardValidationError> {
     addedAt: new Date(),
   });
 
-  // This stays exactly the same - domain doesn't know about distribution
-  this.addDomainEvent(
-    new CardAddedToLibraryEvent(
-      this.cardId,
-      userId,
-      this.props.type.value,
-      this.props.url?.value,
-      this.getCardTitle(),
-    ),
-  );
+  // Domain only adds events - doesn't know about publishing
+  this.addDomainEvent(new CardAddedToLibraryEvent(this.cardId, userId));
 
   return ok(undefined);
 }
 ```
 
-## What Changes: Infrastructure Extensions
+### 2. Application Layer (Interfaces and Orchestration)
 
-### 1. Enhanced Event Handler Registry
-
-The registry is extended to support both local and distributed processing:
+The application layer defines interfaces and orchestrates domain logic with event publishing:
 
 ```typescript
-// src/shared/infrastructure/events/DistributedEventHandlerRegistry.ts
-import { EventHandlerRegistry } from './EventHandlerRegistry';
-import { DomainEvents } from '../../domain/events/DomainEvents';
-import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
-import { BullMQEventPublisher } from './BullMQEventPublisher';
+// src/shared/application/events/IEventPublisher.ts
+import { IDomainEvent } from '../../domain/events/IDomainEvent';
+import { Result } from '../../core/Result';
 
-export class DistributedEventHandlerRegistry extends EventHandlerRegistry {
-  constructor(
-    feedsCardAddedToLibraryHandler: any,
-    notificationsCardAddedToLibraryHandler: any,
-    private eventPublisher: BullMQEventPublisher,
-  ) {
-    super(feedsCardAddedToLibraryHandler, notificationsCardAddedToLibraryHandler);
-  }
+export interface IEventPublisher {
+  publishEvents(events: IDomainEvent[]): Promise<Result<void>>;
+}
+```
 
-  registerAllHandlers(): void {
-    // Keep existing local handlers for immediate consistency
-    super.registerAllHandlers();
+```typescript
+// src/shared/application/events/IEventSubscriber.ts
+import { IDomainEvent } from '../../domain/events/IDomainEvent';
 
-    // Add distributed publishing for cross-instance processing
-    DomainEvents.register(
-      async (event: CardAddedToLibraryEvent) => {
-        try {
-          await this.eventPublisher.publish(event);
-        } catch (error) {
-          console.error('Error publishing event to BullMQ:', error);
-          // Don't fail the main operation if event publishing fails
-        }
-      },
-      CardAddedToLibraryEvent.name,
-    );
+export interface IEventHandler<T extends IDomainEvent> {
+  handle(event: T): Promise<Result<void>>;
+}
+
+export interface IEventSubscriber {
+  subscribe<T extends IDomainEvent>(
+    eventType: string,
+    handler: IEventHandler<T>
+  ): Promise<void>;
+  
+  start(): Promise<void>;
+  stop(): Promise<void>;
+}
+```
+
+```typescript
+// src/shared/application/BaseUseCase.ts
+import { IEventPublisher } from './events/IEventPublisher';
+import { DomainEvents } from '../domain/events/DomainEvents';
+import { AggregateRoot } from '../domain/AggregateRoot';
+import { Result, ok, err } from '../core/Result';
+
+export abstract class BaseUseCase {
+  constructor(protected eventPublisher: IEventPublisher) {}
+
+  protected async publishEventsForAggregate(
+    aggregate: AggregateRoot<any>
+  ): Promise<Result<void>> {
+    const events = DomainEvents.getEventsForAggregate(aggregate.id);
+    
+    if (events.length === 0) {
+      return ok(undefined);
+    }
+
+    const publishResult = await this.eventPublisher.publishEvents(events);
+    
+    if (publishResult.isOk()) {
+      DomainEvents.clearEventsForAggregate(aggregate.id);
+    }
+    
+    return publishResult;
   }
 }
 ```
 
-### 2. Event Publisher (New Infrastructure)
+### 3. Infrastructure Layer (Concrete Implementations)
 
-This is a new infrastructure component that translates domain events to queue messages:
+The infrastructure layer provides concrete implementations of the application interfaces:
 
 ```typescript
 // src/shared/infrastructure/events/BullMQEventPublisher.ts
-import { Queue, ConnectionOptions } from 'bullmq';
+import { Queue } from 'bullmq';
+import Redis from 'ioredis';
+import { IEventPublisher } from '../../application/events/IEventPublisher';
 import { IDomainEvent } from '../../domain/events/IDomainEvent';
+import { Result, ok, err } from '../../core/Result';
 
-export class BullMQEventPublisher {
+export class BullMQEventPublisher implements IEventPublisher {
   private queues: Map<string, Queue> = new Map();
 
-  constructor(private redisConnection: ConnectionOptions) {}
+  constructor(private redisConnection: Redis) {}
 
-  async publish(event: IDomainEvent): Promise<void> {
+  async publishEvents(events: IDomainEvent[]): Promise<Result<void>> {
+    try {
+      for (const event of events) {
+        await this.publishSingleEvent(event);
+      }
+      return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  private async publishSingleEvent(event: IDomainEvent): Promise<void> {
     const queueConfig = this.getQueueConfig(event);
     
     if (!this.queues.has(queueConfig.name)) {
@@ -205,8 +220,6 @@ export class BullMQEventPublisher {
     }
 
     const queue = this.queues.get(queueConfig.name)!;
-    
-    // Serialize domain event for queue
     await queue.add(event.constructor.name, {
       ...this.serializeEvent(event),
       eventType: event.constructor.name,
@@ -215,67 +228,124 @@ export class BullMQEventPublisher {
     });
   }
 
+  private getQueueConfig(event: IDomainEvent) {
+    // Route events to appropriate queues
+    if (event.constructor.name === 'CardAddedToLibraryEvent') {
+      return {
+        name: 'notifications',
+        options: {
+          priority: 1,
+          attempts: 5,
+          backoff: { type: 'exponential' as const, delay: 1000 },
+          removeOnComplete: 100,
+          removeOnFail: 50,
+        }
+      };
+    }
+
+    return {
+      name: 'events',
+      options: {
+        priority: 2,
+        attempts: 3,
+        backoff: { type: 'exponential' as const, delay: 2000 },
+        removeOnComplete: 50,
+        removeOnFail: 25,
+      }
+    };
+  }
+
   private serializeEvent(event: IDomainEvent): any {
-    // Convert domain event to serializable format
     return {
       ...event,
       // Handle value objects serialization
-      cardId: event.cardId?.getValue?.()?.toString(),
-      curatorId: event.curatorId?.value,
+      cardId: (event as any).cardId?.getValue?.()?.toString(),
+      curatorId: (event as any).curatorId?.value,
     };
   }
 }
 ```
 
-### 3. Event Workers (New Infrastructure)
-
-Workers reconstruct domain events and dispatch to existing handlers:
-
 ```typescript
-// src/shared/infrastructure/events/BullMQEventWorker.ts
+// src/shared/infrastructure/events/BullMQEventSubscriber.ts
 import { Worker, Job } from 'bullmq';
+import Redis from 'ioredis';
+import { IEventSubscriber, IEventHandler } from '../../application/events/IEventSubscriber';
+import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
 import { CardId } from '../../../modules/cards/domain/value-objects/CardId';
 import { CuratorId } from '../../../modules/cards/domain/value-objects/CuratorId';
 
-export class BullMQEventWorker {
-  constructor(
-    private redisConnection: ConnectionOptions,
-    private notificationHandler: any,
-    private feedHandler: any,
-  ) {}
+export class BullMQEventSubscriber implements IEventSubscriber {
+  private workers: Worker[] = [];
+  private handlers: Map<string, IEventHandler<any>> = new Map();
 
-  async startWorkers(): Promise<void> {
-    const worker = new Worker(
-      'notifications',
-      async (job: Job) => {
-        // Reconstruct domain event from serialized data
-        const event = this.reconstructEvent(job.data);
-        
-        // Use existing application layer handlers
-        if (event instanceof CardAddedToLibraryEvent) {
-          await this.notificationHandler.handle(event);
+  constructor(private redisConnection: Redis) {}
+
+  async subscribe<T extends IDomainEvent>(
+    eventType: string,
+    handler: IEventHandler<T>
+  ): Promise<void> {
+    this.handlers.set(eventType, handler);
+  }
+
+  async start(): Promise<void> {
+    // Start workers for different queues
+    const queues = ['notifications', 'events'];
+    
+    for (const queueName of queues) {
+      const worker = new Worker(
+        queueName,
+        async (job: Job) => {
+          await this.processJob(job);
+        },
+        {
+          connection: this.redisConnection,
+          concurrency: queueName === 'notifications' ? 5 : 15,
         }
-      },
-      { connection: this.redisConnection }
-    );
+      );
+
+      worker.on('completed', (job) => {
+        console.log(`Job ${job.id} completed successfully`);
+      });
+
+      worker.on('failed', (job, err) => {
+        console.error(`Job ${job?.id} failed:`, err);
+      });
+
+      this.workers.push(worker);
+    }
+  }
+
+  async stop(): Promise<void> {
+    await Promise.all(this.workers.map(worker => worker.close()));
+    this.workers = [];
+  }
+
+  private async processJob(job: Job): Promise<void> {
+    const eventData = job.data;
+    const eventType = eventData.eventType;
+    
+    const handler = this.handlers.get(eventType);
+    if (!handler) {
+      console.warn(`No handler registered for event type: ${eventType}`);
+      return;
+    }
+
+    const event = this.reconstructEvent(eventData);
+    const result = await handler.handle(event);
+    
+    if (result.isErr()) {
+      throw result.error;
+    }
   }
 
   private reconstructEvent(eventData: any): IDomainEvent {
     if (eventData.eventType === 'CardAddedToLibraryEvent') {
-      // Reconstruct value objects
       const cardId = CardId.create(eventData.cardId).unwrap();
       const curatorId = CuratorId.create(eventData.curatorId).unwrap();
       
-      const event = new CardAddedToLibraryEvent(
-        cardId,
-        curatorId,
-        eventData.cardType,
-        eventData.url,
-        eventData.title
-      );
-      
-      // Restore original timestamp
+      const event = new CardAddedToLibraryEvent(cardId, curatorId);
       (event as any).dateTimeOccurred = new Date(eventData.dateTimeOccurred);
       
       return event;
@@ -286,52 +356,190 @@ export class BullMQEventWorker {
 }
 ```
 
-## Event Processing Patterns
+## Use Case Implementation
 
-### 1. Dual Processing (Recommended)
-
-Process events both locally and distributed for optimal consistency:
+Use cases orchestrate domain logic and event publishing through dependency injection:
 
 ```typescript
-registerAllHandlers(): void {
-  // Local processing for immediate consistency
-  DomainEvents.register(
-    (event: CardAddedToLibraryEvent) => 
-      this.feedsHandler.handle(event), // Immediate
-    CardAddedToLibraryEvent.name,
-  );
+// src/modules/cards/application/use-cases/AddCardToLibraryUseCase.ts
+import { BaseUseCase } from '../../../../shared/application/BaseUseCase';
+import { UseCase } from '../../../../shared/core/UseCase';
+import { Result, ok, err } from '../../../../shared/core/Result';
+import { IEventPublisher } from '../../../../shared/application/events/IEventPublisher';
+import { ICardRepository } from '../../domain/ICardRepository';
+import { CardId } from '../../domain/value-objects/CardId';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
 
-  // Distributed processing for cross-instance features
-  DomainEvents.register(
-    async (event: CardAddedToLibraryEvent) => 
-      await this.eventPublisher.publish(event), // Queued
-    CardAddedToLibraryEvent.name,
-  );
+interface AddCardToLibraryRequest {
+  cardId: string;
+  userId: string;
+}
+
+export class AddCardToLibraryUseCase 
+  extends BaseUseCase 
+  implements UseCase<AddCardToLibraryRequest, Result<void>> {
+  
+  constructor(
+    private cardRepository: ICardRepository,
+    eventPublisher: IEventPublisher, // Interface injected
+  ) {
+    super(eventPublisher);
+  }
+
+  async execute(request: AddCardToLibraryRequest): Promise<Result<void>> {
+    // 1. Get the card
+    const cardResult = await this.cardRepository.findById(
+      CardId.create(request.cardId).unwrap()
+    );
+    if (cardResult.isErr()) {
+      return err(cardResult.error);
+    }
+
+    const card = cardResult.value;
+    if (!card) {
+      return err(new Error('Card not found'));
+    }
+
+    // 2. Execute domain logic (adds events to aggregate)
+    const curatorId = CuratorId.create(request.userId).unwrap();
+    const addResult = card.addToLibrary(curatorId);
+    if (addResult.isErr()) {
+      return err(addResult.error);
+    }
+
+    // 3. Save to repository
+    const saveResult = await this.cardRepository.save(card);
+    if (saveResult.isErr()) {
+      return err(saveResult.error);
+    }
+
+    // 4. Publish events after successful save
+    const publishResult = await this.publishEventsForAggregate(card);
+    if (publishResult.isErr()) {
+      console.error('Failed to publish events:', publishResult.error);
+      // Don't fail the operation if event publishing fails
+    }
+
+    return ok(undefined);
+  }
 }
 ```
 
-### 2. Event Sourcing Compatibility
+## Event Handler Implementation
 
-The distributed system is compatible with event sourcing if you add it later:
+Event handlers implement the application interface and contain business logic:
 
 ```typescript
-// Future: Event store integration
-DomainEvents.register(
-  async (event: CardAddedToLibraryEvent) => {
-    // Store for audit/replay
-    await this.eventStore.append(event);
-    // Publish for processing
-    await this.eventPublisher.publish(event);
-  },
-  CardAddedToLibraryEvent.name,
-);
+// src/modules/notifications/application/eventHandlers/CardAddedToLibraryEventHandler.ts
+import { IEventHandler } from '../../../../shared/application/events/IEventSubscriber';
+import { CardAddedToLibraryEvent } from '../../../cards/domain/events/CardAddedToLibraryEvent';
+import { INotificationService } from '../ports/INotificationService';
+import { Result } from '../../../../shared/core/Result';
+
+export class CardAddedToLibraryEventHandler 
+  implements IEventHandler<CardAddedToLibraryEvent> {
+  
+  constructor(private notificationService: INotificationService) {}
+
+  async handle(event: CardAddedToLibraryEvent): Promise<Result<void>> {
+    return await this.notificationService.processCardAddedToLibrary(event);
+  }
+}
+```
+
+## Dependency Injection and Service Factory
+
+The service factory wires up concrete implementations:
+
+```typescript
+// src/shared/infrastructure/ServiceFactory.ts
+import { IEventPublisher } from '../application/events/IEventPublisher';
+import { IEventSubscriber } from '../application/events/IEventSubscriber';
+import { BullMQEventPublisher } from './events/BullMQEventPublisher';
+import { BullMQEventSubscriber } from './events/BullMQEventSubscriber';
+import { AddCardToLibraryUseCase } from '../../modules/cards/application/use-cases/AddCardToLibraryUseCase';
+import { CardAddedToLibraryEventHandler as NotificationHandler } from '../../modules/notifications/application/eventHandlers/CardAddedToLibraryEventHandler';
+import { CardAddedToLibraryEventHandler as FeedHandler } from '../../modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler';
+
+export class ServiceFactory {
+  static create(
+    configService: EnvironmentConfigService,
+    repositories: Repositories,
+  ): Services {
+    // Infrastructure - Redis connection
+    const redisConnection = createRedisConnection();
+
+    // Infrastructure - Event publisher implementation
+    const eventPublisher: IEventPublisher = new BullMQEventPublisher(redisConnection);
+
+    // Infrastructure - Event subscriber implementation
+    const eventSubscriber: IEventSubscriber = new BullMQEventSubscriber(redisConnection);
+
+    // Application - Use cases with injected interfaces
+    const addCardToLibraryUseCase = new AddCardToLibraryUseCase(
+      repositories.cardRepository,
+      eventPublisher, // Interface injected
+    );
+
+    // Application - Event handlers
+    const notificationHandler = new NotificationHandler(notificationService);
+    const feedHandler = new FeedHandler(feedService);
+
+    // Register event handlers with subscriber
+    eventSubscriber.subscribe('CardAddedToLibraryEvent', notificationHandler);
+    eventSubscriber.subscribe('CardAddedToLibraryEvent', feedHandler);
+
+    return {
+      // Use cases
+      addCardToLibraryUseCase,
+      
+      // Event system
+      eventPublisher,
+      eventSubscriber,
+      
+      // Event handlers
+      notificationHandler,
+      feedHandler,
+    };
+  }
+}
+```
+
+## Worker Process Setup
+
+Workers are separate processes that run the event subscriber:
+
+```typescript
+// src/workers/notification-worker.ts
+import { ServiceFactory } from '../shared/infrastructure/ServiceFactory';
+import { EnvironmentConfigService } from '../shared/infrastructure/config/EnvironmentConfigService';
+
+async function startNotificationWorker() {
+  const configService = new EnvironmentConfigService();
+  const repositories = createRepositories(configService);
+  const services = ServiceFactory.create(configService, repositories);
+
+  // Start the event subscriber
+  await services.eventSubscriber.start();
+  
+  console.log('Notification worker started');
+
+  // Graceful shutdown
+  process.on('SIGTERM', async () => {
+    console.log('Shutting down notification worker...');
+    await services.eventSubscriber.stop();
+    process.exit(0);
+  });
+}
+
+startNotificationWorker().catch(console.error);
 ```
 
 ## Testing Strategy
 
 ### 1. Domain Tests (Unchanged)
 
-Your domain tests continue to work without modification:
+Domain tests remain pure and don't need infrastructure:
 
 ```typescript
 describe('Card', () => {
@@ -347,72 +555,184 @@ describe('Card', () => {
 });
 ```
 
-### 2. Integration Tests (New)
+### 2. Use Case Tests (Mock Interfaces)
 
-Add tests for the distributed infrastructure:
+Use case tests mock the application interfaces:
 
 ```typescript
-describe('DistributedEventHandlerRegistry', () => {
-  it('should publish events to BullMQ and process locally', async () => {
-    const mockPublisher = { publish: jest.fn() };
-    const registry = new DistributedEventHandlerRegistry(
-      feedsHandler,
-      notificationsHandler,
-      mockPublisher
+describe('AddCardToLibraryUseCase', () => {
+  it('should publish events after successful save', async () => {
+    const mockEventPublisher: IEventPublisher = {
+      publishEvents: jest.fn().mockResolvedValue(ok(undefined)),
+    };
+    
+    const mockCardRepository: ICardRepository = {
+      findById: jest.fn().mockResolvedValue(ok(mockCard)),
+      save: jest.fn().mockResolvedValue(ok(undefined)),
+    };
+
+    const useCase = new AddCardToLibraryUseCase(
+      mockCardRepository,
+      mockEventPublisher,
     );
 
-    registry.registerAllHandlers();
-    
-    const event = new CardAddedToLibraryEvent(cardId, userId, CardTypeEnum.URL);
-    DomainEvents.dispatch(event);
+    const result = await useCase.execute({
+      cardId: 'card-123',
+      userId: 'user-456',
+    });
 
-    expect(mockPublisher.publish).toHaveBeenCalledWith(event);
+    expect(result.isOk()).toBe(true);
+    expect(mockEventPublisher.publishEvents).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.any(CardAddedToLibraryEvent)
+      ])
+    );
+  });
+});
+```
+
+### 3. Integration Tests (Real Infrastructure)
+
+Integration tests use real implementations:
+
+```typescript
+describe('BullMQ Event System Integration', () => {
+  let eventPublisher: BullMQEventPublisher;
+  let eventSubscriber: BullMQEventSubscriber;
+  let redis: Redis;
+
+  beforeEach(async () => {
+    redis = new Redis(process.env.TEST_REDIS_URL);
+    eventPublisher = new BullMQEventPublisher(redis);
+    eventSubscriber = new BullMQEventSubscriber(redis);
+  });
+
+  it('should publish and process events end-to-end', async () => {
+    const mockHandler: IEventHandler<CardAddedToLibraryEvent> = {
+      handle: jest.fn().mockResolvedValue(ok(undefined)),
+    };
+
+    await eventSubscriber.subscribe('CardAddedToLibraryEvent', mockHandler);
+    await eventSubscriber.start();
+
+    const event = new CardAddedToLibraryEvent(cardId, userId);
+    await eventPublisher.publishEvents([event]);
+
+    // Wait for processing
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    expect(mockHandler.handle).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cardId: expect.any(CardId),
+        curatorId: expect.any(CuratorId),
+      })
+    );
+
+    await eventSubscriber.stop();
   });
 });
 ```
 
 ## Migration Strategy
 
-### Phase 1: Add Infrastructure (No Domain Changes)
-1. Install BullMQ dependencies
-2. Create `BullMQEventPublisher`
-3. Create `DistributedEventHandlerRegistry`
-4. Deploy with Redis
+### Phase 1: Create Application Interfaces
+1. Define `IEventPublisher` and `IEventSubscriber` interfaces
+2. Create `BaseUseCase` with event publishing logic
+3. No changes to domain or existing infrastructure
 
-### Phase 2: Switch Registry (No Domain Changes)
-1. Update `ServiceFactory` to use `DistributedEventHandlerRegistry`
-2. Deploy workers
-3. Monitor dual processing
+### Phase 2: Implement Infrastructure
+1. Create `BullMQEventPublisher` and `BullMQEventSubscriber`
+2. Update `ServiceFactory` to inject concrete implementations
+3. Deploy with Redis infrastructure
 
-### Phase 3: Optimize (No Domain Changes)
-1. Fine-tune queue configurations
-2. Add monitoring and metrics
+### Phase 3: Update Use Cases
+1. Extend use cases from `BaseUseCase`
+2. Inject `IEventPublisher` through constructor
+3. Replace direct event handling with publishing
+
+### Phase 4: Deploy Workers
+1. Create worker processes using `IEventSubscriber`
+2. Register event handlers with subscriber
 3. Scale workers based on load
 
 ## Key Benefits of This Approach
 
-### 1. **Domain Purity Maintained**
-- No distributed system concerns leak into domain
-- Easy to test domain logic in isolation
-- Can switch infrastructure without domain changes
+### 1. **Clean Architecture Compliance**
+- Clear separation of concerns across layers
+- Dependency inversion principle followed
+- Interfaces defined in application layer
 
-### 2. **Gradual Migration**
-- Can deploy distributed system alongside existing local processing
-- Rollback is simple (just switch registry back)
-- No big-bang deployment required
+### 2. **Testability**
+- Easy to mock interfaces for unit tests
+- Domain tests remain pure and fast
+- Integration tests can use real implementations
 
-### 3. **Operational Flexibility**
-- Can process some events locally, others distributed
-- Can add event sourcing later without domain changes
-- Can switch from BullMQ to other systems if needed
+### 3. **Flexibility**
+- Can switch from BullMQ to other queue systems
+- Can add multiple publishers (e.g., event store + queue)
+- Easy to add new event types and handlers
 
-### 4. **Performance Options**
-- Immediate local processing for critical paths
-- Distributed processing for cross-instance features
-- Can optimize each processing path independently
+### 4. **Maintainability**
+- Clear contracts between layers
+- Infrastructure changes don't affect application logic
+- Easy to understand and debug
+
+### 5. **Scalability**
+- Publishers and subscribers can scale independently
+- Different queue configurations per event type
+- Workers can be deployed across multiple regions
+
+## Alternative Implementations
+
+The interface-based approach allows for easy swapping of implementations:
+
+```typescript
+// Alternative: In-memory publisher for testing
+export class InMemoryEventPublisher implements IEventPublisher {
+  public publishedEvents: IDomainEvent[] = [];
+
+  async publishEvents(events: IDomainEvent[]): Promise<Result<void>> {
+    this.publishedEvents.push(...events);
+    return ok(undefined);
+  }
+}
+
+// Alternative: Event store publisher for audit
+export class EventStorePublisher implements IEventPublisher {
+  constructor(private eventStore: IEventStore) {}
+
+  async publishEvents(events: IDomainEvent[]): Promise<Result<void>> {
+    for (const event of events) {
+      await this.eventStore.append(event);
+    }
+    return ok(undefined);
+  }
+}
+
+// Composite publisher for multiple destinations
+export class CompositeEventPublisher implements IEventPublisher {
+  constructor(private publishers: IEventPublisher[]) {}
+
+  async publishEvents(events: IDomainEvent[]): Promise<Result<void>> {
+    for (const publisher of this.publishers) {
+      const result = await publisher.publishEvents(events);
+      if (result.isErr()) {
+        return result;
+      }
+    }
+    return ok(undefined);
+  }
+}
+```
 
 ## Conclusion
 
-The distributed event system is purely an infrastructure concern. Your domain model remains clean and focused on business logic, while the infrastructure layer handles the complexity of distributed processing. This maintains the core DDD principle of keeping the domain pure while enabling the scalability you need for social features.
+This clean architecture approach provides:
 
-The key insight is that **events are still events** - whether they're processed in-memory or through a distributed queue doesn't change their fundamental nature or the domain logic that creates them.
+- **Domain Purity**: Domain layer has zero infrastructure dependencies
+- **Clear Contracts**: Interfaces define exactly what each layer needs
+- **Flexibility**: Easy to swap implementations or add new ones
+- **Testability**: Mock interfaces for fast, reliable tests
+- **Scalability**: Infrastructure can scale independently
+
+The key insight is that **clean architecture principles apply to event systems too** - define interfaces in the application layer, implement them in infrastructure, and inject them through constructors. This creates a maintainable, testable, and flexible event-driven system.

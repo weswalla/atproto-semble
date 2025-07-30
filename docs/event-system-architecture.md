@@ -402,3 +402,22 @@ it('should track analytics when card is added to library', async () => {
    - Update analytics
    - Remove from search index
    - Clean up recommendations
+
+## useful context
+
+```
+docs/event-system-architecture.md
+docs/features/GUIDE.md
+src/modules/cards/application/useCases/commands/AddUrlToLibraryUseCase.ts
+src/modules/cards/domain/Card.ts
+src/modules/cards/domain/events/CardAddedToLibraryEvent.ts
+src/modules/cards/infrastructure/http/controllers/AddUrlToLibraryController.ts
+src/modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler.ts
+src/modules/feeds/application/ports/IFeedService.ts
+src/modules/notifications/application/eventHandlers/CardAddedToLibraryEventHandler.ts
+src/modules/notifications/application/ports/INotificationService.ts
+src/shared/domain/AggregateRoot.ts
+src/shared/domain/events/DomainEvents.ts
+src/shared/domain/events/IDomainEvent.ts
+src/shared/infrastructure/events/EventHandlerRegistry.ts
+```

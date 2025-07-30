@@ -347,15 +347,19 @@ fly redis status myapp-redis
 fly redis connect myapp-redis
 ```
 
-#### Configure fly.toml
+#### Configure fly.toml for Worker Processes
+
+Fly.io supports multiple process types in a single app. Here's how to configure your `fly.toml` to run both web servers and worker processes:
 
 ```toml
 # fly.toml
 app = "myapp"
+primary_region = "sea"
 
 [build]
   dockerfile = "Dockerfile"
 
+# Define different process types
 [processes]
   web = "npm start"
   notification-worker = "npm run worker:notifications"
@@ -364,36 +368,67 @@ app = "myapp"
 [env]
   NODE_ENV = "production"
   # Redis URL will be automatically set by Fly when you attach the Redis database
-  # You can also set it manually if needed:
-  # REDIS_URL = "redis://default:password@fly-myapp-redis.upstash.io:6379"
 
-[[services]]
-  internal_port = 8080
-  protocol = "tcp"
-  
-  [[services.ports]]
-    port = 80
-    handlers = ["http"]
-  
-  [[services.ports]]
-    port = 443
-    handlers = ["http", "tls"]
+# HTTP service configuration - ONLY applies to web processes
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['web']  # Only web processes handle HTTP traffic
+
+# Default VM configuration for all processes
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+# Override VM settings for specific process types
+[[vm]]
+  processes = ['notification-worker']
+  memory = '512mb'  # Workers typically need less memory
+  cpu_kind = 'shared'
+  cpus = 1
+
+[[vm]]
+  processes = ['feed-worker']
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
 
 [deploy]
   strategy = "rolling"
 ```
 
-#### Create Worker Scripts
+**Key Configuration Points:**
+
+1. **Process Types**: Define each worker as a separate process type
+2. **HTTP Service**: Only applies to web processes (workers don't need HTTP)
+3. **VM Configuration**: Can be customized per process type
+4. **Auto-scaling**: Workers can have different scaling rules than web processes
+
+#### Update package.json Scripts
+
+Add worker scripts to your `package.json`:
 
 ```json
 // package.json
 {
   "scripts": {
+    "start": "node dist/index.js",
     "worker:notifications": "node dist/workers/notification-worker.js",
-    "worker:feeds": "node dist/workers/feed-worker.js"
+    "worker:feeds": "node dist/workers/feed-worker.js",
+    "build": "tsup",
+    "dev": "concurrently \"tsc --watch\" \"nodemon dist/index.js\""
   }
 }
 ```
+
+**Important Notes:**
+- Workers and web processes use the same build output (`dist/`)
+- All processes are built together with `npm run build`
+- Each process type runs a different entry point
 
 ```typescript
 // src/workers/notification-worker.ts
@@ -570,69 +605,214 @@ fly regions add notification-worker fra ord
 fly regions add feed-worker fra ord
 ```
 
-### Deployment Process Differences
+### Understanding Fly.io Worker Deployment
 
-#### Web Process Deployment
-- **Trigger**: `fly deploy` command
-- **Process**: Standard web server deployment
-- **Dependencies**: Database, Redis (for publishing)
-- **Health Check**: HTTP endpoint availability
-- **Scaling**: Based on HTTP traffic
+#### How Fly.io Handles Multiple Process Types
 
-#### Worker Process Deployment
-- **Trigger**: Same `fly deploy` command (different process type)
-- **Process**: Long-running background process
-- **Dependencies**: Redis (for consuming), Database, External APIs
-- **Health Check**: Process running + Redis connectivity
-- **Scaling**: Based on queue depth and processing time
+**Single App, Multiple Process Types:**
+- All processes (web, workers) are part of the same Fly app
+- They share the same Docker image and environment variables
+- Each process type can be scaled independently
+- Workers run as long-lived background processes
 
-#### Key Deployment Considerations
+**Deployment Flow:**
+1. `fly deploy` builds one Docker image
+2. Fly creates different machine types based on `[processes]` config
+3. Each machine runs the specified command for its process type
+4. HTTP service only applies to processes listed in `[http_service].processes`
 
-1. **Redis Must Be Available First**
+#### Process Type Differences
+
+| Aspect | Web Process | Worker Processes |
+|--------|-------------|------------------|
+| **Command** | `npm start` | `npm run worker:notifications` |
+| **HTTP Traffic** | ✅ Receives HTTP requests | ❌ No HTTP traffic |
+| **Load Balancer** | ✅ Behind Fly proxy | ❌ Direct process |
+| **Health Checks** | HTTP endpoint | Process running |
+| **Scaling Trigger** | HTTP traffic | Queue depth |
+| **Auto-stop** | Can auto-stop when idle | Should run continuously |
+| **Regions** | Scale based on user traffic | Scale based on workload |
+
+#### Worker-Specific Configuration
+
+**Prevent Auto-stopping Workers:**
+```toml
+# In fly.toml - workers should not auto-stop
+[http_service]
+  auto_stop_machines = 'stop'
+  processes = ['web']  # Only web processes auto-stop
+
+# Or disable auto-stop entirely for workers
+[[vm]]
+  processes = ['notification-worker', 'feed-worker']
+  auto_stop_machines = false
+```
+
+**Worker Health Monitoring:**
+```bash
+# Workers don't have HTTP health checks
+# Monitor via logs and process status
+fly logs --process notification-worker --follow
+
+# Check if worker processes are running
+fly ps | grep worker
+
+# SSH into worker for debugging
+fly ssh console --process notification-worker
+```
+
+#### Environment Variables and Secrets
+
+**Shared Environment:**
+- All process types share the same environment variables
+- Redis URL, database URL, etc. are available to all processes
+- Secrets are shared across all process types
+
+```bash
+# Set environment variables for all processes
+fly secrets set DATABASE_URL="postgresql://..."
+fly secrets set REDIS_URL="redis://..."
+
+# Check environment in worker
+fly ssh console --process notification-worker
+env | grep REDIS_URL
+```
+
+#### Deployment Dependencies and Order
+
+**Critical Deployment Order:**
+1. **Redis First**: Must exist before workers can start
+2. **Database**: Must be accessible to both web and workers  
+3. **Deploy**: All processes deploy together
+4. **Scale**: Scale workers after successful deployment
+
+```bash
+# 1. Ensure Redis exists
+fly redis status myapp-redis || fly redis create --name myapp-redis
+
+# 2. Ensure Redis is attached
+fly redis attach myapp-redis
+
+# 3. Deploy all processes
+fly deploy
+
+# 4. Verify all process types started
+fly ps
+
+# 5. Scale workers as needed
+fly scale count notification-worker=2 feed-worker=3
+```
+
+**Common Deployment Issues:**
+
+1. **Workers Exit Immediately**
    ```bash
-   # Redis must be created and attached before deploying workers
-   fly redis create --name myapp-redis
-   fly redis attach myapp-redis
-   # Then deploy
-   fly deploy
-   ```
-
-2. **Worker Dependencies**
-   - Workers need access to the same database as web processes
-   - Workers need Redis connectivity for job consumption
-   - Workers may need external API access (notifications, etc.)
-
-3. **Environment Variables**
-   ```bash
-   # Check that workers have access to required env vars
-   fly ssh console --process notification-worker
-   echo $REDIS_URL
-   echo $DATABASE_URL
-   ```
-
-4. **Process Health Monitoring**
-   ```bash
-   # Monitor worker processes
+   # Check worker logs for startup errors
    fly logs --process notification-worker
-   fly logs --process feed-worker
    
-   # Check process status
-   fly status
+   # Common causes:
+   # - Missing REDIS_URL
+   # - Redis connection failed
+   # - Missing dependencies in package.json
    ```
 
-### Scaling Guidelines
+2. **Workers Can't Connect to Redis**
+   ```bash
+   # Verify Redis attachment
+   fly redis status myapp-redis
+   
+   # Test Redis connection from worker
+   fly ssh console --process notification-worker
+   node -e "const Redis = require('ioredis'); const r = new Redis(process.env.REDIS_URL); r.ping().then(console.log)"
+   ```
 
-**For Notifications (External API calls):**
-- Start with 2-3 workers
-- Lower concurrency (5-10 jobs per worker)
-- Monitor external API rate limits
-- Scale based on queue depth and processing time
+3. **Workers Not Processing Jobs**
+   ```bash
+   # Check if jobs are being queued
+   fly redis connect myapp-redis
+   > KEYS *
+   > LLEN bull:notifications:waiting
+   
+   # Check worker logs for processing
+   fly logs --process notification-worker --follow
+   ```
 
-**For Feeds (Database operations):**
-- Start with 3-5 workers
-- Higher concurrency (10-20 jobs per worker)
-- Scale based on database performance
-- Monitor for database connection limits
+### Worker Scaling Guidelines
+
+#### Notification Workers (External API Calls)
+```bash
+# Conservative scaling for external APIs
+fly scale count notification-worker=2 --region ord
+fly scale count notification-worker=1 --region fra
+
+# Monitor and adjust based on:
+# - External API rate limits
+# - Queue depth
+# - Processing time
+```
+
+**Configuration:**
+- **Concurrency**: 5-10 jobs per worker (respect API limits)
+- **Regions**: 2-3 regions max (avoid hitting API limits from too many IPs)
+- **Memory**: 512MB usually sufficient
+- **Scaling Trigger**: Queue depth > 100 jobs
+
+#### Feed Workers (Database Operations)
+```bash
+# More aggressive scaling for database operations
+fly scale count feed-worker=3 --region ord
+fly scale count feed-worker=2 --region fra
+
+# Scale based on:
+# - Database connection limits
+# - Queue processing speed
+# - Regional user distribution
+```
+
+**Configuration:**
+- **Concurrency**: 10-20 jobs per worker (database can handle more)
+- **Regions**: Match your user distribution
+- **Memory**: 512MB-1GB depending on data processing
+- **Scaling Trigger**: Queue depth > 50 jobs
+
+#### Scaling Commands Reference
+
+```bash
+# View current scaling
+fly scale show
+
+# Scale specific process types
+fly scale count web=2 notification-worker=2 feed-worker=3
+
+# Scale to specific regions
+fly scale count notification-worker=1 --region ord
+fly scale count notification-worker=1 --region fra
+
+# Scale with memory adjustments
+fly scale memory 1gb --process feed-worker
+fly scale memory 512mb --process notification-worker
+
+# Auto-scaling (if using Fly's auto-scaling features)
+fly autoscale set min=1 max=5 --process notification-worker
+fly autoscale set min=2 max=8 --process feed-worker
+```
+
+#### Monitoring Scaling Effectiveness
+
+```bash
+# Monitor queue depths
+fly redis connect myapp-redis
+> LLEN bull:notifications:waiting
+> LLEN bull:feeds:waiting
+
+# Monitor worker performance
+fly logs --process notification-worker | grep "Job.*completed"
+fly logs --process feed-worker | grep "processing time"
+
+# Check resource usage
+fly metrics --process notification-worker
+fly metrics --process feed-worker
+```
 
 ### Monitoring and Observability
 
@@ -833,43 +1013,154 @@ fly ssh console --app myapp
 > npm run queue:status
 ```
 
-## Next Steps
+## Complete Deployment Checklist
 
-1. **Deploy Redis**: Set up your Upstash Redis database via Fly
+### Phase 1: Infrastructure Setup
+
+1. **Create Redis Database**
    ```bash
    fly redis create --name myapp-redis --region ord --replica-regions fra,iad
    fly redis attach myapp-redis
+   fly redis status myapp-redis  # Verify creation
    ```
 
-2. **Implement Publisher**: Add BullMQ event publisher to your service factory
+2. **Update Application Configuration**
+   - ✅ Add worker processes to `fly.toml`
+   - ✅ Add worker scripts to `package.json`
+   - ✅ Configure HTTP service for web processes only
+   - ✅ Set appropriate VM resources for workers
 
-3. **Create Workers**: Deploy notification and feed workers
+### Phase 2: Code Implementation
 
-4. **Test Integration**: Verify events flow from domain to workers
+3. **Implement Event System**
+   - ✅ Create `BullMQEventPublisher`
+   - ✅ Create `BullMQEventSubscriber`
+   - ✅ Update service factory to use distributed events
+   - ✅ Create worker entry points
+
+4. **Create Worker Files**
    ```bash
-   # Test Redis connection
-   fly redis connect myapp-redis
+   # Ensure these files exist:
+   ls src/workers/notification-worker.ts
+   ls src/workers/feed-worker.ts
+   ```
+
+### Phase 3: Deployment
+
+5. **Deploy Application**
+   ```bash
+   # Build and deploy all processes
+   fly deploy
    
-   # Monitor worker logs
+   # Verify all process types are running
+   fly ps
+   fly status
+   ```
+
+6. **Verify Worker Startup**
+   ```bash
+   # Check worker logs for successful startup
    fly logs --process notification-worker
+   fly logs --process feed-worker
+   
+   # Look for these messages:
+   # "Connected to Redis successfully"
+   # "Worker started and listening for events..."
    ```
 
-5. **Monitor Performance**: Set up dashboards and alerts
+### Phase 4: Testing and Scaling
+
+7. **Test Event Flow**
    ```bash
-   # Check Redis metrics
-   fly redis status myapp-redis
+   # Test Redis connection from workers
+   fly ssh console --process notification-worker
+   node -e "const Redis = require('ioredis'); const r = new Redis(process.env.REDIS_URL); r.ping().then(console.log)"
    
-   # View Redis dashboard
+   # Monitor Redis for job activity
+   fly redis connect myapp-redis
+   > MONITOR
+   ```
+
+8. **Scale Workers Based on Load**
+   ```bash
+   # Start conservative
+   fly scale count notification-worker=1 feed-worker=2
+   
+   # Monitor and scale up as needed
+   fly scale count notification-worker=2 feed-worker=3
+   
+   # Add regional distribution
+   fly scale count notification-worker=1 --region ord
+   fly scale count notification-worker=1 --region fra
+   ```
+
+### Phase 5: Monitoring and Optimization
+
+9. **Set Up Monitoring**
+   ```bash
+   # Monitor worker health
+   fly logs --process notification-worker --follow
+   fly logs --process feed-worker --follow
+   
+   # Check Redis performance
+   fly redis status myapp-redis
    fly redis dashboard myapp-redis
    ```
 
-6. **Scale Gradually**: Start with minimal workers and scale based on load
-   ```bash
-   # Scale Redis if needed
-   fly redis update myapp-redis --plan <higher-tier-plan>
-   
-   # Scale workers
-   fly scale count notification-worker=5 feed-worker=8
-   ```
+10. **Performance Optimization**
+    ```bash
+    # Monitor queue depths
+    fly redis connect myapp-redis
+    > LLEN bull:notifications:waiting
+    > LLEN bull:feeds:waiting
+    
+    # Adjust scaling based on metrics
+    fly scale count notification-worker=3  # If queue depth consistently high
+    fly scale memory 1gb --process feed-worker  # If memory usage high
+    ```
 
-This implementation provides a robust, scalable foundation for handling high-frequency social events while maintaining the clean architecture principles of your DDD system.
+### Troubleshooting Common Issues
+
+**Workers Not Starting:**
+```bash
+# Check for missing dependencies
+fly logs --process notification-worker | grep "Error"
+
+# Verify Redis connection
+fly ssh console --process notification-worker
+echo $REDIS_URL
+```
+
+**Jobs Not Processing:**
+```bash
+# Check if jobs are being queued
+fly redis connect myapp-redis
+> KEYS bull:*
+> LLEN bull:notifications:waiting
+
+# Verify worker registration
+fly logs --process notification-worker | grep "subscribe"
+```
+
+**High Memory Usage:**
+```bash
+# Monitor resource usage
+fly metrics --process notification-worker
+fly metrics --process feed-worker
+
+# Scale memory if needed
+fly scale memory 1gb --process feed-worker
+```
+
+### Production Readiness Checklist
+
+- ✅ Redis database with replicas in multiple regions
+- ✅ Worker processes configured in `fly.toml`
+- ✅ Environment variables properly set
+- ✅ Workers successfully connecting to Redis
+- ✅ Event handlers processing jobs
+- ✅ Monitoring and logging in place
+- ✅ Scaling strategy defined
+- ✅ Error handling and retry logic tested
+
+This comprehensive deployment guide ensures your distributed event system is properly configured and running on Fly.io with robust worker processes handling your social features at scale.

@@ -11,7 +11,6 @@ primary_region = 'sea'
 # Define different process types
 [processes]
   web = "npm start"
-  notification-worker = "npm run worker:notifications"
   feed-worker = "npm run worker:feeds"
 
 [http_service]
@@ -30,7 +29,7 @@ primary_region = 'sea'
 
 # Override VM settings for worker processes
 [[vm]]
-  processes = ['notification-worker', 'feed-worker']
+  processes = ['feed-worker']
   memory = '512mb'  # Workers typically need less memory
   cpu_kind = 'shared'
   cpus = 1

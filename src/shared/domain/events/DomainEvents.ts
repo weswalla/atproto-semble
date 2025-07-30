@@ -66,6 +66,19 @@ export class DomainEvents {
     }
   }
 
+  public static getEventsForAggregate(id: UniqueEntityID): IDomainEvent[] {
+    const aggregate = this.findMarkedAggregateByID(id);
+    return aggregate ? [...aggregate.domainEvents] : [];
+  }
+
+  public static clearEventsForAggregate(id: UniqueEntityID): void {
+    const aggregate = this.findMarkedAggregateByID(id);
+    if (aggregate) {
+      aggregate.clearEvents();
+      this.removeAggregateFromMarkedDispatchList(aggregate);
+    }
+  }
+
   public static register(
     callback: (event: IDomainEvent) => void,
     eventClassName: string,

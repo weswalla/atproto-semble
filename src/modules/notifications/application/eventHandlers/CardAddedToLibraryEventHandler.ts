@@ -1,10 +1,12 @@
 import { CardAddedToLibraryEvent } from '../../../cards/domain/events/CardAddedToLibraryEvent';
 import { INotificationService } from '../ports/INotificationService';
+import { IEventHandler } from '../../../../shared/application/events/IEventSubscriber';
+import { Result, ok, err } from '../../../../shared/core/Result';
 
-export class CardAddedToLibraryEventHandler {
+export class CardAddedToLibraryEventHandler implements IEventHandler<CardAddedToLibraryEvent> {
   constructor(private notificationService: INotificationService) {}
 
-  async handle(event: CardAddedToLibraryEvent): Promise<void> {
+  async handle(event: CardAddedToLibraryEvent): Promise<Result<void>> {
     try {
       const result = await this.notificationService.processCardAddedToLibrary(
         event,
@@ -15,12 +17,16 @@ export class CardAddedToLibraryEventHandler {
           'Error processing CardAddedToLibraryEvent in notifications:',
           result.error,
         );
+        return err(result.error);
       }
+
+      return ok(undefined);
     } catch (error) {
       console.error(
         'Unexpected error handling CardAddedToLibraryEvent in notifications:',
         error,
       );
+      return err(error as Error);
     }
   }
 }

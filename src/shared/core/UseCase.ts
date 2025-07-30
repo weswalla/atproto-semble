@@ -1,5 +1,4 @@
 import { IEventPublisher } from '../application/events/IEventPublisher';
-import { DomainEvents } from '../domain/events/DomainEvents';
 import { AggregateRoot } from '../domain/AggregateRoot';
 import { Result, ok } from './Result';
 
@@ -15,7 +14,7 @@ export abstract class BaseUseCase<IRequest, IResponse> implements UseCase<IReque
   protected async publishEventsForAggregate(
     aggregate: AggregateRoot<any>
   ): Promise<Result<void>> {
-    const events = DomainEvents.getEventsForAggregate(aggregate.id);
+    const events = aggregate.domainEvents;
     
     if (events.length === 0) {
       return ok(undefined);
@@ -24,7 +23,7 @@ export abstract class BaseUseCase<IRequest, IResponse> implements UseCase<IReque
     const publishResult = await this.eventPublisher.publishEvents(events);
     
     if (publishResult.isOk()) {
-      DomainEvents.clearEventsForAggregate(aggregate.id);
+      aggregate.clearEvents();
     }
     
     return publishResult;

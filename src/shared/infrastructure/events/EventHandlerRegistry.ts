@@ -1,4 +1,3 @@
-import { DomainEvents } from '../../domain/events/DomainEvents';
 import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
 import { IEventPublisher } from '../../application/events/IEventPublisher';
 
@@ -6,21 +5,14 @@ export class EventHandlerRegistry {
   constructor(private eventPublisher: IEventPublisher) {}
 
   registerAllHandlers(): void {
-    // Register distributed event publishing
-    DomainEvents.register(
-      async (event: CardAddedToLibraryEvent) => {
-        try {
-          await this.eventPublisher.publishEvents([event]);
-        } catch (error) {
-          console.error('Error publishing event to BullMQ:', error);
-          // Don't fail the main operation if event publishing fails
-        }
-      },
-      CardAddedToLibraryEvent.name,
-    );
+    // Note: With the simplified architecture, event handlers are now registered
+    // directly with the IEventSubscriber implementation (e.g., BullMQEventSubscriber)
+    // This class can be removed or repurposed for other event system setup
+    console.log('EventHandlerRegistry: Using simplified event architecture');
   }
 
   clearAllHandlers(): void {
-    DomainEvents.clearHandlers();
+    // No longer needed with simplified architecture
+    console.log('EventHandlerRegistry: No handlers to clear in simplified architecture');
   }
 }

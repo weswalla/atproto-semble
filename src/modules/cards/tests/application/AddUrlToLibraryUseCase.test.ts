@@ -9,6 +9,7 @@ import { CardCollectionService } from '../../domain/services/CardCollectionServi
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
+import { FakeEventPublisher } from '../utils/FakeEventPublisher';
 
 describe('AddUrlToLibraryUseCase', () => {
   let useCase: AddUrlToLibraryUseCase;
@@ -19,6 +20,7 @@ describe('AddUrlToLibraryUseCase', () => {
   let metadataService: FakeMetadataService;
   let cardLibraryService: CardLibraryService;
   let cardCollectionService: CardCollectionService;
+  let eventPublisher: FakeEventPublisher;
   let curatorId: CuratorId;
 
   beforeEach(() => {
@@ -27,6 +29,7 @@ describe('AddUrlToLibraryUseCase', () => {
     cardPublisher = new FakeCardPublisher();
     collectionPublisher = new FakeCollectionPublisher();
     metadataService = new FakeMetadataService();
+    eventPublisher = new FakeEventPublisher();
 
     cardLibraryService = new CardLibraryService(cardRepository, cardPublisher);
     cardCollectionService = new CardCollectionService(
@@ -39,6 +42,7 @@ describe('AddUrlToLibraryUseCase', () => {
       metadataService,
       cardLibraryService,
       cardCollectionService,
+      eventPublisher,
     );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
@@ -50,6 +54,7 @@ describe('AddUrlToLibraryUseCase', () => {
     cardPublisher.clear();
     collectionPublisher.clear();
     metadataService.clear();
+    eventPublisher.clear();
   });
 
   describe('Basic URL card creation', () => {

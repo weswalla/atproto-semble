@@ -36,6 +36,64 @@ Our current in-memory domain event system works well for single-instance deploym
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
+## Process Flow: How Events Get Triggered
+
+Understanding how events flow from HTTP requests to worker processes is crucial for debugging and scaling:
+
+### 1. Web Process (HTTP Request Triggered)
+
+```
+HTTP Request → Use Case → Domain Logic → Event Publishing → HTTP Response
+     ↓              ↓           ↓              ↓              ↓
+POST /cards    AddCardToLib  card.addTo()  publishEvents()  200 OK
+```
+
+**What happens:**
+- User makes HTTP request to your API
+- Express/Fastify routes to use case
+- Use case executes domain logic (adds domain events to aggregate)
+- Use case saves to database
+- Use case publishes events to Redis queue via `BullMQEventPublisher`
+- HTTP response returned immediately (don't wait for event processing)
+
+### 2. Redis Queue (Event Storage)
+
+```
+BullMQEventPublisher → Redis Queue → Job Storage
+        ↓                  ↓            ↓
+   Serialize Event    Store in Queue   Wait for Worker
+```
+
+**What happens:**
+- Events are serialized to JSON
+- Stored in Redis with retry/priority configuration
+- BullMQ manages job lifecycle, retries, and failure handling
+
+### 3. Worker Process (Polling Triggered)
+
+```
+Worker Polling → Job Found → Event Handler → Job Complete
+      ↓             ↓            ↓             ↓
+   redis.poll()  processJob()  handler.handle()  ack/nack
+```
+
+**What happens:**
+- Worker processes continuously poll Redis for new jobs
+- When job found, BullMQ calls your `processJob()` method
+- Event is reconstructed from serialized data
+- Your event handler is called with the reconstructed event
+- Job marked as complete or failed based on handler result
+
+### 4. Key Differences from Web Process
+
+| Aspect | Web Process | Worker Process |
+|--------|-------------|----------------|
+| **Trigger** | HTTP Request | Redis Job Available |
+| **Lifecycle** | Request/Response | Long-running polling |
+| **Scaling** | Scale with traffic | Scale with queue depth |
+| **Failure** | Return error to user | Retry job automatically |
+| **Dependencies** | Database, Redis | Database, External APIs |
+
 ## Implementation Guide
 
 ### Step 1: Install Dependencies
@@ -47,21 +105,33 @@ npm install --save-dev @types/ioredis
 
 ### Step 2: Infrastructure Layer - Event Publisher
 
-Create the BullMQ event publisher that integrates with your existing domain events:
+Create the BullMQ event publisher that implements the `IEventPublisher` interface:
 
 ```typescript
 // src/shared/infrastructure/events/BullMQEventPublisher.ts
-import { Queue, ConnectionOptions } from 'bullmq';
+import { Queue } from 'bullmq';
+import Redis from 'ioredis';
+import { IEventPublisher } from '../../application/events/IEventPublisher';
 import { IDomainEvent } from '../../domain/events/IDomainEvent';
-import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
+import { Result, ok, err } from '../../core/Result';
 
-export class BullMQEventPublisher {
+export class BullMQEventPublisher implements IEventPublisher {
   private queues: Map<string, Queue> = new Map();
 
-  constructor(private redisConnection: ConnectionOptions) {}
+  constructor(private redisConnection: Redis) {}
 
-  async publish(event: IDomainEvent): Promise<void> {
-    // Route different events to appropriate queues
+  async publishEvents(events: IDomainEvent[]): Promise<Result<void>> {
+    try {
+      for (const event of events) {
+        await this.publishSingleEvent(event);
+      }
+      return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  private async publishSingleEvent(event: IDomainEvent): Promise<void> {
     const queueConfig = this.getQueueConfig(event);
     
     if (!this.queues.has(queueConfig.name)) {
@@ -73,19 +143,22 @@ export class BullMQEventPublisher {
 
     const queue = this.queues.get(queueConfig.name)!;
     await queue.add(event.constructor.name, {
-      ...event,
+      eventType: event.constructor.name,
       aggregateId: event.getAggregateId().toString(),
       dateTimeOccurred: event.dateTimeOccurred.toISOString(),
+      // Serialize the event data
+      cardId: (event as any).cardId?.getValue?.()?.toString(),
+      curatorId: (event as any).curatorId?.value,
     });
   }
 
   private getQueueConfig(event: IDomainEvent) {
-    // Configure different queues for different event types
-    if (event instanceof CardAddedToLibraryEvent) {
+    // Route events to appropriate queues
+    if (event.constructor.name === 'CardAddedToLibraryEvent') {
       return {
         name: 'notifications',
         options: {
-          priority: 1, // High priority for notifications
+          priority: 1,
           attempts: 5,
           backoff: { type: 'exponential' as const, delay: 1000 },
           removeOnComplete: 100,
@@ -94,7 +167,6 @@ export class BullMQEventPublisher {
       };
     }
 
-    // Default queue configuration
     return {
       name: 'events',
       options: {
@@ -115,61 +187,49 @@ export class BullMQEventPublisher {
 }
 ```
 
-### Step 3: Infrastructure Layer - Event Workers
+### Step 3: Infrastructure Layer - Event Subscriber
 
-Create specialized workers for different types of event processing:
+Create the BullMQ event subscriber that implements the `IEventSubscriber` interface:
 
 ```typescript
-// src/shared/infrastructure/events/BullMQEventWorker.ts
+// src/shared/infrastructure/events/BullMQEventSubscriber.ts
 import { Worker, Job } from 'bullmq';
-import { ConnectionOptions } from 'ioredis';
+import Redis from 'ioredis';
+import { IEventSubscriber, IEventHandler } from '../../application/events/IEventSubscriber';
+import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
 import { CardId } from '../../../modules/cards/domain/value-objects/CardId';
 import { CuratorId } from '../../../modules/cards/domain/value-objects/CuratorId';
-import { CardTypeEnum } from '../../../modules/cards/domain/value-objects/CardType';
 
-export class BullMQEventWorker {
+export class BullMQEventSubscriber implements IEventSubscriber {
   private workers: Worker[] = [];
+  private handlers: Map<string, IEventHandler<any>> = new Map();
 
-  constructor(
-    private redisConnection: ConnectionOptions,
-    private notificationHandler: any, // Your notification event handler
-    private feedHandler: any, // Your feed event handler
-  ) {}
+  constructor(private redisConnection: Redis) {}
 
-  async startWorkers(): Promise<void> {
-    // Notification worker - high priority, lower concurrency for external API calls
-    const notificationWorker = new Worker(
-      'notifications',
-      async (job: Job) => {
-        await this.processNotificationEvent(job);
-      },
-      {
-        connection: this.redisConnection,
-        concurrency: 5, // Conservative for external API calls
-        limiter: {
-          max: 100, // Max 100 notifications per minute
-          duration: 60000,
+  async subscribe<T extends IDomainEvent>(
+    eventType: string,
+    handler: IEventHandler<T>
+  ): Promise<void> {
+    this.handlers.set(eventType, handler);
+  }
+
+  async start(): Promise<void> {
+    // Start workers for different queues
+    const queues = ['notifications', 'events'];
+    
+    for (const queueName of queues) {
+      const worker = new Worker(
+        queueName,
+        async (job: Job) => {
+          await this.processJob(job);
         },
-      }
-    );
+        {
+          connection: this.redisConnection,
+          concurrency: queueName === 'notifications' ? 5 : 15,
+        }
+      );
 
-    // Feed worker - lower priority, higher concurrency for DB operations
-    const feedWorker = new Worker(
-      'feeds',
-      async (job: Job) => {
-        await this.processFeedEvent(job);
-      },
-      {
-        connection: this.redisConnection,
-        concurrency: 15, // Higher concurrency for DB operations
-      }
-    );
-
-    this.workers.push(notificationWorker, feedWorker);
-
-    // Set up error handling
-    this.workers.forEach(worker => {
       worker.on('completed', (job) => {
         console.log(`Job ${job.id} completed successfully`);
       });
@@ -181,91 +241,69 @@ export class BullMQEventWorker {
       worker.on('error', (err) => {
         console.error('Worker error:', err);
       });
-    });
-  }
 
-  private async processNotificationEvent(job: Job): Promise<void> {
-    const eventData = job.data;
-    
-    // Reconstruct the domain event
-    const event = this.reconstructEvent(eventData);
-    
-    if (event instanceof CardAddedToLibraryEvent) {
-      await this.notificationHandler.handle(event);
+      this.workers.push(worker);
     }
   }
 
-  private async processFeedEvent(job: Job): Promise<void> {
+  async stop(): Promise<void> {
+    await Promise.all(this.workers.map(worker => worker.close()));
+    this.workers = [];
+  }
+
+  private async processJob(job: Job): Promise<void> {
     const eventData = job.data;
+    const eventType = eventData.eventType;
     
-    // Reconstruct the domain event
+    const handler = this.handlers.get(eventType);
+    if (!handler) {
+      console.warn(`No handler registered for event type: ${eventType}`);
+      return;
+    }
+
     const event = this.reconstructEvent(eventData);
+    const result = await handler.handle(event);
     
-    if (event instanceof CardAddedToLibraryEvent) {
-      await this.feedHandler.handle(event);
+    if (result.isErr()) {
+      throw result.error;
     }
   }
 
   private reconstructEvent(eventData: any): IDomainEvent {
-    // Reconstruct domain events from serialized data
-    if (eventData.constructor?.name === 'CardAddedToLibraryEvent' || 
-        eventData.eventType === 'CardAddedToLibraryEvent') {
+    if (eventData.eventType === 'CardAddedToLibraryEvent') {
+      const cardId = CardId.create(eventData.cardId).unwrap();
+      const curatorId = CuratorId.create(eventData.curatorId).unwrap();
       
-      const cardId = CardId.create(eventData.cardId.value).unwrap();
-      const curatorId = CuratorId.create(eventData.curatorId.value).unwrap();
-      
-      const event = new CardAddedToLibraryEvent(
-        cardId,
-        curatorId,
-        eventData.cardType,
-        eventData.url,
-        eventData.title
-      );
-      
-      // Restore original timestamp
+      const event = new CardAddedToLibraryEvent(cardId, curatorId);
       (event as any).dateTimeOccurred = new Date(eventData.dateTimeOccurred);
       
       return event;
     }
 
-    throw new Error(`Unknown event type: ${eventData.constructor?.name}`);
-  }
-
-  async close(): Promise<void> {
-    await Promise.all(this.workers.map(worker => worker.close()));
+    throw new Error(`Unknown event type: ${eventData.eventType}`);
   }
 }
 ```
 
 ### Step 4: Update Event Handler Registry
 
-Extend your existing registry to support distributed events:
+Update your existing registry to publish events to the distributed system:
 
 ```typescript
-// src/shared/infrastructure/events/DistributedEventHandlerRegistry.ts
-import { EventHandlerRegistry } from './EventHandlerRegistry';
+// src/shared/infrastructure/events/EventHandlerRegistry.ts
 import { DomainEvents } from '../../domain/events/DomainEvents';
 import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
-import { BullMQEventPublisher } from './BullMQEventPublisher';
+import { IEventPublisher } from '../../application/events/IEventPublisher';
 
-export class DistributedEventHandlerRegistry extends EventHandlerRegistry {
-  constructor(
-    feedsCardAddedToLibraryHandler: any,
-    notificationsCardAddedToLibraryHandler: any,
-    private eventPublisher: BullMQEventPublisher,
-  ) {
-    super(feedsCardAddedToLibraryHandler, notificationsCardAddedToLibraryHandler);
-  }
+export class EventHandlerRegistry {
+  constructor(private eventPublisher: IEventPublisher) {}
 
   registerAllHandlers(): void {
-    // Register local handlers (existing logic)
-    super.registerAllHandlers();
-
     // Register distributed event publishing
     DomainEvents.register(
       async (event: CardAddedToLibraryEvent) => {
         try {
-          await this.eventPublisher.publish(event);
+          await this.eventPublisher.publishEvents([event]);
         } catch (error) {
           console.error('Error publishing event to BullMQ:', error);
           // Don't fail the main operation if event publishing fails
@@ -273,6 +311,10 @@ export class DistributedEventHandlerRegistry extends EventHandlerRegistry {
       },
       CardAddedToLibraryEvent.name,
     );
+  }
+
+  clearAllHandlers(): void {
+    DomainEvents.clearHandlers();
   }
 }
 ```
@@ -355,39 +397,56 @@ app = "myapp"
 
 ```typescript
 // src/workers/notification-worker.ts
-import { BullMQEventWorker } from '../shared/infrastructure/events/BullMQEventWorker';
-import { ServiceFactory } from '../shared/infrastructure/ServiceFactory';
+import Redis from 'ioredis';
+import { BullMQEventSubscriber } from '../shared/infrastructure/events/BullMQEventSubscriber';
+import { CardAddedToLibraryEventHandler } from '../modules/notifications/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { EnvironmentConfigService } from '../shared/infrastructure/config/EnvironmentConfigService';
 
 async function startNotificationWorker() {
+  console.log('Starting notification worker...');
+  
   const configService = new EnvironmentConfigService();
   
-  // Use Fly Redis connection
+  // Connect to Redis
   const redisUrl = configService.get('REDIS_URL');
-  const redisConnection = redisUrl 
-    ? { connectionString: redisUrl }
-    : {
-        host: configService.get('REDIS_HOST') || 'localhost',
-        port: parseInt(configService.get('REDIS_PORT') || '6379'),
-        password: configService.get('REDIS_PASSWORD'),
-      };
+  if (!redisUrl) {
+    throw new Error('REDIS_URL environment variable is required');
+  }
   
-  const services = ServiceFactory.create(configService, {} as any);
-  
-  const worker = new BullMQEventWorker(
-    redisConnection,
-    services.notificationsCardAddedToLibraryHandler,
-    null // No feed handler for notification worker
-  );
+  const redis = new Redis(redisUrl, {
+    maxRetriesPerRequest: 3,
+    retryDelayOnFailover: 100,
+    lazyConnect: true,
+  });
 
-  await worker.startWorkers();
+  // Test Redis connection
+  try {
+    await redis.ping();
+    console.log('Connected to Redis successfully');
+  } catch (error) {
+    console.error('Failed to connect to Redis:', error);
+    process.exit(1);
+  }
   
-  console.log('Notification worker started');
+  // Create subscriber
+  const eventSubscriber = new BullMQEventSubscriber(redis);
+  
+  // Create event handlers (wire up your services here)
+  const notificationHandler = new CardAddedToLibraryEventHandler(notificationService);
+  
+  // Register handlers
+  await eventSubscriber.subscribe('CardAddedToLibraryEvent', notificationHandler);
+  
+  // Start the worker - THIS IS WHAT TRIGGERS YOUR HANDLERS!
+  await eventSubscriber.start();
+  
+  console.log('Notification worker started and listening for events...');
 
   // Graceful shutdown
   process.on('SIGTERM', async () => {
     console.log('Shutting down notification worker...');
-    await worker.close();
+    await eventSubscriber.stop();
+    await redis.quit();
     process.exit(0);
   });
 }
@@ -395,7 +454,7 @@ async function startNotificationWorker() {
 startNotificationWorker().catch(console.error);
 ```
 
-### Step 6: Service Factory Integration
+### Step 5: Service Factory Integration
 
 Update your service factory to use the distributed event system:
 
@@ -410,24 +469,21 @@ export class ServiceFactory {
 
     // Redis connection - Fly Redis provides a full connection URL
     const redisUrl = configService.get('REDIS_URL');
-    const redisConnection = redisUrl 
-      ? { connectionString: redisUrl }
-      : {
-          host: configService.get('REDIS_HOST') || 'localhost',
-          port: parseInt(configService.get('REDIS_PORT') || '6379'),
-          password: configService.get('REDIS_PASSWORD'),
-        };
+    if (!redisUrl) {
+      throw new Error('REDIS_URL environment variable is required');
+    }
+
+    const redis = new Redis(redisUrl, {
+      maxRetriesPerRequest: 3,
+      retryDelayOnFailover: 100,
+      lazyConnect: true,
+    });
 
     // Event publisher
-    const eventPublisher = new BullMQEventPublisher(redisConnection);
+    const eventPublisher = new BullMQEventPublisher(redis);
 
-    // Distributed event handler registry
-    const eventHandlerRegistry = new DistributedEventHandlerRegistry(
-      feedsCardAddedToLibraryHandler,
-      notificationsCardAddedToLibraryHandler,
-      eventPublisher,
-    );
-
+    // Event handler registry
+    const eventHandlerRegistry = new EventHandlerRegistry(eventPublisher);
     eventHandlerRegistry.registerAllHandlers();
 
     return {
@@ -435,6 +491,59 @@ export class ServiceFactory {
       eventHandlerRegistry,
       eventPublisher,
     };
+  }
+}
+```
+
+### Step 6: Create Use Cases with Event Publishing
+
+Update your use cases to extend `BaseUseCase` and publish events:
+
+```typescript
+// src/modules/cards/application/use-cases/AddCardToLibraryUseCase.ts
+import { BaseUseCase } from '../../../../shared/core/UseCase';
+import { Result, ok, err } from '../../../../shared/core/Result';
+import { IEventPublisher } from '../../../../shared/application/events/IEventPublisher';
+import { ICardRepository } from '../../domain/ICardRepository';
+
+interface AddCardToLibraryRequest {
+  cardId: string;
+  userId: string;
+}
+
+export class AddCardToLibraryUseCase extends BaseUseCase<AddCardToLibraryRequest, Result<void>> {
+  constructor(
+    private cardRepository: ICardRepository,
+    eventPublisher: IEventPublisher,
+  ) {
+    super(eventPublisher);
+  }
+
+  async execute(request: AddCardToLibraryRequest): Promise<Result<void>> {
+    // 1. Get the card
+    const cardResult = await this.cardRepository.findById(CardId.create(request.cardId).unwrap());
+    if (cardResult.isErr()) return err(cardResult.error);
+
+    const card = cardResult.value;
+    if (!card) return err(new Error('Card not found'));
+
+    // 2. Execute domain logic (adds events to aggregate)
+    const curatorId = CuratorId.create(request.userId).unwrap();
+    const addResult = card.addToLibrary(curatorId);
+    if (addResult.isErr()) return err(addResult.error);
+
+    // 3. Save to repository
+    const saveResult = await this.cardRepository.save(card);
+    if (saveResult.isErr()) return err(saveResult.error);
+
+    // 4. Publish events after successful save
+    const publishResult = await this.publishEventsForAggregate(card);
+    if (publishResult.isErr()) {
+      console.error('Failed to publish events:', publishResult.error);
+      // Don't fail the operation if event publishing fails
+    }
+
+    return ok(undefined);
   }
 }
 ```
@@ -460,6 +569,56 @@ fly scale count web=2 notification-worker=2 feed-worker=3
 fly regions add notification-worker fra ord
 fly regions add feed-worker fra ord
 ```
+
+### Deployment Process Differences
+
+#### Web Process Deployment
+- **Trigger**: `fly deploy` command
+- **Process**: Standard web server deployment
+- **Dependencies**: Database, Redis (for publishing)
+- **Health Check**: HTTP endpoint availability
+- **Scaling**: Based on HTTP traffic
+
+#### Worker Process Deployment
+- **Trigger**: Same `fly deploy` command (different process type)
+- **Process**: Long-running background process
+- **Dependencies**: Redis (for consuming), Database, External APIs
+- **Health Check**: Process running + Redis connectivity
+- **Scaling**: Based on queue depth and processing time
+
+#### Key Deployment Considerations
+
+1. **Redis Must Be Available First**
+   ```bash
+   # Redis must be created and attached before deploying workers
+   fly redis create --name myapp-redis
+   fly redis attach myapp-redis
+   # Then deploy
+   fly deploy
+   ```
+
+2. **Worker Dependencies**
+   - Workers need access to the same database as web processes
+   - Workers need Redis connectivity for job consumption
+   - Workers may need external API access (notifications, etc.)
+
+3. **Environment Variables**
+   ```bash
+   # Check that workers have access to required env vars
+   fly ssh console --process notification-worker
+   echo $REDIS_URL
+   echo $DATABASE_URL
+   ```
+
+4. **Process Health Monitoring**
+   ```bash
+   # Monitor worker processes
+   fly logs --process notification-worker
+   fly logs --process feed-worker
+   
+   # Check process status
+   fly status
+   ```
 
 ### Scaling Guidelines
 

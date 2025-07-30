@@ -1,25 +1,21 @@
 import { DomainEvents } from '../../domain/events/DomainEvents';
 import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
-import { CardAddedToLibraryEventHandler as FeedsCardAddedToLibraryEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler';
-import { CardAddedToLibraryEventHandler as NotificationsCardAddedToLibraryEventHandler } from '../../../modules/notifications/application/eventHandlers/CardAddedToLibraryEventHandler';
+import { IEventPublisher } from '../../application/events/IEventPublisher';
 
 export class EventHandlerRegistry {
-  constructor(
-    private feedsCardAddedToLibraryHandler: FeedsCardAddedToLibraryEventHandler,
-    private notificationsCardAddedToLibraryHandler: NotificationsCardAddedToLibraryEventHandler,
-  ) {}
+  constructor(private eventPublisher: IEventPublisher) {}
 
   registerAllHandlers(): void {
-    // Register CardAddedToLibraryEvent handlers
+    // Register distributed event publishing
     DomainEvents.register(
-      (event: CardAddedToLibraryEvent) =>
-        this.feedsCardAddedToLibraryHandler.handle(event),
-      CardAddedToLibraryEvent.name,
-    );
-
-    DomainEvents.register(
-      (event: CardAddedToLibraryEvent) =>
-        this.notificationsCardAddedToLibraryHandler.handle(event),
+      async (event: CardAddedToLibraryEvent) => {
+        try {
+          await this.eventPublisher.publishEvents([event]);
+        } catch (error) {
+          console.error('Error publishing event to BullMQ:', error);
+          // Don't fail the main operation if event publishing fails
+        }
+      },
       CardAddedToLibraryEvent.name,
     );
   }

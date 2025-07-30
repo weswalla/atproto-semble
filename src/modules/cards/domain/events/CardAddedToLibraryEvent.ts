@@ -10,9 +10,6 @@ export class CardAddedToLibraryEvent implements IDomainEvent {
   constructor(
     public readonly cardId: CardId,
     public readonly curatorId: CuratorId,
-    public readonly cardType: CardTypeEnum,
-    public readonly url?: string,
-    public readonly title?: string,
   ) {
     this.dateTimeOccurred = new Date();
   }

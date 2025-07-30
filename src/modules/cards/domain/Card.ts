@@ -195,15 +195,7 @@ export class Card extends AggregateRoot<CardProps> {
     this.props.updatedAt = new Date();
 
     // Raise domain event
-    this.addDomainEvent(
-      new CardAddedToLibraryEvent(
-        this.cardId,
-        userId,
-        this.props.type.value,
-        this.props.url?.value,
-        this.getCardTitle(),
-      ),
-    );
+    this.addDomainEvent(new CardAddedToLibraryEvent(this.cardId, userId));
 
     return ok(undefined);
   }
@@ -269,7 +261,7 @@ export class Card extends AggregateRoot<CardProps> {
     if (this.isUrlCard) {
       const urlContent = this.props.content.content;
       if ('metadata' in urlContent) {
-        return urlContent.metadata.title;
+        return urlContent.metadata?.title;
       }
     } else if (this.isNoteCard) {
       const noteContent = this.props.content.content;

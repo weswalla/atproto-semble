@@ -37,10 +37,7 @@ export class ValidationError extends UseCaseError {
 
 export class AddUrlToLibraryUseCase extends BaseUseCase<
   AddUrlToLibraryDTO,
-  Result<
-    AddUrlToLibraryResponseDTO,
-    ValidationError | AppError.UnexpectedError
-  >
+  Result<AddUrlToLibraryResponseDTO, ValidationError | AppError.UnexpectedError>
 > {
   constructor(
     private cardRepository: ICardRepository,
@@ -224,17 +221,11 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
       // Publish events for URL card (events are raised in addToLibrary method)
       const publishResult = await this.publishEventsForAggregate(urlCard);
       if (publishResult.isErr()) {
-        console.error('Failed to publish events for URL card:', publishResult.error);
+        console.error(
+          'Failed to publish events for URL card:',
+          publishResult.error,
+        );
         // Don't fail the operation if event publishing fails
-      }
-
-      // Publish events for note card if it exists
-      if (noteCard) {
-        const notePublishResult = await this.publishEventsForAggregate(noteCard);
-        if (notePublishResult.isErr()) {
-          console.error('Failed to publish events for note card:', notePublishResult.error);
-          // Don't fail the operation if event publishing fails
-        }
       }
 
       return ok({

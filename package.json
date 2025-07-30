@@ -67,7 +67,7 @@
     "@atproto/lex-cli": "^0.8.0",
     "@flydotio/dockerfile": "^0.7.10",
     "@testcontainers/postgresql": "^11.0.3",
-    "@testcontainers/redis": "^11.0.3",
+    "@testcontainers/redis": "^11.4.0",
     "@types/cors": "^2.8.18",
     "@types/express": "^5.0.1",
     "@types/ioredis": "^5.0.0",

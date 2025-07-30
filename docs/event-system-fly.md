@@ -1,416 +1,258 @@
-# Event System Implementation Options on Fly.io
+# Distributed Event System Implementation with BullMQ on Fly.io
 
-This document outlines the available options for implementing a distributed message/work queue system for our TypeScript backend on Fly.io, building on our existing domain event architecture.
+This document provides a comprehensive guide for implementing a distributed event system using BullMQ and Redis/Valkey on Fly.io, specifically designed for high-frequency social features like notifications and activity feeds.
 
 ## Overview
 
-Our current in-memory domain event system works well for single-instance deployments, but as we scale to multiple regions and instances on Fly.io, we need a distributed approach. This guide covers three main options that integrate well with our existing DDD architecture.
+Our current in-memory domain event system works well for single-instance deployments, but as we scale to multiple regions and instances on Fly.io, we need a distributed approach. For applications with frequent URL additions that trigger notifications and social activity feeds, **BullMQ with Redis/Valkey is the recommended solution**.
 
-## Current Architecture Context
+## Why BullMQ + Redis/Valkey?
 
-We have:
-- Domain events raised by aggregates (e.g., `CardAddedToLibraryEvent`)
-- Event handlers in the application layer
-- An `EventHandlerRegistry` that wires events to handlers
-- Events dispatched after successful persistence
+### Perfect for Social Features
+- **High Throughput**: Handle thousands of events per second for URL additions
+- **Real-time Processing**: Near-instant notifications and feed updates
+- **Reliable Delivery**: Built-in retry logic ensures notifications aren't lost
+- **Rate Limiting**: Prevent overwhelming external services (email, push notifications)
+- **Priority Queues**: Process notifications faster than feed updates
 
-## Option 1: BullMQ with Redis/Valkey (Recommended)
+### Technical Advantages
+- **Excellent TypeScript Support**: First-class TypeScript integration
+- **Rich Feature Set**: Delays, retries, rate limiting, job scheduling
+- **Great Monitoring**: Built-in dashboard and metrics
+- **Battle-tested**: Used in production by many high-scale applications
+- **Flexible Scaling**: Scale workers independently from web servers
 
-**Best for**: Most use cases, especially with our TypeScript stack
+## Architecture Overview
 
-### How it Works
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Web Server    │    │   Redis/Valkey  │    │  Worker Nodes   │
+│                 │    │                 │    │                 │
+│ Domain Events ──┼───▶│ BullMQ Queues  ├───▶│ Event Handlers  │
+│                 │    │                 │    │                 │
+│ - Card Added    │    │ - Notifications │    │ - Send Emails   │
+│ - URL Shared    │    │ - Feeds         │    │ - Update Feeds  │
+│ - Collection    │    │ - Analytics     │    │ - Track Events  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
 
-1. Domain events are published to Redis/Valkey queues via BullMQ
-2. Worker processes pull jobs from queues and execute event handlers
-3. Built-in retry logic, rate limiting, and job scheduling
-4. Excellent TypeScript support and monitoring capabilities
+## Implementation Guide
 
-### Implementation Architecture
+### Step 1: Install Dependencies
+
+```bash
+npm install bullmq ioredis
+npm install --save-dev @types/ioredis
+```
+
+### Step 2: Infrastructure Layer - Event Publisher
+
+Create the BullMQ event publisher that integrates with your existing domain events:
 
 ```typescript
-// Infrastructure layer - BullMQ Event Publisher
+// src/shared/infrastructure/events/BullMQEventPublisher.ts
+import { Queue, ConnectionOptions } from 'bullmq';
+import { IDomainEvent } from '../../domain/events/IDomainEvent';
+import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
+
 export class BullMQEventPublisher {
   private queues: Map<string, Queue> = new Map();
 
   constructor(private redisConnection: ConnectionOptions) {}
 
   async publish(event: IDomainEvent): Promise<void> {
-    const queueName = `events.${event.constructor.name}`;
+    // Route different events to appropriate queues
+    const queueConfig = this.getQueueConfig(event);
     
-    if (!this.queues.has(queueName)) {
-      this.queues.set(queueName, new Queue(queueName, {
+    if (!this.queues.has(queueConfig.name)) {
+      this.queues.set(queueConfig.name, new Queue(queueConfig.name, {
         connection: this.redisConnection,
-        defaultJobOptions: {
-          removeOnComplete: 100,
-          removeOnFail: 50,
-          attempts: 3,
-          backoff: {
-            type: 'exponential',
-            delay: 2000,
-          },
-        },
+        defaultJobOptions: queueConfig.options,
       }));
     }
 
-    const queue = this.queues.get(queueName)!;
+    const queue = this.queues.get(queueConfig.name)!;
     await queue.add(event.constructor.name, {
       ...event,
       aggregateId: event.getAggregateId().toString(),
+      dateTimeOccurred: event.dateTimeOccurred.toISOString(),
     });
   }
-}
 
-// Infrastructure layer - BullMQ Event Worker
+  private getQueueConfig(event: IDomainEvent) {
+    // Configure different queues for different event types
+    if (event instanceof CardAddedToLibraryEvent) {
+      return {
+        name: 'notifications',
+        options: {
+          priority: 1, // High priority for notifications
+          attempts: 5,
+          backoff: { type: 'exponential' as const, delay: 1000 },
+          removeOnComplete: 100,
+          removeOnFail: 50,
+        }
+      };
+    }
+
+    // Default queue configuration
+    return {
+      name: 'events',
+      options: {
+        priority: 2,
+        attempts: 3,
+        backoff: { type: 'exponential' as const, delay: 2000 },
+        removeOnComplete: 50,
+        removeOnFail: 25,
+      }
+    };
+  }
+
+  async close(): Promise<void> {
+    await Promise.all(
+      Array.from(this.queues.values()).map(queue => queue.close())
+    );
+  }
+}
+```
+
+### Step 3: Infrastructure Layer - Event Workers
+
+Create specialized workers for different types of event processing:
+
+```typescript
+// src/shared/infrastructure/events/BullMQEventWorker.ts
+import { Worker, Job } from 'bullmq';
+import { ConnectionOptions } from 'ioredis';
+import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
+import { CardId } from '../../../modules/cards/domain/value-objects/CardId';
+import { CuratorId } from '../../../modules/cards/domain/value-objects/CuratorId';
+import { CardTypeEnum } from '../../../modules/cards/domain/value-objects/CardType';
+
 export class BullMQEventWorker {
   private workers: Worker[] = [];
 
   constructor(
     private redisConnection: ConnectionOptions,
-    private eventHandlerRegistry: EventHandlerRegistry,
+    private notificationHandler: any, // Your notification event handler
+    private feedHandler: any, // Your feed event handler
   ) {}
 
   async startWorkers(): Promise<void> {
-    // Start workers for each event type
-    const eventTypes = ['CardAddedToLibraryEvent', 'CollectionCreatedEvent'];
-    
-    for (const eventType of eventTypes) {
-      const worker = new Worker(
-        `events.${eventType}`,
-        async (job) => {
-          await this.processEvent(eventType, job.data);
-        },
-        {
-          connection: this.redisConnection,
-          concurrency: 5,
-        }
-      );
-
-      this.workers.push(worker);
-    }
-  }
-
-  private async processEvent(eventType: string, eventData: any): Promise<void> {
-    // Reconstruct event and dispatch to handlers
-    // Implementation depends on your event reconstruction strategy
-  }
-}
-```
-
-### Fly.io Deployment
-
-**fly.toml configuration:**
-```toml
-[processes]
-web = "npm start"
-worker = "npm run worker"
-
-[env]
-REDIS_URL = "redis://your-valkey-instance.internal:6379"
-
-[[services]]
-internal_port = 8080
-protocol = "tcp"
-```
-
-**Scaling:**
-```bash
-fly scale count web=2 worker=3
-fly regions add worker fra ord
-```
-
-### Pros
-- Excellent TypeScript support
-- Rich feature set (delays, retries, rate limiting)
-- Great monitoring and debugging tools
-- Integrates well with existing Node.js ecosystem
-- Battle-tested in production
-
-### Cons
-- Requires Redis/Valkey infrastructure
-- More complex than simple pub/sub
-- Learning curve for BullMQ-specific concepts
-
-## Option 2: On-Demand Workers with Fly Machines
-
-**Best for**: Infrequent jobs, cost optimization, or jobs with varying resource requirements
-
-### How it Works
-
-1. Domain events are stored in Redis/Valkey with job metadata
-2. Your app calls Fly Machines API to spin up a worker machine
-3. Worker machine processes the job and shuts down
-4. Results are stored back in Redis for retrieval
-
-### Implementation Architecture
-
-```typescript
-// Infrastructure layer - Fly Machines Event Publisher
-export class FlyMachinesEventPublisher {
-  constructor(
-    private flyApi: FlyMachinesApi,
-    private redis: Redis,
-    private appName: string,
-  ) {}
-
-  async publish(event: IDomainEvent): Promise<void> {
-    const jobId = uuid();
-    const jobData = {
-      id: jobId,
-      eventType: event.constructor.name,
-      eventData: event,
-      aggregateId: event.getAggregateId().toString(),
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
-
-    // Store job data in Redis
-    await this.redis.setex(`job:${jobId}`, 3600, JSON.stringify(jobData));
-
-    // Spin up a worker machine
-    await this.flyApi.createMachine({
-      app: this.appName,
-      config: {
-        image: 'your-app:latest',
-        env: {
-          JOB_ID: jobId,
-          PROCESS_TYPE: 'event-worker',
-          REDIS_URL: process.env.REDIS_URL,
-        },
-        restart: { policy: 'no' }, // Don't restart, just run once
-        auto_destroy: true, // Clean up after completion
+    // Notification worker - high priority, lower concurrency for external API calls
+    const notificationWorker = new Worker(
+      'notifications',
+      async (job: Job) => {
+        await this.processNotificationEvent(job);
       },
-    });
-  }
-}
-
-// Worker process entry point
-export class OnDemandEventWorker {
-  constructor(
-    private redis: Redis,
-    private eventHandlerRegistry: EventHandlerRegistry,
-  ) {}
-
-  async processJob(jobId: string): Promise<void> {
-    try {
-      // Fetch job data
-      const jobDataStr = await this.redis.get(`job:${jobId}`);
-      if (!jobDataStr) {
-        throw new Error(`Job ${jobId} not found`);
+      {
+        connection: this.redisConnection,
+        concurrency: 5, // Conservative for external API calls
+        limiter: {
+          max: 100, // Max 100 notifications per minute
+          duration: 60000,
+        },
       }
+    );
 
-      const jobData = JSON.parse(jobDataStr);
-      
-      // Update status
-      await this.redis.setex(`job:${jobId}`, 3600, JSON.stringify({
-        ...jobData,
-        status: 'processing',
-        startedAt: new Date().toISOString(),
-      }));
+    // Feed worker - lower priority, higher concurrency for DB operations
+    const feedWorker = new Worker(
+      'feeds',
+      async (job: Job) => {
+        await this.processFeedEvent(job);
+      },
+      {
+        connection: this.redisConnection,
+        concurrency: 15, // Higher concurrency for DB operations
+      }
+    );
 
-      // Process the event
-      await this.processEvent(jobData.eventType, jobData.eventData);
+    this.workers.push(notificationWorker, feedWorker);
 
-      // Mark as completed
-      await this.redis.setex(`job:${jobId}`, 3600, JSON.stringify({
-        ...jobData,
-        status: 'completed',
-        completedAt: new Date().toISOString(),
-      }));
-
-    } catch (error) {
-      // Mark as failed
-      await this.redis.setex(`job:${jobId}`, 3600, JSON.stringify({
-        ...jobData,
-        status: 'failed',
-        error: error.message,
-        failedAt: new Date().toISOString(),
-      }));
-      throw error;
-    }
-  }
-}
-```
-
-### Fly.io Deployment
-
-**Main app fly.toml:**
-```toml
-[env]
-REDIS_URL = "redis://your-valkey-instance.internal:6379"
-FLY_API_TOKEN = "your-api-token"
-```
-
-**Worker startup script:**
-```typescript
-// worker-entrypoint.ts
-if (process.env.PROCESS_TYPE === 'event-worker') {
-  const jobId = process.env.JOB_ID;
-  const worker = new OnDemandEventWorker(redis, eventHandlerRegistry);
-  await worker.processJob(jobId);
-  process.exit(0);
-}
-```
-
-### Pros
-- Pay only for actual processing time
-- Can use different machine sizes per job type
-- Automatic cleanup and resource management
-- Great for infrequent or resource-intensive jobs
-- No idle worker processes
-
-### Cons
-- Cold start latency (1-2 seconds)
-- More complex orchestration
-- Requires Fly Machines API integration
-- Not suitable for high-frequency events
-
-## Option 3: Database-Based Event Store with Background Processing
-
-**Best for**: Simplicity, guaranteed persistence, audit requirements
-
-### How it Works
-
-1. Domain events are persisted to PostgreSQL event store table
-2. Background worker polls for unprocessed events
-3. Events are processed and marked as completed
-4. Built-in persistence and audit trail
-
-### Implementation Architecture
-
-```typescript
-// Domain layer - Event Store
-export interface EventStoreRecord {
-  id: string;
-  aggregateId: string;
-  eventType: string;
-  eventData: string;
-  version: number;
-  timestamp: Date;
-  processed: boolean;
-  processedAt?: Date;
-  attempts: number;
-  lastError?: string;
-}
-
-// Infrastructure layer - Drizzle Event Store
-export class DrizzleEventStore implements IEventStore {
-  constructor(private db: PostgresJsDatabase) {}
-
-  async saveEvent(event: IDomainEvent): Promise<Result<void>> {
-    try {
-      await this.db.insert(eventStore).values({
-        id: uuid(),
-        aggregateId: event.getAggregateId().toString(),
-        eventType: event.constructor.name,
-        eventData: JSON.stringify(event),
-        version: 1,
-        timestamp: event.dateTimeOccurred,
-        processed: false,
-        attempts: 0,
+    // Set up error handling
+    this.workers.forEach(worker => {
+      worker.on('completed', (job) => {
+        console.log(`Job ${job.id} completed successfully`);
       });
 
-      return ok();
-    } catch (error) {
-      return err(error);
-    }
+      worker.on('failed', (job, err) => {
+        console.error(`Job ${job?.id} failed:`, err);
+      });
+
+      worker.on('error', (err) => {
+        console.error('Worker error:', err);
+      });
+    });
   }
 
-  async getUnprocessedEvents(limit = 100): Promise<Result<EventStoreRecord[]>> {
-    try {
-      const events = await this.db
-        .select()
-        .from(eventStore)
-        .where(
-          and(
-            eq(eventStore.processed, false),
-            lt(eventStore.attempts, 3) // Max 3 attempts
-          )
-        )
-        .orderBy(eventStore.timestamp)
-        .limit(limit);
-
-      return ok(events);
-    } catch (error) {
-      return err(error);
-    }
-  }
-}
-
-// Infrastructure layer - Background Event Processor
-export class BackgroundEventProcessor {
-  private isRunning = false;
-
-  constructor(
-    private eventStore: IEventStore,
-    private eventHandlerRegistry: EventHandlerRegistry,
-    private intervalMs = 5000,
-  ) {}
-
-  async start(): Promise<void> {
-    if (this.isRunning) return;
+  private async processNotificationEvent(job: Job): Promise<void> {
+    const eventData = job.data;
     
-    this.isRunning = true;
-    this.processLoop();
-  }
-
-  private async processLoop(): Promise<void> {
-    while (this.isRunning) {
-      try {
-        await this.processEvents();
-        await this.sleep(this.intervalMs);
-      } catch (error) {
-        console.error('Error in event processing loop:', error);
-        await this.sleep(this.intervalMs);
-      }
+    // Reconstruct the domain event
+    const event = this.reconstructEvent(eventData);
+    
+    if (event instanceof CardAddedToLibraryEvent) {
+      await this.notificationHandler.handle(event);
     }
   }
 
-  private async processEvents(): Promise<void> {
-    const eventsResult = await this.eventStore.getUnprocessedEvents();
-    if (eventsResult.isErr()) return;
-
-    for (const eventRecord of eventsResult.value) {
-      await this.processEvent(eventRecord);
+  private async processFeedEvent(job: Job): Promise<void> {
+    const eventData = job.data;
+    
+    // Reconstruct the domain event
+    const event = this.reconstructEvent(eventData);
+    
+    if (event instanceof CardAddedToLibraryEvent) {
+      await this.feedHandler.handle(event);
     }
+  }
+
+  private reconstructEvent(eventData: any): IDomainEvent {
+    // Reconstruct domain events from serialized data
+    if (eventData.constructor?.name === 'CardAddedToLibraryEvent' || 
+        eventData.eventType === 'CardAddedToLibraryEvent') {
+      
+      const cardId = CardId.create(eventData.cardId.value).unwrap();
+      const curatorId = CuratorId.create(eventData.curatorId.value).unwrap();
+      
+      const event = new CardAddedToLibraryEvent(
+        cardId,
+        curatorId,
+        eventData.cardType,
+        eventData.url,
+        eventData.title
+      );
+      
+      // Restore original timestamp
+      (event as any).dateTimeOccurred = new Date(eventData.dateTimeOccurred);
+      
+      return event;
+    }
+
+    throw new Error(`Unknown event type: ${eventData.constructor?.name}`);
+  }
+
+  async close(): Promise<void> {
+    await Promise.all(this.workers.map(worker => worker.close()));
   }
 }
 ```
 
-### Fly.io Deployment
+### Step 4: Update Event Handler Registry
 
-**fly.toml:**
-```toml
-[processes]
-web = "npm start"
-worker = "npm run event-processor"
-
-[env]
-DATABASE_URL = "postgresql://..."
-```
-
-### Pros
-- Uses existing PostgreSQL infrastructure
-- Guaranteed persistence and ACID transactions
-- Built-in audit trail and event history
-- Simple to understand and debug
-- No additional infrastructure required
-
-### Cons
-- Polling-based (not real-time)
-- Database load from frequent polling
-- Less sophisticated than dedicated queue systems
-- Manual retry and error handling logic
-
-## Integration with Existing Domain Events
-
-### Updating EventHandlerRegistry
+Extend your existing registry to support distributed events:
 
 ```typescript
+// src/shared/infrastructure/events/DistributedEventHandlerRegistry.ts
+import { EventHandlerRegistry } from './EventHandlerRegistry';
+import { DomainEvents } from '../../domain/events/DomainEvents';
+import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
+import { BullMQEventPublisher } from './BullMQEventPublisher';
+
 export class DistributedEventHandlerRegistry extends EventHandlerRegistry {
   constructor(
-    feedsCardAddedToLibraryHandler: FeedsCardAddedToLibraryEventHandler,
-    notificationsCardAddedToLibraryHandler: NotificationsCardAddedToLibraryEventHandler,
-    private eventPublisher: BullMQEventPublisher | FlyMachinesEventPublisher | DrizzleEventStore,
+    feedsCardAddedToLibraryHandler: any,
+    notificationsCardAddedToLibraryHandler: any,
+    private eventPublisher: BullMQEventPublisher,
   ) {
     super(feedsCardAddedToLibraryHandler, notificationsCardAddedToLibraryHandler);
   }
@@ -419,10 +261,15 @@ export class DistributedEventHandlerRegistry extends EventHandlerRegistry {
     // Register local handlers (existing logic)
     super.registerAllHandlers();
 
-    // Also publish events to distributed system
+    // Register distributed event publishing
     DomainEvents.register(
       async (event: CardAddedToLibraryEvent) => {
-        await this.eventPublisher.publish(event);
+        try {
+          await this.eventPublisher.publish(event);
+        } catch (error) {
+          console.error('Error publishing event to BullMQ:', error);
+          // Don't fail the main operation if event publishing fails
+        }
       },
       CardAddedToLibraryEvent.name,
     );
@@ -430,10 +277,101 @@ export class DistributedEventHandlerRegistry extends EventHandlerRegistry {
 }
 ```
 
-### Factory Integration
+### Step 5: Fly.io Infrastructure Setup
+
+#### Set up Redis/Valkey
+
+```bash
+# Create a Valkey instance (recommended over Redis)
+fly redis create --name myapp-valkey --region ord
+
+# Or use Upstash Redis
+fly ext redis create --name myapp-redis
+```
+
+#### Configure fly.toml
+
+```toml
+# fly.toml
+app = "myapp"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[processes]
+  web = "npm start"
+  notification-worker = "npm run worker:notifications"
+  feed-worker = "npm run worker:feeds"
+
+[env]
+  NODE_ENV = "production"
+  REDIS_URL = "redis://myapp-valkey.internal:6379"
+
+[[services]]
+  internal_port = 8080
+  protocol = "tcp"
+  
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+  
+  [[services.ports]]
+    port = 443
+    handlers = ["http", "tls"]
+
+[deploy]
+  strategy = "rolling"
+```
+
+#### Create Worker Scripts
+
+```json
+// package.json
+{
+  "scripts": {
+    "worker:notifications": "node dist/workers/notification-worker.js",
+    "worker:feeds": "node dist/workers/feed-worker.js"
+  }
+}
+```
 
 ```typescript
-// In ServiceFactory
+// src/workers/notification-worker.ts
+import { createRedisConnection } from '../shared/infrastructure/redis/RedisConnection';
+import { BullMQEventWorker } from '../shared/infrastructure/events/BullMQEventWorker';
+import { ServiceFactory } from '../shared/infrastructure/ServiceFactory';
+
+async function startNotificationWorker() {
+  const redisConnection = createRedisConnection();
+  const services = ServiceFactory.create();
+  
+  const worker = new BullMQEventWorker(
+    redisConnection,
+    services.notificationsCardAddedToLibraryHandler,
+    null // No feed handler for notification worker
+  );
+
+  await worker.startWorkers();
+  
+  console.log('Notification worker started');
+
+  // Graceful shutdown
+  process.on('SIGTERM', async () => {
+    console.log('Shutting down notification worker...');
+    await worker.close();
+    process.exit(0);
+  });
+}
+
+startNotificationWorker().catch(console.error);
+```
+
+### Step 6: Service Factory Integration
+
+Update your service factory to use the distributed event system:
+
+```typescript
+// In your ServiceFactory
 export class ServiceFactory {
   static create(
     configService: EnvironmentConfigService,
@@ -441,24 +379,17 @@ export class ServiceFactory {
   ): Services {
     // ... existing services
 
-    // Choose your event publisher based on configuration
-    let eventPublisher;
-    
-    if (configService.get('EVENT_SYSTEM') === 'bullmq') {
-      eventPublisher = new BullMQEventPublisher({
-        host: configService.get('REDIS_HOST'),
-        port: configService.get('REDIS_PORT'),
-      });
-    } else if (configService.get('EVENT_SYSTEM') === 'machines') {
-      eventPublisher = new FlyMachinesEventPublisher(
-        flyApi,
-        redis,
-        configService.get('FLY_APP_NAME'),
-      );
-    } else {
-      eventPublisher = new DrizzleEventStore(db);
-    }
+    // Redis connection
+    const redisConnection = {
+      host: configService.get('REDIS_HOST') || 'localhost',
+      port: parseInt(configService.get('REDIS_PORT') || '6379'),
+      password: configService.get('REDIS_PASSWORD'),
+    };
 
+    // Event publisher
+    const eventPublisher = new BullMQEventPublisher(redisConnection);
+
+    // Distributed event handler registry
     const eventHandlerRegistry = new DistributedEventHandlerRegistry(
       feedsCardAddedToLibraryHandler,
       notificationsCardAddedToLibraryHandler,
@@ -476,53 +407,236 @@ export class ServiceFactory {
 }
 ```
 
-## Recommendations
+## Deployment Strategy
 
-### For Most Applications: BullMQ + Valkey
-- **Use when**: You have regular event processing needs
-- **Scaling**: Start with 1-2 worker instances, scale based on queue depth
-- **Cost**: Moderate (persistent workers + Redis/Valkey)
+### Initial Deployment
 
-### For Infrequent Jobs: Fly Machines
-- **Use when**: Events happen < 100 times per day
-- **Scaling**: Automatic (one machine per job)
-- **Cost**: Low (pay per job execution)
+```bash
+# Deploy the application
+fly deploy
 
-### For Simplicity: Database Event Store
-- **Use when**: You want to avoid additional infrastructure
-- **Scaling**: Single background processor initially
-- **Cost**: Low (uses existing database)
+# Scale workers based on expected load
+fly scale count web=2 notification-worker=2 feed-worker=3
 
-## Migration Strategy
+# Add workers to multiple regions for better performance
+fly regions add notification-worker fra ord
+fly regions add feed-worker fra ord
+```
 
-1. **Phase 1**: Implement database event store for immediate distributed capability
-2. **Phase 2**: Add BullMQ for high-frequency events while keeping database store for audit
-3. **Phase 3**: Migrate heavy/infrequent jobs to Fly Machines as needed
+### Scaling Guidelines
 
-## Monitoring and Observability
+**For Notifications (External API calls):**
+- Start with 2-3 workers
+- Lower concurrency (5-10 jobs per worker)
+- Monitor external API rate limits
+- Scale based on queue depth and processing time
 
-### BullMQ
-- Use Bull Dashboard for queue monitoring
-- Implement custom metrics for job success/failure rates
-- Set up alerts for queue depth and processing delays
+**For Feeds (Database operations):**
+- Start with 3-5 workers
+- Higher concurrency (10-20 jobs per worker)
+- Scale based on database performance
+- Monitor for database connection limits
 
-### Fly Machines
-- Monitor machine creation/destruction rates
-- Track job completion times and failure rates
-- Use Fly.io metrics for resource utilization
+### Monitoring and Observability
 
-### Database Event Store
-- Monitor unprocessed event count
-- Track processing latency and error rates
-- Set up alerts for stuck events
+#### BullMQ Dashboard
+
+```typescript
+// Optional: Add Bull Dashboard for monitoring
+import { createBullBoard } from '@bull-board/api';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
+import { ExpressAdapter } from '@bull-board/express';
+
+const serverAdapter = new ExpressAdapter();
+serverAdapter.setBasePath('/admin/queues');
+
+const { addQueue } = createBullBoard({
+  queues: [
+    new BullMQAdapter(notificationQueue),
+    new BullMQAdapter(feedQueue),
+  ],
+  serverAdapter: serverAdapter,
+});
+
+app.use('/admin/queues', serverAdapter.getRouter());
+```
+
+#### Custom Metrics
+
+```typescript
+// Track event processing metrics
+export class EventMetrics {
+  private static eventCounts = new Map<string, number>();
+  private static processingTimes = new Map<string, number[]>();
+
+  static recordEvent(eventType: string, processingTime: number): void {
+    // Increment count
+    const count = this.eventCounts.get(eventType) || 0;
+    this.eventCounts.set(eventType, count + 1);
+
+    // Track processing time
+    const times = this.processingTimes.get(eventType) || [];
+    times.push(processingTime);
+    if (times.length > 100) times.shift(); // Keep last 100
+    this.processingTimes.set(eventType, times);
+  }
+
+  static getMetrics() {
+    const metrics: any = {};
+    
+    for (const [eventType, count] of this.eventCounts) {
+      const times = this.processingTimes.get(eventType) || [];
+      const avgTime = times.length > 0 
+        ? times.reduce((a, b) => a + b, 0) / times.length 
+        : 0;
+
+      metrics[eventType] = {
+        count,
+        averageProcessingTime: avgTime,
+        recentProcessingTimes: times.slice(-10),
+      };
+    }
+
+    return metrics;
+  }
+}
+```
+
+## Testing Strategy
+
+### Unit Tests
+
+```typescript
+// Test event publishing
+describe('BullMQEventPublisher', () => {
+  it('should publish CardAddedToLibraryEvent to notifications queue', async () => {
+    const mockQueue = {
+      add: jest.fn().mockResolvedValue({}),
+    };
+    
+    const publisher = new BullMQEventPublisher(redisConnection);
+    (publisher as any).queues.set('notifications', mockQueue);
+
+    const event = new CardAddedToLibraryEvent(cardId, curatorId, CardTypeEnum.URL);
+    await publisher.publish(event);
+
+    expect(mockQueue.add).toHaveBeenCalledWith(
+      'CardAddedToLibraryEvent',
+      expect.objectContaining({
+        cardId,
+        curatorId,
+        cardType: CardTypeEnum.URL,
+      })
+    );
+  });
+});
+```
+
+### Integration Tests
+
+```typescript
+// Test end-to-end event flow
+describe('Event Processing Integration', () => {
+  it('should process CardAddedToLibraryEvent through the queue', async () => {
+    const mockNotificationHandler = {
+      handle: jest.fn().mockResolvedValue({}),
+    };
+
+    // Publish event
+    const event = new CardAddedToLibraryEvent(cardId, curatorId, CardTypeEnum.URL);
+    await eventPublisher.publish(event);
+
+    // Wait for processing
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Verify handler was called
+    expect(mockNotificationHandler.handle).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cardId,
+        curatorId,
+        cardType: CardTypeEnum.URL,
+      })
+    );
+  });
+});
+```
+
+## Performance Optimization
+
+### Queue Configuration
+
+```typescript
+// Optimize for your specific use case
+const queueOptions = {
+  // For high-frequency events
+  defaultJobOptions: {
+    removeOnComplete: 100,  // Keep successful jobs for debugging
+    removeOnFail: 50,       // Keep failed jobs for analysis
+    attempts: 3,            // Retry failed jobs
+    backoff: {
+      type: 'exponential',
+      delay: 2000,          // Start with 2s delay
+    },
+  },
+  
+  // Connection pooling
+  connection: {
+    ...redisConnection,
+    maxRetriesPerRequest: 3,
+    retryDelayOnFailover: 100,
+    lazyConnect: true,
+  },
+};
+```
+
+### Worker Optimization
+
+```typescript
+// Optimize worker settings
+const workerOptions = {
+  concurrency: process.env.NODE_ENV === 'production' ? 10 : 5,
+  
+  // Batch processing for better performance
+  stalledInterval: 30000,
+  maxStalledCount: 1,
+  
+  // Memory management
+  removeOnComplete: 100,
+  removeOnFail: 50,
+};
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Events not processing**: Check Redis connection and worker status
+2. **High memory usage**: Adjust `removeOnComplete` and `removeOnFail` settings
+3. **Slow processing**: Increase worker concurrency or add more workers
+4. **Failed jobs**: Check error logs and adjust retry settings
+
+### Debugging Commands
+
+```bash
+# Check worker status
+fly logs --app myapp --process notification-worker
+
+# Monitor Redis
+fly redis connect myapp-valkey
+> MONITOR
+
+# Check queue status
+fly ssh console --app myapp
+> npm run queue:status
+```
 
 ## Next Steps
 
-1. Choose your initial implementation based on current needs
-2. Set up Redis/Valkey infrastructure on Fly.io
-3. Implement the chosen event publisher in your `EventHandlerRegistry`
-4. Deploy and test with a single event type
-5. Gradually migrate all domain events to the distributed system
-6. Monitor and optimize based on actual usage patterns
+1. **Deploy Redis/Valkey**: Set up your message broker infrastructure
+2. **Implement Publisher**: Add BullMQ event publisher to your service factory
+3. **Create Workers**: Deploy notification and feed workers
+4. **Test Integration**: Verify events flow from domain to workers
+5. **Monitor Performance**: Set up dashboards and alerts
+6. **Scale Gradually**: Start with minimal workers and scale based on load
 
-This architecture provides a solid foundation for scaling your domain events across multiple Fly.io regions while maintaining the clean separation of concerns in your DDD architecture.
+This implementation provides a robust, scalable foundation for handling high-frequency social events while maintaining the clean architecture principles of your DDD system.

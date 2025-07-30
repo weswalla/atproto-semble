@@ -279,14 +279,30 @@ export class DistributedEventHandlerRegistry extends EventHandlerRegistry {
 
 ### Step 5: Fly.io Infrastructure Setup
 
-#### Set up Redis/Valkey
+#### Set up Redis with Fly
 
 ```bash
-# Create a Valkey instance (recommended over Redis)
-fly redis create --name myapp-valkey --region ord
+# Create an Upstash Redis database via Fly
+fly redis create --name myapp-redis --region ord
 
-# Or use Upstash Redis
-fly ext redis create --name myapp-redis
+# For production, add replica regions for better performance
+fly redis create --name myapp-redis --region ord --replica-regions fra,iad
+
+# Check available plans if you need more capacity
+fly redis plans
+
+# View your Redis databases
+fly redis list
+```
+
+After creation, Fly will provide you with connection details. You can also check the status:
+
+```bash
+# Check Redis status and get connection info
+fly redis status myapp-redis
+
+# Connect to Redis for testing
+fly redis connect myapp-redis
 ```
 
 #### Configure fly.toml
@@ -305,7 +321,9 @@ app = "myapp"
 
 [env]
   NODE_ENV = "production"
-  REDIS_URL = "redis://myapp-valkey.internal:6379"
+  # Redis URL will be automatically set by Fly when you attach the Redis database
+  # You can also set it manually if needed:
+  # REDIS_URL = "redis://default:password@fly-myapp-redis.upstash.io:6379"
 
 [[services]]
   internal_port = 8080
@@ -337,13 +355,24 @@ app = "myapp"
 
 ```typescript
 // src/workers/notification-worker.ts
-import { createRedisConnection } from '../shared/infrastructure/redis/RedisConnection';
 import { BullMQEventWorker } from '../shared/infrastructure/events/BullMQEventWorker';
 import { ServiceFactory } from '../shared/infrastructure/ServiceFactory';
+import { EnvironmentConfigService } from '../shared/infrastructure/config/EnvironmentConfigService';
 
 async function startNotificationWorker() {
-  const redisConnection = createRedisConnection();
-  const services = ServiceFactory.create();
+  const configService = new EnvironmentConfigService();
+  
+  // Use Fly Redis connection
+  const redisUrl = configService.get('REDIS_URL');
+  const redisConnection = redisUrl 
+    ? { connectionString: redisUrl }
+    : {
+        host: configService.get('REDIS_HOST') || 'localhost',
+        port: parseInt(configService.get('REDIS_PORT') || '6379'),
+        password: configService.get('REDIS_PASSWORD'),
+      };
+  
+  const services = ServiceFactory.create(configService, {} as any);
   
   const worker = new BullMQEventWorker(
     redisConnection,
@@ -379,12 +408,15 @@ export class ServiceFactory {
   ): Services {
     // ... existing services
 
-    // Redis connection
-    const redisConnection = {
-      host: configService.get('REDIS_HOST') || 'localhost',
-      port: parseInt(configService.get('REDIS_PORT') || '6379'),
-      password: configService.get('REDIS_PASSWORD'),
-    };
+    // Redis connection - Fly Redis provides a full connection URL
+    const redisUrl = configService.get('REDIS_URL');
+    const redisConnection = redisUrl 
+      ? { connectionString: redisUrl }
+      : {
+          host: configService.get('REDIS_HOST') || 'localhost',
+          port: parseInt(configService.get('REDIS_PORT') || '6379'),
+          password: configService.get('REDIS_PASSWORD'),
+        };
 
     // Event publisher
     const eventPublisher = new BullMQEventPublisher(redisConnection);
@@ -412,6 +444,12 @@ export class ServiceFactory {
 ### Initial Deployment
 
 ```bash
+# First, create your Redis database
+fly redis create --name myapp-redis --region ord --replica-regions fra,iad
+
+# Attach the Redis database to your app (this sets the REDIS_URL environment variable)
+fly redis attach myapp-redis
+
 # Deploy the application
 fly deploy
 
@@ -622,8 +660,14 @@ const workerOptions = {
 fly logs --app myapp --process notification-worker
 
 # Monitor Redis
-fly redis connect myapp-valkey
+fly redis connect myapp-redis
 > MONITOR
+
+# Check Redis status and connection info
+fly redis status myapp-redis
+
+# Proxy to Redis for local debugging
+fly redis proxy myapp-redis
 
 # Check queue status
 fly ssh console --app myapp
@@ -632,11 +676,41 @@ fly ssh console --app myapp
 
 ## Next Steps
 
-1. **Deploy Redis/Valkey**: Set up your message broker infrastructure
+1. **Deploy Redis**: Set up your Upstash Redis database via Fly
+   ```bash
+   fly redis create --name myapp-redis --region ord --replica-regions fra,iad
+   fly redis attach myapp-redis
+   ```
+
 2. **Implement Publisher**: Add BullMQ event publisher to your service factory
+
 3. **Create Workers**: Deploy notification and feed workers
+
 4. **Test Integration**: Verify events flow from domain to workers
+   ```bash
+   # Test Redis connection
+   fly redis connect myapp-redis
+   
+   # Monitor worker logs
+   fly logs --process notification-worker
+   ```
+
 5. **Monitor Performance**: Set up dashboards and alerts
+   ```bash
+   # Check Redis metrics
+   fly redis status myapp-redis
+   
+   # View Redis dashboard
+   fly redis dashboard myapp-redis
+   ```
+
 6. **Scale Gradually**: Start with minimal workers and scale based on load
+   ```bash
+   # Scale Redis if needed
+   fly redis update myapp-redis --plan <higher-tier-plan>
+   
+   # Scale workers
+   fly scale count notification-worker=5 feed-worker=8
+   ```
 
 This implementation provides a robust, scalable foundation for handling high-frequency social events while maintaining the clean architecture principles of your DDD system.

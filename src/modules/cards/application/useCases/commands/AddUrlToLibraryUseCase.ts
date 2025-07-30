@@ -224,11 +224,6 @@ export class AddUrlToLibraryUseCase
       // Dispatch events for URL card (events are raised in addToLibrary method)
       DomainEvents.dispatchEventsForAggregate(urlCard.id);
 
-      // Dispatch events for note card if it exists
-      if (noteCard) {
-        DomainEvents.dispatchEventsForAggregate(noteCard.id);
-      }
-
       return ok({
         urlCardId: urlCard.cardId.getStringValue(),
         noteCardId: noteCard?.cardId.getStringValue(),

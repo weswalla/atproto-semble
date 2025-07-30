@@ -3,10 +3,6 @@ import { AggregateRoot } from '../AggregateRoot';
 import { UniqueEntityID } from '../UniqueEntityID';
 
 export class DomainEvents {
-  private static handlersMap: Record<
-    string,
-    ((event: IDomainEvent) => void)[]
-  > = {};
   private static markedAggregates: AggregateRoot<any>[] = [];
 
   /**
@@ -25,12 +21,6 @@ export class DomainEvents {
     }
   }
 
-  private static dispatchAggregateEvents(aggregate: AggregateRoot<any>): void {
-    aggregate.domainEvents.forEach((event: IDomainEvent) =>
-      this.dispatch(event),
-    );
-  }
-
   private static removeAggregateFromMarkedDispatchList(
     aggregate: AggregateRoot<any>,
   ): void {
@@ -40,37 +30,32 @@ export class DomainEvents {
 
   private static findMarkedAggregateByID(
     id: UniqueEntityID,
-  ): AggregateRoot<any> {
-    let found: AggregateRoot<any> | null = null;
+  ): AggregateRoot<any> | null {
     for (let aggregate of this.markedAggregates) {
       if (aggregate.id.equals(id)) {
-        found = aggregate;
+        return aggregate;
       }
     }
-    if (!found) {
-      throw new Error(
-        `Aggregate with id ${id.toString()} not found in marked aggregates.`,
-      );
-    }
-
-    return found;
+    return null;
   }
 
-  public static dispatchEventsForAggregate(id: UniqueEntityID): void {
-    const aggregate = this.findMarkedAggregateByID(id);
-
-    if (aggregate) {
-      this.dispatchAggregateEvents(aggregate);
-      aggregate.clearEvents();
-      this.removeAggregateFromMarkedDispatchList(aggregate);
-    }
-  }
-
+  /**
+   * @method getEventsForAggregate
+   * @static
+   * @desc Get all domain events for a specific aggregate.
+   * Used by use cases to retrieve events for publishing.
+   */
   public static getEventsForAggregate(id: UniqueEntityID): IDomainEvent[] {
     const aggregate = this.findMarkedAggregateByID(id);
     return aggregate ? [...aggregate.domainEvents] : [];
   }
 
+  /**
+   * @method clearEventsForAggregate
+   * @static
+   * @desc Clear events for a specific aggregate after they have been published.
+   * This removes the aggregate from the marked list and clears its events.
+   */
   public static clearEventsForAggregate(id: UniqueEntityID): void {
     const aggregate = this.findMarkedAggregateByID(id);
     if (aggregate) {
@@ -79,35 +64,31 @@ export class DomainEvents {
     }
   }
 
-  public static register(
-    callback: (event: IDomainEvent) => void,
-    eventClassName: string,
-  ): void {
-    if (!Object.hasOwn(this.handlersMap, eventClassName)) {
-      this.handlersMap[eventClassName] = [];
-    }
-    this.handlersMap[eventClassName]?.push(callback);
-  }
-
-  public static clearHandlers(): void {
-    this.handlersMap = {};
-  }
-
+  /**
+   * @method clearMarkedAggregates
+   * @static
+   * @desc Clear all marked aggregates. Useful for testing.
+   */
   public static clearMarkedAggregates(): void {
     this.markedAggregates = [];
   }
 
-  private static dispatch(event: IDomainEvent): void {
-    const eventClassName: string = event.constructor.name;
+  /**
+   * @method hasEventsForAggregate
+   * @static
+   * @desc Check if an aggregate has pending events.
+   */
+  public static hasEventsForAggregate(id: UniqueEntityID): boolean {
+    const aggregate = this.findMarkedAggregateByID(id);
+    return aggregate ? aggregate.domainEvents.length > 0 : false;
+  }
 
-    if (Object.hasOwn(this.handlersMap, eventClassName)) {
-      const handlers = this.handlersMap[eventClassName];
-      if (!handlers) {
-        return;
-      }
-      for (let handler of handlers) {
-        handler(event);
-      }
-    }
+  /**
+   * @method getAllMarkedAggregates
+   * @static
+   * @desc Get all aggregates that have pending events. Useful for debugging.
+   */
+  public static getAllMarkedAggregates(): AggregateRoot<any>[] {
+    return [...this.markedAggregates];
   }
 }

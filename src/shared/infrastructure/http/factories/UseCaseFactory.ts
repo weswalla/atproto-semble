@@ -81,6 +81,7 @@ export class UseCaseFactory {
         services.metadataService,
         services.cardLibraryService,
         services.cardCollectionService,
+        services.eventPublisher,
       ),
       addCardToLibraryUseCase: new AddCardToLibraryUseCase(
         repositories.cardRepository,
@@ -90,6 +91,7 @@ export class UseCaseFactory {
       addCardToCollectionUseCase: new AddCardToCollectionUseCase(
         repositories.cardRepository,
         services.cardCollectionService,
+        services.eventPublisher,
       ),
       updateNoteCardUseCase: new UpdateNoteCardUseCase(
         repositories.cardRepository,
@@ -121,6 +123,7 @@ export class UseCaseFactory {
       createCollectionUseCase: new CreateCollectionUseCase(
         repositories.collectionRepository,
         services.collectionPublisher,
+        services.eventPublisher,
       ),
       updateCollectionUseCase: new UpdateCollectionUseCase(
         repositories.collectionRepository,

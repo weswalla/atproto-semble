@@ -43,6 +43,7 @@ import { IProfileService } from 'src/modules/cards/domain/services/IProfileServi
 import { IEventPublisher } from '../../../application/events/IEventPublisher';
 import { QueueName } from '../../events/QueueConfig';
 import { RedisFactory } from '../../redis/RedisFactory';
+import { IEventSubscriber } from 'src/shared/application/events/IEventSubscriber';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -63,14 +64,14 @@ export interface WebAppServices extends SharedServices {
   cardLibraryService: CardLibraryService;
   cardCollectionService: CardCollectionService;
   authMiddleware: AuthMiddleware;
-  eventPublisher?: IEventPublisher;
+  eventPublisher: IEventPublisher;
 }
 
 // Worker specific services (includes subscribers)
 export interface WorkerServices extends SharedServices {
   redisConnection: Redis;
   eventPublisher: IEventPublisher;
-  createEventSubscriber: (queueName: QueueName) => BullMQEventSubscriber;
+  createEventSubscriber: (queueName: QueueName) => IEventSubscriber;
 }
 
 // Legacy interface for backward compatibility
@@ -88,8 +89,11 @@ export class ServiceFactory {
     configService: EnvironmentConfigService,
     repositories: Repositories,
   ): WebAppServices {
-    const sharedServices = this.createSharedServices(configService, repositories);
-    
+    const sharedServices = this.createSharedServices(
+      configService,
+      repositories,
+    );
+
     const useMockAuth = process.env.USE_MOCK_AUTH === 'true';
 
     // OAuth Client (always create for real, but may not be used if mocking)
@@ -137,16 +141,10 @@ export class ServiceFactory {
 
     const authMiddleware = new AuthMiddleware(sharedServices.tokenService);
 
-    // Optionally create event publisher for web app if Redis is available
-    let eventPublisher: IEventPublisher | undefined;
-    if (process.env.REDIS_URL && !process.env.USE_FAKE_PUBLISHERS) {
-      try {
-        const redisConnection = RedisFactory.createConnection();
-        eventPublisher = new BullMQEventPublisher(redisConnection);
-      } catch (error) {
-        console.warn('Failed to create Redis connection for event publisher:', error);
-      }
-    }
+    const redisConnection = RedisFactory.createConnection(
+      configService.getWorkersConfig().redisUrl,
+    );
+    const eventPublisher = new BullMQEventPublisher(redisConnection);
 
     return {
       ...sharedServices,
@@ -166,14 +164,20 @@ export class ServiceFactory {
     configService: EnvironmentConfigService,
     repositories: Repositories,
   ): WorkerServices {
-    const sharedServices = this.createSharedServices(configService, repositories);
+    const sharedServices = this.createSharedServices(
+      configService,
+      repositories,
+    );
 
     // Redis connection is required for workers
     if (!process.env.REDIS_URL) {
-      throw new Error('REDIS_URL environment variable is required for worker services');
+      throw new Error(
+        'REDIS_URL environment variable is required for worker services',
+      );
     }
 
-    const redisConnection = RedisFactory.createConnection();
+    const redisUrl = configService.getWorkersConfig().redisUrl;
+    const redisConnection = RedisFactory.createConnection(redisUrl);
 
     const eventPublisher = new BullMQEventPublisher(redisConnection);
 

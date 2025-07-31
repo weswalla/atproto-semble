@@ -28,11 +28,13 @@ export class ValidationError extends UseCaseError {
 
 export class AddCardToCollectionUseCase extends BaseUseCase<
   AddCardToCollectionDTO,
-  Result<AddCardToCollectionResponseDTO, ValidationError | AppError.UnexpectedError>
+  Result<
+    AddCardToCollectionResponseDTO,
+    ValidationError | AppError.UnexpectedError
+  >
 > {
   constructor(
     private cardRepository: ICardRepository,
-    private collectionRepository: ICollectionRepository,
     private cardCollectionService: CardCollectionService,
     eventPublisher: IEventPublisher,
   ) {

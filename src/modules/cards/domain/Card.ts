@@ -195,7 +195,11 @@ export class Card extends AggregateRoot<CardProps> {
     this.props.updatedAt = new Date();
 
     // Raise domain event
-    this.addDomainEvent(new CardAddedToLibraryEvent(this.cardId, userId));
+    const domainEvent = CardAddedToLibraryEvent.create(this.cardId, userId);
+    if (domainEvent.isErr()) {
+      return err(new CardValidationError(domainEvent.error.message));
+    }
+    this.addDomainEvent(domainEvent.value);
 
     return ok(undefined);
   }

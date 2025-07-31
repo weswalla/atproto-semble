@@ -3,18 +3,23 @@
 # Source the Postgres setup script
 source ./scripts/setup-postgres.sh
 
-# Function to handle cleanup
-cleanup_and_exit() {
-    echo "Cleaning up Postgres..."
-    cleanup_postgres
-    exit 0
-}
+# Only setup cleanup if not running from combined script
+if [ -z "$COMBINED_SCRIPT" ]; then
+    # Function to handle cleanup
+    cleanup_and_exit() {
+        echo "Cleaning up Postgres..."
+        cleanup_postgres
+        exit 0
+    }
 
-# Trap SIGINT and SIGTERM to cleanup on exit
-trap cleanup_and_exit SIGINT SIGTERM
+    # Trap SIGINT and SIGTERM to cleanup on exit
+    trap cleanup_and_exit SIGINT SIGTERM
+fi
 
 # Run the dev command
 npm run dev:app:inner
 
-# Cleanup after dev command exits
-cleanup_postgres
+# Only cleanup if not running from combined script
+if [ -z "$COMBINED_SCRIPT" ]; then
+    cleanup_postgres
+fi

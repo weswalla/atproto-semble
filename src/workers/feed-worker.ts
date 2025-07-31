@@ -2,6 +2,8 @@ import { EnvironmentConfigService } from '../shared/infrastructure/config/Enviro
 import { RepositoryFactory } from '../shared/infrastructure/http/factories/RepositoryFactory';
 import { ServiceFactory } from '../shared/infrastructure/http/factories/ServiceFactory';
 import { CardAddedToLibraryEventHandler } from '../modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler';
+import { CardAddedToCollectionEventHandler } from '../modules/feeds/application/eventHandlers/CardAddedToCollectionEventHandler';
+import { CollectionCreatedEventHandler } from '../modules/feeds/application/eventHandlers/CollectionCreatedEventHandler';
 import { QueueNames } from '../shared/infrastructure/events/QueueConfig';
 import { EventNames } from '../shared/infrastructure/events/EventConfig';
 
@@ -36,12 +38,24 @@ async function startFeedWorker() {
     },
   };
 
-  const feedHandler = new CardAddedToLibraryEventHandler(feedService as any);
+  const cardAddedToLibraryHandler = new CardAddedToLibraryEventHandler(feedService as any);
+  const cardAddedToCollectionHandler = new CardAddedToCollectionEventHandler(feedService as any);
+  const collectionCreatedHandler = new CollectionCreatedEventHandler(feedService as any);
 
   // Register handlers
   await eventSubscriber.subscribe(
     EventNames.CARD_ADDED_TO_LIBRARY,
-    feedHandler,
+    cardAddedToLibraryHandler,
+  );
+  
+  await eventSubscriber.subscribe(
+    EventNames.CARD_ADDED_TO_COLLECTION,
+    cardAddedToCollectionHandler,
+  );
+  
+  await eventSubscriber.subscribe(
+    EventNames.COLLECTION_CREATED,
+    collectionCreatedHandler,
   );
 
   // Start the worker

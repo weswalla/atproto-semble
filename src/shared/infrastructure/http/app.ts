@@ -29,7 +29,7 @@ export const createExpressApp = (
 
   // Create all dependencies using factories
   const repositories = RepositoryFactory.create(configService);
-  const services = ServiceFactory.create(configService, repositories);
+  const services = ServiceFactory.createForWebApp(configService, repositories);
   const useCases = UseCaseFactory.create(repositories, services);
   const controllers = ControllerFactory.create(useCases);
 

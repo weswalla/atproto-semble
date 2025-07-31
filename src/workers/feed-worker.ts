@@ -1,45 +1,37 @@
-import Redis from 'ioredis';
-import { BullMQEventSubscriber } from '../shared/infrastructure/events/BullMQEventSubscriber';
-import { CardAddedToLibraryEventHandler } from '../modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { EnvironmentConfigService } from '../shared/infrastructure/config/EnvironmentConfigService';
-import { QueueNames } from 'src/shared/infrastructure/events/QueueConfig';
+import { RepositoryFactory } from '../shared/infrastructure/http/factories/RepositoryFactory';
+import { ServiceFactory } from '../shared/infrastructure/http/factories/ServiceFactory';
+import { CardAddedToLibraryEventHandler } from '../modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler';
+import { QueueNames } from '../shared/infrastructure/events/QueueConfig';
+import { EventNames } from '../shared/infrastructure/events/EventConfig';
 
 async function startFeedWorker() {
   console.log('Starting feed worker...');
 
   const configService = new EnvironmentConfigService();
-
-  // Connect to Redis
-  const redisUrl = configService.getWorkersConfig().redisUrl;
-  if (!redisUrl) {
-    throw new Error('REDIS_URL environment variable is required');
-  }
-
-  const redis = new Redis(redisUrl, {
-    maxRetriesPerRequest: 3,
-    lazyConnect: true,
-  });
+  
+  // Create dependencies using factories
+  const repositories = RepositoryFactory.create(configService);
+  const services = ServiceFactory.createForWorker(configService, repositories);
 
   // Test Redis connection
   try {
-    await redis.ping();
+    await services.redisConnection.ping();
     console.log('Connected to Redis successfully');
   } catch (error) {
     console.error('Failed to connect to Redis:', error);
     process.exit(1);
   }
 
-  // Create subscriber
-  const eventSubscriber = new BullMQEventSubscriber(redis, {
-    queueName: QueueNames.FEEDS,
-  });
+  // Create subscriber for feeds queue
+  const eventSubscriber = services.createEventSubscriber(QueueNames.FEEDS);
 
-  // Create event handlers (you'll need to inject dependencies here)
-  // For now, creating a simple handler - you'll need to wire up your services
+  // Create event handlers with proper dependencies
   const feedService = {
     processCardAddedToLibrary: async (event: any) => {
       console.log('Processing feed update for card added to library:', event);
-      // Your feed logic here
+      // Your feed logic here - you can access all shared services here
+      // services.profileService, services.metadataService, etc.
       return { isOk: () => true, isErr: () => false };
     },
   };
@@ -47,7 +39,7 @@ async function startFeedWorker() {
   const feedHandler = new CardAddedToLibraryEventHandler(feedService as any);
 
   // Register handlers
-  await eventSubscriber.subscribe('CardAddedToLibraryEvent', feedHandler);
+  await eventSubscriber.subscribe(EventNames.CARD_ADDED_TO_LIBRARY, feedHandler);
 
   // Start the worker
   await eventSubscriber.start();
@@ -55,19 +47,15 @@ async function startFeedWorker() {
   console.log('Feed worker started and listening for events...');
 
   // Graceful shutdown
-  process.on('SIGTERM', async () => {
+  const shutdown = async () => {
     console.log('Shutting down feed worker...');
     await eventSubscriber.stop();
-    await redis.quit();
+    await services.redisConnection.quit();
     process.exit(0);
-  });
+  };
 
-  process.on('SIGINT', async () => {
-    console.log('Shutting down feed worker...');
-    await eventSubscriber.stop();
-    await redis.quit();
-    process.exit(0);
-  });
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
 }
 
 startFeedWorker().catch((error) => {

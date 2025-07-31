@@ -23,7 +23,7 @@
     "test:integration:watch": "jest --watch --testPathPattern='.integration.test.'",
     "build": "tsup",
     "build:watch": "tsc --watch",
-    "dev:inner": "dotenv -e .env.local -- concurrently -k -n TYPE,CODE -c red,blue \"tsc --noEmit --watch\" \"tsup --watch --onSuccess='node dist/index.js'\"",
+    "dev:inner": "dotenv -e .env.local -- concurrently -k -n TYPE,APP,WORKER -c red,blue,green \"tsc --noEmit --watch\" \"tsup --watch --onSuccess='node dist/index.js'\" \"tsup --watch --onSuccess='node dist/workers/feed-worker.js'\"",
     "dev:mock": "USE_MOCK_REPOS=true USE_FAKE_PUBLISHERS=true USE_MOCK_AUTH=true npm run dev:inner",
     "dev:mock:pub:auth": "USE_FAKE_PUBLISHERS=true USE_MOCK_AUTH=true npm run dev",
     "dev": "bash ./scripts/dev.sh",

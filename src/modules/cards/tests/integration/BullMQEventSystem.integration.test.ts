@@ -7,6 +7,7 @@ import { CardId } from '../../domain/value-objects/CardId';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { IEventHandler } from '../../../../shared/application/events/IEventSubscriber';
 import { Result, ok, err } from '../../../../shared/core/Result';
+import { EventNames } from '../../../../shared/infrastructure/events/EventConfig';
 
 describe('BullMQ Event System Integration', () => {
   let redisContainer: StartedRedisContainer;
@@ -64,7 +65,7 @@ describe('BullMQ Event System Integration', () => {
       };
 
       // Subscribe to events
-      await subscriber.subscribe('CardAddedToLibraryEvent', mockHandler);
+      await subscriber.subscribe(EventNames.CARD_ADDED_TO_LIBRARY, mockHandler);
       await subscriber.start();
 
       // Create test event
@@ -106,7 +107,7 @@ describe('BullMQ Event System Integration', () => {
           }),
       };
 
-      await subscriber.subscribe('CardAddedToLibraryEvent', mockHandler);
+      await subscriber.subscribe(EventNames.CARD_ADDED_TO_LIBRARY, mockHandler);
       await subscriber.start();
 
       // Create multiple test events
@@ -160,7 +161,7 @@ describe('BullMQ Event System Integration', () => {
         }),
       };
 
-      await subscriber.subscribe('CardAddedToLibraryEvent', mockHandler);
+      await subscriber.subscribe(EventNames.CARD_ADDED_TO_LIBRARY, mockHandler);
       await subscriber.start();
 
       const event = new CardAddedToLibraryEvent(
@@ -214,7 +215,7 @@ describe('BullMQ Event System Integration', () => {
           }),
       };
 
-      await subscriber.subscribe('CardAddedToLibraryEvent', mockHandler);
+      await subscriber.subscribe(EventNames.CARD_ADDED_TO_LIBRARY, mockHandler);
       await subscriber.start();
 
       // Create event with specific data

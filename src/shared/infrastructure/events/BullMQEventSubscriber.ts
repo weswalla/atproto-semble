@@ -6,6 +6,7 @@ import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/Ca
 import { CardId } from '../../../modules/cards/domain/value-objects/CardId';
 import { CuratorId } from '../../../modules/cards/domain/value-objects/CuratorId';
 import { QueueNames } from './QueueConfig';
+import { EventNames } from './EventConfig';
 
 export class BullMQEventSubscriber implements IEventSubscriber {
   private workers: Worker[] = [];
@@ -71,16 +72,18 @@ export class BullMQEventSubscriber implements IEventSubscriber {
   }
 
   private reconstructEvent(eventData: any): IDomainEvent {
-    if (eventData.eventType === 'CardAddedToLibraryEvent') {
-      const cardId = CardId.create(eventData.cardId).unwrap();
-      const curatorId = CuratorId.create(eventData.curatorId).unwrap();
-      
-      const event = new CardAddedToLibraryEvent(cardId, curatorId);
-      (event as any).dateTimeOccurred = new Date(eventData.dateTimeOccurred);
-      
-      return event;
+    switch (eventData.eventType) {
+      case EventNames.CARD_ADDED_TO_LIBRARY: {
+        const cardId = CardId.create(eventData.cardId).unwrap();
+        const curatorId = CuratorId.create(eventData.curatorId).unwrap();
+        
+        const event = new CardAddedToLibraryEvent(cardId, curatorId);
+        (event as any).dateTimeOccurred = new Date(eventData.dateTimeOccurred);
+        
+        return event;
+      }
+      default:
+        throw new Error(`Unknown event type: ${eventData.eventType}`);
     }
-
-    throw new Error(`Unknown event type: ${eventData.eventType}`);
   }
 }

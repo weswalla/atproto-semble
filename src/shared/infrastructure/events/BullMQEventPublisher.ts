@@ -4,6 +4,7 @@ import { IEventPublisher } from '../../application/events/IEventPublisher';
 import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { Result, ok, err } from '../../core/Result';
 import { QueueNames, QueueOptions } from './QueueConfig';
+import { EventNames } from './EventConfig';
 
 export class BullMQEventPublisher implements IEventPublisher {
   private queues: Map<string, Queue> = new Map();
@@ -30,8 +31,9 @@ export class BullMQEventPublisher implements IEventPublisher {
     }
 
     const queue = this.queues.get(QueueNames.EVENTS)!;
-    await queue.add(event.constructor.name, {
-      eventType: event.constructor.name,
+    const eventType = this.getEventType(event);
+    await queue.add(eventType, {
+      eventType: eventType,
       aggregateId: event.getAggregateId().toString(),
       dateTimeOccurred: event.dateTimeOccurred.toISOString(),
       // Serialize the event data
@@ -40,6 +42,16 @@ export class BullMQEventPublisher implements IEventPublisher {
     });
   }
 
+
+  private getEventType(event: IDomainEvent): string {
+    // Map event constructor names to our centralized event names
+    switch (event.constructor.name) {
+      case 'CardAddedToLibraryEvent':
+        return EventNames.CARD_ADDED_TO_LIBRARY;
+      default:
+        throw new Error(`Unknown event type: ${event.constructor.name}`);
+    }
+  }
 
   async close(): Promise<void> {
     await Promise.all(

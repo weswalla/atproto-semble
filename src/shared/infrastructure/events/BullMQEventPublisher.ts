@@ -5,7 +5,7 @@ import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { Result, ok, err } from '../../core/Result';
 import { QueueNames, QueueOptions, QueueName } from './QueueConfig';
 import { EventMapper } from './EventMapper';
-import { EventName } from './EventConfig';
+import { EventName, EventNames } from './EventConfig';
 
 export class BullMQEventPublisher implements IEventPublisher {
   private queues: Map<string, Queue> = new Map();
@@ -25,13 +25,16 @@ export class BullMQEventPublisher implements IEventPublisher {
 
   private async publishSingleEvent(event: IDomainEvent): Promise<void> {
     const targetQueues = this.getTargetQueues(event.eventName);
-    
+
     for (const queueName of targetQueues) {
       await this.publishToQueue(queueName, event);
     }
   }
 
-  private async publishToQueue(queueName: QueueName, event: IDomainEvent): Promise<void> {
+  private async publishToQueue(
+    queueName: QueueName,
+    event: IDomainEvent,
+  ): Promise<void> {
     if (!this.queues.has(queueName)) {
       this.queues.set(
         queueName,
@@ -52,17 +55,17 @@ export class BullMQEventPublisher implements IEventPublisher {
     // For now, all events go to feeds queue
     // Future: route different events to different queues
     switch (eventName) {
-      case 'CardAddedToLibraryEvent':
+      case EventNames.CARD_ADDED_TO_LIBRARY:
         return [QueueNames.FEEDS];
-        // Future: return [QueueNames.FEEDS, QueueNames.NOTIFICATIONS, QueueNames.ANALYTICS];
-      case 'CardAddedToCollectionEvent':
+      // Future: return [QueueNames.FEEDS, QueueNames.NOTIFICATIONS, QueueNames.ANALYTICS];
+      case EventNames.CARD_ADDED_TO_COLLECTION:
         return [QueueNames.FEEDS];
-        // Future: return [QueueNames.FEEDS, QueueNames.ANALYTICS];
-      case 'CollectionCreatedEvent':
+      // Future: return [QueueNames.FEEDS, QueueNames.ANALYTICS];
+      case EventNames.COLLECTION_CREATED:
         return [QueueNames.FEEDS];
-        // Future: return [QueueNames.FEEDS, QueueNames.ANALYTICS];
+      // Future: return [QueueNames.FEEDS, QueueNames.ANALYTICS];
       default:
-        return [QueueNames.FEEDS]; // Default to feeds queue
+        return []; // Default to feeds queue
     }
   }
 

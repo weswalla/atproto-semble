@@ -9,6 +9,7 @@ import { IEventHandler } from '../../../../shared/application/events/IEventSubsc
 import { ok, err } from '../../../../shared/core/Result';
 import { EventNames } from '../../../../shared/infrastructure/events/EventConfig';
 import { Queue } from 'bullmq';
+import { QueueNames } from 'src/shared/infrastructure/events/QueueConfig';
 
 describe('BullMQ Event System Integration', () => {
   let redisContainer: StartedRedisContainer;
@@ -28,7 +29,9 @@ describe('BullMQ Event System Integration', () => {
 
     // Create publisher and subscriber
     publisher = new BullMQEventPublisher(redis);
-    subscriber = new BullMQEventSubscriber(redis);
+    subscriber = new BullMQEventSubscriber(redis, {
+      queueName: QueueNames.FEEDS,
+    });
   }, 60000); // Increase timeout for container startup
 
   afterAll(async () => {
@@ -252,7 +255,7 @@ describe('BullMQ Event System Integration', () => {
   });
 
   describe('Queue Configuration', () => {
-    it('should route events to the events queue', async () => {
+    it('should route events to the feeds queue', async () => {
       // This test verifies the queue routing logic by checking Redis directly
       const event = CardAddedToLibraryEvent.create(
         CardId.createFromString('queue-test-card').unwrap(),
@@ -262,7 +265,7 @@ describe('BullMQ Event System Integration', () => {
       await publisher.publishEvents([event]);
 
       // Create a Queue instance to check job counts
-      const eventsQueue = new Queue('events', { connection: redis });
+      const eventsQueue = new Queue(QueueNames.FEEDS, { connection: redis });
 
       // Wait for job to be added
       await new Promise((resolve) => setTimeout(resolve, 100));

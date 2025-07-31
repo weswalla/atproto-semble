@@ -5,7 +5,7 @@ import {
   IEventHandler,
 } from '../../application/events/IEventSubscriber';
 import { IDomainEvent } from '../../domain/events/IDomainEvent';
-import { QueueNames, QueueOptions, QueueName } from './QueueConfig';
+import { QueueOptions, QueueName } from './QueueConfig';
 import { EventMapper } from './EventMapper';
 import { EventName } from './EventConfig';
 
@@ -35,7 +35,8 @@ export class BullMQEventSubscriber implements IEventSubscriber {
 
   async start(): Promise<void> {
     const queueConfig = QueueOptions[this.config.queueName];
-    const concurrency = this.config.concurrency || queueConfig.concurrency || 10;
+    const concurrency =
+      this.config.concurrency || queueConfig.concurrency || 10;
 
     const worker = new Worker(
       this.config.queueName,
@@ -49,7 +50,9 @@ export class BullMQEventSubscriber implements IEventSubscriber {
     );
 
     worker.on('completed', (job) => {
-      console.log(`[${this.config.queueName}] Job ${job.id} completed successfully`);
+      console.log(
+        `[${this.config.queueName}] Job ${job.id} completed successfully`,
+      );
     });
 
     worker.on('failed', (job, err) => {
@@ -74,7 +77,9 @@ export class BullMQEventSubscriber implements IEventSubscriber {
 
     const handler = this.handlers.get(eventType);
     if (!handler) {
-      console.warn(`[${this.config.queueName}] No handler registered for event type: ${eventType}`);
+      console.warn(
+        `[${this.config.queueName}] No handler registered for event type: ${eventType}`,
+      );
       return;
     }
 

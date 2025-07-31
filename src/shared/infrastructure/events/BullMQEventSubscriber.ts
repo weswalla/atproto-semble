@@ -5,6 +5,7 @@ import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
 import { CardId } from '../../../modules/cards/domain/value-objects/CardId';
 import { CuratorId } from '../../../modules/cards/domain/value-objects/CuratorId';
+import { QueueNames } from './QueueConfig';
 
 export class BullMQEventSubscriber implements IEventSubscriber {
   private workers: Worker[] = [];
@@ -21,7 +22,7 @@ export class BullMQEventSubscriber implements IEventSubscriber {
 
   async start(): Promise<void> {
     const worker = new Worker(
-      'events',
+      QueueNames.EVENTS,
       async (job: Job) => {
         await this.processJob(job);
       },

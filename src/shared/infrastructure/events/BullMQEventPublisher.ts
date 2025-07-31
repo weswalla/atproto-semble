@@ -3,6 +3,7 @@ import Redis from 'ioredis';
 import { IEventPublisher } from '../../application/events/IEventPublisher';
 import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { Result, ok, err } from '../../core/Result';
+import { QueueNames, QueueOptions } from './QueueConfig';
 
 export class BullMQEventPublisher implements IEventPublisher {
   private queues: Map<string, Queue> = new Map();
@@ -21,19 +22,14 @@ export class BullMQEventPublisher implements IEventPublisher {
   }
 
   private async publishSingleEvent(event: IDomainEvent): Promise<void> {
-    if (!this.queues.has('events')) {
-      this.queues.set('events', new Queue('events', {
+    if (!this.queues.has(QueueNames.EVENTS)) {
+      this.queues.set(QueueNames.EVENTS, new Queue(QueueNames.EVENTS, {
         connection: this.redisConnection,
-        defaultJobOptions: {
-          attempts: 3,
-          backoff: { type: 'exponential' as const, delay: 2000 },
-          removeOnComplete: 50,
-          removeOnFail: 25,
-        }
+        defaultJobOptions: QueueOptions[QueueNames.EVENTS]
       }));
     }
 
-    const queue = this.queues.get('events')!;
+    const queue = this.queues.get(QueueNames.EVENTS)!;
     await queue.add(event.constructor.name, {
       eventType: event.constructor.name,
       aggregateId: event.getAggregateId().toString(),

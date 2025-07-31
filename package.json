@@ -24,6 +24,7 @@
     "build": "tsup",
     "build:watch": "tsc --watch",
     "dev:inner": "dotenv -e .env.local -- concurrently -k -n TYPE,APP -c red,blue \"tsc --noEmit --watch\" \"tsup --watch --onSuccess='node dist/index.js'\"",
+    "dev:worker:feeds": "dotenv -e .env.local -- concurrently -k -n TYPE,WORKER -c red,green \"tsc --noEmit --watch\" \"tsup --watch --onSuccess='node dist/workers/feed-worker.js'\"",
     "dev:mock": "USE_MOCK_REPOS=true USE_FAKE_PUBLISHERS=true USE_MOCK_AUTH=true npm run dev:inner",
     "dev:mock:pub:auth": "USE_FAKE_PUBLISHERS=true USE_MOCK_AUTH=true npm run dev",
     "dev": "bash ./scripts/dev.sh",

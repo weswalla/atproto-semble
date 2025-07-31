@@ -8,20 +8,23 @@ export class CardAddedToLibraryEventHandler implements IEventHandler<CardAddedTo
 
   async handle(event: CardAddedToLibraryEvent): Promise<Result<void>> {
     try {
+      console.log(`[FEEDS] Processing CardAddedToLibraryEvent for card ${event.cardId.getStringValue()}`);
+      
       const result = await this.feedService.processCardAddedToLibrary(event);
       
       if (result.isErr()) {
         console.error(
-          'Error processing CardAddedToLibraryEvent in feeds:',
+          '[FEEDS] Error processing CardAddedToLibraryEvent:',
           result.error,
         );
         return err(result.error);
       }
 
+      console.log(`[FEEDS] Successfully processed CardAddedToLibraryEvent for card ${event.cardId.getStringValue()}`);
       return ok(undefined);
     } catch (error) {
       console.error(
-        'Unexpected error handling CardAddedToLibraryEvent in feeds:',
+        '[FEEDS] Unexpected error handling CardAddedToLibraryEvent:',
         error,
       );
       return err(error as Error);

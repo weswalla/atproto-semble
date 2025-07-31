@@ -2,6 +2,7 @@ import Redis from 'ioredis';
 import { BullMQEventSubscriber } from '../shared/infrastructure/events/BullMQEventSubscriber';
 import { CardAddedToLibraryEventHandler } from '../modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { EnvironmentConfigService } from '../shared/infrastructure/config/EnvironmentConfigService';
+import { QueueNames } from 'src/shared/infrastructure/events/QueueConfig';
 
 async function startFeedWorker() {
   console.log('Starting feed worker...');
@@ -29,7 +30,9 @@ async function startFeedWorker() {
   }
 
   // Create subscriber
-  const eventSubscriber = new BullMQEventSubscriber(redis);
+  const eventSubscriber = new BullMQEventSubscriber(redis, {
+    queueName: QueueNames.FEEDS,
+  });
 
   // Create event handlers (you'll need to inject dependencies here)
   // For now, creating a simple handler - you'll need to wire up your services

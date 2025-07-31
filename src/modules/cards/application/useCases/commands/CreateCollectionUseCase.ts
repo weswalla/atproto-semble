@@ -100,11 +100,11 @@ export class CreateCollectionUseCase extends BaseUseCase<
       }
 
       // Publish domain events
-      const publishResult = await this.publishEventsForAggregate(collection);
-      if (publishResult.isErr()) {
+      const publishEventsResult = await this.publishEventsForAggregate(collection);
+      if (publishEventsResult.isErr()) {
         console.error(
           'Failed to publish events for collection:',
-          publishResult.error,
+          publishEventsResult.error,
         );
         // Don't fail the operation if event publishing fails
       }

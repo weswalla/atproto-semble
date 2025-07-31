@@ -23,7 +23,7 @@ export class CardLibraryService implements DomainService {
     card: Card,
     curatorId: CuratorId,
   ): Promise<
-    Result<void, CardLibraryValidationError | AppError.UnexpectedError>
+    Result<Card, CardLibraryValidationError | AppError.UnexpectedError>
   > {
     try {
       // Check if card is already in curator's library
@@ -31,7 +31,7 @@ export class CardLibraryService implements DomainService {
 
       if (isInLibrary) {
         // Card is already in library, nothing to do
-        return ok(undefined);
+        return ok(card);
       }
 
       // Publish card to library
@@ -57,7 +57,7 @@ export class CardLibraryService implements DomainService {
         return err(AppError.UnexpectedError.create(saveResult.error));
       }
 
-      return ok(undefined);
+      return ok(card);
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
     }
@@ -67,7 +67,7 @@ export class CardLibraryService implements DomainService {
     card: Card,
     curatorId: CuratorId,
   ): Promise<
-    Result<void, CardLibraryValidationError | AppError.UnexpectedError>
+    Result<Card, CardLibraryValidationError | AppError.UnexpectedError>
   > {
     try {
       // Check if card is in curator's library
@@ -75,7 +75,7 @@ export class CardLibraryService implements DomainService {
 
       if (!isInLibrary) {
         // Card is not in library, nothing to do
-        return ok(undefined);
+        return ok(card);
       }
 
       // Get library info to check if it was published
@@ -112,7 +112,7 @@ export class CardLibraryService implements DomainService {
         return err(AppError.UnexpectedError.create(saveResult.error));
       }
 
-      return ok(undefined);
+      return ok(card);
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
     }

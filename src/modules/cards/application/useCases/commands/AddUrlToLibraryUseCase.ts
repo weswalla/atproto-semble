@@ -137,6 +137,9 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
           new ValidationError(addUrlCardToLibraryResult.error.message),
         );
       }
+      
+      // Update urlCard reference to the one returned by the service
+      urlCard = addUrlCardToLibraryResult.value;
 
       let noteCard;
 
@@ -179,6 +182,9 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
             new ValidationError(addNoteCardToLibraryResult.error.message),
           );
         }
+        
+        // Update noteCard reference to the one returned by the service
+        noteCard = addNoteCardToLibraryResult.value;
       }
 
       // Handle collection additions if specified
@@ -216,16 +222,41 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
           }
           return err(new ValidationError(addToCollectionsResult.error.message));
         }
+        
+        // Publish events for all affected collections
+        const updatedCollections = addToCollectionsResult.value;
+        for (const collection of updatedCollections) {
+          const publishResult = await this.publishEventsForAggregate(collection);
+          if (publishResult.isErr()) {
+            console.error(
+              'Failed to publish events for collection:',
+              publishResult.error,
+            );
+            // Don't fail the operation if event publishing fails
+          }
+        }
       }
 
       // Publish events for URL card (events are raised in addToLibrary method)
-      const publishResult = await this.publishEventsForAggregate(urlCard);
-      if (publishResult.isErr()) {
+      const publishUrlCardResult = await this.publishEventsForAggregate(urlCard);
+      if (publishUrlCardResult.isErr()) {
         console.error(
           'Failed to publish events for URL card:',
-          publishResult.error,
+          publishUrlCardResult.error,
         );
         // Don't fail the operation if event publishing fails
+      }
+      
+      // Publish events for note card if it exists
+      if (noteCard) {
+        const publishNoteCardResult = await this.publishEventsForAggregate(noteCard);
+        if (publishNoteCardResult.isErr()) {
+          console.error(
+            'Failed to publish events for note card:',
+            publishNoteCardResult.error,
+          );
+          // Don't fail the operation if event publishing fails
+        }
       }
 
       return ok({

@@ -109,17 +109,15 @@ export class AddCardToCollectionUseCase extends BaseUseCase<
       }
 
       // Publish events for all affected collections
-      for (const collectionId of collectionIds) {
-        const collectionResult = await this.collectionRepository.findById(collectionId);
-        if (collectionResult.isOk() && collectionResult.value) {
-          const publishResult = await this.publishEventsForAggregate(collectionResult.value);
-          if (publishResult.isErr()) {
-            console.error(
-              'Failed to publish events for collection:',
-              publishResult.error,
-            );
-            // Don't fail the operation if event publishing fails
-          }
+      const updatedCollections = addToCollectionsResult.value;
+      for (const collection of updatedCollections) {
+        const publishResult = await this.publishEventsForAggregate(collection);
+        if (publishResult.isErr()) {
+          console.error(
+            'Failed to publish events for collection:',
+            publishResult.error,
+          );
+          // Don't fail the operation if event publishing fails
         }
       }
 

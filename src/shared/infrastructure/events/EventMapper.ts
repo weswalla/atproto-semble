@@ -8,43 +8,50 @@ export interface SerializedEvent {
   eventType: string;
   aggregateId: string;
   dateTimeOccurred: string;
-  [key: string]: any;
 }
 
-export class EventMapper {
-  static toSerialized(event: IDomainEvent): SerializedEvent {
-    const baseData: SerializedEvent = {
-      eventType: event.eventName,
-      aggregateId: event.getAggregateId().toString(),
-      dateTimeOccurred: event.dateTimeOccurred.toISOString(),
-    };
+export interface SerializedCardAddedToLibraryEvent extends SerializedEvent {
+  eventType: typeof EventNames.CARD_ADDED_TO_LIBRARY;
+  cardId: string;
+  curatorId: string;
+}
 
-    // Add event-specific data based on event type
+export type SerializedEventUnion = SerializedCardAddedToLibraryEvent;
+
+export class EventMapper {
+  static toSerialized(event: IDomainEvent): SerializedEventUnion {
     if (event instanceof CardAddedToLibraryEvent) {
       return {
-        ...baseData,
+        eventType: EventNames.CARD_ADDED_TO_LIBRARY,
+        aggregateId: event.getAggregateId().toString(),
+        dateTimeOccurred: event.dateTimeOccurred.toISOString(),
         cardId: event.cardId.getValue().toString(),
         curatorId: event.curatorId.value,
       };
     }
 
-    throw new Error(`Unknown event type for serialization: ${event.constructor.name}`);
+    throw new Error(
+      `Unknown event type for serialization: ${event.constructor.name}`,
+    );
   }
 
-  static fromSerialized(eventData: SerializedEvent): IDomainEvent {
+  static fromSerialized(eventData: SerializedEventUnion): IDomainEvent {
     switch (eventData.eventType) {
       case EventNames.CARD_ADDED_TO_LIBRARY: {
-        const cardId = CardId.create(eventData.cardId).unwrap();
+        const cardId = CardId.createFromString(eventData.cardId).unwrap();
         const curatorId = CuratorId.create(eventData.curatorId).unwrap();
-        
-        const event = new CardAddedToLibraryEvent(cardId, curatorId);
-        // Override the dateTimeOccurred with the serialized value
-        (event as any).dateTimeOccurred = new Date(eventData.dateTimeOccurred);
-        
-        return event;
+        const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
+
+        return CardAddedToLibraryEvent.reconstruct(
+          cardId,
+          curatorId,
+          dateTimeOccurred,
+        ).unwrap();
       }
       default:
-        throw new Error(`Unknown event type for deserialization: ${eventData.eventType}`);
+        throw new Error(
+          `Unknown event type for deserialization: ${eventData.eventType}`,
+        );
     }
   }
 }

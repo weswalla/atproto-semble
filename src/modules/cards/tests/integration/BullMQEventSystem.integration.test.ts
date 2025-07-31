@@ -71,7 +71,7 @@ describe('BullMQ Event System Integration', () => {
       // Create test event
       const cardId = CardId.createFromString('test-card-123').unwrap();
       const curatorId = CuratorId.create('did:plc:testuser123').unwrap();
-      const event = new CardAddedToLibraryEvent(cardId, curatorId);
+      const event = CardAddedToLibraryEvent.create(cardId, curatorId).unwrap();
 
       // Act - Publish event
       const publishResult = await publisher.publishEvents([event]);
@@ -112,18 +112,18 @@ describe('BullMQ Event System Integration', () => {
 
       // Create multiple test events
       const events = [
-        new CardAddedToLibraryEvent(
+        CardAddedToLibraryEvent.create(
           CardId.createFromString('card-1').unwrap(),
           CuratorId.create('did:plc:user1').unwrap(),
-        ),
-        new CardAddedToLibraryEvent(
+        ).unwrap(),
+        CardAddedToLibraryEvent.create(
           CardId.createFromString('card-2').unwrap(),
           CuratorId.create('did:plc:user2').unwrap(),
-        ),
-        new CardAddedToLibraryEvent(
+        ).unwrap(),
+        CardAddedToLibraryEvent.create(
           CardId.createFromString('card-3').unwrap(),
           CuratorId.create('did:plc:user3').unwrap(),
-        ),
+        ).unwrap(),
       ];
 
       // Act - Publish all events
@@ -164,10 +164,10 @@ describe('BullMQ Event System Integration', () => {
       await subscriber.subscribe(EventNames.CARD_ADDED_TO_LIBRARY, mockHandler);
       await subscriber.start();
 
-      const event = new CardAddedToLibraryEvent(
+      const event = CardAddedToLibraryEvent.create(
         CardId.createFromString('failing-card').unwrap(),
         CuratorId.create('did:plc:failuser').unwrap(),
-      );
+      ).unwrap();
 
       // Act - Publish event that will initially fail
       const publishResult = await publisher.publishEvents([event]);
@@ -186,10 +186,10 @@ describe('BullMQ Event System Integration', () => {
       // Arrange - Start subscriber without registering any handlers
       await subscriber.start();
 
-      const event = new CardAddedToLibraryEvent(
+      const event = CardAddedToLibraryEvent.create(
         CardId.createFromString('unhandled-card').unwrap(),
         CuratorId.create('did:plc:unhandleduser').unwrap(),
-      );
+      ).unwrap();
 
       // Act - Publish event
       const publishResult = await publisher.publishEvents([event]);
@@ -225,10 +225,10 @@ describe('BullMQ Event System Integration', () => {
       const originalCuratorId = CuratorId.create(
         'did:plc:integrityuser789',
       ).unwrap();
-      const originalEvent = new CardAddedToLibraryEvent(
+      const originalEvent = CardAddedToLibraryEvent.create(
         originalCardId,
         originalCuratorId,
-      );
+      ).unwrap();
       const originalTimestamp = originalEvent.dateTimeOccurred;
 
       // Act
@@ -253,10 +253,10 @@ describe('BullMQ Event System Integration', () => {
   describe('Queue Configuration', () => {
     it('should route events to the events queue', async () => {
       // This test verifies the queue routing logic by checking Redis directly
-      const event = new CardAddedToLibraryEvent(
+      const event = CardAddedToLibraryEvent.create(
         CardId.createFromString('queue-test-card').unwrap(),
         CuratorId.create('did:plc:queueuser').unwrap(),
-      );
+      ).unwrap();
 
       await publisher.publishEvents([event]);
 

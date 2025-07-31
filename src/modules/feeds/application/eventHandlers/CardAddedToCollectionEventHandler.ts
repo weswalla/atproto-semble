@@ -1,7 +1,10 @@
 import { CardAddedToCollectionEvent } from '../../../cards/domain/events/CardAddedToCollectionEvent';
 import { IEventHandler } from '../../../../shared/application/events/IEventSubscriber';
 import { Result, ok, err } from '../../../../shared/core/Result';
-import { AddActivityToFeedUseCase, AddCardToCollectionActivityDTO } from '../useCases/commands/AddActivityToFeedUseCase';
+import {
+  AddActivityToFeedUseCase,
+  AddCardToCollectionActivityDTO,
+} from '../useCases/commands/AddActivityToFeedUseCase';
 import { ActivityTypeEnum } from '../../domain/value-objects/ActivityType';
 
 export class CardAddedToCollectionEventHandler
@@ -11,10 +14,6 @@ export class CardAddedToCollectionEventHandler
 
   async handle(event: CardAddedToCollectionEvent): Promise<Result<void>> {
     try {
-      console.log(
-        `[FEEDS] Processing CardAddedToCollectionEvent for card ${event.cardId.getStringValue()} added to collection ${event.collectionId.getStringValue()}`,
-      );
-
       const request: AddCardToCollectionActivityDTO = {
         type: ActivityTypeEnum.CARD_ADDED_TO_COLLECTION,
         actorId: event.addedBy.value,
@@ -33,12 +32,9 @@ export class CardAddedToCollectionEventHandler
           '[FEEDS] Failed to add card-added-to-collection activity:',
           result.error,
         );
-        return err(result.error);
+        return err(new Error(result.error.message));
       }
 
-      console.log(
-        `[FEEDS] Successfully processed CardAddedToCollectionEvent for card ${event.cardId.getStringValue()}, created activity ${result.value.activityId}`,
-      );
       return ok(undefined);
     } catch (error) {
       console.error(

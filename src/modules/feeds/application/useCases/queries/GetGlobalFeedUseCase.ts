@@ -43,8 +43,8 @@ export interface CardAddedToCollectionActivityDTO {
   createdAt: Date;
 }
 
-export type ActivityDTO = 
-  | CardAddedToLibraryActivityDTO 
+export type ActivityDTO =
+  | CardAddedToLibraryActivityDTO
   | CardAddedToCollectionActivityDTO;
 
 export interface GetGlobalFeedResult {
@@ -65,7 +65,11 @@ export class ValidationError extends UseCaseError {
 }
 
 export class GetGlobalFeedUseCase
-  implements UseCase<GetGlobalFeedQuery, Result<GetGlobalFeedResult>>
+  implements
+    UseCase<
+      GetGlobalFeedQuery,
+      Result<GetGlobalFeedResult, ValidationError | AppError.UnexpectedError>
+    >
 {
   constructor(
     private feedRepository: IFeedRepository,
@@ -74,7 +78,9 @@ export class GetGlobalFeedUseCase
 
   async execute(
     query: GetGlobalFeedQuery,
-  ): Promise<Result<GetGlobalFeedResult, ValidationError | AppError.UnexpectedError>> {
+  ): Promise<
+    Result<GetGlobalFeedResult, ValidationError | AppError.UnexpectedError>
+  > {
     try {
       // Set defaults and validate
       const page = query.page || 1;
@@ -82,9 +88,15 @@ export class GetGlobalFeedUseCase
 
       let beforeActivityId: ActivityId | undefined;
       if (query.beforeActivityId) {
-        const activityIdResult = ActivityId.createFromString(query.beforeActivityId);
+        const activityIdResult = ActivityId.createFromString(
+          query.beforeActivityId,
+        );
         if (activityIdResult.isErr()) {
-          return err(new ValidationError(`Invalid beforeActivityId: ${activityIdResult.error.message}`));
+          return err(
+            new ValidationError(
+              `Invalid beforeActivityId: ${activityIdResult.error.message}`,
+            ),
+          );
         }
         beforeActivityId = activityIdResult.value;
       }
@@ -103,8 +115,10 @@ export class GetGlobalFeedUseCase
       const feed = feedResult.value;
 
       // Get unique actor IDs for profile enrichment
-      const actorIds = [...new Set(feed.activities.map(activity => activity.actorId.value))];
-      
+      const actorIds = [
+        ...new Set(feed.activities.map((activity) => activity.actorId.value)),
+      ];
+
       // Fetch profiles for all actors
       const actorProfiles = new Map<string, ActivityActorDTO>();
       for (const actorId of actorIds) {
@@ -128,9 +142,9 @@ export class GetGlobalFeedUseCase
       }
 
       // Transform activities to DTOs
-      const activityDTOs: ActivityDTO[] = feed.activities.map(activity => {
+      const activityDTOs: ActivityDTO[] = feed.activities.map((activity) => {
         const actor = actorProfiles.get(activity.actorId.value)!;
-        
+
         if (activity.isCardAddedToLibrary) {
           const metadata = activity.cardAddedToLibraryMetadata!;
           return {

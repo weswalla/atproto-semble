@@ -1,7 +1,10 @@
 import { CardAddedToLibraryEvent } from '../../../cards/domain/events/CardAddedToLibraryEvent';
 import { IEventHandler } from '../../../../shared/application/events/IEventSubscriber';
 import { Result, ok, err } from '../../../../shared/core/Result';
-import { AddActivityToFeedUseCase, AddCardToLibraryActivityDTO } from '../useCases/commands/AddActivityToFeedUseCase';
+import {
+  AddActivityToFeedUseCase,
+  AddCardToLibraryActivityDTO,
+} from '../useCases/commands/AddActivityToFeedUseCase';
 import { ActivityTypeEnum } from '../../domain/value-objects/ActivityType';
 
 export class CardAddedToLibraryEventHandler
@@ -11,10 +14,6 @@ export class CardAddedToLibraryEventHandler
 
   async handle(event: CardAddedToLibraryEvent): Promise<Result<void>> {
     try {
-      console.log(
-        `[FEEDS] Processing CardAddedToLibraryEvent for card ${event.cardId.getStringValue()}`,
-      );
-
       const request: AddCardToLibraryActivityDTO = {
         type: ActivityTypeEnum.CARD_ADDED_TO_LIBRARY,
         actorId: event.curatorId.value,
@@ -31,7 +30,7 @@ export class CardAddedToLibraryEventHandler
           '[FEEDS] Error processing CardAddedToLibraryEvent:',
           result.error,
         );
-        return err(result.error);
+        return err(new Error(result.error.message));
       }
 
       console.log(

@@ -1,7 +1,8 @@
 import { Result, ok, err } from '../../../../../shared/core/Result';
-import { UseCase } from '../../../../../shared/core/UseCase';
+import { BaseUseCase } from '../../../../../shared/core/UseCase';
 import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
+import { IEventPublisher } from '../../../../../shared/application/events/IEventPublisher';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { Collection, CollectionAccessType } from '../../../domain/Collection';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
@@ -23,20 +24,17 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class CreateCollectionUseCase
-  implements
-    UseCase<
-      CreateCollectionDTO,
-      Result<
-        CreateCollectionResponseDTO,
-        ValidationError | AppError.UnexpectedError
-      >
-    >
-{
+export class CreateCollectionUseCase extends BaseUseCase<
+  CreateCollectionDTO,
+  Result<CreateCollectionResponseDTO, ValidationError | AppError.UnexpectedError>
+> {
   constructor(
     private collectionRepository: ICollectionRepository,
     private collectionPublisher: ICollectionPublisher,
-  ) {}
+    eventPublisher: IEventPublisher,
+  ) {
+    super(eventPublisher);
+  }
 
   async execute(
     request: CreateCollectionDTO,
@@ -99,6 +97,16 @@ export class CreateCollectionUseCase
         await this.collectionRepository.save(collection);
       if (saveUpdatedResult.isErr()) {
         return err(AppError.UnexpectedError.create(saveUpdatedResult.error));
+      }
+
+      // Publish domain events
+      const publishResult = await this.publishEventsForAggregate(collection);
+      if (publishResult.isErr()) {
+        console.error(
+          'Failed to publish events for collection:',
+          publishResult.error,
+        );
+        // Don't fail the operation if event publishing fails
       }
 
       return ok({

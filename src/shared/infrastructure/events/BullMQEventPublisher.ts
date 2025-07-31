@@ -24,10 +24,13 @@ export class BullMQEventPublisher implements IEventPublisher {
 
   private async publishSingleEvent(event: IDomainEvent): Promise<void> {
     if (!this.queues.has(QueueNames.EVENTS)) {
-      this.queues.set(QueueNames.EVENTS, new Queue(QueueNames.EVENTS, {
-        connection: this.redisConnection,
-        defaultJobOptions: QueueOptions[QueueNames.EVENTS]
-      }));
+      this.queues.set(
+        QueueNames.EVENTS,
+        new Queue(QueueNames.EVENTS, {
+          connection: this.redisConnection,
+          defaultJobOptions: QueueOptions[QueueNames.EVENTS],
+        }),
+      );
     }
 
     const queue = this.queues.get(QueueNames.EVENTS)!;
@@ -42,7 +45,6 @@ export class BullMQEventPublisher implements IEventPublisher {
     });
   }
 
-
   private getEventType(event: IDomainEvent): string {
     // Map event constructor names to our centralized event names
     switch (event.constructor.name) {
@@ -55,7 +57,7 @@ export class BullMQEventPublisher implements IEventPublisher {
 
   async close(): Promise<void> {
     await Promise.all(
-      Array.from(this.queues.values()).map(queue => queue.close())
+      Array.from(this.queues.values()).map((queue) => queue.close()),
     );
   }
 }

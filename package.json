@@ -27,7 +27,7 @@
     "dev:worker:feeds": "dotenv -e .env.local -- concurrently -k -n TYPE,WORKER -c red,green \"tsc --noEmit --watch\" \"tsup --watch --onSuccess='node dist/workers/feed-worker.js'\"",
     "dev:mock": "USE_MOCK_REPOS=true USE_FAKE_PUBLISHERS=true USE_MOCK_AUTH=true npm run dev:inner",
     "dev:mock:pub:auth": "USE_FAKE_PUBLISHERS=true USE_MOCK_AUTH=true npm run dev",
-    "dev": "bash ./scripts/dev.sh",
+    "dev": "concurrently -k -n APP,WORKER -c blue,green \"bash ./scripts/dev.sh\" \"bash ./scripts/dev-feed-worker.sh\"",
     "migrate": "node dist/scripts/migrate.js",
     "lexgen": "lex gen-server ./src/modules/atproto/infrastructure/lexicon ./src/modules/atproto/infrastructure/lexicons/*",
     "db:start": "docker run --name annos-postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=annotations -p 5432:5432 -d postgres:14",

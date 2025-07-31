@@ -16,15 +16,6 @@ else
   DB_RUNNING=false
 fi
 
-# Check if the Redis container is running
-if [ "$(docker ps -q -f name=annos-redis)" ]; then
-  echo "Redis container is already running."
-  REDIS_RUNNING=true
-else
-  echo "Starting Redis container..."
-  npm run redis:start
-  REDIS_RUNNING=false
-fi
 
 # Trap SIGINT and SIGTERM to stop containers on exit, only if we started them
 function cleanup {
@@ -33,14 +24,6 @@ function cleanup {
       echo "Stopping Postgres container..."
       npm run db:stop
       npm run db:remove
-    fi
-  fi
-  
-  if [ "$REDIS_RUNNING" = false ]; then
-    if [ "$(docker ps -q -f name=annos-redis)" ]; then
-      echo "Stopping Redis container..."
-      npm run redis:stop
-      npm run redis:remove
     fi
   fi
 }

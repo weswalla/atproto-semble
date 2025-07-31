@@ -250,7 +250,7 @@ describe('BullMQ Event System Integration', () => {
   });
 
   describe('Queue Configuration', () => {
-    it('should route CardAddedToLibraryEvent to notifications queue', async () => {
+    it('should route events to the events queue', async () => {
       // This test verifies the queue routing logic by checking Redis directly
       const event = new CardAddedToLibraryEvent(
         CardId.createFromString('queue-test-card').unwrap(),
@@ -259,13 +259,13 @@ describe('BullMQ Event System Integration', () => {
 
       await publisher.publishEvents([event]);
 
-      // Check that job was added to the notifications queue
-      const queueKeys = await redis.keys('bull:notifications:*');
+      // Check that job was added to the events queue
+      const queueKeys = await redis.keys('bull:events:*');
       expect(queueKeys.length).toBeGreaterThan(0);
 
       // Verify the job data structure
       const waitingJobs = await redis.lrange(
-        'bull:notifications:waiting',
+        'bull:events:waiting',
         0,
         -1,
       );

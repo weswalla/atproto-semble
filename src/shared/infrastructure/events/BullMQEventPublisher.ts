@@ -21,16 +21,19 @@ export class BullMQEventPublisher implements IEventPublisher {
   }
 
   private async publishSingleEvent(event: IDomainEvent): Promise<void> {
-    const queueConfig = this.getQueueConfig(event);
-    
-    if (!this.queues.has(queueConfig.name)) {
-      this.queues.set(queueConfig.name, new Queue(queueConfig.name, {
+    if (!this.queues.has('events')) {
+      this.queues.set('events', new Queue('events', {
         connection: this.redisConnection,
-        defaultJobOptions: queueConfig.options,
+        defaultJobOptions: {
+          attempts: 3,
+          backoff: { type: 'exponential' as const, delay: 2000 },
+          removeOnComplete: 50,
+          removeOnFail: 25,
+        }
       }));
     }
 
-    const queue = this.queues.get(queueConfig.name)!;
+    const queue = this.queues.get('events')!;
     await queue.add(event.constructor.name, {
       eventType: event.constructor.name,
       aggregateId: event.getAggregateId().toString(),
@@ -41,32 +44,6 @@ export class BullMQEventPublisher implements IEventPublisher {
     });
   }
 
-  private getQueueConfig(event: IDomainEvent) {
-    // Route events to appropriate queues
-    if (event.constructor.name === 'CardAddedToLibraryEvent') {
-      return {
-        name: 'notifications',
-        options: {
-          priority: 1,
-          attempts: 5,
-          backoff: { type: 'exponential' as const, delay: 1000 },
-          removeOnComplete: 100,
-          removeOnFail: 50,
-        }
-      };
-    }
-
-    return {
-      name: 'events',
-      options: {
-        priority: 2,
-        attempts: 3,
-        backoff: { type: 'exponential' as const, delay: 2000 },
-        removeOnComplete: 50,
-        removeOnFail: 25,
-      }
-    };
-  }
 
   async close(): Promise<void> {
     await Promise.all(

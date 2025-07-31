@@ -20,35 +20,30 @@ export class BullMQEventSubscriber implements IEventSubscriber {
   }
 
   async start(): Promise<void> {
-    // Start workers for different queues
-    const queues = ['notifications', 'events'];
-    
-    for (const queueName of queues) {
-      const worker = new Worker(
-        queueName,
-        async (job: Job) => {
-          await this.processJob(job);
-        },
-        {
-          connection: this.redisConnection,
-          concurrency: queueName === 'notifications' ? 5 : 15,
-        }
-      );
+    const worker = new Worker(
+      'events',
+      async (job: Job) => {
+        await this.processJob(job);
+      },
+      {
+        connection: this.redisConnection,
+        concurrency: 10,
+      }
+    );
 
-      worker.on('completed', (job) => {
-        console.log(`Job ${job.id} completed successfully`);
-      });
+    worker.on('completed', (job) => {
+      console.log(`Job ${job.id} completed successfully`);
+    });
 
-      worker.on('failed', (job, err) => {
-        console.error(`Job ${job?.id} failed:`, err);
-      });
+    worker.on('failed', (job, err) => {
+      console.error(`Job ${job?.id} failed:`, err);
+    });
 
-      worker.on('error', (err) => {
-        console.error('Worker error:', err);
-      });
+    worker.on('error', (err) => {
+      console.error('Worker error:', err);
+    });
 
-      this.workers.push(worker);
-    }
+    this.workers.push(worker);
   }
 
   async stop(): Promise<void> {

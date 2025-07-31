@@ -14,8 +14,24 @@ export class CardAddedToCollectionEventHandler
         `[FEEDS] Processing CardAddedToCollectionEvent for card ${event.cardId.getStringValue()} added to collection ${event.collectionId.getStringValue()}`,
       );
 
-      // For now, we'll just log the event - you can extend this to update feeds
-      // const result = await this.feedService.processCardAddedToCollection(event);
+      // TODO: We need collection names and card metadata to create a proper activity
+      // For now, we'll create a basic activity with just IDs
+      const result = await this.feedService.addCardAddedToCollectionActivity(
+        event.curatorId,
+        event.cardId,
+        [event.collectionId],
+        ['Unknown Collection'], // TODO: Fetch actual collection name
+        undefined, // TODO: Fetch card title
+        undefined, // TODO: Fetch card URL
+      );
+
+      if (result.isErr()) {
+        console.error(
+          '[FEEDS] Failed to add card-added-to-collection activity:',
+          result.error,
+        );
+        return err(result.error);
+      }
 
       console.log(
         `[FEEDS] Successfully processed CardAddedToCollectionEvent for card ${event.cardId.getStringValue()}`,

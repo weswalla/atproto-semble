@@ -1,6 +1,7 @@
 import { IEventPublisher } from '../../../../shared/application/events/IEventPublisher';
 import { IDomainEvent } from '../../../../shared/domain/events/IDomainEvent';
 import { Result, ok, err } from '../../../../shared/core/Result';
+import { EventName } from 'src/shared/infrastructure/events/EventConfig';
 
 export class FakeEventPublisher implements IEventPublisher {
   private publishedEvents: IDomainEvent[] = [];
@@ -19,8 +20,10 @@ export class FakeEventPublisher implements IEventPublisher {
     return [...this.publishedEvents];
   }
 
-  getPublishedEventsOfType<T extends IDomainEvent>(eventType: new (...args: any[]) => T): T[] {
-    return this.publishedEvents.filter(event => event instanceof eventType) as T[];
+  getPublishedEventsOfType<T extends IDomainEvent>(eventType: EventName): T[] {
+    return this.publishedEvents.filter(
+      (event) => event.eventName === eventType,
+    ) as T[];
   }
 
   setShouldFail(shouldFail: boolean): void {

@@ -1,6 +1,9 @@
 import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
+import { CardAddedToCollectionEvent } from '../../../modules/cards/domain/events/CardAddedToCollectionEvent';
+import { CollectionCreatedEvent } from '../../../modules/cards/domain/events/CollectionCreatedEvent';
 import { CardId } from '../../../modules/cards/domain/value-objects/CardId';
+import { CollectionId } from '../../../modules/cards/domain/value-objects/CollectionId';
 import { CuratorId } from '../../../modules/cards/domain/value-objects/CuratorId';
 import { EventNames } from './EventConfig';
 
@@ -16,7 +19,24 @@ export interface SerializedCardAddedToLibraryEvent extends SerializedEvent {
   curatorId: string;
 }
 
-export type SerializedEventUnion = SerializedCardAddedToLibraryEvent;
+export interface SerializedCardAddedToCollectionEvent extends SerializedEvent {
+  eventType: typeof EventNames.CARD_ADDED_TO_COLLECTION;
+  cardId: string;
+  collectionId: string;
+  addedBy: string;
+}
+
+export interface SerializedCollectionCreatedEvent extends SerializedEvent {
+  eventType: typeof EventNames.COLLECTION_CREATED;
+  collectionId: string;
+  authorId: string;
+  collectionName: string;
+}
+
+export type SerializedEventUnion = 
+  | SerializedCardAddedToLibraryEvent
+  | SerializedCardAddedToCollectionEvent
+  | SerializedCollectionCreatedEvent;
 
 export class EventMapper {
   static toSerialized(event: IDomainEvent): SerializedEventUnion {
@@ -27,6 +47,28 @@ export class EventMapper {
         dateTimeOccurred: event.dateTimeOccurred.toISOString(),
         cardId: event.cardId.getValue().toString(),
         curatorId: event.curatorId.value,
+      };
+    }
+
+    if (event instanceof CardAddedToCollectionEvent) {
+      return {
+        eventType: EventNames.CARD_ADDED_TO_COLLECTION,
+        aggregateId: event.getAggregateId().toString(),
+        dateTimeOccurred: event.dateTimeOccurred.toISOString(),
+        cardId: event.cardId.getValue().toString(),
+        collectionId: event.collectionId.getValue().toString(),
+        addedBy: event.addedBy.value,
+      };
+    }
+
+    if (event instanceof CollectionCreatedEvent) {
+      return {
+        eventType: EventNames.COLLECTION_CREATED,
+        aggregateId: event.getAggregateId().toString(),
+        dateTimeOccurred: event.dateTimeOccurred.toISOString(),
+        collectionId: event.collectionId.getValue().toString(),
+        authorId: event.authorId.value,
+        collectionName: event.collectionName,
       };
     }
 
@@ -45,6 +87,31 @@ export class EventMapper {
         return CardAddedToLibraryEvent.reconstruct(
           cardId,
           curatorId,
+          dateTimeOccurred,
+        ).unwrap();
+      }
+      case EventNames.CARD_ADDED_TO_COLLECTION: {
+        const cardId = CardId.createFromString(eventData.cardId).unwrap();
+        const collectionId = CollectionId.createFromString(eventData.collectionId).unwrap();
+        const addedBy = CuratorId.create(eventData.addedBy).unwrap();
+        const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
+
+        return CardAddedToCollectionEvent.reconstruct(
+          cardId,
+          collectionId,
+          addedBy,
+          dateTimeOccurred,
+        ).unwrap();
+      }
+      case EventNames.COLLECTION_CREATED: {
+        const collectionId = CollectionId.createFromString(eventData.collectionId).unwrap();
+        const authorId = CuratorId.create(eventData.authorId).unwrap();
+        const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
+
+        return CollectionCreatedEvent.reconstruct(
+          collectionId,
+          authorId,
+          eventData.collectionName,
           dateTimeOccurred,
         ).unwrap();
       }

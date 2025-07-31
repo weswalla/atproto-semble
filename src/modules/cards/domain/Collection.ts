@@ -7,6 +7,8 @@ import { CuratorId } from './value-objects/CuratorId';
 import { CollectionName } from './value-objects/CollectionName';
 import { CollectionDescription } from './value-objects/CollectionDescription';
 import { PublishedRecordId } from './value-objects/PublishedRecordId';
+import { CardAddedToCollectionEvent } from './events/CardAddedToCollectionEvent';
+import { CollectionCreatedEvent } from './events/CollectionCreatedEvent';
 
 export interface CardLink {
   cardId: CardId;
@@ -163,7 +165,20 @@ export class Collection extends AggregateRoot<CollectionProps> {
       cardCount: props.cardCount ?? (props.cardLinks || []).length,
     };
 
-    return ok(new Collection(collectionProps, id));
+    const collection = new Collection(collectionProps, id);
+    
+    // Raise domain event for new collections (when no id is provided)
+    if (!id) {
+      collection.addDomainEvent(
+        CollectionCreatedEvent.create(
+          collection.collectionId,
+          collection.authorId,
+          collection.name.value
+        ).unwrap()
+      );
+    }
+
+    return ok(collection);
   }
 
   public canAddCard(userId: CuratorId): boolean {
@@ -213,6 +228,11 @@ export class Collection extends AggregateRoot<CollectionProps> {
     this.props.cardLinks.push(newLink);
     this.props.cardCount = this.props.cardLinks.length;
     this.props.updatedAt = new Date();
+
+    // Raise domain event
+    this.addDomainEvent(
+      CardAddedToCollectionEvent.create(cardId, this.collectionId, userId).unwrap()
+    );
 
     return ok(newLink);
   }

@@ -2,11 +2,11 @@ import { Result, ok, err } from '../../../../../shared/core/Result';
 import { UseCase } from '../../../../../shared/core/UseCase';
 import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
-import { IFeedService } from '../../ports/IFeedService';
 import { CuratorId } from '../../../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
 import { ActivityTypeEnum } from '../../../domain/value-objects/ActivityType';
+import { FeedService } from 'src/modules/feeds/domain/services/FeedService';
 
 export interface AddCardToLibraryActivityDTO {
   type: ActivityTypeEnum.CARD_ADDED_TO_LIBRARY;
@@ -26,8 +26,8 @@ export interface AddCardToCollectionActivityDTO {
   cardUrl?: string;
 }
 
-export type AddActivityToFeedDTO = 
-  | AddCardToLibraryActivityDTO 
+export type AddActivityToFeedDTO =
+  | AddCardToLibraryActivityDTO
   | AddCardToCollectionActivityDTO;
 
 export interface AddActivityToFeedResponseDTO {
@@ -41,25 +41,43 @@ export class ValidationError extends UseCaseError {
 }
 
 export class AddActivityToFeedUseCase
-  implements UseCase<AddActivityToFeedDTO, Result<AddActivityToFeedResponseDTO>>
+  implements
+    UseCase<
+      AddActivityToFeedDTO,
+      Result<
+        AddActivityToFeedResponseDTO,
+        ValidationError | AppError.UnexpectedError
+      >
+    >
 {
-  constructor(private feedService: IFeedService) {}
+  constructor(private feedService: FeedService) {}
 
   async execute(
     request: AddActivityToFeedDTO,
-  ): Promise<Result<AddActivityToFeedResponseDTO, ValidationError | AppError.UnexpectedError>> {
+  ): Promise<
+    Result<
+      AddActivityToFeedResponseDTO,
+      ValidationError | AppError.UnexpectedError
+    >
+  > {
     try {
       // Validate and create CuratorId
       const actorIdResult = CuratorId.create(request.actorId);
       if (actorIdResult.isErr()) {
-        return err(new ValidationError(`Invalid actor ID: ${actorIdResult.error.message}`));
+        return err(
+          new ValidationError(
+            `Invalid actor ID: ${actorIdResult.error.message}`,
+          ),
+        );
       }
       const actorId = actorIdResult.value;
 
       // Validate and create CardId
       const cardIdResult = CardId.createFromString(request.cardId);
       if (cardIdResult.isErr()) {
-        return err(new ValidationError(`Invalid card ID: ${cardIdResult.error.message}`));
+        return err(
+          new ValidationError(`Invalid card ID: ${cardIdResult.error.message}`),
+        );
       }
       const cardId = cardIdResult.value;
 
@@ -79,30 +97,44 @@ export class AddActivityToFeedUseCase
           // Validate collection IDs
           const collectionIds: CollectionId[] = [];
           for (const collectionIdStr of request.collectionIds) {
-            const collectionIdResult = CollectionId.createFromString(collectionIdStr);
+            const collectionIdResult =
+              CollectionId.createFromString(collectionIdStr);
             if (collectionIdResult.isErr()) {
-              return err(new ValidationError(`Invalid collection ID: ${collectionIdResult.error.message}`));
+              return err(
+                new ValidationError(
+                  `Invalid collection ID: ${collectionIdResult.error.message}`,
+                ),
+              );
             }
             collectionIds.push(collectionIdResult.value);
           }
 
           // Validate collection names array
           if (request.collectionNames.length !== request.collectionIds.length) {
-            return err(new ValidationError('Collection IDs and names arrays must have the same length'));
+            return err(
+              new ValidationError(
+                'Collection IDs and names arrays must have the same length',
+              ),
+            );
           }
 
-          activityResult = await this.feedService.addCardAddedToCollectionActivity(
-            actorId,
-            cardId,
-            collectionIds,
-            request.collectionNames,
-            request.cardTitle,
-            request.cardUrl,
-          );
+          activityResult =
+            await this.feedService.addCardAddedToCollectionActivity(
+              actorId,
+              cardId,
+              collectionIds,
+              request.collectionNames,
+              request.cardTitle,
+              request.cardUrl,
+            );
           break;
 
         default:
-          return err(new ValidationError(`Unsupported activity type: ${(request as any).type}`));
+          return err(
+            new ValidationError(
+              `Unsupported activity type: ${(request as any).type}`,
+            ),
+          );
       }
 
       if (activityResult.isErr()) {

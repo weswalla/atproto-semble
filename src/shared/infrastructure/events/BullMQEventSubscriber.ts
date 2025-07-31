@@ -7,15 +7,16 @@ import {
 import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { QueueNames } from './QueueConfig';
 import { EventMapper } from './EventMapper';
+import { EventName } from './EventConfig';
 
 export class BullMQEventSubscriber implements IEventSubscriber {
   private workers: Worker[] = [];
-  private handlers: Map<string, IEventHandler<any>> = new Map();
+  private handlers: Map<EventName, IEventHandler<any>> = new Map();
 
   constructor(private redisConnection: Redis) {}
 
   async subscribe<T extends IDomainEvent>(
-    eventType: string,
+    eventType: EventName,
     handler: IEventHandler<T>,
   ): Promise<void> {
     this.handlers.set(eventType, handler);

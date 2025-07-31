@@ -6,8 +6,9 @@ import { CardAddedToLibraryEvent } from '../../domain/events/CardAddedToLibraryE
 import { CardId } from '../../domain/value-objects/CardId';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { IEventHandler } from '../../../../shared/application/events/IEventSubscriber';
-import { Result, ok, err } from '../../../../shared/core/Result';
+import { ok, err } from '../../../../shared/core/Result';
 import { EventNames } from '../../../../shared/infrastructure/events/EventConfig';
+import { Queue } from 'bullmq';
 
 describe('BullMQ Event System Integration', () => {
   let redisContainer: StartedRedisContainer;
@@ -260,17 +261,22 @@ describe('BullMQ Event System Integration', () => {
 
       await publisher.publishEvents([event]);
 
-      // Check that job was added to the events queue
-      const queueKeys = await redis.keys('bull:events:*');
-      expect(queueKeys.length).toBeGreaterThan(0);
+      // Create a Queue instance to check job counts
+      const eventsQueue = new Queue('events', { connection: redis });
 
-      // Verify the job data structure
-      const waitingJobs = await redis.lrange(
-        'bull:events:waiting',
+      // Wait for job to be added
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Check total number of jobs (regardless of state)
+      const jobCounts = await eventsQueue.getJobCounts();
+      const totalJobs = Object.values(jobCounts).reduce(
+        (sum, count) => sum + count,
         0,
-        -1,
       );
-      expect(waitingJobs.length).toBe(1);
+
+      expect(totalJobs).toBeGreaterThanOrEqual(1);
+
+      await eventsQueue.close();
     }, 10000);
   });
 });

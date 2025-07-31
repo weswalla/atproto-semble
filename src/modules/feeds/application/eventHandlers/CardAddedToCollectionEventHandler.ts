@@ -1,12 +1,13 @@
 import { CardAddedToCollectionEvent } from '../../../cards/domain/events/CardAddedToCollectionEvent';
-import { IFeedService } from '../ports/IFeedService';
 import { IEventHandler } from '../../../../shared/application/events/IEventSubscriber';
 import { Result, ok, err } from '../../../../shared/core/Result';
+import { AddActivityToFeedUseCase, AddCardToCollectionActivityDTO } from '../useCases/commands/AddActivityToFeedUseCase';
+import { ActivityTypeEnum } from '../../domain/value-objects/ActivityType';
 
 export class CardAddedToCollectionEventHandler
   implements IEventHandler<CardAddedToCollectionEvent>
 {
-  constructor(private feedService: IFeedService) {}
+  constructor(private addActivityToFeedUseCase: AddActivityToFeedUseCase) {}
 
   async handle(event: CardAddedToCollectionEvent): Promise<Result<void>> {
     try {
@@ -14,16 +15,18 @@ export class CardAddedToCollectionEventHandler
         `[FEEDS] Processing CardAddedToCollectionEvent for card ${event.cardId.getStringValue()} added to collection ${event.collectionId.getStringValue()}`,
       );
 
-      // TODO: We need collection names and card metadata to create a proper activity
-      // For now, we'll create a basic activity with just IDs
-      const result = await this.feedService.addCardAddedToCollectionActivity(
-        event.curatorId,
-        event.cardId,
-        [event.collectionId],
-        ['Unknown Collection'], // TODO: Fetch actual collection name
-        undefined, // TODO: Fetch card title
-        undefined, // TODO: Fetch card URL
-      );
+      const request: AddCardToCollectionActivityDTO = {
+        type: ActivityTypeEnum.CARD_ADDED_TO_COLLECTION,
+        actorId: event.addedBy.value,
+        cardId: event.cardId.getStringValue(),
+        collectionIds: [event.collectionId.getStringValue()],
+        collectionNames: ['Unknown Collection'], // TODO: Fetch actual collection name
+        // TODO: Fetch card metadata (title, URL) from card repository
+        cardTitle: undefined,
+        cardUrl: undefined,
+      };
+
+      const result = await this.addActivityToFeedUseCase.execute(request);
 
       if (result.isErr()) {
         console.error(
@@ -34,7 +37,7 @@ export class CardAddedToCollectionEventHandler
       }
 
       console.log(
-        `[FEEDS] Successfully processed CardAddedToCollectionEvent for card ${event.cardId.getStringValue()}`,
+        `[FEEDS] Successfully processed CardAddedToCollectionEvent for card ${event.cardId.getStringValue()}, created activity ${result.value.activityId}`,
       );
       return ok(undefined);
     } catch (error) {

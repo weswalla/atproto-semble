@@ -7,7 +7,7 @@ source ./scripts/setup-postgres.sh
 trap cleanup_postgres SIGINT SIGTERM
 
 # Run the dev command
-npm run dev:inner
+npm run dev:app:inner
 
 # Cleanup after dev command exits
 cleanup_postgres

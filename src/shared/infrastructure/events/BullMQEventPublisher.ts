@@ -4,7 +4,7 @@ import { IEventPublisher } from '../../application/events/IEventPublisher';
 import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { Result, ok, err } from '../../core/Result';
 import { QueueNames, QueueOptions } from './QueueConfig';
-import { EventNames } from './EventConfig';
+import { EventName } from './EventConfig';
 
 export class BullMQEventPublisher implements IEventPublisher {
   private queues: Map<string, Queue> = new Map();
@@ -45,13 +45,8 @@ export class BullMQEventPublisher implements IEventPublisher {
     });
   }
 
-  private getEventType(event: IDomainEvent): string {
-    // Use the static eventName property from the event class
-    const eventClass = event.constructor as any;
-    if (eventClass.eventName) {
-      return eventClass.eventName;
-    }
-    throw new Error(`Event class ${event.constructor.name} does not have a static eventName property`);
+  private getEventType(event: IDomainEvent): EventName {
+    return event.eventName;
   }
 
   async close(): Promise<void> {

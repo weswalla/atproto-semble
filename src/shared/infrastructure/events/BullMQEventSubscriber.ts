@@ -1,6 +1,9 @@
 import { Worker, Job } from 'bullmq';
 import Redis from 'ioredis';
-import { IEventSubscriber, IEventHandler } from '../../application/events/IEventSubscriber';
+import {
+  IEventSubscriber,
+  IEventHandler,
+} from '../../application/events/IEventSubscriber';
 import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
 import { CardId } from '../../../modules/cards/domain/value-objects/CardId';
@@ -16,7 +19,7 @@ export class BullMQEventSubscriber implements IEventSubscriber {
 
   async subscribe<T extends IDomainEvent>(
     eventType: string,
-    handler: IEventHandler<T>
+    handler: IEventHandler<T>,
   ): Promise<void> {
     this.handlers.set(eventType, handler);
   }
@@ -30,7 +33,7 @@ export class BullMQEventSubscriber implements IEventSubscriber {
       {
         connection: this.redisConnection,
         concurrency: 10,
-      }
+      },
     );
 
     worker.on('completed', (job) => {
@@ -49,14 +52,14 @@ export class BullMQEventSubscriber implements IEventSubscriber {
   }
 
   async stop(): Promise<void> {
-    await Promise.all(this.workers.map(worker => worker.close()));
+    await Promise.all(this.workers.map((worker) => worker.close()));
     this.workers = [];
   }
 
   private async processJob(job: Job): Promise<void> {
     const eventData = job.data;
     const eventType = eventData.eventType;
-    
+
     const handler = this.handlers.get(eventType);
     if (!handler) {
       console.warn(`No handler registered for event type: ${eventType}`);
@@ -65,7 +68,7 @@ export class BullMQEventSubscriber implements IEventSubscriber {
 
     const event = this.reconstructEvent(eventData);
     const result = await handler.handle(event);
-    
+
     if (result.isErr()) {
       throw result.error;
     }
@@ -76,10 +79,11 @@ export class BullMQEventSubscriber implements IEventSubscriber {
       case EventNames.CARD_ADDED_TO_LIBRARY: {
         const cardId = CardId.create(eventData.cardId).unwrap();
         const curatorId = CuratorId.create(eventData.curatorId).unwrap();
-        
+
         const event = new CardAddedToLibraryEvent(cardId, curatorId);
         (event as any).dateTimeOccurred = new Date(eventData.dateTimeOccurred);
-        
+        (event as any).eventName = EventNames.CARD_ADDED_TO_LIBRARY;
+
         return event;
       }
       default:

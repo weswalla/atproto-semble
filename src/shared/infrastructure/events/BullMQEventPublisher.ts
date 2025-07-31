@@ -46,13 +46,12 @@ export class BullMQEventPublisher implements IEventPublisher {
   }
 
   private getEventType(event: IDomainEvent): string {
-    // Map event constructor names to our centralized event names
-    switch (event.constructor.name) {
-      case 'CardAddedToLibraryEvent':
-        return EventNames.CARD_ADDED_TO_LIBRARY;
-      default:
-        throw new Error(`Unknown event type: ${event.constructor.name}`);
+    // Use the static eventName property from the event class
+    const eventClass = event.constructor as any;
+    if (eventClass.eventName) {
+      return eventClass.eventName;
     }
+    throw new Error(`Event class ${event.constructor.name} does not have a static eventName property`);
   }
 
   async close(): Promise<void> {

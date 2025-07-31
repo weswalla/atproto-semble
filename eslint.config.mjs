@@ -28,6 +28,7 @@ export default [
         require: 'readonly',
         exports: 'readonly',
         global: 'readonly',
+        setTimeout: 'readonly',
       },
     },
     plugins: {
@@ -71,6 +72,7 @@ export default [
         afterEach: 'readonly',
         jest: 'readonly',
         URLSearchParams: 'readonly',
+        setTimeout: 'readonly',
       },
     },
     rules: {
@@ -112,6 +114,7 @@ export default [
         window: 'readonly',
         navigator: 'readonly',
         location: 'readonly',
+        setTimeout: 'readonly',
       },
     },
     plugins: {

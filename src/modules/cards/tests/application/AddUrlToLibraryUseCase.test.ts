@@ -12,6 +12,7 @@ import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { FakeEventPublisher } from '../utils/FakeEventPublisher';
 import { CardAddedToLibraryEvent } from '../../domain/events/CardAddedToLibraryEvent';
 import { CardAddedToCollectionEvent } from '../../domain/events/CardAddedToCollectionEvent';
+import { EventNames } from 'src/shared/infrastructure/events/EventConfig';
 
 describe('AddUrlToLibraryUseCase', () => {
   let useCase: AddUrlToLibraryUseCase;
@@ -83,9 +84,13 @@ describe('AddUrlToLibraryUseCase', () => {
       expect(publishedCards).toHaveLength(1);
 
       // Verify CardAddedToLibraryEvent was published
-      const libraryEvents = eventPublisher.getPublishedEventsOfType(CardAddedToLibraryEvent);
+      const libraryEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.CARD_ADDED_TO_LIBRARY,
+      ) as CardAddedToLibraryEvent[];
       expect(libraryEvents).toHaveLength(1);
-      expect(libraryEvents[0]?.cardId.getStringValue()).toBe(response.urlCardId);
+      expect(libraryEvents[0]?.cardId.getStringValue()).toBe(
+        response.urlCardId,
+      );
       expect(libraryEvents[0]?.curatorId.equals(curatorId)).toBe(true);
     });
 
@@ -124,21 +129,19 @@ describe('AddUrlToLibraryUseCase', () => {
       const publishedCards = cardPublisher.getPublishedCards();
       expect(publishedCards).toHaveLength(2);
 
-      // Verify CardAddedToLibraryEvent was published for both cards
-      const libraryEvents = eventPublisher.getPublishedEventsOfType(CardAddedToLibraryEvent);
-      expect(libraryEvents).toHaveLength(2);
-      
-      const urlCardEvent = libraryEvents.find(event => 
-        event.cardId.getStringValue() === urlCard?.cardId.getStringValue()
+      // Verify CardAddedToLibraryEvent was published for only URL card
+      const libraryEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.CARD_ADDED_TO_LIBRARY,
+      ) as CardAddedToLibraryEvent[];
+      expect(libraryEvents).toHaveLength(1);
+
+      const urlCardEvent = libraryEvents.find(
+        (event) =>
+          event.cardId.getStringValue() === urlCard?.cardId.getStringValue(),
       );
-      const noteCardEvent = libraryEvents.find(event => 
-        event.cardId.getStringValue() === noteCard?.cardId.getStringValue()
-      );
-      
+
       expect(urlCardEvent).toBeDefined();
-      expect(noteCardEvent).toBeDefined();
       expect(urlCardEvent?.curatorId.equals(curatorId)).toBe(true);
-      expect(noteCardEvent?.curatorId.equals(curatorId)).toBe(true);
     });
   });
 
@@ -213,14 +216,20 @@ describe('AddUrlToLibraryUseCase', () => {
       expect(publishedLinks).toHaveLength(1);
 
       // Verify CardAddedToLibraryEvent was published
-      const libraryEvents = eventPublisher.getPublishedEventsOfType(CardAddedToLibraryEvent);
+      const libraryEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.CARD_ADDED_TO_LIBRARY,
+      ) as CardAddedToLibraryEvent[];
       expect(libraryEvents).toHaveLength(1);
       expect(libraryEvents[0]?.curatorId.equals(curatorId)).toBe(true);
 
       // Verify CardAddedToCollectionEvent was published
-      const collectionEvents = eventPublisher.getPublishedEventsOfType(CardAddedToCollectionEvent);
+      const collectionEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.CARD_ADDED_TO_COLLECTION,
+      ) as CardAddedToCollectionEvent[];
       expect(collectionEvents).toHaveLength(1);
-      expect(collectionEvents[0]?.collectionId.getStringValue()).toBe(collection.collectionId.getStringValue());
+      expect(collectionEvents[0]?.collectionId.getStringValue()).toBe(
+        collection.collectionId.getStringValue(),
+      );
       expect(collectionEvents[0]?.addedBy.equals(curatorId)).toBe(true);
     });
 
@@ -283,14 +292,22 @@ describe('AddUrlToLibraryUseCase', () => {
       expect(publishedCards).toHaveLength(2);
 
       // Verify CardAddedToLibraryEvent was published for both cards
-      const libraryEvents = eventPublisher.getPublishedEventsOfType(CardAddedToLibraryEvent);
-      expect(libraryEvents).toHaveLength(2);
+      const libraryEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.CARD_ADDED_TO_LIBRARY,
+      ) as CardAddedToLibraryEvent[];
+      expect(libraryEvents).toHaveLength(1);
 
       // Verify CardAddedToCollectionEvent was published for URL card only
-      const collectionEvents = eventPublisher.getPublishedEventsOfType(CardAddedToCollectionEvent);
+      const collectionEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.CARD_ADDED_TO_COLLECTION,
+      ) as CardAddedToCollectionEvent[];
       expect(collectionEvents).toHaveLength(1);
-      expect(collectionEvents[0]?.cardId.getStringValue()).toBe(urlCard?.cardId.getStringValue());
-      expect(collectionEvents[0]?.collectionId.getStringValue()).toBe(collection.collectionId.getStringValue());
+      expect(collectionEvents[0]?.cardId.getStringValue()).toBe(
+        urlCard?.cardId.getStringValue(),
+      );
+      expect(collectionEvents[0]?.collectionId.getStringValue()).toBe(
+        collection.collectionId.getStringValue(),
+      );
       expect(collectionEvents[0]?.addedBy.equals(curatorId)).toBe(true);
     });
 

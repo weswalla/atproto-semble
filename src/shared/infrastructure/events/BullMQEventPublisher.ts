@@ -4,7 +4,7 @@ import { IEventPublisher } from '../../application/events/IEventPublisher';
 import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { Result, ok, err } from '../../core/Result';
 import { QueueNames, QueueOptions } from './QueueConfig';
-import { EventName } from './EventConfig';
+import { EventMapper } from './EventMapper';
 
 export class BullMQEventPublisher implements IEventPublisher {
   private queues: Map<string, Queue> = new Map();
@@ -34,20 +34,10 @@ export class BullMQEventPublisher implements IEventPublisher {
     }
 
     const queue = this.queues.get(QueueNames.EVENTS)!;
-    const eventType = this.getEventType(event);
-    await queue.add(eventType, {
-      eventType: eventType,
-      aggregateId: event.getAggregateId().toString(),
-      dateTimeOccurred: event.dateTimeOccurred.toISOString(),
-      // Serialize the event data
-      cardId: (event as any).cardId?.getValue?.()?.toString(),
-      curatorId: (event as any).curatorId?.value,
-    });
+    const serializedEvent = EventMapper.toSerialized(event);
+    await queue.add(serializedEvent.eventType, serializedEvent);
   }
 
-  private getEventType(event: IDomainEvent): EventName {
-    return event.eventName;
-  }
 
   async close(): Promise<void> {
     await Promise.all(

@@ -1,4 +1,4 @@
-import { EventName } from 'src/shared/infrastructure/events/EventConfig';
+import { EventName } from '../../infrastructure/events/EventConfig';
 import { UniqueEntityID } from '../UniqueEntityID';
 
 export interface IDomainEvent {

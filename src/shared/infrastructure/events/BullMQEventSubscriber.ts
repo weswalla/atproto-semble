@@ -5,11 +5,8 @@ import {
   IEventHandler,
 } from '../../application/events/IEventSubscriber';
 import { IDomainEvent } from '../../domain/events/IDomainEvent';
-import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
-import { CardId } from '../../../modules/cards/domain/value-objects/CardId';
-import { CuratorId } from '../../../modules/cards/domain/value-objects/CuratorId';
 import { QueueNames } from './QueueConfig';
-import { EventNames } from './EventConfig';
+import { EventMapper } from './EventMapper';
 
 export class BullMQEventSubscriber implements IEventSubscriber {
   private workers: Worker[] = [];
@@ -75,19 +72,6 @@ export class BullMQEventSubscriber implements IEventSubscriber {
   }
 
   private reconstructEvent(eventData: any): IDomainEvent {
-    switch (eventData.eventType) {
-      case EventNames.CARD_ADDED_TO_LIBRARY: {
-        const cardId = CardId.create(eventData.cardId).unwrap();
-        const curatorId = CuratorId.create(eventData.curatorId).unwrap();
-
-        const event = new CardAddedToLibraryEvent(cardId, curatorId);
-        (event as any).dateTimeOccurred = new Date(eventData.dateTimeOccurred);
-        (event as any).eventName = EventNames.CARD_ADDED_TO_LIBRARY;
-
-        return event;
-      }
-      default:
-        throw new Error(`Unknown event type: ${eventData.eventType}`);
-    }
+    return EventMapper.fromSerialized(eventData);
   }
 }

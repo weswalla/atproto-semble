@@ -338,11 +338,12 @@ src/modules/cards/infrastructure/http/routes/cardRoutes.ts
 src/modules/cards/infrastructure/http/routes/collectionRoutes.ts
 src/modules/user/infrastructure/http/routes/userRoutes.ts
 src/shared/domain/AggregateRoot.ts
-src/shared/domain/events/DomainEvents.ts
 src/shared/domain/events/IDomainEvent.ts
 src/shared/infrastructure/http/app.ts
 src/shared/infrastructure/http/factories/ControllerFactory.ts
 src/shared/infrastructure/http/factories/RepositoryFactory.ts
 src/shared/infrastructure/http/factories/ServiceFactory.ts
 src/shared/infrastructure/http/factories/UseCaseFactory.ts
+src/modules/cards/domain/Card.ts
+src/modules/cards/domain/events/CardAddedToLibraryEvent.ts
 ```

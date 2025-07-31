@@ -33,7 +33,7 @@ export interface SerializedCollectionCreatedEvent extends SerializedEvent {
   collectionName: string;
 }
 
-export type SerializedEventUnion = 
+export type SerializedEventUnion =
   | SerializedCardAddedToLibraryEvent
   | SerializedCardAddedToCollectionEvent
   | SerializedCollectionCreatedEvent;
@@ -92,7 +92,9 @@ export class EventMapper {
       }
       case EventNames.CARD_ADDED_TO_COLLECTION: {
         const cardId = CardId.createFromString(eventData.cardId).unwrap();
-        const collectionId = CollectionId.createFromString(eventData.collectionId).unwrap();
+        const collectionId = CollectionId.createFromString(
+          eventData.collectionId,
+        ).unwrap();
         const addedBy = CuratorId.create(eventData.addedBy).unwrap();
         const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
 
@@ -104,7 +106,9 @@ export class EventMapper {
         ).unwrap();
       }
       case EventNames.COLLECTION_CREATED: {
-        const collectionId = CollectionId.createFromString(eventData.collectionId).unwrap();
+        const collectionId = CollectionId.createFromString(
+          eventData.collectionId,
+        ).unwrap();
         const authorId = CuratorId.create(eventData.authorId).unwrap();
         const dateTimeOccurred = new Date(eventData.dateTimeOccurred);
 
@@ -116,9 +120,7 @@ export class EventMapper {
         ).unwrap();
       }
       default:
-        throw new Error(
-          `Unknown event type for deserialization: ${eventData.eventType}`,
-        );
+        throw new Error(`Unknown event type for deserialization: ${eventData}`);
     }
   }
 }

@@ -5,7 +5,7 @@ export const QueueNames = {
   // ANALYTICS: 'analytics',
 } as const;
 
-export type QueueName = typeof QueueNames[keyof typeof QueueNames];
+export type QueueName = (typeof QueueNames)[keyof typeof QueueNames];
 
 export const QueueOptions = {
   [QueueNames.FEEDS]: {

@@ -5,6 +5,7 @@ This document explains how to implement a clean, layered domain event system tha
 ## Overview
 
 Our domain event system follows a simple, direct approach where:
+
 1. **Domain layer** raises events through aggregates
 2. **Application layer** defines interfaces for event publishing
 3. **Infrastructure layer** provides concrete implementations
@@ -143,9 +144,9 @@ export interface IEventHandler<T extends IDomainEvent> {
 export interface IEventSubscriber {
   subscribe<T extends IDomainEvent>(
     eventType: string,
-    handler: IEventHandler<T>
+    handler: IEventHandler<T>,
   ): Promise<void>;
-  
+
   start(): Promise<void>;
   stop(): Promise<void>;
 }
@@ -162,20 +163,20 @@ export abstract class BaseUseCase {
   constructor(protected eventPublisher: IEventPublisher) {}
 
   protected async publishEventsForAggregate(
-    aggregate: AggregateRoot<any>
+    aggregate: AggregateRoot<any>,
   ): Promise<Result<void>> {
     const events = DomainEvents.getEventsForAggregate(aggregate.id);
-    
+
     if (events.length === 0) {
       return ok(undefined);
     }
 
     const publishResult = await this.eventPublisher.publishEvents(events);
-    
+
     if (publishResult.isOk()) {
       DomainEvents.clearEventsForAggregate(aggregate.id);
     }
-    
+
     return publishResult;
   }
 }
@@ -211,12 +212,15 @@ export class BullMQEventPublisher implements IEventPublisher {
 
   private async publishSingleEvent(event: IDomainEvent): Promise<void> {
     const queueConfig = this.getQueueConfig(event);
-    
+
     if (!this.queues.has(queueConfig.name)) {
-      this.queues.set(queueConfig.name, new Queue(queueConfig.name, {
-        connection: this.redisConnection,
-        defaultJobOptions: queueConfig.options,
-      }));
+      this.queues.set(
+        queueConfig.name,
+        new Queue(queueConfig.name, {
+          connection: this.redisConnection,
+          defaultJobOptions: queueConfig.options,
+        }),
+      );
     }
 
     const queue = this.queues.get(queueConfig.name)!;
@@ -239,7 +243,7 @@ export class BullMQEventPublisher implements IEventPublisher {
           backoff: { type: 'exponential' as const, delay: 1000 },
           removeOnComplete: 100,
           removeOnFail: 50,
-        }
+        },
       };
     }
 
@@ -251,7 +255,7 @@ export class BullMQEventPublisher implements IEventPublisher {
         backoff: { type: 'exponential' as const, delay: 2000 },
         removeOnComplete: 50,
         removeOnFail: 25,
-      }
+      },
     };
   }
 
@@ -270,7 +274,10 @@ export class BullMQEventPublisher implements IEventPublisher {
 // src/shared/infrastructure/events/BullMQEventSubscriber.ts
 import { Worker, Job } from 'bullmq';
 import Redis from 'ioredis';
-import { IEventSubscriber, IEventHandler } from '../../application/events/IEventSubscriber';
+import {
+  IEventSubscriber,
+  IEventHandler,
+} from '../../application/events/IEventSubscriber';
 import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
 import { CardId } from '../../../modules/cards/domain/value-objects/CardId';
@@ -284,7 +291,7 @@ export class BullMQEventSubscriber implements IEventSubscriber {
 
   async subscribe<T extends IDomainEvent>(
     eventType: string,
-    handler: IEventHandler<T>
+    handler: IEventHandler<T>,
   ): Promise<void> {
     this.handlers.set(eventType, handler);
   }
@@ -292,7 +299,7 @@ export class BullMQEventSubscriber implements IEventSubscriber {
   async start(): Promise<void> {
     // Start workers for different queues
     const queues = ['notifications', 'events'];
-    
+
     for (const queueName of queues) {
       const worker = new Worker(
         queueName,
@@ -302,7 +309,7 @@ export class BullMQEventSubscriber implements IEventSubscriber {
         {
           connection: this.redisConnection,
           concurrency: queueName === 'notifications' ? 5 : 15,
-        }
+        },
       );
 
       worker.on('completed', (job) => {
@@ -318,14 +325,14 @@ export class BullMQEventSubscriber implements IEventSubscriber {
   }
 
   async stop(): Promise<void> {
-    await Promise.all(this.workers.map(worker => worker.close()));
+    await Promise.all(this.workers.map((worker) => worker.close()));
     this.workers = [];
   }
 
   private async processJob(job: Job): Promise<void> {
     const eventData = job.data;
     const eventType = eventData.eventType;
-    
+
     const handler = this.handlers.get(eventType);
     if (!handler) {
       console.warn(`No handler registered for event type: ${eventType}`);
@@ -334,7 +341,7 @@ export class BullMQEventSubscriber implements IEventSubscriber {
 
     const event = this.reconstructEvent(eventData);
     const result = await handler.handle(event);
-    
+
     if (result.isErr()) {
       throw result.error;
     }
@@ -344,10 +351,10 @@ export class BullMQEventSubscriber implements IEventSubscriber {
     if (eventData.eventType === 'CardAddedToLibraryEvent') {
       const cardId = CardId.create(eventData.cardId).unwrap();
       const curatorId = CuratorId.create(eventData.curatorId).unwrap();
-      
+
       const event = new CardAddedToLibraryEvent(cardId, curatorId);
       (event as any).dateTimeOccurred = new Date(eventData.dateTimeOccurred);
-      
+
       return event;
     }
 
@@ -375,10 +382,10 @@ interface AddCardToLibraryRequest {
   userId: string;
 }
 
-export class AddCardToLibraryUseCase 
-  extends BaseUseCase 
-  implements UseCase<AddCardToLibraryRequest, Result<void>> {
-  
+export class AddCardToLibraryUseCase
+  extends BaseUseCase
+  implements UseCase<AddCardToLibraryRequest, Result<void>>
+{
   constructor(
     private cardRepository: ICardRepository,
     eventPublisher: IEventPublisher, // Interface injected
@@ -389,7 +396,7 @@ export class AddCardToLibraryUseCase
   async execute(request: AddCardToLibraryRequest): Promise<Result<void>> {
     // 1. Get the card
     const cardResult = await this.cardRepository.findById(
-      CardId.create(request.cardId).unwrap()
+      CardId.create(request.cardId).unwrap(),
     );
     if (cardResult.isErr()) {
       return err(cardResult.error);
@@ -436,9 +443,9 @@ import { CardAddedToLibraryEvent } from '../../../cards/domain/events/CardAddedT
 import { INotificationService } from '../ports/INotificationService';
 import { Result } from '../../../../shared/core/Result';
 
-export class CardAddedToLibraryEventHandler 
-  implements IEventHandler<CardAddedToLibraryEvent> {
-  
+export class CardAddedToLibraryEventHandler
+  implements IEventHandler<CardAddedToLibraryEvent>
+{
   constructor(private notificationService: INotificationService) {}
 
   async handle(event: CardAddedToLibraryEvent): Promise<Result<void>> {
@@ -470,10 +477,14 @@ export class ServiceFactory {
     const redisConnection = createRedisConnection();
 
     // Infrastructure - Event publisher implementation
-    const eventPublisher: IEventPublisher = new BullMQEventPublisher(redisConnection);
+    const eventPublisher: IEventPublisher = new BullMQEventPublisher(
+      redisConnection,
+    );
 
     // Infrastructure - Event subscriber implementation
-    const eventSubscriber: IEventSubscriber = new BullMQEventSubscriber(redisConnection);
+    const eventSubscriber: IEventSubscriber = new BullMQEventSubscriber(
+      redisConnection,
+    );
 
     // Application - Use cases with injected interfaces
     const addCardToLibraryUseCase = new AddCardToLibraryUseCase(
@@ -492,11 +503,11 @@ export class ServiceFactory {
     return {
       // Use cases
       addCardToLibraryUseCase,
-      
+
       // Event system
       eventPublisher,
       eventSubscriber,
-      
+
       // Event handlers
       notificationHandler,
       feedHandler,
@@ -521,7 +532,7 @@ async function startNotificationWorker() {
 
   // Start the event subscriber
   await services.eventSubscriber.start();
-  
+
   console.log('Notification worker started');
 
   // Graceful shutdown
@@ -565,7 +576,7 @@ describe('AddCardToLibraryUseCase', () => {
     const mockEventPublisher: IEventPublisher = {
       publishEvents: jest.fn().mockResolvedValue(ok(undefined)),
     };
-    
+
     const mockCardRepository: ICardRepository = {
       findById: jest.fn().mockResolvedValue(ok(mockCard)),
       save: jest.fn().mockResolvedValue(ok(undefined)),
@@ -583,9 +594,7 @@ describe('AddCardToLibraryUseCase', () => {
 
     expect(result.isOk()).toBe(true);
     expect(mockEventPublisher.publishEvents).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        expect.any(CardAddedToLibraryEvent)
-      ])
+      expect.arrayContaining([expect.any(CardAddedToLibraryEvent)]),
     );
   });
 });
@@ -619,13 +628,13 @@ describe('BullMQ Event System Integration', () => {
     await eventPublisher.publishEvents([event]);
 
     // Wait for processing
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     expect(mockHandler.handle).toHaveBeenCalledWith(
       expect.objectContaining({
         cardId: expect.any(CardId),
         curatorId: expect.any(CuratorId),
-      })
+      }),
     );
 
     await eventSubscriber.stop();
@@ -636,21 +645,25 @@ describe('BullMQ Event System Integration', () => {
 ## Migration Strategy
 
 ### Phase 1: Create Application Interfaces
+
 1. Define `IEventPublisher` and `IEventSubscriber` interfaces
 2. Create `BaseUseCase` with event publishing logic
 3. No changes to domain or existing infrastructure
 
 ### Phase 2: Implement Infrastructure
+
 1. Create `BullMQEventPublisher` and `BullMQEventSubscriber`
 2. Update `ServiceFactory` to inject concrete implementations
 3. Deploy with Redis infrastructure
 
 ### Phase 3: Update Use Cases
+
 1. Extend use cases from `BaseUseCase`
 2. Inject `IEventPublisher` through constructor
 3. Replace direct event handling with publishing
 
 ### Phase 4: Deploy Workers
+
 1. Create worker processes using `IEventSubscriber`
 2. Register event handlers with subscriber
 3. Scale workers based on load
@@ -658,26 +671,31 @@ describe('BullMQ Event System Integration', () => {
 ## Key Benefits of This Approach
 
 ### 1. **Clean Architecture Compliance**
+
 - Clear separation of concerns across layers
 - Dependency inversion principle followed
 - Interfaces defined in application layer
 
 ### 2. **Testability**
+
 - Easy to mock interfaces for unit tests
 - Domain tests remain pure and fast
 - Integration tests can use real implementations
 
 ### 3. **Flexibility**
+
 - Can switch from BullMQ to other queue systems
 - Can add multiple publishers (e.g., event store + queue)
 - Easy to add new event types and handlers
 
 ### 4. **Maintainability**
+
 - Clear contracts between layers
 - Infrastructure changes don't affect application logic
 - Easy to understand and debug
 
 ### 5. **Scalability**
+
 - Publishers and subscribers can scale independently
 - Different queue configurations per event type
 - Workers can be deployed across multiple regions

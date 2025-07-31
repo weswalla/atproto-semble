@@ -166,15 +166,15 @@ export class Collection extends AggregateRoot<CollectionProps> {
     };
 
     const collection = new Collection(collectionProps, id);
-    
+
     // Raise domain event for new collections (when no id is provided)
     if (!id) {
       collection.addDomainEvent(
         CollectionCreatedEvent.create(
           collection.collectionId,
           collection.authorId,
-          collection.name.value
-        ).unwrap()
+          collection.name.value,
+        ).unwrap(),
       );
     }
 
@@ -231,7 +231,11 @@ export class Collection extends AggregateRoot<CollectionProps> {
 
     // Raise domain event
     this.addDomainEvent(
-      CardAddedToCollectionEvent.create(cardId, this.collectionId, userId).unwrap()
+      CardAddedToCollectionEvent.create(
+        cardId,
+        this.collectionId,
+        userId,
+      ).unwrap(),
     );
 
     return ok(newLink);

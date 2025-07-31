@@ -91,10 +91,13 @@ export class CardCollectionService implements DomainService {
     collectionIds: CollectionId[],
     curatorId: CuratorId,
   ): Promise<
-    Result<Collection[], CardCollectionValidationError | AppError.UnexpectedError>
+    Result<
+      Collection[],
+      CardCollectionValidationError | AppError.UnexpectedError
+    >
   > {
     const updatedCollections: Collection[] = [];
-    
+
     for (const collectionId of collectionIds) {
       const result = await this.addCardToCollection(
         card,
@@ -114,7 +117,10 @@ export class CardCollectionService implements DomainService {
     collectionId: CollectionId,
     curatorId: CuratorId,
   ): Promise<
-    Result<Collection | null, CardCollectionValidationError | AppError.UnexpectedError>
+    Result<
+      Collection | null,
+      CardCollectionValidationError | AppError.UnexpectedError
+    >
   > {
     try {
       // Find the collection
@@ -185,10 +191,13 @@ export class CardCollectionService implements DomainService {
     collectionIds: CollectionId[],
     curatorId: CuratorId,
   ): Promise<
-    Result<Collection[], CardCollectionValidationError | AppError.UnexpectedError>
+    Result<
+      Collection[],
+      CardCollectionValidationError | AppError.UnexpectedError
+    >
   > {
     const updatedCollections: Collection[] = [];
-    
+
     for (const collectionId of collectionIds) {
       const result = await this.removeCardFromCollection(
         card,

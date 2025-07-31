@@ -9,7 +9,7 @@ async function startFeedWorker() {
   console.log('Starting feed worker...');
 
   const configService = new EnvironmentConfigService();
-  
+
   // Create dependencies using factories
   const repositories = RepositoryFactory.create(configService);
   const services = ServiceFactory.createForWorker(configService, repositories);
@@ -39,7 +39,10 @@ async function startFeedWorker() {
   const feedHandler = new CardAddedToLibraryEventHandler(feedService as any);
 
   // Register handlers
-  await eventSubscriber.subscribe(EventNames.CARD_ADDED_TO_LIBRARY, feedHandler);
+  await eventSubscriber.subscribe(
+    EventNames.CARD_ADDED_TO_LIBRARY,
+    feedHandler,
+  );
 
   // Start the worker
   await eventSubscriber.start();

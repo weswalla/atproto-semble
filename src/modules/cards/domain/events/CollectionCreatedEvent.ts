@@ -23,7 +23,9 @@ export class CollectionCreatedEvent implements IDomainEvent {
     authorId: CuratorId,
     collectionName: string,
   ): Result<CollectionCreatedEvent> {
-    return ok(new CollectionCreatedEvent(collectionId, authorId, collectionName));
+    return ok(
+      new CollectionCreatedEvent(collectionId, authorId, collectionName),
+    );
   }
 
   public static reconstruct(
@@ -32,7 +34,14 @@ export class CollectionCreatedEvent implements IDomainEvent {
     collectionName: string,
     dateTimeOccurred: Date,
   ): Result<CollectionCreatedEvent> {
-    return ok(new CollectionCreatedEvent(collectionId, authorId, collectionName, dateTimeOccurred));
+    return ok(
+      new CollectionCreatedEvent(
+        collectionId,
+        authorId,
+        collectionName,
+        dateTimeOccurred,
+      ),
+    );
   }
 
   getAggregateId(): UniqueEntityID {

@@ -26,7 +26,10 @@ export class ValidationError extends UseCaseError {
 
 export class CreateCollectionUseCase extends BaseUseCase<
   CreateCollectionDTO,
-  Result<CreateCollectionResponseDTO, ValidationError | AppError.UnexpectedError>
+  Result<
+    CreateCollectionResponseDTO,
+    ValidationError | AppError.UnexpectedError
+  >
 > {
   constructor(
     private collectionRepository: ICollectionRepository,
@@ -100,7 +103,8 @@ export class CreateCollectionUseCase extends BaseUseCase<
       }
 
       // Publish domain events
-      const publishEventsResult = await this.publishEventsForAggregate(collection);
+      const publishEventsResult =
+        await this.publishEventsForAggregate(collection);
       if (publishEventsResult.isErr()) {
         console.error(
           'Failed to publish events for collection:',

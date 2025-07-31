@@ -9,6 +9,7 @@ Our current in-memory domain event system works well for single-instance deploym
 ## Why BullMQ + Redis/Valkey?
 
 ### Perfect for Social Features
+
 - **High Throughput**: Handle thousands of events per second for URL additions
 - **Real-time Processing**: Near-instant notifications and feed updates
 - **Reliable Delivery**: Built-in retry logic ensures notifications aren't lost
@@ -16,6 +17,7 @@ Our current in-memory domain event system works well for single-instance deploym
 - **Priority Queues**: Process notifications faster than feed updates
 
 ### Technical Advantages
+
 - **Excellent TypeScript Support**: First-class TypeScript integration
 - **Rich Feature Set**: Delays, retries, rate limiting, job scheduling
 - **Great Monitoring**: Built-in dashboard and metrics
@@ -49,6 +51,7 @@ POST /cards    AddCardToLib  card.addTo()  publishEvents()  200 OK
 ```
 
 **What happens:**
+
 - User makes HTTP request to your API
 - Express/Fastify routes to use case
 - Use case executes domain logic (adds domain events to aggregate)
@@ -65,6 +68,7 @@ BullMQEventPublisher → Redis Queue → Job Storage
 ```
 
 **What happens:**
+
 - Events are serialized to JSON
 - Stored in Redis with retry/priority configuration
 - BullMQ manages job lifecycle, retries, and failure handling
@@ -78,6 +82,7 @@ Worker Polling → Job Found → Event Handler → Job Complete
 ```
 
 **What happens:**
+
 - Worker processes continuously poll Redis for new jobs
 - When job found, BullMQ calls your `processJob()` method
 - Event is reconstructed from serialized data
@@ -86,13 +91,13 @@ Worker Polling → Job Found → Event Handler → Job Complete
 
 ### 4. Key Differences from Web Process
 
-| Aspect | Web Process | Worker Process |
-|--------|-------------|----------------|
-| **Trigger** | HTTP Request | Redis Job Available |
-| **Lifecycle** | Request/Response | Long-running polling |
-| **Scaling** | Scale with traffic | Scale with queue depth |
-| **Failure** | Return error to user | Retry job automatically |
-| **Dependencies** | Database, Redis | Database, External APIs |
+| Aspect           | Web Process          | Worker Process          |
+| ---------------- | -------------------- | ----------------------- |
+| **Trigger**      | HTTP Request         | Redis Job Available     |
+| **Lifecycle**    | Request/Response     | Long-running polling    |
+| **Scaling**      | Scale with traffic   | Scale with queue depth  |
+| **Failure**      | Return error to user | Retry job automatically |
+| **Dependencies** | Database, Redis      | Database, External APIs |
 
 ## Implementation Guide
 
@@ -133,12 +138,15 @@ export class BullMQEventPublisher implements IEventPublisher {
 
   private async publishSingleEvent(event: IDomainEvent): Promise<void> {
     const queueConfig = this.getQueueConfig(event);
-    
+
     if (!this.queues.has(queueConfig.name)) {
-      this.queues.set(queueConfig.name, new Queue(queueConfig.name, {
-        connection: this.redisConnection,
-        defaultJobOptions: queueConfig.options,
-      }));
+      this.queues.set(
+        queueConfig.name,
+        new Queue(queueConfig.name, {
+          connection: this.redisConnection,
+          defaultJobOptions: queueConfig.options,
+        }),
+      );
     }
 
     const queue = this.queues.get(queueConfig.name)!;
@@ -163,7 +171,7 @@ export class BullMQEventPublisher implements IEventPublisher {
           backoff: { type: 'exponential' as const, delay: 1000 },
           removeOnComplete: 100,
           removeOnFail: 50,
-        }
+        },
       };
     }
 
@@ -175,13 +183,13 @@ export class BullMQEventPublisher implements IEventPublisher {
         backoff: { type: 'exponential' as const, delay: 2000 },
         removeOnComplete: 50,
         removeOnFail: 25,
-      }
+      },
     };
   }
 
   async close(): Promise<void> {
     await Promise.all(
-      Array.from(this.queues.values()).map(queue => queue.close())
+      Array.from(this.queues.values()).map((queue) => queue.close()),
     );
   }
 }
@@ -195,7 +203,10 @@ Create the BullMQ event subscriber that implements the `IEventSubscriber` interf
 // src/shared/infrastructure/events/BullMQEventSubscriber.ts
 import { Worker, Job } from 'bullmq';
 import Redis from 'ioredis';
-import { IEventSubscriber, IEventHandler } from '../../application/events/IEventSubscriber';
+import {
+  IEventSubscriber,
+  IEventHandler,
+} from '../../application/events/IEventSubscriber';
 import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
 import { CardId } from '../../../modules/cards/domain/value-objects/CardId';
@@ -209,7 +220,7 @@ export class BullMQEventSubscriber implements IEventSubscriber {
 
   async subscribe<T extends IDomainEvent>(
     eventType: string,
-    handler: IEventHandler<T>
+    handler: IEventHandler<T>,
   ): Promise<void> {
     this.handlers.set(eventType, handler);
   }
@@ -217,7 +228,7 @@ export class BullMQEventSubscriber implements IEventSubscriber {
   async start(): Promise<void> {
     // Start workers for different queues
     const queues = ['notifications', 'events'];
-    
+
     for (const queueName of queues) {
       const worker = new Worker(
         queueName,
@@ -227,7 +238,7 @@ export class BullMQEventSubscriber implements IEventSubscriber {
         {
           connection: this.redisConnection,
           concurrency: queueName === 'notifications' ? 5 : 15,
-        }
+        },
       );
 
       worker.on('completed', (job) => {
@@ -247,14 +258,14 @@ export class BullMQEventSubscriber implements IEventSubscriber {
   }
 
   async stop(): Promise<void> {
-    await Promise.all(this.workers.map(worker => worker.close()));
+    await Promise.all(this.workers.map((worker) => worker.close()));
     this.workers = [];
   }
 
   private async processJob(job: Job): Promise<void> {
     const eventData = job.data;
     const eventType = eventData.eventType;
-    
+
     const handler = this.handlers.get(eventType);
     if (!handler) {
       console.warn(`No handler registered for event type: ${eventType}`);
@@ -263,7 +274,7 @@ export class BullMQEventSubscriber implements IEventSubscriber {
 
     const event = this.reconstructEvent(eventData);
     const result = await handler.handle(event);
-    
+
     if (result.isErr()) {
       throw result.error;
     }
@@ -273,10 +284,10 @@ export class BullMQEventSubscriber implements IEventSubscriber {
     if (eventData.eventType === 'CardAddedToLibraryEvent') {
       const cardId = CardId.create(eventData.cardId).unwrap();
       const curatorId = CuratorId.create(eventData.curatorId).unwrap();
-      
+
       const event = new CardAddedToLibraryEvent(cardId, curatorId);
       (event as any).dateTimeOccurred = new Date(eventData.dateTimeOccurred);
-      
+
       return event;
     }
 
@@ -300,17 +311,14 @@ export class EventHandlerRegistry {
 
   registerAllHandlers(): void {
     // Register distributed event publishing
-    DomainEvents.register(
-      async (event: CardAddedToLibraryEvent) => {
-        try {
-          await this.eventPublisher.publishEvents([event]);
-        } catch (error) {
-          console.error('Error publishing event to BullMQ:', error);
-          // Don't fail the main operation if event publishing fails
-        }
-      },
-      CardAddedToLibraryEvent.name,
-    );
+    DomainEvents.register(async (event: CardAddedToLibraryEvent) => {
+      try {
+        await this.eventPublisher.publishEvents([event]);
+      } catch (error) {
+        console.error('Error publishing event to BullMQ:', error);
+        // Don't fail the main operation if event publishing fails
+      }
+    }, CardAddedToLibraryEvent.name);
   }
 
   clearAllHandlers(): void {
@@ -426,6 +434,7 @@ Add worker scripts to your `package.json`:
 ```
 
 **Important Notes:**
+
 - Workers and web processes use the same build output (`dist/`)
 - All processes are built together with `npm run build`
 - Each process type runs a different entry point
@@ -439,15 +448,15 @@ import { EnvironmentConfigService } from '../shared/infrastructure/config/Enviro
 
 async function startNotificationWorker() {
   console.log('Starting notification worker...');
-  
+
   const configService = new EnvironmentConfigService();
-  
+
   // Connect to Redis
   const redisUrl = configService.get('REDIS_URL');
   if (!redisUrl) {
     throw new Error('REDIS_URL environment variable is required');
   }
-  
+
   const redis = new Redis(redisUrl, {
     maxRetriesPerRequest: 3,
     retryDelayOnFailover: 100,
@@ -462,19 +471,24 @@ async function startNotificationWorker() {
     console.error('Failed to connect to Redis:', error);
     process.exit(1);
   }
-  
+
   // Create subscriber
   const eventSubscriber = new BullMQEventSubscriber(redis);
-  
+
   // Create event handlers (wire up your services here)
-  const notificationHandler = new CardAddedToLibraryEventHandler(notificationService);
-  
+  const notificationHandler = new CardAddedToLibraryEventHandler(
+    notificationService,
+  );
+
   // Register handlers
-  await eventSubscriber.subscribe('CardAddedToLibraryEvent', notificationHandler);
-  
+  await eventSubscriber.subscribe(
+    'CardAddedToLibraryEvent',
+    notificationHandler,
+  );
+
   // Start the worker - THIS IS WHAT TRIGGERS YOUR HANDLERS!
   await eventSubscriber.start();
-  
+
   console.log('Notification worker started and listening for events...');
 
   // Graceful shutdown
@@ -546,7 +560,10 @@ interface AddCardToLibraryRequest {
   userId: string;
 }
 
-export class AddCardToLibraryUseCase extends BaseUseCase<AddCardToLibraryRequest, Result<void>> {
+export class AddCardToLibraryUseCase extends BaseUseCase<
+  AddCardToLibraryRequest,
+  Result<void>
+> {
   constructor(
     private cardRepository: ICardRepository,
     eventPublisher: IEventPublisher,
@@ -556,7 +573,9 @@ export class AddCardToLibraryUseCase extends BaseUseCase<AddCardToLibraryRequest
 
   async execute(request: AddCardToLibraryRequest): Promise<Result<void>> {
     // 1. Get the card
-    const cardResult = await this.cardRepository.findById(CardId.create(request.cardId).unwrap());
+    const cardResult = await this.cardRepository.findById(
+      CardId.create(request.cardId).unwrap(),
+    );
     if (cardResult.isErr()) return err(cardResult.error);
 
     const card = cardResult.value;
@@ -607,7 +626,7 @@ Ensure your `fly.toml` includes worker processes:
 ```toml
 [processes]
   web = "npm start"
-  notification-worker = "npm run worker:notifications" 
+  notification-worker = "npm run worker:notifications"
   feed-worker = "npm run worker:feeds"
 
 [http_service]
@@ -663,12 +682,14 @@ fly redis connect myapp-redis
 #### How Fly.io Handles Multiple Process Types
 
 **Single App, Multiple Process Types:**
+
 - All processes (web, workers) are part of the same Fly app
 - They share the same Docker image and environment variables
 - Each process type can be scaled independently
 - Workers run as long-lived background processes
 
 **Deployment Flow:**
+
 1. `fly deploy` builds one Docker image
 2. Fly creates different machine types based on `[processes]` config
 3. Each machine runs the specified command for its process type
@@ -676,19 +697,20 @@ fly redis connect myapp-redis
 
 #### Process Type Differences
 
-| Aspect | Web Process | Worker Processes |
-|--------|-------------|------------------|
-| **Command** | `npm start` | `npm run worker:notifications` |
-| **HTTP Traffic** | ✅ Receives HTTP requests | ❌ No HTTP traffic |
-| **Load Balancer** | ✅ Behind Fly proxy | ❌ Direct process |
-| **Health Checks** | HTTP endpoint | Process running |
-| **Scaling Trigger** | HTTP traffic | Queue depth |
-| **Auto-stop** | Can auto-stop when idle | Should run continuously |
-| **Regions** | Scale based on user traffic | Scale based on workload |
+| Aspect              | Web Process                 | Worker Processes               |
+| ------------------- | --------------------------- | ------------------------------ |
+| **Command**         | `npm start`                 | `npm run worker:notifications` |
+| **HTTP Traffic**    | ✅ Receives HTTP requests   | ❌ No HTTP traffic             |
+| **Load Balancer**   | ✅ Behind Fly proxy         | ❌ Direct process              |
+| **Health Checks**   | HTTP endpoint               | Process running                |
+| **Scaling Trigger** | HTTP traffic                | Queue depth                    |
+| **Auto-stop**       | Can auto-stop when idle     | Should run continuously        |
+| **Regions**         | Scale based on user traffic | Scale based on workload        |
 
 #### Worker-Specific Configuration
 
 **Prevent Auto-stopping Workers:**
+
 ```toml
 # In fly.toml - workers should not auto-stop
 [http_service]
@@ -702,6 +724,7 @@ fly redis connect myapp-redis
 ```
 
 **Worker Health Monitoring:**
+
 ```bash
 # Workers don't have HTTP health checks
 # Monitor via logs and process status
@@ -717,6 +740,7 @@ fly ssh console --process notification-worker
 #### Environment Variables and Secrets
 
 **Shared Environment:**
+
 - All process types share the same environment variables
 - Redis URL, database URL, etc. are available to all processes
 - Secrets are shared across all process types
@@ -734,8 +758,9 @@ env | grep REDIS_URL
 #### Deployment Dependencies and Order
 
 **Critical Deployment Order:**
+
 1. **Redis First**: Must exist before workers can start
-2. **Database**: Must be accessible to both web and workers  
+2. **Database**: Must be accessible to both web and workers
 3. **Deploy**: All processes deploy together
 4. **Scale**: Scale workers after successful deployment
 
@@ -759,10 +784,11 @@ fly scale count notification-worker=2 feed-worker=3
 **Common Deployment Issues:**
 
 1. **Workers Exit Immediately**
+
    ```bash
    # Check worker logs for startup errors
    fly logs --process notification-worker
-   
+
    # Common causes:
    # - Missing REDIS_URL
    # - Redis connection failed
@@ -770,22 +796,24 @@ fly scale count notification-worker=2 feed-worker=3
    ```
 
 2. **Workers Can't Connect to Redis**
+
    ```bash
    # Verify Redis attachment
    fly redis status myapp-redis
-   
+
    # Test Redis connection from worker
    fly ssh console --process notification-worker
    node -e "const Redis = require('ioredis'); const r = new Redis(process.env.REDIS_URL); r.ping().then(console.log)"
    ```
 
 3. **Workers Not Processing Jobs**
+
    ```bash
    # Check if jobs are being queued
    fly redis connect myapp-redis
    > KEYS *
    > LLEN bull:notifications:waiting
-   
+
    # Check worker logs for processing
    fly logs --process notification-worker --follow
    ```
@@ -793,6 +821,7 @@ fly scale count notification-worker=2 feed-worker=3
 ### Worker Scaling Guidelines
 
 #### Notification Workers (External API Calls)
+
 ```bash
 # Conservative scaling for external APIs
 fly scale count notification-worker=2 --region ord
@@ -805,12 +834,14 @@ fly scale count notification-worker=1 --region fra
 ```
 
 **Configuration:**
+
 - **Concurrency**: 5-10 jobs per worker (respect API limits)
 - **Regions**: 2-3 regions max (avoid hitting API limits from too many IPs)
 - **Memory**: 512MB usually sufficient
 - **Scaling Trigger**: Queue depth > 100 jobs
 
 #### Feed Workers (Database Operations)
+
 ```bash
 # More aggressive scaling for database operations
 fly scale count feed-worker=3 --region ord
@@ -823,6 +854,7 @@ fly scale count feed-worker=2 --region fra
 ```
 
 **Configuration:**
+
 - **Concurrency**: 10-20 jobs per worker (database can handle more)
 - **Regions**: Match your user distribution
 - **Memory**: 512MB-1GB depending on data processing
@@ -881,10 +913,7 @@ const serverAdapter = new ExpressAdapter();
 serverAdapter.setBasePath('/admin/queues');
 
 const { addQueue } = createBullBoard({
-  queues: [
-    new BullMQAdapter(notificationQueue),
-    new BullMQAdapter(feedQueue),
-  ],
+  queues: [new BullMQAdapter(notificationQueue), new BullMQAdapter(feedQueue)],
   serverAdapter: serverAdapter,
 });
 
@@ -913,12 +942,11 @@ export class EventMetrics {
 
   static getMetrics() {
     const metrics: any = {};
-    
+
     for (const [eventType, count] of this.eventCounts) {
       const times = this.processingTimes.get(eventType) || [];
-      const avgTime = times.length > 0 
-        ? times.reduce((a, b) => a + b, 0) / times.length 
-        : 0;
+      const avgTime =
+        times.length > 0 ? times.reduce((a, b) => a + b, 0) / times.length : 0;
 
       metrics[eventType] = {
         count,
@@ -943,11 +971,15 @@ describe('BullMQEventPublisher', () => {
     const mockQueue = {
       add: jest.fn().mockResolvedValue({}),
     };
-    
+
     const publisher = new BullMQEventPublisher(redisConnection);
     (publisher as any).queues.set('notifications', mockQueue);
 
-    const event = new CardAddedToLibraryEvent(cardId, curatorId, CardTypeEnum.URL);
+    const event = new CardAddedToLibraryEvent(
+      cardId,
+      curatorId,
+      CardTypeEnum.URL,
+    );
     await publisher.publish(event);
 
     expect(mockQueue.add).toHaveBeenCalledWith(
@@ -956,7 +988,7 @@ describe('BullMQEventPublisher', () => {
         cardId,
         curatorId,
         cardType: CardTypeEnum.URL,
-      })
+      }),
     );
   });
 });
@@ -973,11 +1005,15 @@ describe('Event Processing Integration', () => {
     };
 
     // Publish event
-    const event = new CardAddedToLibraryEvent(cardId, curatorId, CardTypeEnum.URL);
+    const event = new CardAddedToLibraryEvent(
+      cardId,
+      curatorId,
+      CardTypeEnum.URL,
+    );
     await eventPublisher.publish(event);
 
     // Wait for processing
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Verify handler was called
     expect(mockNotificationHandler.handle).toHaveBeenCalledWith(
@@ -985,7 +1021,7 @@ describe('Event Processing Integration', () => {
         cardId,
         curatorId,
         cardType: CardTypeEnum.URL,
-      })
+      }),
     );
   });
 });
@@ -1000,15 +1036,15 @@ describe('Event Processing Integration', () => {
 const queueOptions = {
   // For high-frequency events
   defaultJobOptions: {
-    removeOnComplete: 100,  // Keep successful jobs for debugging
-    removeOnFail: 50,       // Keep failed jobs for analysis
-    attempts: 3,            // Retry failed jobs
+    removeOnComplete: 100, // Keep successful jobs for debugging
+    removeOnFail: 50, // Keep failed jobs for analysis
+    attempts: 3, // Retry failed jobs
     backoff: {
       type: 'exponential',
-      delay: 2000,          // Start with 2s delay
+      delay: 2000, // Start with 2s delay
     },
   },
-  
+
   // Connection pooling
   connection: {
     ...redisConnection,
@@ -1025,11 +1061,11 @@ const queueOptions = {
 // Optimize worker settings
 const workerOptions = {
   concurrency: process.env.NODE_ENV === 'production' ? 10 : 5,
-  
+
   // Batch processing for better performance
   stalledInterval: 30000,
   maxStalledCount: 1,
-  
+
   // Memory management
   removeOnComplete: 100,
   removeOnFail: 50,
@@ -1071,6 +1107,7 @@ fly ssh console --app myapp
 ### Phase 1: Infrastructure Setup
 
 1. **Create Redis Database**
+
    ```bash
    fly redis create --name myapp-redis --region ord --replica-regions fra,iad
    fly redis attach myapp-redis
@@ -1101,21 +1138,23 @@ fly ssh console --app myapp
 ### Phase 3: Deployment
 
 5. **Deploy Application**
+
    ```bash
    # Build and deploy all processes
    fly deploy
-   
+
    # Verify all process types are running
    fly ps
    fly status
    ```
 
 6. **Verify Worker Startup**
+
    ```bash
    # Check worker logs for successful startup
    fly logs --process notification-worker
    fly logs --process feed-worker
-   
+
    # Look for these messages:
    # "Connected to Redis successfully"
    # "Worker started and listening for events..."
@@ -1124,24 +1163,26 @@ fly ssh console --app myapp
 ### Phase 4: Testing and Scaling
 
 7. **Test Event Flow**
+
    ```bash
    # Test Redis connection from workers
    fly ssh console --process notification-worker
    node -e "const Redis = require('ioredis'); const r = new Redis(process.env.REDIS_URL); r.ping().then(console.log)"
-   
+
    # Monitor Redis for job activity
    fly redis connect myapp-redis
    > MONITOR
    ```
 
 8. **Scale Workers Based on Load**
+
    ```bash
    # Start conservative
    fly scale count notification-worker=1 feed-worker=2
-   
+
    # Monitor and scale up as needed
    fly scale count notification-worker=2 feed-worker=3
-   
+
    # Add regional distribution
    fly scale count notification-worker=1 --region ord
    fly scale count notification-worker=1 --region fra
@@ -1150,23 +1191,25 @@ fly ssh console --app myapp
 ### Phase 5: Monitoring and Optimization
 
 9. **Set Up Monitoring**
+
    ```bash
    # Monitor worker health
    fly logs --process notification-worker --follow
    fly logs --process feed-worker --follow
-   
+
    # Check Redis performance
    fly redis status myapp-redis
    fly redis dashboard myapp-redis
    ```
 
 10. **Performance Optimization**
+
     ```bash
     # Monitor queue depths
     fly redis connect myapp-redis
     > LLEN bull:notifications:waiting
     > LLEN bull:feeds:waiting
-    
+
     # Adjust scaling based on metrics
     fly scale count notification-worker=3  # If queue depth consistently high
     fly scale memory 1gb --process feed-worker  # If memory usage high
@@ -1175,6 +1218,7 @@ fly ssh console --app myapp
 ### Troubleshooting Common Issues
 
 **Workers Not Starting:**
+
 ```bash
 # Check for missing dependencies
 fly logs --process notification-worker | grep "Error"
@@ -1185,6 +1229,7 @@ echo $REDIS_URL
 ```
 
 **Jobs Not Processing:**
+
 ```bash
 # Check if jobs are being queued
 fly redis connect myapp-redis
@@ -1196,6 +1241,7 @@ fly logs --process notification-worker | grep "subscribe"
 ```
 
 **High Memory Usage:**
+
 ```bash
 # Monitor resource usage
 fly metrics --process notification-worker

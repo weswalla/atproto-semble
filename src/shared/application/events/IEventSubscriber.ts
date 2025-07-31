@@ -8,9 +8,9 @@ export interface IEventHandler<T extends IDomainEvent> {
 export interface IEventSubscriber {
   subscribe<T extends IDomainEvent>(
     eventType: string,
-    handler: IEventHandler<T>
+    handler: IEventHandler<T>,
   ): Promise<void>;
-  
+
   start(): Promise<void>;
   stop(): Promise<void>;
 }

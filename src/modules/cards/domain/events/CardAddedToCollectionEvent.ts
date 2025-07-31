@@ -33,7 +33,14 @@ export class CardAddedToCollectionEvent implements IDomainEvent {
     addedBy: CuratorId,
     dateTimeOccurred: Date,
   ): Result<CardAddedToCollectionEvent> {
-    return ok(new CardAddedToCollectionEvent(cardId, collectionId, addedBy, dateTimeOccurred));
+    return ok(
+      new CardAddedToCollectionEvent(
+        cardId,
+        collectionId,
+        addedBy,
+        dateTimeOccurred,
+      ),
+    );
   }
 
   getAggregateId(): UniqueEntityID {

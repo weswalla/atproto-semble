@@ -10,6 +10,8 @@ import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { FakeEventPublisher } from '../utils/FakeEventPublisher';
+import { CardAddedToLibraryEvent } from '../../domain/events/CardAddedToLibraryEvent';
+import { CardAddedToCollectionEvent } from '../../domain/events/CardAddedToCollectionEvent';
 
 describe('AddUrlToLibraryUseCase', () => {
   let useCase: AddUrlToLibraryUseCase;
@@ -79,6 +81,12 @@ describe('AddUrlToLibraryUseCase', () => {
       // Verify card was published to library
       const publishedCards = cardPublisher.getPublishedCards();
       expect(publishedCards).toHaveLength(1);
+
+      // Verify CardAddedToLibraryEvent was published
+      const libraryEvents = eventPublisher.getPublishedEventsOfType(CardAddedToLibraryEvent);
+      expect(libraryEvents).toHaveLength(1);
+      expect(libraryEvents[0]?.cardId.getStringValue()).toBe(response.urlCardId);
+      expect(libraryEvents[0]?.curatorId.equals(curatorId)).toBe(true);
     });
 
     it('should create URL card with note when note is provided', async () => {
@@ -115,6 +123,22 @@ describe('AddUrlToLibraryUseCase', () => {
       // Verify both cards were published to library
       const publishedCards = cardPublisher.getPublishedCards();
       expect(publishedCards).toHaveLength(2);
+
+      // Verify CardAddedToLibraryEvent was published for both cards
+      const libraryEvents = eventPublisher.getPublishedEventsOfType(CardAddedToLibraryEvent);
+      expect(libraryEvents).toHaveLength(2);
+      
+      const urlCardEvent = libraryEvents.find(event => 
+        event.cardId.getStringValue() === urlCard?.cardId.getStringValue()
+      );
+      const noteCardEvent = libraryEvents.find(event => 
+        event.cardId.getStringValue() === noteCard?.cardId.getStringValue()
+      );
+      
+      expect(urlCardEvent).toBeDefined();
+      expect(noteCardEvent).toBeDefined();
+      expect(urlCardEvent?.curatorId.equals(curatorId)).toBe(true);
+      expect(noteCardEvent?.curatorId.equals(curatorId)).toBe(true);
     });
   });
 
@@ -187,6 +211,17 @@ describe('AddUrlToLibraryUseCase', () => {
         collection.collectionId.getStringValue(),
       );
       expect(publishedLinks).toHaveLength(1);
+
+      // Verify CardAddedToLibraryEvent was published
+      const libraryEvents = eventPublisher.getPublishedEventsOfType(CardAddedToLibraryEvent);
+      expect(libraryEvents).toHaveLength(1);
+      expect(libraryEvents[0]?.curatorId.equals(curatorId)).toBe(true);
+
+      // Verify CardAddedToCollectionEvent was published
+      const collectionEvents = eventPublisher.getPublishedEventsOfType(CardAddedToCollectionEvent);
+      expect(collectionEvents).toHaveLength(1);
+      expect(collectionEvents[0]?.collectionId.getStringValue()).toBe(collection.collectionId.getStringValue());
+      expect(collectionEvents[0]?.addedBy.equals(curatorId)).toBe(true);
     });
 
     it('should add URL card (not note card) to collections when note is provided', async () => {
@@ -246,6 +281,17 @@ describe('AddUrlToLibraryUseCase', () => {
       // Verify both cards are in the library
       const publishedCards = cardPublisher.getPublishedCards();
       expect(publishedCards).toHaveLength(2);
+
+      // Verify CardAddedToLibraryEvent was published for both cards
+      const libraryEvents = eventPublisher.getPublishedEventsOfType(CardAddedToLibraryEvent);
+      expect(libraryEvents).toHaveLength(2);
+
+      // Verify CardAddedToCollectionEvent was published for URL card only
+      const collectionEvents = eventPublisher.getPublishedEventsOfType(CardAddedToCollectionEvent);
+      expect(collectionEvents).toHaveLength(1);
+      expect(collectionEvents[0]?.cardId.getStringValue()).toBe(urlCard?.cardId.getStringValue());
+      expect(collectionEvents[0]?.collectionId.getStringValue()).toBe(collection.collectionId.getStringValue());
+      expect(collectionEvents[0]?.addedBy.equals(curatorId)).toBe(true);
     });
 
     it('should fail when collection does not exist', async () => {

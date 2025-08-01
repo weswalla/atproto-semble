@@ -6,6 +6,9 @@ import { IFeedRepository } from '../../../domain/IFeedRepository';
 import { ActivityId } from '../../../domain/value-objects/ActivityId';
 import { ActivityTypeEnum } from '../../../domain/value-objects/ActivityType';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
+import { ICardQueryRepository, UrlCardView } from '../../../../cards/domain/ICardQueryRepository';
+import { ICollectionQueryRepository } from '../../../../cards/domain/ICollectionQueryRepository';
+import { CardTypeEnum } from '../../../../cards/domain/value-objects/CardType';
 
 export interface GetGlobalFeedQuery {
   page?: number;
@@ -14,41 +17,23 @@ export interface GetGlobalFeedQuery {
 }
 
 // DTOs for the response
-export interface ActivityActorDTO {
+export interface FeedItemView {
   id: string;
-  name: string;
-  handle: string;
-  avatarUrl?: string;
+  user: {
+    id: string;
+    handle: string;
+    name: string;
+    avatarUrl?: string;
+  };
+  card: UrlCardView;
+  collections: {
+    id: string;
+    name: string;
+  }[];
 }
-
-export interface CardAddedToLibraryActivityDTO {
-  id: string;
-  type: ActivityTypeEnum.CARD_ADDED_TO_LIBRARY;
-  actor: ActivityActorDTO;
-  cardId: string;
-  cardTitle?: string;
-  cardUrl?: string;
-  createdAt: Date;
-}
-
-export interface CardAddedToCollectionActivityDTO {
-  id: string;
-  type: ActivityTypeEnum.CARD_ADDED_TO_COLLECTION;
-  actor: ActivityActorDTO;
-  cardId: string;
-  cardTitle?: string;
-  cardUrl?: string;
-  collectionIds: string[];
-  collectionNames: string[];
-  createdAt: Date;
-}
-
-export type ActivityDTO =
-  | CardAddedToLibraryActivityDTO
-  | CardAddedToCollectionActivityDTO;
 
 export interface GetGlobalFeedResult {
-  activities: ActivityDTO[];
+  activities: FeedItemView[];
   pagination: {
     currentPage: number;
     totalCount: number;
@@ -74,6 +59,8 @@ export class GetGlobalFeedUseCase
   constructor(
     private feedRepository: IFeedRepository,
     private profileService: IProfileService,
+    private cardQueryRepository: ICardQueryRepository,
+    private collectionQueryRepository: ICollectionQueryRepository,
   ) {}
 
   async execute(
@@ -141,41 +128,77 @@ export class GetGlobalFeedUseCase
         }
       }
 
-      // Transform activities to DTOs
-      const activityDTOs: ActivityDTO[] = feed.activities.map((activity) => {
-        const actor = actorProfiles.get(activity.actorId.value)!;
+      // Get unique card IDs for hydration
+      const cardIds = [
+        ...new Set(
+          feed.activities
+            .filter((activity) => activity.cardCollected)
+            .map((activity) => activity.metadata.cardId)
+        ),
+      ];
 
-        if (activity.isCardAddedToLibrary) {
-          const metadata = activity.cardAddedToLibraryMetadata!;
-          return {
-            id: activity.activityId.getStringValue(),
-            type: ActivityTypeEnum.CARD_ADDED_TO_LIBRARY,
-            actor,
-            cardId: metadata.cardId,
-            cardTitle: metadata.cardTitle,
-            cardUrl: metadata.cardUrl,
-            createdAt: activity.createdAt,
-          } as CardAddedToLibraryActivityDTO;
-        } else if (activity.isCardAddedToCollection) {
-          const metadata = activity.cardAddedToCollectionMetadata!;
-          return {
-            id: activity.activityId.getStringValue(),
-            type: ActivityTypeEnum.CARD_ADDED_TO_COLLECTION,
-            actor,
-            cardId: metadata.cardId,
-            cardTitle: metadata.cardTitle,
-            cardUrl: metadata.cardUrl,
-            collectionIds: metadata.collectionIds,
-            collectionNames: metadata.collectionNames,
-            createdAt: activity.createdAt,
-          } as CardAddedToCollectionActivityDTO;
-        } else {
-          throw new Error(`Unsupported activity type: ${activity.type.value}`);
+      // Hydrate card data
+      const cardDataMap = new Map<string, UrlCardView>();
+      for (const cardId of cardIds) {
+        const cardView = await this.cardQueryRepository.getUrlCardView(cardId);
+        if (cardView) {
+          cardDataMap.set(cardId, cardView);
         }
-      });
+      }
+
+      // Get collection data for activities that have collections
+      const collectionIds = [
+        ...new Set(
+          feed.activities
+            .filter((activity) => activity.cardCollected && activity.metadata.collectionIds)
+            .flatMap((activity) => activity.metadata.collectionIds || [])
+        ),
+      ];
+
+      const collectionDataMap = new Map<string, { id: string; name: string }>();
+      for (const collectionId of collectionIds) {
+        const collection = await this.collectionQueryRepository.findById(collectionId);
+        if (collection) {
+          collectionDataMap.set(collectionId, {
+            id: collection.id,
+            name: collection.name,
+          });
+        }
+      }
+
+      // Transform activities to FeedItemView
+      const feedItems: FeedItemView[] = [];
+      for (const activity of feed.activities) {
+        if (!activity.cardCollected) {
+          continue; // Skip non-card-collected activities
+        }
+
+        const actor = actorProfiles.get(activity.actorId.value);
+        const cardData = cardDataMap.get(activity.metadata.cardId);
+
+        if (!actor || !cardData) {
+          continue; // Skip if we can't hydrate required data
+        }
+
+        const collections = (activity.metadata.collectionIds || [])
+          .map((collectionId) => collectionDataMap.get(collectionId))
+          .filter((collection): collection is { id: string; name: string } => !!collection);
+
+        feedItems.push({
+          id: activity.activityId.getStringValue(),
+          user: {
+            id: actor.id,
+            handle: actor.handle,
+            name: actor.name,
+            avatarUrl: actor.avatarUrl,
+          },
+          card: cardData,
+          collections,
+        });
+      }
 
       return ok({
-        activities: activityDTOs,
+        activities: feedItems,
         pagination: {
           currentPage: page,
           totalCount: feed.totalCount,

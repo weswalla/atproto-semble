@@ -1,7 +1,13 @@
 import { UniqueEntityID } from '../../../../../shared/domain/UniqueEntityID';
-import { FeedActivity, ActivityMetadata, CardCollectedMetadata } from '../../../domain/FeedActivity';
-import { ActivityId } from '../../../domain/value-objects/ActivityId';
-import { ActivityType, ActivityTypeEnum } from '../../../domain/value-objects/ActivityType';
+import {
+  FeedActivity,
+  ActivityMetadata,
+  CardCollectedMetadata,
+} from '../../../domain/FeedActivity';
+import {
+  ActivityType,
+  ActivityTypeEnum,
+} from '../../../domain/value-objects/ActivityType';
 import { CuratorId } from '../../../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../../../cards/domain/value-objects/CardId';
 import { CollectionId } from '../../../../cards/domain/value-objects/CollectionId';
@@ -22,7 +28,9 @@ export class FeedActivityMapper {
       const actorIdResult = CuratorId.create(dto.actorId);
       if (actorIdResult.isErr()) return err(actorIdResult.error);
 
-      const activityTypeResult = ActivityType.create(dto.type as ActivityTypeEnum);
+      const activityTypeResult = ActivityType.create(
+        dto.type as ActivityTypeEnum,
+      );
       if (activityTypeResult.isErr()) return err(activityTypeResult.error);
 
       // For now, we only support CARD_COLLECTED activities
@@ -33,16 +41,16 @@ export class FeedActivityMapper {
 
         let collectionIds: CollectionId[] | undefined;
         if (metadata.collectionIds) {
-          const collectionIdResults = metadata.collectionIds.map(id => 
-            CollectionId.createFromString(id)
+          const collectionIdResults = metadata.collectionIds.map((id) =>
+            CollectionId.createFromString(id),
           );
-          
+
           // Check if any collection ID creation failed
           for (const result of collectionIdResults) {
             if (result.isErr()) return err(result.error);
           }
-          
-          collectionIds = collectionIdResults.map(result => result.value);
+
+          collectionIds = collectionIdResults.map((result) => result.unwrap());
         }
 
         const activityResult = FeedActivity.createCardCollected(
@@ -50,7 +58,7 @@ export class FeedActivityMapper {
           cardIdResult.value,
           collectionIds,
           dto.createdAt,
-          new UniqueEntityID(dto.id)
+          new UniqueEntityID(dto.id),
         );
 
         if (activityResult.isErr()) return err(activityResult.error);

@@ -1,10 +1,17 @@
 import { eq, desc, lt, count } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { IFeedRepository, FeedQueryOptions, PaginatedFeedResult } from '../../domain/IFeedRepository';
+import {
+  IFeedRepository,
+  FeedQueryOptions,
+  PaginatedFeedResult,
+} from '../../domain/IFeedRepository';
 import { FeedActivity } from '../../domain/FeedActivity';
 import { ActivityId } from '../../domain/value-objects/ActivityId';
 import { feedActivities } from './schema/feedActivity.sql';
-import { FeedActivityMapper, FeedActivityDTO } from './mappers/FeedActivityMapper';
+import {
+  FeedActivityMapper,
+  FeedActivityDTO,
+} from './mappers/FeedActivityMapper';
 import { Result, ok, err } from '../../../../shared/core/Result';
 
 export class DrizzleFeedRepository implements IFeedRepository {
@@ -28,7 +35,9 @@ export class DrizzleFeedRepository implements IFeedRepository {
     }
   }
 
-  async getGlobalFeed(options: FeedQueryOptions): Promise<Result<PaginatedFeedResult>> {
+  async getGlobalFeed(
+    options: FeedQueryOptions,
+  ): Promise<Result<PaginatedFeedResult>> {
     try {
       const { page, limit, beforeActivityId } = options;
       const offset = (page - 1) * limit;
@@ -41,7 +50,7 @@ export class DrizzleFeedRepository implements IFeedRepository {
         metadata: any;
         createdAt: Date;
       }>;
-      
+
       if (beforeActivityId) {
         // Get the timestamp of the beforeActivityId
         const beforeActivity = await this.db

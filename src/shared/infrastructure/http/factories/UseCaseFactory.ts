@@ -21,6 +21,8 @@ import { Services } from './ServiceFactory';
 import { GetMyProfileUseCase } from 'src/modules/cards/application/useCases/queries/GetMyProfileUseCase';
 import { LoginWithAppPasswordUseCase } from 'src/modules/user/application/use-cases/LoginWithAppPasswordUseCase';
 import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use-cases/GenerateExtensionTokensUseCase';
+import { GetGlobalFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGlobalFeedUseCase';
+import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/useCases/commands/AddActivityToFeedUseCase';
 
 export interface UseCases {
   // User use cases
@@ -46,6 +48,9 @@ export interface UseCases {
   deleteCollectionUseCase: DeleteCollectionUseCase;
   getCollectionPageUseCase: GetCollectionPageUseCase;
   getMyCollectionsUseCase: GetMyCollectionsUseCase;
+  // Feed use cases
+  getGlobalFeedUseCase: GetGlobalFeedUseCase;
+  addActivityToFeedUseCase: AddActivityToFeedUseCase;
 }
 
 export class UseCaseFactory {
@@ -141,6 +146,17 @@ export class UseCaseFactory {
       getMyCollectionsUseCase: new GetMyCollectionsUseCase(
         repositories.collectionQueryRepository,
         services.profileService,
+      ),
+
+      // Feed use cases
+      getGlobalFeedUseCase: new GetGlobalFeedUseCase(
+        repositories.feedRepository,
+        services.profileService,
+        repositories.cardQueryRepository,
+        repositories.collectionRepository,
+      ),
+      addActivityToFeedUseCase: new AddActivityToFeedUseCase(
+        services.feedService,
       ),
     };
   }

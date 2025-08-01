@@ -44,6 +44,8 @@ import { IEventPublisher } from '../../../application/events/IEventPublisher';
 import { QueueName } from '../../events/QueueConfig';
 import { RedisFactory } from '../../redis/RedisFactory';
 import { IEventSubscriber } from 'src/shared/application/events/IEventSubscriber';
+import { FeedService } from '../../../../modules/feeds/domain/services/FeedService';
+import { CardCollectionSaga } from '../../../../modules/feeds/application/sagas/CardCollectionSaga';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -52,6 +54,7 @@ export interface SharedServices {
   atProtoAgentService: IAgentService;
   metadataService: IMetadataService;
   profileService: IProfileService;
+  feedService: FeedService;
 }
 
 // Web app specific services (includes publishers, auth middleware)
@@ -72,6 +75,7 @@ export interface WorkerServices extends SharedServices {
   redisConnection: Redis;
   eventPublisher: IEventPublisher;
   createEventSubscriber: (queueName: QueueName) => IEventSubscriber;
+  cardCollectionSaga: CardCollectionSaga;
 }
 
 // Legacy interface for backward compatibility
@@ -185,11 +189,18 @@ export class ServiceFactory {
       return new BullMQEventSubscriber(redisConnection, { queueName });
     };
 
+    // Create saga for worker
+    const cardCollectionSaga = new CardCollectionSaga(
+      // We'll need to create this use case in the worker context
+      null as any // Will be set properly in worker
+    );
+
     return {
       ...sharedServices,
       redisConnection,
       eventPublisher,
       createEventSubscriber,
+      cardCollectionSaga,
     };
   }
 
@@ -239,12 +250,16 @@ export class ServiceFactory {
       ? new FakeBlueskyProfileService()
       : new BlueskyProfileService(atProtoAgentService);
 
+    // Feed Service
+    const feedService = new FeedService(repositories.feedRepository);
+
     return {
       tokenService,
       userAuthService,
       atProtoAgentService,
       metadataService,
       profileService,
+      feedService,
     };
   }
 }

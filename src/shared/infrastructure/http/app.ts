@@ -4,6 +4,7 @@ import { Router } from 'express';
 import { createUserRoutes } from '../../../modules/user/infrastructure/http/routes/userRoutes';
 import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atprotoRoutes';
 import { createCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
+import { createFeedRoutes } from '../../../modules/feeds/infrastructure/http/routes/feedRoutes';
 import { EnvironmentConfigService } from '../config/EnvironmentConfigService';
 import { RepositoryFactory } from './factories/RepositoryFactory';
 import { ServiceFactory } from './factories/ServiceFactory';
@@ -71,10 +72,16 @@ export const createExpressApp = (
     controllers.getMyCollectionsController,
   );
 
+  const feedRouter = createFeedRoutes(
+    services.authMiddleware,
+    controllers.getGlobalFeedController,
+  );
+
   // Register routes
   app.use('/api/users', userRouter);
   app.use('/atproto', atprotoRouter);
   app.use('/api', cardsRouter);
+  app.use('/api/feeds', feedRouter);
 
   return app;
 };

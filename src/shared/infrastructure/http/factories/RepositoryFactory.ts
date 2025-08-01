@@ -29,6 +29,9 @@ import {
   NodeSavedStateStore,
   NodeSavedSessionStore,
 } from '@atproto/oauth-client-node';
+import { DrizzleFeedRepository } from '../../../../modules/feeds/infrastructure/repositories/DrizzleFeedRepository';
+import { InMemoryFeedRepository } from '../../../../modules/feeds/tests/infrastructure/InMemoryFeedRepository';
+import { IFeedRepository } from '../../../../modules/feeds/domain/IFeedRepository';
 
 export interface Repositories {
   userRepository: IUserRepository;
@@ -38,6 +41,7 @@ export interface Repositories {
   collectionRepository: ICollectionRepository;
   collectionQueryRepository: ICollectionQueryRepository;
   appPasswordSessionRepository: IAppPasswordSessionRepository;
+  feedRepository: IFeedRepository;
   oauthStateStore: NodeSavedStateStore;
   oauthSessionStore: NodeSavedSessionStore;
 }
@@ -61,6 +65,7 @@ export class RepositoryFactory {
       );
       const appPasswordSessionRepository =
         new InMemoryAppPasswordSessionRepository();
+      const feedRepository = new InMemoryFeedRepository();
       const oauthStateStore = new InMemoryStateStore();
       const oauthSessionStore = new InMemorySessionStore();
 
@@ -72,6 +77,7 @@ export class RepositoryFactory {
         collectionRepository,
         collectionQueryRepository,
         appPasswordSessionRepository,
+        feedRepository,
         oauthStateStore,
         oauthSessionStore,
       };
@@ -92,6 +98,7 @@ export class RepositoryFactory {
       collectionRepository: new DrizzleCollectionRepository(db),
       collectionQueryRepository: new DrizzleCollectionQueryRepository(db),
       appPasswordSessionRepository: new DrizzleAppPasswordSessionRepository(db),
+      feedRepository: new DrizzleFeedRepository(db),
       oauthStateStore,
       oauthSessionStore,
     };

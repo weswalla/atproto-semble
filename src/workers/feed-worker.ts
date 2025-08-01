@@ -1,9 +1,11 @@
 import { EnvironmentConfigService } from '../shared/infrastructure/config/EnvironmentConfigService';
 import { RepositoryFactory } from '../shared/infrastructure/http/factories/RepositoryFactory';
 import { ServiceFactory } from '../shared/infrastructure/http/factories/ServiceFactory';
+import { UseCaseFactory } from '../shared/infrastructure/http/factories/UseCaseFactory';
 import { CardAddedToLibraryEventHandler } from '../modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToCollectionEventHandler } from '../modules/feeds/application/eventHandlers/CardAddedToCollectionEventHandler';
 import { CollectionCreatedEventHandler } from '../modules/feeds/application/eventHandlers/CollectionCreatedEventHandler';
+import { CardCollectionSaga } from '../modules/feeds/application/sagas/CardCollectionSaga';
 import { QueueNames } from '../shared/infrastructure/events/QueueConfig';
 import { EventNames } from '../shared/infrastructure/events/EventConfig';
 
@@ -15,6 +17,7 @@ async function startFeedWorker() {
   // Create dependencies using factories
   const repositories = RepositoryFactory.create(configService);
   const services = ServiceFactory.createForWorker(configService, repositories);
+  const useCases = UseCaseFactory.create(repositories, services);
 
   // Test Redis connection
   try {
@@ -28,19 +31,22 @@ async function startFeedWorker() {
   // Create subscriber for feeds queue
   const eventSubscriber = services.createEventSubscriber(QueueNames.FEEDS);
 
-  // Create event handlers with proper dependencies
-  const feedService = {
-    processCardAddedToLibrary: async (event: any) => {
-      console.log('Processing feed update for card added to library:', event);
-      // Your feed logic here - you can access all shared services here
-      // services.profileService, services.metadataService, etc.
-      return { isOk: () => true, isErr: () => false };
-    },
-  };
+  // Create the saga with proper dependencies
+  const cardCollectionSaga = new CardCollectionSaga(
+    useCases.addActivityToFeedUseCase,
+  );
 
-  const cardAddedToLibraryHandler = new CardAddedToLibraryEventHandler(feedService as any);
-  const cardAddedToCollectionHandler = new CardAddedToCollectionEventHandler(feedService as any);
-  const collectionCreatedHandler = new CollectionCreatedEventHandler(feedService as any);
+  // Create event handlers with the saga
+  const cardAddedToLibraryHandler = new CardAddedToLibraryEventHandler(cardCollectionSaga);
+  const cardAddedToCollectionHandler = new CardAddedToCollectionEventHandler(cardCollectionSaga);
+  
+  // For collection created, we'll create a simple handler for now
+  const collectionCreatedHandler = new CollectionCreatedEventHandler({
+    handleCardEvent: async (event: any) => {
+      console.log('Processing collection created event:', event);
+      return { isOk: () => true, isErr: () => false };
+    }
+  } as any);
 
   // Register handlers
   await eventSubscriber.subscribe(

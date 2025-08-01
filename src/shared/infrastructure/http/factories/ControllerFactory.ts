@@ -16,6 +16,7 @@ import { UpdateCollectionController } from '../../../../modules/cards/infrastruc
 import { DeleteCollectionController } from '../../../../modules/cards/infrastructure/http/controllers/DeleteCollectionController';
 import { GetCollectionPageController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionPageController';
 import { GetMyCollectionsController } from '../../../../modules/cards/infrastructure/http/controllers/GetMyCollectionsController';
+import { GetGlobalFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetGlobalFeedController';
 import { UseCases } from './UseCaseFactory';
 import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetMyProfileController';
 import { LoginWithAppPasswordController } from 'src/modules/user/infrastructure/http/controllers/LoginWithAppPasswordController';
@@ -45,6 +46,8 @@ export interface Controllers {
   deleteCollectionController: DeleteCollectionController;
   getCollectionPageController: GetCollectionPageController;
   getMyCollectionsController: GetMyCollectionsController;
+  // Feed controllers
+  getGlobalFeedController: GetGlobalFeedController;
 }
 
 export class ControllerFactory {

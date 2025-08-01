@@ -33,13 +33,11 @@ export class DrizzleFeedRepository implements IFeedRepository {
       const { page, limit, beforeActivityId } = options;
       const offset = (page - 1) * limit;
 
-      // Start with base query
-      let query = this.db
-        .select()
-        .from(feedActivities);
-
-      // If beforeActivityId is provided, filter to activities before that one
+      // Build query conditionally
+      let activitiesResult;
+      
       if (beforeActivityId) {
+        // Get the timestamp of the beforeActivityId
         const beforeActivity = await this.db
           .select({ createdAt: feedActivities.createdAt })
           .from(feedActivities)
@@ -47,15 +45,25 @@ export class DrizzleFeedRepository implements IFeedRepository {
           .limit(1);
 
         if (beforeActivity.length > 0) {
-          query = query.where(lt(feedActivities.createdAt, beforeActivity[0]!.createdAt));
+          activitiesResult = await this.db
+            .select()
+            .from(feedActivities)
+            .where(lt(feedActivities.createdAt, beforeActivity[0]!.createdAt))
+            .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
+            .limit(limit);
+        } else {
+          // If beforeActivityId doesn't exist, return empty result
+          activitiesResult = [];
         }
+      } else {
+        // Regular pagination without cursor
+        activitiesResult = await this.db
+          .select()
+          .from(feedActivities)
+          .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
+          .limit(limit)
+          .offset(offset);
       }
-
-      // Apply ordering and pagination last
-      const activitiesResult = await query
-        .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
-        .limit(limit)
-        .offset(beforeActivityId ? 0 : offset);
 
       // Get total count
       const totalCountResult = await this.db

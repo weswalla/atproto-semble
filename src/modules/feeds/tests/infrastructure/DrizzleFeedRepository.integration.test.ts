@@ -115,29 +115,32 @@ describe('DrizzleFeedRepository', () => {
   });
 
   it('should retrieve global feed with pagination', async () => {
-    // Create multiple activities
+    // Create multiple activities with different timestamps to ensure proper ordering
+    const baseTime = new Date();
     const activity1 = FeedActivity.createCardCollected(
       curatorId,
       cardId,
       [collectionId],
+      new Date(baseTime.getTime() - 200), // oldest
     ).unwrap();
 
     const activity2 = FeedActivity.createCardCollected(
       anotherCuratorId,
       anotherCardId,
+      undefined,
+      new Date(baseTime.getTime() - 100), // middle
     ).unwrap();
 
     const activity3 = FeedActivity.createCardCollected(
       curatorId,
       anotherCardId,
       [collectionId],
+      new Date(baseTime.getTime()), // newest
     ).unwrap();
 
-    // Add activities with delays to ensure different timestamps for proper ordering
+    // Add activities (order doesn't matter since timestamps are set)
     await feedRepository.addActivity(activity1);
-    await new Promise(resolve => setTimeout(resolve, 100));
     await feedRepository.addActivity(activity2);
-    await new Promise(resolve => setTimeout(resolve, 100));
     await feedRepository.addActivity(activity3);
 
     // Get first page
@@ -177,27 +180,32 @@ describe('DrizzleFeedRepository', () => {
   });
 
   it('should support cursor-based pagination', async () => {
-    // Create multiple activities
+    // Create multiple activities with different timestamps
+    const baseTime = new Date();
     const activity1 = FeedActivity.createCardCollected(
       curatorId,
       cardId,
+      undefined,
+      new Date(baseTime.getTime() - 200), // oldest
     ).unwrap();
 
     const activity2 = FeedActivity.createCardCollected(
       anotherCuratorId,
       anotherCardId,
+      undefined,
+      new Date(baseTime.getTime() - 100), // middle
     ).unwrap();
 
     const activity3 = FeedActivity.createCardCollected(
       curatorId,
       anotherCardId,
+      undefined,
+      new Date(baseTime.getTime()), // newest
     ).unwrap();
 
-    // Add activities with delays to ensure different timestamps
+    // Add activities (order doesn't matter since timestamps are set)
     await feedRepository.addActivity(activity1);
-    await new Promise(resolve => setTimeout(resolve, 100));
     await feedRepository.addActivity(activity2);
-    await new Promise(resolve => setTimeout(resolve, 100));
     await feedRepository.addActivity(activity3);
 
     // Get activities before activity3 (should return activity2 and activity1)

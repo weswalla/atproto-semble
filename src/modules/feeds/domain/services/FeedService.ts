@@ -1,6 +1,6 @@
 import { Result, ok, err } from '../../../../shared/core/Result';
 import { DomainService } from '../../../../shared/domain/DomainService';
-import { Activity } from '../Activity';
+import { FeedActivity } from '../FeedActivity';
 import { IFeedRepository } from '../IFeedRepository';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { CardId } from '../../../cards/domain/value-objects/CardId';
@@ -19,16 +19,9 @@ export class FeedService implements DomainService {
   async addCardAddedToLibraryActivity(
     actorId: CuratorId,
     cardId: CardId,
-    cardTitle?: string,
-    cardUrl?: string,
-  ): Promise<Result<Activity, FeedServiceError>> {
+  ): Promise<Result<FeedActivity, FeedServiceError>> {
     try {
-      const activityResult = Activity.createCardAddedToLibrary(
-        actorId,
-        cardId,
-        cardTitle,
-        cardUrl,
-      );
+      const activityResult = FeedActivity.createCardCollected(actorId, cardId);
 
       if (activityResult.isErr()) {
         return err(new FeedServiceError(activityResult.error.message));
@@ -38,12 +31,20 @@ export class FeedService implements DomainService {
       const saveResult = await this.feedRepository.addActivity(activity);
 
       if (saveResult.isErr()) {
-        return err(new FeedServiceError(`Failed to save activity: ${saveResult.error.message}`));
+        return err(
+          new FeedServiceError(
+            `Failed to save activity: ${saveResult.error.message}`,
+          ),
+        );
       }
 
       return ok(activity);
     } catch (error) {
-      return err(new FeedServiceError(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      return err(
+        new FeedServiceError(
+          `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
     }
   }
 
@@ -51,18 +52,12 @@ export class FeedService implements DomainService {
     actorId: CuratorId,
     cardId: CardId,
     collectionIds: CollectionId[],
-    collectionNames: string[],
-    cardTitle?: string,
-    cardUrl?: string,
-  ): Promise<Result<Activity, FeedServiceError>> {
+  ): Promise<Result<FeedActivity, FeedServiceError>> {
     try {
-      const activityResult = Activity.createCardAddedToCollection(
+      const activityResult = FeedActivity.createCardCollected(
         actorId,
         cardId,
         collectionIds,
-        collectionNames,
-        cardTitle,
-        cardUrl,
       );
 
       if (activityResult.isErr()) {
@@ -73,12 +68,20 @@ export class FeedService implements DomainService {
       const saveResult = await this.feedRepository.addActivity(activity);
 
       if (saveResult.isErr()) {
-        return err(new FeedServiceError(`Failed to save activity: ${saveResult.error.message}`));
+        return err(
+          new FeedServiceError(
+            `Failed to save activity: ${saveResult.error.message}`,
+          ),
+        );
       }
 
       return ok(activity);
     } catch (error) {
-      return err(new FeedServiceError(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      return err(
+        new FeedServiceError(
+          `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
     }
   }
 }

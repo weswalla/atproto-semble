@@ -128,7 +128,6 @@ export class UseCaseFactory {
       createCollectionUseCase: new CreateCollectionUseCase(
         repositories.collectionRepository,
         services.collectionPublisher,
-        services.eventPublisher,
       ),
       updateCollectionUseCase: new UpdateCollectionUseCase(
         repositories.collectionRepository,

@@ -37,31 +37,22 @@ async function startFeedWorker() {
   );
 
   // Create event handlers with the saga
-  const cardAddedToLibraryHandler = new CardAddedToLibraryEventHandler(cardCollectionSaga);
-  const cardAddedToCollectionHandler = new CardAddedToCollectionEventHandler(cardCollectionSaga);
-  
-  // For collection created, we'll create a simple handler for now
-  const collectionCreatedHandler = new CollectionCreatedEventHandler({
-    handleCardEvent: async (event: any) => {
-      console.log('Processing collection created event:', event);
-      return { isOk: () => true, isErr: () => false };
-    }
-  } as any);
+  const cardAddedToLibraryHandler = new CardAddedToLibraryEventHandler(
+    cardCollectionSaga,
+  );
+  const cardAddedToCollectionHandler = new CardAddedToCollectionEventHandler(
+    cardCollectionSaga,
+  );
 
   // Register handlers
   await eventSubscriber.subscribe(
     EventNames.CARD_ADDED_TO_LIBRARY,
     cardAddedToLibraryHandler,
   );
-  
+
   await eventSubscriber.subscribe(
     EventNames.CARD_ADDED_TO_COLLECTION,
     cardAddedToCollectionHandler,
-  );
-  
-  await eventSubscriber.subscribe(
-    EventNames.COLLECTION_CREATED,
-    collectionCreatedHandler,
   );
 
   // Start the worker

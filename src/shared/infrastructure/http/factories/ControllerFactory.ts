@@ -117,6 +117,11 @@ export class ControllerFactory {
       getMyCollectionsController: new GetMyCollectionsController(
         useCases.getMyCollectionsUseCase,
       ),
+
+      // Feed controllers
+      getGlobalFeedController: new GetGlobalFeedController(
+        useCases.getGlobalFeedUseCase,
+      ),
     };
   }
 }

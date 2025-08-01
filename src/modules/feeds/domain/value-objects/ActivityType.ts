@@ -2,8 +2,7 @@ import { ValueObject } from '../../../../shared/domain/ValueObject';
 import { Result, ok, err } from '../../../../shared/core/Result';
 
 export enum ActivityTypeEnum {
-  CARD_ADDED_TO_LIBRARY = 'CARD_ADDED_TO_LIBRARY',
-  CARD_ADDED_TO_COLLECTION = 'CARD_ADDED_TO_COLLECTION',
+  CARD_COLLECTED = 'CARD_COLLECTED',
 }
 
 interface ActivityTypeProps {
@@ -26,11 +25,7 @@ export class ActivityType extends ValueObject<ActivityTypeProps> {
     return ok(new ActivityType({ value: type }));
   }
 
-  public static cardAddedToLibrary(): Result<ActivityType> {
-    return this.create(ActivityTypeEnum.CARD_ADDED_TO_LIBRARY);
-  }
-
-  public static cardAddedToCollection(): Result<ActivityType> {
-    return this.create(ActivityTypeEnum.CARD_ADDED_TO_COLLECTION);
+  public static cardCollected(): Result<ActivityType> {
+    return this.create(ActivityTypeEnum.CARD_COLLECTED);
   }
 }

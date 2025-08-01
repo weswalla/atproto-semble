@@ -51,10 +51,7 @@ export class FeedActivity extends Entity<ActivityProps> {
 
   // Type guards for metadata
   get cardCollected(): boolean {
-    return (
-      this.props.type.value === ActivityTypeEnum.CARD_ADDED_TO_LIBRARY ||
-      this.props.type.value === ActivityTypeEnum.CARD_ADDED_TO_COLLECTION
-    );
+    return this.props.type.value === ActivityTypeEnum.CARD_COLLECTED;
   }
 
   private constructor(props: ActivityProps, id?: UniqueEntityID) {

@@ -4,7 +4,6 @@ import { ServiceFactory } from '../shared/infrastructure/http/factories/ServiceF
 import { UseCaseFactory } from '../shared/infrastructure/http/factories/UseCaseFactory';
 import { CardAddedToLibraryEventHandler } from '../modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToCollectionEventHandler } from '../modules/feeds/application/eventHandlers/CardAddedToCollectionEventHandler';
-import { CollectionCreatedEventHandler } from '../modules/feeds/application/eventHandlers/CollectionCreatedEventHandler';
 import { CardCollectionSaga } from '../modules/feeds/application/sagas/CardCollectionSaga';
 import { QueueNames } from '../shared/infrastructure/events/QueueConfig';
 import { EventNames } from '../shared/infrastructure/events/EventConfig';

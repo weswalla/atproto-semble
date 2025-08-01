@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
 import { GetGlobalFeedUseCase } from '../../../application/useCases/queries/GetGlobalFeedUseCase';
-import { BaseController } from '../../../../../shared/infrastructure/http/BaseController';
+import { Controller } from 'src/shared/infrastructure/http/Controller';
 
-export class GetGlobalFeedController extends BaseController {
+export class GetGlobalFeedController extends Controller {
   constructor(private getGlobalFeedUseCase: GetGlobalFeedUseCase) {
     super();
   }
 
-  async executeImpl(req: Request, res: Response): Promise<void> {
+  async executeImpl(req: Request, res: Response): Promise<any> {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;

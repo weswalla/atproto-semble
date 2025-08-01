@@ -58,7 +58,10 @@ export class UseCaseFactory {
     return this.createForWebApp(repositories, services);
   }
 
-  static createForWebApp(repositories: Repositories, services: Services): UseCases {
+  static createForWebApp(
+    repositories: Repositories,
+    services: Services,
+  ): UseCases {
     return {
       // User use cases
       loginWithAppPasswordUseCase: new LoginWithAppPasswordUseCase(
@@ -164,15 +167,12 @@ export class UseCaseFactory {
     };
   }
 
-  static createForWorker(repositories: Repositories, services: SharedServices): Pick<UseCases, 'addActivityToFeedUseCase' | 'getGlobalFeedUseCase'> {
+  static createForWorker(
+    repositories: Repositories,
+    services: SharedServices,
+  ): Pick<UseCases, 'addActivityToFeedUseCase'> {
     return {
       // Feed use cases (only ones needed by workers)
-      getGlobalFeedUseCase: new GetGlobalFeedUseCase(
-        repositories.feedRepository,
-        services.profileService,
-        repositories.cardQueryRepository,
-        repositories.collectionRepository,
-      ),
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,
       ),

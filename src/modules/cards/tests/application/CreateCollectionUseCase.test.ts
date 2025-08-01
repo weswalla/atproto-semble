@@ -21,7 +21,6 @@ describe('CreateCollectionUseCase', () => {
     useCase = new CreateCollectionUseCase(
       collectionRepository,
       collectionPublisher,
-      eventPublisher,
     );
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
   });

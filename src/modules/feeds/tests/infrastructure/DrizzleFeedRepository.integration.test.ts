@@ -133,11 +133,11 @@ describe('DrizzleFeedRepository', () => {
       [collectionId],
     ).unwrap();
 
-    // Add activities with slight delays to ensure different timestamps
+    // Add activities with delays to ensure different timestamps for proper ordering
     await feedRepository.addActivity(activity1);
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise(resolve => setTimeout(resolve, 100));
     await feedRepository.addActivity(activity2);
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise(resolve => setTimeout(resolve, 100));
     await feedRepository.addActivity(activity3);
 
     // Get first page
@@ -193,11 +193,11 @@ describe('DrizzleFeedRepository', () => {
       anotherCardId,
     ).unwrap();
 
-    // Add activities with delays
+    // Add activities with delays to ensure different timestamps
     await feedRepository.addActivity(activity1);
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise(resolve => setTimeout(resolve, 100));
     await feedRepository.addActivity(activity2);
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise(resolve => setTimeout(resolve, 100));
     await feedRepository.addActivity(activity3);
 
     // Get activities before activity3 (should return activity2 and activity1)

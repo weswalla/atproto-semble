@@ -3,7 +3,7 @@ import { IEventHandler } from '../../../../shared/application/events/IEventSubsc
 import { Result, ok, err } from '../../../../shared/core/Result';
 import {
   AddActivityToFeedUseCase,
-  AddCardToLibraryActivityDTO,
+  AddCardCollectedActivityDTO,
 } from '../useCases/commands/AddActivityToFeedUseCase';
 import { ActivityTypeEnum } from '../../domain/value-objects/ActivityType';
 
@@ -14,10 +14,12 @@ export class CardAddedToLibraryEventHandler
 
   async handle(event: CardAddedToLibraryEvent): Promise<Result<void>> {
     try {
-      const request: AddCardToLibraryActivityDTO = {
-        type: ActivityTypeEnum.CARD_ADDED_TO_LIBRARY,
+      const request: AddCardCollectedActivityDTO = {
+        type: ActivityTypeEnum.CARD_COLLECTED,
         actorId: event.curatorId.value,
         cardId: event.cardId.getStringValue(),
+        // No collection IDs for library-only additions
+        collectionIds: undefined,
         // TODO: Fetch card metadata (title, URL) from card repository
         cardTitle: undefined,
         cardUrl: undefined,

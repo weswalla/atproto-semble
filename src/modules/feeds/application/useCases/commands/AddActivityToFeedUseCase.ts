@@ -8,27 +8,16 @@ import { CollectionId } from '../../../../cards/domain/value-objects/CollectionI
 import { ActivityTypeEnum } from '../../../domain/value-objects/ActivityType';
 import { FeedService } from 'src/modules/feeds/domain/services/FeedService';
 
-export interface AddCardToLibraryActivityDTO {
-  type: ActivityTypeEnum.CARD_ADDED_TO_LIBRARY;
+export interface AddCardCollectedActivityDTO {
+  type: ActivityTypeEnum.CARD_COLLECTED;
   actorId: string;
   cardId: string;
+  collectionIds?: string[];
   cardTitle?: string;
   cardUrl?: string;
 }
 
-export interface AddCardToCollectionActivityDTO {
-  type: ActivityTypeEnum.CARD_ADDED_TO_COLLECTION;
-  actorId: string;
-  cardId: string;
-  collectionIds: string[];
-  collectionNames: string[];
-  cardTitle?: string;
-  cardUrl?: string;
-}
-
-export type AddActivityToFeedDTO =
-  | AddCardToLibraryActivityDTO
-  | AddCardToCollectionActivityDTO;
+export type AddActivityToFeedDTO = AddCardCollectedActivityDTO;
 
 export interface AddActivityToFeedResponseDTO {
   activityId: string;
@@ -81,61 +70,29 @@ export class AddActivityToFeedUseCase
       }
       const cardId = cardIdResult.value;
 
-      let activityResult;
-
-      switch (request.type) {
-        case ActivityTypeEnum.CARD_ADDED_TO_LIBRARY:
-          activityResult = await this.feedService.addCardAddedToLibraryActivity(
-            actorId,
-            cardId,
-            request.cardTitle,
-            request.cardUrl,
-          );
-          break;
-
-        case ActivityTypeEnum.CARD_ADDED_TO_COLLECTION:
-          // Validate collection IDs
-          const collectionIds: CollectionId[] = [];
-          for (const collectionIdStr of request.collectionIds) {
-            const collectionIdResult =
-              CollectionId.createFromString(collectionIdStr);
-            if (collectionIdResult.isErr()) {
-              return err(
-                new ValidationError(
-                  `Invalid collection ID: ${collectionIdResult.error.message}`,
-                ),
-              );
-            }
-            collectionIds.push(collectionIdResult.value);
-          }
-
-          // Validate collection names array
-          if (request.collectionNames.length !== request.collectionIds.length) {
+      // Validate collection IDs if provided
+      let collectionIds: CollectionId[] | undefined;
+      if (request.collectionIds && request.collectionIds.length > 0) {
+        collectionIds = [];
+        for (const collectionIdStr of request.collectionIds) {
+          const collectionIdResult =
+            CollectionId.createFromString(collectionIdStr);
+          if (collectionIdResult.isErr()) {
             return err(
               new ValidationError(
-                'Collection IDs and names arrays must have the same length',
+                `Invalid collection ID: ${collectionIdResult.error.message}`,
               ),
             );
           }
-
-          activityResult =
-            await this.feedService.addCardAddedToCollectionActivity(
-              actorId,
-              cardId,
-              collectionIds,
-              request.collectionNames,
-              request.cardTitle,
-              request.cardUrl,
-            );
-          break;
-
-        default:
-          return err(
-            new ValidationError(
-              `Unsupported activity type: ${(request as any).type}`,
-            ),
-          );
+          collectionIds.push(collectionIdResult.value);
+        }
       }
+
+      const activityResult = await this.feedService.addCardCollectedActivity(
+        actorId,
+        cardId,
+        collectionIds,
+      );
 
       if (activityResult.isErr()) {
         return err(new ValidationError(activityResult.error.message));

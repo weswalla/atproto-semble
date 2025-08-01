@@ -20,9 +20,6 @@ export class CardAddedToLibraryEventHandler
         cardId: event.cardId.getStringValue(),
         // No collection IDs for library-only additions
         collectionIds: undefined,
-        // TODO: Fetch card metadata (title, URL) from card repository
-        cardTitle: undefined,
-        cardUrl: undefined,
       };
 
       const result = await this.addActivityToFeedUseCase.execute(request);

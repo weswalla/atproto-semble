@@ -13,8 +13,6 @@ export interface AddCardCollectedActivityDTO {
   actorId: string;
   cardId: string;
   collectionIds?: string[];
-  cardTitle?: string;
-  cardUrl?: string;
 }
 
 export type AddActivityToFeedDTO = AddCardCollectedActivityDTO;

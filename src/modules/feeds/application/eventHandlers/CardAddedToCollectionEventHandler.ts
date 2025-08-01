@@ -1,46 +1,14 @@
 import { CardAddedToCollectionEvent } from '../../../cards/domain/events/CardAddedToCollectionEvent';
 import { IEventHandler } from '../../../../shared/application/events/IEventSubscriber';
-import { Result, ok, err } from '../../../../shared/core/Result';
-import {
-  AddActivityToFeedUseCase,
-  AddCardCollectedActivityDTO,
-} from '../useCases/commands/AddActivityToFeedUseCase';
-import { ActivityTypeEnum } from '../../domain/value-objects/ActivityType';
+import { Result } from '../../../../shared/core/Result';
+import { CardCollectionSaga } from '../sagas/CardCollectionSaga';
 
 export class CardAddedToCollectionEventHandler
   implements IEventHandler<CardAddedToCollectionEvent>
 {
-  constructor(private addActivityToFeedUseCase: AddActivityToFeedUseCase) {}
+  constructor(private cardCollectionSaga: CardCollectionSaga) {}
 
   async handle(event: CardAddedToCollectionEvent): Promise<Result<void>> {
-    try {
-      const request: AddCardCollectedActivityDTO = {
-        type: ActivityTypeEnum.CARD_COLLECTED,
-        actorId: event.addedBy.value,
-        cardId: event.cardId.getStringValue(),
-        collectionIds: [event.collectionId.getStringValue()],
-        // TODO: Fetch card metadata (title, URL) from card repository
-        cardTitle: undefined,
-        cardUrl: undefined,
-      };
-
-      const result = await this.addActivityToFeedUseCase.execute(request);
-
-      if (result.isErr()) {
-        console.error(
-          '[FEEDS] Failed to add card-added-to-collection activity:',
-          result.error,
-        );
-        return err(new Error(result.error.message));
-      }
-
-      return ok(undefined);
-    } catch (error) {
-      console.error(
-        '[FEEDS] Unexpected error handling CardAddedToCollectionEvent:',
-        error,
-      );
-      return err(error as Error);
-    }
+    return this.cardCollectionSaga.handleCardEvent(event);
   }
 }

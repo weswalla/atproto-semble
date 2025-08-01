@@ -17,6 +17,7 @@ import { IoDocumentTextOutline } from 'react-icons/io5';
 import { BsFolder2 } from 'react-icons/bs';
 import { BiUser } from 'react-icons/bi';
 import { FiPlus } from 'react-icons/fi';
+import { HiOutlineGlobeAlt } from 'react-icons/hi';
 
 export default function AuthenticatedLayout({
   children,
@@ -68,6 +69,12 @@ export default function AuthenticatedLayout({
       </AppShell.Header>
 
       <AppShell.Navbar p="md">
+        <NavLink
+          href="/explore"
+          label="Explore"
+          active={pathname === '/explore'}
+          leftSection={<HiOutlineGlobeAlt />}
+        />
         <NavLink
           href="/library"
           label="My cards"

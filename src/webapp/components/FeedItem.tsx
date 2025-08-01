@@ -3,13 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { UrlCard } from './UrlCard';
 import type { FeedItem as FeedItemType } from '@/api-client/types';
-import {
-  Stack,
-  Text,
-  Group,
-  Anchor,
-  Box,
-} from '@mantine/core';
+import { Stack, Text, Group, Anchor, Box } from '@mantine/core';
 
 interface FeedItemProps {
   item: FeedItemType;
@@ -28,7 +22,7 @@ export function FeedItem({ item }: FeedItemProps) {
 
   const renderActivityText = () => {
     const { user, collections } = item;
-    
+
     if (collections.length === 0) {
       return (
         <Text size="sm" c="dimmed">
@@ -38,8 +32,8 @@ export function FeedItem({ item }: FeedItemProps) {
             c="blue"
           >
             @{user.handle}
-          </Anchor>
-          {' '}added to library
+          </Anchor>{' '}
+          added to library
         </Text>
       );
     }
@@ -53,8 +47,8 @@ export function FeedItem({ item }: FeedItemProps) {
             c="blue"
           >
             @{user.handle}
-          </Anchor>
-          {' '}added to{' '}
+          </Anchor>{' '}
+          added to{' '}
           <Anchor
             component="button"
             onClick={() => handleCollectionClick(collections[0].id)}
@@ -74,8 +68,8 @@ export function FeedItem({ item }: FeedItemProps) {
           c="blue"
         >
           @{user.handle}
-        </Anchor>
-        {' '}added to{' '}
+        </Anchor>{' '}
+        added to{' '}
         {collections.map((collection, index) => (
           <span key={collection.id}>
             <Anchor

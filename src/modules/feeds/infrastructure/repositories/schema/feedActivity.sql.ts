@@ -1,10 +1,4 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  jsonb,
-  uuid,
-} from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, jsonb, uuid } from 'drizzle-orm/pg-core';
 
 export const feedActivities = pgTable('feed_activities', {
   id: uuid('id').primaryKey(),

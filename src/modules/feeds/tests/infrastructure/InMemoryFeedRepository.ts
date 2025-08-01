@@ -14,8 +14,8 @@ export class InMemoryFeedRepository implements IFeedRepository {
     try {
       this.activities.push(activity);
       // Sort by creation time descending
-      this.activities.sort((a, b) => 
-        b.createdAt.getTime() - a.createdAt.getTime()
+      this.activities.sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
       );
       return ok(undefined);
     } catch (error) {
@@ -32,8 +32,8 @@ export class InMemoryFeedRepository implements IFeedRepository {
 
       // Filter by cursor if provided
       if (beforeActivityId) {
-        const beforeIndex = filteredActivities.findIndex(
-          (activity) => activity.activityId.equals(beforeActivityId)
+        const beforeIndex = filteredActivities.findIndex((activity) =>
+          activity.activityId.equals(beforeActivityId),
         );
         if (beforeIndex >= 0) {
           filteredActivities = filteredActivities.slice(beforeIndex + 1);
@@ -42,14 +42,18 @@ export class InMemoryFeedRepository implements IFeedRepository {
 
       // Paginate
       const offset = (page - 1) * limit;
-      const paginatedActivities = filteredActivities.slice(offset, offset + limit);
-      
+      const paginatedActivities = filteredActivities.slice(
+        offset,
+        offset + limit,
+      );
+
       const totalCount = this.activities.length;
       const hasMore = offset + paginatedActivities.length < totalCount;
-      
+
       let nextCursor: ActivityId | undefined;
       if (hasMore && paginatedActivities.length > 0) {
-        nextCursor = paginatedActivities[paginatedActivities.length - 1]!.activityId;
+        nextCursor =
+          paginatedActivities[paginatedActivities.length - 1]!.activityId;
       }
 
       return ok({
@@ -65,7 +69,9 @@ export class InMemoryFeedRepository implements IFeedRepository {
 
   async findById(activityId: ActivityId): Promise<Result<FeedActivity | null>> {
     try {
-      const activity = this.activities.find((a) => a.activityId.equals(activityId));
+      const activity = this.activities.find((a) =>
+        a.activityId.equals(activityId),
+      );
       return ok(activity || null);
     } catch (error) {
       return err(error as Error);

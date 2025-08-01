@@ -62,11 +62,9 @@ describe('DrizzleFeedRepository', () => {
 
   it('should add and retrieve a card collected activity', async () => {
     // Create a card collected activity
-    const activityResult = FeedActivity.createCardCollected(
-      curatorId,
-      cardId,
-      [collectionId],
-    );
+    const activityResult = FeedActivity.createCardCollected(curatorId, cardId, [
+      collectionId,
+    ]);
 
     expect(activityResult.isOk()).toBe(true);
     const activity = activityResult.unwrap();
@@ -94,10 +92,7 @@ describe('DrizzleFeedRepository', () => {
 
   it('should add a card collected activity without collections', async () => {
     // Create a card collected activity without collections
-    const activityResult = FeedActivity.createCardCollected(
-      curatorId,
-      cardId,
-    );
+    const activityResult = FeedActivity.createCardCollected(curatorId, cardId);
 
     expect(activityResult.isOk()).toBe(true);
     const activity = activityResult.unwrap();
@@ -278,7 +273,7 @@ describe('DrizzleFeedRepository', () => {
     const feed = feedResult.unwrap();
     expect(feed.activities).toHaveLength(2);
 
-    const actorIds = feed.activities.map(a => a.actorId.value);
+    const actorIds = feed.activities.map((a) => a.actorId.value);
     expect(actorIds).toContain(curatorId.value);
     expect(actorIds).toContain(anotherCuratorId.value);
   });

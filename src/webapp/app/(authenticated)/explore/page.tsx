@@ -16,7 +16,9 @@ import {
 } from '@mantine/core';
 
 export default function ExplorePage() {
-  const [feedItems, setFeedItems] = useState<GetGlobalFeedResponse['activities']>([]);
+  const [feedItems, setFeedItems] = useState<
+    GetGlobalFeedResponse['activities']
+  >([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -33,35 +35,40 @@ export default function ExplorePage() {
   );
 
   // Fetch initial feed data
-  const fetchFeed = useCallback(async (reset = false) => {
-    try {
-      if (reset) {
-        setLoading(true);
-        setError(null);
-      } else {
-        setLoadingMore(true);
+  const fetchFeed = useCallback(
+    async (reset = false) => {
+      try {
+        if (reset) {
+          setLoading(true);
+          setError(null);
+        } else {
+          setLoadingMore(true);
+        }
+
+        const response = await apiClient.getGlobalFeed({
+          limit: 20,
+          beforeActivityId: reset
+            ? undefined
+            : feedItems[feedItems.length - 1]?.id,
+        });
+
+        if (reset) {
+          setFeedItems(response.activities);
+        } else {
+          setFeedItems((prev) => [...prev, ...response.activities]);
+        }
+
+        setHasMore(response.pagination.hasMore);
+      } catch (error: any) {
+        console.error('Error fetching feed:', error);
+        setError(error.message || 'Failed to load feed');
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
       }
-
-      const response = await apiClient.getGlobalFeed({
-        limit: 20,
-        beforeActivityId: reset ? undefined : feedItems[feedItems.length - 1]?.id,
-      });
-
-      if (reset) {
-        setFeedItems(response.activities);
-      } else {
-        setFeedItems(prev => [...prev, ...response.activities]);
-      }
-
-      setHasMore(response.pagination.hasMore);
-    } catch (error: any) {
-      console.error('Error fetching feed:', error);
-      setError(error.message || 'Failed to load feed');
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [apiClient, feedItems]);
+    },
+    [apiClient, feedItems],
+  );
 
   useEffect(() => {
     fetchFeed(true);
@@ -101,7 +108,7 @@ export default function ExplorePage() {
   return (
     <Stack>
       <Title order={2}>Explore</Title>
-      
+
       {feedItems.length === 0 ? (
         <Center h={200}>
           <Text c="dimmed">No activity to show yet</Text>
@@ -111,7 +118,7 @@ export default function ExplorePage() {
           {feedItems.map((item) => (
             <FeedItem key={item.id} item={item} />
           ))}
-          
+
           {hasMore && (
             <Center>
               <Button

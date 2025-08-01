@@ -4,11 +4,13 @@ import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
 import { IFeedRepository } from '../../../domain/IFeedRepository';
 import { ActivityId } from '../../../domain/value-objects/ActivityId';
-import { ActivityTypeEnum } from '../../../domain/value-objects/ActivityType';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
-import { ICardQueryRepository, UrlCardView } from '../../../../cards/domain/ICardQueryRepository';
-import { ICollectionQueryRepository } from '../../../../cards/domain/ICollectionQueryRepository';
-import { CardTypeEnum } from '../../../../cards/domain/value-objects/CardType';
+import {
+  ICardQueryRepository,
+  UrlCardView,
+} from '../../../../cards/domain/ICardQueryRepository';
+import { ICollectionRepository } from 'src/modules/cards/domain/ICollectionRepository';
+import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
 
 export interface GetGlobalFeedQuery {
   page?: number;
@@ -16,15 +18,16 @@ export interface GetGlobalFeedQuery {
   beforeActivityId?: string; // For cursor-based pagination
 }
 
+export interface ActivityActorDTO {
+  id: string;
+  name: string;
+  handle: string;
+  avatarUrl?: string;
+}
 // DTOs for the response
 export interface FeedItemView {
   id: string;
-  user: {
-    id: string;
-    handle: string;
-    name: string;
-    avatarUrl?: string;
-  };
+  user: ActivityActorDTO;
   card: UrlCardView;
   collections: {
     id: string;
@@ -60,7 +63,7 @@ export class GetGlobalFeedUseCase
     private feedRepository: IFeedRepository,
     private profileService: IProfileService,
     private cardQueryRepository: ICardQueryRepository,
-    private collectionQueryRepository: ICollectionQueryRepository,
+    private collectionRepository: ICollectionRepository,
   ) {}
 
   async execute(
@@ -108,8 +111,15 @@ export class GetGlobalFeedUseCase
 
       // Fetch profiles for all actors
       const actorProfiles = new Map<string, ActivityActorDTO>();
-      for (const actorId of actorIds) {
-        const profileResult = await this.profileService.getProfile(actorId);
+      const profileResults = await Promise.all(
+        actorIds.map((actorId) => this.profileService.getProfile(actorId)),
+      );
+
+      profileResults.forEach((profileResult, idx) => {
+        const actorId = actorIds[idx];
+        if (!actorId) {
+          return;
+        }
         if (profileResult.isOk()) {
           const profile = profileResult.value;
           actorProfiles.set(actorId, {
@@ -126,45 +136,75 @@ export class GetGlobalFeedUseCase
             handle: actorId,
           });
         }
-      }
+      });
 
       // Get unique card IDs for hydration
       const cardIds = [
         ...new Set(
           feed.activities
             .filter((activity) => activity.cardCollected)
-            .map((activity) => activity.metadata.cardId)
+            .map((activity) => activity.metadata.cardId),
         ),
       ];
 
-      // Hydrate card data
+      // Hydrate card data using Promise.all
       const cardDataMap = new Map<string, UrlCardView>();
-      for (const cardId of cardIds) {
-        const cardView = await this.cardQueryRepository.getUrlCardView(cardId);
+      const cardViews = await Promise.all(
+        cardIds.map((cardId) =>
+          this.cardQueryRepository.getUrlCardView(cardId),
+        ),
+      );
+      cardIds.forEach((cardId, idx) => {
+        const cardView = cardViews[idx];
         if (cardView) {
           cardDataMap.set(cardId, cardView);
         }
-      }
+      });
 
       // Get collection data for activities that have collections
       const collectionIds = [
         ...new Set(
           feed.activities
-            .filter((activity) => activity.cardCollected && activity.metadata.collectionIds)
-            .flatMap((activity) => activity.metadata.collectionIds || [])
+            .filter(
+              (activity) =>
+                activity.cardCollected && activity.metadata.collectionIds,
+            )
+            .flatMap((activity) => activity.metadata.collectionIds || []),
         ),
       ];
 
       const collectionDataMap = new Map<string, { id: string; name: string }>();
-      for (const collectionId of collectionIds) {
-        const collection = await this.collectionQueryRepository.findById(collectionId);
-        if (collection) {
-          collectionDataMap.set(collectionId, {
-            id: collection.id,
-            name: collection.name,
+      // Fetch all collections in parallel using Promise.all
+      const collectionResults = await Promise.all(
+        collectionIds.map(async (collectionId) => {
+          const collectionIdResult =
+            CollectionId.createFromString(collectionId);
+          if (collectionIdResult.isErr()) {
+            return null; // Skip invalid collection IDs
+          }
+          const collectionResult = await this.collectionRepository.findById(
+            collectionIdResult.value,
+          );
+          if (collectionResult.isOk() && collectionResult.value) {
+            const collection = collectionResult.value;
+            return {
+              id: collection.collectionId.getStringValue(),
+              name: collection.name.toString(),
+              collectionId,
+            };
+          }
+          return null;
+        }),
+      );
+
+      collectionResults.forEach((result) => {
+        if (result) {
+          collectionDataMap.set(result.collectionId, {
+            id: result.id,
+            name: result.name,
           });
         }
-      }
+      });
 
       // Transform activities to FeedItemView
       const feedItems: FeedItemView[] = [];
@@ -182,7 +222,10 @@ export class GetGlobalFeedUseCase
 
         const collections = (activity.metadata.collectionIds || [])
           .map((collectionId) => collectionDataMap.get(collectionId))
-          .filter((collection): collection is { id: string; name: string } => !!collection);
+          .filter(
+            (collection): collection is { id: string; name: string } =>
+              !!collection,
+          );
 
         feedItems.push({
           id: activity.activityId.getStringValue(),

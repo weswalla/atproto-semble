@@ -17,7 +17,7 @@ async function startFeedWorker() {
   // Create dependencies using factories
   const repositories = RepositoryFactory.create(configService);
   const services = ServiceFactory.createForWorker(configService, repositories);
-  const useCases = UseCaseFactory.create(repositories, services);
+  const useCases = UseCaseFactory.createForWorker(repositories, services);
 
   // Test Redis connection
   try {

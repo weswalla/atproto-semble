@@ -73,6 +73,8 @@ export default [
         jest: 'readonly',
         URLSearchParams: 'readonly',
         setTimeout: 'readonly',
+        NodeJS: 'readonly',
+        clearTimeout: 'readonly',
       },
     },
     rules: {
@@ -115,6 +117,8 @@ export default [
         navigator: 'readonly',
         location: 'readonly',
         setTimeout: 'readonly',
+        NodeJS: 'readonly',
+        clearTimeout: 'readonly',
       },
     },
     plugins: {

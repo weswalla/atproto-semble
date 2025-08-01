@@ -34,7 +34,13 @@ export class DrizzleFeedRepository implements IFeedRepository {
       const offset = (page - 1) * limit;
 
       // Build query conditionally
-      let activitiesResult;
+      let activitiesResult: Array<{
+        id: string;
+        actorId: string;
+        type: string;
+        metadata: any;
+        createdAt: Date;
+      }>;
       
       if (beforeActivityId) {
         // Get the timestamp of the beforeActivityId

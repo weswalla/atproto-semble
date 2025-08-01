@@ -33,13 +33,10 @@ export class DrizzleFeedRepository implements IFeedRepository {
       const { page, limit, beforeActivityId } = options;
       const offset = (page - 1) * limit;
 
-      // Build the query with optional cursor-based filtering
+      // Start with base query
       let query = this.db
         .select()
-        .from(feedActivities)
-        .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
-        .limit(limit)
-        .offset(offset);
+        .from(feedActivities);
 
       // If beforeActivityId is provided, filter to activities before that one
       if (beforeActivityId) {
@@ -50,16 +47,15 @@ export class DrizzleFeedRepository implements IFeedRepository {
           .limit(1);
 
         if (beforeActivity.length > 0) {
-          query = this.db
-            .select()
-            .from(feedActivities)
-            .where(lt(feedActivities.createdAt, beforeActivity[0]!.createdAt))
-            .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
-            .limit(limit);
+          query = query.where(lt(feedActivities.createdAt, beforeActivity[0]!.createdAt));
         }
       }
 
-      const activitiesResult = await query;
+      // Apply ordering and pagination last
+      const activitiesResult = await query
+        .orderBy(desc(feedActivities.createdAt), desc(feedActivities.id))
+        .limit(limit)
+        .offset(beforeActivityId ? 0 : offset);
 
       // Get total count
       const totalCountResult = await this.db

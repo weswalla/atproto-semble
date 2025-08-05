@@ -3,16 +3,21 @@ import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionReposit
 import { FakeCollectionPublisher } from '../utils/FakeCollectionPublisher';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { CollectionAccessType } from '../../domain/Collection';
+import { FakeEventPublisher } from '../utils/FakeEventPublisher';
+import { CollectionCreatedEvent } from '../../domain/events/CollectionCreatedEvent';
+import { EventNames } from 'src/shared/infrastructure/events/EventConfig';
 
 describe('CreateCollectionUseCase', () => {
   let useCase: CreateCollectionUseCase;
   let collectionRepository: InMemoryCollectionRepository;
   let collectionPublisher: FakeCollectionPublisher;
+  let eventPublisher: FakeEventPublisher;
   let curatorId: CuratorId;
 
   beforeEach(() => {
     collectionRepository = new InMemoryCollectionRepository();
     collectionPublisher = new FakeCollectionPublisher();
+    eventPublisher = new FakeEventPublisher();
     useCase = new CreateCollectionUseCase(
       collectionRepository,
       collectionPublisher,
@@ -23,6 +28,7 @@ describe('CreateCollectionUseCase', () => {
   afterEach(() => {
     collectionRepository.clear();
     collectionPublisher.clear();
+    eventPublisher.clear();
   });
 
   describe('Basic collection creation', () => {
@@ -52,6 +58,17 @@ describe('CreateCollectionUseCase', () => {
       expect(savedCollection.accessType).toBe(CollectionAccessType.CLOSED);
       expect(savedCollection.isPublished).toBe(true);
       expect(savedCollection.publishedRecordId).toBeDefined();
+
+      // Verify CollectionCreatedEvent was published
+      const createdEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.COLLECTION_CREATED,
+      ) as CollectionCreatedEvent[];
+      expect(createdEvents).toHaveLength(1);
+      expect(createdEvents[0]?.collectionId.getStringValue()).toBe(
+        response.collectionId,
+      );
+      expect(createdEvents[0]?.authorId.equals(curatorId)).toBe(true);
+      expect(createdEvents[0]?.collectionName).toBe('My Test Collection');
     });
 
     it('should create collection without description', async () => {
@@ -73,6 +90,15 @@ describe('CreateCollectionUseCase', () => {
       const savedCollection = savedCollections[0]!;
       expect(savedCollection.name.value).toBe('Collection Without Description');
       expect(savedCollection.description).toBeUndefined();
+
+      // Verify CollectionCreatedEvent was published
+      const createdEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.COLLECTION_CREATED,
+      ) as CollectionCreatedEvent[];
+      expect(createdEvents).toHaveLength(1);
+      expect(createdEvents[0]?.collectionName).toBe(
+        'Collection Without Description',
+      );
     });
 
     it('should publish collection after creation', async () => {
@@ -92,6 +118,13 @@ describe('CreateCollectionUseCase', () => {
 
       const publishedCollection = publishedCollections[0]!;
       expect(publishedCollection.name.value).toBe('Published Collection');
+
+      // Verify CollectionCreatedEvent was published
+      const createdEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.COLLECTION_CREATED,
+      ) as CollectionCreatedEvent[];
+      expect(createdEvents).toHaveLength(1);
+      expect(createdEvents[0]?.collectionName).toBe('Published Collection');
     });
   });
 
@@ -232,6 +265,15 @@ describe('CreateCollectionUseCase', () => {
       expect(savedCollection.publishedRecordId).toBeDefined();
       expect(savedCollection.publishedRecordId?.uri).toBeDefined();
       expect(savedCollection.publishedRecordId?.cid).toBeDefined();
+
+      // Verify CollectionCreatedEvent was published
+      const createdEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.COLLECTION_CREATED,
+      ) as CollectionCreatedEvent[];
+      expect(createdEvents).toHaveLength(1);
+      expect(createdEvents[0]?.collectionName).toBe(
+        'Successfully Published Collection',
+      );
     });
   });
 
@@ -293,6 +335,16 @@ describe('CreateCollectionUseCase', () => {
       const collectionNames = savedCollections.map((c) => c.name.value);
       expect(collectionNames).toContain('First Collection');
       expect(collectionNames).toContain('Second Collection');
+
+      // Verify CollectionCreatedEvent was published for both collections
+      const createdEvents = eventPublisher.getPublishedEventsOfType(
+        EventNames.COLLECTION_CREATED,
+      ) as CollectionCreatedEvent[];
+      expect(createdEvents).toHaveLength(2);
+
+      const eventNames = createdEvents.map((event) => event.collectionName);
+      expect(eventNames).toContain('First Collection');
+      expect(eventNames).toContain('Second Collection');
     });
   });
 });

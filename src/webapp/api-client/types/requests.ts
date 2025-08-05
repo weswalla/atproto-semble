@@ -67,6 +67,13 @@ export interface GetMyCollectionsParams {
   searchText?: string;
 }
 
+// Feed request types
+export interface GetGlobalFeedParams {
+  page?: number;
+  limit?: number;
+  beforeActivityId?: string; // For cursor-based pagination
+}
+
 // User authentication request types
 export interface LoginWithAppPasswordRequest {
   identifier: string;

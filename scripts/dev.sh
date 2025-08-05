@@ -1,35 +1,25 @@
 #!/bin/bash
 
-# Check if Docker daemon is running
-if ! docker info > /dev/null 2>&1; then
-  echo "Error: Docker daemon is not running. Please start Docker and try again."
-  exit 1
-fi
+# Source the Postgres setup script
+source ./scripts/setup-postgres.sh
 
-# Check if the container is running
-if [ "$(docker ps -q -f name=annos-postgres)" ]; then
-  echo "Postgres container is already running."
-  DB_RUNNING=true
-else
-  echo "Starting Postgres container..."
-  npm run db:start
-  DB_RUNNING=false
-fi
+# Only setup cleanup if not running from combined script
+if [ -z "$COMBINED_SCRIPT" ]; then
+    # Function to handle cleanup
+    cleanup_and_exit() {
+        echo "Cleaning up Postgres..."
+        cleanup_postgres
+        exit 0
+    }
 
-# Trap SIGINT and SIGTERM to stop the DB on exit, only if we started it
-function cleanup {
-  if [ "$DB_RUNNING" = false ]; then
-    if [ "$(docker ps -q -f name=annos-postgres)" ]; then
-      echo "Stopping Postgres container..."
-      npm run db:stop
-      npm run db:remove
-    fi
-  fi
-}
-trap cleanup SIGINT SIGTERM
+    # Trap SIGINT and SIGTERM to cleanup on exit
+    trap cleanup_and_exit SIGINT SIGTERM
+fi
 
 # Run the dev command
-npm run dev:inner
+npm run dev:app:inner
 
-# Cleanup after dev command exits
-cleanup
+# Only cleanup if not running from combined script
+if [ -z "$COMBINED_SCRIPT" ]; then
+    cleanup_postgres
+fi

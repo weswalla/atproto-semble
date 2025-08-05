@@ -26,7 +26,7 @@ export class CardCollectionService implements DomainService {
     collectionId: CollectionId,
     curatorId: CuratorId,
   ): Promise<
-    Result<void, CardCollectionValidationError | AppError.UnexpectedError>
+    Result<Collection, CardCollectionValidationError | AppError.UnexpectedError>
   > {
     try {
       // Find the collection
@@ -80,7 +80,7 @@ export class CardCollectionService implements DomainService {
         return err(AppError.UnexpectedError.create(saveCollectionResult.error));
       }
 
-      return ok(undefined);
+      return ok(collection);
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
     }
@@ -91,8 +91,13 @@ export class CardCollectionService implements DomainService {
     collectionIds: CollectionId[],
     curatorId: CuratorId,
   ): Promise<
-    Result<void, CardCollectionValidationError | AppError.UnexpectedError>
+    Result<
+      Collection[],
+      CardCollectionValidationError | AppError.UnexpectedError
+    >
   > {
+    const updatedCollections: Collection[] = [];
+
     for (const collectionId of collectionIds) {
       const result = await this.addCardToCollection(
         card,
@@ -100,10 +105,11 @@ export class CardCollectionService implements DomainService {
         curatorId,
       );
       if (result.isErr()) {
-        return result;
+        return err(result.error);
       }
+      updatedCollections.push(result.value);
     }
-    return ok(undefined);
+    return ok(updatedCollections);
   }
 
   async removeCardFromCollection(
@@ -111,7 +117,10 @@ export class CardCollectionService implements DomainService {
     collectionId: CollectionId,
     curatorId: CuratorId,
   ): Promise<
-    Result<void, CardCollectionValidationError | AppError.UnexpectedError>
+    Result<
+      Collection | null,
+      CardCollectionValidationError | AppError.UnexpectedError
+    >
   > {
     try {
       // Find the collection
@@ -136,7 +145,7 @@ export class CardCollectionService implements DomainService {
       );
       if (!cardLink) {
         // Card is not in collection, nothing to do
-        return ok(undefined);
+        return ok(null);
       }
 
       // If the card link was published, unpublish it
@@ -171,7 +180,7 @@ export class CardCollectionService implements DomainService {
         return err(AppError.UnexpectedError.create(saveCollectionResult.error));
       }
 
-      return ok(undefined);
+      return ok(collection);
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
     }
@@ -182,8 +191,13 @@ export class CardCollectionService implements DomainService {
     collectionIds: CollectionId[],
     curatorId: CuratorId,
   ): Promise<
-    Result<void, CardCollectionValidationError | AppError.UnexpectedError>
+    Result<
+      Collection[],
+      CardCollectionValidationError | AppError.UnexpectedError
+    >
   > {
+    const updatedCollections: Collection[] = [];
+
     for (const collectionId of collectionIds) {
       const result = await this.removeCardFromCollection(
         card,
@@ -191,9 +205,12 @@ export class CardCollectionService implements DomainService {
         curatorId,
       );
       if (result.isErr()) {
-        return result;
+        return err(result.error);
+      }
+      if (result.value !== null) {
+        updatedCollections.push(result.value);
       }
     }
-    return ok(undefined);
+    return ok(updatedCollections);
   }
 }

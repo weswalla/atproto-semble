@@ -17,10 +17,12 @@ import { DeleteCollectionUseCase } from '../../../../modules/cards/application/u
 import { GetCollectionPageUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionPageUseCase';
 import { GetMyCollectionsUseCase } from '../../../../modules/cards/application/useCases/queries/GetMyCollectionsUseCase';
 import { Repositories } from './RepositoryFactory';
-import { Services } from './ServiceFactory';
+import { Services, SharedServices } from './ServiceFactory';
 import { GetMyProfileUseCase } from 'src/modules/cards/application/useCases/queries/GetMyProfileUseCase';
 import { LoginWithAppPasswordUseCase } from 'src/modules/user/application/use-cases/LoginWithAppPasswordUseCase';
 import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use-cases/GenerateExtensionTokensUseCase';
+import { GetGlobalFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGlobalFeedUseCase';
+import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/useCases/commands/AddActivityToFeedUseCase';
 
 export interface UseCases {
   // User use cases
@@ -46,10 +48,20 @@ export interface UseCases {
   deleteCollectionUseCase: DeleteCollectionUseCase;
   getCollectionPageUseCase: GetCollectionPageUseCase;
   getMyCollectionsUseCase: GetMyCollectionsUseCase;
+  // Feed use cases
+  getGlobalFeedUseCase: GetGlobalFeedUseCase;
+  addActivityToFeedUseCase: AddActivityToFeedUseCase;
 }
 
 export class UseCaseFactory {
   static create(repositories: Repositories, services: Services): UseCases {
+    return this.createForWebApp(repositories, services);
+  }
+
+  static createForWebApp(
+    repositories: Repositories,
+    services: Services,
+  ): UseCases {
     return {
       // User use cases
       loginWithAppPasswordUseCase: new LoginWithAppPasswordUseCase(
@@ -81,6 +93,7 @@ export class UseCaseFactory {
         services.metadataService,
         services.cardLibraryService,
         services.cardCollectionService,
+        services.eventPublisher,
       ),
       addCardToLibraryUseCase: new AddCardToLibraryUseCase(
         repositories.cardRepository,
@@ -90,6 +103,7 @@ export class UseCaseFactory {
       addCardToCollectionUseCase: new AddCardToCollectionUseCase(
         repositories.cardRepository,
         services.cardCollectionService,
+        services.eventPublisher,
       ),
       updateNoteCardUseCase: new UpdateNoteCardUseCase(
         repositories.cardRepository,
@@ -138,6 +152,29 @@ export class UseCaseFactory {
       getMyCollectionsUseCase: new GetMyCollectionsUseCase(
         repositories.collectionQueryRepository,
         services.profileService,
+      ),
+
+      // Feed use cases
+      getGlobalFeedUseCase: new GetGlobalFeedUseCase(
+        repositories.feedRepository,
+        services.profileService,
+        repositories.cardQueryRepository,
+        repositories.collectionRepository,
+      ),
+      addActivityToFeedUseCase: new AddActivityToFeedUseCase(
+        services.feedService,
+      ),
+    };
+  }
+
+  static createForWorker(
+    repositories: Repositories,
+    services: SharedServices,
+  ): Pick<UseCases, 'addActivityToFeedUseCase'> {
+    return {
+      // Feed use cases (only ones needed by workers)
+      addActivityToFeedUseCase: new AddActivityToFeedUseCase(
+        services.feedService,
       ),
     };
   }

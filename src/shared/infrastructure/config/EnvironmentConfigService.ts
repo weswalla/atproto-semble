@@ -23,6 +23,15 @@ export interface EnvironmentConfig {
   iframely: {
     apiKey: string;
   };
+  workers: {
+    redisUrl: string;
+    redisConfig: {
+      host: string;
+      port: number;
+      password?: string;
+      maxRetriesPerRequest: number | null; // Disable automatic retries
+    };
+  };
 }
 
 export class EnvironmentConfigService {
@@ -68,6 +77,15 @@ export class EnvironmentConfigService {
       },
       iframely: {
         apiKey: process.env.IFRAMELY_API_KEY || '',
+      },
+      workers: {
+        redisConfig: {
+          host: process.env.REDIS_HOST || 'localhost',
+          port: parseInt(process.env.REDIS_PORT || '6379', 10),
+          password: process.env.REDIS_PASSWORD || undefined,
+          maxRetriesPerRequest: null, // Disable automatic retries
+        },
+        redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
       },
     };
 
@@ -119,5 +137,8 @@ export class EnvironmentConfigService {
 
   public getIFramelyApiKey(): string {
     return this.config.iframely.apiKey;
+  }
+  public getWorkersConfig() {
+    return this.config.workers;
   }
 }

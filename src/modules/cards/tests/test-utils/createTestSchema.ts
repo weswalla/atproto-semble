@@ -1,13 +1,5 @@
 import { sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { publishedRecords } from '../../infrastructure/repositories/schema/publishedRecord.sql';
-import { cards } from '../../infrastructure/repositories/schema/card.sql';
-import { libraryMemberships } from '../../infrastructure/repositories/schema/libraryMembership.sql';
-import {
-  collections,
-  collectionCollaborators,
-  collectionCards,
-} from '../../infrastructure/repositories/schema/collection.sql';
 
 export async function createTestSchema(db: PostgresJsDatabase) {
   // Create extension
@@ -77,6 +69,14 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       published_record_id UUID REFERENCES published_records(id),
       UNIQUE(collection_id, card_id)
     )`,
+    sql`
+    CREATE TABLE IF NOT EXISTS feed_activities (
+      id UUID PRIMARY KEY,
+      actor_id TEXT NOT NULL,
+      type TEXT NOT NULL,
+      metadata JSONB NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    )`,
   ];
 
   // Execute table creation queries in order
@@ -91,4 +91,11 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   await db.execute(
     sql`CREATE INDEX IF NOT EXISTS idx_card_users ON library_memberships(card_id)`,
   );
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_feed_activities_created_at ON feed_activities(created_at DESC);
+  `);
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_feed_activities_actor_id ON feed_activities(actor_id);
+  `);
 }

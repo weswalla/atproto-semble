@@ -4,6 +4,7 @@ import { Router } from 'express';
 import { createUserRoutes } from '../../../modules/user/infrastructure/http/routes/userRoutes';
 import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atprotoRoutes';
 import { createCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
+import { createFeedRoutes } from '../../../modules/feeds/infrastructure/http/routes/feedRoutes';
 import { EnvironmentConfigService } from '../config/EnvironmentConfigService';
 import { RepositoryFactory } from './factories/RepositoryFactory';
 import { ServiceFactory } from './factories/ServiceFactory';
@@ -29,8 +30,8 @@ export const createExpressApp = (
 
   // Create all dependencies using factories
   const repositories = RepositoryFactory.create(configService);
-  const services = ServiceFactory.create(configService, repositories);
-  const useCases = UseCaseFactory.create(repositories, services);
+  const services = ServiceFactory.createForWebApp(configService, repositories);
+  const useCases = UseCaseFactory.createForWebApp(repositories, services);
   const controllers = ControllerFactory.create(useCases);
 
   // Routes
@@ -71,10 +72,16 @@ export const createExpressApp = (
     controllers.getMyCollectionsController,
   );
 
+  const feedRouter = createFeedRoutes(
+    services.authMiddleware,
+    controllers.getGlobalFeedController,
+  );
+
   // Register routes
   app.use('/api/users', userRouter);
   app.use('/atproto', atprotoRouter);
   app.use('/api', cardsRouter);
+  app.use('/api/feeds', feedRouter);
 
   return app;
 };

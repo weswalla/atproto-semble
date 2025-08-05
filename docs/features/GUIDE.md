@@ -325,3 +325,25 @@ When implementing a new feature, follow this checklist:
 - All factories in `src/shared/infrastructure/http/factories/`
 
 This guide should be used as a reference when implementing new features to ensure consistency with the established architecture and patterns.
+
+### example context:
+
+```
+docs/features/GUIDE.md
+src/modules/cards/application/useCases/commands/AddUrlToLibraryUseCase.ts
+src/modules/cards/domain/ICardQueryRepository.ts
+src/modules/cards/domain/ICardRepository.ts
+src/modules/cards/infrastructure/http/controllers/AddUrlToLibraryController.ts
+src/modules/cards/infrastructure/http/routes/cardRoutes.ts
+src/modules/cards/infrastructure/http/routes/collectionRoutes.ts
+src/modules/user/infrastructure/http/routes/userRoutes.ts
+src/shared/domain/AggregateRoot.ts
+src/shared/domain/events/IDomainEvent.ts
+src/shared/infrastructure/http/app.ts
+src/shared/infrastructure/http/factories/ControllerFactory.ts
+src/shared/infrastructure/http/factories/RepositoryFactory.ts
+src/shared/infrastructure/http/factories/ServiceFactory.ts
+src/shared/infrastructure/http/factories/UseCaseFactory.ts
+src/modules/cards/domain/Card.ts
+src/modules/cards/domain/events/CardAddedToLibraryEvent.ts
+```

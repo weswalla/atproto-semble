@@ -1,8 +1,10 @@
 import { Result, ok, err } from '../../../../../shared/core/Result';
-import { UseCase } from '../../../../../shared/core/UseCase';
+import { BaseUseCase } from '../../../../../shared/core/UseCase';
 import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
+import { IEventPublisher } from '../../../../../shared/application/events/IEventPublisher';
 import { ICardRepository } from '../../../domain/ICardRepository';
+import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { CardId } from '../../../domain/value-objects/CardId';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
@@ -24,20 +26,20 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class AddCardToCollectionUseCase
-  implements
-    UseCase<
-      AddCardToCollectionDTO,
-      Result<
-        AddCardToCollectionResponseDTO,
-        ValidationError | AppError.UnexpectedError
-      >
-    >
-{
+export class AddCardToCollectionUseCase extends BaseUseCase<
+  AddCardToCollectionDTO,
+  Result<
+    AddCardToCollectionResponseDTO,
+    ValidationError | AppError.UnexpectedError
+  >
+> {
   constructor(
     private cardRepository: ICardRepository,
     private cardCollectionService: CardCollectionService,
-  ) {}
+    eventPublisher: IEventPublisher,
+  ) {
+    super(eventPublisher);
+  }
 
   async execute(
     request: AddCardToCollectionDTO,
@@ -106,6 +108,19 @@ export class AddCardToCollectionUseCase
           return err(addToCollectionsResult.error);
         }
         return err(new ValidationError(addToCollectionsResult.error.message));
+      }
+
+      // Publish events for all affected collections
+      const updatedCollections = addToCollectionsResult.value;
+      for (const collection of updatedCollections) {
+        const publishResult = await this.publishEventsForAggregate(collection);
+        if (publishResult.isErr()) {
+          console.error(
+            'Failed to publish events for collection:',
+            publishResult.error,
+          );
+          // Don't fail the operation if event publishing fails
+        }
       }
 
       return ok({

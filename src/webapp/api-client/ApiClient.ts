@@ -3,6 +3,7 @@ import {
   CardClient,
   CollectionClient,
   UserClient,
+  FeedClient,
 } from './clients';
 import type {
   // Request types
@@ -23,6 +24,7 @@ import type {
   GetMyUrlCardsParams,
   GetCollectionPageParams,
   GetMyCollectionsParams,
+  GetGlobalFeedParams,
   // Response types
   AddUrlToLibraryResponse,
   AddCardToLibraryResponse,
@@ -45,6 +47,7 @@ import type {
   GetMyProfileResponse,
   GetCollectionPageResponse,
   GetMyCollectionsResponse,
+  GetGlobalFeedResponse,
 } from './types';
 
 // Main API Client class using composition
@@ -53,6 +56,7 @@ export class ApiClient {
   private cardClient: CardClient;
   private collectionClient: CollectionClient;
   private userClient: UserClient;
+  private feedClient: FeedClient;
 
   constructor(
     private baseUrl: string,
@@ -62,6 +66,7 @@ export class ApiClient {
     this.cardClient = new CardClient(baseUrl, getAuthToken);
     this.collectionClient = new CollectionClient(baseUrl, getAuthToken);
     this.userClient = new UserClient(baseUrl, getAuthToken);
+    this.feedClient = new FeedClient(baseUrl, getAuthToken);
   }
 
   // Query operations - delegate to QueryClient
@@ -187,6 +192,13 @@ export class ApiClient {
     request?: GenerateExtensionTokensRequest,
   ): Promise<GenerateExtensionTokensResponse> {
     return this.userClient.generateExtensionTokens(request);
+  }
+
+  // Feed operations - delegate to FeedClient
+  async getGlobalFeed(
+    params?: GetGlobalFeedParams,
+  ): Promise<GetGlobalFeedResponse> {
+    return this.feedClient.getGlobalFeed(params);
   }
 }
 

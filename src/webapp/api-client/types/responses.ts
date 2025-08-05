@@ -233,3 +233,63 @@ export interface GenerateExtensionTokensResponse {
   accessToken: string;
   refreshToken: string;
 }
+
+// Feed response types
+export interface FeedActivityActor {
+  id: string;
+  name: string;
+  handle: string;
+  avatarUrl?: string;
+}
+
+export interface FeedActivityCard {
+  id: string;
+  type: 'URL';
+  url: string;
+  cardContent: {
+    url: string;
+    title?: string;
+    description?: string;
+    author?: string;
+    thumbnailUrl?: string;
+  };
+  libraryCount: number;
+  createdAt: string;
+  updatedAt: string;
+  note?: {
+    id: string;
+    text: string;
+  };
+  collections: {
+    id: string;
+    name: string;
+    authorId: string;
+  }[];
+  libraries: {
+    userId: string;
+    name: string;
+    handle: string;
+    avatarUrl?: string;
+  }[];
+}
+
+export interface FeedItem {
+  id: string;
+  user: FeedActivityActor;
+  card: FeedActivityCard;
+  collections: {
+    id: string;
+    name: string;
+  }[];
+}
+
+export interface GetGlobalFeedResponse {
+  activities: FeedItem[];
+  pagination: {
+    currentPage: number;
+    totalCount: number;
+    hasMore: boolean;
+    limit: number;
+    nextCursor?: string;
+  };
+}

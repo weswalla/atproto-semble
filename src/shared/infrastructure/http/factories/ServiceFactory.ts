@@ -146,7 +146,7 @@ export class ServiceFactory {
     const authMiddleware = new AuthMiddleware(sharedServices.tokenService);
 
     const redisConnection = RedisFactory.createConnection(
-      configService.getWorkersConfig().redisUrl,
+      configService.getWorkersConfig().redisConfig,
     );
     const eventPublisher = new BullMQEventPublisher(redisConnection);
 
@@ -180,8 +180,8 @@ export class ServiceFactory {
       );
     }
 
-    const redisUrl = configService.getWorkersConfig().redisUrl;
-    const redisConnection = RedisFactory.createConnection(redisUrl);
+    const redisConfig = configService.getWorkersConfig().redisConfig;
+    const redisConnection = RedisFactory.createConnection(redisConfig);
 
     const eventPublisher = new BullMQEventPublisher(redisConnection);
 

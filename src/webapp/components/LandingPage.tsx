@@ -283,9 +283,9 @@ export default function LandingPage() {
                     fontWeight: 400,
                   }}
                 >
-                  Built on ATProto so you own your data. New apps will come to
+                  {`Built on ATProto so you own your data. New apps will come to
                   you – no more rebuilding your social graph and data when apps
-                  pivot and shut down.
+                  pivot and shut down.`}
                 </Text>
               </Stack>
             </Box>

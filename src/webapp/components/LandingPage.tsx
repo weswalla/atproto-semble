@@ -124,35 +124,17 @@ export default function LandingPage() {
             >
               SEMBLE
             </Text>
-            <Group gap="sm">
-              <Button
-                component="a"
-                href="/signup"
-                radius="xl"
-                style={{
-                  backgroundColor: '#FF4500',
-                  color: '#FFF',
-                  padding: '0.5rem 1rem',
-                  fontSize: '0.9rem',
-                }}
-              >
-                Sign Up
-              </Button>
-              <Button
-                component="a"
-                href="/login"
-                radius="xl"
-                variant="outline"
-                style={{
-                  borderColor: '#333',
-                  color: '#333',
-                  padding: '0.5rem 1rem',
-                  fontSize: '0.9rem',
-                }}
-              >
-                Login
-              </Button>
-            </Group>
+            <Button
+              radius="xl"
+              style={{
+                backgroundColor: '#333',
+                color: '#FFF',
+                padding: '0.5rem 1rem',
+                fontSize: '0.9rem',
+              }}
+            >
+              Join our waitlist
+            </Button>
           </Flex>
         </Container>
 

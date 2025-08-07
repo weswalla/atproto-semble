@@ -15,9 +15,5 @@ export default function Home() {
     }
   }, [isAuthenticated, isLoading, router]);
 
-  if (isLoading) {
-    return <>Loading...</>;
-  }
-
   return <LandingPage />;
 }

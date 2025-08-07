@@ -1,6 +1,15 @@
 'use client';
 
-import { Title, Text, Stack, Button, Box, Container, Group, Flex } from '@mantine/core';
+import {
+  Title,
+  Text,
+  Stack,
+  Button,
+  Box,
+  Container,
+  Group,
+  Flex,
+} from '@mantine/core';
 import { FaGithub, FaDiscord } from 'react-icons/fa6';
 
 // Simple icon components
@@ -18,22 +27,47 @@ const NetworkIcon = () => (
     <circle cx="6" cy="6" r="3" />
     <circle cx="18" cy="6" r="3" />
     <circle cx="12" cy="18" r="3" />
-    <path d="M9 6h6M10.5 15l3-9M13.5 15l-3-9" stroke="currentColor" strokeWidth="2" fill="none" />
+    <path
+      d="M9 6h6M10.5 15l3-9M13.5 15l-3-9"
+      stroke="currentColor"
+      strokeWidth="2"
+      fill="none"
+    />
   </svg>
 );
 
 const DatabaseIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
     <ellipse cx="12" cy="5" rx="9" ry="3" />
-    <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5" stroke="currentColor" strokeWidth="2" fill="none" />
-    <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3" stroke="currentColor" strokeWidth="2" fill="none" />
+    <path
+      d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"
+      stroke="currentColor"
+      strokeWidth="2"
+      fill="none"
+    />
+    <path
+      d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"
+      stroke="currentColor"
+      strokeWidth="2"
+      fill="none"
+    />
   </svg>
 );
 
 const LinkIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" strokeWidth="2" fill="none" />
-    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" strokeWidth="2" fill="none" />
+    <path
+      d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+      stroke="currentColor"
+      strokeWidth="2"
+      fill="none"
+    />
+    <path
+      d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+      stroke="currentColor"
+      strokeWidth="2"
+      fill="none"
+    />
   </svg>
 );
 
@@ -76,7 +110,11 @@ export default function LandingPage() {
       <Box style={{ position: 'relative', zIndex: 1 }}>
         {/* Header */}
         <Container size="xl">
-          <Flex justify="space-between" align="center" style={{ padding: '1rem 2rem' }}>
+          <Flex
+            justify="space-between"
+            align="center"
+            style={{ padding: '1rem 2rem' }}
+          >
             <Text
               fw={700}
               fz="1.25rem"
@@ -147,7 +185,8 @@ export default function LandingPage() {
                   fontWeight: 400,
                 }}
               >
-                Follow your peers' research trails. Surface and discover new connections. Built on ATProto so you own your data.
+                Follow your peers' research trails. Surface and discover new
+                connections. Built on ATProto so you own your data.
               </Text>
             </Box>
           </Stack>
@@ -167,7 +206,12 @@ export default function LandingPage() {
                 <Box c="#FF4500" mb="0.5rem">
                   <GridIcon />
                 </Box>
-                <Text fw={700} fz="1rem" mb="0.25rem" style={{ fontFamily: 'sans-serif' }}>
+                <Text
+                  fw={700}
+                  fz="1rem"
+                  mb="0.25rem"
+                  style={{ fontFamily: 'sans-serif' }}
+                >
                   Curate your research trails.
                 </Text>
                 <Text
@@ -179,7 +223,9 @@ export default function LandingPage() {
                     fontWeight: 400,
                   }}
                 >
-                  Collect interesting links and add context with reviews and annotations. Organize them into collections others can follow and collaborate on.
+                  Collect interesting links and add context with reviews and
+                  annotations. Organize them into collections others can follow
+                  and collaborate on.
                 </Text>
               </Stack>
             </Box>
@@ -190,7 +236,12 @@ export default function LandingPage() {
                 <Box c="#FF4500" mb="0.5rem">
                   <NetworkIcon />
                 </Box>
-                <Text fw={700} fz="1rem" mb="0.25rem" style={{ fontFamily: 'sans-serif' }}>
+                <Text
+                  fw={700}
+                  fz="1rem"
+                  mb="0.25rem"
+                  style={{ fontFamily: 'sans-serif' }}
+                >
                   Follow and grow your network.
                 </Text>
                 <Text
@@ -202,7 +253,9 @@ export default function LandingPage() {
                     fontWeight: 400,
                   }}
                 >
-                  See what your peers are sharing and find new collaborators with shared interests. Experience research rabbit holes, together.
+                  See what your peers are sharing and find new collaborators
+                  with shared interests. Experience research rabbit holes,
+                  together.
                 </Text>
               </Stack>
             </Box>
@@ -213,7 +266,12 @@ export default function LandingPage() {
                 <Box c="#FF4500" mb="0.5rem">
                   <DatabaseIcon />
                 </Box>
-                <Text fw={700} fz="1rem" mb="0.25rem" style={{ fontFamily: 'sans-serif' }}>
+                <Text
+                  fw={700}
+                  fz="1rem"
+                  mb="0.25rem"
+                  style={{ fontFamily: 'sans-serif' }}
+                >
                   Own your data.
                 </Text>
                 <Text
@@ -225,7 +283,9 @@ export default function LandingPage() {
                     fontWeight: 400,
                   }}
                 >
-                  Built on ATProto so you own your data. New apps will come to you – no more rebuilding your social graph and data when apps pivot and shut down.
+                  Built on ATProto so you own your data. New apps will come to
+                  you – no more rebuilding your social graph and data when apps
+                  pivot and shut down.
                 </Text>
               </Stack>
             </Box>
@@ -236,7 +296,12 @@ export default function LandingPage() {
                 <Box c="#FF4500" mb="0.5rem">
                   <LinkIcon />
                 </Box>
-                <Text fw={700} fz="1rem" mb="0.25rem" style={{ fontFamily: 'sans-serif' }}>
+                <Text
+                  fw={700}
+                  fz="1rem"
+                  mb="0.25rem"
+                  style={{ fontFamily: 'sans-serif' }}
+                >
                   Discover relevant context and connections.
                 </Text>
                 <Text
@@ -248,7 +313,9 @@ export default function LandingPage() {
                     fontWeight: 400,
                   }}
                 >
-                  Easily find and filter for relevant research based on your network. See the big picture and get the extra context that matters before you dive into a long read.
+                  Easily find and filter for relevant research based on your
+                  network. See the big picture and get the extra context that
+                  matters before you dive into a long read.
                 </Text>
               </Stack>
             </Box>
@@ -272,7 +339,11 @@ export default function LandingPage() {
               </Text>
               <Group gap="0.25rem">
                 <CosmikIcon />
-                <Text fz="0.875rem" c="purple" style={{ fontFamily: 'sans-serif' }}>
+                <Text
+                  fz="0.875rem"
+                  c="purple"
+                  style={{ fontFamily: 'sans-serif' }}
+                >
                   Cosmik
                 </Text>
               </Group>

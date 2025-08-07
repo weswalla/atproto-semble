@@ -20,7 +20,7 @@ export default function SignupPage() {
           <Title order={1} ta="center">
             Welcome to Semble
           </Title>
-          
+
           <Text ta="center" c="dimmed" fz="lg">
             A social knowledge tool for researchers
           </Text>
@@ -38,8 +38,9 @@ export default function SignupPage() {
                 Bluesky Account Required
               </Text>
               <Text fz="sm" ta="center" c="dimmed">
-                Semble is built on ATProto and requires a Bluesky account to use. 
-                This ensures you own your data and can take it with you anywhere.
+                Semble is built on ATProto and requires a Bluesky account to
+                use. This ensures you own your data and can take it with you
+                anywhere.
               </Text>
             </Stack>
           </Box>

@@ -64,7 +64,7 @@ export default function AuthenticatedLayout({
           >
             <FiSidebar />
           </ActionIcon>
-          <Text fw={600}>Annos</Text>
+          <Text fw={600}>Semble</Text>
         </Group>
       </AppShell.Header>
 

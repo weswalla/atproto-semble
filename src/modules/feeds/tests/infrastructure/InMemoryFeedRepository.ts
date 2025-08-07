@@ -12,11 +12,14 @@ export class InMemoryFeedRepository implements IFeedRepository {
 
   async addActivity(activity: FeedActivity): Promise<Result<void>> {
     try {
+      console.log('InMemoryFeedRepository: Adding activity', activity);
       this.activities.push(activity);
+      console.log('Total Activities:', this.activities.length);
       // Sort by creation time descending
       this.activities.sort(
         (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
       );
+      console.log('Activities after addition:', this.activities);
       return ok(undefined);
     } catch (error) {
       return err(error as Error);
@@ -27,6 +30,11 @@ export class InMemoryFeedRepository implements IFeedRepository {
     options: FeedQueryOptions,
   ): Promise<Result<PaginatedFeedResult>> {
     try {
+      console.log(
+        'InMemoryFeedRepository: Getting global feed with options',
+        options,
+      );
+      console.log('Total Activities:', this.activities.length);
       const { page, limit, beforeActivityId } = options;
       let filteredActivities = [...this.activities];
 

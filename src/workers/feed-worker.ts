@@ -8,7 +8,7 @@ import { CardCollectionSaga } from '../modules/feeds/application/sagas/CardColle
 import { QueueNames } from '../shared/infrastructure/events/QueueConfig';
 import { EventNames } from '../shared/infrastructure/events/EventConfig';
 
-async function startFeedWorker() {
+export async function startFeedWorker() {
   console.log('Starting feed worker...');
 
   const configService = new EnvironmentConfigService();
@@ -18,13 +18,17 @@ async function startFeedWorker() {
   const services = ServiceFactory.createForWorker(configService, repositories);
   const useCases = UseCaseFactory.createForWorker(repositories, services);
 
-  // Test Redis connection
-  try {
-    await services.redisConnection.ping();
-    console.log('Connected to Redis successfully');
-  } catch (error) {
-    console.error('Failed to connect to Redis:', error);
-    process.exit(1);
+  // Test Redis connection (only if using Redis)
+  if (services.redisConnection) {
+    try {
+      await services.redisConnection.ping();
+      console.log('Connected to Redis successfully');
+    } catch (error) {
+      console.error('Failed to connect to Redis:', error);
+      process.exit(1);
+    }
+  } else {
+    console.log('Using in-memory event system');
   }
 
   // Create subscriber for feeds queue
@@ -63,7 +67,9 @@ async function startFeedWorker() {
   const shutdown = async () => {
     console.log('Shutting down feed worker...');
     await eventSubscriber.stop();
-    await services.redisConnection.quit();
+    if (services.redisConnection) {
+      await services.redisConnection.quit();
+    }
     process.exit(0);
   };
 

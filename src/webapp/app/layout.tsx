@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
 import {
   ColorSchemeScript,
@@ -27,6 +28,7 @@ export default function RootLayout({
         <MantineProvider theme={theme}>
           <AuthProvider>{children}</AuthProvider>
         </MantineProvider>
+        <Analytics />
       </body>
     </html>
   );

@@ -1,6 +1,6 @@
-import { Controller } from "../../../../../shared/infrastructure/http/Controller";
-import { Request, Response } from "express";
-import { InitiateOAuthSignInUseCase } from "../../../application/use-cases/InitiateOAuthSignInUseCase";
+import { Controller } from '../../../../../shared/infrastructure/http/Controller';
+import { Request, Response } from 'express';
+import { InitiateOAuthSignInUseCase } from '../../../application/use-cases/InitiateOAuthSignInUseCase';
 
 export class InitiateOAuthSignInController extends Controller {
   constructor(private initiateOAuthSignInUseCase: InitiateOAuthSignInUseCase) {

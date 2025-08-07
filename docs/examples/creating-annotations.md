@@ -27,12 +27,12 @@ This example involves three main steps:
 First, we define and create the individual field records. Each field record defines the structure and constraints for a specific type of annotation.
 
 ```javascript
-import { BskyAgent } from "@atproto/api";
+import { BskyAgent } from '@atproto/api';
 
 // Helper function to create a field record
 async function createFieldRecord(agent, name, description, definition) {
   const record = {
-    $type: "app.annos.annotationField",
+    $type: 'app.annos.annotationField',
     name: name,
     description: description,
     definition: definition,
@@ -42,7 +42,7 @@ async function createFieldRecord(agent, name, description, definition) {
   console.log(`Creating field record: ${name}...`);
   const response = await agent.api.com.atproto.repo.createRecord({
     repo: agent.session.did,
-    collection: "app.annos.annotationField",
+    collection: 'app.annos.annotationField',
     record: record,
   });
   console.log(`Field record '${name}' created:`, response.uri);
@@ -53,11 +53,11 @@ async function createFieldRecord(agent, name, description, definition) {
 // --- Main Execution ---
 async function runPodcastAnnotationExample() {
   const agent = new BskyAgent({
-    service: "https://your-pds.example.com", // Replace with your PDS URL
+    service: 'https://your-pds.example.com', // Replace with your PDS URL
   });
   await agent.login({
-    identifier: "your-handle.bsky.social", // Replace with your handle
-    password: "your-password", // Replace with your app password
+    identifier: 'your-handle.bsky.social', // Replace with your handle
+    password: 'your-password', // Replace with your app password
   });
 
   // --- Define and Create Fields ---
@@ -65,69 +65,69 @@ async function runPodcastAnnotationExample() {
   // a) Dyad Field (Audience Accessibility)
   const audienceFieldRef = await createFieldRecord(
     agent,
-    "Audience Accessibility",
-    "How accessible is the content to different audiences?",
+    'Audience Accessibility',
+    'How accessible is the content to different audiences?',
     {
-      $type: "app.annos.annotationField#dyadFieldDef",
-      sideA: "Technical",
-      sideB: "General",
-    }
+      $type: 'app.annos.annotationField#dyadFieldDef',
+      sideA: 'Technical',
+      sideB: 'General',
+    },
   );
 
   // b) Rating Field (Audio Quality)
   const qualityFieldRef = await createFieldRecord(
     agent,
-    "Audio Quality",
-    "Rate the audio production quality (1-5 stars)",
+    'Audio Quality',
+    'Rate the audio production quality (1-5 stars)',
     {
-      $type: "app.annos.annotationField#ratingFieldDef",
+      $type: 'app.annos.annotationField#ratingFieldDef',
       numberOfStars: 5, // Lexicon defines this must be 5
-    }
+    },
   );
 
   // c) Multi-Select Field (Intended Use)
   const useOptions = [
-    "learn something new",
-    "be entertained",
-    "relax or unwind",
-    "stay informed",
-    "laugh",
-    "get inspired",
-    "background listening",
+    'learn something new',
+    'be entertained',
+    'relax or unwind',
+    'stay informed',
+    'laugh',
+    'get inspired',
+    'background listening',
   ];
   const useFieldRef = await createFieldRecord(
     agent,
-    "Intended Use",
-    "Why would someone listen?",
+    'Intended Use',
+    'Why would someone listen?',
     {
-      $type: "app.annos.annotationField#multiSelectFieldDef",
+      $type: 'app.annos.annotationField#multiSelectFieldDef',
       options: useOptions,
-    }
+    },
   );
 
   // d) Single-Select Field (Primary Language)
-  const languageOptions = ["English", "Spanish", "French", "German", "Other"];
+  const languageOptions = ['English', 'Spanish', 'French', 'German', 'Other'];
   const languageFieldRef = await createFieldRecord(
     agent,
-    "Primary Language",
-    "The main language spoken in the episode",
+    'Primary Language',
+    'The main language spoken in the episode',
     {
-      $type: "app.annos.annotationField#singleSelectFieldDef",
+      $type: 'app.annos.annotationField#singleSelectFieldDef',
       options: languageOptions,
-    }
+    },
   );
 
   // e) Triad Field (Content Focus)
   const focusFieldRef = await createFieldRecord(
     agent,
-    "Content Focus",
-    "Relative focus on Host vs Guest vs Topic (sums to 1000)",
+    'Content Focus',
+    'Relative focus on Host vs Guest vs Topic (sums to 1000)',
     {
-      $type: "app.annos.annotationField#triadFieldDef",
-      vertexA: "Host Focus",
-      vertexB: "Guest Focus",
-      vertexC: "Topic Focus",
-    }
+      $type: 'app.annos.annotationField#triadFieldDef',
+      vertexA: 'Host Focus',
+      vertexB: 'Guest Focus',
+      vertexC: 'Topic Focus',
+    },
   );
 
   // Store refs for later use
@@ -143,8 +143,8 @@ async function runPodcastAnnotationExample() {
   const templateRef = await createPodcastTemplate(agent, fieldRefs);
 
   // 3. Define the target resource (podcast episode)
-  const podcastUrl = "https://example.com/podcast/episode/123";
-  const podcastDoi = "10.9876/podcast.ep123";
+  const podcastUrl = 'https://example.com/podcast/episode/123';
+  const podcastDoi = '10.9876/podcast.ep123';
 
   // 4. Create annotations using the template and field refs
   await createPodcastAnnotations(
@@ -152,7 +152,7 @@ async function runPodcastAnnotationExample() {
     templateRef,
     fieldRefs,
     podcastUrl,
-    podcastDoi
+    podcastDoi,
   );
 }
 
@@ -167,9 +167,9 @@ Now, create the `app.annos.annotationTemplate` record, including strong referenc
 async function createPodcastTemplate(agent, fieldRefs) {
   // Create the template record, referencing the field records
   const templateRecord = {
-    $type: "app.annos.annotationTemplate",
-    name: "Podcast Template",
-    description: "Standard annotations for podcast episodes",
+    $type: 'app.annos.annotationTemplate',
+    name: 'Podcast Template',
+    description: 'Standard annotations for podcast episodes',
     annotationFields: [
       // Array of annotationFieldRef objects
       { ref: fieldRefs.audience, required: true },
@@ -181,14 +181,14 @@ async function createPodcastTemplate(agent, fieldRefs) {
     createdAt: new Date().toISOString(),
   };
 
-  console.log("Creating template record...");
+  console.log('Creating template record...');
   const templateResponse = await agent.api.com.atproto.repo.createRecord({
     repo: agent.session.did,
-    collection: "app.annos.annotationTemplate", // Use the correct collection
+    collection: 'app.annos.annotationTemplate', // Use the correct collection
     record: templateRecord,
   });
 
-  console.log("Template record created:", templateResponse.uri);
+  console.log('Template record created:', templateResponse.uri);
   // Return a strong ref to the template
   return { uri: templateResponse.uri, cid: templateResponse.cid };
 }
@@ -204,15 +204,15 @@ async function createPodcastAnnotations(
   templateRef,
   fieldRefs,
   podcastUrl,
-  podcastDoi
+  podcastDoi,
 ) {
   const now = new Date().toISOString();
 
   // Common properties for all annotations created from this template for this URL
   const baseAnnotation = {
-    $type: "app.annos.annotation", // All annotations use this $type
+    $type: 'app.annos.annotation', // All annotations use this $type
     url: podcastUrl,
-    additionalIdentifiers: [{ type: "doi", value: podcastDoi }],
+    additionalIdentifiers: [{ type: 'doi', value: podcastDoi }],
     fromTemplates: [templateRef], // Array of strong refs to template records
     createdAt: now,
   };
@@ -226,15 +226,15 @@ async function createPodcastAnnotations(
       // Structure matches #dyadValue in annotation.json
       value: 70, // Example value (0=Technical, 100=General)
     },
-    note: "Leans towards a general audience but has some technical jargon.", // Optional note
+    note: 'Leans towards a general audience but has some technical jargon.', // Optional note
   };
-  console.log("Creating audience annotation...");
+  console.log('Creating audience annotation...');
   const audienceResponse = await agent.api.com.atproto.repo.createRecord({
     repo: agent.session.did,
-    collection: "app.annos.annotation", // ALL annotations go in this collection
+    collection: 'app.annos.annotation', // ALL annotations go in this collection
     record: audienceAnnotation,
   });
-  console.log("Audience annotation created:", audienceResponse.uri);
+  console.log('Audience annotation created:', audienceResponse.uri);
 
   // b) Create Rating Annotation (Audio Quality)
   // Value should be integer 1-5 as per lexicon (via field def)
@@ -247,13 +247,13 @@ async function createPodcastAnnotations(
       // 'mustbeBetween' is not part of the value record itself, it's a constraint defined by the field
     },
   };
-  console.log("Creating quality annotation...");
+  console.log('Creating quality annotation...');
   const qualityResponse = await agent.api.com.atproto.repo.createRecord({
     repo: agent.session.did,
-    collection: "app.annos.annotation",
+    collection: 'app.annos.annotation',
     record: qualityAnnotation,
   });
-  console.log("Quality annotation created:", qualityResponse.uri);
+  console.log('Quality annotation created:', qualityResponse.uri);
 
   // c) Create Multi-Select Annotation (Intended Use)
   const useAnnotation = {
@@ -261,17 +261,17 @@ async function createPodcastAnnotations(
     field: fieldRefs.use, // Strong ref to the Use field record
     value: {
       // Structure matches #multiSelectValue in annotation.json
-      option: ["learn something new", "be entertained"], // Selected options
+      option: ['learn something new', 'be entertained'], // Selected options
       // 'mustbeSomeOf' is not part of the value record, it's a constraint defined by the field
     },
   };
-  console.log("Creating intended use annotation...");
+  console.log('Creating intended use annotation...');
   const useResponse = await agent.api.com.atproto.repo.createRecord({
     repo: agent.session.did,
-    collection: "app.annos.annotation",
+    collection: 'app.annos.annotation',
     record: useAnnotation,
   });
-  console.log("Intended use annotation created:", useResponse.uri);
+  console.log('Intended use annotation created:', useResponse.uri);
 
   // d) Create Single-Select Annotation (Primary Language)
   const languageAnnotation = {
@@ -279,16 +279,16 @@ async function createPodcastAnnotations(
     field: fieldRefs.language, // Strong ref to the Language field record
     value: {
       // Structure matches #singleSelectValue in annotation.json
-      option: "English", // Selected option
+      option: 'English', // Selected option
     },
   };
-  console.log("Creating language annotation...");
+  console.log('Creating language annotation...');
   const languageResponse = await agent.api.com.atproto.repo.createRecord({
     repo: agent.session.did,
-    collection: "app.annos.annotation",
+    collection: 'app.annos.annotation',
     record: languageAnnotation,
   });
-  console.log("Language annotation created:", languageResponse.uri);
+  console.log('Language annotation created:', languageResponse.uri);
 
   // e) Create Triad Annotation (Content Focus)
   // Values must sum to 1000 as per lexicon
@@ -302,15 +302,15 @@ async function createPodcastAnnotations(
       vertexC: 500, // Topic Focus
       // 'sum' is implicitly 1000 due to constraints, not explicitly set here
     },
-    note: "Mostly topic-driven, with moderate host presence and less guest focus.",
+    note: 'Mostly topic-driven, with moderate host presence and less guest focus.',
   };
-  console.log("Creating focus annotation...");
+  console.log('Creating focus annotation...');
   const focusResponse = await agent.api.com.atproto.repo.createRecord({
     repo: agent.session.did,
-    collection: "app.annos.annotation",
+    collection: 'app.annos.annotation',
     record: focusAnnotation,
   });
-  console.log("Focus annotation created:", focusResponse.uri);
+  console.log('Focus annotation created:', focusResponse.uri);
 }
 ```
 

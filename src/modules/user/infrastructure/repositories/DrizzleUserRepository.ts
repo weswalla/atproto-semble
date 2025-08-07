@@ -1,12 +1,12 @@
-import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { eq } from "drizzle-orm";
-import { IUserRepository } from "../../domain/repositories/IUserRepository";
-import { User } from "../../domain/User";
-import { DID } from "../../domain/value-objects/DID";
-import { Handle } from "../../domain/value-objects/Handle";
-import { users } from "./schema/user.sql";
-import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
-import { err, ok, Result } from "src/shared/core/Result";
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { eq } from 'drizzle-orm';
+import { IUserRepository } from '../../domain/repositories/IUserRepository';
+import { User } from '../../domain/User';
+import { DID } from '../../domain/value-objects/DID';
+import { Handle } from '../../domain/value-objects/Handle';
+import { users } from './schema/user.sql';
+import { UniqueEntityID } from 'src/shared/domain/UniqueEntityID';
+import { err, ok, Result } from 'src/shared/core/Result';
 
 export class DrizzleUserRepository implements IUserRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -45,7 +45,7 @@ export class DrizzleUserRepository implements IUserRepository {
           linkedAt: userData.linkedAt,
           lastLoginAt: userData.lastLoginAt,
         },
-        new UniqueEntityID(did.value)
+        new UniqueEntityID(did.value),
       );
 
       if (userResult.isErr()) {

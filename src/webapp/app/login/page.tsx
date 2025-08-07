@@ -1,71 +1,262 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { authService } from "@/services/api";
+import { Suspense } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import { ApiClient } from '@/api-client/ApiClient';
+import { ExtensionService } from '@/services/extensionService';
+import {
+  Title,
+  Button,
+  Stack,
+  Center,
+  Card,
+  TextInput,
+  PasswordInput,
+  Text,
+  Group,
+  Loader,
+} from '@mantine/core';
+import { getAccessToken } from '@/services/auth';
 
-export default function LoginPage() {
-  const [handle, setHandle] = useState("");
+function LoginForm() {
+  const [handle, setHandle] = useState('');
+  const [appPassword, setAppPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
+  const [useAppPassword, setUseAppPassword] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { setTokens, isAuthenticated } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const isExtensionLogin = searchParams.get('extension-login') === 'true';
 
-    if (!handle) {
-      setError("Please enter your Bluesky handle");
-      return;
+  // Create API client instance
+  const apiClient = new ApiClient(
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+    () => getAccessToken(), // Use auth token when available
+  );
+
+  // Handle extension login if user is already authenticated
+  useEffect(() => {
+    if (isExtensionLogin && isAuthenticated) {
+      handleExtensionTokenGeneration();
+    } else if (isAuthenticated && !isExtensionLogin) {
+      // If user is already authenticated and not doing extension login, redirect to library
+      router.push('/library');
+    } else {
+      // Auth check is complete, show the login form
+      setIsCheckingAuth(false);
     }
+  }, [isExtensionLogin, isAuthenticated]);
 
-    setIsLoading(true);
-    setError("");
-
+  const handleExtensionTokenGeneration = async () => {
     try {
-      // Use our client-side API service
-      const { authUrl } = await authService.initiateLogin(handle);
-      
-      // Redirect to the auth URL from the API
-      window.location.href = authUrl;
+      setIsLoading(true);
+      const tokens = await apiClient.generateExtensionTokens();
+
+      await ExtensionService.sendTokensToExtension(tokens);
+
+      setError('');
+
+      // Clear the extension tokens requested flag
+      ExtensionService.clearExtensionTokensRequested();
+
+      // Redirect to extension success page after successful extension token generation
+      router.push('/extension/auth/complete');
     } catch (err: any) {
-      setError(err.message || "An error occurred during login");
+      // Clear the flag even on failure
+      ExtensionService.clearExtensionTokensRequested();
+
+      // Redirect to extension error page
+      router.push('/extension/auth/error');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleOAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!handle) {
+      setError('Please enter your Bluesky handle');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      // If this is an extension login, persist the flag before redirect
+      if (searchParams.get('extension-login') === 'true') {
+        ExtensionService.setExtensionTokensRequested();
+      }
+
+      const { authUrl } = await apiClient.initiateOAuthSignIn({ handle });
+
+      // Redirect to the auth URL from the API
+      window.location.href = authUrl;
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during login');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAppPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!handle || !appPassword) {
+      setError('Please enter both your handle and app password');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const { accessToken, refreshToken } =
+        await apiClient.loginWithAppPassword({
+          identifier: handle,
+          appPassword: appPassword,
+        });
+
+      // Set tokens
+      setTokens(accessToken, refreshToken);
+
+      // Handle extension login or redirect to dashboard
+      if (isExtensionLogin) {
+        await handleExtensionTokenGeneration();
+      } else {
+        router.push('/library');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Invalid credentials');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Show loading while checking authentication status
+  if (isCheckingAuth || isAuthenticated) {
+    return (
+      <Center h={'100svh'}>
+        <Stack align="center">
+          <Loader size="lg" />
+        </Stack>
+      </Center>
+    );
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-center font-mono text-sm flex flex-col">
-        <h1 className="text-4xl font-bold mb-8">Sign in with Bluesky</h1>
+    <Center h={'100svh'}>
+      <Stack align="center">
+        <Title order={1}>
+          {isExtensionLogin ? 'Sign in for Extension' : 'Sign in with Bluesky'}
+        </Title>
 
-        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-          <form onSubmit={handleSubmit}>
-            <div className="mb-6">
-              <label
-                htmlFor="handle"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Enter your Bluesky handle
-              </label>
-              <input
-                type="text"
-                id="handle"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="username.bsky.social"
-                value={handle}
-                onChange={(e) => setHandle(e.target.value)}
-              />
-              {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-            </div>
+        <Card withBorder w={400}>
+          {!useAppPassword ? (
+            <form onSubmit={handleOAuthSubmit}>
+              <Stack>
+                <Stack>
+                  <TextInput
+                    id="handle"
+                    label="Enter your Bluesky handle"
+                    placeholder="username.bsky.social"
+                    value={handle}
+                    onChange={(e) => setHandle(e.target.value)}
+                  />
+                  {error && (
+                    <Text fz={'sm'} c={'red'}>
+                      {error}
+                    </Text>
+                  )}
+                </Stack>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Connecting..." : "Continue"}
-            </Button>
-          </form>
-        </div>
-      </div>
-    </main>
+                <Group grow>
+                  <Button type="submit" loading={isLoading}>
+                    {isLoading ? 'Connecting...' : 'Continue'}
+                  </Button>
+                </Group>
+
+                <Stack>
+                  <Button
+                    type="button"
+                    onClick={() => setUseAppPassword(true)}
+                    variant="transparent"
+                    color="blue"
+                  >
+                    Sign in with app password
+                  </Button>
+                </Stack>
+              </Stack>
+            </form>
+          ) : (
+            <form onSubmit={handleAppPasswordSubmit}>
+              <Stack>
+                <Stack>
+                  <TextInput
+                    id="handle-app"
+                    label="Bluesky handle"
+                    placeholder="username.bsky.social"
+                    value={handle}
+                    onChange={(e) => setHandle(e.target.value)}
+                  />
+
+                  <Stack>
+                    <PasswordInput
+                      id="app-password"
+                      label="App password"
+                      placeholder="xxxx-xxxx-xxxx-xxxx"
+                      value={appPassword}
+                      onChange={(e) => setAppPassword(e.target.value)}
+                    />
+                    {error && (
+                      <Text fz={'sm'} c={'red'}>
+                        {error}
+                      </Text>
+                    )}
+                  </Stack>
+                </Stack>
+
+                <Button type="submit" disabled={isLoading} loading={isLoading}>
+                  {isLoading ? 'Signing in...' : 'Sign in'}
+                </Button>
+
+                <Stack>
+                  <Button
+                    type="button"
+                    onClick={() => setUseAppPassword(false)}
+                    variant="transparent"
+                    color="blue"
+                  >
+                    Back to OAuth sign in
+                  </Button>
+                </Stack>
+              </Stack>
+            </form>
+          )}
+        </Card>
+      </Stack>
+    </Center>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <Center h={'100svh'}>
+          <Stack align="center">
+            <Loader size="lg" />
+          </Stack>
+        </Center>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

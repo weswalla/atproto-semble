@@ -1,7 +1,7 @@
-import { Result, ok, err } from "src/shared/core/Result";
-import { User } from "../../domain/User";
-import { IUserRepository } from "../../domain/repositories/IUserRepository";
-import { DID } from "../../domain/value-objects/DID";
+import { Result, ok, err } from 'src/shared/core/Result';
+import { User } from '../../domain/User';
+import { IUserRepository } from '../../domain/repositories/IUserRepository';
+import { DID } from '../../domain/value-objects/DID';
 
 export class InMemoryUserRepository implements IUserRepository {
   private users: Map<string, User> = new Map();

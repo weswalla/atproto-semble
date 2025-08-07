@@ -1,16 +1,16 @@
-import jwt from "jsonwebtoken";
-import { v4 as uuidv4 } from "uuid";
-import { Result, err, ok } from "src/shared/core/Result";
-import { ITokenService } from "../../application/services/ITokenService";
-import { TokenPair } from "../../application/dtos/TokenDTO";
-import { ITokenRepository } from "../../domain/repositories/ITokenRepository";
+import jwt from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
+import { Result, err, ok } from 'src/shared/core/Result';
+import { ITokenService } from '../../application/services/ITokenService';
+import { TokenPair } from '../../application/dtos/TokenDTO';
+import { ITokenRepository } from '../../domain/repositories/ITokenRepository';
 
 export class JwtTokenService implements ITokenService {
   constructor(
     private tokenRepository: ITokenRepository,
     private jwtSecret: string,
     private accessTokenExpiresIn: number = 3600, // 1 hour
-    private refreshTokenExpiresIn: number = 2592000 // 30 days
+    private refreshTokenExpiresIn: number = 2592000, // 30 days
   ) {}
 
   async generateToken(did: string): Promise<Result<TokenPair>> {
@@ -19,7 +19,7 @@ export class JwtTokenService implements ITokenService {
       const accessToken = jwt.sign(
         { did, iat: Math.floor(Date.now() / 1000) },
         this.jwtSecret,
-        { expiresIn: this.accessTokenExpiresIn }
+        { expiresIn: this.accessTokenExpiresIn },
       );
 
       // Generate refresh token
@@ -27,7 +27,7 @@ export class JwtTokenService implements ITokenService {
       const tokenId = uuidv4();
       const now = new Date();
       const expiresAt = new Date(
-        now.getTime() + this.refreshTokenExpiresIn * 1000
+        now.getTime() + this.refreshTokenExpiresIn * 1000,
       );
 
       // Store refresh token

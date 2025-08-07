@@ -1,13 +1,16 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { AuthProvider } from "@/hooks/useAuth";
-
-const inter = Inter({ subsets: ["latin"] });
+import type { Metadata } from 'next';
+import {
+  ColorSchemeScript,
+  mantineHtmlProps,
+  MantineProvider,
+} from '@mantine/core';
+import '@mantine/core/styles.css';
+import { AuthProvider } from '@/hooks/useAuth';
+import { theme } from '@/styles/theme';
 
 export const metadata: Metadata = {
-  title: "Annos",
-  description: "Annotation platform",
+  title: 'Semble',
+  description: 'A social knowledge tool for researchers',
 };
 
 export default function RootLayout({
@@ -16,9 +19,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <AuthProvider>{children}</AuthProvider>
+    <html lang="en" {...mantineHtmlProps}>
+      <head>
+        <ColorSchemeScript />
+      </head>
+      <body>
+        <MantineProvider theme={theme}>
+          <AuthProvider>{children}</AuthProvider>
+        </MantineProvider>
       </body>
     </html>
   );

@@ -1,4 +1,4 @@
-import { Result } from "src/shared/core/Result";
+import { Result } from 'src/shared/core/Result';
 
 export interface RefreshToken {
   tokenId: string;

@@ -1,4 +1,4 @@
-import { TID as LexTID } from "@atproto/common"; // Using the official library for generation/validation
+import { TID as LexTID } from '@atproto/common'; // Using the official library for generation/validation
 
 // Placeholder for TID Value Object
 // Wraps the @atproto/common TID class for domain modeling purposes

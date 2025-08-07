@@ -1,11 +1,11 @@
-import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { eq, and } from "drizzle-orm";
-import { Result, err, ok } from "src/shared/core/Result";
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { eq, and } from 'drizzle-orm';
+import { Result, err, ok } from 'src/shared/core/Result';
 import {
   ITokenRepository,
   RefreshToken,
-} from "../../domain/repositories/ITokenRepository";
-import { authRefreshTokens } from "./schema/authToken.sql";
+} from '../../domain/repositories/ITokenRepository';
+import { authRefreshTokens } from './schema/authToken.sql';
 
 export class DrizzleTokenRepository implements ITokenRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -28,7 +28,7 @@ export class DrizzleTokenRepository implements ITokenRepository {
   }
 
   async findRefreshToken(
-    refreshToken: string
+    refreshToken: string,
   ): Promise<Result<RefreshToken | null>> {
     try {
       const result = await this.db
@@ -37,8 +37,8 @@ export class DrizzleTokenRepository implements ITokenRepository {
         .where(
           and(
             eq(authRefreshTokens.refreshToken, refreshToken),
-            eq(authRefreshTokens.revoked, false)
-          )
+            eq(authRefreshTokens.revoked, false),
+          ),
         )
         .limit(1);
 

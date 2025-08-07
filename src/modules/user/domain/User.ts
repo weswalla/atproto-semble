@@ -1,9 +1,9 @@
-import { AggregateRoot } from "src/shared/domain/AggregateRoot";
-import { UniqueEntityID } from "src/shared/domain/UniqueEntityID";
-import { Guard, IGuardArgument } from "src/shared/core/Guard";
-import { err, ok, Result } from "src/shared/core/Result";
-import { DID } from "./value-objects/DID";
-import { Handle } from "./value-objects/Handle";
+import { AggregateRoot } from 'src/shared/domain/AggregateRoot';
+import { UniqueEntityID } from 'src/shared/domain/UniqueEntityID';
+import { Guard, IGuardArgument } from 'src/shared/core/Guard';
+import { err, ok, Result } from 'src/shared/core/Result';
+import { DID } from './value-objects/DID';
+import { Handle } from './value-objects/Handle';
 
 export interface UserProps {
   did: DID;
@@ -47,9 +47,9 @@ export class User extends AggregateRoot<UserProps> {
 
   public static create(props: UserProps, id?: UniqueEntityID): Result<User> {
     const guardArgs: IGuardArgument[] = [
-      { argument: props.did, argumentName: "did" },
-      { argument: props.linkedAt, argumentName: "linkedAt" },
-      { argument: props.lastLoginAt, argumentName: "lastLoginAt" },
+      { argument: props.did, argumentName: 'did' },
+      { argument: props.linkedAt, argumentName: 'linkedAt' },
+      { argument: props.lastLoginAt, argumentName: 'lastLoginAt' },
     ];
 
     const guardResult = Guard.againstNullOrUndefinedBulk(guardArgs);

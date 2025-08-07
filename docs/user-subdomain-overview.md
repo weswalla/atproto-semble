@@ -7,6 +7,7 @@ This document outlines the Domain-Driven Design (DDD) approach for the User subd
 ### Entities and Aggregates
 
 #### User (Aggregate Root)
+
 - **Properties**:
   - `id`: UniqueEntityID (based on the user's DID)
   - `did`: DID (Value Object)
@@ -15,6 +16,7 @@ This document outlines the Domain-Driven Design (DDD) approach for the User subd
   - `lastLoginAt`: Date (timestamp of last successful authentication)
 
 #### Value Objects
+
 - **DID**: Represents a validated `did:plc` string
   - Validates format
   - Provides methods for comparison and string representation
@@ -23,10 +25,12 @@ This document outlines the Domain-Driven Design (DDD) approach for the User subd
   - Provides methods for comparison and string representation
 
 #### Domain Events
+
 - **UserLinked**: Fired when a user completes OAuth flow for the first time
 - **UserLoggedIn**: Fired on successful authentication
 
 ### Domain Services
+
 - **UserAuthenticationService**: Core domain logic for user authentication
   - Validates authentication requests
   - Manages user session state
@@ -36,11 +40,13 @@ This document outlines the Domain-Driven Design (DDD) approach for the User subd
 ### Use Cases / Application Services
 
 #### InitiateOAuthSignInUseCase
+
 - **Input**: Handle (optional)
 - **Output**: Authorization URL
 - **Behavior**: Prepares OAuth flow initiation
 
 #### CompleteOAuthSignInUseCase
+
 - **Input**: OAuth callback parameters (code, state)
 - **Output**: User session information
 - **Behavior**:
@@ -49,21 +55,25 @@ This document outlines the Domain-Driven Design (DDD) approach for the User subd
   - Dispatches domain events
 
 #### GetCurrentUserUseCase
+
 - **Input**: Session context
 - **Output**: User information
 - **Behavior**: Retrieves authenticated user information
 
 ### DTOs (Data Transfer Objects)
+
 - **UserDTO**: Represents user data for external consumers
 - **OAuthCallbackDTO**: Contains parameters from OAuth callback
 - **SessionDTO**: Contains session information
 
 ### Repository Interfaces
+
 - **IUserRepository**:
   - `findById(did: string): Promise<User | null>`
   - `save(user: User): Promise<void>`
 
 ### Service Interfaces
+
 - **IOAuthProcessor**:
   - `processCallback(params: OAuthCallbackDTO): Promise<AuthResult>`
   - `generateAuthUrl(handle?: string): Promise<string>`
@@ -76,11 +86,13 @@ This document outlines the Domain-Driven Design (DDD) approach for the User subd
 ## Infrastructure Layer
 
 ### Persistence
+
 - **UserRepository**: Implements `IUserRepository` using database
 - **SessionStore**: Implements session storage for OAuth client
 - **StateStore**: Implements state parameter storage for OAuth flow
 
 ### Authentication
+
 - **AtProtoOAuthProcessor**: Implements `IOAuthProcessor`
   - Wraps `NodeOAuthClient` from `@atproto/oauth-client-node`
   - Handles OAuth flow and token management
@@ -89,6 +101,7 @@ This document outlines the Domain-Driven Design (DDD) approach for the User subd
   - Manages token lifecycle and refresh
 
 ### API / Controllers
+
 - **AuthController**:
   - `/login`: Initiates OAuth flow
   - `/oauth/callback`: Handles OAuth callback
@@ -105,6 +118,7 @@ This document outlines the Domain-Driven Design (DDD) approach for the User subd
 ## Implementation Details
 
 ### Authentication Flow
+
 1. User initiates login via `/login` endpoint
 2. System redirects to PDS for authentication
 3. PDS redirects back to `/oauth/callback` with authorization code
@@ -115,6 +129,7 @@ This document outlines the Domain-Driven Design (DDD) approach for the User subd
 8. AuthMiddleware validates tokens for protected routes
 
 ### Token Management
+
 - JWT-based authentication with access and refresh tokens
 - Access tokens are short-lived (e.g., 1 hour)
 - Refresh tokens are longer-lived (e.g., 30 days)
@@ -122,6 +137,7 @@ This document outlines the Domain-Driven Design (DDD) approach for the User subd
 - Full ATProto session restored as needed using stored PDS refresh tokens
 
 ### Token Refresh
+
 - Access tokens automatically refreshed via `NodeOAuthClient`
 - Refresh tokens securely stored in `SessionStore`
 - Token refresh transparent to application code
@@ -129,6 +145,7 @@ This document outlines the Domain-Driven Design (DDD) approach for the User subd
 ## Database Schema
 
 ### Users Table
+
 ```sql
 CREATE TABLE users (
   id TEXT PRIMARY KEY,  -- DID
@@ -139,6 +156,7 @@ CREATE TABLE users (
 ```
 
 ### Auth Tokens Table
+
 ```sql
 CREATE TABLE auth_refresh_tokens (
   token_id TEXT PRIMARY KEY,
@@ -152,6 +170,7 @@ CREATE TABLE auth_refresh_tokens (
 ```
 
 ### Auth State Table
+
 ```sql
 CREATE TABLE auth_state (
   key TEXT PRIMARY KEY,  -- State parameter

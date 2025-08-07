@@ -31,7 +31,7 @@
 
     /* Emit Options */
     "declaration": false, // Don't emit .d.ts files for an application
-    "noEmit": false, // Ensure JS files are emitted (set to true if using a bundler like esbuild/swc for emit)
+    "noEmit": false // Ensure JS files are emitted (set to true if using a bundler like esbuild/swc for emit)
 
     /* Project Structure */
     // "rootDir": "./src" // Removed: Let TS infer the root from 'include' paths

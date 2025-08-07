@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from "express";
-import { ITokenService } from "../../../../modules/user/application/services/ITokenService";
+import { Request, Response, NextFunction } from 'express';
+import { ITokenService } from '../../../../modules/user/application/services/ITokenService';
 
 export interface AuthenticatedRequest extends Request {
   did?: string;
@@ -12,13 +12,13 @@ export class AuthMiddleware {
     return async (
       req: AuthenticatedRequest,
       res: Response,
-      next: NextFunction
+      next: NextFunction,
     ): Promise<void> => {
       try {
         // Extract token from Authorization header
         const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-          res.status(401).json({ message: "No access token provided" });
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+          res.status(401).json({ message: 'No access token provided' });
           return; // Stop execution after sending a response
         }
 
@@ -28,7 +28,7 @@ export class AuthMiddleware {
         const didResult = await this.tokenService.validateToken(token);
 
         if (didResult.isErr() || !didResult.value) {
-          res.status(403).json({ message: "Invalid or expired token" });
+          res.status(403).json({ message: 'Invalid or expired token' });
           return; // Stop execution after sending a response
         }
 
@@ -38,7 +38,7 @@ export class AuthMiddleware {
         // Continue to the next middleware or controller
         next();
       } catch (error) {
-        res.status(500).json({ message: "Authentication error" });
+        res.status(500).json({ message: 'Authentication error' });
       }
     };
   }
@@ -47,12 +47,12 @@ export class AuthMiddleware {
     return async (
       req: AuthenticatedRequest,
       res: Response,
-      next: NextFunction
+      next: NextFunction,
     ) => {
       try {
         // Extract token from Authorization header
         const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
           // No token, but that's okay - continue without authentication
           return next();
         }

@@ -15,14 +15,17 @@ export class InMemoryEventSubscriber implements IEventSubscriber {
     handler: IEventHandler<T>,
   ): Promise<void> {
     this.handlers.set(eventType, handler);
-    
+
     // Register with the static publisher
-    InMemoryEventPublisher.addSubscriber(eventType, async (event: IDomainEvent) => {
-      const result = await handler.handle(event as T);
-      if (result.isErr()) {
-        throw result.error;
-      }
-    });
+    InMemoryEventPublisher.addSubscriber(
+      eventType,
+      async (event: IDomainEvent) => {
+        const result = await handler.handle(event as T);
+        if (result.isErr()) {
+          throw result.error;
+        }
+      },
+    );
   }
 
   async start(): Promise<void> {

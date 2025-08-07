@@ -3,7 +3,10 @@ import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { Result, ok } from '../../core/Result';
 
 export class InMemoryEventPublisher implements IEventPublisher {
-  private static subscribers: Map<string, Array<(event: IDomainEvent) => Promise<void>>> = new Map();
+  private static subscribers: Map<
+    string,
+    Array<(event: IDomainEvent) => Promise<void>>
+  > = new Map();
 
   async publishEvents(events: IDomainEvent[]): Promise<Result<void>> {
     for (const event of events) {
@@ -13,8 +16,9 @@ export class InMemoryEventPublisher implements IEventPublisher {
   }
 
   private async publishSingleEvent(event: IDomainEvent): Promise<void> {
-    const handlers = InMemoryEventPublisher.subscribers.get(event.eventName) || [];
-    
+    const handlers =
+      InMemoryEventPublisher.subscribers.get(event.eventName) || [];
+
     // Process handlers asynchronously but don't wait for them
     // This simulates the async nature of real message queues
     setImmediate(async () => {
@@ -28,7 +32,10 @@ export class InMemoryEventPublisher implements IEventPublisher {
     });
   }
 
-  static addSubscriber(eventType: string, handler: (event: IDomainEvent) => Promise<void>): void {
+  static addSubscriber(
+    eventType: string,
+    handler: (event: IDomainEvent) => Promise<void>,
+  ): void {
     if (!this.subscribers.has(eventType)) {
       this.subscribers.set(eventType, []);
     }

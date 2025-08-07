@@ -24,16 +24,13 @@ export default function Home() {
     <Center h={'100svh'}>
       <Stack align="center">
         <Stack align="center" gap={0}>
-          <Title order={1}>Welcome to Annos</Title>
+          <Title order={1}>Welcome to Semble</Title>
           <Text fw={600} fz={'xl'} c={'dark.4'}>
-            Your annotation platform
+            A social knowledge tool for researchers
           </Text>
         </Stack>
 
         <Stack align="center">
-          <Text fw={500} c={'gray'}>
-            Please sign in to access your annotations
-          </Text>
           <Button component="a" href="/login" leftSection={<FaBluesky />}>
             Sign in with Bluesky
           </Button>

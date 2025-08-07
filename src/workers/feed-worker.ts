@@ -76,8 +76,9 @@ export async function startFeedWorker() {
   process.on('SIGTERM', shutdown);
   process.on('SIGINT', shutdown);
 }
-
-startFeedWorker().catch((error) => {
-  console.error('Failed to start feed worker:', error);
-  process.exit(1);
-});
+if (process.env.USE_IN_MEMORY_EVENTS !== 'true') {
+  startFeedWorker().catch((error) => {
+    console.error('Failed to start feed worker:', error);
+    process.exit(1);
+  });
+}

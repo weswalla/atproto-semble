@@ -185,8 +185,8 @@ export default function LandingPage() {
                   fontWeight: 400,
                 }}
               >
-                Follow your peers' research trails. Surface and discover new
-                connections. Built on ATProto so you own your data.
+                {`Follow your peers' research trails. Surface and discover new
+                connections. Built on ATProto so you own your data.`}
               </Text>
             </Box>
           </Stack>
@@ -253,9 +253,9 @@ export default function LandingPage() {
                     fontWeight: 400,
                   }}
                 >
-                  See what your peers are sharing and find new collaborators
+                  {`See what your peers are sharing and find new collaborators
                   with shared interests. Experience research rabbit holes,
-                  together.
+                  together.`}
                 </Text>
               </Stack>
             </Box>
@@ -313,9 +313,9 @@ export default function LandingPage() {
                     fontWeight: 400,
                   }}
                 >
-                  Easily find and filter for relevant research based on your
+                  {`Easily find and filter for relevant research based on your
                   network. See the big picture and get the extra context that
-                  matters before you dive into a long read.
+                  matters before you dive into a long read.`}
                 </Text>
               </Stack>
             </Box>

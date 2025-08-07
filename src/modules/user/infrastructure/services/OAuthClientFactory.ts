@@ -4,9 +4,6 @@ import {
   NodeSavedStateStore,
   NodeSavedSessionStore,
 } from '@atproto/oauth-client-node';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { DrizzleStateStore } from './DrizzleStateStore';
-import { DrizzleSessionStore } from './DrizzleSessionStore';
 import { InMemoryStateStore } from '../../tests/infrastructure/InMemoryStateStore';
 import { InMemorySessionStore } from '../../tests/infrastructure/InMemorySessionStore';
 import { configService } from 'src/shared/infrastructure/config';

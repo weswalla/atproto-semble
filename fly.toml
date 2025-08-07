@@ -36,7 +36,6 @@ primary_region = 'sea'
 
 [env]
 NODE_ENV="dev"
-ATPROTO_REDIRECT_URI="http://dev.api.semble.so/api/users/oauth/callback"
 BASE_URL="https://api.dev.semble.so"
 HOST="0.0.0.0"
 APP_URL="https://dev.semble.so"

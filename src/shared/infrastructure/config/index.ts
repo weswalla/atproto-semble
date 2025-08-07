@@ -17,6 +17,5 @@ export const databaseConfig = configService.getDatabaseConfig();
 export const serverConfig = configService.getServerConfig();
 export const jwtConfig = configService.getAuthConfig();
 export const oauthConfig = {
-  callbackUrl: configService.getAtProtoConfig().redirectUri,
   baseUrl: configService.getAtProtoConfig().baseUrl,
 };

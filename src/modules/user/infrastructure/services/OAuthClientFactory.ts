@@ -4,9 +4,6 @@ import {
   NodeSavedStateStore,
   NodeSavedSessionStore,
 } from '@atproto/oauth-client-node';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { DrizzleStateStore } from './DrizzleStateStore';
-import { DrizzleSessionStore } from './DrizzleSessionStore';
 import { InMemoryStateStore } from '../../tests/infrastructure/InMemoryStateStore';
 import { InMemorySessionStore } from '../../tests/infrastructure/InMemorySessionStore';
 import { configService } from 'src/shared/infrastructure/config';
@@ -14,7 +11,7 @@ import { configService } from 'src/shared/infrastructure/config';
 export class OAuthClientFactory {
   static getClientMetadata(
     baseUrl: string,
-    appName: string = 'Annotation App',
+    appName: string = 'Semble',
   ): { clientMetadata: OAuthClientMetadataInput } {
     const url = baseUrl || 'http://127.0.0.1:3000';
     const enc = encodeURIComponent;
@@ -42,7 +39,7 @@ export class OAuthClientFactory {
     stateStore: NodeSavedStateStore,
     sessionStore: NodeSavedSessionStore,
     baseUrl: string,
-    appName: string = 'Annotation App',
+    appName: string = 'Semble',
   ): NodeOAuthClient {
     const { clientMetadata } = this.getClientMetadata(baseUrl, appName);
 
@@ -55,7 +52,7 @@ export class OAuthClientFactory {
 
   static createInMemoryClient(
     baseUrl: string,
-    appName: string = 'Annotation App',
+    appName: string = 'Semble',
   ): NodeOAuthClient {
     const { clientMetadata } = this.getClientMetadata(baseUrl, appName);
     const stateStore = new InMemoryStateStore();

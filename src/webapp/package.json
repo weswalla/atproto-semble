@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "manifest": {
-    "name": "Annos Browser Extension",
+    "name": "Semble",
     "permissions": [
       "activeTab",
       "storage"

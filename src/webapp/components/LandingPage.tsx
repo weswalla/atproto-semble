@@ -27,7 +27,7 @@ export default function LandingPage() {
   return (
     <>
       <BackgroundImage src={BG.src} h={'100svh'}>
-        <Center h={'100svh'}>
+        <Center h={'100svh'} py={{ base: '2rem', xs: '5rem' }}>
           <Container size={'xl'} p={'md'} my={'auto'}>
             <Stack align="center" gap={'5rem'}>
               <Stack gap={'xs'} align="center" maw={550} mx={'auto'}>
@@ -40,7 +40,7 @@ export default function LandingPage() {
                 </Title>
                 <Button
                   component="a"
-                  href="https://tally.so/r/nGd4Ap"
+                  href="https://forms.cosmik.network/waitlist"
                   target="_blank"
                   size="lg"
                   color="dark"

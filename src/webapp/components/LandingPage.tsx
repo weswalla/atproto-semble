@@ -46,7 +46,7 @@ export default function LandingPage() {
                   color="dark"
                   mt={'lg'}
                 >
-                  Join our waitlist
+                  Join waitlist
                 </Button>
               </Stack>
 

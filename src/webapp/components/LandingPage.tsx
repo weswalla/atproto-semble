@@ -38,16 +38,33 @@ export default function LandingPage() {
                   Follow your peers’ research trails. Surface and discover new
                   connections. Built on ATProto so you own your data.
                 </Title>
-                <Button
-                  component="a"
-                  href="https://forms.cosmik.network/waitlist"
-                  target="_blank"
-                  size="lg"
-                  color="dark"
-                  mt={'lg'}
-                >
-                  Join waitlist
-                </Button>
+                {process.env.VERCEL_ENV === 'production' ? (
+                  <Button
+                    component="a"
+                    href="https://forms.cosmik.network/waitlist"
+                    target="_blank"
+                    size="lg"
+                    color="dark"
+                    mt={'lg'}
+                  >
+                    Join waitlist
+                  </Button>
+                ) : (
+                  <Group gap="md" mt={'lg'}>
+                    <Button component="a" href="/signup" size="lg" color="dark">
+                      Sign up
+                    </Button>
+                    <Button
+                      component="a"
+                      href="/login"
+                      size="lg"
+                      variant="outline"
+                      color="dark"
+                    >
+                      Log in
+                    </Button>
+                  </Group>
+                )}
               </Stack>
 
               <SimpleGrid

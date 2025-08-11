@@ -8,11 +8,16 @@ import {
 import '@mantine/core/styles.css';
 import { AuthProvider } from '@/hooks/useAuth';
 import { theme } from '@/styles/theme';
+import { Hanken_Grotesk } from 'next/font/google';
 
 export const metadata: Metadata = {
-  title: 'Semble',
-  description: 'A social knowledge tool for researchers',
+  title: 'Semble | A social knowledge tool for researchers',
+  description: `Follow your peers' research trails. Surface and discover new connections. Built on ATProto so you own your data.`,
 };
+
+const hankenGrotesk = Hanken_Grotesk({
+  subsets: ['latin'],
+});
 
 export default function RootLayout({
   children,
@@ -20,7 +25,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" {...mantineHtmlProps}>
+    <html
+      lang="en"
+      className={`${hankenGrotesk.className}`}
+      {...mantineHtmlProps}
+    >
       <head>
         <ColorSchemeScript />
       </head>

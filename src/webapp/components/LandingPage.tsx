@@ -22,10 +22,12 @@ import CurateIcon from '@/assets/icons/curate-icon.svg';
 import CommunityIcon from '@/assets/icons/community-icon.svg';
 import DBIcon from '@/assets/icons/db-icon.svg';
 import BigPictureIcon from '@/assets/icons/big-picture-icon.svg';
+import Script from 'next/script';
 
 export default function LandingPage() {
   return (
     <>
+      <Script src="https://tally.so/widgets/embed.js" />
       <BackgroundImage src={BG.src} h={'100svh'}>
         <Center h={'100svh'} py={{ base: '2rem', xs: '5rem' }}>
           <Container size={'xl'} p={'md'} my={'auto'}>
@@ -39,9 +41,9 @@ export default function LandingPage() {
                   connections. Built on ATProto so you own your data.
                 </Title>
                 <Button
-                  component="a"
-                  href="https://forms.cosmik.network/waitlist"
-                  target="_blank"
+                  data-tally-open="31a9Ng"
+                  data-tally-hide-title="1"
+                  data-tally-emoji-animation="none"
                   size="lg"
                   color="dark"
                   mt={'lg'}

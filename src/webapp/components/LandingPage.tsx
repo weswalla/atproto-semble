@@ -41,9 +41,9 @@ export default function LandingPage() {
                   connections. Built on ATProto so you own your data.
                 </Title>
                 <Button
-                  data-tally-open="31a9Ng"
+                  data-tally-open="w8l0Zl"
+                  data-tally-layout="modal"
                   data-tally-hide-title="1"
-                  data-tally-emoji-animation="none"
                   size="lg"
                   color="dark"
                   mt={'lg'}

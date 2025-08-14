@@ -23,6 +23,7 @@ import CommunityIcon from '@/assets/icons/community-icon.svg';
 import DBIcon from '@/assets/icons/db-icon.svg';
 import BigPictureIcon from '@/assets/icons/big-picture-icon.svg';
 import Script from 'next/script';
+import SembleLogo from '@/assets/semble-logo.svg';
 
 export default function LandingPage() {
   return (
@@ -33,6 +34,7 @@ export default function LandingPage() {
           <Container size={'xl'} p={'md'} my={'auto'}>
             <Stack align="center" gap={'5rem'}>
               <Stack gap={'xs'} align="center" maw={550} mx={'auto'}>
+                <Image src={SembleLogo.src} alt="Semble logo" w={"auto"} h={60} />
                 <Title order={1} fw={600} fz={'3rem'} ta={'center'}>
                   A social knowledge tool for researchers
                 </Title>

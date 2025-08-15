@@ -22,7 +22,7 @@ export default function SignupPage() {
           </Title>
 
           <Text ta="center" c="dimmed" fz="lg">
-            A social knowledge tool for researchers
+            A social knowledge network for researchers
           </Text>
 
           <Box

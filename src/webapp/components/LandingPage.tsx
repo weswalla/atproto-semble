@@ -36,7 +36,7 @@ export default function LandingPage() {
               <Stack gap={'xs'} align="center" maw={550} mx={'auto'}>
                 <Image src={SembleLogo.src} alt="Semble logo" w={"auto"} h={60} />
                 <Title order={1} fw={600} fz={'3rem'} ta={'center'}>
-                  A social knowledge tool for researchers
+                  A social knowledge network for researchers
                 </Title>
                 <Title order={2} fw={600} fz={'xl'} c={'#1F6144'} ta={'center'}>
                   Follow your peers’ research trails. Surface and discover new

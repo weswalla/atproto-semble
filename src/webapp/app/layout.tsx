@@ -11,7 +11,7 @@ import { theme } from '@/styles/theme';
 import { Hanken_Grotesk } from 'next/font/google';
 
 export const metadata: Metadata = {
-  title: 'Semble | A social knowledge tool for researchers',
+  title: 'Semble | A social knowledge network for researchers',
   description: `Follow your peers' research trails. Surface and discover new connections. Built on ATProto so you own your data.`,
 };
 

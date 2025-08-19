@@ -1,52 +1,81 @@
-import { Title, Text, Stack, Button, Center, Anchor } from '@mantine/core';
-import { FaBluesky } from 'react-icons/fa6';
+'use client';
+
+import SignUpForm from '@/features/auth/components/signUpForm/SignUpForm';
+import { Stack, Title, Text, Anchor, Image, Loader } from '@mantine/core';
+import SembleLogo from '@/assets/semble-logo.svg';
+import { useAuth } from '@/hooks/useAuth';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Page() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setIsRedirecting(true);
+
+      // redirect after 1 second
+      const id = setTimeout(() => {
+        router.push('/library');
+      }, 1000);
+    }
+  }, [isAuthenticated, router]);
+
+  if (isLoading) {
+    return (
+      <Stack align="center">
+        <Loader type="dots" />
+      </Stack>
+    );
+  }
+
+  if (isRedirecting) {
+    return (
+      <Stack align="center">
+        <Text fw={500} fz={'xl'}>
+          Already logged in, redirecting you to library
+        </Text>
+        <Loader type="dots" />
+      </Stack>
+    );
+  }
+
   return (
-    <Center h={'100svh'}>
-      <Stack align="center" gap="xl" maw={450}>
-        <Stack gap={0}>
+    <Stack align="center" gap="xl" maw={450}>
+      <Stack gap={0}>
+        <Stack gap={'xs'}>
+          <Image
+            src={SembleLogo.src}
+            alt="Semble logo"
+            w={48}
+            h={64.5}
+            mx={'auto'}
+          />
           <Title order={1} ta="center">
             Welcome
           </Title>
-          <Text fz={'h3'} fw={700} ta={'center'} c={'gray'}>
-            Sign up to get started
-          </Text>
         </Stack>
-
-        <Text fw={500} ta="center" maw={380}>
-          When you sign up today, you’ll create a Bluesky account. In near
-          future, your account will be seamlessly migrated to our{' '}
-          <Anchor
-            href="https://cosmik.network"
-            target="_blank"
-            fw={500}
-            c={'blue'}
-          >
-            Cosmik Network
-          </Anchor>
-          .
+        <Text fz={'h3'} fw={700} ta={'center'} c={'stone'}>
+          Sign up to get started
         </Text>
-
-        <Stack gap="xs">
-          <Button
-            component="a"
-            href="https://bsky.app/"
-            target="_blank"
-            size="lg"
-            color="dark"
-            leftSection={<FaBluesky size={22} />}
-          >
-            Sign up on Bluesky
-          </Button>
-          <Text fw={500} c={'gray'}>
-            Already have an account?{' '}
-            <Anchor href="/login" fw={500}>
-              Log in
-            </Anchor>
-          </Text>
-        </Stack>
       </Stack>
-    </Center>
+
+      <Text fw={500} ta="center" maw={380}>
+        When you sign up today, you’ll create a Bluesky account. In near future,
+        your account will be seamlessly migrated to our{' '}
+        <Anchor
+          href="https://cosmik.network"
+          target="_blank"
+          fw={500}
+          c={'blue'}
+        >
+          Cosmik Network
+        </Anchor>
+        .
+      </Text>
+      <SignUpForm />
+    </Stack>
   );
 }

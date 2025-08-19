@@ -2,8 +2,8 @@ import { Center, Container } from '@mantine/core';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sign up',
-  description: 'Sign up to get started',
+  title: 'Log in',
+  description: 'Welcome back',
 };
 
 interface Props {

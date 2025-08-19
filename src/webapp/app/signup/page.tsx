@@ -1,116 +1,52 @@
-'use client';
+import { Title, Text, Stack, Button, Center, Anchor } from '@mantine/core';
+import { FaBluesky } from 'react-icons/fa6';
 
-import {
-  Title,
-  Text,
-  Stack,
-  Button,
-  Center,
-  Card,
-  Box,
-  Group,
-} from '@mantine/core';
-import { FaExternalLinkAlt } from 'react-icons/fa';
-
-export default function SignupPage() {
+export default function Page() {
   return (
     <Center h={'100svh'}>
-      <Card withBorder w={500} p="xl">
-        <Stack align="center" gap="lg">
+      <Stack align="center" gap="xl" maw={450}>
+        <Stack gap={0}>
           <Title order={1} ta="center">
-            Welcome to Semble
+            Welcome
           </Title>
-
-          <Text ta="center" c="dimmed" fz="lg">
-            A social knowledge tool for researchers
+          <Text fz={'h3'} fw={700} ta={'center'} c={'gray'}>
+            Sign up to get started
           </Text>
-
-          <Box
-            style={{
-              backgroundColor: '#f8f9fa',
-              padding: '1.5rem',
-              borderRadius: '8px',
-              border: '1px solid #e9ecef',
-            }}
-          >
-            <Stack gap="md">
-              <Text fw={500} ta="center">
-                Bluesky Account Required
-              </Text>
-              <Text fz="sm" ta="center" c="dimmed">
-                Semble is built on ATProto and requires a Bluesky account to
-                use. This ensures you own your data and can take it with you
-                anywhere.
-              </Text>
-            </Stack>
-          </Box>
-
-          <Stack gap="sm" w="100%">
-            <Text fw={500} ta="center">
-              Already have a Bluesky account?
-            </Text>
-            <Button
-              component="a"
-              href="/login"
-              size="lg"
-              fullWidth
-              style={{
-                backgroundColor: '#FF4500',
-                color: '#FFF',
-              }}
-            >
-              Sign in to Semble
-            </Button>
-          </Stack>
-
-          <Stack gap="sm" w="100%">
-            <Text fw={500} ta="center">
-              Need a Bluesky account?
-            </Text>
-            <Button
-              component="a"
-              href="https://bsky.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              size="lg"
-              variant="outline"
-              fullWidth
-              rightSection={<FaExternalLinkAlt size={14} />}
-              style={{
-                borderColor: '#0085ff',
-                color: '#0085ff',
-              }}
-            >
-              Create account on Bluesky
-            </Button>
-          </Stack>
-
-          <Group gap="xs" mt="md">
-            <Text fz="sm" c="dimmed">
-              Already have an account?
-            </Text>
-            <Text
-              component="a"
-              href="/login"
-              fz="sm"
-              c="#FF4500"
-              style={{
-                textDecoration: 'none',
-                cursor: 'pointer',
-              }}
-              styles={{
-                root: {
-                  '&:hover': {
-                    textDecoration: 'underline',
-                  },
-                },
-              }}
-            >
-              Sign in here
-            </Text>
-          </Group>
         </Stack>
-      </Card>
+
+        <Text fw={500} ta="center" maw={380}>
+          When you sign up today, you’ll create a Bluesky account. In near
+          future, your account will be seamlessly migrated to our{' '}
+          <Anchor
+            href="https://cosmik.network"
+            target="_blank"
+            fw={500}
+            c={'blue'}
+          >
+            Cosmik Network
+          </Anchor>
+          .
+        </Text>
+
+        <Stack gap="xs">
+          <Button
+            component="a"
+            href="https://bsky.app/"
+            target="_blank"
+            size="lg"
+            color="dark"
+            leftSection={<FaBluesky size={22} />}
+          >
+            Sign up on Bluesky
+          </Button>
+          <Text fw={500} c={'gray'}>
+            Already have an account?{' '}
+            <Anchor href="/login" fw={500}>
+              Log in
+            </Anchor>
+          </Text>
+        </Stack>
+      </Stack>
     </Center>
   );
 }

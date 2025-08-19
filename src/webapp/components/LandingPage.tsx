@@ -51,16 +51,10 @@ export default function LandingPage() {
                   </Button>
                 ) : (
                   <Group gap="md" mt={'lg'}>
-                    <Button component="a" href="/signup" size="lg" color="dark">
+                    <Button component="a" href="/signup" size="lg">
                       Sign up
                     </Button>
-                    <Button
-                      component="a"
-                      href="/login"
-                      size="lg"
-                      variant="outline"
-                      color="dark"
-                    >
+                    <Button component="a" href="/login" size="lg" color="dark">
                       Log in
                     </Button>
                   </Group>

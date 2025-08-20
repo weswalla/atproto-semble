@@ -1,8 +1,8 @@
-import { Alert, Button, NavLink, Skeleton } from '@mantine/core';
 import Link from 'next/link';
+import { Alert, Button, NavLink, Skeleton } from '@mantine/core';
 import { BiRightArrowAlt } from 'react-icons/bi';
-import useCollections from '../../lib/queries/useCollections';
 import CollectionNavItem from '../collectionNavItem/CollectionNavItem';
+import useCollections from '../../lib/queries/useCollections';
 
 export default function CollectionsNavList() {
   const { data, error, isPending } = useCollections();

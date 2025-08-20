@@ -17,16 +17,10 @@ interface Props {
 export default function Header(props: Props) {
   return (
     <AppShellHeader withBorder={false}>
-      <Group h="100%" px="lg" gap={'xs'} justify="space-between">
+      <Group h="100%" px="md" gap={'xs'} justify="space-between">
         <Group>
           <Anchor component={Link} href={'/library'}>
-            <Image
-              src={SembleLogo.src}
-              alt="Semble logo"
-              w={20.84}
-              h={28}
-              ml={'xs'}
-            />
+            <Image src={SembleLogo.src} alt="Semble logo" w={20.84} h={28} />
           </Anchor>
           <ActionIcon
             variant="subtle"

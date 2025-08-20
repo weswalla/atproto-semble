@@ -28,7 +28,7 @@ export default function ProfileMenu() {
   };
 
   if (isPending || !data) {
-    return <Skeleton circle />;
+    return <Skeleton w={38} h={38} radius={'md'} />;
   }
 
   if (error) {

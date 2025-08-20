@@ -1,37 +1,21 @@
 'use client';
 
 import { useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { useDisclosure, useMediaQuery } from '@mantine/hooks';
-import {
-  ActionIcon,
-  AppShell,
-  Group,
-  NavLink,
-  Text,
-  Affix,
-} from '@mantine/core';
-import { FiSidebar } from 'react-icons/fi';
-import { IoDocumentTextOutline } from 'react-icons/io5';
-import { BsFolder2 } from 'react-icons/bs';
-import { BiUser } from 'react-icons/bi';
+import { useDisclosure } from '@mantine/hooks';
+import { ActionIcon, AppShell, Affix } from '@mantine/core';
 import { FiPlus } from 'react-icons/fi';
-import { HiOutlineGlobeAlt } from 'react-icons/hi';
+import Header from '@/components/navigation/header/Header';
+import Navbar from '@/components/navigation/navbar/Navbar';
 
-export default function AuthenticatedLayout({
-  children,
-}: {
+interface Props {
   children: React.ReactNode;
-}) {
-  const { isAuthenticated, isLoading } = useAuth();
+}
+export default function AuthenticatedLayout(props: Props) {
   const router = useRouter();
-
-  const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
-  const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
-  const isMobile = useMediaQuery('(max-width: 768px)');
-
-  const pathname = usePathname();
+  const { isAuthenticated, isLoading } = useAuth();
+  const [opened, { toggle }] = useDisclosure();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -49,67 +33,23 @@ export default function AuthenticatedLayout({
       navbar={{
         width: 300,
         breakpoint: 'sm',
-        collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
+        collapsed: { mobile: !opened, desktop: opened },
       }}
       padding="md"
     >
-      <AppShell.Header>
-        <Group h="100%" px="md" gap={'xs'}>
-          <ActionIcon
-            variant="subtle"
-            size="lg"
-            onClick={() => {
-              isMobile ? toggleMobile() : toggleDesktop();
-            }}
-          >
-            <FiSidebar />
-          </ActionIcon>
-          <Text fw={600}>Semble</Text>
-        </Group>
-      </AppShell.Header>
-
-      <AppShell.Navbar p="md">
-        <NavLink
-          href="/explore"
-          label="Explore"
-          active={pathname === '/explore'}
-          leftSection={<HiOutlineGlobeAlt />}
-        />
-        <NavLink
-          href="/library"
-          label="My cards"
-          active={pathname === '/library'}
-          leftSection={<IoDocumentTextOutline />}
-        />
-        <NavLink
-          href="/collections"
-          label="My collections"
-          active={pathname === '/collections'}
-          leftSection={<BsFolder2 />}
-        />
-        <NavLink
-          href="/profile"
-          label="Profile"
-          active={pathname === '/profile'}
-          leftSection={<BiUser />}
-          mt="auto"
-        />
-      </AppShell.Navbar>
+      <Header onToggleNavbar={toggle} />
+      <Navbar />
 
       <AppShell.Main>
-        {children}
+        {props.children}
         <Affix position={{ bottom: 20, right: 20 }}>
           <ActionIcon
             onClick={() => router.push('/cards/add')}
-            size={56}
+            size={'input-lg'}
             radius="xl"
-            color="blue"
             variant="filled"
-            style={{
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            }}
           >
-            <FiPlus size={24} />
+            <FiPlus size={26} />
           </ActionIcon>
         </Affix>
       </AppShell.Main>

@@ -27,8 +27,13 @@ export default function ComposerDrawer() {
         transitionProps={{ transition: 'fade-left', enterDelay: 65 }}
       >
         <Menu.Target>
-          <Affix position={{ bottom: 20, right: 20 }}>
-            <ActionIcon size={'input-lg'} radius="xl" variant="filled">
+          <Affix m={'md'}>
+            <ActionIcon
+              size={'input-lg'}
+              radius="xl"
+              variant="filled"
+              h={'100%'}
+            >
               <Transition
                 mounted={!opened}
                 transition="fade-left"

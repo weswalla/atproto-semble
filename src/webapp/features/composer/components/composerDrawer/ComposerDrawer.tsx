@@ -104,7 +104,7 @@ export default function ComposerDrawer() {
               position: 'fixed',
               inset: 0,
               zIndex: 200,
-              backdropFilter: 'blur(2.5px)',
+              backdropFilter: 'blur(3px)',
               background:
                 'linear-gradient(0deg, rgba(204, 255, 0, 0.5), rgba(255, 255, 255, 0.5))',
             }}

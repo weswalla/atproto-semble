@@ -15,7 +15,7 @@ export default function Header(props: Props) {
           <Image
             src={SembleLogo.src}
             alt="Semble logo"
-            w={'auto'}
+            w={20.84}
             h={28}
             ml={'xs'}
           />

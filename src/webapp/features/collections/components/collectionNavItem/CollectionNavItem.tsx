@@ -1,4 +1,5 @@
 import { Button } from '@mantine/core';
+import Link from 'next/link';
 
 interface Props {
   name: string;
@@ -8,7 +9,7 @@ interface Props {
 export default function CollectionNavItem(props: Props) {
   return (
     <Button
-      component="a"
+      component={Link}
       href={props.url}
       variant="subtle"
       size="md"

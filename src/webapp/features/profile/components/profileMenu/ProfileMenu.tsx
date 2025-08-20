@@ -32,9 +32,7 @@ export default function ProfileMenu() {
   }
 
   if (error) {
-    return (
-      <Alert variant="white" color="red" title="Could not load collections" />
-    );
+    return <Alert variant="white" color="red" title="Could not load profile" />;
   }
 
   return (

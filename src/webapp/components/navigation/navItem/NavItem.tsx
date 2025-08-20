@@ -20,12 +20,13 @@ export default function NavItem(props: Props) {
     <NavLink
       component={Link}
       href={props.href}
-      variant="subtle"
-      c="gray"
+      color="gray"
+      c={'gray'}
       px={'6'}
       fw={600}
       label={props.label}
       leftSection={isActive ? props.activeIcon : props.icon}
+      active={isActive}
     />
   );
 }

@@ -6,7 +6,7 @@ import {
   ScrollArea,
   Divider,
 } from '@mantine/core';
-import { IoDocumentTextOutline } from 'react-icons/io5';
+import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 
 export default function Navbar() {
@@ -22,8 +22,8 @@ export default function Navbar() {
         <NavItem
           href="/library"
           label="Library"
-          icon={<IoDocumentTextOutline size={25} />}
-          activeIcon={<IoDocumentTextOutline size={25} />}
+          icon={<LuLibrary size={25} />}
+          activeIcon={<LuLibrary size={25} />}
         />
         <NavItem
           href="/explore"

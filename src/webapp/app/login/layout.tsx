@@ -12,8 +12,10 @@ interface Props {
 
 export default function Layout(props: Props) {
   return (
-    <Container p={'sm'}>
-      <Center h={'100svh'}>{props.children}</Center>
+    <Container>
+      <Center h={'100svh'} p={'sm'}>
+        {props.children}
+      </Center>
     </Container>
   );
 }

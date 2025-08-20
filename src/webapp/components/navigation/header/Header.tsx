@@ -1,6 +1,7 @@
 import { ActionIcon, AppShellHeader, Group, Image } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 import { FiSidebar } from 'react-icons/fi';
+import ProfileMenu from '@/features/profile/components/profileMenu/ProfileMenu';
 
 interface Props {
   onToggleNavbar: () => void;
@@ -28,6 +29,7 @@ export default function Header(props: Props) {
             <FiSidebar size={22} />
           </ActionIcon>
         </Group>
+        <ProfileMenu />
       </Group>
     </AppShellHeader>
   );

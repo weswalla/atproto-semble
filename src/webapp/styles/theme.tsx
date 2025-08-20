@@ -1,6 +1,13 @@
 'use client';
 
-import { Button, createTheme, NavLink, TextInput } from '@mantine/core';
+import {
+  Avatar,
+  Button,
+  createTheme,
+  MenuItem,
+  NavLink,
+  TextInput,
+} from '@mantine/core';
 
 export const theme = createTheme({
   primaryColor: 'tangerine',
@@ -59,6 +66,17 @@ export const theme = createTheme({
           fontWeight: 600,
         },
       }),
+    }),
+    Avatar: Avatar.extend({
+      defaultProps: {
+        radius: 'md',
+      },
+    }),
+    MenuItem: MenuItem.extend({
+      defaultProps: {
+        fz: 'md',
+        fw: 600,
+      },
     }),
   },
 });

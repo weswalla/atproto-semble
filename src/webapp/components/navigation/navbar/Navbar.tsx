@@ -1,3 +1,4 @@
+import CollectionsNavList from '@/features/collections/components/collectionsNavList/CollectionsNavList';
 import NavItem from '../navItem/NavItem';
 import {
   AppShellSection,
@@ -32,9 +33,7 @@ export default function Navbar() {
         />
 
         <Divider my={'sm'} />
-        {/*<FeedNavList />
-        <ListNavList />
-        <ChatNavList />*/}
+        <CollectionsNavList />
       </AppShellSection>
 
       <AppShellSection p={'md'}></AppShellSection>

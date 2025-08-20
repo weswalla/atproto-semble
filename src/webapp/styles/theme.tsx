@@ -53,6 +53,7 @@ export const theme = createTheme({
     }),
     NavLink: NavLink.extend({
       styles: (theme) => ({
+        root: { borderRadius: theme.radius.md },
         label: {
           fontSize: theme.fontSizes.md,
           fontWeight: 600,

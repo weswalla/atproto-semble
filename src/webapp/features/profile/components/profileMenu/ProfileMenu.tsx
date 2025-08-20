@@ -39,20 +39,23 @@ export default function ProfileMenu() {
 
   return (
     <Group>
-      <Menu shadow="sm" width={250}>
+      <Menu shadow="sm" width={280}>
         <Menu.Target>
           <Avatar src={data.avatarUrl} />
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Item component="a" href="/profile">
-            <Stack gap={0} w={'80%'}>
-              <Text truncate="end" lineClamp={1} fw={500}>
-                {data.name}
-              </Text>
-              <Text fw={500} truncate="end" c={'gray'}>
-                {data.handle}
-              </Text>
-            </Stack>
+            <Group gap={'xs'} wrap="nowrap">
+              <Avatar src={data.avatarUrl} size={48} />
+              <Stack gap={0}>
+                <Text lineClamp={1} fw={500} style={{ wordBreak: 'break-all' }}>
+                  {data.name}
+                </Text>
+                <Text fw={500} truncate="end" lineClamp={1} c={'gray'}>
+                  View profile
+                </Text>
+              </Stack>
+            </Group>
           </Menu.Item>
 
           <Menu.Divider />

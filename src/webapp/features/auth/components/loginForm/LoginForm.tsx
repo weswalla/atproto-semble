@@ -168,7 +168,7 @@ export default function LoginForm() {
             />
             <PasswordInput
               label="App password"
-              placeholder="Your assword"
+              placeholder="Your password"
               key={form.key('appPassword')}
               {...form.getInputProps('appPassword')}
               leftSection={<MdLock size={22} />}

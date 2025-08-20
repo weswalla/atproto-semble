@@ -75,10 +75,10 @@ function AuthCompleteContent() {
   return (
     <Stack align="center">
       <Stack gap={0} align="center">
-        <Title order={2}>Completing Sign In</Title>
+        <Title order={2}>Signing you in...</Title>
         <Text>{message}</Text>
       </Stack>
-      <Loader type="bars" />
+      <Loader type="dots" />
     </Stack>
   );
 }

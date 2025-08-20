@@ -1,262 +1,113 @@
 'use client';
 
-import { Suspense } from 'react';
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-import { ApiClient } from '@/api-client/ApiClient';
-import { ExtensionService } from '@/services/extensionService';
+import LoginForm from '@/features/auth/components/loginForm/LoginForm';
 import {
-  Title,
-  Button,
   Stack,
-  Center,
-  Card,
-  TextInput,
-  PasswordInput,
+  Title,
   Text,
-  Group,
+  Image,
+  Anchor,
+  Popover,
+  Button,
+  PopoverTarget,
+  PopoverDropdown,
   Loader,
 } from '@mantine/core';
-import { getAccessToken } from '@/services/auth';
+import { Suspense, useEffect, useState } from 'react';
+import { IoMdHelpCircleOutline } from 'react-icons/io';
+import SembleLogo from '@/assets/semble-logo.svg';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
 
-function LoginForm() {
-  const [handle, setHandle] = useState('');
-  const [appPassword, setAppPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [useAppPassword, setUseAppPassword] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+export default function Page() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { setTokens, isAuthenticated } = useAuth();
 
-  const isExtensionLogin = searchParams.get('extension-login') === 'true';
-
-  // Create API client instance
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    () => getAccessToken(), // Use auth token when available
-  );
-
-  // Handle extension login if user is already authenticated
   useEffect(() => {
-    if (isExtensionLogin && isAuthenticated) {
-      handleExtensionTokenGeneration();
-    } else if (isAuthenticated && !isExtensionLogin) {
-      // If user is already authenticated and not doing extension login, redirect to library
-      router.push('/library');
-    } else {
-      // Auth check is complete, show the login form
-      setIsCheckingAuth(false);
-    }
-  }, [isExtensionLogin, isAuthenticated]);
+    if (isAuthenticated) {
+      setIsRedirecting(true);
 
-  const handleExtensionTokenGeneration = async () => {
-    try {
-      setIsLoading(true);
-      const tokens = await apiClient.generateExtensionTokens();
-
-      await ExtensionService.sendTokensToExtension(tokens);
-
-      setError('');
-
-      // Clear the extension tokens requested flag
-      ExtensionService.clearExtensionTokensRequested();
-
-      // Redirect to extension success page after successful extension token generation
-      router.push('/extension/auth/complete');
-    } catch (err: any) {
-      // Clear the flag even on failure
-      ExtensionService.clearExtensionTokensRequested();
-
-      // Redirect to extension error page
-      router.push('/extension/auth/error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleOAuthSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!handle) {
-      setError('Please enter your Bluesky handle');
-      return;
-    }
-
-    setIsLoading(true);
-    setError('');
-
-    try {
-      // If this is an extension login, persist the flag before redirect
-      if (searchParams.get('extension-login') === 'true') {
-        ExtensionService.setExtensionTokensRequested();
-      }
-
-      const { authUrl } = await apiClient.initiateOAuthSignIn({ handle });
-
-      // Redirect to the auth URL from the API
-      window.location.href = authUrl;
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during login');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleAppPasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!handle || !appPassword) {
-      setError('Please enter both your handle and app password');
-      return;
-    }
-
-    setIsLoading(true);
-    setError('');
-
-    try {
-      const { accessToken, refreshToken } =
-        await apiClient.loginWithAppPassword({
-          identifier: handle,
-          appPassword: appPassword,
-        });
-
-      // Set tokens
-      setTokens(accessToken, refreshToken);
-
-      // Handle extension login or redirect to dashboard
-      if (isExtensionLogin) {
-        await handleExtensionTokenGeneration();
-      } else {
+      // redirect after 1 second
+      const id = setTimeout(() => {
         router.push('/library');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Invalid credentials');
-    } finally {
-      setIsLoading(false);
+      }, 1000);
     }
-  };
+  }, [isAuthenticated, router]);
 
-  // Show loading while checking authentication status
-  if (isCheckingAuth || isAuthenticated) {
+  if (isLoading) {
     return (
-      <Center h={'100svh'}>
-        <Stack align="center">
-          <Loader size="lg" />
-        </Stack>
-      </Center>
+      <Stack align="center">
+        <Loader type="dots" />
+      </Stack>
+    );
+  }
+
+  if (isRedirecting) {
+    return (
+      <Stack align="center">
+        <Text fw={500} fz={'xl'}>
+          Already logged in, redirecting you to library
+        </Text>
+        <Loader type="dots" />
+      </Stack>
     );
   }
 
   return (
-    <Center h={'100svh'}>
-      <Stack align="center">
-        <Title order={1}>
-          {isExtensionLogin ? 'Sign in for Extension' : 'Sign in with Bluesky'}
-        </Title>
-
-        <Card withBorder w={400}>
-          {!useAppPassword ? (
-            <form onSubmit={handleOAuthSubmit}>
-              <Stack>
-                <Stack>
-                  <TextInput
-                    id="handle"
-                    label="Enter your Bluesky handle"
-                    placeholder="username.bsky.social"
-                    value={handle}
-                    onChange={(e) => setHandle(e.target.value)}
-                  />
-                  {error && (
-                    <Text fz={'sm'} c={'red'}>
-                      {error}
-                    </Text>
-                  )}
-                </Stack>
-
-                <Group grow>
-                  <Button type="submit" loading={isLoading}>
-                    {isLoading ? 'Connecting...' : 'Continue'}
-                  </Button>
-                </Group>
-
-                <Stack>
-                  <Button
-                    type="button"
-                    onClick={() => setUseAppPassword(true)}
-                    variant="transparent"
-                    color="blue"
-                  >
-                    Sign in with app password
-                  </Button>
-                </Stack>
-              </Stack>
-            </form>
-          ) : (
-            <form onSubmit={handleAppPasswordSubmit}>
-              <Stack>
-                <Stack>
-                  <TextInput
-                    id="handle-app"
-                    label="Bluesky handle"
-                    placeholder="username.bsky.social"
-                    value={handle}
-                    onChange={(e) => setHandle(e.target.value)}
-                  />
-
-                  <Stack>
-                    <PasswordInput
-                      id="app-password"
-                      label="App password"
-                      placeholder="xxxx-xxxx-xxxx-xxxx"
-                      value={appPassword}
-                      onChange={(e) => setAppPassword(e.target.value)}
-                    />
-                    {error && (
-                      <Text fz={'sm'} c={'red'}>
-                        {error}
-                      </Text>
-                    )}
-                  </Stack>
-                </Stack>
-
-                <Button type="submit" disabled={isLoading} loading={isLoading}>
-                  {isLoading ? 'Signing in...' : 'Sign in'}
-                </Button>
-
-                <Stack>
-                  <Button
-                    type="button"
-                    onClick={() => setUseAppPassword(false)}
-                    variant="transparent"
-                    color="blue"
-                  >
-                    Back to OAuth sign in
-                  </Button>
-                </Stack>
-              </Stack>
-            </form>
-          )}
-        </Card>
+    <Suspense>
+      <Stack gap="xl" maw={300}>
+        <Stack gap={'xs'}>
+          <Image
+            src={SembleLogo.src}
+            alt="Semble logo"
+            w={48}
+            h={64.5}
+            mx={'auto'}
+          />
+          <Title order={1} ta="center">
+            Welcome back
+          </Title>
+        </Stack>
+        <LoginForm />
+        <Stack align="center" gap={0}>
+          <Text fw={500} c={'stone'}>
+            {"Don't have an account?"}
+            <Anchor href="/signup" fw={500}>
+              Sign up
+            </Anchor>
+          </Text>
+          <Popover withArrow shadow="md">
+            <PopoverTarget>
+              <Button
+                variant="white"
+                size="md"
+                fw={500}
+                fs={'italic'}
+                c={'stone'}
+                rightSection={<IoMdHelpCircleOutline size={22} />}
+              >
+                How your Cosmik Network account works
+              </Button>
+            </PopoverTarget>
+            <PopoverDropdown>
+              <Text fw={500} ta="center" maw={380}>
+                When you sign up today, you’ll create a Bluesky account. In near
+                future, your account will be seamlessly migrated to our{' '}
+                <Anchor
+                  href="https://cosmik.network"
+                  target="_blank"
+                  fw={500}
+                  c={'blue'}
+                >
+                  Cosmik Network
+                </Anchor>
+                .
+              </Text>
+            </PopoverDropdown>
+          </Popover>
+        </Stack>
       </Stack>
-    </Center>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense
-      fallback={
-        <Center h={'100svh'}>
-          <Stack align="center">
-            <Loader size="lg" />
-          </Stack>
-        </Center>
-      }
-    >
-      <LoginForm />
     </Suspense>
   );
 }

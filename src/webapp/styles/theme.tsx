@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, createTheme } from '@mantine/core';
+import { Button, createTheme, TextInput } from '@mantine/core';
 
 export const theme = createTheme({
   primaryColor: 'tangerine',
@@ -17,7 +17,7 @@ export const theme = createTheme({
       '#cb4d00',
       '#b14000',
     ],
-    gray: [
+    stone: [
       '#fff1f5',
       '#ede6e7',
       '#d0cccd',

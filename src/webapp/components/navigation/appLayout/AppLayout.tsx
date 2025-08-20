@@ -4,6 +4,7 @@ import { FiPlus } from 'react-icons/fi';
 import Header from '@/components/navigation/header/Header';
 import Navbar from '@/components/navigation/navbar/Navbar';
 import { useRouter } from 'next/navigation';
+import ComposerDrawer from '@/features/composer/components/composerDrawer/ComposerDrawer';
 
 interface Props {
   children: React.ReactNode;
@@ -28,16 +29,17 @@ export default function AppLayout(props: Props) {
 
       <AppShell.Main>
         {props.children}
-        <Affix position={{ bottom: 20, right: 20 }}>
+        {/*<Affix position={{ bottom: 20, right: 20 }}>
           <ActionIcon
-            onClick={() => router.push('/cards/add')}
+            onClick={open}
             size={'input-lg'}
             radius="xl"
             variant="filled"
           >
             <FiPlus size={26} />
           </ActionIcon>
-        </Affix>
+        </Affix>*/}
+        <ComposerDrawer />
       </AppShell.Main>
     </AppShell>
   );

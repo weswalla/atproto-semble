@@ -9,7 +9,7 @@ import {
   Card,
   AspectRatio,
 } from '@mantine/core';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { FiPlus, FiX } from 'react-icons/fi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { BiCollection } from 'react-icons/bi';
@@ -19,7 +19,7 @@ export default function ComposerDrawer() {
   const [opened, setOpened] = useState(false);
 
   return (
-    <>
+    <Fragment>
       <Menu
         opened={opened}
         onChange={setOpened}
@@ -106,6 +106,6 @@ export default function ComposerDrawer() {
           />
         )}
       </Transition>
-    </>
+    </Fragment>
   );
 }

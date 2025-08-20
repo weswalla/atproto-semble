@@ -1,6 +1,5 @@
 import { useDisclosure } from '@mantine/hooks';
-import { ActionIcon, AppShell, Affix } from '@mantine/core';
-import { FiPlus } from 'react-icons/fi';
+import { AppShell } from '@mantine/core';
 import Header from '@/components/navigation/header/Header';
 import Navbar from '@/components/navigation/navbar/Navbar';
 import { useRouter } from 'next/navigation';
@@ -29,16 +28,6 @@ export default function AppLayout(props: Props) {
 
       <AppShell.Main>
         {props.children}
-        {/*<Affix position={{ bottom: 20, right: 20 }}>
-          <ActionIcon
-            onClick={open}
-            size={'input-lg'}
-            radius="xl"
-            variant="filled"
-          >
-            <FiPlus size={26} />
-          </ActionIcon>
-        </Affix>*/}
         <ComposerDrawer />
       </AppShell.Main>
     </AppShell>

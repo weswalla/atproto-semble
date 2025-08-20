@@ -1,14 +1,8 @@
 import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
-import {
-  ColorSchemeScript,
-  mantineHtmlProps,
-  MantineProvider,
-} from '@mantine/core';
-import '@mantine/core/styles.css';
-import { AuthProvider } from '@/hooks/useAuth';
-import { theme } from '@/styles/theme';
+import { ColorSchemeScript, mantineHtmlProps } from '@mantine/core';
 import { Hanken_Grotesk } from 'next/font/google';
+import Providers from '@/providers';
 
 export const metadata: Metadata = {
   title: {
@@ -37,9 +31,7 @@ export default function RootLayout({
         <ColorSchemeScript />
       </head>
       <body>
-        <MantineProvider theme={theme}>
-          <AuthProvider>{children}</AuthProvider>
-        </MantineProvider>
+        <Providers>{children}</Providers>
         <Analytics />
       </body>
     </html>

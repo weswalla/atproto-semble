@@ -72,7 +72,7 @@ export default function Page() {
         <LoginForm />
         <Stack align="center" gap={0}>
           <Text fw={500} c={'stone'}>
-            {"Don't have an account?"}
+            {"Don't have an account? "}
             <Anchor href="/signup" fw={500}>
               Sign up
             </Anchor>

@@ -36,7 +36,7 @@ export default function Navbar() {
         <CollectionsNavList />
       </AppShellSection>
 
-      <AppShellSection p={'md'}></AppShellSection>
+      {/*<AppShellSection p={'md'}></AppShellSection>*/}
     </AppShellNavbar>
   );
 }

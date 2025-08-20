@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Alert, Button, NavLink, Skeleton } from '@mantine/core';
-import { BiRightArrowAlt } from 'react-icons/bi';
+import { BiCollection, BiRightArrowAlt } from 'react-icons/bi';
 import CollectionNavItem from '../collectionNavItem/CollectionNavItem';
 import useCollections from '../../lib/queries/useCollections';
 
@@ -16,7 +16,12 @@ export default function CollectionsNavList() {
   }
 
   return (
-    <NavLink variant="subtle" c="gray" label="Collections">
+    <NavLink
+      variant="subtle"
+      c="gray"
+      label="Collections"
+      leftSection={<BiCollection size={22} />}
+    >
       {data.collections.map((c) => (
         <CollectionNavItem
           key={c.id}

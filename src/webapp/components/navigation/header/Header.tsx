@@ -17,7 +17,7 @@ interface Props {
 export default function Header(props: Props) {
   return (
     <AppShellHeader withBorder={false}>
-      <Group h="100%" px="sm" gap={'xs'} justify="space-between">
+      <Group h="100%" px="lg" gap={'xs'} justify="space-between">
         <Group>
           <Anchor component={Link} href={'/library'}>
             <Image

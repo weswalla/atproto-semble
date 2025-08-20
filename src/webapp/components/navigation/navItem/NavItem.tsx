@@ -22,7 +22,6 @@ export default function NavItem(props: Props) {
       href={props.href}
       color="gray"
       c={'gray'}
-      px={'6'}
       fw={600}
       label={props.label}
       leftSection={isActive ? props.activeIcon : props.icon}

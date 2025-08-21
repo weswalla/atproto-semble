@@ -39,7 +39,7 @@ export default function ProfileMenu() {
     <Group>
       <Menu shadow="sm" width={280}>
         <Menu.Target>
-          <Avatar src={data.avatarUrl} />
+          <Avatar src={data.avatarUrl} style={{ cursor: 'pointer' }} />
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Item component="a" href="/profile">

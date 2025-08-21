@@ -71,7 +71,12 @@ export default function ComposerDrawer() {
           }}
           py={0}
         >
-          <Menu.Item component={Link} href="/cards/add" p={0}>
+          <Menu.Item
+            component={Link}
+            href="/cards/add"
+            p={0}
+            style={{ cursor: 'pointer' }}
+          >
             <Card withBorder shadow="xl" radius={'lg'}>
               <Stack gap={'xs'} c={'gray'}>
                 <FaRegNoteSticky size={22} />
@@ -82,7 +87,12 @@ export default function ComposerDrawer() {
               </Stack>
             </Card>
           </Menu.Item>
-          <Menu.Item component={Link} href="/collections/create" p={0}>
+          <Menu.Item
+            component={Link}
+            href="/collections/create"
+            p={0}
+            style={{ cursor: 'pointer' }}
+          >
             <Card withBorder shadow="xl" radius={'lg'}>
               <Stack gap={'xs'} c={'gray'}>
                 <BiCollection size={22} />

@@ -22,13 +22,6 @@ export default function CollectionsNavList() {
       label="Collections"
       leftSection={<BiCollection size={22} />}
     >
-      {data.collections.map((c) => (
-        <CollectionNavItem
-          key={c.id}
-          name={c.name}
-          url={`/collections/${c.id}`}
-        />
-      ))}
       <Button
         component={Link}
         href="/collections"
@@ -55,6 +48,13 @@ export default function CollectionsNavList() {
       >
         Add
       </Button>
+      {data.collections.map((c) => (
+        <CollectionNavItem
+          key={c.id}
+          name={c.name}
+          url={`/collections/${c.id}`}
+        />
+      ))}
     </NavLink>
   );
 }

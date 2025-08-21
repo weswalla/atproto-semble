@@ -25,6 +25,7 @@ export default function ComposerDrawer() {
         onChange={setOpened}
         position="left-end"
         transitionProps={{ transition: 'fade-left', enterDelay: 50 }}
+        radius={'lg'}
       >
         <Menu.Target>
           <Affix m={'md'}>

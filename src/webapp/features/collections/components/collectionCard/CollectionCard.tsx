@@ -57,7 +57,7 @@ export default function CollectionCard(props: Props) {
             c={'blue'}
             fw={600}
           >
-            View all
+            View
           </Anchor>
         </Group>
       </Stack>

@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ApiClient } from '@/api-client/ApiClient';
 import { getAccessToken } from '@/services/auth';
-import { UrlCard } from '@/components/UrlCard';
+import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import type { GetMyUrlCardsResponse } from '@/api-client/types';
 import {
   Button,
@@ -62,18 +62,18 @@ export default function DashboardPage() {
         {cardsLoading ? (
           <Loader />
         ) : urlCards.length > 0 ? (
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing={'md'}>
+          <SimpleGrid
+            cols={{ base: 1, xs: 2, sm: 3, lg: 4, xl: 5 }}
+            spacing={'md'}
+          >
             {urlCards.map((card) => (
               <UrlCard
                 key={card.id}
-                cardId={card.id}
+                id={card.id}
                 url={card.url}
-                title={card.cardContent.title}
-                description={card.cardContent.description}
-                author={card.cardContent.author}
-                imageUrl={card.cardContent.thumbnailUrl}
-                addedAt={card.createdAt}
-                note={card.note?.text}
+                cardContent={card.cardContent}
+                note={card.note}
+                collections={card.collections}
               />
             ))}
           </SimpleGrid>

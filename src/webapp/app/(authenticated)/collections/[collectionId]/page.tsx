@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getAccessToken } from '@/services/auth';
 import { ApiClient } from '@/api-client/ApiClient';
-import { UrlCard } from '@/components/UrlCard';
+
 import type { GetCollectionPageResponse } from '@/api-client/types';
 import {
   Button,
@@ -17,6 +17,7 @@ import {
   Box,
   SimpleGrid,
 } from '@mantine/core';
+import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 
 export default function CollectionPage() {
   const [collection, setCollection] =
@@ -130,14 +131,10 @@ export default function CollectionPage() {
                 {collection.urlCards.map((card) => (
                   <UrlCard
                     key={card.id}
-                    cardId={card.id}
+                    id={card.id}
                     url={card.url}
-                    title={card.cardContent.title}
-                    description={card.cardContent.description}
-                    author={card.cardContent.author}
-                    imageUrl={card.cardContent.thumbnailUrl}
-                    addedAt={card.createdAt}
-                    note={card.note?.text}
+                    cardContent={card.cardContent}
+                    note={card.note}
                   />
                 ))}
               </SimpleGrid>

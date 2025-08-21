@@ -38,7 +38,7 @@ export default function CollectionCard(props: Props) {
     >
       <Stack justify="space-between" h={'100%'}>
         <Stack gap={0}>
-          <Text fw={600} fz={'lg'} lineClamp={1}>
+          <Text fw={500} lineClamp={1}>
             {collection.name}
           </Text>
           {collection.description && (
@@ -49,7 +49,9 @@ export default function CollectionCard(props: Props) {
         </Stack>
         <Group justify="space-between">
           <Text c={'gray'}>
-            {collection.cardCount} · {relativeUpdateDate}
+            {collection.cardCount}{' '}
+            {collection.cardCount === 1 ? 'card' : 'cards'} ·{' '}
+            {relativeUpdateDate}
           </Text>
           <Anchor
             component={Link}

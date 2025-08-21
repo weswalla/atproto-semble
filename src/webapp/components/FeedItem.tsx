@@ -1,9 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { UrlCard } from './UrlCard';
+import { UrlCard } from './UrlCardOld';
 import type { FeedItem as FeedItemType } from '@/api-client/types';
-import { Stack, Text, Group, Anchor, Box } from '@mantine/core';
+import { Stack, Text, Anchor, Box } from '@mantine/core';
 
 interface FeedItemProps {
   item: FeedItemType;

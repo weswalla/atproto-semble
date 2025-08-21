@@ -40,7 +40,7 @@ export default function CollectionsNavList() {
         leftSection={<BiRightArrowAlt size={25} />}
         fullWidth
       >
-        Edit collections
+        View all
       </Button>
       <Button
         component={Link}

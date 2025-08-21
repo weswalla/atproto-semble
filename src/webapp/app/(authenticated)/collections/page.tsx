@@ -8,8 +8,6 @@ import type { GetMyCollectionsResponse } from '@/api-client/types';
 import {
   Box,
   Button,
-  Card,
-  Container,
   Group,
   Loader,
   SimpleGrid,
@@ -17,6 +15,7 @@ import {
   Text,
   Title,
 } from '@mantine/core';
+import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 
 export default function CollectionsPage() {
   const [collections, setCollections] = useState<
@@ -71,33 +70,7 @@ export default function CollectionsPage() {
         {collections.length > 0 ? (
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing={'md'}>
             {collections.map((collection) => (
-              <Card
-                key={collection.id}
-                component="button"
-                withBorder
-                onClick={() => router.push(`/collections/${collection.id}`)}
-              >
-                <Stack>
-                  <Stack align="start">
-                    <Text fw={600} lineClamp={1}>
-                      {collection.name}
-                    </Text>
-
-                    {collection.description && (
-                      <Text lineClamp={2}>{collection.description}</Text>
-                    )}
-                  </Stack>
-                  <Stack>
-                    <Group justify="space-between">
-                      <Text c={'gray'}>{collection.cardCount} cards</Text>
-                      <Text c={'gray'}>
-                        Created{' '}
-                        {new Date(collection.createdAt).toLocaleDateString()}
-                      </Text>
-                    </Group>
-                  </Stack>
-                </Stack>
-              </Card>
+              <CollectionCard key={collection.id} collection={collection} />
             ))}
           </SimpleGrid>
         ) : (

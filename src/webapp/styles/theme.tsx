@@ -49,6 +49,18 @@ export const theme = createTheme({
       '#0088be',
       '#0076a8',
     ],
+    grape: [
+      '#ffe8ff',
+      '#fdceff',
+      '#f79bff',
+      '#f164ff',
+      '#ec36ff',
+      '#ea25ff',
+      '#e803ff',
+      '#ce00e4',
+      '#b800cc',
+      '#a000b3',
+    ],
   },
   fontFamily:
     'Hanken Grotesk, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji',

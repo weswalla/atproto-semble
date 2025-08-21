@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { ApiClient } from '@/api-client/ApiClient';
 import { getAccessToken } from '@/services/auth';
-import { FeedItem } from '@/components/FeedItem';
+import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
 import type { GetGlobalFeedResponse } from '@/api-client/types';
 import {
   Button,
@@ -114,7 +114,7 @@ export default function ExplorePage() {
           <Text c="dimmed">No activity to show yet</Text>
         </Center>
       ) : (
-        <Stack gap="lg">
+        <Stack gap="xl">
           {feedItems.map((item) => (
             <FeedItem key={item.id} item={item} />
           ))}

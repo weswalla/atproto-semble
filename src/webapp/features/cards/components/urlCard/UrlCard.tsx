@@ -51,6 +51,11 @@ export default function UrlCard(props: Props) {
                   {props.cardContent.title}
                 </Text>
               )}
+              {props.cardContent.description && (
+                <Text c={'gray'} fz={'sm'} mt={'xs'} lineClamp={3}>
+                  {props.cardContent.description}
+                </Text>
+              )}
             </Stack>
             {props.cardContent.thumbnailUrl && (
               <AspectRatio ratio={1 / 1}>

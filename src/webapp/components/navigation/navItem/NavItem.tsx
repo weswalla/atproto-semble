@@ -8,7 +8,6 @@ interface Props {
   href: string;
   label: string;
   icon: React.ReactElement;
-  activeIcon: React.ReactElement;
   badge?: number;
 }
 
@@ -24,7 +23,7 @@ export default function NavItem(props: Props) {
       c={'gray'}
       fw={600}
       label={props.label}
-      leftSection={isActive ? props.activeIcon : props.icon}
+      leftSection={props.icon}
       active={isActive}
     />
   );

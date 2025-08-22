@@ -9,6 +9,7 @@ import {
 } from '@mantine/core';
 import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
+import { FaRegNoteSticky } from 'react-icons/fa6';
 
 export default function Navbar() {
   return (
@@ -25,13 +26,16 @@ export default function Navbar() {
             href="/library"
             label="Library"
             icon={<LuLibrary size={25} />}
-            activeIcon={<LuLibrary size={25} />}
+          />
+          <NavItem
+            href="/my-cards"
+            label="My Cards"
+            icon={<FaRegNoteSticky size={25} />}
           />
           <NavItem
             href="/explore"
             label="Explore"
             icon={<MdOutlineEmojiNature size={25} />}
-            activeIcon={<MdOutlineEmojiNature size={25} />}
           />
         </Stack>
 

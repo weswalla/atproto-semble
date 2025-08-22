@@ -28,7 +28,7 @@ export default function ProfileMenu() {
   };
 
   if (isPending || !data) {
-    return <Skeleton w={38} h={38} radius={'md'} />;
+    return <Skeleton w={38} h={38} radius={'md'} ml={4} />;
   }
 
   if (error) {
@@ -39,7 +39,7 @@ export default function ProfileMenu() {
     <Group>
       <Menu shadow="sm" width={280}>
         <Menu.Target>
-          <Avatar src={data.avatarUrl} style={{ cursor: 'pointer' }} />
+          <Avatar src={data.avatarUrl} style={{ cursor: 'pointer' }} ml={4} />
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Item component="a" href="/profile">

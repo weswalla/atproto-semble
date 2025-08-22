@@ -1,27 +1,25 @@
-import { useDisclosure } from '@mantine/hooks';
 import { AppShell } from '@mantine/core';
-import Header from '@/components/navigation/header/Header';
 import Navbar from '@/components/navigation/navbar/Navbar';
 import ComposerDrawer from '@/features/composer/components/composerDrawer/ComposerDrawer';
+import { useNavbarContext } from '@/providers/navbar';
 
 interface Props {
   children: React.ReactNode;
 }
 
 export default function AppLayout(props: Props) {
-  const [opened, { toggle }] = useDisclosure();
+  const { opened } = useNavbarContext();
 
   return (
     <AppShell
-      header={{ height: 60 }}
+      header={{ height: 0 }}
       navbar={{
         width: 300,
-        breakpoint: 'xs',
+        breakpoint: 0,
         collapsed: { mobile: !opened, desktop: opened },
       }}
-      padding="md"
     >
-      <Header onToggleNavbar={toggle} />
+      {/*<Header />*/}
       <Navbar />
 
       <AppShell.Main>

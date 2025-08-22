@@ -6,22 +6,29 @@ import {
   ScrollArea,
   Divider,
   Stack,
+  Group,
+  Anchor,
+  Image,
 } from '@mantine/core';
 import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import { FaRegNoteSticky } from 'react-icons/fa6';
+import Link from 'next/link';
+import SembleLogo from '@/assets/semble-logo.svg';
+import ProfileMenu from '@/features/profile/components/profileMenu/ProfileMenu';
 
 export default function Navbar() {
   return (
-    <AppShellNavbar withBorder={false}>
-      <AppShellSection
-        grow
-        component={ScrollArea}
-        px={'md'}
-        pb={'md'}
-        pt={'xs'}
-      >
-        <Stack gap={5}>
+    <AppShellNavbar px={'md'} pb={'md'} pt={'xs'}>
+      <Group justify="space-between" ml={'sm'}>
+        <Anchor component={Link} href={'/library'}>
+          <Image src={SembleLogo.src} alt="Semble logo" w={20.84} h={28} />
+        </Anchor>
+        <ProfileMenu />
+      </Group>
+
+      <AppShellSection grow component={ScrollArea}>
+        <Stack gap={5} mt={'lg'}>
           <NavItem
             href="/library"
             label="Library"
@@ -42,8 +49,6 @@ export default function Navbar() {
         <Divider my={'sm'} />
         <CollectionsNavList />
       </AppShellSection>
-
-      {/*<AppShellSection p={'md'}></AppShellSection>*/}
     </AppShellNavbar>
   );
 }

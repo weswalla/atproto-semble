@@ -1,4 +1,6 @@
+import Header from '@/components/navigation/header/Header';
 import type { Metadata } from 'next';
+import { Fragment } from 'react';
 
 export const metadata: Metadata = {
   title: 'Library',
@@ -10,5 +12,10 @@ interface Props {
 }
 
 export default function Layout(props: Props) {
-  return props.children;
+  return (
+    <Fragment>
+      <Header />
+      {props.children}
+    </Fragment>
+  );
 }

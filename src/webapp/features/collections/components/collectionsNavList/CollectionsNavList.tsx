@@ -27,7 +27,7 @@ export default function CollectionsNavList() {
         href="/collections"
         label={'View all'}
         variant="subtle"
-        c="gray"
+        c="blue"
         leftSection={<BiRightArrowAlt size={25} />}
       />
 
@@ -36,7 +36,7 @@ export default function CollectionsNavList() {
         href="/collections/create"
         label={'Add'}
         variant="subtle"
-        c="gray"
+        c="blue"
         leftSection={<BiPlus size={25} />}
       />
 

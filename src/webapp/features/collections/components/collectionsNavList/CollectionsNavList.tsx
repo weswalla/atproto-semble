@@ -3,9 +3,11 @@ import { Alert, NavLink, Skeleton, Stack } from '@mantine/core';
 import { BiCollection, BiPlus, BiRightArrowAlt } from 'react-icons/bi';
 import CollectionNavItem from '../collectionNavItem/CollectionNavItem';
 import useCollections from '../../lib/queries/useCollections';
+import { useToggle } from '@mantine/hooks';
 
 export default function CollectionsNavList() {
   const { data, error, isPending } = useCollections();
+  const [opened, toggleMenu] = useToggle([true, false]);
 
   if (isPending || !data) {
     return <Skeleton h={40} w={'100%'} />;
@@ -21,6 +23,8 @@ export default function CollectionsNavList() {
       c="gray"
       label="Collections"
       leftSection={<BiCollection size={22} />}
+      opened={opened}
+      onClick={() => toggleMenu()}
     >
       <NavLink
         component={Link}

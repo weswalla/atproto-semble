@@ -57,17 +57,17 @@ export default function ProfileMenu() {
           </Menu.Item>
 
           <Menu.Divider />
-          <Menu.Item c={'red'} onClick={handleLogout}>
-            Log out
-          </Menu.Item>
-          <Menu.Divider />
-
           <Menu.Item
             component="a"
             href="https://cosmik.network/"
             target="_blank"
           >
             <Image src={CosmikLogo.src} alt="Cosmik logo" w={'auto'} h={24} />
+          </Menu.Item>
+          <Menu.Divider />
+
+          <Menu.Item c={'red'} onClick={handleLogout}>
+            Log out
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>

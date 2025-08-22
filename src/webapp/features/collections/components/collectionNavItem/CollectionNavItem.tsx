@@ -1,10 +1,13 @@
-import { Button } from '@mantine/core';
+import { Badge, Card, NavLink, Text } from '@mantine/core';
+import { BsDot } from 'react-icons/bs';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { GoDotFill } from 'react-icons/go';
 
 interface Props {
   name: string;
   url: string;
+  cardCount: number;
 }
 
 export default function CollectionNavItem(props: Props) {
@@ -12,17 +15,20 @@ export default function CollectionNavItem(props: Props) {
   const isActive = pathname === props.url;
 
   return (
-    <Button
+    <NavLink
       component={Link}
       href={props.url}
+      label={props.name}
       variant="subtle"
-      size="md"
-      color={isActive ? 'dark' : 'gray'}
-      radius={'md'}
-      fullWidth
-      justify="start"
-    >
-      {props.name}
-    </Button>
+      c={isActive ? 'dark' : 'gray'}
+      leftSection={<GoDotFill />}
+      rightSection={
+        props.cardCount > 0 ? (
+          <Badge variant="light" color="gray" circle>
+            {props.cardCount}
+          </Badge>
+        ) : null
+      }
+    />
   );
 }

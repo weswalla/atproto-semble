@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Alert, Button, NavLink, Skeleton } from '@mantine/core';
+import { Alert, Button, NavLink, Skeleton, Stack } from '@mantine/core';
 import { BiCollection, BiPlus, BiRightArrowAlt } from 'react-icons/bi';
 import CollectionNavItem from '../collectionNavItem/CollectionNavItem';
 import useCollections from '../../lib/queries/useCollections';
@@ -22,39 +22,34 @@ export default function CollectionsNavList() {
       label="Collections"
       leftSection={<BiCollection size={22} />}
     >
-      <Button
+      <NavLink
         component={Link}
         href="/collections"
+        label={'View all'}
         variant="subtle"
-        size="md"
-        color="gray"
-        justify="start"
-        radius={'md'}
+        c="gray"
         leftSection={<BiRightArrowAlt size={25} />}
-        fullWidth
-      >
-        View all
-      </Button>
-      <Button
+      />
+
+      <NavLink
         component={Link}
         href="/collections/create"
+        label={'Add'}
         variant="subtle"
-        size="md"
-        color="gray"
-        justify="start"
-        radius={'md'}
+        c="gray"
         leftSection={<BiPlus size={25} />}
-        fullWidth
-      >
-        Add
-      </Button>
-      {data.collections.map((c) => (
-        <CollectionNavItem
-          key={c.id}
-          name={c.name}
-          url={`/collections/${c.id}`}
-        />
-      ))}
+      />
+
+      <Stack gap={0}>
+        {data.collections.map((c) => (
+          <CollectionNavItem
+            key={c.id}
+            name={c.name}
+            url={`/collections/${c.id}`}
+            cardCount={c.cardCount}
+          />
+        ))}
+      </Stack>
     </NavLink>
   );
 }

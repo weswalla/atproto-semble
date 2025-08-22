@@ -1,8 +1,7 @@
-import { Badge, Card, NavLink, Text } from '@mantine/core';
+import { Badge, NavLink } from '@mantine/core';
 import { BsDot } from 'react-icons/bs';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { GoDotFill } from 'react-icons/go';
 
 interface Props {
   name: string;
@@ -21,7 +20,7 @@ export default function CollectionNavItem(props: Props) {
       label={props.name}
       variant="subtle"
       c={isActive ? 'dark' : 'gray'}
-      leftSection={<GoDotFill />}
+      leftSection={<BsDot size={25} />}
       rightSection={
         props.cardCount > 0 ? (
           <Badge variant="light" color="gray" circle>

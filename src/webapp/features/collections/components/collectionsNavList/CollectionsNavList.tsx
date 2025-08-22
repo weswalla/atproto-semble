@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Alert, Button, NavLink, Skeleton, Stack } from '@mantine/core';
+import { Alert, NavLink, Skeleton, Stack } from '@mantine/core';
 import { BiCollection, BiPlus, BiRightArrowAlt } from 'react-icons/bi';
 import CollectionNavItem from '../collectionNavItem/CollectionNavItem';
 import useCollections from '../../lib/queries/useCollections';

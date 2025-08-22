@@ -5,6 +5,7 @@ import {
   AppShellNavbar,
   ScrollArea,
   Divider,
+  Stack,
 } from '@mantine/core';
 import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
@@ -19,18 +20,20 @@ export default function Navbar() {
         pb={'md'}
         pt={'xs'}
       >
-        <NavItem
-          href="/library"
-          label="Library"
-          icon={<LuLibrary size={25} />}
-          activeIcon={<LuLibrary size={25} />}
-        />
-        <NavItem
-          href="/explore"
-          label="Explore"
-          icon={<MdOutlineEmojiNature size={25} />}
-          activeIcon={<MdOutlineEmojiNature size={25} />}
-        />
+        <Stack gap={5}>
+          <NavItem
+            href="/library"
+            label="Library"
+            icon={<LuLibrary size={25} />}
+            activeIcon={<LuLibrary size={25} />}
+          />
+          <NavItem
+            href="/explore"
+            label="Explore"
+            icon={<MdOutlineEmojiNature size={25} />}
+            activeIcon={<MdOutlineEmojiNature size={25} />}
+          />
+        </Stack>
 
         <Divider my={'sm'} />
         <CollectionsNavList />

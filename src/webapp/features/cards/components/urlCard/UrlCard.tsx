@@ -32,7 +32,7 @@ export default function UrlCard(props: Props) {
   // TODO: add more sizes
 
   return (
-    <Stack component="article" gap={5} justify="stretch">
+    <Stack component="article" gap={5} justify="stretch" h={'100%'}>
       <Card withBorder radius={'lg'} p={'sm'} flex={1}>
         <Stack justify="space-between" gap={'sm'} flex={1}>
           <Group justify="space-between" align="start" wrap="nowrap" gap={'lg'}>

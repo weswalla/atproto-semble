@@ -5,16 +5,8 @@ import { useRouter } from 'next/navigation';
 import { ApiClient } from '@/api-client/ApiClient';
 import { getAccessToken } from '@/services/auth';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
+import { Button, Loader, Stack, Text, Grid } from '@mantine/core';
 import type { GetMyUrlCardsResponse } from '@/api-client/types';
-import {
-  Button,
-  Group,
-  Loader,
-  SimpleGrid,
-  Stack,
-  Title,
-  Text,
-} from '@mantine/core';
 
 export default function DashboardPage() {
   const [urlCards, setUrlCards] = useState<GetMyUrlCardsResponse['cards']>([]);
@@ -62,21 +54,22 @@ export default function DashboardPage() {
         {cardsLoading ? (
           <Loader />
         ) : urlCards.length > 0 ? (
-          <SimpleGrid
-            cols={{ base: 1, xs: 2, sm: 3, lg: 4, xl: 5 }}
-            spacing={'md'}
-          >
+          <Grid gutter={'md'} grow>
             {urlCards.map((card) => (
-              <UrlCard
+              <Grid.Col
                 key={card.id}
-                id={card.id}
-                url={card.url}
-                cardContent={card.cardContent}
-                note={card.note}
-                collections={card.collections}
-              />
+                span={{ base: 12, xs: 6, sm: 2, lg: 2, xl: 2 }}
+              >
+                <UrlCard
+                  id={card.id}
+                  url={card.url}
+                  cardContent={card.cardContent}
+                  note={card.note}
+                  collections={card.collections}
+                />
+              </Grid.Col>
             ))}
-          </SimpleGrid>
+          </Grid>
         ) : (
           <Stack align="center" gap={'xs'}>
             <Text c={'grey'}>No cards yet</Text>

@@ -35,6 +35,7 @@ export default function CollectionCard(props: Props) {
       onClick={() => router.push(`/collections/${collection.id}`)}
       radius={'lg'}
       p={'sm'}
+      style={{ cursor: 'pointer' }}
     >
       <Stack justify="space-between" h={'100%'}>
         <Stack gap={0}>

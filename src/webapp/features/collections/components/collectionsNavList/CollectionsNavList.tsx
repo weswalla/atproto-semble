@@ -1,20 +1,17 @@
 import Link from 'next/link';
-import { Alert, NavLink, Skeleton, Stack } from '@mantine/core';
+import { Alert, NavLink, Stack } from '@mantine/core';
 import { BiCollection, BiPlus, BiRightArrowAlt } from 'react-icons/bi';
 import CollectionNavItem from '../collectionNavItem/CollectionNavItem';
 import useCollections from '../../lib/queries/useCollections';
 import { useToggle } from '@mantine/hooks';
+import CollectionsNavListError from './Error.CollectionsNavList';
 
 export default function CollectionsNavList() {
-  const { data, error, isPending } = useCollections();
+  const { data, error } = useCollections();
   const [opened, toggleMenu] = useToggle([true, false]);
 
-  if (isPending || !data) {
-    return <Skeleton h={40} w={'100%'} />;
-  }
-
   if (error) {
-    return <Alert color="red" title="Could not load collections" />;
+    return <CollectionsNavListError />;
   }
 
   return (

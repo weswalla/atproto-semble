@@ -16,6 +16,8 @@ import { FaRegNoteSticky } from 'react-icons/fa6';
 import Link from 'next/link';
 import SembleLogo from '@/assets/semble-logo.svg';
 import ProfileMenu from '@/features/profile/components/profileMenu/ProfileMenu';
+import { Suspense } from 'react';
+import CollectionsNavListSkeleton from '@/features/collections/components/collectionsNavList/Skeleton.CollectionsNavList';
 
 export default function Navbar() {
   return (
@@ -47,7 +49,9 @@ export default function Navbar() {
         </Stack>
 
         <Divider my={'sm'} />
-        <CollectionsNavList />
+        <Suspense fallback={<CollectionsNavListSkeleton />}>
+          <CollectionsNavList />
+        </Suspense>
       </AppShellSection>
     </AppShellNavbar>
   );

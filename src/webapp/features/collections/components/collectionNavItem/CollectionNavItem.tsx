@@ -1,5 +1,4 @@
 import { Badge, NavLink } from '@mantine/core';
-import { BsDot } from 'react-icons/bs';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -19,8 +18,7 @@ export default function CollectionNavItem(props: Props) {
       href={props.url}
       label={props.name}
       variant="subtle"
-      c={isActive ? 'dark' : 'gray'}
-      leftSection={<BsDot size={25} />}
+      c={isActive ? 'dark' : 'gray'}      
       rightSection={
         props.cardCount > 0 ? (
           <Badge variant="light" color="gray" circle>

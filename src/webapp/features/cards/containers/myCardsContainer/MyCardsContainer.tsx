@@ -1,32 +1,18 @@
 'use client';
 
-import {
-  Alert,
-  Container,
-  Grid,
-  Stack,
-  Title,
-  Button,
-  Text,
-  Loader,
-} from '@mantine/core';
+import { Container, Grid, Stack, Title, Button, Text } from '@mantine/core';
 import useMyCards from '../../lib/queries/useMyCards';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import { BiPlus } from 'react-icons/bi';
 import Link from 'next/link';
 
 export default function MyCardsContainer() {
-  const { data, error, isPending } = useMyCards();
+  const { data, error } = useMyCards();
 
   return (
     <Container p={'xs'} fluid>
       <Stack>
         <Title order={1}>My Cards</Title>
-
-        {(isPending || !data) && <Loader />}
-        {error && (
-          <Alert variant="white" color="red" title="Could not load cards" />
-        )}
         {data && data.cards.length > 0 && (
           <Grid gutter={'md'} grow>
             {data.cards.map((card) => (

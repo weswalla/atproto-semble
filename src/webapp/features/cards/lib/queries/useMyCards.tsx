@@ -8,16 +8,10 @@ export default function useMyCards() {
     () => getAccessToken(),
   );
 
-  const { data, error, isPending } = useQuery({
+  const myCards = useQuery({
     queryKey: ['my cards'],
-    queryFn: async () => {
-      const cards = await apiClient.getMyUrlCards({ limit: 10 });
-      if (!cards) {
-        throw new Error('Could not get my cards');
-      }
-      return cards;
-    },
+    queryFn: () => apiClient.getMyUrlCards({ limit: 10 }),
   });
 
-  return { data, error, isPending };
+  return myCards;
 }

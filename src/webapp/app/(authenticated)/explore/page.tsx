@@ -6,8 +6,7 @@ import { getAccessToken } from '@/services/auth';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
 import type { GetGlobalFeedResponse } from '@/api-client/types';
 import {
-  Button,
-  Group,
+  Button,  
   Loader,
   Stack,
   Title,

@@ -6,12 +6,13 @@ import { getAccessToken } from '@/services/auth';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
 import type { GetGlobalFeedResponse } from '@/api-client/types';
 import {
-  Button,  
+  Button,
   Loader,
   Stack,
   Title,
   Text,
   Center,
+  Container,
 } from '@mantine/core';
 
 export default function ExplorePage() {
@@ -84,11 +85,7 @@ export default function ExplorePage() {
   };
 
   if (loading) {
-    return (
-      <Center h={200}>
-        <Loader />
-      </Center>
-    );
+    return <Loader />;
   }
 
   if (error) {
@@ -105,32 +102,34 @@ export default function ExplorePage() {
   }
 
   return (
-    <Stack>
-      <Title order={2}>Explore</Title>
+    <Container p={'xs'} fluid>
+      <Stack>
+        <Title order={2}>Explore</Title>
 
-      {feedItems.length === 0 ? (
-        <Center h={200}>
-          <Text c="dimmed">No activity to show yet</Text>
-        </Center>
-      ) : (
-        <Stack gap="xl">
-          {feedItems.map((item) => (
-            <FeedItem key={item.id} item={item} />
-          ))}
+        {feedItems.length === 0 ? (
+          <Center h={200}>
+            <Text c="dimmed">No activity to show yet</Text>
+          </Center>
+        ) : (
+          <Stack gap="xl">
+            {feedItems.map((item) => (
+              <FeedItem key={item.id} item={item} />
+            ))}
 
-          {hasMore && (
-            <Center>
-              <Button
-                onClick={handleLoadMore}
-                loading={loadingMore}
-                variant="outline"
-              >
-                {loadingMore ? 'Loading...' : 'Load More'}
-              </Button>
-            </Center>
-          )}
-        </Stack>
-      )}
-    </Stack>
+            {hasMore && (
+              <Center>
+                <Button
+                  onClick={handleLoadMore}
+                  loading={loadingMore}
+                  variant="outline"
+                >
+                  {loadingMore ? 'Loading...' : 'Load More'}
+                </Button>
+              </Center>
+            )}
+          </Stack>
+        )}
+      </Stack>
+    </Container>
   );
 }

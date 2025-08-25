@@ -7,13 +7,13 @@ import { BiPlus } from 'react-icons/bi';
 import Link from 'next/link';
 
 export default function MyCardsContainer() {
-  const { data, error } = useMyCards();
+  const { data } = useMyCards();
 
   return (
     <Container p={'xs'} fluid>
       <Stack>
         <Title order={1}>My Cards</Title>
-        {data && data.cards.length > 0 && (
+        {data.cards.length > 0 && (
           <Grid gutter={'md'} grow>
             {data.cards.map((card) => (
               <Grid.Col

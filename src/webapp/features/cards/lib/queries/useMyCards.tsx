@@ -1,6 +1,6 @@
 import { ApiClient } from '@/api-client/ApiClient';
 import { getAccessToken } from '@/services/auth';
-import { useQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 
 export default function useMyCards() {
   const apiClient = new ApiClient(
@@ -8,7 +8,7 @@ export default function useMyCards() {
     () => getAccessToken(),
   );
 
-  const myCards = useQuery({
+  const myCards = useSuspenseQuery({
     queryKey: ['my cards'],
     queryFn: () => apiClient.getMyUrlCards({ limit: 10 }),
   });

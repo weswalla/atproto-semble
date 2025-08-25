@@ -1,6 +1,6 @@
 import { ApiClient } from '@/api-client/ApiClient';
 import { getAccessToken } from '@/services/auth';
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 
 export default function useCollections() {
   const apiClient = new ApiClient(

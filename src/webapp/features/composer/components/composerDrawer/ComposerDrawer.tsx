@@ -7,8 +7,8 @@ import {
   Stack,
   Transition,
   Card,
-  AspectRatio,
 } from '@mantine/core';
+import { useContextDrawers } from '@/providers/drawers';
 import { Fragment, useState } from 'react';
 import { FiPlus, FiX } from 'react-icons/fi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
@@ -17,6 +17,7 @@ import Link from 'next/link';
 
 export default function ComposerDrawer() {
   const [opened, setOpened] = useState(false);
+  const drawers = useContextDrawers();
 
   return (
     <Fragment>
@@ -28,7 +29,7 @@ export default function ComposerDrawer() {
         radius={'lg'}
       >
         <Menu.Target>
-          <Affix m={'md'}>
+          <Affix m={'md'} style={{ zIndex: 10 }}>
             <ActionIcon
               size={'input-lg'}
               radius="xl"
@@ -88,8 +89,7 @@ export default function ComposerDrawer() {
             </Card>
           </Menu.Item>
           <Menu.Item
-            component={Link}
-            href="/collections/create"
+            onClick={() => drawers.open({ drawer: 'createCollection' })}
             p={0}
             style={{ cursor: 'pointer' }}
           >

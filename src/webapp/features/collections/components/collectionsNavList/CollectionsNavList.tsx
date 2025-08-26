@@ -1,10 +1,11 @@
 import Link from 'next/link';
-import { Alert, NavLink, Stack } from '@mantine/core';
-import { BiCollection, BiPlus, BiRightArrowAlt } from 'react-icons/bi';
+import { NavLink, Stack } from '@mantine/core';
+import { BiCollection, BiRightArrowAlt } from 'react-icons/bi';
 import CollectionNavItem from '../collectionNavItem/CollectionNavItem';
 import useCollections from '../../lib/queries/useCollections';
 import { useToggle } from '@mantine/hooks';
 import CollectionsNavListError from './Error.CollectionsNavList';
+import CreateCollectionShortcut from '../createCollectionShortcut/CreateCollectionShortcut';
 
 export default function CollectionsNavList() {
   const { data, error } = useCollections();
@@ -32,14 +33,8 @@ export default function CollectionsNavList() {
         leftSection={<BiRightArrowAlt size={25} />}
       />
 
-      <NavLink
-        component={Link}
-        href="/collections/create"
-        label={'Add'}
-        variant="subtle"
-        c="blue"
-        leftSection={<BiPlus size={25} />}
-      />
+      {/* Self-contained shortcut to prevent won't re-render this whole list when interacted with */}
+      <CreateCollectionShortcut />
 
       <Stack gap={0}>
         {data.collections.map((c) => (

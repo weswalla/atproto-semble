@@ -23,7 +23,7 @@ export default function AppLayout(props: Props) {
       <Navbar />
 
       <AppShell.Main>
-        {props.children}
+        {props.children}        
         <ComposerDrawer />
       </AppShell.Main>
     </AppShell>

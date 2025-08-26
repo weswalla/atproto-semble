@@ -18,7 +18,7 @@ export default function CollectionNavItem(props: Props) {
       href={props.url}
       label={props.name}
       variant="subtle"
-      c={isActive ? 'dark' : 'gray'}      
+      c={isActive ? 'dark' : 'gray'}
       rightSection={
         props.cardCount > 0 ? (
           <Badge variant="light" color="gray" circle>

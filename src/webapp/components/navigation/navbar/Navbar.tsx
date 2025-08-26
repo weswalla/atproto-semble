@@ -9,6 +9,7 @@ import {
   Group,
   Anchor,
   Image,
+  Box,
 } from '@mantine/core';
 import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
@@ -18,6 +19,7 @@ import SembleLogo from '@/assets/semble-logo.svg';
 import ProfileMenu from '@/features/profile/components/profileMenu/ProfileMenu';
 import { Suspense } from 'react';
 import CollectionsNavListSkeleton from '@/features/collections/components/collectionsNavList/Skeleton.CollectionsNavList';
+import NavbarToggle from '../NavbarToggle';
 
 export default function Navbar() {
   return (
@@ -26,7 +28,12 @@ export default function Navbar() {
         <Anchor component={Link} href={'/library'}>
           <Image src={SembleLogo.src} alt="Semble logo" w={20.84} h={28} />
         </Anchor>
-        <ProfileMenu />
+        <Group>
+          <Box hiddenFrom="xs">
+            <NavbarToggle />
+          </Box>
+          <ProfileMenu />
+        </Group>
       </Group>
 
       <AppShellSection grow component={ScrollArea}>

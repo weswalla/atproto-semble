@@ -15,8 +15,8 @@ export default function AppLayout(props: Props) {
       header={{ height: 0 }}
       navbar={{
         width: 300,
-        breakpoint: 0,
-        collapsed: { mobile: !opened, desktop: opened },
+        breakpoint: 'xs',
+        collapsed: { mobile: !opened, desktop: !opened },
       }}
     >
       {/*<Header />*/}

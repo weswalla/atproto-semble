@@ -10,7 +10,7 @@ export default function MyCardsContainer() {
   const { data } = useMyCards();
 
   return (
-    <Container p={'xs'} fluid>
+    <Container p={'xs'} size={'xl'}>
       <Stack>
         <Title order={1}>My Cards</Title>
         {data.cards.length > 0 && (

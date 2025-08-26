@@ -102,7 +102,7 @@ export default function ExplorePage() {
   }
 
   return (
-    <Container p={'xs'} fluid>
+    <Container p={'xs'} size={'xl'}>
       <Stack>
         <Title order={2}>Explore</Title>
 

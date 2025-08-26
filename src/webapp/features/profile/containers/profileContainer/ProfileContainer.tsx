@@ -14,7 +14,7 @@ export default function ProfileContainer() {
   const { data } = useMyProfile();
 
   return (
-    <Container p={'xs'} fluid>
+    <Container p={'xs'} size={'xl'}>
       <Stack>
         <Group justify="space-between">
           <Group>

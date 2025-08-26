@@ -17,7 +17,7 @@ export default function CollectionsContainer() {
   const { data } = useCollections();
 
   return (
-    <Container p={'xs'} fluid>
+    <Container p={'xs'} size={'xl'}>
       <Stack>
         <Title order={1}>Collections</Title>
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing={'md'}>

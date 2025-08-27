@@ -34,23 +34,26 @@ export default function Navbar() {
       </Group>
 
       <AppShellSection grow component={ScrollArea}>
-        <Stack gap={5} mt={'xl'}>
+        <Stack mt={'xl'}>
           <ProfileMenu />
-          <NavItem
-            href="/library"
-            label="Library"
-            icon={<LuLibrary size={25} />}
-          />
-          <NavItem
-            href="/my-cards"
-            label="My Cards"
-            icon={<FaRegNoteSticky size={25} />}
-          />
-          <NavItem
-            href="/explore"
-            label="Explore"
-            icon={<MdOutlineEmojiNature size={25} />}
-          />
+
+          <Stack gap={5}>
+            <NavItem
+              href="/library"
+              label="Library"
+              icon={<LuLibrary size={25} />}
+            />
+            <NavItem
+              href="/my-cards"
+              label="My Cards"
+              icon={<FaRegNoteSticky size={25} />}
+            />
+            <NavItem
+              href="/explore"
+              label="Explore"
+              icon={<MdOutlineEmojiNature size={25} />}
+            />
+          </Stack>
         </Stack>
 
         <Divider my={'sm'} />

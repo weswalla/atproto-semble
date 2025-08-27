@@ -14,11 +14,11 @@ export default function MyCardsContainer() {
       <Stack>
         <Title order={1}>My Cards</Title>
         {data.cards.length > 0 && (
-          <Grid gutter={'md'} grow>
+          <Grid gutter={'md'}>
             {data.cards.map((card) => (
               <Grid.Col
                 key={card.id}
-                span={{ base: 12, xs: 6, sm: 2, lg: 2, xl: 2 }}
+                span={{ base: 12, xs: 6, sm: 4, lg: 3 }}
               >
                 <UrlCard
                   id={card.id}

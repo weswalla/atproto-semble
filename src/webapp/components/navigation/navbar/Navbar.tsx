@@ -28,16 +28,14 @@ export default function Navbar() {
         <Anchor component={Link} href={'/library'}>
           <Image src={SembleLogo.src} alt="Semble logo" w={20.84} h={28} />
         </Anchor>
-        <Group>
-          <Box hiddenFrom="xs">
-            <NavbarToggle />
-          </Box>
-          <ProfileMenu />
-        </Group>
+        <Box hiddenFrom="xs">
+          <NavbarToggle />
+        </Box>
       </Group>
 
       <AppShellSection grow component={ScrollArea}>
-        <Stack gap={5} mt={'lg'}>
+        <Stack gap={5} mt={'xl'}>
+          <ProfileMenu />
           <NavItem
             href="/library"
             label="Library"

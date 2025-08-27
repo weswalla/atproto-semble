@@ -64,54 +64,48 @@ export default function createCollectionDrawer(props: Props) {
           'linear-gradient(0deg, rgba(204, 255, 0, 0.5), rgba(255, 255, 255, 0.5))',
       }}
     >
-      <Drawer.Content>
-        <Drawer.Header>
-          <Drawer.Title fz={'xl'} fw={600} mx={'auto'}>
-            Create Collection
-          </Drawer.Title>
-        </Drawer.Header>
+      <Drawer.Header>
+        <Drawer.Title fz={'xl'} fw={600} mx={'auto'}>
+          Create Collection
+        </Drawer.Title>
+      </Drawer.Header>
 
-        <Container size={'sm'}>
-          <form onSubmit={handleCreateCollection}>
-            <Stack>
-              <TextInput
-                id="name"
-                label="Name"
-                type="text"
-                placeholder="Collection name"
-                variant="filled"
-                required
-                maxLength={100}
-                key={form.key('name')}
-                {...form.getInputProps('name')}
-              />
+      <Container size={'sm'}>
+        <form onSubmit={handleCreateCollection}>
+          <Stack>
+            <TextInput
+              id="name"
+              label="Name"
+              type="text"
+              placeholder="Collection name"
+              variant="filled"
+              required
+              maxLength={100}
+              key={form.key('name')}
+              {...form.getInputProps('name')}
+            />
 
-              <Textarea
-                id="description"
-                label="Description"
-                placeholder="Describe what this collection is about"
-                variant="filled"
-                rows={8}
-                maxLength={500}
-                key={form.key('description')}
-                {...form.getInputProps('description')}
-              />
-              <Group justify="space-between">
-                <Button
-                  variant="outline"
-                  color={'gray'}
-                  onClick={props.onClose}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" loading={createCollection.isPending}>
-                  Create
-                </Button>
-              </Group>
-            </Stack>
-          </form>
-        </Container>
-      </Drawer.Content>
+            <Textarea
+              id="description"
+              label="Description"
+              placeholder="Describe what this collection is about"
+              variant="filled"
+              rows={8}
+              maxLength={500}
+              key={form.key('description')}
+              {...form.getInputProps('description')}
+            />
+            <Group justify="space-between">
+              <Button variant="outline" color={'gray'} onClick={props.onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" loading={createCollection.isPending}>
+                Create
+              </Button>
+            </Group>
+          </Stack>
+        </form>
+      </Container>
     </Drawer>
   );
 }

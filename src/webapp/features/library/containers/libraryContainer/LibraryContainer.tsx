@@ -15,17 +15,14 @@ import {
   Title,
   Text,
   Button,
-  ActionIcon,
 } from '@mantine/core';
 import Link from 'next/link';
 import { BiCollection, BiPlus } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
-import { FiPlus } from 'react-icons/fi';
 
 export default function LibraryContainer() {
   const { data: CollectionsData } = useCollections({ limit: 4 });
   const { data: myCardsData } = useMyCards({ limit: 4 });
-  const drawers = useContextDrawers();
 
   return (
     <Container p={'xs'} size={'xl'}>
@@ -38,12 +35,6 @@ export default function LibraryContainer() {
               <Group gap={'xs'}>
                 <BiCollection size={22} />
                 <Title order={2}>Collections</Title>
-                <ActionIcon
-                  radius={'xl'}
-                  onClick={() => drawers.open({ drawer: 'createCollection' })}
-                >
-                  <FiPlus size={22} />
-                </ActionIcon>
               </Group>
               <Anchor component={Link} href={'/collections'} c="blue" fw={600}>
                 View all

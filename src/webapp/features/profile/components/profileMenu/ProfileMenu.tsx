@@ -42,7 +42,7 @@ export default function ProfileMenu() {
           <Group
             gap={'xs'}
             wrap="nowrap"
-            style={{ cursor: 'pointer', userSelect: 'none' }}            
+            style={{ cursor: 'pointer', userSelect: 'none' }}
           >
             <Avatar src={data.avatarUrl} ml={4} />
             <Text fw={500} lineClamp={1}>

@@ -1,17 +1,22 @@
 'use client';
 
 import {
+  ActionIcon,
   Anchor,
   Container,
   Grid,
   Group,
+  Menu,
   Stack,
   Text,
   Title,
 } from '@mantine/core';
 import useCollection from '../../lib/queries/useCollection';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
+import { BsThreeDots } from 'react-icons/bs';
 import Link from 'next/link';
+import { useState } from 'react';
+import EditCollectionDrawer from '../../components/editCollectionDrawer/EditCollectionDrawer';
 
 interface Props {
   id: string;
@@ -19,6 +24,7 @@ interface Props {
 
 export default function CollectionContainer(props: Props) {
   const { data } = useCollection({ id: props.id });
+  const [showEditDrawer, setShowEditDrawer] = useState(false);
 
   return (
     <Container p={'xs'} size={'xl'}>
@@ -53,6 +59,21 @@ export default function CollectionContainer(props: Props) {
           </Stack>
         </Group>
 
+        <Group justify="end">
+          <Menu shadow="sm">
+            <Menu.Target>
+              <ActionIcon variant="light" color={'gray'}>
+                <BsThreeDots size={22} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item onClick={() => setShowEditDrawer(true)}>
+                Edit collection
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        </Group>
+
         <Grid gutter={'md'} grow>
           {data.urlCards.map((card) => (
             <Grid.Col
@@ -69,6 +90,15 @@ export default function CollectionContainer(props: Props) {
           ))}
         </Grid>
       </Stack>
+      <EditCollectionDrawer
+        isOpen={showEditDrawer}
+        onClose={() => setShowEditDrawer(false)}
+        collection={{
+          id: data.id,
+          name: data.name,
+          description: data.description,
+        }}
+      />
     </Container>
   );
 }

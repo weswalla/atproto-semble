@@ -8,45 +8,49 @@ import {
   TextInput,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import useCreateCollection from '../../lib/mutations/useCreateCollection';
 import { notifications } from '@mantine/notifications';
+import useUpdateCollection from '../../lib/mutations/useUpdateCollection';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  collection: {
+    id: string;
+    name: string;
+    description?: string;
+  };
 }
 
-export default function createCollectionDrawer(props: Props) {
-  const createCollection = useCreateCollection();
+export default function EditCollectionDrawer(props: Props) {
+  const updateCollection = useUpdateCollection();
+
   const form = useForm({
     initialValues: {
-      name: '',
-      description: '',
+      name: props.collection.name,
+      description: props.collection.description,
     },
   });
 
-  const handleCreateCollection = (e: React.FormEvent) => {
+  const handleUpdateCollection = (e: React.FormEvent) => {
     e.preventDefault();
 
-    createCollection.mutate(
+    updateCollection.mutate(
       {
-        name: form.getValues().name,
-        description: form.getValues().description,
+        collectionId: props.collection.id,
+        name: form.values.name,
+        description: form.values.description,
       },
       {
         onSuccess: () => {
           notifications.show({
-            message: `Created collection "${form.getValues().name}".`,
+            message: `Updated collection "${form.values.name}".`,
           });
           props.onClose();
         },
         onError: () => {
           notifications.show({
-            message: 'Could not create collection.',
+            message: 'Could not update collection.',
           });
-        },
-        onSettled: () => {
-          form.reset();
         },
       },
     );
@@ -65,18 +69,17 @@ export default function createCollectionDrawer(props: Props) {
       }}
     >
       <Drawer.Header>
-        <Drawer.Title fz={'xl'} fw={600} mx={'auto'}>
-          Create Collection
+        <Drawer.Title fz="xl" fw={600} mx="auto">
+          Edit Collection
         </Drawer.Title>
       </Drawer.Header>
 
-      <Container size={'sm'}>
-        <form onSubmit={handleCreateCollection}>
+      <Container size="sm">
+        <form onSubmit={handleUpdateCollection}>
           <Stack>
             <TextInput
               id="name"
               label="Name"
-              type="text"
               placeholder="Collection name"
               variant="filled"
               required
@@ -95,12 +98,13 @@ export default function createCollectionDrawer(props: Props) {
               key={form.key('description')}
               {...form.getInputProps('description')}
             />
+
             <Group justify="space-between">
-              <Button variant="outline" color={'gray'} onClick={props.onClose}>
+              <Button variant="outline" color="gray" onClick={props.onClose}>
                 Cancel
               </Button>
-              <Button type="submit" loading={createCollection.isPending}>
-                Create
+              <Button type="submit" loading={updateCollection.isPending}>
+                Update
               </Button>
             </Group>
           </Stack>

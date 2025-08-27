@@ -3,6 +3,7 @@
 import {
   ActionIcon,
   Anchor,
+  Button,
   Container,
   Grid,
   Group,
@@ -17,6 +18,7 @@ import { BsThreeDots } from 'react-icons/bs';
 import Link from 'next/link';
 import { useState } from 'react';
 import EditCollectionDrawer from '../../components/editCollectionDrawer/EditCollectionDrawer';
+import { BiPlus } from 'react-icons/bi';
 
 interface Props {
   id: string;
@@ -74,21 +76,39 @@ export default function CollectionContainer(props: Props) {
           </Menu>
         </Group>
 
-        <Grid gutter={'md'} grow>
-          {data.urlCards.map((card) => (
-            <Grid.Col
-              key={card.id}
-              span={{ base: 12, xs: 6, sm: 2, lg: 2, xl: 2 }}
+        {data.urlCards.length > 0 ? (
+          <Grid gutter={'md'} grow>
+            {data.urlCards.map((card) => (
+              <Grid.Col
+                key={card.id}
+                span={{ base: 12, xs: 6, sm: 2, lg: 2, xl: 2 }}
+              >
+                <UrlCard
+                  id={card.id}
+                  url={card.url}
+                  cardContent={card.cardContent}
+                  note={card.note}
+                />
+              </Grid.Col>
+            ))}
+          </Grid>
+        ) : (
+          <Stack align="center" gap={'xs'}>
+            <Text fz={'h3'} fw={600} c={'gray'}>
+              No cards
+            </Text>
+            <Button
+              component={Link}
+              href={'/cards/add'}
+              variant="light"
+              color={'gray'}
+              size="md"
+              rightSection={<BiPlus size={22} />}
             >
-              <UrlCard
-                id={card.id}
-                url={card.url}
-                cardContent={card.cardContent}
-                note={card.note}
-              />
-            </Grid.Col>
-          ))}
-        </Grid>
+              Add your first card
+            </Button>
+          </Stack>
+        )}
       </Stack>
       <EditCollectionDrawer
         isOpen={showEditDrawer}

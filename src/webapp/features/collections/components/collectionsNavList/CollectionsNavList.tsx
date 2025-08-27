@@ -24,6 +24,9 @@ export default function CollectionsNavList() {
       opened={opened}
       onClick={() => toggleMenu()}
     >
+      {/* Self-contained shortcut to prevent won't re-render this whole list when interacted with */}
+      <CreateCollectionShortcut />
+
       <NavLink
         component={Link}
         href="/collections"
@@ -32,9 +35,6 @@ export default function CollectionsNavList() {
         c="blue"
         leftSection={<BiRightArrowAlt size={25} />}
       />
-
-      {/* Self-contained shortcut to prevent won't re-render this whole list when interacted with */}
-      <CreateCollectionShortcut />
 
       <Stack gap={0}>
         {data.collections.map((c) => (

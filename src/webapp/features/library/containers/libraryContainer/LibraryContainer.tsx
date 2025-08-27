@@ -23,6 +23,7 @@ import { FaRegNoteSticky } from 'react-icons/fa6';
 export default function LibraryContainer() {
   const { data: CollectionsData } = useCollections({ limit: 4 });
   const { data: myCardsData } = useMyCards({ limit: 4 });
+  const drawers = useContextDrawers();
 
   return (
     <Container p={'xs'} size={'xl'}>

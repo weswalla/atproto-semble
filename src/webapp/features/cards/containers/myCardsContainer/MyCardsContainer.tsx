@@ -13,13 +13,10 @@ export default function MyCardsContainer() {
     <Container p={'xs'} size={'xl'}>
       <Stack>
         <Title order={1}>My Cards</Title>
-        {data.cards.length > 0 && (
+        {data.cards.length > 0 ? (
           <Grid gutter={'md'}>
             {data.cards.map((card) => (
-              <Grid.Col
-                key={card.id}
-                span={{ base: 12, xs: 6, sm: 4, lg: 3 }}
-              >
+              <Grid.Col key={card.id} span={{ base: 12, xs: 6, sm: 4, lg: 3 }}>
                 <UrlCard
                   id={card.id}
                   url={card.url}
@@ -30,8 +27,7 @@ export default function MyCardsContainer() {
               </Grid.Col>
             ))}
           </Grid>
-        )}
-        {data && data.cards.length === 0 && (
+        ) : (
           <Stack align="center" gap={'xs'}>
             <Text fz={'h3'} fw={600} c={'gray'}>
               No cards

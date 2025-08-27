@@ -2,15 +2,19 @@ import { ApiClient } from '@/api-client/ApiClient';
 import { getAccessToken } from '@/services/auth';
 import { useSuspenseQuery } from '@tanstack/react-query';
 
-export default function useMyCards() {
+interface Props {
+  limit?: number;
+}
+
+export default function useMyCards(props?: Props) {
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     () => getAccessToken(),
   );
 
   const myCards = useSuspenseQuery({
-    queryKey: ['my cards'],
-    queryFn: () => apiClient.getMyUrlCards({ limit: 10 }),
+    queryKey: ['my cards', props?.limit],
+    queryFn: () => apiClient.getMyUrlCards({ limit: props?.limit ?? 10 }),
   });
 
   return myCards;

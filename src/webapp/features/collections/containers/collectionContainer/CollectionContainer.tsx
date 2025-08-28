@@ -90,12 +90,9 @@ export default function CollectionContainer(props: Props) {
         </Group>
 
         {data.urlCards.length > 0 ? (
-          <Grid gutter={'md'} grow>
+          <Grid gutter={'md'}>
             {data.urlCards.map((card) => (
-              <Grid.Col
-                key={card.id}
-                span={{ base: 12, xs: 6, sm: 2, lg: 2, xl: 2 }}
-              >
+              <Grid.Col key={card.id} span={{ base: 12, xs: 6, sm: 4, lg: 3 }}>
                 <UrlCard
                   id={card.id}
                   url={card.url}

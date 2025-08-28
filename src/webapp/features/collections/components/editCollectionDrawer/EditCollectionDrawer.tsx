@@ -45,12 +45,15 @@ export default function EditCollectionDrawer(props: Props) {
           notifications.show({
             message: `Updated collection "${form.values.name}".`,
           });
-          props.onClose();
         },
         onError: () => {
           notifications.show({
             message: 'Could not update collection.',
+            position: 'top-center',
           });
+        },
+        onSettled: () => {
+          props.onClose();
         },
       },
     );

@@ -25,7 +25,11 @@ export default function DeleteCollectionModal(props: Props) {
       onError: () => {
         notifications.show({
           message: 'Could not delete collection.',
+          position: 'top-center',
         });
+      },
+      onSettled: () => {
+        props.onClose();
       },
     });
   };

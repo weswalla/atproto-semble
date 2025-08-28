@@ -12,6 +12,7 @@ import useMyProfile from '../../lib/queries/useMyProfile';
 import CosmikLogo from '@/assets/cosmik-logo-full.svg';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function ProfileMenu() {
   const router = useRouter();
@@ -51,7 +52,7 @@ export default function ProfileMenu() {
           </Group>
         </Menu.Target>
         <Menu.Dropdown>
-          <Menu.Item component="a" href="/profile">
+          <Menu.Item component={Link} href="/profile">
             <Group gap={'xs'} wrap="nowrap">
               <Avatar src={data.avatarUrl} size={48} />
               <Stack gap={0}>

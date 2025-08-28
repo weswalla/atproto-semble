@@ -3,6 +3,7 @@
 import {
   ActionIcon,
   Anchor,
+  Box,
   Button,
   Container,
   Grid,
@@ -14,11 +15,12 @@ import {
 } from '@mantine/core';
 import useCollection from '../../lib/queries/useCollection';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
-import { BsThreeDots } from 'react-icons/bs';
+import { BsTrash2Fill, BsThreeDots, BsPencilFill } from 'react-icons/bs';
 import Link from 'next/link';
 import { useState } from 'react';
 import EditCollectionDrawer from '../../components/editCollectionDrawer/EditCollectionDrawer';
 import { BiPlus } from 'react-icons/bi';
+import DeleteCollectionModal from '../../components/deleteCollectionModal/DeleteCollectionModal';
 
 interface Props {
   id: string;
@@ -27,6 +29,7 @@ interface Props {
 export default function CollectionContainer(props: Props) {
   const { data } = useCollection({ id: props.id });
   const [showEditDrawer, setShowEditDrawer] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   return (
     <Container p={'xs'} size={'xl'}>
@@ -69,8 +72,18 @@ export default function CollectionContainer(props: Props) {
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
-              <Menu.Item onClick={() => setShowEditDrawer(true)}>
+              <Menu.Item
+                onClick={() => setShowEditDrawer(true)}
+                leftSection={<BsPencilFill />}
+              >
                 Edit collection
+              </Menu.Item>
+              <Menu.Item
+                color="red"
+                leftSection={<BsTrash2Fill />}
+                onClick={() => setShowDeleteModal(true)}
+              >
+                Delete collection
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>
@@ -110,15 +123,23 @@ export default function CollectionContainer(props: Props) {
           </Stack>
         )}
       </Stack>
-      <EditCollectionDrawer
-        isOpen={showEditDrawer}
-        onClose={() => setShowEditDrawer(false)}
-        collection={{
-          id: data.id,
-          name: data.name,
-          description: data.description,
-        }}
-      />
+
+      <Box>
+        <EditCollectionDrawer
+          isOpen={showEditDrawer}
+          onClose={() => setShowEditDrawer(false)}
+          collection={{
+            id: data.id,
+            name: data.name,
+            description: data.description,
+          }}
+        />
+        <DeleteCollectionModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          collectionId={props.id}
+        />
+      </Box>
     </Container>
   );
 }

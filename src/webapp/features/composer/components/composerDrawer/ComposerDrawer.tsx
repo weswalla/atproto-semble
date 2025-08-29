@@ -29,7 +29,7 @@ export default function ComposerDrawer() {
         radius={'lg'}
       >
         <Menu.Target>
-          <Affix m={'md'} style={{ zIndex: 10 }}>
+          <Affix m={'md'} style={{ zIndex: 199 }}>
             <ActionIcon
               size={'input-lg'}
               radius="xl"
@@ -114,7 +114,7 @@ export default function ComposerDrawer() {
               ...styles,
               position: 'fixed',
               inset: 0,
-              zIndex: 200,
+              zIndex: 199,
               backdropFilter: 'blur(3px)',
               background:
                 'linear-gradient(0deg, rgba(204, 255, 0, 0.5), rgba(255, 255, 255, 0.5))',

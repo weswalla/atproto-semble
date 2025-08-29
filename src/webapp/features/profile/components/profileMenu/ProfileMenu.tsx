@@ -47,7 +47,7 @@ export default function ProfileMenu() {
             w={'100%'}
           >
             <Avatar src={data.avatarUrl} ml={4} />
-            <Text fw={500} lineClamp={2}>
+            <Text fw={500} lineClamp={1} truncate flex={1}>
               {data.name}
             </Text>
           </Group>

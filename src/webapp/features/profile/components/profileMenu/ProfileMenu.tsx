@@ -44,9 +44,10 @@ export default function ProfileMenu() {
             gap={'xs'}
             wrap="nowrap"
             style={{ cursor: 'pointer', userSelect: 'none' }}
+            w={'100%'}
           >
             <Avatar src={data.avatarUrl} ml={4} />
-            <Text fw={500} lineClamp={1}>
+            <Text fw={500} lineClamp={2}>
               {data.name}
             </Text>
           </Group>

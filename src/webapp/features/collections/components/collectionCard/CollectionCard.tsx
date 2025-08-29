@@ -25,8 +25,7 @@ export default function CollectionCard(props: Props) {
   const router = useRouter();
   const { collection } = props;
   const relativeUpdateDate =
-    getRelativeTime(new Date(collection.updatedAt).toLocaleDateString()) +
-    ' ago';
+    'Updated ' + getRelativeTime(collection.updatedAt) + ' ago';
 
   // TODO: add more sizes
   return (

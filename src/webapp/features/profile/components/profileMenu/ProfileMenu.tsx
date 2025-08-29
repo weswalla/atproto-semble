@@ -13,6 +13,7 @@ import CosmikLogo from '@/assets/cosmik-logo-full.svg';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { MdLogout } from 'react-icons/md';
 
 export default function ProfileMenu() {
   const router = useRouter();
@@ -57,11 +58,11 @@ export default function ProfileMenu() {
             <Group gap={'xs'} wrap="nowrap">
               <Avatar src={data.avatarUrl} size={48} />
               <Stack gap={0}>
-                <Text lineClamp={1} fw={500} style={{ wordBreak: 'break-all' }}>
+                <Text fw={500} lineClamp={1} style={{ wordBreak: 'break-all' }}>
                   {data.name}
                 </Text>
-                <Text fw={500} truncate="end" lineClamp={1} c={'gray'}>
-                  View profile
+                <Text fw={500} lineClamp={1} flex={1} c={'gray'}>
+                  {data.handle}
                 </Text>
               </Stack>
             </Group>
@@ -77,7 +78,11 @@ export default function ProfileMenu() {
           </Menu.Item>
           <Menu.Divider />
 
-          <Menu.Item c={'red'} onClick={handleLogout}>
+          <Menu.Item
+            c={'red'}
+            leftSection={<MdLogout />}
+            onClick={handleLogout}
+          >
             Log out
           </Menu.Item>
         </Menu.Dropdown>

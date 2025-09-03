@@ -1,3 +1,4 @@
+import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
 
 import React, {
@@ -8,10 +9,11 @@ import React, {
   ReactNode,
 } from 'react';
 
-type DrawerName = 'createCollection';
+type DrawerName = 'createCollection' | 'addCard';
 
 type DrawerPropsMap = {
   createCollection: {};
+  addCard: {};
 };
 
 interface DrawerState<T = any> {
@@ -76,6 +78,11 @@ export const DrawersProvider = ({ children }: { children: ReactNode }) => {
       {/* Render */}
       <CreateCollectionDrawer
         isOpen={isOpen('createCollection')}
+        onClose={close}
+        {...state.innerProps}
+      />
+      <AddCardDrawer
+        isOpen={isOpen('addCard')}
         onClose={close}
         {...state.innerProps}
       />

@@ -73,8 +73,7 @@ export default function ComposerDrawer() {
           py={0}
         >
           <Menu.Item
-            component={Link}
-            href="/cards/add"
+            onClick={() => drawers.open({ drawer: 'addCard' })}
             p={0}
             style={{ cursor: 'pointer' }}
           >

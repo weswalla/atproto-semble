@@ -4,6 +4,9 @@ import {
   Anchor,
   Avatar,
   Button,
+  Checkbox,
+  CheckboxCard,
+  CheckboxIndicator,
   createTheme,
   MenuItem,
   NavLink,
@@ -89,6 +92,11 @@ export const theme = createTheme({
       defaultProps: {
         fz: 'md',
         fw: 600,
+      },
+    }),
+    CheckboxIndicator: CheckboxIndicator.extend({
+      defaultProps: {
+        radius: 'xl',
       },
     }),
   },

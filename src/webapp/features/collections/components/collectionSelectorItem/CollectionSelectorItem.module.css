@@ -1,0 +1,15 @@
+.root {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-lg);
+
+  &:hover {
+    background-color: var(--mantine-color-gray-light);
+  }
+
+  &[data-checked] {
+    border-color: var(--mantine-color-blue-6);
+    background-color: var(--mantine-color-blue-light);
+  }
+}

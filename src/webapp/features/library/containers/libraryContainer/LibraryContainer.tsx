@@ -54,7 +54,7 @@ export default function LibraryContainer() {
                   No collections
                 </Text>
                 <Button
-                  onClick={() => drawers.open({ drawer: 'createCollection' })}
+                  onClick={() => drawers.open('createCollection')}
                   variant="light"
                   color={'gray'}
                   size="md"

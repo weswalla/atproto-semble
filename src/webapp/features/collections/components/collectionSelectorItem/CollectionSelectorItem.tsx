@@ -10,11 +10,11 @@ import classes from './CollectionSelectorItem.module.css';
 interface Props {
   value: string;
   name: string;
-  description?: string;
   checked: boolean;
+  cardCount: number;
   onChange: (
     checked: boolean,
-    item: { id: string; name: string; description?: string },
+    item: { id: string; name: string; cardCount: number },
   ) => void;
 }
 
@@ -30,7 +30,7 @@ export default function CollectionSelectorItem(props: Props) {
         props.onChange(checked, {
           id: props.value,
           name: props.name,
-          description: props.description,
+          cardCount: props.cardCount,
         })
       }
     >
@@ -39,11 +39,6 @@ export default function CollectionSelectorItem(props: Props) {
           <Text fw={500} lineClamp={1}>
             {props.name}
           </Text>
-          {props.description && (
-            <Text c={'gray'} lineClamp={2}>
-              {props.description}
-            </Text>
-          )}
         </Stack>
         <CheckboxIndicator />
       </Group>

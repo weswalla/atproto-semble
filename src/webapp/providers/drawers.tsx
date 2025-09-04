@@ -1,34 +1,16 @@
+import React, { createContext, useContext, ReactNode } from 'react';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
-
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useState,
-  ReactNode,
-} from 'react';
+import { Drawer, useDrawersStack } from '@mantine/core'; // Importing Mantine's hook
 
 type DrawerName = 'createCollection' | 'addCard';
 
-type DrawerPropsMap = {
-  createCollection: {};
-  addCard: {};
-};
-
-interface DrawerState<T = any> {
-  name: DrawerName | null;
-  innerProps: T;
-}
-
 interface DrawersContextType {
-  open: <T extends DrawerName>(args: {
-    drawer: T;
-    innerProps?: DrawerPropsMap[T];
-  }) => void;
-  close: () => void;
+  open: <T extends DrawerName>(drawer: T) => void;
+  close: (drawer: DrawerName) => void;
+  closeAll: () => void;
+  toggle: (name: DrawerName) => void;
   isOpen: (name: DrawerName) => boolean;
-  innerProps: any;
 }
 
 const DrawersContext = createContext<DrawersContextType | undefined>(undefined);
@@ -42,50 +24,33 @@ export const useContextDrawers = () => {
 };
 
 export const DrawersProvider = ({ children }: { children: ReactNode }) => {
-  const [state, setState] = useState<DrawerState>({
-    name: null,
-    innerProps: {},
-  });
-
-  const open = useCallback(
-    <T extends DrawerName>({
-      drawer,
-      innerProps = {},
-    }: {
-      drawer: T;
-      innerProps?: DrawerPropsMap[T];
-    }) => {
-      setState({ name: drawer, innerProps });
-    },
-    [],
-  );
-
-  const close = useCallback(() => {
-    setState({ name: null, innerProps: {} });
-  }, []);
-
-  const isOpen = useCallback(
-    (name: DrawerName) => state.name === name,
-    [state.name],
-  );
+  // Initialize the drawer stack with the available drawers
+  // https://mantine.dev/core/drawer/#usedrawersstack-hook
+  const stack = useDrawersStack<DrawerName>(['addCard', 'createCollection']);
 
   return (
     <DrawersContext.Provider
-      value={{ open, close, isOpen, innerProps: state.innerProps }}
+      value={{
+        open: stack.open,
+        close: stack.close,
+        closeAll: stack.closeAll,
+        isOpen: (name: DrawerName) => stack.state[name], // Access the state object to check if the drawer is open
+        toggle: stack.toggle,
+      }}
     >
       {children}
 
-      {/* Render */}
-      <CreateCollectionDrawer
-        isOpen={isOpen('createCollection')}
-        onClose={close}
-        {...state.innerProps}
-      />
-      <AddCardDrawer
-        isOpen={isOpen('addCard')}
-        onClose={close}
-        {...state.innerProps}
-      />
+      <Drawer.Stack>
+        {/* Render Drawers */}
+        <AddCardDrawer
+          {...stack.register('addCard')}
+          isOpen={stack.state['addCard']}
+        />
+        <CreateCollectionDrawer
+          {...stack.register('createCollection')}
+          isOpen={stack.state['createCollection']}
+        />
+      </Drawer.Stack>
     </DrawersContext.Provider>
   );
 };

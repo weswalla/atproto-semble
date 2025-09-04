@@ -14,13 +14,14 @@ import { notifications } from '@mantine/notifications';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  initialName?: string;
 }
 
 export default function createCollectionDrawer(props: Props) {
   const createCollection = useCreateCollection();
   const form = useForm({
     initialValues: {
-      name: '',
+      name: props.initialName ?? '',
       description: '',
     },
   });

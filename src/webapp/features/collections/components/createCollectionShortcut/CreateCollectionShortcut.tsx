@@ -12,7 +12,7 @@ export default function CreateCollectionShortcut() {
       variant="subtle"
       c="blue"
       leftSection={<BiPlus size={25} />}
-      onClick={() => drawers.open({ drawer: 'createCollection' })}
+      onClick={() => drawers.open('createCollection')}
     />
   );
 }

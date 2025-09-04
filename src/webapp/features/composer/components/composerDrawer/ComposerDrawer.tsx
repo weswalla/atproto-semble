@@ -73,7 +73,7 @@ export default function ComposerDrawer() {
           py={0}
         >
           <Menu.Item
-            onClick={() => drawers.open({ drawer: 'addCard' })}
+            onClick={() => drawers.open('addCard')}
             p={0}
             style={{ cursor: 'pointer' }}
           >
@@ -88,7 +88,7 @@ export default function ComposerDrawer() {
             </Card>
           </Menu.Item>
           <Menu.Item
-            onClick={() => drawers.open({ drawer: 'createCollection' })}
+            onClick={() => drawers.open('createCollection')}
             p={0}
             style={{ cursor: 'pointer' }}
           >

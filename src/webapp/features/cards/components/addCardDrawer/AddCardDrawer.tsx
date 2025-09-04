@@ -65,6 +65,7 @@ export default function AddCardDrawer(props: Props) {
           notifications.show({
             message: 'Added card.',
           });
+          setSelectedCollections([]);
           props.onClose();
         },
         onError: () => {

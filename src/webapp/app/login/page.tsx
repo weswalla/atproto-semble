@@ -17,15 +17,17 @@ import { Suspense, useEffect, useState } from 'react';
 import { IoMdHelpCircleOutline } from 'react-icons/io';
 import SembleLogo from '@/assets/semble-logo.svg';
 import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function Page() {
   const { isAuthenticated, isLoading } = useAuth();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isExtensionLogin = searchParams.get('extension-login') === 'true';
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !isExtensionLogin) {
       setIsRedirecting(true);
 
       // redirect after 1 second

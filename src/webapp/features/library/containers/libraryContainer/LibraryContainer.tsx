@@ -4,7 +4,7 @@ import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import useMyCards from '@/features/cards/lib/queries/useMyCards';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import useCollections from '@/features/collections/lib/queries/useCollections';
-import { useContextDrawers } from '@/providers/drawers';
+import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
 import {
   Anchor,
   Container,
@@ -17,13 +17,14 @@ import {
   Button,
 } from '@mantine/core';
 import Link from 'next/link';
+import { useState } from 'react';
 import { BiCollection, BiPlus } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 
 export default function LibraryContainer() {
   const { data: CollectionsData } = useCollections({ limit: 4 });
   const { data: myCardsData } = useMyCards({ limit: 4 });
-  const drawers = useContextDrawers();
+  const [isCollectionDrawerOpen, setIsCollectionDrawerOpen] = useState(false);
 
   return (
     <Container p={'xs'} size={'xl'}>
@@ -54,7 +55,7 @@ export default function LibraryContainer() {
                   No collections
                 </Text>
                 <Button
-                  onClick={() => drawers.open('createCollection')}
+                  onClick={() => setIsCollectionDrawerOpen(true)}
                   variant="light"
                   color={'gray'}
                   size="md"
@@ -113,6 +114,10 @@ export default function LibraryContainer() {
           </Stack>
         </Stack>
       </Stack>
+      <CreateCollectionDrawer
+        isOpen={isCollectionDrawerOpen}
+        onClose={() => setIsCollectionDrawerOpen(false)}
+      />
     </Container>
   );
 }

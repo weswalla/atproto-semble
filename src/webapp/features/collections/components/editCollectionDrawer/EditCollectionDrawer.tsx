@@ -10,6 +10,7 @@ import {
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import useUpdateCollection from '../../lib/mutations/useUpdateCollection';
+import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 
 interface Props {
   isOpen: boolean;
@@ -65,11 +66,8 @@ export default function EditCollectionDrawer(props: Props) {
       onClose={props.onClose}
       withCloseButton={false}
       position="bottom"
-      overlayProps={{
-        blur: 3,
-        gradient:
-          'linear-gradient(0deg, rgba(204, 255, 0, 0.5), rgba(255, 255, 255, 0.5))',
-      }}
+      size={'30rem'}
+      overlayProps={DEFAULT_OVERLAY_PROPS}
     >
       <Drawer.Header>
         <Drawer.Title fz="xl" fw={600} mx="auto">
@@ -85,6 +83,7 @@ export default function EditCollectionDrawer(props: Props) {
               label="Name"
               placeholder="Collection name"
               variant="filled"
+              size="md"
               required
               maxLength={100}
               key={form.key('name')}
@@ -96,17 +95,27 @@ export default function EditCollectionDrawer(props: Props) {
               label="Description"
               placeholder="Describe what this collection is about"
               variant="filled"
+              size="md"
               rows={8}
               maxLength={500}
               key={form.key('description')}
               {...form.getInputProps('description')}
             />
 
-            <Group justify="space-between">
-              <Button variant="outline" color="gray" onClick={props.onClose}>
+            <Group justify="space-between" gap={'xs'} grow>
+              <Button
+                variant="light"
+                size="md"
+                color="gray"
+                onClick={props.onClose}
+              >
                 Cancel
               </Button>
-              <Button type="submit" loading={updateCollection.isPending}>
+              <Button
+                type="submit"
+                size="md"
+                loading={updateCollection.isPending}
+              >
                 Update
               </Button>
             </Group>

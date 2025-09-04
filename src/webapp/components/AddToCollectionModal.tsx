@@ -143,7 +143,7 @@ export function AddToCollectionModal({
               </Text>
             )}
 
-            <Group grow>
+            <Group gap={"xs"} grow>
               <Button
                 onClick={handleSubmit}
                 disabled={submitting || selectedCollectionIds.length === 0}

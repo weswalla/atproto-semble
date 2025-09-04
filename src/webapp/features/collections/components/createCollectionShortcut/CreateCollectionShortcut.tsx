@@ -1,18 +1,25 @@
-import { useContextDrawers } from '@/providers/drawers';
 import { NavLink } from '@mantine/core';
+import { Fragment, useState } from 'react';
 import { BiPlus } from 'react-icons/bi';
+import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
 
 export default function CreateCollectionShortcut() {
-  const drawers = useContextDrawers();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   return (
-    <NavLink
-      component="button"
-      label={'Create'}
-      variant="subtle"
-      c="blue"
-      leftSection={<BiPlus size={25} />}
-      onClick={() => drawers.open('createCollection')}
-    />
+    <Fragment>
+      <NavLink
+        component="button"
+        label={'Create'}
+        variant="subtle"
+        c="blue"
+        leftSection={<BiPlus size={25} />}
+        onClick={() => setIsDrawerOpen(true)}
+      />
+      <CreateCollectionDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+      />
+    </Fragment>
   );
 }

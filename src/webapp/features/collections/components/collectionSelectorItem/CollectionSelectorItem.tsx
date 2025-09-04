@@ -39,6 +39,9 @@ export default function CollectionSelectorItem(props: Props) {
           <Text fw={500} lineClamp={1}>
             {props.name}
           </Text>
+          <Text c={'gray'}>
+            {props.cardCount} {props.cardCount === 1 ? 'card' : 'cards'}
+          </Text>
         </Stack>
         <CheckboxIndicator />
       </Group>

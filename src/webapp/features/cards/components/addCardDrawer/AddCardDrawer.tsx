@@ -2,24 +2,24 @@ import {
   Button,
   Container,
   Drawer,
-  Text,
   Group,
   Stack,
   Textarea,
   TextInput,
-  Anchor,
+  Tooltip,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 
 import { notifications } from '@mantine/notifications';
 import useAddCard from '../../lib/mutations/useAddCard';
 import CollectionSelector from '@/features/collections/components/collectionSelector/CollectionSelector';
-import { Fragment, Suspense, useState } from 'react';
+import { Suspense, useState } from 'react';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
-import { IoMdLink } from 'react-icons/io';
 import { useDisclosure } from '@mantine/hooks';
 import { BiCollection } from 'react-icons/bi';
-import Link from 'next/link';
+import { IoMdLink } from 'react-icons/io';
+
+import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 
 interface Props {
   isOpen: boolean;
@@ -37,6 +37,10 @@ export default function AddCardDrawer(props: Props) {
     useState<{ id: string; name: string; cardCount: number }[]>(
       initialCollections,
     );
+
+  const hasNoCollections = selectedCollections.length === 0;
+  const hasOneCollection = selectedCollections.length === 1;
+
   const addCard = useAddCard();
 
   const form = useForm({
@@ -47,7 +51,7 @@ export default function AddCardDrawer(props: Props) {
     },
   });
 
-  const handleCreateCollection = (e: React.FormEvent) => {
+  const handleAddCard = (e: React.FormEvent) => {
     e.preventDefault();
 
     addCard.mutate(
@@ -84,12 +88,8 @@ export default function AddCardDrawer(props: Props) {
       }}
       withCloseButton={false}
       position="bottom"
-      size={'lg'}
-      overlayProps={{
-        blur: 3,
-        gradient:
-          'linear-gradient(0deg, rgba(204, 255, 0, 0.5), rgba(255, 255, 255, 0.5))',
-      }}
+      size={'26rem'}
+      overlayProps={DEFAULT_OVERLAY_PROPS}
     >
       <Drawer.Header>
         <Drawer.Title fz={'xl'} fw={600} mx={'auto'}>
@@ -97,8 +97,8 @@ export default function AddCardDrawer(props: Props) {
         </Drawer.Title>
       </Drawer.Header>
       <Container size={'sm'}>
-        <form onSubmit={handleCreateCollection}>
-          <Stack>
+        <form onSubmit={handleAddCard}>
+          <Stack gap={'xl'}>
             <Stack>
               <Stack>
                 <TextInput
@@ -129,34 +129,21 @@ export default function AddCardDrawer(props: Props) {
 
               <Group>
                 <Stack align="start" gap={'xs'}>
-                  <Button
-                    onClick={toggleCollectionSelector}
-                    variant="light"
-                    color="gray"
-                    leftSection={<BiCollection size={22} />}
+                  <Tooltip
+                    label={selectedCollections.map((c) => c.name).join(', ')}
+                    disabled={hasNoCollections}
                   >
-                    Add to collections
-                  </Button>
-                  {selectedCollections.length > 0 && (
-                    <Text fw={500}>
-                      Selected collections:{' '}
-                      <Text fw={500} span>
-                        {selectedCollections.map((c, index) => (
-                          <Fragment key={c.id}>
-                            <Anchor
-                              component={Link}
-                              href={`/collections/${c.id}`}
-                              target="_blank"
-                              c="blue"
-                            >
-                              {c.name}
-                            </Anchor>
-                            {index < selectedCollections.length - 1 && ', '}
-                          </Fragment>
-                        ))}
-                      </Text>
-                    </Text>
-                  )}
+                    <Button
+                      onClick={toggleCollectionSelector}
+                      variant="light"
+                      color="gray"
+                      leftSection={<BiCollection size={22} />}
+                    >
+                      {!hasNoCollections
+                        ? `${selectedCollections.length} ${hasOneCollection ? 'collection' : 'collections'}`
+                        : 'Add to collections'}
+                    </Button>
+                  </Tooltip>
                 </Stack>
               </Group>
               <Suspense fallback={<CollectionSelectorSkeleton />}>
@@ -168,11 +155,16 @@ export default function AddCardDrawer(props: Props) {
                 />
               </Suspense>
             </Stack>
-            <Group justify="space-between">
-              <Button variant="outline" color={'gray'} onClick={props.onClose}>
+            <Group justify="space-between" gap={'xs'} grow>
+              <Button
+                variant="light"
+                size="md"
+                color={'gray'}
+                onClick={props.onClose}
+              >
                 Cancel
               </Button>
-              <Button type="submit" loading={addCard.isPending}>
+              <Button type="submit" size="md" loading={addCard.isPending}>
                 Add card
               </Button>
             </Group>

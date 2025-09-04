@@ -2,22 +2,25 @@ import {
   ActionIcon,
   Affix,
   Text,
-  Box,
   Menu,
   Stack,
   Transition,
   Card,
+  Overlay,
 } from '@mantine/core';
-import { useContextDrawers } from '@/providers/drawers';
 import { Fragment, useState } from 'react';
 import { FiPlus, FiX } from 'react-icons/fi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { BiCollection } from 'react-icons/bi';
-import Link from 'next/link';
+import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
+import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
+import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
 
 export default function ComposerDrawer() {
   const [opened, setOpened] = useState(false);
-  const drawers = useContextDrawers();
+  const [activeDrawer, setActiveDrawer] = useState<
+    'addCard' | 'createCollection' | null
+  >();
 
   return (
     <Fragment>
@@ -73,7 +76,7 @@ export default function ComposerDrawer() {
           py={0}
         >
           <Menu.Item
-            onClick={() => drawers.open('addCard')}
+            onClick={() => setActiveDrawer('addCard')}
             p={0}
             style={{ cursor: 'pointer' }}
           >
@@ -88,7 +91,7 @@ export default function ComposerDrawer() {
             </Card>
           </Menu.Item>
           <Menu.Item
-            onClick={() => drawers.open('createCollection')}
+            onClick={() => setActiveDrawer('createCollection')}
             p={0}
             style={{ cursor: 'pointer' }}
           >
@@ -101,6 +104,16 @@ export default function ComposerDrawer() {
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>
+
+      <AddCardDrawer
+        isOpen={activeDrawer === 'addCard'}
+        onClose={() => setActiveDrawer(null)}
+      />
+      <CreateCollectionDrawer
+        isOpen={activeDrawer === 'createCollection'}
+        onClose={() => setActiveDrawer(null)}
+      />
+
       <Transition
         mounted={opened}
         transition="fade"
@@ -108,15 +121,12 @@ export default function ComposerDrawer() {
         timingFunction="ease"
       >
         {(styles) => (
-          <Box
+          <Overlay
+            blur={DEFAULT_OVERLAY_PROPS.blur}
+            gradient={DEFAULT_OVERLAY_PROPS.gradient}
             style={{
               ...styles,
-              position: 'fixed',
-              inset: 0,
               zIndex: 101,
-              backdropFilter: 'blur(3px)',
-              background:
-                'linear-gradient(0deg, rgba(204, 255, 0, 0.5), rgba(255, 255, 255, 0.5))',
             }}
           />
         )}

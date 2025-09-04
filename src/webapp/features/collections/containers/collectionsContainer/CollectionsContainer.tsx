@@ -11,11 +11,12 @@ import {
 import useCollections from '../../lib/queries/useCollections';
 import { BiPlus } from 'react-icons/bi';
 import CollectionCard from '../../components/collectionCard/CollectionCard';
-import { useContextDrawers } from '@/providers/drawers';
+import { useState } from 'react';
+import CreateCollectionDrawer from '../../components/createCollectionDrawer/CreateCollectionDrawer';
 
 export default function CollectionsContainer() {
   const { data } = useCollections();
-  const drawers = useContextDrawers();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   return (
     <Container p={'xs'} size={'xl'}>
@@ -34,7 +35,7 @@ export default function CollectionsContainer() {
               No collections
             </Text>
             <Button
-              onClick={() => drawers.open('createCollection')}
+              onClick={() => setIsDrawerOpen(true)}
               variant="light"
               color={'gray'}
               size="md"
@@ -42,6 +43,10 @@ export default function CollectionsContainer() {
             >
               Create your first collection
             </Button>
+            <CreateCollectionDrawer
+              isOpen={isDrawerOpen}
+              onClose={() => setIsDrawerOpen(false)}
+            />
           </Stack>
         )}
       </Stack>

@@ -1,16 +1,12 @@
 'use client';
 
 import {
-  Anchor,
   Avatar,
   Button,
-  Checkbox,
-  CheckboxCard,
   CheckboxIndicator,
   createTheme,
   MenuItem,
   NavLink,
-  TextInput,
 } from '@mantine/core';
 
 export const theme = createTheme({

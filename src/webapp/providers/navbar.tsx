@@ -4,25 +4,32 @@ import React, { createContext, useContext } from 'react';
 import { useDisclosure } from '@mantine/hooks';
 
 interface NavbarContext {
-  opened: boolean;
-  toggle: () => void;
+  mobileOpened: boolean;
+  desktopOpened: boolean;
+  toggleMobile: () => void;
+  toggleDesktop: () => void;
 }
 
 const NavbarContext = createContext<NavbarContext>({
-  opened: true,
-  toggle: () => {},
+  mobileOpened: false,
+  desktopOpened: true,
+  toggleMobile: () => {},
+  toggleDesktop: () => {},
 });
 
 interface ProviderProps {
   children: React.ReactNode;
 }
 
-export function NavbarProvider(props: ProviderProps) {
-  const [opened, { toggle }] = useDisclosure();
+export function NavbarProvider({ children }: ProviderProps) {
+  const [mobileOpened, { toggle: toggleMobile }] = useDisclosure(false);
+  const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
 
   return (
-    <NavbarContext.Provider value={{ opened, toggle }}>
-      {props.children}
+    <NavbarContext.Provider
+      value={{ mobileOpened, desktopOpened, toggleMobile, toggleDesktop }}
+    >
+      {children}
     </NavbarContext.Provider>
   );
 }

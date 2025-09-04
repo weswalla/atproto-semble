@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function AppLayout(props: Props) {
-  const { opened } = useNavbarContext();
+  const { mobileOpened, desktopOpened } = useNavbarContext();
 
   return (
     <AppShell
@@ -16,7 +16,7 @@ export default function AppLayout(props: Props) {
       navbar={{
         width: 300,
         breakpoint: 'xs',
-        collapsed: { mobile: !opened, desktop: !opened },
+        collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
       }}
     >
       {/*<Header />*/}

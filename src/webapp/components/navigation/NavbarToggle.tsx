@@ -2,14 +2,32 @@
 
 import { useNavbarContext } from '@/providers/navbar';
 import { ActionIcon } from '@mantine/core';
+import { Fragment } from 'react';
 import { FiSidebar } from 'react-icons/fi';
 
 export default function NavbarToggle() {
-  const { toggle } = useNavbarContext();
+  const { toggleMobile, toggleDesktop } = useNavbarContext();
 
   return (
-    <ActionIcon variant="light" color="gray" size={'lg'} onClick={toggle}>
-      <FiSidebar />
-    </ActionIcon>
+    <Fragment>
+      <ActionIcon
+        variant="light"
+        color="gray"
+        size={'lg'}
+        onClick={toggleMobile}
+        hiddenFrom="sm"
+      >
+        <FiSidebar />
+      </ActionIcon>
+      <ActionIcon
+        variant="light"
+        color="gray"
+        size={'lg'}
+        onClick={toggleDesktop}
+        visibleFrom="sm"
+      >
+        <FiSidebar />
+      </ActionIcon>
+    </Fragment>
   );
 }

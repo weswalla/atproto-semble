@@ -21,6 +21,7 @@ import { useState } from 'react';
 import EditCollectionDrawer from '../../components/editCollectionDrawer/EditCollectionDrawer';
 import { BiPlus } from 'react-icons/bi';
 import DeleteCollectionModal from '../../components/deleteCollectionModal/DeleteCollectionModal';
+import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 
 interface Props {
   id: string;
@@ -30,6 +31,7 @@ export default function CollectionContainer(props: Props) {
   const { data } = useCollection({ id: props.id });
   const [showEditDrawer, setShowEditDrawer] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAddDrawer, setShowAddDrawer] = useState(false);
 
   return (
     <Container p={'xs'} size={'xl'}>
@@ -108,15 +110,23 @@ export default function CollectionContainer(props: Props) {
               No cards
             </Text>
             <Button
-              component={Link}
-              href={'/cards/add'}
               variant="light"
               color={'gray'}
               size="md"
               rightSection={<BiPlus size={22} />}
+              onClick={() => setShowAddDrawer(true)}
             >
               Add your first card
             </Button>
+            <AddCardDrawer
+              isOpen={showAddDrawer}
+              onClose={() => setShowAddDrawer(false)}
+              selectedCollection={{
+                id: data.id,
+                name: data.name,
+                cardCount: data.urlCards.length,
+              }}
+            />
           </Stack>
         )}
       </Stack>

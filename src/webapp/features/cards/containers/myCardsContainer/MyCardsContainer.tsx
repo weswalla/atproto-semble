@@ -5,9 +5,12 @@ import useMyCards from '../../lib/queries/useMyCards';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import { BiPlus } from 'react-icons/bi';
 import Link from 'next/link';
+import AddCardDrawer from '../../components/addCardDrawer/AddCardDrawer';
+import { useState } from 'react';
 
 export default function MyCardsContainer() {
   const { data } = useMyCards();
+  const [showAddDrawer, setShowAddDrawer] = useState(false);
 
   return (
     <Container p={'xs'} size={'xl'}>
@@ -33,15 +36,18 @@ export default function MyCardsContainer() {
               No cards
             </Text>
             <Button
-              component={Link}
-              href={'/cards/add'}
               variant="light"
               color={'gray'}
               size="md"
               rightSection={<BiPlus size={22} />}
+              onClick={() => setShowAddDrawer(true)}
             >
               Add your first card
             </Button>
+            <AddCardDrawer
+              isOpen={showAddDrawer}
+              onClose={() => setShowAddDrawer(false)}
+            />
           </Stack>
         )}
       </Stack>

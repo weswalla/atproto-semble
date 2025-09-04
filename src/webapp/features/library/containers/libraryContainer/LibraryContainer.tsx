@@ -20,11 +20,13 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { BiCollection, BiPlus } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
+import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 
 export default function LibraryContainer() {
   const { data: CollectionsData } = useCollections({ limit: 4 });
   const { data: myCardsData } = useMyCards({ limit: 4 });
-  const [isCollectionDrawerOpen, setIsCollectionDrawerOpen] = useState(false);
+  const [showCollectionDrawer, setShowCollectionDrawer] = useState(false);
+  const [showAddDrawer, setShowAddDrawer] = useState(false);
 
   return (
     <Container p={'xs'} size={'xl'}>
@@ -55,7 +57,7 @@ export default function LibraryContainer() {
                   No collections
                 </Text>
                 <Button
-                  onClick={() => setIsCollectionDrawerOpen(true)}
+                  onClick={() => setShowCollectionDrawer(true)}
                   variant="light"
                   color={'gray'}
                   size="md"
@@ -100,23 +102,26 @@ export default function LibraryContainer() {
                   No cards
                 </Text>
                 <Button
-                  component={Link}
-                  href={'/cards/add'}
                   variant="light"
                   color={'gray'}
                   size="md"
                   rightSection={<BiPlus size={22} />}
+                  onClick={() => setShowAddDrawer(true)}
                 >
                   Add your first card
                 </Button>
+                <AddCardDrawer
+                  isOpen={showAddDrawer}
+                  onClose={() => setShowAddDrawer(false)}
+                />
               </Stack>
             )}
           </Stack>
         </Stack>
       </Stack>
       <CreateCollectionDrawer
-        isOpen={isCollectionDrawerOpen}
-        onClose={() => setIsCollectionDrawerOpen(false)}
+        isOpen={showCollectionDrawer}
+        onClose={() => setShowCollectionDrawer(false)}
       />
     </Container>
   );

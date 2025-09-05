@@ -13,7 +13,7 @@ export class RemoveCardFromCollectionController extends Controller {
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const { cardId } = req.params;
-      const { collectionIds } = req.body;
+      const { collectionIds: collectionIdsParam } = req.query;
       const curatorId = req.did;
 
       if (!curatorId) {
@@ -24,8 +24,19 @@ export class RemoveCardFromCollectionController extends Controller {
         return this.badRequest(res, 'Card ID is required');
       }
 
-      if (!collectionIds || !Array.isArray(collectionIds)) {
-        return this.badRequest(res, 'Collection IDs array is required');
+      if (!collectionIdsParam || typeof collectionIdsParam !== 'string') {
+        return this.badRequest(
+          res,
+          'Collection IDs query parameter is required',
+        );
+      }
+
+      const collectionIds = collectionIdsParam
+        .split(',')
+        .filter((id) => id.trim() !== '');
+
+      if (collectionIds.length === 0) {
+        return this.badRequest(res, 'At least one collection ID is required');
       }
 
       const result = await this.removeCardFromCollectionUseCase.execute({

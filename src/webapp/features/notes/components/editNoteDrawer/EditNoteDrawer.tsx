@@ -10,14 +10,13 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import useUpdateNote from '../../lib/mutations/useUpdateNote';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
+import { stringify } from 'postcss';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  note: {
-    cardId: string;
-    text: string;
-  };
+  noteCardId: string;
+  note: string;
 }
 
 export default function EditNoteDrawer(props: Props) {
@@ -25,7 +24,7 @@ export default function EditNoteDrawer(props: Props) {
 
   const form = useForm({
     initialValues: {
-      text: props.note.text,
+      note: props.note,
     },
   });
 
@@ -34,8 +33,8 @@ export default function EditNoteDrawer(props: Props) {
 
     updateNote.mutate(
       {
-        cardId: props.note.cardId,
-        note: form.values.text,
+        cardId: props.noteCardId,
+        note: form.values.note,
       },
       {
         onSuccess: () => {
@@ -59,10 +58,13 @@ export default function EditNoteDrawer(props: Props) {
   return (
     <Drawer
       opened={props.isOpen}
-      onClose={props.onClose}
+      onClose={() => {
+        props.onClose();
+        form.reset();
+      }}
       withCloseButton={false}
       position="bottom"
-      size={'30rem'}
+      size={'xs'}
       overlayProps={DEFAULT_OVERLAY_PROPS}
     >
       <Drawer.Header>
@@ -80,10 +82,11 @@ export default function EditNoteDrawer(props: Props) {
               placeholder="Add a note about this card"
               variant="filled"
               size="md"
-              rows={3}
+              rows={5}
               maxLength={500}
-              key={form.key('text')}
-              {...form.getInputProps('text')}
+              required
+              key={form.key('note')}
+              {...form.getInputProps('note')}
             />
 
             <Group justify="space-between" gap={'xs'} grow>

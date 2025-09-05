@@ -11,10 +11,15 @@ import {
   ActionIcon,
   Anchor,
   AspectRatio,
+  Menu,
 } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
 import Link from 'next/link';
-import { BiPlus } from 'react-icons/bi';
+import { useState } from 'react';
+import { BiCollection, BiPlus } from 'react-icons/bi';
+import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
+import { LuUnplug } from 'react-icons/lu';
+import { AiOutlineSignature } from 'react-icons/ai';
+import EditNoteDrawer from '@/features/notes/components/editNoteDrawer/EditNoteDrawer';
 
 interface Props {
   size?: 'large' | 'compact' | 'small';
@@ -28,7 +33,8 @@ interface Props {
 
 export default function UrlCard(props: Props) {
   const domain = getDomain(props.url);
-  const [modalOpened, { open, close }] = useDisclosure(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditNoteModal, setShowEditNoteModal] = useState(false);
   // TODO: add more sizes
 
   return (
@@ -70,23 +76,68 @@ export default function UrlCard(props: Props) {
             )}
           </Group>
           <Group justify="space-between">
-            <ActionIcon
-              variant="subtle"
-              color={'gray'}
-              radius={'xl'}
-              onClick={open}
-            >
-              <BiPlus size={22} />
-            </ActionIcon>
+            <Group gap={'xs'}>
+              <ActionIcon
+                variant="subtle"
+                color={'gray'}
+                radius={'xl'}
+                onClick={() => setShowAddModal(true)}
+              >
+                <BiPlus size={22} />
+              </ActionIcon>
+              {props.note && (
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  radius={'xl'}
+                  onClick={() => setShowEditNoteModal(true)}
+                >
+                  <AiOutlineSignature size={22} />
+                </ActionIcon>
+              )}
+            </Group>
+            <Menu shadow="sm">
+              <Menu.Target>
+                <ActionIcon variant="subtle" color={'gray'}>
+                  <BsThreeDots size={22} />
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item
+                  leftSection={<BiCollection />}
+                  // onClick={() => setShowEditDrawer(true)}
+                >
+                  Edit collections
+                </Menu.Item>
+                <Menu.Item leftSection={<LuUnplug />}>
+                  Remove from collection
+                </Menu.Item>
+                <Menu.Item
+                  color="red"
+                  leftSection={<BsTrash2Fill />}
+                  // onClick={() => setShowDeleteModal(true)}
+                >
+                  Delete
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
           </Group>
         </Stack>
       </Card>
       {props.note && <NoteCard note={props.note.text} />}
       <AddToCollectionModal
         cardId={props.id}
-        isOpen={modalOpened}
-        onClose={close}
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
       />
+      {props.note && (
+        <EditNoteDrawer
+          isOpen={showEditNoteModal}
+          onClose={() => setShowEditNoteModal(false)}
+          noteCardId={props.note.id}
+          note={props.note.text}
+        />
+      )}
     </Stack>
   );
 }

@@ -48,8 +48,8 @@ export default function UrlCard(props: Props) {
     <Stack component="article" gap={5} justify="stretch" h={'100%'}>
       <Card withBorder radius={'lg'} p={'sm'} flex={1}>
         <Stack justify="space-between" gap={'sm'} flex={1}>
-          <Group justify="space-between" align="start" wrap="nowrap" gap={'lg'}>
-            <Stack gap={0}>
+          <Group justify="space-between" align="start" gap={'lg'}>
+            <Stack gap={0} flex={0.9}>
               <Anchor
                 component={Link}
                 href={props.url}
@@ -71,7 +71,7 @@ export default function UrlCard(props: Props) {
               )}
             </Stack>
             {props.cardContent.thumbnailUrl && (
-              <AspectRatio ratio={1 / 1}>
+              <AspectRatio ratio={1 / 1} flex={0.1}>
                 <Image
                   src={props.cardContent.thumbnailUrl}
                   alt={`${props.url} social preview image`}

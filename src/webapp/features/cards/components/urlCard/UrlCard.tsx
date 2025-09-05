@@ -120,6 +120,7 @@ export default function UrlCard(props: Props) {
                     leftSection={<LuUnplug />}
                     onClick={() => setShowRemoveFromCollectionModal(true)}
                   >
+                    {/* TODO: hide if current user !== card author */}
                     Remove from this collection
                   </Menu.Item>
                 )}
@@ -128,6 +129,7 @@ export default function UrlCard(props: Props) {
                   leftSection={<BsTrash2Fill />}
                   onClick={() => setShowRemoveFromLibraryModal(true)}
                 >
+                  {/* TODO: hide if current user !== card author */}
                   Remove from library
                 </Menu.Item>
               </Menu.Dropdown>

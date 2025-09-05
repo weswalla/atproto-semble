@@ -78,6 +78,7 @@ export default function CollectionContainer(props: Props) {
                 onClick={() => setShowEditDrawer(true)}
                 leftSection={<BsPencilFill />}
               >
+                {/* TODO: hide if current user !== card author */}
                 Edit collection
               </Menu.Item>
               <Menu.Item
@@ -85,6 +86,7 @@ export default function CollectionContainer(props: Props) {
                 leftSection={<BsTrash2Fill />}
                 onClick={() => setShowDeleteModal(true)}
               >
+                {/* TODO: hide if current user !== card author */}
                 Delete collection
               </Menu.Item>
             </Menu.Dropdown>

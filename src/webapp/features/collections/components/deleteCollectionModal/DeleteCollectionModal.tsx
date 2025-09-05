@@ -45,7 +45,12 @@ export default function DeleteCollectionModal(props: Props) {
         <Button variant="subtle" size="md" color="gray" onClick={props.onClose}>
           Cancel
         </Button>
-        <Button color="red" size="md" onClick={handleDeleteCollection}>
+        <Button
+          color="red"
+          size="md"
+          onClick={handleDeleteCollection}
+          loading={deleteCollection.isPending}
+        >
           Delete
         </Button>
       </Stack>

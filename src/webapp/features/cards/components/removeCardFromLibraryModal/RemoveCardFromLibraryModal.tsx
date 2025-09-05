@@ -39,7 +39,12 @@ export default function RemoveCardFromLibraryModal(props: Props) {
         <Button variant="subtle" size="md" color="gray" onClick={props.onClose}>
           Cancel
         </Button>
-        <Button color="red" size="md" onClick={handleRemoveCardFromLibrary}>
+        <Button
+          color="red"
+          size="md"
+          onClick={handleRemoveCardFromLibrary}
+          loading={removeCardFromLibrary.isPending}
+        >
           Remove
         </Button>
       </Stack>

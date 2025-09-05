@@ -37,11 +37,6 @@ export default function EditNoteDrawer(props: Props) {
         note: form.values.note,
       },
       {
-        onSuccess: () => {
-          notifications.show({
-            message: 'Updated note',
-          });
-        },
         onError: () => {
           notifications.show({
             message: 'Could not update note.',

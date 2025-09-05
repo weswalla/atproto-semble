@@ -17,6 +17,8 @@ export default function useUpdateNote() {
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['card', data.cardId] });
+      queryClient.invalidateQueries({ queryKey: ['collection'] });
+      queryClient.invalidateQueries({ queryKey: ['collections'] });
     },
   });
 

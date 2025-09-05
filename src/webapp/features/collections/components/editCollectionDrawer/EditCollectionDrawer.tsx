@@ -42,11 +42,6 @@ export default function EditCollectionDrawer(props: Props) {
         description: form.values.description,
       },
       {
-        onSuccess: () => {
-          notifications.show({
-            message: `Updated collection "${form.values.name}".`,
-          });
-        },
         onError: () => {
           notifications.show({
             message: 'Could not update collection.',

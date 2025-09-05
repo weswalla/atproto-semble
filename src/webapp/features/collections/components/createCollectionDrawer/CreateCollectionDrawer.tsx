@@ -42,10 +42,6 @@ export default function createCollectionDrawer(props: Props) {
       },
       {
         onSuccess: (newCollection) => {
-          notifications.show({
-            message: `Created collection "${form.getValues().name}".`,
-          });
-
           props.onClose();
           props.onCreate &&
             props.onCreate({

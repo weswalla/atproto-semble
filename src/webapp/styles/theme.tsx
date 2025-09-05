@@ -99,6 +99,7 @@ export const theme = createTheme({
     Modal: Modal.extend({
       defaultProps: {
         radius: 'lg',
+        transitionProps: { transition: 'pop' },
       },
     }),
   },

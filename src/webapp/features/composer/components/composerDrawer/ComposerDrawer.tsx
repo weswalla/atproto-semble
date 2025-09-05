@@ -122,8 +122,10 @@ export default function ComposerDrawer() {
       >
         {(styles) => (
           <Overlay
+            fixed={true}
             blur={DEFAULT_OVERLAY_PROPS.blur}
             gradient={DEFAULT_OVERLAY_PROPS.gradient}
+            inset={DEFAULT_OVERLAY_PROPS.inset}
             style={{
               ...styles,
               zIndex: 101,

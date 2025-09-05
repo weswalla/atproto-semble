@@ -100,6 +100,11 @@ export default function CollectionContainer(props: Props) {
                   url={card.url}
                   cardContent={card.cardContent}
                   note={card.note}
+                  currentCollection={{
+                    id: data.id,
+                    name: data.name,
+                    authorId: data.author.id,
+                  }}
                 />
               </Grid.Col>
             ))}

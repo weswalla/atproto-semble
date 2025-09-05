@@ -20,6 +20,8 @@ import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import { LuUnplug } from 'react-icons/lu';
 import { AiOutlineSignature } from 'react-icons/ai';
 import EditNoteDrawer from '@/features/notes/components/editNoteDrawer/EditNoteDrawer';
+import RemoveCardFromLibraryModal from '../removeCardFromLibraryModal/RemoveCardFromLibraryModal';
+import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
 
 interface Props {
   size?: 'large' | 'compact' | 'small';
@@ -28,6 +30,7 @@ interface Props {
   cardContent: UrlCardView['cardContent'];
   note?: UrlCardView['note'];
   collections?: UrlCardView['collections'];
+  currentCollection?: UrlCardView['collections'][0];
   libraries?: UrlCardView['libraries'];
 }
 
@@ -35,6 +38,10 @@ export default function UrlCard(props: Props) {
   const domain = getDomain(props.url);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditNoteModal, setShowEditNoteModal] = useState(false);
+  const [showRemoveFromCollectionModal, setShowRemoveFromCollectionModal] =
+    useState(false);
+  const [showRemoveFromLibaryModal, setShowRemoveFromLibraryModal] =
+    useState(false);
   // TODO: add more sizes
 
   return (
@@ -103,21 +110,25 @@ export default function UrlCard(props: Props) {
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item
+                {/*<Menu.Item
                   leftSection={<BiCollection />}
-                  // onClick={() => setShowEditDrawer(true)}
                 >
                   Edit collections
-                </Menu.Item>
-                <Menu.Item leftSection={<LuUnplug />}>
-                  Remove from collection
-                </Menu.Item>
+                </Menu.Item>*/}
+                {props.currentCollection && (
+                  <Menu.Item
+                    leftSection={<LuUnplug />}
+                    onClick={() => setShowRemoveFromCollectionModal(true)}
+                  >
+                    Remove from this collection
+                  </Menu.Item>
+                )}
                 <Menu.Item
                   color="red"
                   leftSection={<BsTrash2Fill />}
-                  // onClick={() => setShowDeleteModal(true)}
+                  onClick={() => setShowRemoveFromLibraryModal(true)}
                 >
-                  Delete
+                  Remove from library
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
@@ -138,6 +149,19 @@ export default function UrlCard(props: Props) {
           note={props.note.text}
         />
       )}
+      {props.currentCollection && (
+        <RemoveCardFromCollectionModal
+          isOpen={showRemoveFromCollectionModal}
+          onClose={() => setShowRemoveFromCollectionModal(false)}
+          cardId={props.id}
+          collectionId={props.currentCollection.id}
+        />
+      )}
+      <RemoveCardFromLibraryModal
+        isOpen={showRemoveFromLibaryModal}
+        onClose={() => setShowRemoveFromLibraryModal(false)}
+        cardId={props.id}
+      />
     </Stack>
   );
 }

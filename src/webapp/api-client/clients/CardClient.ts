@@ -69,12 +69,10 @@ export class CardClient extends BaseClient {
   async removeCardFromCollection(
     request: RemoveCardFromCollectionRequest,
   ): Promise<RemoveCardFromCollectionResponse> {
+    const collectionIdsParam = request.collectionIds.join(',');
     return this.request<RemoveCardFromCollectionResponse>(
       'DELETE',
-      `/api/cards/${request.cardId}/collections`,
-      {
-        collectionIds: request.collectionIds,
-      },
+      `/api/cards/${request.cardId}/collections?collectionIds=${encodeURIComponent(collectionIdsParam)}`,
     );
   }
 }

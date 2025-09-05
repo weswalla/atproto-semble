@@ -15,7 +15,7 @@ export default function NavbarToggle() {
         color="gray"
         size={'lg'}
         onClick={toggleMobile}
-        hiddenFrom="sm"
+        hiddenFrom="xs"
       >
         <FiSidebar />
       </ActionIcon>
@@ -24,7 +24,7 @@ export default function NavbarToggle() {
         color="gray"
         size={'lg'}
         onClick={toggleDesktop}
-        visibleFrom="sm"
+        visibleFrom="xs"
       >
         <FiSidebar />
       </ActionIcon>

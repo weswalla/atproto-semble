@@ -6,6 +6,7 @@ import {
   CheckboxIndicator,
   createTheme,
   MenuItem,
+  Modal,
   NavLink,
 } from '@mantine/core';
 
@@ -93,6 +94,11 @@ export const theme = createTheme({
     CheckboxIndicator: CheckboxIndicator.extend({
       defaultProps: {
         radius: 'xl',
+      },
+    }),
+    Modal: Modal.extend({
+      defaultProps: {
+        radius: 'lg',
       },
     }),
   },

@@ -1,6 +1,7 @@
 import { Button, Stack, Modal } from '@mantine/core';
 import useRemoveCardFromLibrary from '../../lib/mutations/useRemoveCardFromLibrary';
 import { notifications } from '@mantine/notifications';
+import { DANGER_OVERLAY_PROPS } from '@/styles/overlays';
 
 interface Props {
   isOpen: boolean;
@@ -32,7 +33,7 @@ export default function RemoveCardFromLibraryModal(props: Props) {
       withCloseButton={false}
       title="Remove card from library"
       size={'xs'}
-      overlayProps={{ blur: 3 }}
+      overlayProps={DANGER_OVERLAY_PROPS}
       centered
     >
       <Stack>

@@ -2,6 +2,7 @@ import { Button, Stack, Modal } from '@mantine/core';
 import useDeleteCollection from '../../lib/mutations/useDeleteCollection';
 import { notifications } from '@mantine/notifications';
 import { useRouter } from 'next/navigation';
+import { DANGER_OVERLAY_PROPS } from '@/styles/overlays';
 
 interface Props {
   isOpen: boolean;
@@ -38,7 +39,7 @@ export default function DeleteCollectionModal(props: Props) {
       withCloseButton={false}
       title="Delete Collection"
       size={'xs'}
-      overlayProps={{ blur: 3 }}
+      overlayProps={DANGER_OVERLAY_PROPS}
       centered
     >
       <Stack>

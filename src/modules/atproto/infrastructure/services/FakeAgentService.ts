@@ -15,7 +15,7 @@ export class FakeAgentService implements IAgentService {
             data: {
               did: actor,
               handle: mockHandle,
-              displayName: `Mock User (${mockHandle})`,
+              displayName: `Mock User`,
               description: 'This is a mock profile for testing purposes',
               avatar: 'https://via.placeholder.com/150',
             },

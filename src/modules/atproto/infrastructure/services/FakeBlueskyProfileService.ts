@@ -14,7 +14,7 @@ export class FakeBlueskyProfileService implements IProfileService {
       // Return mock profile data
       const userProfile: UserProfile = {
         id: userId,
-        name: `Mock User (${mockHandle})`,
+        name: `Mock User`,
         handle: mockHandle,
         avatarUrl: 'https://via.placeholder.com/150',
         bio: 'This is a mock profile for testing purposes',

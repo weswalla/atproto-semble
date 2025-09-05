@@ -9,7 +9,6 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-
 import { notifications } from '@mantine/notifications';
 import useAddCard from '../../lib/mutations/useAddCard';
 import CollectionSelector from '@/features/collections/components/collectionSelector/CollectionSelector';
@@ -18,7 +17,6 @@ import CollectionSelectorSkeleton from '@/features/collections/components/collec
 import { useDisclosure } from '@mantine/hooks';
 import { BiCollection } from 'react-icons/bi';
 import { IoMdLink } from 'react-icons/io';
-
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 
 interface Props {
@@ -34,9 +32,7 @@ export default function AddCardDrawer(props: Props) {
     ? [props.selectedCollection]
     : [];
   const [selectedCollections, setSelectedCollections] =
-    useState<{ id: string; name: string; cardCount: number }[]>(
-      initialCollections,
-    );
+    useState(initialCollections);
 
   const hasNoCollections = selectedCollections.length === 0;
   const hasOneCollection = selectedCollections.length === 1;
@@ -47,7 +43,7 @@ export default function AddCardDrawer(props: Props) {
     initialValues: {
       url: '',
       note: '',
-      collections: initialCollections,
+      collections: selectedCollections,
     },
   });
 
@@ -85,7 +81,6 @@ export default function AddCardDrawer(props: Props) {
       opened={props.isOpen}
       onClose={() => {
         props.onClose();
-        setSelectedCollections([]);
       }}
       withCloseButton={false}
       position="bottom"

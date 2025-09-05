@@ -118,15 +118,6 @@ export default function CollectionContainer(props: Props) {
             >
               Add your first card
             </Button>
-            <AddCardDrawer
-              isOpen={showAddDrawer}
-              onClose={() => setShowAddDrawer(false)}
-              selectedCollection={{
-                id: data.id,
-                name: data.name,
-                cardCount: data.urlCards.length,
-              }}
-            />
           </Stack>
         )}
       </Stack>
@@ -145,6 +136,15 @@ export default function CollectionContainer(props: Props) {
           isOpen={showDeleteModal}
           onClose={() => setShowDeleteModal(false)}
           collectionId={props.id}
+        />
+        <AddCardDrawer
+          isOpen={showAddDrawer}
+          onClose={() => setShowAddDrawer(false)}
+          selectedCollection={{
+            id: data.id,
+            name: data.name,
+            cardCount: data.urlCards.length,
+          }}
         />
       </Box>
     </Container>

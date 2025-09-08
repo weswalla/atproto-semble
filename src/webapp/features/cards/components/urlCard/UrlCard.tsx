@@ -1,6 +1,4 @@
 import { UrlCardView } from '@/api-client/types';
-import { AddToCollectionModal } from '@/components/AddToCollectionModal';
-import NoteCard from '@/features/notes/components/noteCard/NoteCard';
 import { getDomain } from '@/lib/utils/link';
 import {
   Card,
@@ -8,20 +6,11 @@ import {
   Text,
   Stack,
   Group,
-  ActionIcon,
   Anchor,
   AspectRatio,
-  Menu,
 } from '@mantine/core';
 import Link from 'next/link';
-import { useState } from 'react';
-import { BiCollection, BiPlus } from 'react-icons/bi';
-import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
-import { LuUnplug } from 'react-icons/lu';
-import { AiOutlineSignature } from 'react-icons/ai';
-import EditNoteDrawer from '@/features/notes/components/editNoteDrawer/EditNoteDrawer';
-import RemoveCardFromLibraryModal from '../removeCardFromLibraryModal/RemoveCardFromLibraryModal';
-import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
+import UrlCardActions from '../urlCardActions/UrlCardActions';
 
 interface Props {
   size?: 'large' | 'compact' | 'small';
@@ -36,12 +25,6 @@ interface Props {
 
 export default function UrlCard(props: Props) {
   const domain = getDomain(props.url);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditNoteModal, setShowEditNoteModal] = useState(false);
-  const [showRemoveFromCollectionModal, setShowRemoveFromCollectionModal] =
-    useState(false);
-  const [showRemoveFromLibaryModal, setShowRemoveFromLibraryModal] =
-    useState(false);
   // TODO: add more sizes
 
   return (
@@ -82,88 +65,17 @@ export default function UrlCard(props: Props) {
               </AspectRatio>
             )}
           </Group>
-          <Group justify="space-between">
-            <Group gap={'xs'}>
-              <ActionIcon
-                variant="subtle"
-                color={'gray'}
-                radius={'xl'}
-                onClick={() => setShowAddModal(true)}
-              >
-                <BiPlus size={22} />
-              </ActionIcon>
-              {props.note && (
-                <ActionIcon
-                  variant="subtle"
-                  color="gray"
-                  radius={'xl'}
-                  onClick={() => setShowEditNoteModal(true)}
-                >
-                  <AiOutlineSignature size={22} />
-                </ActionIcon>
-              )}
-            </Group>
-            <Menu shadow="sm">
-              <Menu.Target>
-                <ActionIcon variant="subtle" color={'gray'}>
-                  <BsThreeDots size={22} />
-                </ActionIcon>
-              </Menu.Target>
-              <Menu.Dropdown>
-                {/*<Menu.Item
-                  leftSection={<BiCollection />}
-                >
-                  Edit collections
-                </Menu.Item>*/}
-                {props.currentCollection && (
-                  <Menu.Item
-                    leftSection={<LuUnplug />}
-                    onClick={() => setShowRemoveFromCollectionModal(true)}
-                  >
-                    {/* TODO: hide if current user !== card author */}
-                    Remove from this collection
-                  </Menu.Item>
-                )}
-                <Menu.Item
-                  color="red"
-                  leftSection={<BsTrash2Fill />}
-                  onClick={() => setShowRemoveFromLibraryModal(true)}
-                >
-                  {/* TODO: hide if current user !== card author */}
-                  Remove from library
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </Group>
+
+          <UrlCardActions
+            id={props.id}
+            author={props.cardContent.author}
+            note={props.note}
+            collections={props.collections}
+            currentCollection={props.currentCollection}
+            libraries={props.libraries}
+          />
         </Stack>
       </Card>
-      {props.note && <NoteCard note={props.note.text} />}
-      <AddToCollectionModal
-        cardId={props.id}
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-      />
-      {props.note && (
-        <EditNoteDrawer
-          isOpen={showEditNoteModal}
-          onClose={() => setShowEditNoteModal(false)}
-          noteCardId={props.note.id}
-          note={props.note.text}
-        />
-      )}
-      {props.currentCollection && (
-        <RemoveCardFromCollectionModal
-          isOpen={showRemoveFromCollectionModal}
-          onClose={() => setShowRemoveFromCollectionModal(false)}
-          cardId={props.id}
-          collectionId={props.currentCollection.id}
-        />
-      )}
-      <RemoveCardFromLibraryModal
-        isOpen={showRemoveFromLibaryModal}
-        onClose={() => setShowRemoveFromLibraryModal(false)}
-        cardId={props.id}
-      />
     </Stack>
   );
 }

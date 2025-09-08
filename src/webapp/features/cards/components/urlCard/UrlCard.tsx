@@ -21,6 +21,7 @@ interface Props {
   collections?: UrlCardView['collections'];
   currentCollection?: UrlCardView['collections'][0];
   libraries?: UrlCardView['libraries'];
+  authorHandle?: string;
 }
 
 export default function UrlCard(props: Props) {
@@ -68,7 +69,7 @@ export default function UrlCard(props: Props) {
 
           <UrlCardActions
             id={props.id}
-            author={props.cardContent.author}
+            authorHandle={props.authorHandle}
             note={props.note}
             collections={props.collections}
             currentCollection={props.currentCollection}

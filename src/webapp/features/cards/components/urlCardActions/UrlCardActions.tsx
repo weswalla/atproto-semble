@@ -10,10 +10,11 @@ import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import { LuUnplug } from 'react-icons/lu';
 import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
 import RemoveCardFromLibraryModal from '../removeCardFromLibraryModal/RemoveCardFromLibraryModal';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
   id: string;
-  author?: string;
+  authorHandle?: string;
   note?: UrlCardView['note'];
   collections?: UrlCardView['collections'];
   currentCollection?: UrlCardView['collections'][0];
@@ -21,6 +22,8 @@ interface Props {
 }
 
 export default function UrlCardActions(props: Props) {
+  const { user } = useAuth();
+  const isAuthor = user?.handle === props.authorHandle;
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditNoteModal, setShowEditNoteModal] = useState(false);
   const [showRemoveFromCollectionModal, setShowRemoveFromCollectionModal] =

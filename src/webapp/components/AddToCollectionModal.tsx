@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getAccessToken } from '@/services/auth';
 import { ApiClient } from '@/api-client/ApiClient';
 import { Button, Group, Modal, Stack, Text } from '@mantine/core';
@@ -47,13 +47,13 @@ export function AddToCollectionModal({
     return card.collections || [];
   }, [card]);
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchCard();
-    }
-  }, [isOpen, cardId]);
+  const fetchCard = useCallback(async () => {
+    // Create API client instance
+    const apiClient = new ApiClient(
+      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+      () => getAccessToken(),
+    );
 
-  const fetchCard = async () => {
     try {
       setLoading(true);
       setError('');
@@ -65,7 +65,13 @@ export function AddToCollectionModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [cardId]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchCard();
+    }
+  }, [isOpen, cardId, fetchCard]);
 
   const handleSubmit = async () => {
     if (selectedCollectionIds.length === 0) {
@@ -77,6 +83,12 @@ export function AddToCollectionModal({
     setError('');
 
     try {
+      // Create API client instance
+      const apiClient = new ApiClient(
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+        () => getAccessToken(),
+      );
+
       // Add card to all selected collections in a single request
       await apiClient.addCardToCollection({
         cardId,

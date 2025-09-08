@@ -1,3 +1,5 @@
+'use client';
+
 import { UrlCardView } from '@/api-client/types';
 import { AddToCollectionModal } from '@/components/AddToCollectionModal';
 import EditNoteDrawer from '@/features/notes/components/editNoteDrawer/EditNoteDrawer';

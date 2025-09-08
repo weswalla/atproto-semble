@@ -1,43 +1,91 @@
 'use client';
 
-import { Container, Grid, Stack, Title, Button, Text } from '@mantine/core';
+import {
+  Container,
+  Grid,
+  Stack,
+  Title,
+  Button,
+  Text,
+  Center,
+} from '@mantine/core';
 import useMyCards from '../../lib/queries/useMyCards';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import { BiPlus } from 'react-icons/bi';
-import Link from 'next/link';
 import AddCardDrawer from '../../components/addCardDrawer/AddCardDrawer';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
+import MyCardsContainerError from './Error.MyCardsContainer';
+import MyCardsContainerSkeleton from './Skeleton.MyCardsContainer';
 
 export default function MyCardsContainer() {
-  const { data } = useMyCards();
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isPending,
+  } = useMyCards();
+
   const [showAddDrawer, setShowAddDrawer] = useState(false);
 
+  const allCards = data?.pages.flatMap((page) => page.cards ?? []) ?? [];
+
+  if (isPending) {
+    return <MyCardsContainerSkeleton />;
+  }
+
+  if (error) {
+    return <MyCardsContainerError />;
+  }
+
   return (
-    <Container p={'xs'} size={'xl'}>
+    <Container p="xs" size="xl">
       <Stack>
         <Title order={1}>My Cards</Title>
-        {data.cards.length > 0 ? (
-          <Grid gutter={'md'}>
-            {data.cards.map((card) => (
-              <Grid.Col key={card.id} span={{ base: 12, xs: 6, sm: 4, lg: 3 }}>
-                <UrlCard
-                  id={card.id}
-                  url={card.url}
-                  cardContent={card.cardContent}
-                  note={card.note}
-                  collections={card.collections}
-                />
-              </Grid.Col>
-            ))}
-          </Grid>
+
+        {allCards.length > 0 ? (
+          <Fragment>
+            <Grid gutter="md">
+              {allCards.map((card) => (
+                <Grid.Col
+                  key={card.id}
+                  span={{ base: 12, xs: 6, sm: 4, lg: 3 }}
+                >
+                  <UrlCard
+                    id={card.id}
+                    url={card.url}
+                    cardContent={card.cardContent}
+                    note={card.note}
+                    collections={card.collections}
+                  />
+                </Grid.Col>
+              ))}
+            </Grid>
+
+            {hasNextPage && (
+              <Center>
+                <Button
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  loading={isFetchingNextPage}
+                  variant="light"
+                  color="gray"
+                  mt="md"
+                >
+                  Load More
+                </Button>
+              </Center>
+            )}
+          </Fragment>
         ) : (
-          <Stack align="center" gap={'xs'}>
-            <Text fz={'h3'} fw={600} c={'gray'}>
+          <Stack align="center" gap="xs">
+            <Text fz="h3" fw={600} c="gray">
               No cards
             </Text>
             <Button
               variant="light"
-              color={'gray'}
+              color="gray"
               size="md"
               rightSection={<BiPlus size={22} />}
               onClick={() => setShowAddDrawer(true)}

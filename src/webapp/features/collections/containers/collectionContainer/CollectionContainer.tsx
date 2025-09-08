@@ -1,65 +1,83 @@
 'use client';
 
 import {
-  ActionIcon,
   Anchor,
   Box,
   Button,
   Container,
   Grid,
   Group,
-  Menu,
   Stack,
   Text,
   Title,
+  Center,
+  Loader,
 } from '@mantine/core';
 import useCollection from '../../lib/queries/useCollection';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
-import { BsTrash2Fill, BsThreeDots, BsPencilFill } from 'react-icons/bs';
 import Link from 'next/link';
 import { useState } from 'react';
-import EditCollectionDrawer from '../../components/editCollectionDrawer/EditCollectionDrawer';
 import { BiPlus } from 'react-icons/bi';
-import DeleteCollectionModal from '../../components/deleteCollectionModal/DeleteCollectionModal';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import CollectionActions from '../../components/collectionActions/CollectionActions';
+import CollectionContainerError from './Error.CollectionContainer';
+import CollectionContainerSkeleton from './Skeleton.CollectionContainer';
 
 interface Props {
   id: string;
 }
 
-export default function CollectionContainer(props: Props) {
-  const { data } = useCollection({ id: props.id });
+export default function CollectionContainer({ id }: Props) {
+  const {
+    data,
+    isPending,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useCollection({ id });
+
   const [showAddDrawer, setShowAddDrawer] = useState(false);
 
+  if (isPending) {
+    return <CollectionContainerSkeleton />;
+  }
+
+  if (error) {
+    return <CollectionContainerError />;
+  }
+
+  const firstPage = data.pages[0];
+  const allCards = data.pages.flatMap((page) => page.urlCards ?? []);
+
   return (
-    <Container p={'xs'} size={'xl'}>
+    <Container p="xs" size="xl">
       <Stack justify="flex-start">
         <Group justify="space-between" align="start">
           <Stack gap={0}>
-            <Text fw={700} c={'grape'}>
+            <Text fw={700} c="grape">
               Collection
             </Text>
             <Title order={1} lh={0.8}>
-              {data.name}
+              {firstPage.name}
             </Title>
-            {data.description && (
-              <Text c={'gray'} mt={'lg'}>
-                {data.description}
+            {firstPage.description && (
+              <Text c="gray" mt="lg">
+                {firstPage.description}
               </Text>
             )}
           </Stack>
 
           <Stack>
-            <Text fw={600} c={'gray.7'}>
+            <Text fw={600} c="gray.7">
               By{' '}
               <Anchor
                 component={Link}
-                href={`/profile/${data.author.handle}`}
+                href={`/profile/${firstPage.author.handle}`}
                 fw={700}
-                c={'blue'}
+                c="blue"
               >
-                {data.author.name}
+                {firstPage.author.name}
               </Anchor>
             </Text>
           </Stack>
@@ -67,39 +85,58 @@ export default function CollectionContainer(props: Props) {
 
         <Group justify="end">
           <CollectionActions
-            id={props.id}
-            name={data.name}
-            description={data.description}
-            authorHandle={data.author.handle}
+            id={id}
+            name={firstPage.name}
+            description={firstPage.description}
+            authorHandle={firstPage.author.handle}
           />
         </Group>
 
-        {data.urlCards.length > 0 ? (
-          <Grid gutter={'md'}>
-            {data.urlCards.map((card) => (
-              <Grid.Col key={card.id} span={{ base: 12, xs: 6, sm: 4, lg: 3 }}>
-                <UrlCard
-                  id={card.id}
-                  url={card.url}
-                  cardContent={card.cardContent}
-                  note={card.note}
-                  currentCollection={{
-                    id: data.id,
-                    name: data.name,
-                    authorId: data.author.id,
-                  }}
-                />
-              </Grid.Col>
-            ))}
-          </Grid>
+        {allCards.length > 0 ? (
+          <>
+            <Grid gutter="md">
+              {allCards.map((card) => (
+                <Grid.Col
+                  key={card.id}
+                  span={{ base: 12, xs: 6, sm: 4, lg: 3 }}
+                >
+                  <UrlCard
+                    id={card.id}
+                    url={card.url}
+                    cardContent={card.cardContent}
+                    note={card.note}
+                    currentCollection={{
+                      id: firstPage.id,
+                      name: firstPage.name,
+                      authorId: firstPage.author.id,
+                    }}
+                  />
+                </Grid.Col>
+              ))}
+            </Grid>
+
+            {hasNextPage && (
+              <Center>
+                <Button
+                  mt="md"
+                  variant="light"
+                  color="gray"
+                  onClick={() => fetchNextPage()}
+                  loading={isFetchingNextPage}
+                >
+                  {isFetchingNextPage ? 'Loading more...' : 'Load More'}
+                </Button>
+              </Center>
+            )}
+          </>
         ) : (
-          <Stack align="center" gap={'xs'}>
-            <Text fz={'h3'} fw={600} c={'gray'}>
+          <Stack align="center" gap="xs">
+            <Text fz="h3" fw={600} c="gray">
               No cards
             </Text>
             <Button
               variant="light"
-              color={'gray'}
+              color="gray"
               size="md"
               rightSection={<BiPlus size={22} />}
               onClick={() => setShowAddDrawer(true)}
@@ -115,9 +152,9 @@ export default function CollectionContainer(props: Props) {
           isOpen={showAddDrawer}
           onClose={() => setShowAddDrawer(false)}
           selectedCollection={{
-            id: data.id,
-            name: data.name,
-            cardCount: data.urlCards.length,
+            id: firstPage.id,
+            name: firstPage.name,
+            cardCount: allCards.length,
           }}
         />
       </Box>

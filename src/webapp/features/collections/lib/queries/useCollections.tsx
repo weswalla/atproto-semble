@@ -1,6 +1,6 @@
 import { ApiClient } from '@/api-client/ApiClient';
 import { getAccessToken } from '@/services/auth';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 
 interface Props {
   limit?: number;
@@ -12,10 +12,17 @@ export default function useCollections(props?: Props) {
     () => getAccessToken(),
   );
 
-  const collections = useSuspenseQuery({
-    queryKey: ['collections', props?.limit],
-    queryFn: () => apiClient.getMyCollections({ limit: props?.limit ?? 50 }),
-  });
+  const limit = props?.limit ?? 15;
 
-  return collections;
+  return useSuspenseInfiniteQuery({
+    queryKey: ['collections', limit],
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      apiClient.getMyCollections({ limit, page: pageParam }),
+    getNextPageParam: (lastPage) => {
+      return lastPage.pagination.hasMore
+        ? lastPage.pagination.currentPage + 1
+        : undefined;
+    },
+  });
 }

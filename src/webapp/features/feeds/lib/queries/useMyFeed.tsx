@@ -6,7 +6,7 @@ interface Props {
   limit?: number;
 }
 
-export default function useMyCards(props?: Props) {
+export default function useMyFeed(props?: Props) {
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     () => getAccessToken(),
@@ -15,10 +15,10 @@ export default function useMyCards(props?: Props) {
   const limit = props?.limit ?? 15;
 
   const query = useSuspenseInfiniteQuery({
-    queryKey: ['my cards', limit],
+    queryKey: ['my feed', limit],
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
-      return apiClient.getMyUrlCards({ limit, page: pageParam });
+      return apiClient.getGlobalFeed({ limit, page: pageParam });
     },
     getNextPageParam: (lastPage) => {
       if (lastPage.pagination.hasMore) {

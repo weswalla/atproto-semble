@@ -1,3 +1,5 @@
+'use client';
+
 import {
   ScrollArea,
   Stack,
@@ -73,7 +75,10 @@ export default function CollectionSelector(props: Props) {
     return <CollectionSelectorError />;
   }
 
-  const hasCollections = data?.collections?.length > 0;
+  const allCollections =
+    data?.pages.flatMap((page) => page.collections ?? []) ?? [];
+
+  const hasCollections = allCollections.length > 0;
   const hasSelectedCollections = props.selectedCollections.length > 0;
 
   return (
@@ -117,7 +122,7 @@ export default function CollectionSelector(props: Props) {
                 </Tabs.Tab>
               </Tabs.List>
 
-              {/* collections Panel */}
+              {/* Collections Panel */}
               <Tabs.Panel value="collections" my="xs" w="100%">
                 <ScrollArea h={340} type="auto">
                   <Stack gap="xs">
@@ -126,8 +131,8 @@ export default function CollectionSelector(props: Props) {
                         <Button
                           variant="light"
                           size="md"
-                          color={'grape'}
-                          radius={'lg'}
+                          color="grape"
+                          radius="lg"
                           leftSection={<BiPlus size={22} />}
                           onClick={() => setIsDrawerOpen(true)}
                         >
@@ -156,7 +161,7 @@ export default function CollectionSelector(props: Props) {
                           ))}
                       </Fragment>
                     ) : hasCollections ? (
-                      renderCollectionItems(data.collections)
+                      renderCollectionItems(allCollections)
                     ) : (
                       <Stack align="center" gap="xs">
                         <Text fz="lg" fw={600} c="gray">
@@ -176,11 +181,11 @@ export default function CollectionSelector(props: Props) {
                 </ScrollArea>
               </Tabs.Panel>
 
-              {/* selected Collections Panel */}
+              {/* Selected Collections Panel */}
               <Tabs.Panel value="selected" my="xs">
                 <ScrollArea h={340} type="auto">
                   <Stack gap="xs">
-                    {props.selectedCollections.length > 0 ? (
+                    {hasSelectedCollections ? (
                       renderCollectionItems(props.selectedCollections)
                     ) : (
                       <Alert color="gray" title="No collections selected" />
@@ -189,10 +194,11 @@ export default function CollectionSelector(props: Props) {
                 </ScrollArea>
               </Tabs.Panel>
             </Tabs>
-            <Group justify="space-between" gap={'xs'} grow>
+
+            <Group justify="space-between" gap="xs" grow>
               <Button
                 variant="light"
-                color={'gray'}
+                color="gray"
                 size="md"
                 onClick={() => {
                   props.onSelectedCollectionsChange([]);
@@ -218,6 +224,7 @@ export default function CollectionSelector(props: Props) {
           </Stack>
         </Container>
       </Drawer>
+
       <CreateCollectionDrawer
         key={search}
         isOpen={isDrawerOpen}

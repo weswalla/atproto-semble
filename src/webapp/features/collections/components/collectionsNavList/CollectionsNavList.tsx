@@ -8,12 +8,15 @@ import CollectionsNavListError from './Error.CollectionsNavList';
 import CreateCollectionShortcut from '../createCollectionShortcut/CreateCollectionShortcut';
 
 export default function CollectionsNavList() {
-  const { data, error } = useCollections();
+  const { data, error } = useCollections({ limit: 30 });
   const [opened, toggleMenu] = useToggle([true, false]);
 
   if (error) {
     return <CollectionsNavListError />;
   }
+
+  const collections =
+    data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
   return (
     <NavLink
@@ -24,25 +27,24 @@ export default function CollectionsNavList() {
       opened={opened}
       onClick={() => toggleMenu()}
     >
-      {/* Self-contained shortcut to prevent won't re-render this whole list when interacted with */}
       <CreateCollectionShortcut />
 
       <NavLink
         component={Link}
         href="/collections"
-        label={'View all'}
+        label="View all"
         variant="subtle"
         c="blue"
         leftSection={<BiRightArrowAlt size={25} />}
       />
 
       <Stack gap={0}>
-        {data.collections.map((c) => (
+        {collections.map((collection) => (
           <CollectionNavItem
-            key={c.id}
-            name={c.name}
-            url={`/collections/${c.id}`}
-            cardCount={c.cardCount}
+            key={collection.id}
+            name={collection.name}
+            url={`/collections/${collection.id}`}
+            cardCount={collection.cardCount}
           />
         ))}
       </Stack>

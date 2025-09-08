@@ -44,7 +44,7 @@ function InnerPage() {
         clearTimeout(timeoutId);
       }
     };
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, isExtensionLogin]);
 
   if (isLoading) {
     return (

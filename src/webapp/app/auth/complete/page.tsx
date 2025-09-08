@@ -14,13 +14,13 @@ function AuthCompleteContent() {
   const searchParams = useSearchParams();
   const { setTokens } = useAuth();
 
-  // Create API client instance
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    () => getAccessToken(),
-  );
-
   useEffect(() => {
+    // Create API client instance
+    const apiClient = new ApiClient(
+      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+      () => getAccessToken(),
+    );
+
     const accessToken = searchParams.get('accessToken');
     const refreshToken = searchParams.get('refreshToken');
     const error = searchParams.get('error');
@@ -34,6 +34,27 @@ function AuthCompleteContent() {
       router.push(`/login?error=${encodeURIComponent(error)}`);
       return;
     }
+
+    const handleExtensionTokenGeneration = async () => {
+      try {
+        setMessage('Generating extension tokens...');
+
+        const tokens = await apiClient.generateExtensionTokens();
+        await ExtensionService.sendTokensToExtension(tokens);
+        ExtensionService.clearExtensionTokensRequested();
+
+        setMessage('Extension tokens generated successfully!');
+
+        // Redirect to extension success page after successful extension token generation
+        setTimeout(() => router.push('/extension/auth/complete'), 1000);
+      } catch (extensionError: any) {
+        console.error('Failed to generate extension tokens:', extensionError);
+        ExtensionService.clearExtensionTokensRequested();
+
+        // Redirect to extension error page
+        router.push('/extension/auth/error');
+      }
+    };
 
     if (accessToken && refreshToken) {
       // Store tokens using the auth context function
@@ -50,27 +71,6 @@ function AuthCompleteContent() {
       router.push('/login?error=Authentication failed');
     }
   }, [router, searchParams, setTokens]);
-
-  const handleExtensionTokenGeneration = async () => {
-    try {
-      setMessage('Generating extension tokens...');
-
-      const tokens = await apiClient.generateExtensionTokens();
-      await ExtensionService.sendTokensToExtension(tokens);
-      ExtensionService.clearExtensionTokensRequested();
-
-      setMessage('Extension tokens generated successfully!');
-
-      // Redirect to extension success page after successful extension token generation
-      setTimeout(() => router.push('/extension/auth/complete'), 1000);
-    } catch (extensionError: any) {
-      console.error('Failed to generate extension tokens:', extensionError);
-      ExtensionService.clearExtensionTokensRequested();
-
-      // Redirect to extension error page
-      router.push('/extension/auth/error');
-    }
-  };
 
   return (
     <Stack align="center">

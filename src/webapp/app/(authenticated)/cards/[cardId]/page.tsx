@@ -29,13 +29,13 @@ export default function CardPage() {
   const params = useParams();
   const cardId = params.cardId as string;
 
-  // Create API client instance
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    () => getAccessToken(),
-  );
-
   useEffect(() => {
+    // Create API client instance
+    const apiClient = new ApiClient(
+      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+      () => getAccessToken(),
+    );
+
     const fetchCard = async () => {
       try {
         setLoading(true);

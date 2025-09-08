@@ -22,6 +22,7 @@ import EditCollectionDrawer from '../../components/editCollectionDrawer/EditColl
 import { BiPlus } from 'react-icons/bi';
 import DeleteCollectionModal from '../../components/deleteCollectionModal/DeleteCollectionModal';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
+import CollectionActions from '../../components/collectionActions/CollectionActions';
 
 interface Props {
   id: string;
@@ -29,8 +30,6 @@ interface Props {
 
 export default function CollectionContainer(props: Props) {
   const { data } = useCollection({ id: props.id });
-  const [showEditDrawer, setShowEditDrawer] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddDrawer, setShowAddDrawer] = useState(false);
 
   return (
@@ -67,30 +66,12 @@ export default function CollectionContainer(props: Props) {
         </Group>
 
         <Group justify="end">
-          <Menu shadow="sm">
-            <Menu.Target>
-              <ActionIcon variant="light" color={'gray'}>
-                <BsThreeDots size={22} />
-              </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Item
-                onClick={() => setShowEditDrawer(true)}
-                leftSection={<BsPencilFill />}
-              >
-                {/* TODO: hide if current user !== card author */}
-                Edit collection
-              </Menu.Item>
-              <Menu.Item
-                color="red"
-                leftSection={<BsTrash2Fill />}
-                onClick={() => setShowDeleteModal(true)}
-              >
-                {/* TODO: hide if current user !== card author */}
-                Delete collection
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
+          <CollectionActions
+            id={props.id}
+            name={data.name}
+            description={data.description}
+            authorHandle={data.author.handle}
+          />
         </Group>
 
         {data.urlCards.length > 0 ? (
@@ -130,20 +111,6 @@ export default function CollectionContainer(props: Props) {
       </Stack>
 
       <Box>
-        <EditCollectionDrawer
-          isOpen={showEditDrawer}
-          onClose={() => setShowEditDrawer(false)}
-          collection={{
-            id: data.id,
-            name: data.name,
-            description: data.description,
-          }}
-        />
-        <DeleteCollectionModal
-          isOpen={showDeleteModal}
-          onClose={() => setShowDeleteModal(false)}
-          collectionId={props.id}
-        />
         <AddCardDrawer
           isOpen={showAddDrawer}
           onClose={() => setShowAddDrawer(false)}

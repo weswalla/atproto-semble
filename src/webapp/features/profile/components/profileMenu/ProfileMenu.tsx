@@ -7,6 +7,7 @@ import {
   Stack,
   Image,
   Text,
+  Button,
 } from '@mantine/core';
 import useMyProfile from '../../lib/queries/useMyProfile';
 import CosmikLogo from '@/assets/cosmik-logo-full.svg';
@@ -41,17 +42,20 @@ export default function ProfileMenu() {
     <Group>
       <Menu shadow="sm" width={280}>
         <Menu.Target>
-          <Group
-            gap={'xs'}
-            wrap="nowrap"
-            style={{ cursor: 'pointer', userSelect: 'none' }}
-            w={'100%'}
+          <Button
+            variant="subtle"
+            color="gray"
+            c={'dark'}
+            fz={'md'}
+            radius={'md'}
+            size="lg"
+            px={3}
+            fullWidth={true}
+            justify="start"
+            leftSection={<Avatar src={data.avatarUrl} />}
           >
-            <Avatar src={data.avatarUrl} ml={4} />
-            <Text fw={500} lineClamp={1} truncate flex={1}>
-              {data.name}
-            </Text>
-          </Group>
+            {data.name}
+          </Button>
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Item component={Link} href="/profile">

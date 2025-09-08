@@ -27,14 +27,23 @@ function InnerPage() {
   const isExtensionLogin = searchParams.get('extension-login') === 'true';
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     if (isAuthenticated && !isExtensionLogin) {
       setIsRedirecting(true);
 
       // redirect after 1 second
-      const id = setTimeout(() => {
+      timeoutId = setTimeout(() => {
         router.push('/library');
       }, 1000);
     }
+
+    // clean up
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [isAuthenticated, router]);
 
   if (isLoading) {

@@ -13,14 +13,23 @@ export default function Page() {
   const router = useRouter();
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     if (isAuthenticated) {
       setIsRedirecting(true);
 
       // redirect after 1 second
-      const id = setTimeout(() => {
+      timeoutId = setTimeout(() => {
         router.push('/library');
       }, 1000);
     }
+
+    // clean up
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [isAuthenticated, router]);
 
   if (isLoading) {

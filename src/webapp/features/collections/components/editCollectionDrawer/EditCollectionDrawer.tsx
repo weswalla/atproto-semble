@@ -111,7 +111,7 @@ export default function EditCollectionDrawer(props: Props) {
                 size="md"
                 loading={updateCollection.isPending}
               >
-                Update
+                Save
               </Button>
             </Group>
           </Stack>

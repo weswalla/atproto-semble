@@ -214,7 +214,7 @@ export default function CollectionSelector(props: Props) {
                   size="md"
                   onClick={() => props.onSelectedCollectionsChange([])}
                 >
-                  Clear all
+                  Clear
                 </Button>
               )}
               <Button size="md" onClick={props.onClose}>

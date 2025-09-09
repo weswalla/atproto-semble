@@ -32,7 +32,6 @@ export default function UrlCardSkeleton() {
           <Group justify="space-between">
             <Group gap={'xs'}>
               <Skeleton w={22} h={22} />
-              <Skeleton w={22} h={22} />
             </Group>
             <Skeleton w={22} h={22} />
           </Group>

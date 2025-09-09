@@ -3,7 +3,6 @@
 import { UrlCardView } from '@/api-client/types';
 import { AddToCollectionModal } from '@/components/AddToCollectionModal';
 import EditNoteDrawer from '@/features/notes/components/editNoteDrawer/EditNoteDrawer';
-import NoteCard from '@/features/notes/components/noteCard/NoteCard';
 import { ActionIcon, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { AiOutlineSignature } from 'react-icons/ai';
@@ -88,7 +87,7 @@ export default function UrlCardActions(props: Props) {
           </Menu.Dropdown>
         </Menu>
       </Group>
-      {props.note && <NoteCard note={props.note.text} />}
+
       <AddToCollectionModal
         cardId={props.id}
         isOpen={showAddModal}

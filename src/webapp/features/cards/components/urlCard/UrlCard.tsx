@@ -11,6 +11,7 @@ import {
 } from '@mantine/core';
 import Link from 'next/link';
 import UrlCardActions from '../urlCardActions/UrlCardActions';
+import NoteCard from '@/features/notes/components/noteCard/NoteCard';
 
 interface Props {
   size?: 'large' | 'compact' | 'small';
@@ -77,6 +78,7 @@ export default function UrlCard(props: Props) {
           />
         </Stack>
       </Card>
+      {props.note && <NoteCard note={props.note.text} />}
     </Stack>
   );
 }

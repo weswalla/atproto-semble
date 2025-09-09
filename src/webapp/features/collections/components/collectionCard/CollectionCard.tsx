@@ -1,6 +1,5 @@
 import { getRelativeTime } from '@/lib/utils/time';
-import { Anchor, Card, Group, Stack, Text } from '@mantine/core';
-import Link from 'next/link';
+import { Card, Group, Stack, Text } from '@mantine/core';
 import { useRouter } from 'next/navigation';
 
 interface Props {
@@ -53,14 +52,6 @@ export default function CollectionCard(props: Props) {
             {collection.cardCount === 1 ? 'card' : 'cards'} ·{' '}
             {relativeUpdateDate}
           </Text>
-          <Anchor
-            component={Link}
-            href={`/collections/${collection.id}`}
-            c={'blue'}
-            fw={600}
-          >
-            View
-          </Anchor>
         </Group>
       </Stack>
     </Card>

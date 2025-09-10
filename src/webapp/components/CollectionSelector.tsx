@@ -106,7 +106,7 @@ export function CollectionSelector({
           <Box>
             <Text size="xs" c="dimmed" mb="xs">
               Already in {existingCollections.length} collection
-              {existingCollections.length !== 1 ? 's' : ''}:
+              {existingCollections.length !== 1 && 's'}:
             </Text>
             <Group gap="xs">
               {existingCollections.map((collection) => (
@@ -138,7 +138,7 @@ export function CollectionSelector({
             <Stack gap={0}>
               <Text size="xs" c="dimmed" mb="xs">
                 {availableCollections.length} collection
-                {availableCollections.length !== 1 ? 's' : ''} found
+                {availableCollections.length !== 1 && 's'} found
               </Text>
               {searchText.trim() && showCreateOption && (
                 <Box

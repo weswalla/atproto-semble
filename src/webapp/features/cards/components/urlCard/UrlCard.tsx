@@ -69,10 +69,10 @@ export default function UrlCard(props: Props) {
           </Group>
 
           <UrlCardActions
+            cardContent={props.cardContent}
             id={props.id}
             authorHandle={props.authorHandle}
             note={props.note}
-            collections={props.collections}
             currentCollection={props.currentCollection}
             libraries={props.libraries}
           />

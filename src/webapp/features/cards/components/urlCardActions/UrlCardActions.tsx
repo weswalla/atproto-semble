@@ -1,7 +1,6 @@
 'use client';
 
 import { UrlCardView } from '@/api-client/types';
-import { AddToCollectionModal } from '@/components/AddToCollectionModal';
 import EditNoteDrawer from '@/features/notes/components/editNoteDrawer/EditNoteDrawer';
 import { ActionIcon, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
@@ -11,13 +10,14 @@ import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import { LuUnplug } from 'react-icons/lu';
 import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
 import RemoveCardFromLibraryModal from '../removeCardFromLibraryModal/RemoveCardFromLibraryModal';
+import AddToCollectionModal from '@/features/collections/components/addToCollectionModal/AddToCollectionModal';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
   id: string;
+  cardContent: UrlCardView['cardContent'];
   authorHandle?: string;
   note?: UrlCardView['note'];
-  collections?: UrlCardView['collections'];
   currentCollection?: UrlCardView['collections'][0];
   libraries?: UrlCardView['libraries'];
 }
@@ -25,11 +25,12 @@ interface Props {
 export default function UrlCardActions(props: Props) {
   const { user } = useAuth();
   const isAuthor = user?.handle === props.authorHandle;
-  const [showAddModal, setShowAddModal] = useState(false);
   const [showEditNoteModal, setShowEditNoteModal] = useState(false);
   const [showRemoveFromCollectionModal, setShowRemoveFromCollectionModal] =
     useState(false);
   const [showRemoveFromLibaryModal, setShowRemoveFromLibraryModal] =
+    useState(false);
+  const [showAddToCollectionModal, setShowAddToCollectionModal] =
     useState(false);
 
   return (
@@ -40,7 +41,7 @@ export default function UrlCardActions(props: Props) {
             variant="subtle"
             color={'gray'}
             radius={'xl'}
-            onClick={() => setShowAddModal(true)}
+            onClick={() => setShowAddToCollectionModal(true)}
           >
             <BiPlus size={22} />
           </ActionIcon>
@@ -62,11 +63,6 @@ export default function UrlCardActions(props: Props) {
             </ActionIcon>
           </Menu.Target>
           <Menu.Dropdown>
-            {/*<Menu.Item
-                      leftSection={<BiCollection />}
-                    >
-                      Edit collections
-                    </Menu.Item>*/}
             {props.currentCollection && (
               <Menu.Item
                 leftSection={<LuUnplug />}
@@ -88,11 +84,19 @@ export default function UrlCardActions(props: Props) {
         </Menu>
       </Group>
 
-      <AddToCollectionModal
+      {/*<AddToCollectionModal
         cardId={props.id}
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
+        isOpen={showAddToCollectionModal}
+        onClose={() => setShowAddToCollectionModal(false)}
+      />*/}
+
+      <AddToCollectionModal
+        isOpen={showAddToCollectionModal}
+        onClose={() => setShowAddToCollectionModal(false)}
+        cardContent={props.cardContent}
+        cardId={props.id}
       />
+
       {props.note && (
         <EditNoteDrawer
           isOpen={showEditNoteModal}

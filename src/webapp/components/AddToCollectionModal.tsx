@@ -163,7 +163,7 @@ export function AddToCollectionModal({
               >
                 {submitting
                   ? 'Adding...'
-                  : `Add to ${selectedCollectionIds.length} Collection${selectedCollectionIds.length !== 1 ? 's' : ''}`}
+                  : `Add to ${selectedCollectionIds.length} Collection${selectedCollectionIds.length !== 1 && 's'}`}
               </Button>
               <Button
                 variant="outline"

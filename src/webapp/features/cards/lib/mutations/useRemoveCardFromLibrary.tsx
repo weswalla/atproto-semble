@@ -15,8 +15,10 @@ export default function useRemoveCardFromLibrary() {
       return apiClient.removeCardFromLibrary({ cardId });
     },
 
-    onSuccess: (_data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my cards'] });
+      queryClient.invalidateQueries({ queryKey: ['collections'] });
+      queryClient.invalidateQueries({ queryKey: ['collection'] });
     },
   });
 

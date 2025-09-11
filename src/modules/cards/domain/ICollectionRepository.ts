@@ -8,6 +8,7 @@ export interface ICollectionRepository {
   findById(id: CollectionId): Promise<Result<Collection | null>>;
   findByCuratorId(curatorId: CuratorId): Promise<Result<Collection[]>>;
   findByCardId(cardId: CardId): Promise<Result<Collection[]>>;
+  findByAuthorIdContainingCard(authorId: CuratorId, cardId: CardId): Promise<Result<Collection[]>>;
   save(collection: Collection): Promise<Result<void>>;
   delete(collectionId: CollectionId): Promise<Result<void>>;
 }

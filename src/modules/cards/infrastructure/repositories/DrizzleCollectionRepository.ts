@@ -295,6 +295,98 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
     }
   }
 
+  async findByAuthorIdContainingCard(authorId: CuratorId, cardId: CardId): Promise<Result<Collection[]>> {
+    try {
+      const authorIdString = authorId.value;
+      const cardIdString = cardId.getStringValue();
+
+      // Find collections authored by this curator that contain this card
+      const collectionResults = await this.db
+        .select({
+          collection: collections,
+          publishedRecord: publishedRecords,
+        })
+        .from(collections)
+        .leftJoin(
+          publishedRecords,
+          eq(collections.publishedRecordId, publishedRecords.id),
+        )
+        .innerJoin(
+          collectionCards,
+          eq(collections.id, collectionCards.collectionId),
+        )
+        .where(
+          and(
+            eq(collections.authorId, authorIdString),
+            eq(collectionCards.cardId, cardIdString)
+          )
+        );
+
+      const domainCollections: Collection[] = [];
+      for (const result of collectionResults) {
+        const collectionId = result.collection.id;
+
+        // Get collaborators for this collection
+        const collaboratorResults = await this.db
+          .select()
+          .from(collectionCollaborators)
+          .where(eq(collectionCollaborators.collectionId, collectionId));
+
+        const collaborators = collaboratorResults.map((c) => c.collaboratorId);
+
+        // Get card links for this collection
+        const cardLinkResults = await this.db
+          .select({
+            cardLink: collectionCards,
+            publishedRecord: publishedRecords,
+          })
+          .from(collectionCards)
+          .leftJoin(
+            publishedRecords,
+            eq(collectionCards.publishedRecordId, publishedRecords.id),
+          )
+          .where(eq(collectionCards.collectionId, collectionId));
+
+        const cardLinks = cardLinkResults.map((link) => ({
+          cardId: link.cardLink.cardId,
+          addedBy: link.cardLink.addedBy,
+          addedAt: link.cardLink.addedAt,
+          publishedRecordId: link.publishedRecord?.id,
+          publishedRecord: link.publishedRecord || undefined,
+        }));
+
+        const collectionDTO: CollectionDTO = {
+          id: result.collection.id,
+          authorId: result.collection.authorId,
+          name: result.collection.name,
+          description: result.collection.description || undefined,
+          accessType: result.collection.accessType,
+          cardCount: result.collection.cardCount,
+          createdAt: result.collection.createdAt,
+          updatedAt: result.collection.updatedAt,
+          publishedRecordId: result.publishedRecord?.id || null,
+          publishedRecord: result.publishedRecord || undefined,
+          collaborators,
+          cardLinks,
+        };
+
+        const domainResult = CollectionMapper.toDomain(collectionDTO);
+        if (domainResult.isErr()) {
+          console.error(
+            'Error mapping collection to domain:',
+            domainResult.error,
+          );
+          continue;
+        }
+        domainCollections.push(domainResult.value);
+      }
+
+      return ok(domainCollections);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   async save(collection: Collection): Promise<Result<void>> {
     try {
       const {

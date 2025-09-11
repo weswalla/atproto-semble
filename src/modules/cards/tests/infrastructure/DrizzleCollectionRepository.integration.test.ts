@@ -485,4 +485,88 @@ describe('DrizzleCollectionRepository', () => {
       'at://did:plc:testcurator/network.cosmik.collectionLink/5678',
     );
   });
+
+  it('should find collections by author ID containing a specific card', async () => {
+    // Create a card
+    const cardResult = CardFactory.create({
+      curatorId: curatorId.value,
+      cardInput: {
+        type: CardTypeEnum.NOTE,
+        text: 'Shared card for author test',
+      },
+    });
+
+    const card = cardResult.unwrap();
+    await cardRepository.save(card);
+
+    // Create collections by the same author
+    const collection1Id = new UniqueEntityID();
+    const collection1 = Collection.create(
+      {
+        authorId: curatorId,
+        name: 'Author Collection One',
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      collection1Id,
+    ).unwrap();
+
+    const collection2Id = new UniqueEntityID();
+    const collection2 = Collection.create(
+      {
+        authorId: curatorId,
+        name: 'Author Collection Two',
+        accessType: CollectionAccessType.CLOSED,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      collection2Id,
+    ).unwrap();
+
+    // Create a collection by a different author
+    const collection3Id = new UniqueEntityID();
+    const collection3 = Collection.create(
+      {
+        authorId: collaboratorId,
+        name: 'Different Author Collection',
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      collection3Id,
+    ).unwrap();
+
+    // Add card to all collections
+    collection1.addCard(card.cardId, curatorId);
+    collection2.addCard(card.cardId, curatorId);
+    collection3.addCard(card.cardId, collaboratorId);
+
+    await collectionRepository.save(collection1);
+    await collectionRepository.save(collection2);
+    await collectionRepository.save(collection3);
+
+    // Find collections by the original curator containing this card
+    const foundCollectionsResult = await collectionRepository.findByAuthorIdContainingCard(
+      curatorId,
+      card.cardId,
+    );
+    expect(foundCollectionsResult.isOk()).toBe(true);
+
+    const foundCollections = foundCollectionsResult.unwrap();
+    expect(foundCollections).toHaveLength(2);
+
+    const names = foundCollections.map((c) => c.name.value);
+    expect(names).toContain('Author Collection One');
+    expect(names).toContain('Author Collection Two');
+    expect(names).not.toContain('Different Author Collection');
+
+    // Verify all returned collections are authored by the correct curator
+    foundCollections.forEach((collection) => {
+      expect(collection.authorId.value).toBe(curatorId.value);
+    });
+  });
 });

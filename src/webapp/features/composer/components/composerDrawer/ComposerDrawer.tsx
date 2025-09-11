@@ -32,7 +32,7 @@ export default function ComposerDrawer() {
         radius={'lg'}
       >
         <Menu.Target>
-          <Affix m={'xs'} style={{ zIndex: 103 }}>
+          <Affix m={'xs'} style={{ zIndex: 102 }}>
             <ActionIcon
               size={'input-lg'}
               radius="xl"

@@ -5,11 +5,18 @@ import { CardLibraryService } from '../../domain/services/CardLibraryService';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { CardBuilder } from '../utils/builders/CardBuilder';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
+import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
+import { FakeCollectionPublisher } from '../utils/FakeCollectionPublisher';
+import { CardCollectionService } from '../../domain/services/CardCollectionService';
+import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
 
 describe('RemoveCardFromLibraryUseCase', () => {
   let useCase: RemoveCardFromLibraryUseCase;
   let cardRepository: InMemoryCardRepository;
+  let collectionRepository: InMemoryCollectionRepository;
   let cardPublisher: FakeCardPublisher;
+  let collectionPublisher: FakeCollectionPublisher;
+  let cardCollectionService: CardCollectionService;
   let cardLibraryService: CardLibraryService;
   let curatorId: CuratorId;
   let otherCuratorId: CuratorId;
@@ -17,7 +24,18 @@ describe('RemoveCardFromLibraryUseCase', () => {
   beforeEach(() => {
     cardRepository = new InMemoryCardRepository();
     cardPublisher = new FakeCardPublisher();
-    cardLibraryService = new CardLibraryService(cardRepository, cardPublisher);
+    collectionRepository = new InMemoryCollectionRepository();
+    collectionPublisher = new FakeCollectionPublisher();
+    cardCollectionService = new CardCollectionService(
+      collectionRepository,
+      collectionPublisher,
+    );
+    cardLibraryService = new CardLibraryService(
+      cardRepository,
+      cardPublisher,
+      collectionRepository,
+      cardCollectionService,
+    );
 
     useCase = new RemoveCardFromLibraryUseCase(
       cardRepository,
@@ -52,6 +70,40 @@ describe('RemoveCardFromLibraryUseCase', () => {
     if (addResult.isErr()) {
       throw new Error(
         `Failed to add card to library: ${addResult.error.message}`,
+      );
+    }
+  };
+
+  const createCollection = async (
+    curatorId: CuratorId,
+    name: string = 'Test Collection',
+  ) => {
+    const collection = new CollectionBuilder()
+      .withAuthorId(curatorId.value)
+      .withName(name)
+      .build();
+
+    if (collection instanceof Error) {
+      throw new Error(`Failed to create collection: ${collection.message}`);
+    }
+
+    await collectionRepository.save(collection);
+    return collection;
+  };
+
+  const addCardToCollection = async (
+    card: any,
+    collection: any,
+    curatorId: CuratorId,
+  ) => {
+    const addResult = await cardCollectionService.addCardToCollection(
+      card,
+      collection.collectionId,
+      curatorId,
+    );
+    if (addResult.isErr()) {
+      throw new Error(
+        `Failed to add card to collection: ${addResult.error.message}`,
       );
     }
   };
@@ -275,6 +327,179 @@ describe('RemoveCardFromLibraryUseCase', () => {
       const updatedCardResult = await cardRepository.findById(card.cardId);
       const updatedCard = updatedCardResult.unwrap()!;
       expect(updatedCard.isInLibrary(curatorId)).toBe(false);
+    });
+  });
+
+  describe('Collection integration', () => {
+    it('should remove card from all curator collections when removed from library', async () => {
+      const card = await createCard();
+      await addCardToLibrary(card, curatorId);
+
+      // Create multiple collections for the curator
+      const collection1 = await createCollection(curatorId, 'Collection 1');
+      const collection2 = await createCollection(curatorId, 'Collection 2');
+      const collection3 = await createCollection(curatorId, 'Collection 3');
+
+      // Add card to all collections
+      await addCardToCollection(card, collection1, curatorId);
+      await addCardToCollection(card, collection2, curatorId);
+      await addCardToCollection(card, collection3, curatorId);
+
+      // Verify card is in all collections
+      const initialCollection1Result = await collectionRepository.findById(
+        collection1.collectionId,
+      );
+      const initialCollection2Result = await collectionRepository.findById(
+        collection2.collectionId,
+      );
+      const initialCollection3Result = await collectionRepository.findById(
+        collection3.collectionId,
+      );
+
+      expect(
+        initialCollection1Result
+          .unwrap()!
+          .cardIds.some((id) => id.equals(card.cardId)),
+      ).toBe(true);
+      expect(
+        initialCollection2Result
+          .unwrap()!
+          .cardIds.some((id) => id.equals(card.cardId)),
+      ).toBe(true);
+      expect(
+        initialCollection3Result
+          .unwrap()!
+          .cardIds.some((id) => id.equals(card.cardId)),
+      ).toBe(true);
+
+      // Remove card from library
+      const request = {
+        cardId: card.cardId.getStringValue(),
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isOk()).toBe(true);
+
+      // Verify card was removed from library
+      const updatedCardResult = await cardRepository.findById(card.cardId);
+      const updatedCard = updatedCardResult.unwrap()!;
+      expect(updatedCard.isInLibrary(curatorId)).toBe(false);
+
+      // Verify card was removed from all collections
+      const finalCollection1Result = await collectionRepository.findById(
+        collection1.collectionId,
+      );
+      const finalCollection2Result = await collectionRepository.findById(
+        collection2.collectionId,
+      );
+      const finalCollection3Result = await collectionRepository.findById(
+        collection3.collectionId,
+      );
+
+      expect(
+        finalCollection1Result
+          .unwrap()!
+          .cardIds.some((id) => id.equals(card.cardId)),
+      ).toBe(false);
+      expect(
+        finalCollection2Result
+          .unwrap()!
+          .cardIds.some((id) => id.equals(card.cardId)),
+      ).toBe(false);
+      expect(
+        finalCollection3Result
+          .unwrap()!
+          .cardIds.some((id) => id.equals(card.cardId)),
+      ).toBe(false);
+
+      const unpublishedCollectionLinks =
+        collectionPublisher.getAllRemovedLinks();
+      expect(unpublishedCollectionLinks).toHaveLength(3);
+    });
+
+    it('should only remove card from curator collections, not other curator collections', async () => {
+      const card = await createCard();
+      await addCardToLibrary(card, curatorId);
+      await addCardToLibrary(card, otherCuratorId);
+
+      // Create collections for both curators
+      const curatorCollection = await createCollection(
+        curatorId,
+        'Curator Collection',
+      );
+      const otherCuratorCollection = await createCollection(
+        otherCuratorId,
+        'Other Curator Collection',
+      );
+
+      // Add card to both collections
+      await addCardToCollection(card, curatorCollection, curatorId);
+      await addCardToCollection(card, otherCuratorCollection, otherCuratorId);
+
+      // Remove card from first curator's library
+      const request = {
+        cardId: card.cardId.getStringValue(),
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isOk()).toBe(true);
+
+      // Verify card was removed from curator's collection but not other curator's collection
+      const curatorCollectionResult = await collectionRepository.findById(
+        curatorCollection.collectionId,
+      );
+      const otherCuratorCollectionResult = await collectionRepository.findById(
+        otherCuratorCollection.collectionId,
+      );
+
+      expect(
+        curatorCollectionResult
+          .unwrap()!
+          .cardIds.some((id) => id.equals(card.cardId)),
+      ).toBe(false);
+      expect(
+        otherCuratorCollectionResult
+          .unwrap()!
+          .cardIds.some((id) => id.equals(card.cardId)),
+      ).toBe(true);
+
+      // Verify card is still in other curator's library
+      const updatedCardResult = await cardRepository.findById(card.cardId);
+      const updatedCard = updatedCardResult.unwrap()!;
+      expect(updatedCard.isInLibrary(curatorId)).toBe(false);
+      expect(updatedCard.isInLibrary(otherCuratorId)).toBe(true);
+    });
+
+    it('should handle card removal when no collections contain the card', async () => {
+      const card = await createCard();
+      await addCardToLibrary(card, curatorId);
+
+      // Create collections but don't add the card to them
+      await createCollection(curatorId, 'Empty Collection 1');
+      await createCollection(curatorId, 'Empty Collection 2');
+
+      const request = {
+        cardId: card.cardId.getStringValue(),
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isOk()).toBe(true);
+
+      // Verify card was removed from library
+      const updatedCardResult = await cardRepository.findById(card.cardId);
+      const updatedCard = updatedCardResult.unwrap()!;
+      expect(updatedCard.isInLibrary(curatorId)).toBe(false);
+
+      // Verify no collection unpublish operations occurred
+      const unpublishedCollections =
+        collectionPublisher.getUnpublishedCollections();
+      expect(unpublishedCollections).toHaveLength(0);
     });
   });
 

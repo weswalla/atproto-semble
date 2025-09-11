@@ -11,12 +11,9 @@ import { CardType, CardTypeEnum } from '../../domain/value-objects/CardType';
 import { CardContent } from '../../domain/value-objects/CardContent';
 import { UrlMetadata } from '../../domain/value-objects/UrlMetadata';
 import { URL } from '../../domain/value-objects/URL';
-import {
-  CardSortField,
-  SortOrder,
-  CollectionCardQueryResultDTO,
-} from '../../domain/ICardQueryRepository';
+import { CardSortField, SortOrder } from '../../domain/ICardQueryRepository';
 import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
+import { ICollectionRepository } from '../../domain/ICollectionRepository';
 
 describe('GetCollectionPageUseCase', () => {
   let useCase: GetCollectionPageUseCase;
@@ -722,7 +719,7 @@ describe('GetCollectionPageUseCase', () => {
 
     it('should handle repository errors gracefully', async () => {
       // Create a mock collection repository that throws an error
-      const errorCollectionRepo = {
+      const errorCollectionRepo: ICollectionRepository = {
         findById: jest
           .fn()
           .mockRejectedValue(new Error('Database connection failed')),
@@ -730,6 +727,7 @@ describe('GetCollectionPageUseCase', () => {
         delete: jest.fn(),
         findByCuratorId: jest.fn(),
         findByCardId: jest.fn(),
+        findByCuratorIdContainingCard: jest.fn(),
       };
 
       const errorUseCase = new GetCollectionPageUseCase(

@@ -136,13 +136,15 @@ export class ServiceFactory {
       ? new FakeCardPublisher()
       : new ATProtoCardPublisher(sharedServices.atProtoAgentService);
 
-    const cardLibraryService = new CardLibraryService(
-      repositories.cardRepository,
-      cardPublisher,
-    );
     const cardCollectionService = new CardCollectionService(
       repositories.collectionRepository,
       collectionPublisher,
+    );
+    const cardLibraryService = new CardLibraryService(
+      repositories.cardRepository,
+      cardPublisher,
+      repositories.collectionRepository,
+      cardCollectionService,
     );
 
     const authMiddleware = new AuthMiddleware(sharedServices.tokenService);

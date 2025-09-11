@@ -83,24 +83,28 @@ export class CardLibraryService implements DomainService {
       }
 
       // Get all collections owned by the curator that contain this card
-      const collectionsResult = await this.collectionRepository.findByCuratorIdContainingCard(
-        curatorId,
-        card.cardId,
-      );
+      const collectionsResult =
+        await this.collectionRepository.findByCuratorIdContainingCard(
+          curatorId,
+          card.cardId,
+        );
       if (collectionsResult.isErr()) {
         return err(AppError.UnexpectedError.create(collectionsResult.error));
       }
 
       // Remove card from all curator's collections
       const collections = collectionsResult.value;
-      const collectionIds = collections.map(collection => collection.collectionId);
-      
+      const collectionIds = collections.map(
+        (collection) => collection.collectionId,
+      );
+
       if (collectionIds.length > 0) {
-        const removeFromCollectionsResult = await this.cardCollectionService.removeCardFromCollections(
-          card,
-          collectionIds,
-          curatorId,
-        );
+        const removeFromCollectionsResult =
+          await this.cardCollectionService.removeCardFromCollections(
+            card,
+            collectionIds,
+            curatorId,
+          );
         if (removeFromCollectionsResult.isErr()) {
           return err(
             new CardLibraryValidationError(

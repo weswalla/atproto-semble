@@ -74,7 +74,10 @@ describe('RemoveCardFromLibraryUseCase', () => {
     }
   };
 
-  const createCollection = async (curatorId: CuratorId, name: string = 'Test Collection') => {
+  const createCollection = async (
+    curatorId: CuratorId,
+    name: string = 'Test Collection',
+  ) => {
     const collection = new CollectionBuilder()
       .withAuthorId(curatorId.value)
       .withName(name)
@@ -88,7 +91,11 @@ describe('RemoveCardFromLibraryUseCase', () => {
     return collection;
   };
 
-  const addCardToCollection = async (card: any, collection: any, curatorId: CuratorId) => {
+  const addCardToCollection = async (
+    card: any,
+    collection: any,
+    curatorId: CuratorId,
+  ) => {
     const addResult = await cardCollectionService.addCardToCollection(
       card,
       collection.collectionId,
@@ -339,13 +346,31 @@ describe('RemoveCardFromLibraryUseCase', () => {
       await addCardToCollection(card, collection3, curatorId);
 
       // Verify card is in all collections
-      const initialCollection1Result = await collectionRepository.findById(collection1.collectionId);
-      const initialCollection2Result = await collectionRepository.findById(collection2.collectionId);
-      const initialCollection3Result = await collectionRepository.findById(collection3.collectionId);
+      const initialCollection1Result = await collectionRepository.findById(
+        collection1.collectionId,
+      );
+      const initialCollection2Result = await collectionRepository.findById(
+        collection2.collectionId,
+      );
+      const initialCollection3Result = await collectionRepository.findById(
+        collection3.collectionId,
+      );
 
-      expect(initialCollection1Result.unwrap()!.cardIds.some(id => id.equals(card.cardId))).toBe(true);
-      expect(initialCollection2Result.unwrap()!.cardIds.some(id => id.equals(card.cardId))).toBe(true);
-      expect(initialCollection3Result.unwrap()!.cardIds.some(id => id.equals(card.cardId))).toBe(true);
+      expect(
+        initialCollection1Result
+          .unwrap()!
+          .cardIds.some((id) => id.equals(card.cardId)),
+      ).toBe(true);
+      expect(
+        initialCollection2Result
+          .unwrap()!
+          .cardIds.some((id) => id.equals(card.cardId)),
+      ).toBe(true);
+      expect(
+        initialCollection3Result
+          .unwrap()!
+          .cardIds.some((id) => id.equals(card.cardId)),
+      ).toBe(true);
 
       // Remove card from library
       const request = {
@@ -363,17 +388,35 @@ describe('RemoveCardFromLibraryUseCase', () => {
       expect(updatedCard.isInLibrary(curatorId)).toBe(false);
 
       // Verify card was removed from all collections
-      const finalCollection1Result = await collectionRepository.findById(collection1.collectionId);
-      const finalCollection2Result = await collectionRepository.findById(collection2.collectionId);
-      const finalCollection3Result = await collectionRepository.findById(collection3.collectionId);
+      const finalCollection1Result = await collectionRepository.findById(
+        collection1.collectionId,
+      );
+      const finalCollection2Result = await collectionRepository.findById(
+        collection2.collectionId,
+      );
+      const finalCollection3Result = await collectionRepository.findById(
+        collection3.collectionId,
+      );
 
-      expect(finalCollection1Result.unwrap()!.cardIds.some(id => id.equals(card.cardId))).toBe(false);
-      expect(finalCollection2Result.unwrap()!.cardIds.some(id => id.equals(card.cardId))).toBe(false);
-      expect(finalCollection3Result.unwrap()!.cardIds.some(id => id.equals(card.cardId))).toBe(false);
+      expect(
+        finalCollection1Result
+          .unwrap()!
+          .cardIds.some((id) => id.equals(card.cardId)),
+      ).toBe(false);
+      expect(
+        finalCollection2Result
+          .unwrap()!
+          .cardIds.some((id) => id.equals(card.cardId)),
+      ).toBe(false);
+      expect(
+        finalCollection3Result
+          .unwrap()!
+          .cardIds.some((id) => id.equals(card.cardId)),
+      ).toBe(false);
 
-      // Verify unpublish operations occurred for collections
-      const unpublishedCollections = collectionPublisher.getUnpublishedCollections();
-      expect(unpublishedCollections).toHaveLength(3);
+      const unpublishedCollectionLinks =
+        collectionPublisher.getAllRemovedLinks();
+      expect(unpublishedCollectionLinks).toHaveLength(3);
     });
 
     it('should only remove card from curator collections, not other curator collections', async () => {
@@ -382,8 +425,14 @@ describe('RemoveCardFromLibraryUseCase', () => {
       await addCardToLibrary(card, otherCuratorId);
 
       // Create collections for both curators
-      const curatorCollection = await createCollection(curatorId, 'Curator Collection');
-      const otherCuratorCollection = await createCollection(otherCuratorId, 'Other Curator Collection');
+      const curatorCollection = await createCollection(
+        curatorId,
+        'Curator Collection',
+      );
+      const otherCuratorCollection = await createCollection(
+        otherCuratorId,
+        'Other Curator Collection',
+      );
 
       // Add card to both collections
       await addCardToCollection(card, curatorCollection, curatorId);
@@ -400,11 +449,23 @@ describe('RemoveCardFromLibraryUseCase', () => {
       expect(result.isOk()).toBe(true);
 
       // Verify card was removed from curator's collection but not other curator's collection
-      const curatorCollectionResult = await collectionRepository.findById(curatorCollection.collectionId);
-      const otherCuratorCollectionResult = await collectionRepository.findById(otherCuratorCollection.collectionId);
+      const curatorCollectionResult = await collectionRepository.findById(
+        curatorCollection.collectionId,
+      );
+      const otherCuratorCollectionResult = await collectionRepository.findById(
+        otherCuratorCollection.collectionId,
+      );
 
-      expect(curatorCollectionResult.unwrap()!.cardIds.some(id => id.equals(card.cardId))).toBe(false);
-      expect(otherCuratorCollectionResult.unwrap()!.cardIds.some(id => id.equals(card.cardId))).toBe(true);
+      expect(
+        curatorCollectionResult
+          .unwrap()!
+          .cardIds.some((id) => id.equals(card.cardId)),
+      ).toBe(false);
+      expect(
+        otherCuratorCollectionResult
+          .unwrap()!
+          .cardIds.some((id) => id.equals(card.cardId)),
+      ).toBe(true);
 
       // Verify card is still in other curator's library
       const updatedCardResult = await cardRepository.findById(card.cardId);
@@ -436,7 +497,8 @@ describe('RemoveCardFromLibraryUseCase', () => {
       expect(updatedCard.isInLibrary(curatorId)).toBe(false);
 
       // Verify no collection unpublish operations occurred
-      const unpublishedCollections = collectionPublisher.getUnpublishedCollections();
+      const unpublishedCollections =
+        collectionPublisher.getUnpublishedCollections();
       expect(unpublishedCollections).toHaveLength(0);
     });
   });

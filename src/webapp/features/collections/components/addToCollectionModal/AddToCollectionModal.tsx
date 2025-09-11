@@ -152,7 +152,7 @@ export default function AddToCollectionModal(props: Props) {
               </Tabs.List>
 
               <Tabs.Panel value="collections" my="xs" w="100%">
-                <ScrollArea.Autosize h={300} type="auto">
+                <ScrollArea.Autosize mah={200} type="auto">
                   <Stack gap="xs">
                     {search ? (
                       <Fragment>
@@ -216,7 +216,7 @@ export default function AddToCollectionModal(props: Props) {
               </Tabs.Panel>
 
               <Tabs.Panel value="selected" my="xs">
-                <ScrollArea.Autosize h={300} type="auto">
+                <ScrollArea.Autosize mah={200} type="auto">
                   <Stack gap="xs">
                     {hasSelectedCollections ? (
                       <CollectionSelectorItemList

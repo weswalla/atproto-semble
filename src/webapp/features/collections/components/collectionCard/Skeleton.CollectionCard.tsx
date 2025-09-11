@@ -3,7 +3,7 @@ import { Card, Skeleton, Stack } from '@mantine/core';
 export default function CollectionCardSkeleton() {
   return (
     <Card withBorder radius={'lg'} p={'sm'}>
-      <Stack justify="space-between" h={'100%'}>
+      <Stack justify="space-between" h={'100%'} gap={'lg'}>
         <Stack gap={5}>
           {/* Title */}
           <Skeleton w={'100%'} h={14} />

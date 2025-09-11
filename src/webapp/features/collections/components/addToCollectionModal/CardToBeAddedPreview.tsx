@@ -13,6 +13,7 @@ import { GetMyCollectionsResponse, UrlCardView } from '@/api-client/types';
 import Link from 'next/link';
 import { getDomain } from '@/lib/utils/link';
 import { Fragment } from 'react';
+import { BiSolidChevronDownCircle } from 'react-icons/bi';
 
 interface Props {
   cardContent: UrlCardView['cardContent'];
@@ -52,7 +53,11 @@ export default function CardToBeAddedPreview(props: Props) {
           {props.collectionsWithCard.length > 0 && (
             <Menu shadow="sm">
               <Menu.Target>
-                <Button variant="light" color="grape">
+                <Button
+                  variant="light"
+                  color="grape"
+                  rightSection={<BiSolidChevronDownCircle />}
+                >
                   Already in {props.collectionsWithCard.length} collection
                   {props.collectionsWithCard.length !== 1 && 's'}
                 </Button>

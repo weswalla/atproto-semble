@@ -5,11 +5,17 @@ import { CardLibraryService } from '../../domain/services/CardLibraryService';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { CardBuilder } from '../utils/builders/CardBuilder';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
+import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
+import { FakeCollectionPublisher } from '../utils/FakeCollectionPublisher';
+import { CardCollectionService } from '../../domain/services/CardCollectionService';
 
 describe('RemoveCardFromLibraryUseCase', () => {
   let useCase: RemoveCardFromLibraryUseCase;
   let cardRepository: InMemoryCardRepository;
+  let collectionRepository: InMemoryCollectionRepository;
   let cardPublisher: FakeCardPublisher;
+  let collectionPublisher: FakeCollectionPublisher;
+  let cardCollectionService: CardCollectionService;
   let cardLibraryService: CardLibraryService;
   let curatorId: CuratorId;
   let otherCuratorId: CuratorId;
@@ -17,7 +23,18 @@ describe('RemoveCardFromLibraryUseCase', () => {
   beforeEach(() => {
     cardRepository = new InMemoryCardRepository();
     cardPublisher = new FakeCardPublisher();
-    cardLibraryService = new CardLibraryService(cardRepository, cardPublisher);
+    collectionRepository = new InMemoryCollectionRepository();
+    collectionPublisher = new FakeCollectionPublisher();
+    cardCollectionService = new CardCollectionService(
+      collectionRepository,
+      collectionPublisher,
+    );
+    cardLibraryService = new CardLibraryService(
+      cardRepository,
+      cardPublisher,
+      collectionRepository,
+      cardCollectionService,
+    );
 
     useCase = new RemoveCardFromLibraryUseCase(
       cardRepository,

@@ -34,7 +34,12 @@ describe('AddUrlToLibraryUseCase', () => {
     metadataService = new FakeMetadataService();
     eventPublisher = new FakeEventPublisher();
 
-    cardLibraryService = new CardLibraryService(cardRepository, cardPublisher);
+    cardLibraryService = new CardLibraryService(
+      cardRepository,
+      cardPublisher,
+      collectionRepository,
+      cardCollectionService,
+    );
     cardCollectionService = new CardCollectionService(
       collectionRepository,
       collectionPublisher,

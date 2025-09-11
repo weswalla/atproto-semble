@@ -26,7 +26,12 @@ describe('AddCardToLibraryUseCase', () => {
     cardPublisher = new FakeCardPublisher();
     collectionPublisher = new FakeCollectionPublisher();
 
-    cardLibraryService = new CardLibraryService(cardRepository, cardPublisher);
+    cardLibraryService = new CardLibraryService(
+      cardRepository,
+      cardPublisher,
+      collectionRepository,
+      cardCollectionService,
+    );
     cardCollectionService = new CardCollectionService(
       collectionRepository,
       collectionPublisher,

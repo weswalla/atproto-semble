@@ -112,7 +112,6 @@ export default function AddToCollectionModal(props: Props) {
       opened={props.isOpen}
       onClose={props.onClose}
       title="Add to Collections"
-      size={'md'}
       overlayProps={DEFAULT_OVERLAY_PROPS}
       centered
     >

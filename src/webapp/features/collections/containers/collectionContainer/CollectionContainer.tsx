@@ -12,6 +12,7 @@ import {
   Title,
   Center,
   Loader,
+  Avatar,
 } from '@mantine/core';
 import useCollection from '../../lib/queries/useCollection';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
@@ -68,9 +69,18 @@ export default function CollectionContainer({ id }: Props) {
             )}
           </Stack>
 
-          <Stack>
+          <Group gap={'xs'}>
             <Text fw={600} c="gray.7">
-              By{' '}
+              By
+            </Text>
+            <Group gap={5}>
+              <Avatar
+                size={'sm'}
+                component={Link}
+                href={`/profile/${firstPage.author.handle}`}
+                src={firstPage.author.avatarUrl}
+                alt={`${firstPage.author.name}'s' avatar`}
+              />
               <Anchor
                 component={Link}
                 href={`/profile/${firstPage.author.handle}`}
@@ -79,8 +89,8 @@ export default function CollectionContainer({ id }: Props) {
               >
                 {firstPage.author.name}
               </Anchor>
-            </Text>
-          </Stack>
+            </Group>
+          </Group>
         </Group>
 
         <Group justify="end">

@@ -550,10 +550,11 @@ describe('DrizzleCollectionRepository', () => {
     await collectionRepository.save(collection3);
 
     // Find collections by the original curator containing this card
-    const foundCollectionsResult = await collectionRepository.findByAuthorIdContainingCard(
-      curatorId,
-      card.cardId,
-    );
+    const foundCollectionsResult =
+      await collectionRepository.findByCuratorIdContainingCard(
+        curatorId,
+        card.cardId,
+      );
     expect(foundCollectionsResult.isOk()).toBe(true);
 
     const foundCollections = foundCollectionsResult.unwrap();

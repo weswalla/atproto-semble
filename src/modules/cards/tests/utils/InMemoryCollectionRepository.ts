@@ -71,7 +71,10 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
     }
   }
 
-  async findByAuthorIdContainingCard(authorId: CuratorId, cardId: CardId): Promise<Result<Collection[]>> {
+  async findByCuratorIdContainingCard(
+    authorId: CuratorId,
+    cardId: CardId,
+  ): Promise<Result<Collection[]>> {
     try {
       const collections = Array.from(this.collections.values()).filter(
         (collection) =>

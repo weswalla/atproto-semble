@@ -295,7 +295,10 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
     }
   }
 
-  async findByAuthorIdContainingCard(authorId: CuratorId, cardId: CardId): Promise<Result<Collection[]>> {
+  async findByCuratorIdContainingCard(
+    authorId: CuratorId,
+    cardId: CardId,
+  ): Promise<Result<Collection[]>> {
     try {
       const authorIdString = authorId.value;
       const cardIdString = cardId.getStringValue();
@@ -318,8 +321,8 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
         .where(
           and(
             eq(collections.authorId, authorIdString),
-            eq(collectionCards.cardId, cardIdString)
-          )
+            eq(collectionCards.cardId, cardIdString),
+          ),
         );
 
       const domainCollections: Collection[] = [];

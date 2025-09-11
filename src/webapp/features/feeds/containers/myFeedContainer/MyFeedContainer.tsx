@@ -30,7 +30,7 @@ export default function MyFeedContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <Title order={2}>Explore</Title>
+        <Title order={1}>Explore</Title>
 
         {allActivities.length === 0 ? (
           <Center h={200}>

@@ -5,7 +5,7 @@ export default function MyFeedContainerSkeleton() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <Title order={2}>Explore</Title>
+        <Title order={1}>Explore</Title>
 
         <Stack gap={'xl'}>
           {Array.from({ length: 4 }).map((_, i) => (

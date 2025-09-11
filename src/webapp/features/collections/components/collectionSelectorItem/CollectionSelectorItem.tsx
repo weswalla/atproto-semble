@@ -34,15 +34,16 @@ export default function CollectionSelectorItem(props: Props) {
         })
       }
     >
-      <Group justify="space-between">
-        <Stack gap={0}>
-          <Text fw={500} lineClamp={1}>
+      <Group justify="space-between" wrap="nowrap">
+        <Group gap={'xs'} wrap="nowrap">
+          <Text fw={500} lineClamp={1} flex={1}>
             {props.name}
           </Text>
+          <Text c={'gray'}>·</Text>
           <Text c={'gray'}>
             {props.cardCount} {props.cardCount === 1 ? 'card' : 'cards'}
           </Text>
-        </Stack>
+        </Group>
         <CheckboxIndicator />
       </Group>
     </CheckboxCard>

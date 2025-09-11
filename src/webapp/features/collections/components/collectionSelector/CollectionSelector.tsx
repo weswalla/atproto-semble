@@ -18,9 +18,9 @@ import { Fragment, useState } from 'react';
 import { useDebouncedValue } from '@mantine/hooks';
 import useCollections from '../../lib/queries/useCollections';
 import useCollectionSearch from '../../lib/queries/useCollectionSearch';
+import CollectionSelectorItemList from '../collectionSelectorItemList/CollectionSelectorItemList';
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
 import CollectionSelectorError from './Error.CollectionSelector';
-import CollectionSelectorItem from '../collectionSelectorItem/CollectionSelectorItem';
 import { BiPlus } from 'react-icons/bi';
 import { IoSearch } from 'react-icons/io5';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
@@ -54,21 +54,6 @@ export default function CollectionSelector(props: Props) {
         props.selectedCollections.filter((col) => col.id !== item.id),
       );
     }
-  };
-
-  const renderCollectionItems = (
-    collections: { id: string; name: string; cardCount: number }[],
-  ) => {
-    return collections.map((c) => (
-      <CollectionSelectorItem
-        key={c.id}
-        name={c.name}
-        cardCount={c.cardCount}
-        value={c.id}
-        checked={!!props.selectedCollections.find((col) => col.id === c.id)}
-        onChange={handleCollectionChange}
-      />
-    ));
   };
 
   if (error) {
@@ -155,13 +140,19 @@ export default function CollectionSelector(props: Props) {
                               title={`No results found for "${search}"`}
                             />
                           ) : (
-                            renderCollectionItems(
-                              searchedCollections.data.collections,
-                            )
+                            <CollectionSelectorItemList
+                              collections={searchedCollections.data.collections}
+                              selectedCollections={props.selectedCollections}
+                              onChange={handleCollectionChange}
+                            />
                           ))}
                       </Fragment>
                     ) : hasCollections ? (
-                      renderCollectionItems(allCollections)
+                      <CollectionSelectorItemList
+                        collections={allCollections}
+                        selectedCollections={props.selectedCollections}
+                        onChange={handleCollectionChange}
+                      />
                     ) : (
                       <Stack align="center" gap="xs">
                         <Text fz="lg" fw={600} c="gray">
@@ -186,7 +177,11 @@ export default function CollectionSelector(props: Props) {
                 <ScrollArea h={340} type="auto">
                   <Stack gap="xs">
                     {hasSelectedCollections ? (
-                      renderCollectionItems(props.selectedCollections)
+                      <CollectionSelectorItemList
+                        collections={props.selectedCollections}
+                        selectedCollections={props.selectedCollections}
+                        onChange={handleCollectionChange}
+                      />
                     ) : (
                       <Alert color="gray" title="No collections selected" />
                     )}

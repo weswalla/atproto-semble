@@ -8,6 +8,7 @@ import {
   MenuItem,
   Modal,
   NavLink,
+  Spoiler,
 } from '@mantine/core';
 
 export const theme = createTheme({
@@ -100,6 +101,14 @@ export const theme = createTheme({
       defaultProps: {
         radius: 'lg',
         transitionProps: { transition: 'pop' },
+      },
+    }),
+    Spoiler: Spoiler.extend({
+      styles: {
+        control: {
+          color: 'gray',
+          fontWeight: 600,
+        },
       },
     }),
   },

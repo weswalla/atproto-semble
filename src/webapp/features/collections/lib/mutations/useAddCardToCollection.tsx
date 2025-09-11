@@ -2,7 +2,7 @@ import { ApiClient } from '@/api-client/ApiClient';
 import { getAccessToken } from '@/services/auth';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-export default function useRemoveCardFromCollections() {
+export default function useAddCardToCollection() {
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     () => getAccessToken(),
@@ -18,7 +18,7 @@ export default function useRemoveCardFromCollections() {
       cardId: string;
       collectionIds: string[];
     }) => {
-      return apiClient.removeCardFromCollection({ cardId, collectionIds });
+      return apiClient.addCardToCollection({ cardId, collectionIds });
     },
 
     onSuccess: (_data, variables) => {

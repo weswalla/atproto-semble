@@ -17,6 +17,7 @@ export default function CollectionSelectorItem(props: Props) {
   return (
     <CheckboxCard
       bg={props.disabled ? 'gray.3' : undefined}
+      c={props.disabled ? 'gray' : undefined}
       disabled={props.disabled}
       radius={'lg'}
       p={'sm'}
@@ -41,7 +42,10 @@ export default function CollectionSelectorItem(props: Props) {
             {props.cardCount} {props.cardCount === 1 ? 'card' : 'cards'}
           </Text>
         </Group>
-        <CheckboxIndicator disabled={props.disabled} checked={props.disabled} />
+        <CheckboxIndicator
+          disabled={props.disabled}
+          checked={props.disabled || props.checked}
+        />
       </Group>
     </CheckboxCard>
   );

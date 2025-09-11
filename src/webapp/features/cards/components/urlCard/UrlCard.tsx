@@ -56,7 +56,7 @@ export default function UrlCard(props: Props) {
               )}
             </Stack>
             {props.cardContent.thumbnailUrl && (
-              <AspectRatio ratio={1 / 1} flex={0.1}>
+              <AspectRatio ratio={1 / 1}>
                 <Image
                   src={props.cardContent.thumbnailUrl}
                   alt={`${props.url} social preview image`}

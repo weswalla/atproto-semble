@@ -9,8 +9,7 @@ import {
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import useUpdateNote from '../../lib/mutations/useUpdateNote';
-import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
-import { stringify } from 'postcss';
+import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 
 interface Props {
   isOpen: boolean;
@@ -60,7 +59,7 @@ export default function EditNoteDrawer(props: Props) {
       withCloseButton={false}
       position="bottom"
       size={'xs'}
-      overlayProps={DEFAULT_OVERLAY_PROPS}
+      overlayProps={UPDATE_OVERLAY_PROPS}
     >
       <Drawer.Header>
         <Drawer.Title fz="xl" fw={600} mx="auto">

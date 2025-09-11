@@ -10,7 +10,7 @@ import {
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import useUpdateCollection from '../../lib/mutations/useUpdateCollection';
-import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
+import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 
 interface Props {
   isOpen: boolean;
@@ -62,7 +62,7 @@ export default function EditCollectionDrawer(props: Props) {
       withCloseButton={false}
       position="bottom"
       size={'30rem'}
-      overlayProps={DEFAULT_OVERLAY_PROPS}
+      overlayProps={UPDATE_OVERLAY_PROPS}
     >
       <Drawer.Header>
         <Drawer.Title fz="xl" fw={600} mx="auto">

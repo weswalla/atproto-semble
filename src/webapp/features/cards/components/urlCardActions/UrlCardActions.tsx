@@ -24,7 +24,10 @@ interface Props {
 
 export default function UrlCardActions(props: Props) {
   const { user } = useAuth();
-  const isAuthor = user?.handle === props.authorHandle;
+  // assume the current user is the card owner if authorHandle isn't passed
+  const isAuthor = props.authorHandle
+    ? user?.handle === props.authorHandle
+    : true;
   const [showEditNoteModal, setShowEditNoteModal] = useState(false);
   const [showRemoveFromCollectionModal, setShowRemoveFromCollectionModal] =
     useState(false);
@@ -56,39 +59,33 @@ export default function UrlCardActions(props: Props) {
             </ActionIcon>
           )}
         </Group>
-        <Menu shadow="sm">
-          <Menu.Target>
-            <ActionIcon variant="subtle" color={'gray'}>
-              <BsThreeDots size={22} />
-            </ActionIcon>
-          </Menu.Target>
-          <Menu.Dropdown>
-            {props.currentCollection && (
+        {isAuthor && (
+          <Menu shadow="sm">
+            <Menu.Target>
+              <ActionIcon variant="subtle" color={'gray'}>
+                <BsThreeDots size={22} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              {props.currentCollection && (
+                <Menu.Item
+                  leftSection={<LuUnplug />}
+                  onClick={() => setShowRemoveFromCollectionModal(true)}
+                >
+                  Remove from this collection
+                </Menu.Item>
+              )}
               <Menu.Item
-                leftSection={<LuUnplug />}
-                onClick={() => setShowRemoveFromCollectionModal(true)}
+                color="red"
+                leftSection={<BsTrash2Fill />}
+                onClick={() => setShowRemoveFromLibraryModal(true)}
               >
-                {/* TODO: hide if current user !== card author */}
-                Remove from this collection
+                Remove from library
               </Menu.Item>
-            )}
-            <Menu.Item
-              color="red"
-              leftSection={<BsTrash2Fill />}
-              onClick={() => setShowRemoveFromLibraryModal(true)}
-            >
-              {/* TODO: hide if current user !== card author */}
-              Remove from library
-            </Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
+            </Menu.Dropdown>
+          </Menu>
+        )}
       </Group>
-
-      {/*<AddToCollectionModal
-        cardId={props.id}
-        isOpen={showAddToCollectionModal}
-        onClose={() => setShowAddToCollectionModal(false)}
-      />*/}
 
       <AddToCollectionModal
         isOpen={showAddToCollectionModal}

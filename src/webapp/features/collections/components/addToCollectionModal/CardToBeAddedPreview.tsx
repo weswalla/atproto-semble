@@ -8,11 +8,11 @@ import {
   Menu,
   Button,
   ScrollArea,
+  Anchor,
 } from '@mantine/core';
 import { GetMyCollectionsResponse, UrlCardView } from '@/api-client/types';
 import Link from 'next/link';
 import { getDomain } from '@/lib/utils/link';
-import { Fragment } from 'react';
 import { BiSolidChevronDownCircle } from 'react-icons/bi';
 
 interface Props {
@@ -40,9 +40,15 @@ export default function CardToBeAddedPreview(props: Props) {
               </AspectRatio>
             )}
             <Stack gap={0} flex={0.9}>
-              <Text c={'gray'} lineClamp={1}>
+              <Anchor
+                component={Link}
+                href={props.cardContent.url}
+                target="_blank"
+                c={'gray'}
+                lineClamp={1}
+              >
                 {domain}
-              </Text>
+              </Anchor>
               {props.cardContent.title && (
                 <Text fw={500} lineClamp={1}>
                   {props.cardContent.title}

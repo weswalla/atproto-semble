@@ -18,7 +18,7 @@ export default function CollectionActions(props: Props) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const isAuthor = user?.handle === props.authorHandle;
-  
+
   return (
     <Fragment>
       <Menu shadow="sm">

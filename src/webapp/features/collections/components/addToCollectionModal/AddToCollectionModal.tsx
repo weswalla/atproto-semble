@@ -6,7 +6,6 @@ import {
   Modal,
   Stack,
   Text,
-  Image,
   TextInput,
   CloseButton,
   Tabs,
@@ -185,6 +184,7 @@ export default function AddToCollectionModal(props: Props) {
                           ) : (
                             <CollectionSelectorItemList
                               collections={searchedCollections.data.collections}
+                              collectionsWithCard={collectionsWithCard}
                               selectedCollections={selectedCollections}
                               onChange={handleCollectionChange}
                             />

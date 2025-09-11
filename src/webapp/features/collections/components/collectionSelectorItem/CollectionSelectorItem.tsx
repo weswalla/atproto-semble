@@ -1,10 +1,4 @@
-import {
-  CheckboxCard,
-  CheckboxIndicator,
-  Group,
-  Stack,
-  Text,
-} from '@mantine/core';
+import { CheckboxCard, CheckboxIndicator, Group, Text } from '@mantine/core';
 import classes from './CollectionSelectorItem.module.css';
 
 interface Props {
@@ -16,11 +10,14 @@ interface Props {
     checked: boolean,
     item: { id: string; name: string; cardCount: number },
   ) => void;
+  disabled?: boolean;
 }
 
 export default function CollectionSelectorItem(props: Props) {
   return (
     <CheckboxCard
+      bg={props.disabled ? 'gray.3' : undefined}
+      disabled={props.disabled}
       radius={'lg'}
       p={'sm'}
       className={classes.root}
@@ -44,7 +41,7 @@ export default function CollectionSelectorItem(props: Props) {
             {props.cardCount} {props.cardCount === 1 ? 'card' : 'cards'}
           </Text>
         </Group>
-        <CheckboxIndicator />
+        <CheckboxIndicator disabled={props.disabled} checked={props.disabled} />
       </Group>
     </CheckboxCard>
   );

@@ -258,6 +258,7 @@ export default function AddToCollectionModal(props: Props) {
                 size="md"
                 onClick={handleAddCardToCollection}
                 disabled={selectedCollections.length === 0}
+                loading={addCardToCollection.isPending}
               >
                 Save
               </Button>

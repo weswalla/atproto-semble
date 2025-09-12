@@ -10,6 +10,7 @@ import {
   Anchor,
   Image,
   Box,
+  Button,
 } from '@mantine/core';
 import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
@@ -17,11 +18,15 @@ import { FaRegNoteSticky } from 'react-icons/fa6';
 import Link from 'next/link';
 import SembleLogo from '@/assets/semble-logo.svg';
 import ProfileMenu from '@/features/profile/components/profileMenu/ProfileMenu';
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import CollectionsNavListSkeleton from '@/features/collections/components/collectionsNavList/Skeleton.CollectionsNavList';
 import NavbarToggle from '../NavbarToggle';
+import { FiPlus } from 'react-icons/fi';
+import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 
 export default function Navbar() {
+  const [openAddDrawer, setOpenAddDrawer] = useState(false);
+
   return (
     <AppShellNavbar px={'md'} pb={'md'} pt={'xs'}>
       <Group justify="space-between" ml={'sm'}>
@@ -61,6 +66,21 @@ export default function Navbar() {
           <CollectionsNavList />
         </Suspense>
       </AppShellSection>
+      <AppShellSection>
+        <Button
+          size="lg"
+          radius={'md'}
+          leftSection={<FiPlus size={22} />}
+          fullWidth
+          onClick={() => setOpenAddDrawer(true)}
+        >
+          New Bookmark
+        </Button>
+      </AppShellSection>
+      <AddCardDrawer
+        isOpen={openAddDrawer}
+        onClose={() => setOpenAddDrawer(false)}
+      />
     </AppShellNavbar>
   );
 }

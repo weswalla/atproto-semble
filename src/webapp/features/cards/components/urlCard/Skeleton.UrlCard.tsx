@@ -22,7 +22,7 @@ export default function UrlCardSkeleton() {
               </Stack>
             </Stack>
 
-            <AspectRatio ratio={1 / 1} flex={0.1}>
+            <AspectRatio ratio={1 / 1}>
               <Skeleton w={75} h={75} />
             </AspectRatio>
           </Group>

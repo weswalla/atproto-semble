@@ -21,7 +21,11 @@ export default function CollectionNavItem(props: Props) {
       c={isActive ? 'dark' : 'gray'}
       rightSection={
         props.cardCount > 0 ? (
-          <Badge variant="light" color="gray" circle>
+          <Badge
+            variant={isActive ? 'filled' : 'light'}
+            color={isActive ? 'dark' : 'gray'}
+            circle
+          >
             {props.cardCount}
           </Badge>
         ) : null

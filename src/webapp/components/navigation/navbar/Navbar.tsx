@@ -69,9 +69,8 @@ export default function Navbar() {
       <AppShellSection>
         <Button
           size="lg"
-          radius={'md'}
-          leftSection={<FiPlus size={22} />}
           fullWidth
+          leftSection={<FiPlus size={22} />}
           onClick={() => setOpenAddDrawer(true)}
         >
           New Card

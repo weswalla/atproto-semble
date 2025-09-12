@@ -74,7 +74,7 @@ export default function Navbar() {
           fullWidth
           onClick={() => setOpenAddDrawer(true)}
         >
-          New Bookmark
+          New Card
         </Button>
       </AppShellSection>
       <AddCardDrawer

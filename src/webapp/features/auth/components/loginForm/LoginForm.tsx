@@ -187,7 +187,7 @@ export default function LoginForm() {
             >
               Log in
             </Button>
-            {error && <Alert variant="white" title={error} color="red" />}
+            {error && <Alert title={error} color="red" />}
           </Stack>
         </form>
         <Stack align="center">
@@ -234,7 +234,7 @@ export default function LoginForm() {
           >
             Log in
           </Button>
-          {error && <Alert variant="white" title={error} color="red" />}
+          {error && <Alert title={error} color="red" />}
           <Text fw={500} c={'stone'}>
             Or
           </Text>

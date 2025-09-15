@@ -47,7 +47,7 @@ export default function ComposerDrawer() {
         >
           <Menu.Target>
             <Affix m="xs" style={{ zIndex: 102 }}>
-              <ActionIcon size="input-lg" radius="xl" variant="filled" h="100%">
+              <ActionIcon size="input-xl" radius="xl" variant="filled" h="100%">
                 <Transition
                   mounted={!opened}
                   transition="fade-left"
@@ -56,7 +56,7 @@ export default function ComposerDrawer() {
                 >
                   {(styles) => (
                     <FiPlus
-                      size={26}
+                      size={30}
                       style={{ ...styles, position: 'absolute' }}
                     />
                   )}
@@ -69,7 +69,7 @@ export default function ComposerDrawer() {
                 >
                   {(styles) => (
                     <FiX
-                      size={26}
+                      size={30}
                       style={{ ...styles, position: 'absolute' }}
                     />
                   )}

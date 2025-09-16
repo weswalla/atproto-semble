@@ -66,7 +66,7 @@ export default function ProfileMenu() {
                   {data.name}
                 </Text>
                 <Text fw={500} lineClamp={1} flex={1} c={'gray'}>
-                  {data.handle}
+                  View profile
                 </Text>
               </Stack>
             </Group>

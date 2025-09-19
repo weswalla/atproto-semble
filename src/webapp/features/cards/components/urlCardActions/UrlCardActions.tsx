@@ -33,8 +33,7 @@ export default function UrlCardActions(props: Props) {
     useState(false);
   const [showRemoveFromLibaryModal, setShowRemoveFromLibraryModal] =
     useState(false);
-  const [showAddToCollectionModal, setShowAddToCollectionModal] =
-    useState(false);
+  const [showAddToModal, setShowAddToModal] = useState(false);
 
   return (
     <Fragment>
@@ -44,7 +43,7 @@ export default function UrlCardActions(props: Props) {
             variant="subtle"
             color={'gray'}
             radius={'xl'}
-            onClick={() => setShowAddToCollectionModal(true)}
+            onClick={() => setShowAddToModal(true)}
           >
             <BiPlus size={22} />
           </ActionIcon>
@@ -87,10 +86,9 @@ export default function UrlCardActions(props: Props) {
         )}
       </Group>
 
-
       <AddCardToModal
-        isOpen={showAddToLibraryModal}
-        onClose={() => setShowAddToLibraryModal(false)}
+        isOpen={showAddToModal}
+        onClose={() => setShowAddToModal(false)}
         cardContent={props.cardContent}
         cardId={props.id}
       />

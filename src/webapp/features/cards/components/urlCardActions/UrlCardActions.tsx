@@ -10,7 +10,7 @@ import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import { LuUnplug } from 'react-icons/lu';
 import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
 import RemoveCardFromLibraryModal from '../removeCardFromLibraryModal/RemoveCardFromLibraryModal';
-import AddToLibraryModal from '@/features/collections/components/addToLibraryModal/AddToLibraryModal';
+import AddCardToModal from '@/features/collections/components/addCardToModal/AddCardToModal';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
@@ -86,7 +86,7 @@ export default function UrlCardActions(props: Props) {
         )}
       </Group>
 
-      <AddToLibraryModal
+      <AddCardToModal
         isOpen={showAddToLibraryModal}
         onClose={() => setShowAddToLibraryModal(false)}
         cardContent={props.cardContent}

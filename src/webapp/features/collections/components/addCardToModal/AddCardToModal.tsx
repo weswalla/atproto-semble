@@ -20,12 +20,14 @@ import { IoSearch } from 'react-icons/io5';
 import { BiPlus } from 'react-icons/bi';
 import useCollections from '../../lib/queries/useCollections';
 import useCard from '@/features/cards/lib/queries/useGetCard';
-import useAddCardToCollection from '../../lib/mutations/useAddCardToCollection';
 import { notifications } from '@mantine/notifications';
 import CollectionSelectorError from '../collectionSelector/Error.CollectionSelector';
 import CollectionSelectorItemList from '../collectionSelectorItemList/CollectionSelectorItemList';
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
 import CardToBeAddedPreview from './CardToBeAddedPreview';
+import useAddCardToLibrary from '@/features/cards/lib/mutations/useAddCardToLibrary';
+import useGetLibrariesForCard from '@/features/cards/lib/mutations/useGetLibrariesForcard';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
   isOpen: boolean;
@@ -34,14 +36,18 @@ interface Props {
   cardId: string;
 }
 
-export default function AddToLibraryModal(props: Props) {
+export default function AddCardToModal(props: Props) {
+  const { user, isLoading: isLoadingUser } = useAuth();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch] = useDebouncedValue(search, 200);
   const searchedCollections = useCollectionSearch({ query: debouncedSearch });
 
-  const addCardToCollection = useAddCardToCollection();
+  const libraries = useGetLibrariesForCard({ id: props.cardId });
+  const isInUserLibrary = libraries.data.users.some((u) => u.id === user?.id);
+
+  const addCardToLibrary = useAddCardToLibrary();
   const card = useCard({ id: props.cardId });
   const { data, error } = useCollections();
   const [selectedCollections, setSelectedCollections] = useState<
@@ -77,10 +83,10 @@ export default function AddToLibraryModal(props: Props) {
   const hasCollections = allCollections.length > 0;
   const hasSelectedCollections = selectedCollections.length > 0;
 
-  const handleAddCardToCollection = (e: React.FormEvent) => {
+  const handleAddCard = (e: React.FormEvent) => {
     e.preventDefault();
 
-    addCardToCollection.mutate(
+    addCardToLibrary.mutate(
       {
         cardId: props.cardId,
         collectionIds: selectedCollections.map((c) => c.id),
@@ -111,14 +117,16 @@ export default function AddToLibraryModal(props: Props) {
     <Modal
       opened={props.isOpen}
       onClose={props.onClose}
-      title="Add to Library"
+      title="Add Card"
       overlayProps={DEFAULT_OVERLAY_PROPS}
       centered
     >
       <Stack gap={'xl'}>
         <CardToBeAddedPreview
+          cardId={props.cardId}
           cardContent={props.cardContent}
           collectionsWithCard={collectionsWithCard}
+          isInLibrary={isInUserLibrary}
         />
 
         <Stack gap={'md'}>
@@ -255,16 +263,17 @@ export default function AddToLibraryModal(props: Props) {
               )}
               <Button
                 size="md"
-                onClick={handleAddCardToCollection}
-                // disabled when user already has card in a collection (and therefore in library)
-                // only enabled when it's not already in library, or they want to add to another collection
+                onClick={handleAddCard}
+                // disabled when:
+                // user already has the card in a collection (and therefore in library)
+                // and when it's already in library and no new collection is selected yet
                 disabled={
-                  collectionsWithCard.length > 0 &&
-                  selectedCollections.length === 0
+                  isLoadingUser ||
+                  (isInUserLibrary && selectedCollections.length === 0)
                 }
-                loading={addCardToCollection.isPending}
+                loading={addCardToLibrary.isPending}
               >
-                Save
+                Add
               </Button>
             </Group>
           </Stack>

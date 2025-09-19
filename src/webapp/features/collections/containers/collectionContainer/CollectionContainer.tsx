@@ -114,6 +114,7 @@ export default function CollectionContainer({ id }: Props) {
                     id={card.id}
                     url={card.url}
                     cardContent={card.cardContent}
+                    authorHandle={firstPage.author.handle}
                     note={card.note}
                     currentCollection={{
                       id: firstPage.id,

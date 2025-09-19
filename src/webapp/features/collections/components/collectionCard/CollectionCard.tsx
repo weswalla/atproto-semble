@@ -23,8 +23,9 @@ interface Props {
 export default function CollectionCard(props: Props) {
   const router = useRouter();
   const { collection } = props;
+  const time = getRelativeTime(collection.updatedAt);
   const relativeUpdateDate =
-    'Updated ' + getRelativeTime(collection.updatedAt) + ' ago';
+    time === 'just now' ? `Updated ${time}` : `Updated ${time} ago`;
 
   // TODO: add more sizes
   return (

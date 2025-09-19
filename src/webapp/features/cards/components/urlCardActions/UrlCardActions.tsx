@@ -10,7 +10,7 @@ import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import { LuUnplug } from 'react-icons/lu';
 import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
 import RemoveCardFromLibraryModal from '../removeCardFromLibraryModal/RemoveCardFromLibraryModal';
-import AddToLibraryModal from '@/features/collections/components/addToLibraryModal/AddToLibraryModal';
+import AddToCollectionModal from '@/features/collections/components/addToCollectionModal/AddToCollectionModal';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
@@ -33,7 +33,8 @@ export default function UrlCardActions(props: Props) {
     useState(false);
   const [showRemoveFromLibaryModal, setShowRemoveFromLibraryModal] =
     useState(false);
-  const [showAddToLibraryModal, setShowAddToLibraryModal] = useState(false);
+  const [showAddToCollectionModal, setShowAddToCollectionModal] =
+    useState(false);
 
   return (
     <Fragment>
@@ -43,7 +44,7 @@ export default function UrlCardActions(props: Props) {
             variant="subtle"
             color={'gray'}
             radius={'xl'}
-            onClick={() => setShowAddToLibraryModal(true)}
+            onClick={() => setShowAddToCollectionModal(true)}
           >
             <BiPlus size={22} />
           </ActionIcon>
@@ -86,9 +87,9 @@ export default function UrlCardActions(props: Props) {
         )}
       </Group>
 
-      <AddToLibraryModal
-        isOpen={showAddToLibraryModal}
-        onClose={() => setShowAddToLibraryModal(false)}
+      <AddToCollectionModal
+        isOpen={showAddToCollectionModal}
+        onClose={() => setShowAddToCollectionModal(false)}
         cardContent={props.cardContent}
         cardId={props.id}
       />

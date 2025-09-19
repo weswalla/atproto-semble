@@ -25,8 +25,8 @@ import CollectionSelectorError from '../../../collections/components/collectionS
 import CollectionSelectorItemList from '../../../collections/components/collectionSelectorItemList/CollectionSelectorItemList';
 import CreateCollectionDrawer from '../../../collections/components/createCollectionDrawer/CreateCollectionDrawer';
 import CardToBeAddedPreview from './CardToBeAddedPreview';
-import useAddCardToLibrary from '@/features/cards/lib/mutations/useAddCardToLibrary';
-import useGetLibrariesForCard from '@/features/cards/lib/mutations/useGetLibrariesForCard';
+import useAddCardToLibrary from '../../lib/mutations/useAddCardToLibrary';
+import useGetLibrariesForCard from '../../lib/queries/useGetLibrariesForcard';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Props {

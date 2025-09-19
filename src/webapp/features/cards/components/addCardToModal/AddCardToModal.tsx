@@ -26,7 +26,7 @@ import CollectionSelectorItemList from '../../../collections/components/collecti
 import CreateCollectionDrawer from '../../../collections/components/createCollectionDrawer/CreateCollectionDrawer';
 import CardToBeAddedPreview from './CardToBeAddedPreview';
 import useAddCardToLibrary from '@/features/cards/lib/mutations/useAddCardToLibrary';
-import useGetLibrariesForCard from '@/features/cards/lib/mutations/useGetLibrariesForcard';
+import useGetLibrariesForCard from '@/features/cards/lib/mutations/useGetLibrariesForCard';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Props {

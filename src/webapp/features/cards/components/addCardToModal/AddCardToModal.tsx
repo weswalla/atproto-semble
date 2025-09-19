@@ -1,5 +1,5 @@
 import { UrlCardView } from '@/api-client/types';
-import useCollectionSearch from '../../lib/queries/useCollectionSearch';
+import useCollectionSearch from '@/features/collections/lib/queries/useCollectionSearch';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import {
   Group,
@@ -18,12 +18,12 @@ import { useDebouncedValue } from '@mantine/hooks';
 import { Fragment, useState } from 'react';
 import { IoSearch } from 'react-icons/io5';
 import { BiPlus } from 'react-icons/bi';
-import useCollections from '../../lib/queries/useCollections';
+import useCollections from '../../../collections/lib/queries/useCollections';
 import useCard from '@/features/cards/lib/queries/useGetCard';
 import { notifications } from '@mantine/notifications';
-import CollectionSelectorError from '../collectionSelector/Error.CollectionSelector';
-import CollectionSelectorItemList from '../collectionSelectorItemList/CollectionSelectorItemList';
-import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
+import CollectionSelectorError from '../../../collections/components/collectionSelector/Error.CollectionSelector';
+import CollectionSelectorItemList from '../../../collections/components/collectionSelectorItemList/CollectionSelectorItemList';
+import CreateCollectionDrawer from '../../../collections/components/createCollectionDrawer/CreateCollectionDrawer';
 import CardToBeAddedPreview from './CardToBeAddedPreview';
 import useAddCardToLibrary from '@/features/cards/lib/mutations/useAddCardToLibrary';
 import useGetLibrariesForCard from '@/features/cards/lib/mutations/useGetLibrariesForcard';
@@ -51,12 +51,12 @@ export default function AddCardToModal(props: Props) {
   const card = useCard({ id: props.cardId });
   const { data, error } = useCollections();
   const [selectedCollections, setSelectedCollections] = useState<
-    { id: string; name: string; cardCount: number }[]
+    SelectableCollectionItem[]
   >([]);
 
   const handleCollectionChange = (
     checked: boolean,
-    item: { id: string; name: string; cardCount: number },
+    item: SelectableCollectionItem,
   ) => {
     if (checked) {
       if (!selectedCollections.some((col) => col.id === item.id)) {

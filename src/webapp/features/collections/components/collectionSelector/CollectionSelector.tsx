@@ -19,7 +19,7 @@ import { useDebouncedValue } from '@mantine/hooks';
 import useCollections from '../../lib/queries/useCollections';
 import useCollectionSearch from '../../lib/queries/useCollectionSearch';
 import CollectionSelectorItemList from '../collectionSelectorItemList/CollectionSelectorItemList';
-import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
+import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
 import CollectionSelectorError from './Error.CollectionSelector';
 import { BiPlus } from 'react-icons/bi';
 import { IoSearch } from 'react-icons/io5';
@@ -28,9 +28,9 @@ import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  selectedCollections: { id: string; name: string; cardCount: number }[];
+  selectedCollections: SelectableCollectionItem[];
   onSelectedCollectionsChange: (
-    collectionIds: { id: string; name: string; cardCount: number }[],
+    collectionIds: SelectableCollectionItem[],
   ) => void;
 }
 
@@ -43,7 +43,7 @@ export default function CollectionSelector(props: Props) {
 
   const handleCollectionChange = (
     checked: boolean,
-    item: { id: string; name: string; cardCount: number },
+    item: SelectableCollectionItem,
   ) => {
     if (checked) {
       if (!props.selectedCollections.some((col) => col.id === item.id)) {

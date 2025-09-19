@@ -20,12 +20,12 @@ import { IoSearch } from 'react-icons/io5';
 import { BiPlus } from 'react-icons/bi';
 import useCollections from '../../lib/queries/useCollections';
 import useCard from '@/features/cards/lib/queries/useGetCard';
-import useAddCardToCollection from '../../lib/mutations/useAddCardToCollection';
+import useAddCardToCollection from '@/features/collections/lib/mutations/useAddCardToCollection';
 import { notifications } from '@mantine/notifications';
 import CollectionSelectorError from '../collectionSelector/Error.CollectionSelector';
+import CardToBeAddedPreview from './CardToBeAddedPreview';
 import CollectionSelectorItemList from '../collectionSelectorItemList/CollectionSelectorItemList';
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
-import CardToBeAddedPreview from './CardToBeAddedPreview';
 
 interface Props {
   isOpen: boolean;
@@ -45,12 +45,12 @@ export default function AddToCollectionModal(props: Props) {
   const card = useCard({ id: props.cardId });
   const { data, error } = useCollections();
   const [selectedCollections, setSelectedCollections] = useState<
-    { id: string; name: string; cardCount: number }[]
+    SelectableCollectionItem[]
   >([]);
 
   const handleCollectionChange = (
     checked: boolean,
-    item: { id: string; name: string; cardCount: number },
+    item: SelectableCollectionItem,
   ) => {
     if (checked) {
       if (!selectedCollections.some((col) => col.id === item.id)) {

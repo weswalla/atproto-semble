@@ -48,7 +48,7 @@ export default function UrlCardActions(props: Props) {
           >
             <BiPlus size={22} />
           </ActionIcon>
-          {props.note && (
+          {isAuthor && props.note && (
             <ActionIcon
               variant="subtle"
               color="gray"
@@ -94,7 +94,7 @@ export default function UrlCardActions(props: Props) {
         cardId={props.id}
       />
 
-      {isAuthor && props.note && (
+      {props.note && (
         <EditNoteDrawer
           isOpen={showEditNoteModal}
           onClose={() => setShowEditNoteModal(false)}

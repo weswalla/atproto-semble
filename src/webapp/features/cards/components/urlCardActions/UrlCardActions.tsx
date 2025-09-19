@@ -94,7 +94,7 @@ export default function UrlCardActions(props: Props) {
         cardId={props.id}
       />
 
-      {props.note && (
+      {isAuthor && props.note && (
         <EditNoteDrawer
           isOpen={showEditNoteModal}
           onClose={() => setShowEditNoteModal(false)}

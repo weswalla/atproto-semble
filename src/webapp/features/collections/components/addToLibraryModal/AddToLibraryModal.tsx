@@ -34,7 +34,7 @@ interface Props {
   cardId: string;
 }
 
-export default function AddToCollectionModal(props: Props) {
+export default function AddToLibraryModal(props: Props) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const [search, setSearch] = useState<string>('');
@@ -111,7 +111,7 @@ export default function AddToCollectionModal(props: Props) {
     <Modal
       opened={props.isOpen}
       onClose={props.onClose}
-      title="Add to Collections"
+      title="Add to Library"
       overlayProps={DEFAULT_OVERLAY_PROPS}
       centered
     >
@@ -256,7 +256,12 @@ export default function AddToCollectionModal(props: Props) {
               <Button
                 size="md"
                 onClick={handleAddCardToCollection}
-                disabled={selectedCollections.length === 0}
+                // disabled when user already has card in a collection (and therefore in library)
+                // only enabled when it's not already in library, or they want to add to another collection
+                disabled={
+                  collectionsWithCard.length > 0 &&
+                  selectedCollections.length === 0
+                }
                 loading={addCardToCollection.isPending}
               >
                 Save

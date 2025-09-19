@@ -22,7 +22,7 @@ import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  selectedCollection?: { id: string; name: string; cardCount: number };
+  selectedCollection?: SelectableCollectionItem;
 }
 
 export default function AddCardDrawer(props: Props) {

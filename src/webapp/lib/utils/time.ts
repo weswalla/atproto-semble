@@ -12,9 +12,9 @@ export const getRelativeTime = (dateString: string) => {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
   const interval = intervals.find((i) => i.seconds < seconds);
 
-  if (!interval) return 'now';
+  if (!interval) return 'just now';
   const count = Math.floor(seconds / interval.seconds);
-  if (count < 1) return 'now';
+  if (count < 1) return 'just now';
 
   return `${count}${interval.label}`;
 };

@@ -30,7 +30,7 @@ export default function MyCardsContainer() {
   const [showAddDrawer, setShowAddDrawer] = useState(false);
 
   const allCards = data?.pages.flatMap((page) => page.cards ?? []) ?? [];
-  console.log(allCards);
+
   if (isPending) {
     return <MyCardsContainerSkeleton />;
   }

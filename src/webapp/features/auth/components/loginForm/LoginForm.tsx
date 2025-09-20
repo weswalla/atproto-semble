@@ -116,7 +116,7 @@ export default function LoginForm() {
           appPassword: form.values.appPassword,
         });
 
-      setTokens(accessToken, refreshToken);
+      await setTokens(accessToken, refreshToken);
 
       if (isExtensionLogin) {
         await handleExtensionTokenGeneration();

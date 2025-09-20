@@ -58,7 +58,7 @@ function AuthCompleteContent() {
 
     if (accessToken && refreshToken) {
       // Store tokens using the auth context function
-      setTokens(accessToken, refreshToken);
+      await setTokens(accessToken, refreshToken);
 
       // Check if extension tokens were requested
       if (ExtensionService.isExtensionTokensRequested()) {

@@ -177,32 +177,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     [createApiClient],
   );
 
-  const setTokens = useCallback(async (accessToken: string, refreshToken: string) => {
-    // Store tokens in localStorage
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
+  const setTokens = useCallback(
+    async (accessToken: string, refreshToken: string) => {
+      // Store tokens in localStorage
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
 
-    // Update state
-    setAccessToken(accessToken);
-    setRefreshToken(refreshToken);
-    setIsAuthenticated(true);
+      // Update state
+      setAccessToken(accessToken);
+      setRefreshToken(refreshToken);
+      setIsAuthenticated(true);
 
-    // Sync tokens with server-side cookies
-    try {
-      await fetch('/api/auth/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          accessToken,
-          refreshToken
-        }),
-        credentials: 'include' // Important for cookie handling
-      });
-    } catch (error) {
-      console.error('Failed to sync tokens with server:', error);
-      // Don't throw error - localStorage tokens are still valid
-    }
-  }, []);
+      // Sync tokens with server-side cookies
+      try {
+        await fetch('/api/auth/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accessToken,
+            refreshToken,
+          }),
+          credentials: 'include', // Important for cookie handling
+        });
+      } catch (error) {
+        console.error('Failed to sync tokens with server:', error);
+        // Don't throw error - localStorage tokens are still valid
+      }
+    },
+    [],
+  );
 
   return (
     <AuthContext.Provider

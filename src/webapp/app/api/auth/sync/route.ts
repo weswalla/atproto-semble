@@ -5,10 +5,7 @@ export async function POST(request: NextRequest) {
     const { accessToken, refreshToken } = await request.json();
 
     if (!accessToken || !refreshToken) {
-      return NextResponse.json(
-        { error: 'Missing tokens' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing tokens' }, { status: 400 });
     }
 
     // Create response with cookies
@@ -36,7 +33,7 @@ export async function POST(request: NextRequest) {
     console.error('Token sync error:', error);
     return NextResponse.json(
       { error: 'Failed to sync tokens' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 import { Fragment } from 'react';
 
 export const metadata: Metadata = {
-  title: 'My Cards',
-  description: 'All my cards',
+  title: 'Collections',
+  description: 'Collections',
 };
 
 interface Props {
@@ -12,10 +12,5 @@ interface Props {
 }
 
 export default function Layout(props: Props) {
-  return (
-    <Fragment>
-      <Header />
-      {props.children}
-    </Fragment>
-  );
+  return <Fragment>{props.children}</Fragment>;
 }

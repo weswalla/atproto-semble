@@ -42,7 +42,7 @@ export default function MyCardsContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <Title order={1}>My Cards</Title>
+        <Title order={1}>Cards</Title>
 
         {allCards.length > 0 ? (
           <Fragment>

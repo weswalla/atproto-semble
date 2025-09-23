@@ -58,7 +58,7 @@ export default function ProfileMenu() {
           </Button>
         </Menu.Target>
         <Menu.Dropdown>
-          <Menu.Item component={Link} href="/profile">
+          <Menu.Item component={Link} href={`/profile/${data.handle}`}>
             <Group gap={'xs'} wrap="nowrap">
               <Avatar src={data.avatarUrl} size={48} />
               <Stack gap={0}>

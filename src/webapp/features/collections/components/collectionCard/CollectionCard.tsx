@@ -31,7 +31,11 @@ export default function CollectionCard(props: Props) {
   return (
     <Card
       withBorder
-      onClick={() => router.push(`/collections/${collection.id}`)}
+      onClick={() =>
+        router.push(
+          `/profile/${collection.createdBy.handle}/collections/${collection.id}`,
+        )
+      }
       radius={'lg'}
       p={'sm'}
       style={{ cursor: 'pointer' }}

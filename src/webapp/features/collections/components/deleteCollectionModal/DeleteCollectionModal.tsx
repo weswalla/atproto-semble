@@ -16,9 +16,9 @@ export default function DeleteCollectionModal(props: Props) {
 
   const handleDeleteCollection = () => {
     deleteCollection.mutate(props.collectionId, {
-      onSuccess: () => {
+      onSuccess: (fes) => {
         props.onClose();
-        router.push('/collections');
+        router.push('./');
       },
       onError: () => {
         notifications.show({

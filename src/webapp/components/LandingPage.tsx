@@ -16,6 +16,7 @@ import {
   Anchor,
 } from '@mantine/core';
 import { FaBluesky, FaGithub, FaDiscord } from 'react-icons/fa6';
+import { RiArrowRightUpLine } from 'react-icons/ri';
 import BG from '@/assets/semble-bg.webp';
 import CosmikLogo from '@/assets/cosmik-logo-full.svg';
 import CurateIcon from '@/assets/icons/curate-icon.svg';
@@ -34,7 +35,12 @@ export default function LandingPage() {
           <Container size={'xl'} p={'md'} my={'auto'}>
             <Stack align="center" gap={'5rem'}>
               <Stack gap={'xs'} align="center" maw={550} mx={'auto'}>
-                <Image src={SembleLogo.src} alt="Semble logo" w={"auto"} h={60} />
+                <Image
+                  src={SembleLogo.src}
+                  alt="Semble logo"
+                  w={'auto'}
+                  h={60}
+                />
                 <Title order={1} fw={600} fz={'3rem'} ta={'center'}>
                   A social knowledge network for researchers
                 </Title>
@@ -125,6 +131,53 @@ export default function LandingPage() {
                 pos={'relative'}
               >
                 <Stack align="center" gap={'xs'}>
+                  <Group gap="0">
+                    <ActionIcon
+                      component="a"
+                      href="https://bsky.app/profile/cosmik.network"
+                      target="_blank"
+                      variant="subtle"
+                      color={'dark.2'}
+                      radius={'xl'}
+                      size={'xl'}
+                      m={0}
+                    >
+                      <FaBluesky size={22} />
+                    </ActionIcon>
+                    <ActionIcon
+                      component="a"
+                      href="https://github.com/cosmik-network"
+                      target="_blank"
+                      variant="subtle"
+                      color={'dark.2'}
+                      radius={'xl'}
+                      size={'xl'}
+                    >
+                      <FaGithub size={22} />
+                    </ActionIcon>
+                    <ActionIcon
+                      component="a"
+                      href="https://discord.gg/SHvvysb73e"
+                      target="_blank"
+                      variant="subtle"
+                      color={'dark.2'}
+                      radius={'xl'}
+                      size={'xl'}
+                    >
+                      <FaDiscord size={22} />
+                    </ActionIcon>
+                  </Group>
+                  <Button
+                    component="a"
+                    href="https://blog.cosmik.network"
+                    target="_blank"
+                    variant="light"
+                    color="dark.1"
+                    fw={600}
+                    rightSection={<RiArrowRightUpLine />}
+                  >
+                    Follow our blog for updates
+                  </Button>
                   <Text c="dark.1" fw={600} ta="center">
                     Made by &nbsp;
                     <Anchor
@@ -167,42 +220,6 @@ export default function LandingPage() {
                       </Anchor>
                     </Text>
                   </Text>
-                  <Group gap="0">
-                    <ActionIcon
-                      component="a"
-                      href="https://bsky.app/profile/cosmik.network"
-                      target="_blank"
-                      variant="subtle"
-                      color={'dark.2'}
-                      radius={'xl'}
-                      size={'xl'}
-                      m={0}
-                    >
-                      <FaBluesky size={22} />
-                    </ActionIcon>
-                    <ActionIcon
-                      component="a"
-                      href="https://github.com/cosmik-network"
-                      target="_blank"
-                      variant="subtle"
-                      color={'dark.2'}
-                      radius={'xl'}
-                      size={'xl'}
-                    >
-                      <FaGithub size={22} />
-                    </ActionIcon>
-                    <ActionIcon
-                      component="a"
-                      href="https://discord.gg/SHvvysb73e"
-                      target="_blank"
-                      variant="subtle"
-                      color={'dark.2'}
-                      radius={'xl'}
-                      size={'xl'}
-                    >
-                      <FaDiscord size={22} />
-                    </ActionIcon>
-                  </Group>
                 </Stack>
               </Box>
             </Stack>

@@ -47,14 +47,14 @@ export default function Navbar() {
           <Stack gap={5}>
             <NavItem href="/home" label="Home" icon={<LuLibrary size={25} />} />
             <NavItem
-              href={`/profile/${profile.handle}/cards`}
-              label="Cards"
-              icon={<FaRegNoteSticky size={25} />}
-            />
-            <NavItem
               href="/explore"
               label="Explore"
               icon={<MdOutlineEmojiNature size={25} />}
+            />
+            <NavItem
+              href={`/profile/${profile.handle}/cards`}
+              label="Cards"
+              icon={<FaRegNoteSticky size={25} />}
             />
           </Stack>
         </Stack>

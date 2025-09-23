@@ -21,7 +21,7 @@ interface AuthContextType {
   login: (handle: string) => Promise<{ authUrl: string }>;
   logout: () => Promise<void>;
   refreshTokens: () => Promise<boolean>;
-  setTokens: (accessToken: string, refreshToken: string) => void;
+  setTokens: (accessToken: string, refreshToken: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
         await apiClient.refreshAccessToken({ refreshToken });
 
-      setTokens(newAccessToken, newRefreshToken);
+      await setTokens(newAccessToken, newRefreshToken);
       return true;
     } catch (error) {
       console.error('Token refresh failed:', error);
@@ -177,16 +177,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     [createApiClient],
   );
 
-  const setTokens = useCallback((accessToken: string, refreshToken: string) => {
-    // Store tokens
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
+  const setTokens = useCallback(
+    async (accessToken: string, refreshToken: string) => {
+      // Store tokens in localStorage
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
 
-    // Update state
-    setAccessToken(accessToken);
-    setRefreshToken(refreshToken);
-    setIsAuthenticated(true);
-  }, []);
+      // Update state
+      setAccessToken(accessToken);
+      setRefreshToken(refreshToken);
+      setIsAuthenticated(true);
+
+      // Sync tokens with server-side cookies
+      try {
+        await fetch('/api/auth/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accessToken,
+            refreshToken,
+          }),
+          credentials: 'include', // Important for cookie handling
+        });
+      } catch (error) {
+        console.error('Failed to sync tokens with server:', error);
+        // Don't throw error - localStorage tokens are still valid
+      }
+    },
+    [],
+  );
 
   return (
     <AuthContext.Provider

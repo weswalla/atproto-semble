@@ -57,11 +57,11 @@ export interface SharedServices {
   metadataService: IMetadataService;
   profileService: IProfileService;
   feedService: FeedService;
+  nodeOauthClient: NodeOAuthClient;
 }
 
 // Web app specific services (includes publishers, auth middleware)
 export interface WebAppServices extends SharedServices {
-  nodeOauthClient: NodeOAuthClient;
   oauthProcessor: IOAuthProcessor;
   appPasswordProcessor: IAppPasswordProcessor;
   collectionPublisher: ICollectionPublisher;
@@ -102,13 +102,6 @@ export class ServiceFactory {
 
     const useMockAuth = process.env.USE_MOCK_AUTH === 'true';
 
-    // OAuth Client (always create for real, but may not be used if mocking)
-    const nodeOauthClient = OAuthClientFactory.createClient(
-      repositories.oauthStateStore,
-      repositories.oauthSessionStore,
-      oauthConfig.baseUrl,
-    );
-
     // App Password Session Service
     const appPasswordSessionService = useMockAuth
       ? new FakeAppPasswordSessionService()
@@ -124,7 +117,7 @@ export class ServiceFactory {
     // OAuth Processor
     const oauthProcessor = useMockAuth
       ? new FakeAtProtoOAuthProcessor(sharedServices.tokenService)
-      : new AtProtoOAuthProcessor(nodeOauthClient);
+      : new AtProtoOAuthProcessor(sharedServices.nodeOauthClient);
 
     const useFakePublishers = process.env.USE_FAKE_PUBLISHERS === 'true';
 
@@ -163,7 +156,6 @@ export class ServiceFactory {
 
     return {
       ...sharedServices,
-      nodeOauthClient,
       oauthProcessor,
       appPasswordProcessor,
       collectionPublisher,
@@ -233,6 +225,12 @@ export class ServiceFactory {
   ): SharedServices {
     const useMockAuth = process.env.USE_MOCK_AUTH === 'true';
 
+    const nodeOauthClient = OAuthClientFactory.createClient(
+      repositories.oauthStateStore,
+      repositories.oauthSessionStore,
+      oauthConfig.baseUrl,
+    );
+
     // Token Service
     const tokenService = useMockAuth
       ? new FakeJwtTokenService(repositories.tokenRepository)
@@ -258,11 +256,7 @@ export class ServiceFactory {
     // ATProto Agent Service
     const atProtoAgentService = useMockAuth
       ? new FakeAgentService()
-      : new ATProtoAgentService(
-          // For workers, we don't need OAuth client, just pass null
-          null as any,
-          appPasswordSessionService,
-        );
+      : new ATProtoAgentService(nodeOauthClient, appPasswordSessionService);
 
     const metadataService = new IFramelyMetadataService(
       configService.getIFramelyApiKey(),
@@ -283,6 +277,7 @@ export class ServiceFactory {
       metadataService,
       profileService,
       feedService,
+      nodeOauthClient,
     };
   }
 }

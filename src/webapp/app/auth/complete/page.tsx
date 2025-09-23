@@ -15,61 +15,65 @@ function AuthCompleteContent() {
   const { setTokens } = useAuth();
 
   useEffect(() => {
-    // Create API client instance
-    const apiClient = new ApiClient(
-      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-      () => getAccessToken(),
-    );
+    const handleAuth = async () => {
+      // Create API client instance
+      const apiClient = new ApiClient(
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+        () => getAccessToken(),
+      );
 
-    const accessToken = searchParams.get('accessToken');
-    const refreshToken = searchParams.get('refreshToken');
-    const error = searchParams.get('error');
+      const accessToken = searchParams.get('accessToken');
+      const refreshToken = searchParams.get('refreshToken');
+      const error = searchParams.get('error');
 
-    // Clear the URL parameters for security
-    const cleanUrl = '/';
-    window.history.replaceState({}, document.title, cleanUrl);
+      // Clear the URL parameters for security
+      const cleanUrl = '/';
+      window.history.replaceState({}, document.title, cleanUrl);
 
-    if (error) {
-      console.error('Authentication error:', error);
-      router.push(`/login?error=${encodeURIComponent(error)}`);
-      return;
-    }
+      if (error) {
+        console.error('Authentication error:', error);
+        router.push(`/login?error=${encodeURIComponent(error)}`);
+        return;
+      }
 
-    const handleExtensionTokenGeneration = async () => {
-      try {
-        setMessage('Generating extension tokens...');
+      const handleExtensionTokenGeneration = async () => {
+        try {
+          setMessage('Generating extension tokens...');
 
-        const tokens = await apiClient.generateExtensionTokens();
-        await ExtensionService.sendTokensToExtension(tokens);
-        ExtensionService.clearExtensionTokensRequested();
+          const tokens = await apiClient.generateExtensionTokens();
+          await ExtensionService.sendTokensToExtension(tokens);
+          ExtensionService.clearExtensionTokensRequested();
 
-        setMessage('Extension tokens generated successfully!');
+          setMessage('Extension tokens generated successfully!');
 
-        // Redirect to extension success page after successful extension token generation
-        setTimeout(() => router.push('/extension/auth/complete'), 1000);
-      } catch (extensionError: any) {
-        console.error('Failed to generate extension tokens:', extensionError);
-        ExtensionService.clearExtensionTokensRequested();
+          // Redirect to extension success page after successful extension token generation
+          setTimeout(() => router.push('/extension/auth/complete'), 1000);
+        } catch (extensionError: any) {
+          console.error('Failed to generate extension tokens:', extensionError);
+          ExtensionService.clearExtensionTokensRequested();
 
-        // Redirect to extension error page
-        router.push('/extension/auth/error');
+          // Redirect to extension error page
+          router.push('/extension/auth/error');
+        }
+      };
+
+      if (accessToken && refreshToken) {
+        // Store tokens using the auth context function
+        await setTokens(accessToken, refreshToken);
+
+        // Check if extension tokens were requested
+        if (ExtensionService.isExtensionTokensRequested()) {
+          handleExtensionTokenGeneration();
+        } else {
+          // Redirect to library
+          router.push('/library');
+        }
+      } else {
+        router.push('/login?error=Authentication failed');
       }
     };
 
-    if (accessToken && refreshToken) {
-      // Store tokens using the auth context function
-      setTokens(accessToken, refreshToken);
-
-      // Check if extension tokens were requested
-      if (ExtensionService.isExtensionTokensRequested()) {
-        handleExtensionTokenGeneration();
-      } else {
-        // Redirect to library
-        router.push('/library');
-      }
-    } else {
-      router.push('/login?error=Authentication failed');
-    }
+    handleAuth();
   }, [router, searchParams, setTokens]);
 
   return (

@@ -21,6 +21,16 @@ export const getAccessToken = (): string | null => {
   return localStorage.getItem('accessToken');
 };
 
+export const getAccessTokenInServerComponent = async (): Promise<
+  string | null
+> => {
+  // Get access token on server side
+  const { cookies } = await import('next/headers');
+  const cookiesStore = await cookies();
+  const accessToken = cookiesStore.get('accessToken')?.value || null;
+  return accessToken;
+};
+
 // Get the refresh token
 export const getRefreshToken = (): string | null => {
   if (typeof window === 'undefined') {

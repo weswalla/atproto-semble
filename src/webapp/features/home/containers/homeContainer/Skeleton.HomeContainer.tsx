@@ -1,14 +1,13 @@
 import {
-  Anchor,
   Container,
   Grid,
   GridCol,
   Group,
   SimpleGrid,
+  Skeleton,
   Stack,
   Title,
 } from '@mantine/core';
-import Link from 'next/link';
 import { BiCollection } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCard';
@@ -28,9 +27,7 @@ export default function HomeContainerSkeleton() {
                 <BiCollection size={22} />
                 <Title order={2}>Collections</Title>
               </Group>
-              <Anchor component={Link} href="/collections" c="blue" fw={600}>
-                View all
-              </Anchor>
+              <Skeleton w={60} h={22} />
             </Group>
 
             <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
@@ -45,11 +42,9 @@ export default function HomeContainerSkeleton() {
             <Group justify="space-between">
               <Group gap="xs">
                 <FaRegNoteSticky size={22} />
-                <Title order={2}>My Cards</Title>
+                <Title order={2}>Cards</Title>
               </Group>
-              <Anchor component={Link} href="/my-cards" c="blue" fw={600}>
-                View all
-              </Anchor>
+              <Skeleton w={60} h={22} />
             </Group>
 
             <Grid gutter="md">

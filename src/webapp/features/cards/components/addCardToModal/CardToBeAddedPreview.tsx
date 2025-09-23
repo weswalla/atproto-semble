@@ -93,7 +93,7 @@ export default function CardToBeAddedPreview(props: Props) {
                   <Menu.Item
                     key={c.id}
                     component={Link}
-                    href={`/collections/${c.id}`}
+                    href={`/profile/${c.createdBy.handle}/collections/${c.id}`}
                     target="_blank"
                     c="blue"
                     fw={600}

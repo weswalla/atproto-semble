@@ -5,7 +5,7 @@ export default function MyCardsContainerSkeleton() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <Title order={1}>My Cards</Title>
+        <Title order={1}>Cards</Title>
 
         <Grid gutter="md">
           {Array.from({ length: 8 }).map((_, i) => (

@@ -21,10 +21,12 @@ import { useState } from 'react';
 import { BiCollection, BiPlus } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
+import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 
 export default function HomeContainer() {
   const { data: collectionsData } = useCollections({ limit: 4 });
   const { data: myCardsData } = useMyCards({ limit: 4 });
+  const { data: profile } = useMyProfile();
 
   const [showCollectionDrawer, setShowCollectionDrawer] = useState(false);
   const [showAddDrawer, setShowAddDrawer] = useState(false);
@@ -46,7 +48,12 @@ export default function HomeContainer() {
                 <BiCollection size={22} />
                 <Title order={2}>Collections</Title>
               </Group>
-              <Anchor component={Link} href="/collections" c="blue" fw={600}>
+              <Anchor
+                component={Link}
+                href={`/profile/${profile.handle}/collections`}
+                c="blue"
+                fw={600}
+              >
                 View all
               </Anchor>
             </Group>
@@ -80,9 +87,14 @@ export default function HomeContainer() {
             <Group justify="space-between">
               <Group gap="xs">
                 <FaRegNoteSticky size={22} />
-                <Title order={2}>My Cards</Title>
+                <Title order={2}>Cards</Title>
               </Group>
-              <Anchor component={Link} href="/my-cards" c="blue" fw={600}>
+              <Anchor
+                component={Link}
+                href={`/profile/${profile.handle}/cards`}
+                c="blue"
+                fw={600}
+              >
                 View all
               </Anchor>
             </Group>

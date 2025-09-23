@@ -32,14 +32,16 @@ export default function FeedActivityStatus(props: Props) {
             added to{' '}
             {displayedCollections.map((collection, index) => (
               <span key={collection.id}>
+                {/* TODO: use collection creator's handle to direct to profile/creatorHandle/collections/id */}
                 <Anchor
                   component={Link}
-                  href={`/collections/${collection.id}`}
+                  href={`/profile/${props.user.handle}/collections/${collection.id}`}
                   c="grape"
                   fw={500}
                 >
                   {collection.name}
                 </Anchor>
+
                 {index < displayedCollections.length - 1 ? ' and ' : ''}
               </span>
             ))}

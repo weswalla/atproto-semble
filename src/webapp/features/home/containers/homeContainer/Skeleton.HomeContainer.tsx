@@ -14,11 +14,11 @@ import { FaRegNoteSticky } from 'react-icons/fa6';
 import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCard';
 import CollectionCardSkeleton from '@/features/collections/components/collectionCard/Skeleton.CollectionCard';
 
-export default function LibraryContainerSkeleton() {
+export default function HomeContainerSkeleton() {
   return (
     <Container p="xs" size="xl">
       <Stack gap="xl">
-        <Title order={1}>Library</Title>
+        <Title order={1}>Home</Title>
 
         <Stack gap={50}>
           {/* Collections */}

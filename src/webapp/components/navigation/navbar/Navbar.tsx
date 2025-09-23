@@ -30,7 +30,7 @@ export default function Navbar() {
   return (
     <AppShellNavbar px={'md'} pb={'md'} pt={'xs'}>
       <Group justify="space-between" ml={'sm'}>
-        <Anchor component={Link} href={'/library'}>
+        <Anchor component={Link} href={'/home'}>
           <Image src={SembleLogo.src} alt="Semble logo" w={20.84} h={28} />
         </Anchor>
         <Box hiddenFrom="xs">
@@ -43,11 +43,7 @@ export default function Navbar() {
           <ProfileMenu />
 
           <Stack gap={5}>
-            <NavItem
-              href="/library"
-              label="Library"
-              icon={<LuLibrary size={25} />}
-            />
+            <NavItem href="/home" label="Home" icon={<LuLibrary size={25} />} />
             <NavItem
               href="/my-cards"
               label="My Cards"

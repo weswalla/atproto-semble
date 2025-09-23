@@ -26,7 +26,7 @@ export default function AddCardPage() {
   );
 
   const handleSuccess = () => {
-    router.push('/library');
+    router.push('/home');
   };
 
   const handleCancel = () => {

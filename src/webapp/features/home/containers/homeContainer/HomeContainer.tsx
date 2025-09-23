@@ -22,7 +22,7 @@ import { BiCollection, BiPlus } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 
-export default function LibraryContainer() {
+export default function HomeContainer() {
   const { data: collectionsData } = useCollections({ limit: 4 });
   const { data: myCardsData } = useMyCards({ limit: 4 });
 
@@ -36,7 +36,7 @@ export default function LibraryContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack gap="xl">
-        <Title order={1}>Library</Title>
+        <Title order={1}>Home</Title>
 
         <Stack gap={50}>
           {/* Collections */}

@@ -68,7 +68,7 @@ export default function CardToBeAddedPreview(props: Props) {
             variant="light"
             color="green"
             component={Link}
-            href={`/library/cards/${props.cardId}`}
+            href={`/home/cards/${props.cardId}`}
             target="_blank"
             leftSection={<LuLibrary size={22} />}
           >

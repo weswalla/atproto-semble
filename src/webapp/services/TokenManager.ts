@@ -87,6 +87,9 @@ export class TokenManager {
         const refreshError = new Error('Token refresh failed');
         queuedRequests.forEach(({ reject }) => reject(refreshError));
 
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
         throw refreshError;
       }
     } finally {

@@ -27,6 +27,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   refreshTokens: () => Promise<boolean>;
   setTokens: (accessToken: string, refreshToken: string) => Promise<void>;
+  revokeTokens: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -69,12 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('Logout error:', error);
       // Continue with logout even if API call fails
     } finally {
-      // Clear auth state
-      clearAuth();
-      setAccessToken(null);
-      setRefreshToken(null);
-      setUser(null);
-      setIsAuthenticated(false);
+      revokeTokens();
 
       // Redirect to login
       router.push('/login');
@@ -236,6 +232,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     [],
   );
 
+  const revokeTokens = useCallback(async () => {
+    // Clear auth state
+    clearAuth();
+    setAccessToken(null);
+    setRefreshToken(null);
+    setUser(null);
+    setIsAuthenticated(false);
+
+    // Clear server-side cookies
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include', // Important for cookie handling
+      });
+    } catch (error) {
+      console.error('Failed to clear server-side cookies:', error);
+      // Don't throw error - localStorage tokens are already cleared
+    }
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -248,6 +264,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         logout: handleLogout,
         refreshTokens,
         setTokens,
+        revokeTokens,
       }}
     >
       {children}

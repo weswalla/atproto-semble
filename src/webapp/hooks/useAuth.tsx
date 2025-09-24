@@ -62,10 +62,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const handleLogout = useCallback(async () => {
     try {
-      // Note: No logout endpoint call needed since refresh tokens are handled server-side
-      // and will naturally expire
+      // Call logout endpoint to revoke refresh token
+      const apiClient = createApiClient();
+      await apiClient.logout();
     } catch (error) {
       console.error('Logout error:', error);
+      // Continue with logout even if API call fails
     } finally {
       // Clear auth state
       clearAuth();
@@ -77,7 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Redirect to login
       router.push('/login');
     }
-  }, [router]);
+  }, [router, createApiClient]);
 
   const refreshTokens = useCallback(async (): Promise<boolean> => {
     if (!refreshToken) return false;

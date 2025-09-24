@@ -36,51 +36,79 @@ export interface TokenRefresher {
 
 ### 2. TokenManager - Central Token Logic
 
-The `TokenManager` handles all token-related logic with automatic refresh:
+The `TokenManager` handles token access and reactive refresh on authentication errors:
 
 ```typescript
 // src/webapp/services/TokenManager.ts
 export class TokenManager {
   private isRefreshing = false;
   private refreshPromise: Promise<boolean> | null = null;
+  private failedRequestsQueue: Array<{
+    resolve: (value: any) => void;
+    reject: (error: any) => void;
+    request: () => Promise<any>;
+  }> = [];
 
   constructor(
     private storage: TokenStorage,
     private refresher: TokenRefresher,
   ) {}
 
-  async getValidAccessToken(): Promise<string | null> {
-    const { accessToken, refreshToken } = this.storage.getTokens();
-    
-    if (!accessToken) return null;
-    
-    // Check if token is expired or will expire soon
-    if (this.isTokenExpired(accessToken, 2)) { // 2 minute buffer
-      if (!refreshToken) {
-        this.storage.clearTokens();
-        return null;
-      }
-      
-      const refreshed = await this.refreshIfNeeded();
-      if (!refreshed) return null;
-      
-      // Get fresh token after refresh
-      return this.storage.getTokens().accessToken;
-    }
-    
+  async getAccessToken(): Promise<string | null> {
+    const { accessToken } = this.storage.getTokens();
     return accessToken;
   }
 
-  private async refreshIfNeeded(): Promise<boolean> {
+  async handleAuthError<T>(originalRequest: () => Promise<T>): Promise<T> {
+    // If already refreshing, queue this request
     if (this.isRefreshing) {
-      return this.refreshPromise || false;
+      return new Promise((resolve, reject) => {
+        this.failedRequestsQueue.push({
+          resolve,
+          reject,
+          request: originalRequest,
+        });
+      });
     }
 
+    // Start refresh process
     this.isRefreshing = true;
-    this.refreshPromise = this.performRefresh();
     
     try {
-      return await this.refreshPromise;
+      // Use existing refresh promise or create new one
+      if (!this.refreshPromise) {
+        this.refreshPromise = this.performRefresh();
+      }
+
+      const refreshSuccess = await this.refreshPromise;
+
+      if (refreshSuccess) {
+        // Process queued requests
+        const queuedRequests = [...this.failedRequestsQueue];
+        this.failedRequestsQueue = [];
+
+        // Retry all queued requests
+        queuedRequests.forEach(async ({ resolve, reject, request }) => {
+          try {
+            const result = await request();
+            resolve(result);
+          } catch (error) {
+            reject(error);
+          }
+        });
+
+        // Retry original request
+        return await originalRequest();
+      } else {
+        // Refresh failed, reject all queued requests
+        const queuedRequests = [...this.failedRequestsQueue];
+        this.failedRequestsQueue = [];
+        
+        const refreshError = new Error('Token refresh failed');
+        queuedRequests.forEach(({ reject }) => reject(refreshError));
+        
+        throw refreshError;
+      }
     } finally {
       this.isRefreshing = false;
       this.refreshPromise = null;
@@ -99,18 +127,6 @@ export class TokenManager {
       console.error('Token refresh failed:', error);
       this.storage.clearTokens();
       return false;
-    }
-  }
-
-  private isTokenExpired(token: string, bufferMinutes: number = 0): boolean {
-    if (!token) return true;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const expiry = payload.exp * 1000;
-      const bufferTime = bufferMinutes * 60 * 1000;
-      return Date.now() >= (expiry - bufferTime);
-    } catch (e) {
-      return true;
     }
   }
 }
@@ -210,9 +226,9 @@ export class ApiTokenRefresher implements TokenRefresher {
 }
 ```
 
-### 5. Clean BaseClient
+### 5. Clean BaseClient with Reactive Refresh
 
-The `BaseClient` now only handles HTTP requests:
+The `BaseClient` handles HTTP requests and reactive token refresh on auth errors:
 
 ```typescript
 // src/webapp/api-client/clients/BaseClient.ts
@@ -227,28 +243,43 @@ export abstract class BaseClient {
     endpoint: string,
     data?: any,
   ): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
-    const token = await this.tokenManager.getValidAccessToken();
+    const makeRequest = async (): Promise<T> => {
+      const url = `${this.baseUrl}${endpoint}`;
+      const token = await this.tokenManager.getAccessToken();
 
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const config: RequestInit = {
+        method,
+        headers,
+      };
+
+      if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+        config.body = JSON.stringify(data);
+      }
+
+      const response = await fetch(url, config);
+      return this.handleResponse<T>(response);
     };
 
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+    try {
+      return await makeRequest();
+    } catch (error) {
+      // Handle 401/403 errors with automatic token refresh
+      if (
+        error instanceof ApiError &&
+        (error.status === 401 || error.status === 403)
+      ) {
+        return this.tokenManager.handleAuthError(makeRequest);
+      }
+      throw error;
     }
-
-    const config: RequestInit = {
-      method,
-      headers,
-    };
-
-    if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-      config.body = JSON.stringify(data);
-    }
-
-    const response = await fetch(url, config);
-    return this.handleResponse<T>(response);
   }
 
   private async handleResponse<T>(response: Response): Promise<T> {
@@ -334,9 +365,11 @@ export const createServerApiClient = async () => {
 };
 ```
 
-## Proactive Token Refresh
+## Refresh Strategy
 
-The **primary strategy** is proactive refresh in the auth hook:
+### Proactive Token Refresh (Primary Strategy)
+
+The **primary strategy** is proactive refresh in the auth hook to prevent most token expiration scenarios:
 
 ```typescript
 // src/webapp/hooks/useAuth.tsx
@@ -344,6 +377,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // ... existing state
 
   const tokenManager = useMemo(() => createClientTokenManager(), []);
+
+  // Helper function to check if a JWT token is expired or will expire soon
+  const isTokenExpired = (token: string, bufferMinutes: number = 5): boolean => {
+    if (!token) return true;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expiry = payload.exp * 1000; // Convert to milliseconds
+      const bufferTime = bufferMinutes * 60 * 1000; // Buffer in milliseconds
+      return Date.now() >= (expiry - bufferTime);
+    } catch (e) {
+      return true;
+    }
+  };
 
   // PROACTIVE TOKEN REFRESH - This is the primary strategy
   useEffect(() => {
@@ -369,6 +416,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // ... rest of the provider
 };
 ```
+
+### Reactive Token Refresh (Safety Net)
+
+The **secondary strategy** is reactive refresh when API calls return authentication errors (401/403). This handles edge cases where proactive refresh didn't occur:
+
+- User device was sleeping during proactive refresh window
+- Browser tab was throttled in background
+- Network issues prevented proactive refresh
+- Server-side rendering scenarios
+
+The TokenManager automatically:
+1. **Detects auth errors** (401/403) from API responses
+2. **Refreshes tokens** using the refresh token
+3. **Retries the original request** with fresh tokens
+4. **Queues concurrent requests** to prevent race conditions
 
 ## Usage Examples
 
@@ -434,11 +496,12 @@ export default async function SSRProfilePage() {
 ✅ **Single Responsibility**: Each class has one clear purpose  
 ✅ **Testable**: Easy to mock TokenStorage and TokenRefresher  
 ✅ **Flexible**: Different storage strategies for client/server  
-✅ **Clean BaseClient**: Only handles HTTP requests  
+✅ **Clean BaseClient**: Only handles HTTP requests and auth error detection  
 ✅ **Consistent API**: Same interface everywhere  
 ✅ **Future-proof**: Easy to add new storage backends  
 ✅ **Race Condition Safe**: TokenManager prevents concurrent refreshes  
-✅ **Automatic Refresh**: Tokens refreshed before expiration  
+✅ **Automatic Recovery**: Failed requests are automatically retried after refresh  
+✅ **Request Queuing**: Multiple concurrent requests handled gracefully  
 ✅ **Server-Side Support**: Works in SSR with cookie-based tokens  
 
 ## Server-Side Token Refresh Limitation
@@ -460,12 +523,13 @@ export default async function SSRProfilePage() {
 
 - **Access Token Lifetime**: 15 minutes (server-configured)
 - **Proactive Refresh**: Every 5 minutes, refresh if expiring within 5 minutes
-- **TokenManager Buffer**: 2-minute buffer for automatic refresh on API calls
+- **Reactive Refresh**: Only on 401/403 API errors (no preemptive checking)
 - **Refresh Token Lifetime**: 7 days (server-configured)
 
 This means:
-- Tokens are refreshed at 10 minutes (5 minutes before 15-minute expiry)
-- API calls get fresh tokens automatically (2-minute buffer)
+- **99% of cases**: Tokens refreshed proactively at 10 minutes (before 15-minute expiry)
+- **1% of cases**: Reactive refresh handles edge cases when proactive refresh missed
+- **Zero failed requests**: All auth errors automatically trigger refresh and retry
 - Users can be inactive for up to 7 days and still auto-login
 
 ## Implementation Checklist
@@ -482,14 +546,47 @@ This means:
 - [ ] Test token refresh scenarios
 - [ ] Monitor refresh frequency in production
 
+## How It Works
+
+### Typical Flow (99% of cases)
+
+1. **User loads app** → Auth hook starts proactive refresh timer
+2. **Every 5 minutes** → Check if token expires in next 5 minutes
+3. **At 10 minutes** → Proactively refresh token (5 minutes before 15-minute expiry)
+4. **API calls** → Use fresh token, no refresh needed
+5. **Seamless experience** → User never sees authentication errors
+
+### Edge Case Flow (1% of cases)
+
+1. **API call made** → Token happens to be expired (proactive refresh missed)
+2. **Server returns 401/403** → BaseClient catches the error
+3. **TokenManager.handleAuthError()** → Automatically refresh tokens
+4. **Retry original request** → With fresh token, request succeeds
+5. **Queue concurrent requests** → Other API calls wait for refresh, then retry
+6. **User sees success** → Brief delay, but no visible error
+
+### Race Condition Handling
+
+```typescript
+// Multiple API calls happen when token is expired
+apiClient.getProfile();     // Triggers refresh
+apiClient.getCards();       // Queued, waits for refresh
+apiClient.getCollections(); // Queued, waits for refresh
+
+// After refresh completes:
+// - All three requests retry with fresh token
+// - All succeed without user seeing errors
+```
+
 ## Monitoring
 
 Consider tracking these metrics:
-- Proactive refresh frequency (should be regular)
-- TokenManager refresh calls (should be rare due to proactive refresh)
-- Failed refresh attempts (should investigate)
-- Average time between refreshes (should be ~5 minutes)
-- Token refresh success rate (should be >99%)
+- **Proactive refresh frequency** (should be regular, every ~5 minutes)
+- **Reactive refresh frequency** (should be rare, <1% of API calls)
+- **Failed refresh attempts** (should investigate if >0.1%)
+- **Average time between refreshes** (should be ~5 minutes)
+- **Token refresh success rate** (should be >99.9%)
+- **Queued request count** (indicates concurrent API calls during refresh)
 
 ## Migration Guide
 

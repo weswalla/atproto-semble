@@ -8,10 +8,10 @@ import {
   Text,
   Title,
   Button,
-  ActionIcon,
 } from '@mantine/core';
 import { FaBluesky } from 'react-icons/fa6';
 import ProfileTabs from '../profileTabs/ProfileTabs';
+import { truncateText } from '@/lib/utils/text';
 
 interface Props {
   handle: string;
@@ -28,38 +28,38 @@ export default async function ProfileHeader(props: Props) {
 
   return (
     <Container p={'xs'} size={'xl'}>
-      <Stack>
-        <Group justify="space-between">
-          <Group>
+      <Stack gap={'xl'}>
+        <Group justify="space-between" align="end">
+          <Group gap={'lg'} align="end">
             <Avatar
               src={data.avatarUrl}
               alt={`${data.name}'s avatar`}
-              size={'xl'}
+              size={180}
               radius={'lg'}
             />
             <Stack gap={'sm'}>
-              <Group>
-                <Title order={1} fz={'h4'}>
+              <Stack gap={0}>
+                <Title order={1} fz={'h2'}>
                   {data.name}
                 </Title>
-                <Text c="blue" fw={600} fz={'h4'}>
-                  {data.handle}
+                <Text c="blue" fw={600} fz={'xl'}>
+                  @{data.handle}
                 </Text>
-              </Group>
+              </Stack>
               {data.description && <Text>{data.description}</Text>}
             </Stack>
           </Group>
-          <ActionIcon
+          <Button
             component="a"
             href={`https://bsky.app/profile/${data.handle}`}
             target="_blank"
-            size={'lg'}
             radius={'xl'}
             bg="gray.2"
             c={'gray'}
+            leftSection={<FaBluesky />}
           >
-            <FaBluesky />
-          </ActionIcon>
+            {truncateText(data.handle, 14)}
+          </Button>
         </Group>
         <ProfileTabs handle={data.handle} />
       </Stack>

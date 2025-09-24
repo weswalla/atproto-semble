@@ -199,6 +199,10 @@ export class ApiClient {
     return this.userClient.generateExtensionTokens(request);
   }
 
+  async logout(): Promise<{ success: boolean; message: string }> {
+    return this.userClient.logout();
+  }
+
   // Feed operations - delegate to FeedClient
   async getGlobalFeed(
     params?: GetGlobalFeedParams,

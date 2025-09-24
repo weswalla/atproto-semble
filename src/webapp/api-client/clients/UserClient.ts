@@ -69,4 +69,13 @@ export class UserClient extends BaseClient {
       '/api/users/extension/tokens',
     );
   }
+
+  async logout(): Promise<{ success: boolean; message: string }> {
+    const refreshToken = await this.tokenManager.getRefreshToken();
+    return this.request<{ success: boolean; message: string }>(
+      'POST',
+      '/api/users/logout',
+      { refreshToken },
+    );
+  }
 }

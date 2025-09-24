@@ -10,7 +10,9 @@ export interface TokenStorage {
 }
 
 export interface TokenRefresher {
-  refreshTokens(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }>;
+  refreshTokens(
+    refreshToken: string,
+  ): Promise<{ accessToken: string; refreshToken: string }>;
 }
 
 export class TokenManager {
@@ -32,6 +34,11 @@ export class TokenManager {
     return accessToken;
   }
 
+  async getRefreshToken(): Promise<string | null> {
+    const { refreshToken } = this.storage.getTokens();
+    return refreshToken;
+  }
+
   async handleAuthError<T>(originalRequest: () => Promise<T>): Promise<T> {
     // If already refreshing, queue this request
     if (this.isRefreshing) {
@@ -46,7 +53,7 @@ export class TokenManager {
 
     // Start refresh process
     this.isRefreshing = true;
-    
+
     try {
       // Use existing refresh promise or create new one
       if (!this.refreshPromise) {
@@ -76,10 +83,10 @@ export class TokenManager {
         // Refresh failed, reject all queued requests
         const queuedRequests = [...this.failedRequestsQueue];
         this.failedRequestsQueue = [];
-        
+
         const refreshError = new Error('Token refresh failed');
         queuedRequests.forEach(({ reject }) => reject(refreshError));
-        
+
         throw refreshError;
       }
     } finally {
@@ -94,7 +101,10 @@ export class TokenManager {
 
     try {
       const newTokens = await this.refresher.refreshTokens(refreshToken);
-      await this.storage.setTokens(newTokens.accessToken, newTokens.refreshToken);
+      await this.storage.setTokens(
+        newTokens.accessToken,
+        newTokens.refreshToken,
+      );
       return true;
     } catch (error) {
       console.error('Token refresh failed:', error);

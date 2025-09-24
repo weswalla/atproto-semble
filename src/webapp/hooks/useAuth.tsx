@@ -94,62 +94,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [refreshToken, createApiClient, handleLogout]);
 
+  // Initialize auth state from stored tokens
   useEffect(() => {
-    // Check if user is already authenticated
-    const storedAccessToken = getAccessToken();
-    const storedRefreshToken = getRefreshToken();
+    const initializeAuth = async () => {
+      const storedAccessToken = getAccessToken();
+      const storedRefreshToken = getRefreshToken();
 
-    if (storedAccessToken) {
-      setAccessToken(storedAccessToken);
-      setRefreshToken(storedRefreshToken);
-      setIsAuthenticated(true);
+      if (storedAccessToken && storedRefreshToken) {
+        setAccessToken(storedAccessToken);
+        setRefreshToken(storedRefreshToken);
+        setIsAuthenticated(true);
 
-      // Check if token is expired
-      if (isTokenExpired(storedAccessToken) && storedRefreshToken) {
-        // Try to refresh the token
-        refreshTokens()
-          .then((success) => {
-            if (success) {
-              // Token refreshed, now fetch user data with new token
-              const apiClient = createApiClient();
-              return apiClient.getMyProfile();
+        try {
+          // If token is expired, refresh it first
+          if (isTokenExpired(storedAccessToken)) {
+            const refreshSuccess = await refreshTokens();
+            if (!refreshSuccess) {
+              throw new Error('Token refresh failed');
             }
-            throw new Error('Token refresh failed');
-          })
-          .then((userData) => {
-            setUser(userData);
-          })
-          .catch((error) => {
-            console.error(
-              'Error refreshing token or fetching user data:',
-              error,
-            );
-            handleLogout();
-          })
-          .finally(() => {
-            setIsLoading(false);
-          });
-      } else {
-        // Token is still valid, fetch user data
-        const apiClient = createApiClient();
-        apiClient
-          .getMyProfile()
-          .then((userData) => {
-            setUser(userData);
-          })
-          .catch((error) => {
-            console.error('Error fetching user data:', error);
-            // If token is invalid, log out
-            handleLogout();
-          })
-          .finally(() => {
-            setIsLoading(false);
-          });
+          }
+
+          // Fetch user profile
+          const apiClient = createApiClient();
+          const userData = await apiClient.getMyProfile();
+          setUser(userData);
+        } catch (error) {
+          console.error('Error initializing auth:', error);
+          handleLogout();
+        }
       }
-    } else {
+      
       setIsLoading(false);
-    }
-  }, [refreshTokens]);
+    };
+
+    initializeAuth();
+  }, []);
 
   // Helper function to check if a JWT token is expired or will expire soon
   const isTokenExpiredWithBuffer = (
@@ -168,22 +147,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // PROACTIVE TOKEN REFRESH - This is the primary strategy
+  // Proactive token refresh
   useEffect(() => {
     if (!accessToken || !refreshToken) return;
 
     const checkAndRefreshToken = async () => {
-      // Check if token will expire in the next 5 minutes
       if (isTokenExpiredWithBuffer(accessToken, 0.25)) {
         console.log('Proactively refreshing token before expiration');
         await refreshTokens();
       }
     };
 
-    // Check immediately on mount
+    // Check immediately
     checkAndRefreshToken();
 
-    // Then check every 5 minutes
+    // Then check every 7.5 seconds (0.125 minutes)
     const interval = setInterval(checkAndRefreshToken, 0.125 * 60 * 1000);
 
     return () => clearInterval(interval);

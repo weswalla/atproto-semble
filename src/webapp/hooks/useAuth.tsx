@@ -148,18 +148,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [refreshTokens]);
 
-  // Set up automatic token refresh
+  // Helper function to check if a JWT token is expired or will expire soon
+  const isTokenExpiredWithBuffer = (token: string, bufferMinutes: number = 5): boolean => {
+    if (!token) return true;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expiry = payload.exp * 1000; // Convert to milliseconds
+      const bufferTime = bufferMinutes * 60 * 1000; // Buffer in milliseconds
+      return Date.now() >= (expiry - bufferTime);
+    } catch (e) {
+      return true;
+    }
+  };
+
+  // PROACTIVE TOKEN REFRESH - This is the primary strategy
   useEffect(() => {
     if (!accessToken || !refreshToken) return;
 
-    const checkTokenExpiration = async () => {
-      if (isTokenExpired(accessToken)) {
+    const checkAndRefreshToken = async () => {
+      // Check if token will expire in the next 5 minutes
+      if (isTokenExpiredWithBuffer(accessToken, 5)) {
+        console.log('Proactively refreshing token before expiration');
         await refreshTokens();
       }
     };
 
-    // Check token expiration every minute
-    const interval = setInterval(checkTokenExpiration, 60000);
+    // Check immediately on mount
+    checkAndRefreshToken();
+    
+    // Then check every 5 minutes
+    const interval = setInterval(checkAndRefreshToken, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, [accessToken, refreshToken, refreshTokens]);

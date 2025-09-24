@@ -1,19 +1,28 @@
-- use the `getAccessTokenInServerComponent()` to access the token
-- pass the token in to the `ApiClient` as normal
+- use the `createServerApiClient()` helper function
 
 ```tsx
-const accessToken = await getAccessTokenInServerComponent();
-const apiClient = new ApiClient(
-  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-  () => accessToken,
-);
+import { createServerApiClient } from '@/api-client';
+
+export default async function SSRProfilePage() {
+  const apiClient = await createServerApiClient();
+  
+  let profile;
+  let error;
+
+  try {
+    profile = await apiClient.getMyProfile();
+  } catch (err: any) {
+    error = err.message || 'Failed to load profile';
+  }
+
+  // ... rest of component
+}
 ```
 
 - Full example
 
 ```tsx
-import { ApiClient } from '@/api-client/ApiClient';
-import { getAccessTokenInServerComponent } from '@/services/auth';
+import { createServerApiClient } from '@/api-client';
 import {
   Card,
   Container,
@@ -24,18 +33,17 @@ import {
   Group,
 } from '@mantine/core';
 import { redirect } from 'next/navigation';
+import { getAccessTokenInServerComponent } from '@/services/auth';
 
 export default async function SSRProfilePage() {
+  // Check if user is authenticated
   const accessToken = await getAccessTokenInServerComponent();
   if (!accessToken) {
     redirect('/auth/signin');
   }
 
   // Create API client for server-side usage
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    () => accessToken,
-  );
+  const apiClient = await createServerApiClient();
 
   let profile;
   let error;

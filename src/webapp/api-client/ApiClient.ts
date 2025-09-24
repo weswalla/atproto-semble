@@ -5,6 +5,8 @@ import {
   UserClient,
   FeedClient,
 } from './clients';
+import { TokenManager } from '../services/TokenManager';
+import { createClientTokenManager } from '../services/auth';
 import type {
   // Request types
   AddUrlToLibraryRequest,
@@ -60,13 +62,13 @@ export class ApiClient {
 
   constructor(
     private baseUrl: string,
-    private getAuthToken: () => string | null,
+    private tokenManager: TokenManager,
   ) {
-    this.queryClient = new QueryClient(baseUrl, getAuthToken);
-    this.cardClient = new CardClient(baseUrl, getAuthToken);
-    this.collectionClient = new CollectionClient(baseUrl, getAuthToken);
-    this.userClient = new UserClient(baseUrl, getAuthToken);
-    this.feedClient = new FeedClient(baseUrl, getAuthToken);
+    this.queryClient = new QueryClient(baseUrl, tokenManager);
+    this.cardClient = new CardClient(baseUrl, tokenManager);
+    this.collectionClient = new CollectionClient(baseUrl, tokenManager);
+    this.userClient = new UserClient(baseUrl, tokenManager);
+    this.feedClient = new FeedClient(baseUrl, tokenManager);
   }
 
   // Query operations - delegate to QueryClient

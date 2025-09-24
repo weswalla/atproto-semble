@@ -4,22 +4,47 @@ This document outlines our approach to automatic token refreshing, which combine
 
 ## Overview
 
-Our token refresh strategy uses a **proactive-first approach** with reactive fallback:
+Our token refresh strategy uses a **self-contained approach** with automatic retry:
 
 1. **Proactive Refresh**: Automatically refresh tokens before they expire (every 5 minutes)
-2. **Reactive Refresh**: Handle token refresh on API errors (401/403) as a fallback
+2. **Reactive Refresh**: Handle token refresh on API errors (401/403) automatically within BaseClient
 3. **Request Queuing**: Queue failed requests during refresh to prevent data loss
 4. **Race Condition Prevention**: Ensure only one refresh happens at a time
+5. **Simplified API**: Single `getAuthTokens` callback provides both access and refresh tokens
 
 ## Architecture
 
-### 1. Enhanced BaseClient with Automatic Retry
+### 1. Auth Service with Token Interface
 
-The `BaseClient` handles token refresh transparently for all API calls:
+The auth service provides a unified interface for token access:
+
+```typescript
+// src/webapp/services/auth.ts
+export interface AuthTokens {
+  accessToken: string | null;
+  refreshToken: string | null;
+}
+
+export const getAuthTokens = (): AuthTokens => {
+  return {
+    accessToken: getAccessToken(),
+    refreshToken: getRefreshToken(),
+  };
+};
+```
+
+### 2. Self-Contained BaseClient with Automatic Retry
+
+The `BaseClient` handles token refresh internally without external dependencies:
 
 ```typescript
 // src/webapp/api-client/clients/BaseClient.ts
 import { ApiError, ApiErrorResponse } from '../types/errors';
+
+export interface AuthTokens {
+  accessToken: string | null;
+  refreshToken: string | null;
+}
 
 export abstract class BaseClient {
   private isRefreshing = false;
@@ -32,8 +57,7 @@ export abstract class BaseClient {
 
   constructor(
     protected baseUrl: string,
-    protected getAuthToken: () => string | null,
-    protected refreshTokens?: () => Promise<boolean>,
+    protected getAuthTokens: () => AuthTokens,
   ) {}
 
   protected async request<T>(
@@ -43,14 +67,14 @@ export abstract class BaseClient {
   ): Promise<T> {
     const makeRequest = async (): Promise<T> => {
       const url = `${this.baseUrl}${endpoint}`;
-      const token = this.getAuthToken();
+      const { accessToken } = this.getAuthTokens();
 
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
 
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
       }
 
       const config: RequestInit = {
@@ -69,11 +93,10 @@ export abstract class BaseClient {
     try {
       return await makeRequest();
     } catch (error) {
-      // Handle 401/403 errors with token refresh
+      // Handle 401/403 errors with automatic token refresh
       if (
         error instanceof ApiError &&
-        (error.status === 401 || error.status === 403) &&
-        this.refreshTokens
+        (error.status === 401 || error.status === 403)
       ) {
         return this.handleTokenRefreshAndRetry(makeRequest);
       }
@@ -101,7 +124,7 @@ export abstract class BaseClient {
     try {
       // Use existing refresh promise or create new one
       if (!this.refreshPromise) {
-        this.refreshPromise = this.refreshTokens!();
+        this.refreshPromise = this.refreshTokensInternal();
       }
 
       const refreshSuccess = await this.refreshPromise;
@@ -139,6 +162,51 @@ export abstract class BaseClient {
     }
   }
 
+  private async refreshTokensInternal(): Promise<boolean> {
+    const { refreshToken } = this.getAuthTokens();
+    
+    if (!refreshToken) {
+      return false;
+    }
+
+    try {
+      // Make refresh request directly (avoid circular dependency)
+      const response = await fetch(`${this.baseUrl}/api/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await response.json();
+
+      // Update tokens in storage
+      localStorage.setItem('accessToken', newAccessToken);
+      localStorage.setItem('refreshToken', newRefreshToken);
+
+      // Sync with server-side cookies
+      await fetch('/api/auth/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken,
+        }),
+        credentials: 'include',
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      return false;
+    }
+  }
+
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
       let errorData: ApiErrorResponse;
@@ -164,31 +232,48 @@ export abstract class BaseClient {
 }
 ```
 
-### 2. Updated ApiClient Constructor
+### 3. Simplified ApiClient Constructor
 
 ```typescript
 // src/webapp/api-client/ApiClient.ts
+import { getAuthTokens } from '@/services/auth';
+
 export class ApiClient {
   constructor(
     private baseUrl: string,
-    private getAuthToken: () => string | null,
-    private refreshTokens?: () => Promise<boolean>, // Add refresh function
+    private getAuthTokens: () => AuthTokens = getAuthTokens, // Default to global function
   ) {
-    this.queryClient = new QueryClient(baseUrl, getAuthToken, refreshTokens);
-    this.cardClient = new CardClient(baseUrl, getAuthToken, refreshTokens);
-    this.collectionClient = new CollectionClient(baseUrl, getAuthToken, refreshTokens);
-    this.userClient = new UserClient(baseUrl, getAuthToken, refreshTokens);
-    this.feedClient = new FeedClient(baseUrl, getAuthToken, refreshTokens);
+    this.queryClient = new QueryClient(baseUrl, getAuthTokens);
+    this.cardClient = new CardClient(baseUrl, getAuthTokens);
+    this.collectionClient = new CollectionClient(baseUrl, getAuthTokens);
+    this.userClient = new UserClient(baseUrl, getAuthTokens);
+    this.feedClient = new FeedClient(baseUrl, getAuthTokens);
   }
   // ... rest stays the same
 }
+```
+
+### 4. Default Export for Easy Usage
+
+```typescript
+// src/webapp/api-client/index.ts
+import { ApiClient } from './ApiClient';
+
+// Default configured client - no parameters needed!
+export const apiClient = new ApiClient(
+  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000'
+);
+
+// Also export the class for custom instances
+export { ApiClient };
+export * from './types';
 ```
 
 ## Proactive Token Refresh
 
 The **primary strategy** is proactive refresh to prevent token expiration:
 
-### 3. Enhanced Auth Hook with Proactive Refresh
+### 5. Enhanced Auth Hook with Proactive Refresh
 
 ```typescript
 // src/webapp/hooks/useAuth.tsx
@@ -209,7 +294,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Improved refresh function with better error handling
+  // Simplified refresh function - uses default apiClient
   const refreshTokens = useCallback(async (): Promise<boolean> => {
     const currentRefreshToken = getRefreshToken();
     if (!currentRefreshToken) {
@@ -218,7 +303,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      const apiClient = createApiClient();
+      // Use the default apiClient which handles refresh internally
       const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
         await apiClient.refreshAccessToken({ refreshToken: currentRefreshToken });
 
@@ -257,8 +342,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AuthContext.Provider
       value={{
-        // ... existing values
-        refreshTokens, // Make sure this is exposed for reactive refresh
+        isAuthenticated,
+        isLoading,
+        accessToken,
+        refreshToken,
+        user,
+        login,
+        logout: handleLogout,
+        // refreshTokens no longer needs to be exposed - handled internally
+        setTokens,
       }}
     >
       {children}
@@ -269,33 +361,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 ## Usage Examples
 
-### Client Components
+### Client Components (Simplified)
 
 ```typescript
 // src/webapp/app/(authenticated)/cards/[cardId]/page.tsx
 'use client';
 
-import { useAuth } from '@/hooks/useAuth';
+import { apiClient } from '@/api-client';
 
 export default function CardPage() {
-  const { refreshTokens } = useAuth(); // Get refresh function from auth context
   const [card, setCard] = useState<GetUrlCardViewResponse | null>(null);
   // ... other state
 
   useEffect(() => {
-    const apiClient = new ApiClient(
-      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-      () => getAccessToken(),
-      refreshTokens, // Pass refresh function - enables automatic retry on 401/403
-    );
-
     const fetchCard = async () => {
       try {
         setLoading(true);
+        // No need to create ApiClient or pass any functions!
         const response = await apiClient.getUrlCardView(cardId);
         setCard(response);
       } catch (error: any) {
-        // Token refresh and retry is now automatic
+        // Token refresh and retry is automatic
         console.error('Error fetching card:', error);
         setError(error.message || 'Failed to load card');
       } finally {
@@ -306,7 +392,7 @@ export default function CardPage() {
     if (cardId) {
       fetchCard();
     }
-  }, [cardId, refreshTokens]);
+  }, [cardId]);
 
   // ... rest of component stays the same
 }
@@ -316,13 +402,20 @@ export default function CardPage() {
 
 ```typescript
 // src/webapp/services/auth.ts - Add helper for server components
-export const createServerApiClient = async () => {
-  const accessToken = await getAccessTokenInServerComponent();
+export const getServerAuthTokens = async (): Promise<AuthTokens> => {
+  const { cookies } = await import('next/headers');
+  const cookiesStore = await cookies();
   
+  return {
+    accessToken: cookiesStore.get('accessToken')?.value || null,
+    refreshToken: cookiesStore.get('refreshToken')?.value || null,
+  };
+};
+
+export const createServerApiClient = async () => {
   return new ApiClient(
     process.env.API_BASE_URL || 'http://localhost:3000',
-    () => accessToken,
-    // No refresh function for server components - they get fresh tokens on each request
+    getServerAuthTokens,
   );
 };
 ```
@@ -334,7 +427,7 @@ import { createServerApiClient } from '@/services/auth';
 export default async function SSRProfilePage() {
   const apiClient = await createServerApiClient();
   
-  // Server components get fresh tokens on each request, so no refresh needed
+  // Server components get fresh tokens on each request
   let profile;
   let error;
 
@@ -348,6 +441,21 @@ export default async function SSRProfilePage() {
 }
 ```
 
+### Custom Usage
+
+```typescript
+// For custom instances with different configurations
+const customClient = new ApiClient(
+  'https://api.example.com',
+  customGetAuthTokens, // Custom token provider
+);
+
+// Default usage - most common case
+import { apiClient } from '@/api-client';
+const cards = await apiClient.getMyUrlCards();
+const profile = await apiClient.getMyProfile();
+```
+
 ## How It Works
 
 ### Proactive Refresh (Primary Strategy)
@@ -357,18 +465,20 @@ export default async function SSRProfilePage() {
 3. **User never experiences** token expiration during normal usage
 4. **New tokens are synced** to both localStorage and httpOnly cookies
 
-### Reactive Refresh (Fallback Strategy)
+### Reactive Refresh (Automatic Fallback)
 
 1. **If proactive refresh fails** or user has been inactive, API calls might still get 401/403
-2. **BaseClient automatically detects** these errors and triggers refresh
+2. **BaseClient automatically detects** these errors and triggers internal refresh
 3. **Original request is queued** and retried after successful refresh
 4. **Multiple concurrent requests** are handled gracefully with request queuing
+5. **No external dependencies** - BaseClient handles everything internally
 
-### Race Condition Prevention
+### Self-Contained Token Management
 
-- Only one refresh operation can happen at a time
-- Concurrent API calls that fail are queued and retried together
-- Prevents token refresh storms and ensures consistency
+- **Single callback**: `getAuthTokens()` provides both access and refresh tokens
+- **Internal refresh logic**: BaseClient handles token refresh without external functions
+- **Automatic storage updates**: Refreshed tokens are automatically saved to localStorage and synced with cookies
+- **Race condition safe**: Only one refresh operation can happen at a time
 
 ## Benefits
 
@@ -376,9 +486,12 @@ export default async function SSRProfilePage() {
 ✅ **Automatic Recovery**: Failed requests are automatically retried  
 ✅ **Race Condition Safe**: Prevents multiple simultaneous refresh attempts  
 ✅ **Request Queuing**: No lost requests during token refresh  
-✅ **Minimal Code Changes**: Existing API calls work without modification  
+✅ **Zero Configuration**: Default `apiClient` works out of the box  
+✅ **Self-Contained**: No need to pass refresh functions around  
 ✅ **Works Everywhere**: Both client and server components supported  
 ✅ **Graceful Degradation**: Automatic logout on refresh failure  
+✅ **Clean Architecture**: Single responsibility for token management  
+✅ **Easy Testing**: Mock `getAuthTokens` instead of multiple functions  
 
 ## Token Timing Strategy
 
@@ -394,11 +507,13 @@ This means:
 
 ## Implementation Checklist
 
-- [ ] Update `BaseClient` with retry logic
-- [ ] Update `ApiClient` constructor to accept refresh function
+- [ ] Update `BaseClient` with internal refresh logic
+- [ ] Update `ApiClient` constructor to use `getAuthTokens` callback
+- [ ] Create `AuthTokens` interface in auth service
 - [ ] Enhance `useAuth` hook with proactive refresh
-- [ ] Update client components to pass refresh function
-- [ ] Create server API client helper
+- [ ] Create default `apiClient` export
+- [ ] Update components to use default `apiClient`
+- [ ] Create server API client helper with `getServerAuthTokens`
 - [ ] Test token refresh scenarios
 - [ ] Monitor refresh frequency in production
 
@@ -409,3 +524,31 @@ Consider tracking these metrics:
 - Reactive refresh frequency (should be rare)
 - Failed refresh attempts (should investigate)
 - Average time between refreshes (should be ~5 minutes)
+- Token refresh success rate (should be >99%)
+
+## Migration Guide
+
+### From Old Approach (Multiple Callbacks)
+
+**Before:**
+```typescript
+const apiClient = new ApiClient(
+  baseUrl,
+  () => getAccessToken(),
+  refreshTokens, // Had to pass refresh function
+);
+```
+
+**After:**
+```typescript
+import { apiClient } from '@/api-client';
+// Just use the default instance - no configuration needed!
+```
+
+### Key Changes
+
+1. **Single Callback**: Replace `getAuthToken` + `refreshTokens` with `getAuthTokens`
+2. **Default Export**: Use `apiClient` instead of creating instances
+3. **Internal Refresh**: BaseClient handles refresh internally
+4. **Simplified Auth Hook**: No need to expose `refreshTokens`
+5. **Server Components**: Use `getServerAuthTokens` for server-side token access

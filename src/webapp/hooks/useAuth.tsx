@@ -123,7 +123,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           handleLogout();
         }
       }
-      
+
       setIsLoading(false);
     };
 
@@ -152,8 +152,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!accessToken || !refreshToken) return;
 
     const checkAndRefreshToken = async () => {
-      if (isTokenExpiredWithBuffer(accessToken, 0.25)) {
-        console.log('Proactively refreshing token before expiration');
+      if (isTokenExpiredWithBuffer(accessToken, 5)) {
         await refreshTokens();
       }
     };
@@ -161,8 +160,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Check immediately
     checkAndRefreshToken();
 
-    // Then check every 7.5 seconds (0.125 minutes)
-    const interval = setInterval(checkAndRefreshToken, 0.125 * 60 * 1000);
+    const interval = setInterval(checkAndRefreshToken, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, [accessToken, refreshToken, refreshTokens]);

@@ -39,9 +39,7 @@ export default async function ProfileHeader(props: Props) {
             />
             <Stack gap={'sm'}>
               <Stack gap={0}>
-                <Title order={1} fz={'h2'}>
-                  {data.name}
-                </Title>
+                <Title order={1}>{data.name}</Title>
                 <Text c="blue" fw={600} fz={'xl'}>
                   @{data.handle}
                 </Text>

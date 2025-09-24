@@ -206,3 +206,21 @@ export class ApiClient {
 
 // Re-export types for convenience
 export * from './types';
+
+// Import factory functions for creating token managers
+import { createClientTokenManager, createServerTokenManager } from '../services/auth';
+
+// Default client instance for client-side usage
+export const apiClient = new ApiClient(
+  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+  createClientTokenManager(),
+);
+
+// Factory function for server-side API client
+export const createServerApiClient = async () => {
+  const tokenManager = await createServerTokenManager();
+  return new ApiClient(
+    process.env.API_BASE_URL || 'http://localhost:3000',
+    tokenManager,
+  );
+};

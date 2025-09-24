@@ -2,32 +2,30 @@
 
 import { Tabs } from '@mantine/core';
 import TabItem from './TabItem';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 interface Props {
   handle: string;
 }
 
 export default function ProfileTabs({ handle }: Props) {
-  const router = useRouter();
   const pathname = usePathname();
   const segment = pathname.split('/')[3];
   const currentTab = segment || 'profile'; // treat base route as 'profile'
-
-  const handleTabChange = (value: string | null) => {
-    if (!value || value === 'profile') {
-      router.push(`/profile/${handle}`);
-    } else {
-      router.push(`/profile/${handle}/${value}`);
-    }
-  };
+  const basePath = `/profile/${handle}`;
 
   return (
-    <Tabs value={currentTab} onChange={handleTabChange}>
+    <Tabs value={currentTab}>
       <Tabs.List>
-        <TabItem value="profile">Profile</TabItem>
-        <TabItem value="cards">Cards</TabItem>
-        <TabItem value="collections">Collections</TabItem>
+        <TabItem value="profile" href={basePath}>
+          Profile
+        </TabItem>
+        <TabItem value="cards" href={`${basePath}/cards`}>
+          Cards
+        </TabItem>
+        <TabItem value="collections" href={`${basePath}/collections`}>
+          Collections
+        </TabItem>
       </Tabs.List>
     </Tabs>
   );

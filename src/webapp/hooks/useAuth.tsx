@@ -152,7 +152,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!accessToken || !refreshToken) return;
 
     const checkAndRefreshToken = async () => {
-      if (isTokenExpiredWithBuffer(accessToken, 5)) {
+      if (isTokenExpiredWithBuffer(accessToken, 10)) {
         await refreshTokens();
       }
     };

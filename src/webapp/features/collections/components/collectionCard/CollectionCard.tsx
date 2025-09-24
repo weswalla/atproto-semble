@@ -1,3 +1,5 @@
+'use client';
+
 import { getRelativeTime } from '@/lib/utils/time';
 import { Card, Group, Stack, Text } from '@mantine/core';
 import { useRouter } from 'next/navigation';

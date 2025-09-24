@@ -1,51 +1,112 @@
-import {
-  Container,
-  Stack,
-  Group,
-  Avatar,
-  Text,
-  Title,
-  Button,
-} from '@mantine/core';
-import useMyProfile from '../../lib/queries/useMyProfile';
-import { FaBluesky } from 'react-icons/fa6';
+'use client';
 
-export default function ProfileContainer() {
-  const { data } = useMyProfile();
+import UrlCard from '@/features/cards/components/urlCard/UrlCard';
+import useMyCards from '@/features/cards/lib/queries/useMyCards';
+import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
+import useCollections from '@/features/collections/lib/queries/useCollections';
+import {
+  Anchor,
+  Container,
+  Group,
+  SimpleGrid,
+  Stack,
+  Title,
+  Text,
+  Grid,
+} from '@mantine/core';
+import Link from 'next/link';
+
+interface Props {
+  handle: string;
+}
+
+export default function ProfileContainer(props: Props) {
+  // TODO: use profile endpoints to fetch profile information
+  // for now we'll use getMyProfile
+  const { data: collectionsData } = useCollections({ limit: 4 });
+  const { data: myCardsData } = useMyCards({ limit: 4 });
+
+  const collections =
+    collectionsData?.pages.flatMap((page) => page.collections) ?? [];
+  const cards = myCardsData?.pages.flatMap((page) => page.cards) ?? [];
 
   return (
     <Container p={'xs'} size={'xl'}>
       <Stack>
-        <Group justify="space-between">
-          <Group>
-            <Avatar
-              src={data.avatarUrl}
-              alt={`${data.name}'s avatar`}
-              size={'xl'}
-              radius={'lg'}
-            />
-            <Stack gap={'sm'}>
-              <Group>
-                <Title order={1} fz={'h4'}>
-                  {data.name}
-                </Title>
-                <Text c="blue" fw={600} fz={'h4'}>
-                  {data.handle}
+        <Stack gap={50}>
+          {/* Cards */}
+          <Stack>
+            <Group justify="space-between">
+              <Title order={2} fz={'h3'}>
+                Cards
+              </Title>
+              <Anchor
+                component={Link}
+                href={`/profile/${props.handle}/cards`}
+                c="blue"
+                fw={600}
+              >
+                View all
+              </Anchor>
+            </Group>
+
+            {cards.length > 0 ? (
+              <Grid gutter="md">
+                {cards.map((card) => (
+                  <Grid.Col
+                    key={card.id}
+                    span={{ base: 12, xs: 6, sm: 4, lg: 3 }}
+                  >
+                    <UrlCard
+                      id={card.id}
+                      url={card.url}
+                      cardContent={card.cardContent}
+                      note={card.note}
+                      collections={card.collections}
+                    />
+                  </Grid.Col>
+                ))}
+              </Grid>
+            ) : (
+              <Stack align="center" gap="xs">
+                <Text fz="h3" fw={600} c="gray">
+                  No cards
                 </Text>
-              </Group>
-              {data.description && <Text>{data.description}</Text>}
-            </Stack>
-          </Group>
-          <Button
-            component="a"
-            href={`https://bsky.app/profile/${data.handle}`}
-            target="_blank"
-            color="gray"
-            leftSection={<FaBluesky size={22} />}
-          >
-            @{data.handle}
-          </Button>
-        </Group>
+              </Stack>
+            )}
+          </Stack>
+
+          {/* Collections */}
+          <Stack>
+            <Group justify="space-between">
+              <Title order={2} fz={'h3'}>
+                Collections
+              </Title>
+              <Anchor
+                component={Link}
+                href={`/profile/${props.handle}/collections`}
+                c="blue"
+                fw={600}
+              >
+                View all
+              </Anchor>
+            </Group>
+
+            {collections.length > 0 ? (
+              <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
+                {collections.map((collection) => (
+                  <CollectionCard key={collection.id} collection={collection} />
+                ))}
+              </SimpleGrid>
+            ) : (
+              <Stack align="center" gap="xs">
+                <Text fz="h3" fw={600} c="gray">
+                  No collections
+                </Text>
+              </Stack>
+            )}
+          </Stack>
+        </Stack>
       </Stack>
     </Container>
   );

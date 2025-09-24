@@ -3,8 +3,10 @@ import { TokenRefresher } from './TokenManager';
 export class ApiTokenRefresher implements TokenRefresher {
   constructor(private baseUrl: string) {}
 
-  async refreshTokens(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
-    const response = await fetch(`${this.baseUrl}/api/auth/refresh`, {
+  async refreshTokens(
+    refreshToken: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const response = await fetch(`${this.baseUrl}/api/users/oauth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),

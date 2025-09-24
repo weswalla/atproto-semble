@@ -6,7 +6,10 @@ import {
   FeedClient,
 } from './clients';
 import { TokenManager } from '../services/TokenManager';
-import { createClientTokenManager } from '../services/auth';
+import {
+  createClientTokenManager,
+  createServerTokenManager,
+} from '../services/auth';
 import type {
   // Request types
   AddUrlToLibraryRequest,
@@ -206,9 +209,6 @@ export class ApiClient {
 
 // Re-export types for convenience
 export * from './types';
-
-// Import factory functions for creating token managers
-import { createClientTokenManager, createServerTokenManager } from '../services/auth';
 
 // Default client instance for client-side usage
 export const apiClient = new ApiClient(

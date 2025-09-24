@@ -20,6 +20,7 @@ import { Repositories } from './RepositoryFactory';
 import { Services, SharedServices } from './ServiceFactory';
 import { GetMyProfileUseCase } from 'src/modules/cards/application/useCases/queries/GetMyProfileUseCase';
 import { LoginWithAppPasswordUseCase } from 'src/modules/user/application/use-cases/LoginWithAppPasswordUseCase';
+import { LogoutUseCase } from 'src/modules/user/application/use-cases/LogoutUseCase';
 import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use-cases/GenerateExtensionTokensUseCase';
 import { GetGlobalFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGlobalFeedUseCase';
 import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/useCases/commands/AddActivityToFeedUseCase';
@@ -27,6 +28,7 @@ import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/
 export interface UseCases {
   // User use cases
   loginWithAppPasswordUseCase: LoginWithAppPasswordUseCase;
+  logoutUseCase: LogoutUseCase;
   initiateOAuthSignInUseCase: InitiateOAuthSignInUseCase;
   completeOAuthSignInUseCase: CompleteOAuthSignInUseCase;
   getMyProfileUseCase: GetMyProfileUseCase;
@@ -70,6 +72,7 @@ export class UseCaseFactory {
         repositories.userRepository,
         services.userAuthService,
       ),
+      logoutUseCase: new LogoutUseCase(services.tokenService),
       initiateOAuthSignInUseCase: new InitiateOAuthSignInUseCase(
         services.oauthProcessor,
       ),

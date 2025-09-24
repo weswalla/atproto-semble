@@ -20,11 +20,13 @@ import { GetGlobalFeedController } from '../../../../modules/feeds/infrastructur
 import { UseCases } from './UseCaseFactory';
 import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetMyProfileController';
 import { LoginWithAppPasswordController } from 'src/modules/user/infrastructure/http/controllers/LoginWithAppPasswordController';
+import { LogoutController } from 'src/modules/user/infrastructure/http/controllers/LogoutController';
 import { GenerateExtensionTokensController } from 'src/modules/user/infrastructure/http/controllers/GenerateExtensionTokensController';
 
 export interface Controllers {
   // User controllers
   loginWithAppPasswordController: LoginWithAppPasswordController;
+  logoutController: LogoutController;
   initiateOAuthSignInController: InitiateOAuthSignInController;
   completeOAuthSignInController: CompleteOAuthSignInController;
   getMyProfileController: GetMyProfileController;
@@ -57,6 +59,7 @@ export class ControllerFactory {
       loginWithAppPasswordController: new LoginWithAppPasswordController(
         useCases.loginWithAppPasswordUseCase,
       ),
+      logoutController: new LogoutController(useCases.logoutUseCase),
       initiateOAuthSignInController: new InitiateOAuthSignInController(
         useCases.initiateOAuthSignInUseCase,
       ),

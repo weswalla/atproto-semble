@@ -5,6 +5,7 @@ import { LoginWithAppPasswordController } from '../controllers/LoginWithAppPassw
 import { RefreshAccessTokenController } from '../controllers/RefreshAccessTokenController';
 import { AuthMiddleware } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetMyProfileController';
+import { LogoutController } from '../controllers/LogoutController';
 import { GenerateExtensionTokensController } from '../controllers/GenerateExtensionTokensController';
 
 export const createUserRoutes = (
@@ -13,6 +14,7 @@ export const createUserRoutes = (
   initiateOAuthSignInController: InitiateOAuthSignInController,
   completeOAuthSignInController: CompleteOAuthSignInController,
   loginWithAppPasswordController: LoginWithAppPasswordController,
+  logoutController: LogoutController,
   getMyProfileController: GetMyProfileController,
   refreshAccessTokenController: RefreshAccessTokenController,
   generateExtensionTokensController: GenerateExtensionTokensController,
@@ -27,6 +29,7 @@ export const createUserRoutes = (
   router.post('/login/app-password', (req, res) =>
     loginWithAppPasswordController.execute(req, res),
   );
+  router.post('/logout', (req, res) => logoutController.execute(req, res));
   router.post('/oauth/refresh', (req, res) =>
     refreshAccessTokenController.execute(req, res),
   );

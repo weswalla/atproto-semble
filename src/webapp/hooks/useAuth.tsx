@@ -10,7 +10,12 @@ import {
 } from 'react';
 import { useRouter } from 'next/navigation';
 import { ApiClient, UserProfile } from '@/api-client/ApiClient';
-import { getAccessToken, getRefreshToken, clearAuth } from '@/services/auth';
+import {
+  getAccessToken,
+  getRefreshToken,
+  clearAuth,
+  createClientTokenManager,
+} from '@/services/auth';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -38,7 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const createApiClient = useCallback(() => {
     return new ApiClient(
       process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-      () => getAccessToken(),
+      createClientTokenManager(),
     );
   }, []);
 
@@ -149,14 +154,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [refreshTokens]);
 
   // Helper function to check if a JWT token is expired or will expire soon
-  const isTokenExpiredWithBuffer = (token: string, bufferMinutes: number = 5): boolean => {
+  const isTokenExpiredWithBuffer = (
+    token: string,
+    bufferMinutes: number = 5,
+  ): boolean => {
     if (!token) return true;
 
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const expiry = payload.exp * 1000; // Convert to milliseconds
       const bufferTime = bufferMinutes * 60 * 1000; // Buffer in milliseconds
-      return Date.now() >= (expiry - bufferTime);
+      return Date.now() >= expiry - bufferTime;
     } catch (e) {
       return true;
     }
@@ -176,7 +184,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Check immediately on mount
     checkAndRefreshToken();
-    
+
     // Then check every 5 minutes
     const interval = setInterval(checkAndRefreshToken, 5 * 60 * 1000);
 

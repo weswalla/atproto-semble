@@ -1,11 +1,11 @@
 import { ApiClient } from '@/api-client/ApiClient';
-import { getAccessToken } from '@/services/auth';
+import { createClientTokenManager } from '@/services/auth';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function useAddCardToLibrary() {
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    () => getAccessToken(),
+    createClientTokenManager(),
   );
 
   const queryClient = useQueryClient();

@@ -1,5 +1,5 @@
 import { ApiClient } from '@/api-client/ApiClient';
-import { getAccessToken } from '@/services/auth';
+import { createClientTokenManager } from '@/services/auth';
 import { useQuery } from '@tanstack/react-query';
 
 interface Props {
@@ -12,7 +12,7 @@ interface Props {
 export default function useCollectionSearch(props: Props) {
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    () => getAccessToken(),
+    createClientTokenManager(),
   );
 
   // TODO: replace with infinite suspense query

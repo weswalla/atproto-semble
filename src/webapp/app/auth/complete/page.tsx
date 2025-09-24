@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { ExtensionService } from '@/services/extensionService';
 import { ApiClient } from '@/api-client/ApiClient';
-import { getAccessToken } from '@/services/auth';
+import { createClientTokenManager } from '@/services/auth';
 import { Card, Center, Loader, Stack, Title, Text } from '@mantine/core';
 
 function AuthCompleteContent() {
@@ -19,7 +19,7 @@ function AuthCompleteContent() {
       // Create API client instance
       const apiClient = new ApiClient(
         process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-        () => getAccessToken(),
+        createClientTokenManager(),
       );
 
       const accessToken = searchParams.get('accessToken');

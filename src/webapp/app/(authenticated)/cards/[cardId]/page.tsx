@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { getAccessToken } from '@/services/auth';
+import { createClientTokenManager } from '@/services/auth';
 import { ApiClient } from '@/api-client/ApiClient';
 import type { GetUrlCardViewResponse } from '@/api-client/types';
 import {
@@ -33,7 +33,7 @@ export default function CardPage() {
     // Create API client instance
     const apiClient = new ApiClient(
       process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-      () => getAccessToken(),
+      createClientTokenManager(),
     );
 
     const fetchCard = async () => {

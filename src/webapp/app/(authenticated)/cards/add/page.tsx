@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getAccessToken } from '@/services/auth';
+import { createClientTokenManager } from '@/services/auth';
 import { ApiClient } from '@/api-client/ApiClient';
 import { Box, Stack, Text, Title, Card } from '@mantine/core';
 import { UrlCardForm } from '@/components/UrlCardForm';
@@ -20,7 +20,7 @@ export default function AddCardPage() {
     () =>
       new ApiClient(
         process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-        () => getAccessToken(),
+        createClientTokenManager(),
       ),
     [],
   );

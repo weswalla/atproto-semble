@@ -59,7 +59,7 @@ export const clearAuth = (): void => {
 export const createClientTokenManager = () => {
   const storage = new ClientTokenStorage();
   const refresher = new ApiTokenRefresher(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000'
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
   );
   return new TokenManager(storage, refresher);
 };
@@ -70,5 +70,13 @@ export const createServerTokenManager = async () => {
   const cookiesStore = await cookies();
   const storage = new ServerTokenStorage(cookiesStore);
   const refresher = new ApiTokenRefresher(''); // Won't be used
+  return new TokenManager(storage, refresher);
+};
+
+export const createExtensionTokenManager = () => {
+  const storage = new ClientTokenStorage();
+  const refresher = new ApiTokenRefresher(
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+  );
   return new TokenManager(storage, refresher);
 };

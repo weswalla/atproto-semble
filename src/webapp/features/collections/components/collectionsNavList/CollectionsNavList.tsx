@@ -6,9 +6,11 @@ import useCollections from '../../lib/queries/useCollections';
 import { useToggle } from '@mantine/hooks';
 import CollectionsNavListError from './Error.CollectionsNavList';
 import CreateCollectionShortcut from '../createCollectionShortcut/CreateCollectionShortcut';
+import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 
 export default function CollectionsNavList() {
   const { data, error } = useCollections({ limit: 30 });
+  const { data: profile } = useMyProfile();
   const [opened, toggleMenu] = useToggle([true, false]);
 
   if (error) {
@@ -31,7 +33,7 @@ export default function CollectionsNavList() {
 
       <NavLink
         component={Link}
-        href="/collections"
+        href={`/profile/${profile.handle}/collections`}
         label="View all"
         variant="subtle"
         c="blue"
@@ -43,7 +45,7 @@ export default function CollectionsNavList() {
           <CollectionNavItem
             key={collection.id}
             name={collection.name}
-            url={`/collections/${collection.id}`}
+            url={`/profile/${collection.createdBy.handle}/collections/${collection.id}`}
             cardCount={collection.cardCount}
           />
         ))}

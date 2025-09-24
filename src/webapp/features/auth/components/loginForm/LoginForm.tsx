@@ -66,7 +66,7 @@ export default function LoginForm() {
     if (isAuthenticated) {
       isExtensionLogin
         ? handleExtensionTokenGeneration()
-        : router.push('/library');
+        : router.push('/home');
     } else {
       setIsCheckingAuth(false);
     }
@@ -121,7 +121,7 @@ export default function LoginForm() {
       if (isExtensionLogin) {
         await handleExtensionTokenGeneration();
       } else {
-        router.push('/library');
+        router.push('/home');
       }
     } catch (err: any) {
       setError(err.message || 'Invalid credentials');

@@ -20,7 +20,7 @@ export default function Page() {
 
       // redirect after 1 second
       timeoutId = setTimeout(() => {
-        router.push('/library');
+        router.push('/home');
       }, 1000);
     }
 

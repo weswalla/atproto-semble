@@ -24,7 +24,7 @@ export default function useAddCardToCollection() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['card', variables.cardId] });
       queryClient.invalidateQueries({ queryKey: ['my cards'] });
-      queryClient.invalidateQueries({ queryKey: ['library'] });
+      queryClient.invalidateQueries({ queryKey: ['home'] });
       queryClient.invalidateQueries({ queryKey: ['collections'] });
 
       variables.collectionIds.forEach((id) => {

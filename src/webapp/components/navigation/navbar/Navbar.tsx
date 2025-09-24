@@ -23,14 +23,16 @@ import CollectionsNavListSkeleton from '@/features/collections/components/collec
 import NavbarToggle from '../NavbarToggle';
 import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
+import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 
 export default function Navbar() {
   const [openAddDrawer, setOpenAddDrawer] = useState(false);
+  const { data: profile } = useMyProfile();
 
   return (
     <AppShellNavbar px={'md'} pb={'md'} pt={'xs'}>
       <Group justify="space-between" ml={'sm'}>
-        <Anchor component={Link} href={'/library'}>
+        <Anchor component={Link} href={'/home'}>
           <Image src={SembleLogo.src} alt="Semble logo" w={20.84} h={28} />
         </Anchor>
         <Box hiddenFrom="xs">
@@ -43,20 +45,16 @@ export default function Navbar() {
           <ProfileMenu />
 
           <Stack gap={5}>
-            <NavItem
-              href="/library"
-              label="Library"
-              icon={<LuLibrary size={25} />}
-            />
-            <NavItem
-              href="/my-cards"
-              label="My Cards"
-              icon={<FaRegNoteSticky size={25} />}
-            />
+            <NavItem href="/home" label="Home" icon={<LuLibrary size={25} />} />
             <NavItem
               href="/explore"
               label="Explore"
               icon={<MdOutlineEmojiNature size={25} />}
+            />
+            <NavItem
+              href={`/profile/${profile.handle}/cards`}
+              label="Cards"
+              icon={<FaRegNoteSticky size={25} />}
             />
           </Stack>
         </Stack>

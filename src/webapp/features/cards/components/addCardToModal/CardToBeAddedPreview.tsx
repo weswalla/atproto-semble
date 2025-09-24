@@ -15,6 +15,7 @@ import { GetMyCollectionsResponse, UrlCardView } from '@/api-client/types';
 import { BiCollection } from 'react-icons/bi';
 import { LuLibrary } from 'react-icons/lu';
 import { getDomain } from '@/lib/utils/link';
+import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 
 interface Props {
   cardId: string;
@@ -25,6 +26,7 @@ interface Props {
 
 export default function CardToBeAddedPreview(props: Props) {
   const domain = getDomain(props.cardContent.url);
+  const { data: profile } = useMyProfile();
 
   return (
     <Stack gap={'xs'}>
@@ -68,7 +70,7 @@ export default function CardToBeAddedPreview(props: Props) {
             variant="light"
             color="green"
             component={Link}
-            href={`/library/cards/${props.cardId}`}
+            href={`/profile/${profile.handle}/cards/${props.cardId}`}
             target="_blank"
             leftSection={<LuLibrary size={22} />}
           >
@@ -93,7 +95,7 @@ export default function CardToBeAddedPreview(props: Props) {
                   <Menu.Item
                     key={c.id}
                     component={Link}
-                    href={`/collections/${c.id}`}
+                    href={`/profile/${c.createdBy.handle}/collections/${c.id}`}
                     target="_blank"
                     c="blue"
                     fw={600}

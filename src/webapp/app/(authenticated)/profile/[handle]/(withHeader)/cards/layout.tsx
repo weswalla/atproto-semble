@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 import { Fragment } from 'react';
 
 export const metadata: Metadata = {
-  title: 'Collection',
-  description: 'Collection',
+  title: 'My Cards',
+  description: 'All my cards',
 };
 
 interface Props {

@@ -65,8 +65,8 @@ function AuthCompleteContent() {
         if (ExtensionService.isExtensionTokensRequested()) {
           handleExtensionTokenGeneration();
         } else {
-          // Redirect to library
-          router.push('/library');
+          // Redirect to home
+          router.push('/home');
         }
       } else {
         router.push('/login?error=Authentication failed');

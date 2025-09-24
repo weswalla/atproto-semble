@@ -3,11 +3,10 @@
 import { Container, Grid, Stack, Button, Text, Center } from '@mantine/core';
 import useMyCards from '../../lib/queries/useMyCards';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
-import { BiPlus } from 'react-icons/bi';
 import AddCardDrawer from '../../components/addCardDrawer/AddCardDrawer';
-import { Fragment, useState } from 'react';
 import MyCardsContainerError from './Error.MyCardsContainer';
 import MyCardsContainerSkeleton from './Skeleton.MyCardsContainer';
+import { Fragment, useState } from 'react';
 
 export default function MyCardsContainer() {
   const {
@@ -73,15 +72,6 @@ export default function MyCardsContainer() {
             <Text fz="h3" fw={600} c="gray">
               No cards
             </Text>
-            <Button
-              variant="light"
-              color="gray"
-              size="md"
-              rightSection={<BiPlus size={22} />}
-              onClick={() => setShowAddDrawer(true)}
-            >
-              Add your first card
-            </Button>
             <AddCardDrawer
               isOpen={showAddDrawer}
               onClose={() => setShowAddDrawer(false)}

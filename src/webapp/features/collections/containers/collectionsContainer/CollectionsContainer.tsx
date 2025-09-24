@@ -9,10 +9,9 @@ import {
   Center,
 } from '@mantine/core';
 import useCollections from '../../lib/queries/useCollections';
-import { BiPlus } from 'react-icons/bi';
 import CollectionCard from '../../components/collectionCard/CollectionCard';
-import { useState } from 'react';
 import CreateCollectionDrawer from '../../components/createCollectionDrawer/CreateCollectionDrawer';
+import { useState } from 'react';
 
 export default function CollectionsContainer() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -54,15 +53,6 @@ export default function CollectionsContainer() {
             <Text fz="h3" fw={600} c="gray">
               No collections
             </Text>
-            <Button
-              onClick={() => setIsDrawerOpen(true)}
-              variant="light"
-              color="gray"
-              size="md"
-              rightSection={<BiPlus size={22} />}
-            >
-              Create your first collection
-            </Button>
           </Stack>
         )}
       </Stack>

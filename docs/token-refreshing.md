@@ -30,7 +30,9 @@ export interface TokenStorage {
 }
 
 export interface TokenRefresher {
-  refreshTokens(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }>;
+  refreshTokens(
+    refreshToken: string,
+  ): Promise<{ accessToken: string; refreshToken: string }>;
 }
 ```
 
@@ -73,7 +75,7 @@ export class TokenManager {
 
     // Start refresh process
     this.isRefreshing = true;
-    
+
     try {
       // Use existing refresh promise or create new one
       if (!this.refreshPromise) {
@@ -103,10 +105,10 @@ export class TokenManager {
         // Refresh failed, reject all queued requests
         const queuedRequests = [...this.failedRequestsQueue];
         this.failedRequestsQueue = [];
-        
+
         const refreshError = new Error('Token refresh failed');
         queuedRequests.forEach(({ reject }) => reject(refreshError));
-        
+
         throw refreshError;
       }
     } finally {
@@ -121,7 +123,10 @@ export class TokenManager {
 
     try {
       const newTokens = await this.refresher.refreshTokens(refreshToken);
-      await this.storage.setTokens(newTokens.accessToken, newTokens.refreshToken);
+      await this.storage.setTokens(
+        newTokens.accessToken,
+        newTokens.refreshToken,
+      );
       return true;
     } catch (error) {
       console.error('Token refresh failed:', error);
@@ -143,7 +148,7 @@ export class ClientTokenStorage implements TokenStorage {
     if (typeof window === 'undefined') {
       return { accessToken: null, refreshToken: null };
     }
-    
+
     return {
       accessToken: localStorage.getItem('accessToken'),
       refreshToken: localStorage.getItem('refreshToken'),
@@ -152,10 +157,10 @@ export class ClientTokenStorage implements TokenStorage {
 
   async setTokens(accessToken: string, refreshToken: string): Promise<void> {
     if (typeof window === 'undefined') return;
-    
+
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
-    
+
     // Sync with server cookies
     try {
       await fetch('/api/auth/sync', {
@@ -210,7 +215,9 @@ export class ServerTokenStorage implements TokenStorage {
 export class ApiTokenRefresher implements TokenRefresher {
   constructor(private baseUrl: string) {}
 
-  async refreshTokens(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+  async refreshTokens(
+    refreshToken: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const response = await fetch(`${this.baseUrl}/api/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -260,7 +267,10 @@ export abstract class BaseClient {
         headers,
       };
 
-      if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+      if (
+        data &&
+        (method === 'POST' || method === 'PUT' || method === 'PATCH')
+      ) {
         config.body = JSON.stringify(data);
       }
 
@@ -317,7 +327,7 @@ import { ApiTokenRefresher } from './TokenRefresher';
 export const createClientTokenManager = () => {
   const storage = new ClientTokenStorage();
   const refresher = new ApiTokenRefresher(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000'
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
   );
   return new TokenManager(storage, refresher);
 };
@@ -379,14 +389,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const tokenManager = useMemo(() => createClientTokenManager(), []);
 
   // Helper function to check if a JWT token is expired or will expire soon
-  const isTokenExpired = (token: string, bufferMinutes: number = 5): boolean => {
+  const isTokenExpired = (
+    token: string,
+    bufferMinutes: number = 5,
+  ): boolean => {
     if (!token) return true;
 
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const expiry = payload.exp * 1000; // Convert to milliseconds
       const bufferTime = bufferMinutes * 60 * 1000; // Buffer in milliseconds
-      return Date.now() >= (expiry - bufferTime);
+      return Date.now() >= expiry - bufferTime;
     } catch (e) {
       return true;
     }
@@ -406,7 +419,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Check immediately on mount
     checkAndRefreshToken();
-    
+
     // Then check every 5 minutes
     const interval = setInterval(checkAndRefreshToken, 5 * 60 * 1000);
 
@@ -427,6 +440,7 @@ The **secondary strategy** is reactive refresh when API calls return authenticat
 - Server-side rendering scenarios
 
 The TokenManager automatically:
+
 1. **Detects auth errors** (401/403) from API responses
 2. **Refreshes tokens** using the refresh token
 3. **Retries the original request** with fresh tokens
@@ -477,7 +491,7 @@ import { createServerApiClient } from '@/services/auth';
 
 export default async function SSRProfilePage() {
   const apiClient = await createServerApiClient();
-  
+
   let profile;
   let error;
 
@@ -502,19 +516,21 @@ export default async function SSRProfilePage() {
 ✅ **Race Condition Safe**: TokenManager prevents concurrent refreshes  
 ✅ **Automatic Recovery**: Failed requests are automatically retried after refresh  
 ✅ **Request Queuing**: Multiple concurrent requests handled gracefully  
-✅ **Server-Side Support**: Works in SSR with cookie-based tokens  
+✅ **Server-Side Support**: Works in SSR with cookie-based tokens
 
 ## Server-Side Token Refresh Limitation
 
 **Current Approach**: Server components use read-only token access from cookies. If tokens are expired, the request will fail gracefully.
 
 **Why This Works**:
+
 - Proactive refresh on client-side prevents most expiration scenarios
 - Server components typically render fresh on each request
 - Failed server requests degrade gracefully (show error states)
 - Client-side components can still refresh and retry
 
 **Future Enhancements** (if needed):
+
 - Add middleware to check token expiry and redirect to refresh endpoint
 - Implement server-side refresh with secure cookie updates
 - Use hybrid approach with client-side refresh signals
@@ -527,6 +543,7 @@ export default async function SSRProfilePage() {
 - **Refresh Token Lifetime**: 7 days (server-configured)
 
 This means:
+
 - **99% of cases**: Tokens refreshed proactively at 10 minutes (before 15-minute expiry)
 - **1% of cases**: Reactive refresh handles edge cases when proactive refresh missed
 - **Zero failed requests**: All auth errors automatically trigger refresh and retry
@@ -569,8 +586,8 @@ This means:
 
 ```typescript
 // Multiple API calls happen when token is expired
-apiClient.getProfile();     // Triggers refresh
-apiClient.getCards();       // Queued, waits for refresh
+apiClient.getProfile(); // Triggers refresh
+apiClient.getCards(); // Queued, waits for refresh
 apiClient.getCollections(); // Queued, waits for refresh
 
 // After refresh completes:
@@ -581,6 +598,7 @@ apiClient.getCollections(); // Queued, waits for refresh
 ## Monitoring
 
 Consider tracking these metrics:
+
 - **Proactive refresh frequency** (should be regular, every ~5 minutes)
 - **Reactive refresh frequency** (should be rare, <1% of API calls)
 - **Failed refresh attempts** (should investigate if >0.1%)
@@ -593,6 +611,7 @@ Consider tracking these metrics:
 ### From Old Approach
 
 **Before:**
+
 ```typescript
 const apiClient = new ApiClient(
   baseUrl,
@@ -602,6 +621,7 @@ const apiClient = new ApiClient(
 ```
 
 **After:**
+
 ```typescript
 import { apiClient } from '@/api-client';
 // Just use the default instance - no configuration needed!

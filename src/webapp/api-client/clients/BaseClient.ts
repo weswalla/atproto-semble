@@ -29,7 +29,10 @@ export abstract class BaseClient {
         headers,
       };
 
-      if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+      if (
+        data &&
+        (method === 'POST' || method === 'PUT' || method === 'PATCH')
+      ) {
         config.body = JSON.stringify(data);
       }
 

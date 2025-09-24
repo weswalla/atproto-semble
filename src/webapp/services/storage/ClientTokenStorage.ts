@@ -5,7 +5,7 @@ export class ClientTokenStorage implements TokenStorage {
     if (typeof window === 'undefined') {
       return { accessToken: null, refreshToken: null };
     }
-    
+
     return {
       accessToken: localStorage.getItem('accessToken'),
       refreshToken: localStorage.getItem('refreshToken'),
@@ -14,10 +14,10 @@ export class ClientTokenStorage implements TokenStorage {
 
   async setTokens(accessToken: string, refreshToken: string): Promise<void> {
     if (typeof window === 'undefined') return;
-    
+
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
-    
+
     // Sync with server cookies
     try {
       await fetch('/api/auth/sync', {

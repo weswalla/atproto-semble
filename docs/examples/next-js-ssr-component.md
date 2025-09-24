@@ -5,7 +5,7 @@ import { createServerApiClient } from '@/api-client';
 
 export default async function SSRProfilePage() {
   const apiClient = await createServerApiClient();
-  
+
   let profile;
   let error;
 

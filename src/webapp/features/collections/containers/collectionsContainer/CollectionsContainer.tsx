@@ -4,7 +4,6 @@ import {
   Button,
   Container,
   Stack,
-  Title,
   Text,
   SimpleGrid,
   Center,
@@ -27,8 +26,6 @@ export default function CollectionsContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <Title order={1}>Collections</Title>
-
         {collections.length > 0 ? (
           <Stack>
             <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">

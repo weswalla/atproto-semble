@@ -1,5 +1,6 @@
 'use client';
 
+import TabItem from '@/features/profile/components/profileTabs/TabItem';
 import {
   Avatar,
   Button,
@@ -9,6 +10,7 @@ import {
   Modal,
   NavLink,
   Spoiler,
+  TabsTab,
 } from '@mantine/core';
 
 export const theme = createTheme({
@@ -109,6 +111,12 @@ export const theme = createTheme({
           color: 'gray',
           fontWeight: 600,
         },
+      },
+    }),
+    TabsTab: TabsTab.extend({
+      defaultProps: {
+        fw: 500,
+        fz: 'md',
       },
     }),
   },

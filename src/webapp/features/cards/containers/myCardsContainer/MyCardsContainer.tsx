@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  Container,
-  Grid,
-  Stack,
-  Title,
-  Button,
-  Text,
-  Center,
-} from '@mantine/core';
+import { Container, Grid, Stack, Button, Text, Center } from '@mantine/core';
 import useMyCards from '../../lib/queries/useMyCards';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import { BiPlus } from 'react-icons/bi';
@@ -42,8 +34,6 @@ export default function MyCardsContainer() {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <Title order={1}>Cards</Title>
-
         {allCards.length > 0 ? (
           <Fragment>
             <Grid gutter="md">

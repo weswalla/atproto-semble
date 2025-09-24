@@ -8,8 +8,10 @@ import {
   Text,
   Title,
   Button,
+  ActionIcon,
 } from '@mantine/core';
 import { FaBluesky } from 'react-icons/fa6';
+import ProfileTabs from '../profileTabs/ProfileTabs';
 
 interface Props {
   handle: string;
@@ -47,16 +49,19 @@ export default async function ProfileHeader(props: Props) {
               {data.description && <Text>{data.description}</Text>}
             </Stack>
           </Group>
-          <Button
+          <ActionIcon
             component="a"
             href={`https://bsky.app/profile/${data.handle}`}
             target="_blank"
-            color="gray"
-            leftSection={<FaBluesky size={22} />}
+            size={'lg'}
+            radius={'xl'}
+            bg="gray.2"
+            c={'gray'}
           >
-            @{data.handle}
-          </Button>
+            <FaBluesky />
+          </ActionIcon>
         </Group>
+        <ProfileTabs handle={data.handle} />
       </Stack>
     </Container>
   );

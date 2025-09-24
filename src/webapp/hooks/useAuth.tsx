@@ -176,7 +176,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const checkAndRefreshToken = async () => {
       // Check if token will expire in the next 5 minutes
-      if (isTokenExpiredWithBuffer(accessToken, 5)) {
+      if (isTokenExpiredWithBuffer(accessToken, 0.25)) {
         console.log('Proactively refreshing token before expiration');
         await refreshTokens();
       }
@@ -186,7 +186,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkAndRefreshToken();
 
     // Then check every 5 minutes
-    const interval = setInterval(checkAndRefreshToken, 5 * 60 * 1000);
+    const interval = setInterval(checkAndRefreshToken, 0.125 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, [accessToken, refreshToken, refreshTokens]);

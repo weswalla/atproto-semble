@@ -20,6 +20,8 @@
     "package:extension": "plasmo package",
     "start": "PORT=4000 next start",
     "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "tsc --noEmit --watch",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },

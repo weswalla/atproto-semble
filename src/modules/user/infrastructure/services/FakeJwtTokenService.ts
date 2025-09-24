@@ -7,8 +7,8 @@ import { TokenPair } from '../../application/dtos/TokenDTO';
 
 export class FakeJwtTokenService implements ITokenService {
   private jwtSecret: string;
-  private accessTokenExpiresIn: number = 3600; // 1 hour
-  private refreshTokenExpiresIn: number = 2592000; // 30 days
+  private accessTokenExpiresIn: number = 30; //3600; // 1 hour
+  private refreshTokenExpiresIn: number = 60; //2592000; // 30 days
 
   constructor(private tokenRepository: ITokenRepository) {
     this.jwtSecret = process.env.MOCK_ACCESS_TOKEN || 'mock-access-token-123';

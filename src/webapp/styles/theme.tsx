@@ -86,17 +86,6 @@ export const theme = createTheme({
       defaultProps: {
         radius: 'md',
       },
-      vars: (_, props) => {
-        if (props.size === 'xxl') {
-          return {
-            root: {
-              '--avatar-size': '120px',
-            },
-          };
-        }
-
-        return { root: {} };
-      },
     }),
     MenuItem: MenuItem.extend({
       defaultProps: {

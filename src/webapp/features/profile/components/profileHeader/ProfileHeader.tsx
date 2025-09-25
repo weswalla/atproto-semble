@@ -16,6 +16,7 @@ import useMyProfile from '../../lib/queries/useMyProfile';
 import { useWindowScroll } from '@mantine/hooks';
 import MinimalProfileHeader from './MinimalProfileHeader';
 
+// TODO: once we have profile endpoints, we'll use handle to fetch profile data
 interface Props {
   handle: string;
 }

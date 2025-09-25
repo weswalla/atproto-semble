@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ApiClient } from '@/api-client/ApiClient';
-import type { GetMyCollectionsResponse } from '@/api-client/types';
+import type { GetCollectionsResponse } from '@/api-client/types';
 
 interface UseCollectionSearchProps {
   apiClient: ApiClient;
@@ -14,7 +14,7 @@ export function useCollectionSearch({
   debounceMs = 300,
 }: UseCollectionSearchProps) {
   const [collections, setCollections] = useState<
-    GetMyCollectionsResponse['collections']
+    GetCollectionsResponse['collections']
   >([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');

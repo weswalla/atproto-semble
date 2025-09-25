@@ -106,7 +106,7 @@ export interface UserProfile {
   avatarUrl?: string;
 }
 
-export interface GetMyProfileResponse extends UserProfile {}
+export interface GetProfileResponse extends UserProfile {}
 
 export interface UrlCardListItem {
   id: string;

@@ -115,6 +115,6 @@ export interface GenerateExtensionTokensRequest {
   // No additional parameters needed - user is authenticated via middleware
 }
 
-export interface GetUserProfileParams {
+export interface GetProfileParams {
   did: string;
 }

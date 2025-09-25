@@ -48,14 +48,14 @@ import type {
   GetUrlMetadataResponse,
   GetUrlCardViewResponse,
   GetLibrariesForCardResponse,
-  GetMyProfileResponse,
   GetCollectionPageResponse,
   GetGlobalFeedResponse,
   GetCollectionsResponse,
   GetCollectionsParams,
   GetUrlCardsParams,
   GetUrlCardsResponse,
-  GetUserProfileParams,
+  GetProfileResponse,
+  GetProfileParams,
 } from './types';
 
 // Main API Client class using composition
@@ -116,12 +116,12 @@ export class ApiClient {
     return this.queryClient.getLibrariesForCard(cardId);
   }
 
-  async getMyProfile(): Promise<GetMyProfileResponse> {
+  async getMyProfile(): Promise<GetProfileResponse> {
     this.requireAuthentication('getMyProfile');
     return this.queryClient.getMyProfile();
   }
 
-  async getUserProfile(params: GetUserProfileParams): Promise<GetMyProfileResponse> {
+  async getProfile(params: GetProfileParams): Promise<GetProfileResponse> {
     return this.queryClient.getUserProfile(params);
   }
 

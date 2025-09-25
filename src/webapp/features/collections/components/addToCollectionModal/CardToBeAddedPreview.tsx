@@ -10,14 +10,14 @@ import {
   ScrollArea,
   Anchor,
 } from '@mantine/core';
-import { GetMyCollectionsResponse, UrlCardView } from '@/api-client/types';
+import { GetCollectionsResponse, UrlCardView } from '@/api-client/types';
 import Link from 'next/link';
 import { getDomain } from '@/lib/utils/link';
 import { BiSolidChevronDownCircle } from 'react-icons/bi';
 
 interface Props {
   cardContent: UrlCardView['cardContent'];
-  collectionsWithCard: GetMyCollectionsResponse['collections'];
+  collectionsWithCard: GetCollectionsResponse['collections'];
 }
 
 export default function CardToBeAddedPreview(props: Props) {

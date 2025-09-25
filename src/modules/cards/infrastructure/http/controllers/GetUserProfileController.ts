@@ -1,6 +1,6 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Request, Response } from 'express';
-import { GetProfileUseCase } from '../../../application/useCases/queries/GetMyProfileUseCase';
+import { GetProfileUseCase } from '../../../application/useCases/queries/GetProfileUseCase';
 
 export class GetUserProfileController extends Controller {
   constructor(private getProfileUseCase: GetProfileUseCase) {

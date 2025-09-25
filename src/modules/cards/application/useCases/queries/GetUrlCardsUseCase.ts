@@ -9,7 +9,7 @@ import {
 } from '../../../domain/ICardQueryRepository';
 import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 
-export interface GetMyUrlCardsQuery {
+export interface GetUrlCardsQuery {
   userId: string;
   page?: number;
   limit?: number;
@@ -19,7 +19,7 @@ export interface GetMyUrlCardsQuery {
 
 // Enriched data for the final use case result
 export type UrlCardListItemDTO = UrlCardView & WithCollections;
-export interface GetMyUrlCardsResult {
+export interface GetUrlCardsResult {
   cards: UrlCardListItemDTO[];
   pagination: {
     currentPage: number;
@@ -42,13 +42,11 @@ export class ValidationError extends Error {
 }
 
 export class GetUrlCardsUseCase
-  implements UseCase<GetMyUrlCardsQuery, Result<GetMyUrlCardsResult>>
+  implements UseCase<GetUrlCardsQuery, Result<GetUrlCardsResult>>
 {
   constructor(private cardQueryRepo: ICardQueryRepository) {}
 
-  async execute(
-    query: GetMyUrlCardsQuery,
-  ): Promise<Result<GetMyUrlCardsResult>> {
+  async execute(query: GetUrlCardsQuery): Promise<Result<GetUrlCardsResult>> {
     // Set defaults
     const page = query.page || 1;
     const limit = Math.min(query.limit || 20, 100); // Cap at 100

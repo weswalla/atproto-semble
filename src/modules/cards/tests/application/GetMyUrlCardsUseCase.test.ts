@@ -1,4 +1,4 @@
-import { GetUrlCardsUseCase } from '../../application/useCases/queries/GetMyUrlCardsUseCase';
+import { GetUrlCardsUseCase } from '../../application/useCases/queries/GetUrlCardsUseCase';
 import { InMemoryCardQueryRepository } from '../utils/InMemoryCardQueryRepository';
 import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';

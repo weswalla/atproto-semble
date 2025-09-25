@@ -10,14 +10,14 @@ import { RemoveCardFromCollectionUseCase } from '../../../../modules/cards/appli
 import { GetUrlMetadataUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlMetadataUseCase';
 import { GetUrlCardViewUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlCardViewUseCase';
 import { GetLibrariesForCardUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForCardUseCase';
-import { GetUrlCardsUseCase } from '../../../../modules/cards/application/useCases/queries/GetMyUrlCardsUseCase';
+import { GetUrlCardsUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlCardsUseCase';
 import { CreateCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/CreateCollectionUseCase';
 import { UpdateCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateCollectionUseCase';
 import { DeleteCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/DeleteCollectionUseCase';
 import { GetCollectionPageUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionPageUseCase';
 import { Repositories } from './RepositoryFactory';
 import { Services, SharedServices } from './ServiceFactory';
-import { GetProfileUseCase } from 'src/modules/cards/application/useCases/queries/GetMyProfileUseCase';
+import { GetProfileUseCase } from 'src/modules/cards/application/useCases/queries/GetProfileUseCase';
 import { LoginWithAppPasswordUseCase } from 'src/modules/user/application/use-cases/LoginWithAppPasswordUseCase';
 import { LogoutUseCase } from 'src/modules/user/application/use-cases/LogoutUseCase';
 import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use-cases/GenerateExtensionTokensUseCase';

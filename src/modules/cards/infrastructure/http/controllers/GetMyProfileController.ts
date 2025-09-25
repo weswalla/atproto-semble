@@ -1,6 +1,6 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Response } from 'express';
-import { GetProfileUseCase } from '../../../application/useCases/queries/GetMyProfileUseCase';
+import { GetProfileUseCase } from '../../../application/useCases/queries/GetProfileUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class GetMyProfileController extends Controller {

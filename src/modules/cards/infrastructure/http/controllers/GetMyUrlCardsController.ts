@@ -1,6 +1,6 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Response } from 'express';
-import { GetUrlCardsUseCase } from '../../../application/useCases/queries/GetMyUrlCardsUseCase';
+import { GetUrlCardsUseCase } from '../../../application/useCases/queries/GetUrlCardsUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import { CardSortField, SortOrder } from '../../../domain/ICardQueryRepository';
 

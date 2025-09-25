@@ -11,12 +11,7 @@ interface Props {
 export default function TabItem(props: Props) {
   return (
     <Anchor component={Link} href={props.href} c={'dark'} underline="never">
-      <Tabs.Tab
-        value={props.value}
-        className={classes.tab}
-        color="dark"
-        fw={600}
-      >
+      <Tabs.Tab value={props.value} className={classes.tab} fw={600}>
         {props.children}
       </Tabs.Tab>
     </Anchor>

@@ -146,7 +146,7 @@ export interface Sorting {
   sortOrder: 'asc' | 'desc';
 }
 
-export interface GetMyUrlCardsResponse {
+export interface GetUrlCardsResponse {
   cards: UrlCardListItem[];
   pagination: Pagination;
   sorting: Sorting;

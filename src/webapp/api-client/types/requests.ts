@@ -52,7 +52,7 @@ export interface GetMyUrlCardsParams {
   sortOrder?: 'asc' | 'desc';
 }
 
-export interface GetUserUrlCardsParams {
+export interface GetUrlCardsParams {
   did: string;
   page?: number;
   limit?: number;

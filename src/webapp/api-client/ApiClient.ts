@@ -27,7 +27,6 @@ import type {
   RefreshAccessTokenRequest,
   GenerateExtensionTokensRequest,
   GetMyUrlCardsParams,
-  GetUserUrlCardsParams,
   GetCollectionPageParams,
   GetMyCollectionsParams,
   GetGlobalFeedParams,
@@ -47,7 +46,6 @@ import type {
   RefreshAccessTokenResponse,
   GenerateExtensionTokensResponse,
   GetUrlMetadataResponse,
-  GetMyUrlCardsResponse,
   GetUrlCardViewResponse,
   GetLibrariesForCardResponse,
   GetMyProfileResponse,
@@ -55,6 +53,8 @@ import type {
   GetGlobalFeedResponse,
   GetCollectionsResponse,
   GetCollectionsParams,
+  GetUrlCardsParams,
+  GetUrlCardsResponse,
 } from './types';
 
 // Main API Client class using composition
@@ -95,14 +95,12 @@ export class ApiClient {
 
   async getMyUrlCards(
     params?: GetMyUrlCardsParams,
-  ): Promise<GetMyUrlCardsResponse> {
+  ): Promise<GetUrlCardsResponse> {
     this.requireAuthentication('getMyUrlCards');
     return this.queryClient.getMyUrlCards(params);
   }
 
-  async getUserUrlCards(
-    params: GetUserUrlCardsParams,
-  ): Promise<GetMyUrlCardsResponse> {
+  async getUrlCards(params: GetUrlCardsParams): Promise<GetUrlCardsResponse> {
     return this.queryClient.getUserUrlCards(params);
   }
 

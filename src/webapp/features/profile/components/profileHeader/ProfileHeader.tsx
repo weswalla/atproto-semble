@@ -11,7 +11,6 @@ import {
   Box,
 } from '@mantine/core';
 import { FaBluesky } from 'react-icons/fa6';
-import ProfileTabs from '../profileTabs/ProfileTabs';
 import { truncateText } from '@/lib/utils/text';
 import useMyProfile from '../../lib/queries/useMyProfile';
 import { useWindowScroll } from '@mantine/hooks';
@@ -33,7 +32,7 @@ export default function ProfileHeader(props: Props) {
           position: 'fixed',
           top: 0,
           width: '100%',
-          zIndex: 101,
+          zIndex: 2,
           transform: `translateY(${y > 150 ? '0' : '-100px'})`,
           transition: 'transform 200ms ease',
           backgroundColor: 'var(--mantine-color-body)',

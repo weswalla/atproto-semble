@@ -51,7 +51,7 @@ export default function ProfileHeader(props: Props) {
             <Avatar
               src={data.avatarUrl}
               alt={`${data.name}'s avatar`}
-              size={180}
+              size={'clamp(110px, 14vw, 180px)'}
               radius={'lg'}
             />
             <Stack gap={'sm'}>

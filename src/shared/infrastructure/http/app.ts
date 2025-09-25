@@ -71,6 +71,7 @@ export const createExpressApp = (
     controllers.deleteCollectionController,
     controllers.getCollectionPageController,
     controllers.getMyCollectionsController,
+    controllers.getCollectionsController,
   );
 
   const feedRouter = createFeedRoutes(

@@ -1,6 +1,6 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Response } from 'express';
-import { GetCollectionsUseCase } from '../../../application/useCases/queries/GetMyCollectionsUseCase';
+import { GetCollectionsUseCase } from '../../../application/useCases/queries/GetCollectionsUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import {
   CollectionSortField,

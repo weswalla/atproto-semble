@@ -8,7 +8,7 @@ import {
 import { IProfileService } from 'src/modules/cards/domain/services/IProfileService';
 import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 
-export interface GetMyCollectionsQuery {
+export interface GetCollectionsQuery {
   curatorId: string;
   page?: number;
   limit?: number;
@@ -32,7 +32,7 @@ export interface CollectionListItemDTO {
     avatarUrl?: string;
   };
 }
-export interface GetMyCollectionsResult {
+export interface GetCollectionsResult {
   collections: CollectionListItemDTO[];
   pagination: {
     currentPage: number;
@@ -55,7 +55,7 @@ export class ValidationError extends Error {
 }
 
 export class GetCollectionsUseCase
-  implements UseCase<GetMyCollectionsQuery, Result<GetMyCollectionsResult>>
+  implements UseCase<GetCollectionsQuery, Result<GetCollectionsResult>>
 {
   constructor(
     private collectionQueryRepo: ICollectionQueryRepository,
@@ -63,8 +63,8 @@ export class GetCollectionsUseCase
   ) {}
 
   async execute(
-    query: GetMyCollectionsQuery,
-  ): Promise<Result<GetMyCollectionsResult>> {
+    query: GetCollectionsQuery,
+  ): Promise<Result<GetCollectionsResult>> {
     // Set defaults
     const page = query.page || 1;
     const limit = Math.min(query.limit || 20, 100); // Cap at 100

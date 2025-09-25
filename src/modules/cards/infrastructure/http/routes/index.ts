@@ -17,6 +17,7 @@ import { DeleteCollectionController } from '../controllers/DeleteCollectionContr
 import { GetCollectionPageController } from '../controllers/GetCollectionPageController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { GetMyCollectionsController } from '../controllers/GetMyCollectionsController';
+import { GetUserCollectionsController } from '../controllers/GetUserCollectionsController';
 
 export function createCardsModuleRoutes(
   authMiddleware: AuthMiddleware,
@@ -37,6 +38,7 @@ export function createCardsModuleRoutes(
   deleteCollectionController: DeleteCollectionController,
   getCollectionPageController: GetCollectionPageController,
   getMyCollectionsController: GetMyCollectionsController,
+  getCollectionsController: GetUserCollectionsController,
 ): Router {
   const router = Router();
 
@@ -68,6 +70,7 @@ export function createCardsModuleRoutes(
       deleteCollectionController,
       getCollectionPageController,
       getMyCollectionsController,
+      getCollectionsController,
     ),
   );
 

@@ -15,7 +15,6 @@ import { CreateCollectionUseCase } from '../../../../modules/cards/application/u
 import { UpdateCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateCollectionUseCase';
 import { DeleteCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/DeleteCollectionUseCase';
 import { GetCollectionPageUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionPageUseCase';
-import { GetMyCollectionsUseCase } from '../../../../modules/cards/application/useCases/queries/GetMyCollectionsUseCase';
 import { Repositories } from './RepositoryFactory';
 import { Services, SharedServices } from './ServiceFactory';
 import { GetMyProfileUseCase } from 'src/modules/cards/application/useCases/queries/GetMyProfileUseCase';
@@ -24,6 +23,7 @@ import { LogoutUseCase } from 'src/modules/user/application/use-cases/LogoutUseC
 import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use-cases/GenerateExtensionTokensUseCase';
 import { GetGlobalFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGlobalFeedUseCase';
 import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/useCases/commands/AddActivityToFeedUseCase';
+import { GetCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionsUseCase';
 
 export interface UseCases {
   // User use cases
@@ -49,7 +49,7 @@ export interface UseCases {
   updateCollectionUseCase: UpdateCollectionUseCase;
   deleteCollectionUseCase: DeleteCollectionUseCase;
   getCollectionPageUseCase: GetCollectionPageUseCase;
-  getMyCollectionsUseCase: GetMyCollectionsUseCase;
+  getCollectionsUseCase: GetCollectionsUseCase;
   // Feed use cases
   getGlobalFeedUseCase: GetGlobalFeedUseCase;
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
@@ -152,7 +152,7 @@ export class UseCaseFactory {
         repositories.cardQueryRepository,
         services.profileService,
       ),
-      getMyCollectionsUseCase: new GetMyCollectionsUseCase(
+      getCollectionsUseCase: new GetCollectionsUseCase(
         repositories.collectionQueryRepository,
         services.profileService,
       ),

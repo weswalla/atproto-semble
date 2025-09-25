@@ -16,30 +16,35 @@ export function createCollectionRoutes(
 ): Router {
   const router = Router();
 
-  // Apply authentication middleware to all collection routes
-  router.use(authMiddleware.ensureAuthenticated());
-
   // Query routes
   // GET /api/collections - Get my collections
-  router.get('/', (req, res) => getMyCollectionsController.execute(req, res));
+  router.get('/', authMiddleware.ensureAuthenticated(), (req, res) =>
+    getMyCollectionsController.execute(req, res),
+  );
 
   // GET /api/collections/:collectionId - Get collection page
-  router.get('/:collectionId', (req, res) =>
+  router.get('/:collectionId', authMiddleware.optionalAuth(), (req, res) =>
     getCollectionPageController.execute(req, res),
   );
 
   // Command routes
   // POST /api/collections - Create a new collection
-  router.post('/', (req, res) => createCollectionController.execute(req, res));
+  router.post('/', authMiddleware.ensureAuthenticated(), (req, res) =>
+    createCollectionController.execute(req, res),
+  );
 
   // PUT /api/collections/:collectionId - Update collection details
-  router.put('/:collectionId', (req, res) =>
-    updateCollectionController.execute(req, res),
+  router.put(
+    '/:collectionId',
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => updateCollectionController.execute(req, res),
   );
 
   // DELETE /api/collections/:collectionId - Delete a collection
-  router.delete('/:collectionId', (req, res) =>
-    deleteCollectionController.execute(req, res),
+  router.delete(
+    '/:collectionId',
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => deleteCollectionController.execute(req, res),
   );
 
   return router;

@@ -12,6 +12,7 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 
 export interface GetCollectionPageQuery {
   collectionId: string;
+  callerDid?: string;
   page?: number;
   limit?: number;
   sortBy?: CardSortField;

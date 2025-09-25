@@ -13,6 +13,7 @@ export class GetCollectionPageController extends Controller {
     try {
       const { collectionId } = req.params;
       const { page, limit, sortBy, sortOrder } = req.query;
+      const callerDid = req.did;
 
       if (!collectionId) {
         return this.badRequest(res, 'Collection ID is required');
@@ -20,6 +21,7 @@ export class GetCollectionPageController extends Controller {
 
       const result = await this.getCollectionPageUseCase.execute({
         collectionId,
+        callerDid,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,
         sortBy: sortBy as CardSortField,

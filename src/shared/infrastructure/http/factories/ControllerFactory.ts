@@ -20,6 +20,7 @@ import { GetMyCollectionsController } from '../../../../modules/cards/infrastruc
 import { GetGlobalFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetGlobalFeedController';
 import { UseCases } from './UseCaseFactory';
 import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetMyProfileController';
+import { GetUserProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetUserProfileController';
 import { LoginWithAppPasswordController } from 'src/modules/user/infrastructure/http/controllers/LoginWithAppPasswordController';
 import { LogoutController } from 'src/modules/user/infrastructure/http/controllers/LogoutController';
 import { GenerateExtensionTokensController } from 'src/modules/user/infrastructure/http/controllers/GenerateExtensionTokensController';
@@ -32,6 +33,7 @@ export interface Controllers {
   initiateOAuthSignInController: InitiateOAuthSignInController;
   completeOAuthSignInController: CompleteOAuthSignInController;
   getMyProfileController: GetMyProfileController;
+  getUserProfileController: GetUserProfileController;
   refreshAccessTokenController: RefreshAccessTokenController;
   generateExtensionTokensController: GenerateExtensionTokensController;
   // Card controllers
@@ -71,6 +73,9 @@ export class ControllerFactory {
         useCases.completeOAuthSignInUseCase,
       ),
       getMyProfileController: new GetMyProfileController(
+        useCases.getMyProfileUseCase,
+      ),
+      getUserProfileController: new GetUserProfileController(
         useCases.getMyProfileUseCase,
       ),
       refreshAccessTokenController: new RefreshAccessTokenController(

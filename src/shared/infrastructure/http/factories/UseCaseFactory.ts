@@ -17,7 +17,7 @@ import { DeleteCollectionUseCase } from '../../../../modules/cards/application/u
 import { GetCollectionPageUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionPageUseCase';
 import { Repositories } from './RepositoryFactory';
 import { Services, SharedServices } from './ServiceFactory';
-import { GetMyProfileUseCase } from 'src/modules/cards/application/useCases/queries/GetMyProfileUseCase';
+import { GetProfileUseCase } from 'src/modules/cards/application/useCases/queries/GetMyProfileUseCase';
 import { LoginWithAppPasswordUseCase } from 'src/modules/user/application/use-cases/LoginWithAppPasswordUseCase';
 import { LogoutUseCase } from 'src/modules/user/application/use-cases/LogoutUseCase';
 import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use-cases/GenerateExtensionTokensUseCase';
@@ -31,7 +31,7 @@ export interface UseCases {
   logoutUseCase: LogoutUseCase;
   initiateOAuthSignInUseCase: InitiateOAuthSignInUseCase;
   completeOAuthSignInUseCase: CompleteOAuthSignInUseCase;
-  getMyProfileUseCase: GetMyProfileUseCase;
+  getMyProfileUseCase: GetProfileUseCase;
   refreshAccessTokenUseCase: RefreshAccessTokenUseCase;
   generateExtensionTokensUseCase: GenerateExtensionTokensUseCase;
   // Card use cases
@@ -82,7 +82,7 @@ export class UseCaseFactory {
         repositories.userRepository,
         services.userAuthService,
       ),
-      getMyProfileUseCase: new GetMyProfileUseCase(services.profileService),
+      getMyProfileUseCase: new GetProfileUseCase(services.profileService),
       refreshAccessTokenUseCase: new RefreshAccessTokenUseCase(
         services.tokenService,
       ),

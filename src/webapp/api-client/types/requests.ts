@@ -114,3 +114,7 @@ export interface RefreshAccessTokenRequest {
 export interface GenerateExtensionTokensRequest {
   // No additional parameters needed - user is authenticated via middleware
 }
+
+export interface GetUserProfileParams {
+  did: string;
+}

@@ -1,22 +1,21 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { GetProfileUseCase } from '../../../application/useCases/queries/GetMyProfileUseCase';
-import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
-export class GetMyProfileController extends Controller {
+export class GetUserProfileController extends Controller {
   constructor(private getProfileUseCase: GetProfileUseCase) {
     super();
   }
 
-  async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
+  async executeImpl(req: Request, res: Response): Promise<any> {
     try {
-      const userId = req.did;
+      const { did } = req.params;
 
-      if (!userId) {
-        return this.unauthorized(res);
+      if (!did) {
+        return this.fail(res, 'DID is required');
       }
 
-      const result = await this.getProfileUseCase.execute({ userId });
+      const result = await this.getProfileUseCase.execute({ userId: did });
 
       if (result.isErr()) {
         return this.fail(res, result.error as any);

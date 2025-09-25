@@ -46,6 +46,7 @@ export const createExpressApp = (
     controllers.loginWithAppPasswordController,
     controllers.logoutController,
     controllers.getMyProfileController,
+    controllers.getUserProfileController,
     controllers.refreshAccessTokenController,
     controllers.generateExtensionTokensController,
   );

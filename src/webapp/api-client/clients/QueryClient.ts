@@ -12,6 +12,7 @@ import {
   GetCollectionPageParams,
   GetMyCollectionsParams,
   GetUserCollectionsParams,
+  GetUserProfileParams,
 } from '../types';
 
 export class QueryClient extends BaseClient {
@@ -72,6 +73,10 @@ export class QueryClient extends BaseClient {
 
   async getMyProfile(): Promise<GetMyProfileResponse> {
     return this.request<GetMyProfileResponse>('GET', '/api/users/me');
+  }
+
+  async getUserProfile(params: GetUserProfileParams): Promise<GetMyProfileResponse> {
+    return this.request<GetMyProfileResponse>('GET', `/api/users/${params.did}`);
   }
 
   async getCollectionPage(

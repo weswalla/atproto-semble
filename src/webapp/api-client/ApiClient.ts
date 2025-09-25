@@ -55,6 +55,7 @@ import type {
   GetCollectionsParams,
   GetUrlCardsParams,
   GetUrlCardsResponse,
+  GetUserProfileParams,
 } from './types';
 
 // Main API Client class using composition
@@ -118,6 +119,10 @@ export class ApiClient {
   async getMyProfile(): Promise<GetMyProfileResponse> {
     this.requireAuthentication('getMyProfile');
     return this.queryClient.getMyProfile();
+  }
+
+  async getUserProfile(params: GetUserProfileParams): Promise<GetMyProfileResponse> {
+    return this.queryClient.getUserProfile(params);
   }
 
   async getCollectionPage(

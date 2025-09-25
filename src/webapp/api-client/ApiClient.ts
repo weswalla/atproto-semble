@@ -29,7 +29,6 @@ import type {
   GetMyUrlCardsParams,
   GetCollectionPageParams,
   GetMyCollectionsParams,
-  GetUserCollectionsParams,
   GetGlobalFeedParams,
   // Response types
   AddUrlToLibraryResponse,
@@ -52,8 +51,9 @@ import type {
   GetLibrariesForCardResponse,
   GetMyProfileResponse,
   GetCollectionPageResponse,
-  GetMyCollectionsResponse,
   GetGlobalFeedResponse,
+  GetCollectionsResponse,
+  GetCollectionsParams,
 } from './types';
 
 // Main API Client class using composition
@@ -124,14 +124,14 @@ export class ApiClient {
 
   async getMyCollections(
     params?: GetMyCollectionsParams,
-  ): Promise<GetMyCollectionsResponse> {
+  ): Promise<GetCollectionsResponse> {
     this.requireAuthentication('getMyCollections');
     return this.queryClient.getMyCollections(params);
   }
 
-  async getUserCollections(
-    params: GetUserCollectionsParams,
-  ): Promise<GetMyCollectionsResponse> {
+  async getCollections(
+    params: GetCollectionsParams,
+  ): Promise<GetCollectionsResponse> {
     return this.queryClient.getUserCollections(params);
   }
 

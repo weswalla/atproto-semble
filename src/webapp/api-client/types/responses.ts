@@ -187,7 +187,7 @@ export interface GetCollectionPageResponse {
   sorting: Sorting;
 }
 
-export interface GetMyCollectionsResponse {
+export interface GetCollectionsResponse {
   collections: Array<{
     id: string;
     name: string;

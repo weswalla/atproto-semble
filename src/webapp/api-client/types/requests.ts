@@ -67,8 +67,8 @@ export interface GetMyCollectionsParams {
   searchText?: string;
 }
 
-export interface GetUserCollectionsParams {
-  handle: string;
+export interface GetCollectionsParams {
+  did: string;
   page?: number;
   limit?: number;
   sortBy?: string;

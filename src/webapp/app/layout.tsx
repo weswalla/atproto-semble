@@ -31,7 +31,7 @@ export default function RootLayout({
       <head>
         <ColorSchemeScript />
       </head>
-      <body className={GlobalStyles.body}>
+      <body className={GlobalStyles.main}>
         <Providers>{children}</Providers>
         <Analytics />
       </body>

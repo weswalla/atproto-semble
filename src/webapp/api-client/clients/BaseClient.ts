@@ -4,7 +4,7 @@ import { TokenManager } from '../../services/TokenManager';
 export abstract class BaseClient {
   constructor(
     protected baseUrl: string,
-    protected tokenManager: TokenManager,
+    protected tokenManager?: TokenManager,
   ) {}
 
   protected async request<T>(
@@ -14,7 +14,9 @@ export abstract class BaseClient {
   ): Promise<T> {
     const makeRequest = async (): Promise<T> => {
       const url = `${this.baseUrl}${endpoint}`;
-      const token = await this.tokenManager.getAccessToken();
+      const token = this.tokenManager
+        ? await this.tokenManager.getAccessToken()
+        : null;
 
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
@@ -43,8 +45,9 @@ export abstract class BaseClient {
     try {
       return await makeRequest();
     } catch (error) {
-      // Handle 401/403 errors with automatic token refresh
+      // Handle 401/403 errors with automatic token refresh (only if we have a token manager)
       if (
+        this.tokenManager &&
         error instanceof ApiError &&
         (error.status === 401 || error.status === 403)
       ) {

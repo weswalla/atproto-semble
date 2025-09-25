@@ -2,6 +2,7 @@ import { AtpAgent, Agent } from '@atproto/api';
 import { err, ok, Result } from 'src/shared/core/Result';
 import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
+import { ATPROTO_SERVICE_ENDPOINTS } from '../services/ServiceEndpoints';
 
 export class AppPasswordAgentService implements IAgentService {
   constructor(private readonly props: { did: string; password: string }) {
@@ -10,14 +11,14 @@ export class AppPasswordAgentService implements IAgentService {
   getUnauthenticatedAgent(): Result<Agent, Error> {
     return ok(
       new AtpAgent({
-        service: 'https://bsky.social',
+        service: ATPROTO_SERVICE_ENDPOINTS.UNAUTHENTICATED_BSKY_SERVICE,
       }),
     );
   }
   async getAuthenticatedAgent(did: DID): Promise<Result<Agent, Error>> {
     try {
       const agent = new AtpAgent({
-        service: 'https://bsky.social',
+        service: ATPROTO_SERVICE_ENDPOINTS.AUTHENTICATED_BSKY_SERVICE,
       });
 
       await agent.login({

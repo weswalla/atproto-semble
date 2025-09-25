@@ -11,12 +11,16 @@ export class GetUrlCardViewController extends Controller {
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const { cardId } = req.params;
+      const callerDid = req.did;
 
       if (!cardId) {
         return this.badRequest(res, 'Card ID is required');
       }
 
-      const result = await this.getUrlCardViewUseCase.execute({ cardId });
+      const result = await this.getUrlCardViewUseCase.execute({
+        cardId,
+        callerDid,
+      });
 
       if (result.isErr()) {
         return this.fail(res, result.error as any);

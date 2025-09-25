@@ -71,6 +71,9 @@ export class UserClient extends BaseClient {
   }
 
   async logout(): Promise<{ success: boolean; message: string }> {
+    if (!this.tokenManager) {
+      throw new Error('TokenManager is required for logout');
+    }
     const refreshToken = await this.tokenManager.getRefreshToken();
     return this.request<{ success: boolean; message: string }>(
       'POST',

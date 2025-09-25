@@ -4,6 +4,7 @@ import { Result, ok, err } from 'src/shared/core/Result';
 import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
 import { IAppPasswordSessionService } from '../../application/IAppPasswordSessionService';
+import { ATPROTO_SERVICE_ENDPOINTS } from './ServiceEndpoints';
 
 export class ATProtoAgentService implements IAgentService {
   constructor(
@@ -13,7 +14,7 @@ export class ATProtoAgentService implements IAgentService {
   getUnauthenticatedAgent(): Result<Agent, Error> {
     return ok(
       new Agent({
-        service: 'https://bsky.social',
+        service: ATPROTO_SERVICE_ENDPOINTS.UNAUTHENTICATED_BSKY_SERVICE,
       }),
     );
   }
@@ -76,7 +77,7 @@ export class ATProtoAgentService implements IAgentService {
       if (session) {
         // Create an Agent with the session
         const agent = new AtpAgent({
-          service: 'https://bsky.social',
+          service: ATPROTO_SERVICE_ENDPOINTS.AUTHENTICATED_BSKY_SERVICE,
         });
 
         // Resume the session

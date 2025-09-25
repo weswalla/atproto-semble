@@ -106,6 +106,7 @@ export class GetCollectionPageUseCase
       // Get author profile
       const profileResult = await this.profileService.getProfile(
         collection.authorId.value,
+        query.callerDid,
       );
 
       if (profileResult.isErr()) {

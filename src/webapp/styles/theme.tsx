@@ -1,11 +1,10 @@
 'use client';
 
-import TabItem from '@/features/profile/components/profileTabs/TabItem';
 import {
+  createTheme,
   Avatar,
   Button,
   CheckboxIndicator,
-  createTheme,
   MenuItem,
   Modal,
   NavLink,

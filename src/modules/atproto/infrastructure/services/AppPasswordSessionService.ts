@@ -2,6 +2,7 @@ import { err, ok, Result } from 'src/shared/core/Result';
 import { IAppPasswordSessionRepository } from '../repositories/IAppPasswordSessionRepository';
 import { AtpAgent, AtpSessionData } from '@atproto/api';
 import { IAppPasswordSessionService } from '../../application/IAppPasswordSessionService';
+import { ATPROTO_SERVICE_ENDPOINTS } from './ServiceEndpoints';
 
 export class AppPasswordSessionService implements IAppPasswordSessionService {
   constructor(
@@ -14,7 +15,7 @@ export class AppPasswordSessionService implements IAppPasswordSessionService {
       return err(sessionResult.error);
     }
     const agent = new AtpAgent({
-      service: 'https://bsky.social',
+      service: ATPROTO_SERVICE_ENDPOINTS.AUTHENTICATED_BSKY_SERVICE,
     });
 
     const sessionWithAppPassword = sessionResult.value;
@@ -71,7 +72,7 @@ export class AppPasswordSessionService implements IAppPasswordSessionService {
     appPassword: string,
   ): Promise<Result<AtpSessionData>> {
     const agent = new AtpAgent({
-      service: 'https://bsky.social',
+      service: ATPROTO_SERVICE_ENDPOINTS.AUTHENTICATED_BSKY_SERVICE,
     });
 
     try {

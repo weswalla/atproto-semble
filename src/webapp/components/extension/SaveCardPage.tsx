@@ -13,9 +13,10 @@ import {
   Title,
 } from '@mantine/core';
 import { UrlCardForm } from '../UrlCardForm';
+import { createExtensionTokenManager } from '@/services/auth';
 
 export function SaveCardPage() {
-  const { logout, accessToken, user } = useExtensionAuth();
+  const { logout, user } = useExtensionAuth();
   const [currentUrl, setCurrentUrl] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -24,9 +25,9 @@ export function SaveCardPage() {
     () =>
       new ApiClient(
         process.env.PLASMO_PUBLIC_API_URL || 'http://localhost:3000',
-        () => accessToken,
+        createExtensionTokenManager(),
       ),
-    [accessToken],
+    [],
   );
 
   // Get current tab URL when popup opens

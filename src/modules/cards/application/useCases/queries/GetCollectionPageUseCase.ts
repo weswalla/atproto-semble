@@ -12,6 +12,7 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 
 export interface GetCollectionPageQuery {
   collectionId: string;
+  callerDid?: string;
   page?: number;
   limit?: number;
   sortBy?: CardSortField;
@@ -105,6 +106,7 @@ export class GetCollectionPageUseCase
       // Get author profile
       const profileResult = await this.profileService.getProfile(
         collection.authorId.value,
+        query.callerDid,
       );
 
       if (profileResult.isErr()) {

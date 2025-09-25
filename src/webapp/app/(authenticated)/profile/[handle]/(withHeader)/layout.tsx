@@ -1,8 +1,9 @@
 import { ApiClient } from '@/api-client/ApiClient';
 import Header from '@/components/navigation/header/Header';
 import ProfileHeader from '@/features/profile/components/profileHeader/ProfileHeader';
+import ProfileTabs from '@/features/profile/components/profileTabs/ProfileTabs';
 import { getAccessTokenInServerComponent } from '@/services/auth';
-import { Button, Container, Stack, Text, Title } from '@mantine/core';
+import { Box, Button, Container, Stack, Title } from '@mantine/core';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Fragment } from 'react';
@@ -52,6 +53,17 @@ export default async function Layout(props: Props) {
     <Fragment>
       <Header />
       <ProfileHeader handle={handle} />
+      <Box
+        style={{
+          position: 'sticky',
+          top: 59,
+          zIndex: 101,
+        }}
+      >
+        <Container bg={'white'} px={'xs'} size={'xl'}>
+          <ProfileTabs handle={data.handle} />
+        </Container>
+      </Box>
       {props.children}
     </Fragment>
   );

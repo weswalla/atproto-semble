@@ -1,5 +1,5 @@
-import { ApiClient } from '@/api-client/ApiClient';
-import { getAccessTokenInServerComponent } from '@/services/auth';
+'use client';
+
 import {
   Container,
   Stack,
@@ -8,26 +8,44 @@ import {
   Text,
   Title,
   Button,
+  Box,
 } from '@mantine/core';
 import { FaBluesky } from 'react-icons/fa6';
 import ProfileTabs from '../profileTabs/ProfileTabs';
 import { truncateText } from '@/lib/utils/text';
+import useMyProfile from '../../lib/queries/useMyProfile';
+import { useWindowScroll } from '@mantine/hooks';
+import MinimalProfileHeader from './MinimalProfileHeader';
 
 interface Props {
   handle: string;
 }
 
-export default async function ProfileHeader(props: Props) {
-  const accessToken = await getAccessTokenInServerComponent();
+export default function ProfileHeader(props: Props) {
+  const { data } = useMyProfile();
+  const [{ y }] = useWindowScroll();
 
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    () => accessToken,
-  );
-  const data = await apiClient.getMyProfile();
-
+  // profile header
   return (
-    <Container p={'xs'} size={'xl'}>
+    <Container bg={'white'} p={'xs'} size={'xl'}>
+      <Box
+        style={{
+          position: 'fixed',
+          top: 0,
+          width: '100%',
+          zIndex: 101,
+          transform: `translateY(${y > 150 ? '0' : '-100px'})`,
+          transition: 'transform 200ms ease',
+          backgroundColor: 'var(--mantine-color-body)',
+        }}
+      >
+        <MinimalProfileHeader
+          avatarUrl={data.avatarUrl}
+          name={data.name}
+          handle={data.handle}
+        />
+      </Box>
+
       <Stack gap={'xl'}>
         <Group justify="space-between" align="end">
           <Group gap={'lg'} align="end">
@@ -59,7 +77,6 @@ export default async function ProfileHeader(props: Props) {
             {truncateText(data.handle, 14)}
           </Button>
         </Group>
-        <ProfileTabs handle={data.handle} />
       </Stack>
     </Container>
   );

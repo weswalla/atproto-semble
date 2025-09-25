@@ -41,7 +41,7 @@ export class ValidationError extends Error {
   }
 }
 
-export class GetMyUrlCardsUseCase
+export class GetUrlCardsUseCase
   implements UseCase<GetMyUrlCardsQuery, Result<GetMyUrlCardsResult>>
 {
   constructor(private cardQueryRepo: ICardQueryRepository) {}

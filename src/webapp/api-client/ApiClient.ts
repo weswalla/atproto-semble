@@ -27,6 +27,7 @@ import type {
   RefreshAccessTokenRequest,
   GenerateExtensionTokensRequest,
   GetMyUrlCardsParams,
+  GetUserUrlCardsParams,
   GetCollectionPageParams,
   GetMyCollectionsParams,
   GetGlobalFeedParams,
@@ -97,6 +98,12 @@ export class ApiClient {
   ): Promise<GetMyUrlCardsResponse> {
     this.requireAuthentication('getMyUrlCards');
     return this.queryClient.getMyUrlCards(params);
+  }
+
+  async getUserUrlCards(
+    params: GetUserUrlCardsParams,
+  ): Promise<GetMyUrlCardsResponse> {
+    return this.queryClient.getUserUrlCards(params);
   }
 
   async getUrlCardView(cardId: string): Promise<GetUrlCardViewResponse> {

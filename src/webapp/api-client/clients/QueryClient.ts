@@ -8,6 +8,7 @@ import {
   GetCollectionPageResponse,
   GetMyCollectionsResponse,
   GetMyUrlCardsParams,
+  GetUserUrlCardsParams,
   GetCollectionPageParams,
   GetMyCollectionsParams,
   GetUserCollectionsParams,
@@ -35,6 +36,23 @@ export class QueryClient extends BaseClient {
     const endpoint = queryString
       ? `/api/cards/my?${queryString}`
       : '/api/cards/my';
+
+    return this.request<GetMyUrlCardsResponse>('GET', endpoint);
+  }
+
+  async getUserUrlCards(
+    params: GetUserUrlCardsParams,
+  ): Promise<GetMyUrlCardsResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/cards/user/${params.did}?${queryString}`
+      : `/api/cards/user/${params.did}`;
 
     return this.request<GetMyUrlCardsResponse>('GET', endpoint);
   }

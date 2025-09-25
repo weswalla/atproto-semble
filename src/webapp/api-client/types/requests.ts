@@ -52,6 +52,14 @@ export interface GetMyUrlCardsParams {
   sortOrder?: 'asc' | 'desc';
 }
 
+export interface GetUserUrlCardsParams {
+  did: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
 export interface GetCollectionPageParams {
   page?: number;
   limit?: number;

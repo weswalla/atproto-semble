@@ -22,7 +22,8 @@ interface Props {
 
 export default function ProfileHeader(props: Props) {
   const { data } = useMyProfile();
-  const [{ y }] = useWindowScroll();
+  const [{ y: yScroll }] = useWindowScroll();
+  const HEADER_REVEAL_SCROLL_THRESHOLD = 190;
 
   // profile header
   return (
@@ -33,7 +34,7 @@ export default function ProfileHeader(props: Props) {
           top: 0,
           width: '100%',
           zIndex: 2,
-          transform: `translateY(${y > 150 ? '0' : '-100px'})`,
+          transform: `translateY(${yScroll > HEADER_REVEAL_SCROLL_THRESHOLD ? '0' : '-100px'})`,
           transition: 'transform 200ms ease',
           backgroundColor: 'var(--mantine-color-body)',
         }}

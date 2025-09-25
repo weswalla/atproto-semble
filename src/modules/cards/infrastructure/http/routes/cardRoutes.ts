@@ -26,57 +26,66 @@ export function createCardRoutes(
 ): Router {
   const router = Router();
 
-  // Apply authentication middleware to all card routes
-  router.use(authMiddleware.ensureAuthenticated());
-
   // Query routes
   // GET /api/cards/metadata - Get URL metadata
-  router.get('/metadata', (req, res) =>
+  router.get('/metadata', authMiddleware.optionalAuth(), (req, res) =>
     getUrlMetadataController.execute(req, res),
   );
 
   // GET /api/cards/my - Get my URL cards
-  router.get('/my', (req, res) => getMyUrlCardsController.execute(req, res));
+  router.get('/my', authMiddleware.ensureAuthenticated(), (req, res) =>
+    getMyUrlCardsController.execute(req, res),
+  );
 
   // GET /api/cards/:cardId - Get URL card view
-  router.get('/:cardId', (req, res) =>
+  router.get('/:cardId', authMiddleware.optionalAuth(), (req, res) =>
     getUrlCardViewController.execute(req, res),
   );
 
   // GET /api/cards/:cardId/libraries - Get libraries for card
-  router.get('/:cardId/libraries', (req, res) =>
+  router.get('/:cardId/libraries', authMiddleware.optionalAuth(), (req, res) =>
     getLibrariesForCardController.execute(req, res),
   );
 
   // Command routes
   // POST /api/cards/library/urls - Add URL to library (with optional note and collections)
-  router.post('/library/urls', (req, res) =>
-    addUrlToLibraryController.execute(req, res),
+  router.post(
+    '/library/urls',
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => addUrlToLibraryController.execute(req, res),
   );
 
   // POST /api/cards/library - Add existing card to library
-  router.post('/library', (req, res) =>
+  router.post('/library', authMiddleware.ensureAuthenticated(), (req, res) =>
     addCardToLibraryController.execute(req, res),
   );
 
   // POST /api/cards/collections - Add card to collections
-  router.post('/collections', (req, res) =>
-    addCardToCollectionController.execute(req, res),
+  router.post(
+    '/collections',
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => addCardToCollectionController.execute(req, res),
   );
 
   // PUT /api/cards/:cardId/note - Update note card content
-  router.put('/:cardId/note', (req, res) =>
-    updateNoteCardController.execute(req, res),
+  router.put(
+    '/:cardId/note',
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => updateNoteCardController.execute(req, res),
   );
 
   // DELETE /api/cards/:cardId/library - Remove card from user's library
-  router.delete('/:cardId/library', (req, res) =>
-    removeCardFromLibraryController.execute(req, res),
+  router.delete(
+    '/:cardId/library',
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => removeCardFromLibraryController.execute(req, res),
   );
 
   // DELETE /api/cards/:cardId/collections - Remove card from specified collections
-  router.delete('/:cardId/collections', (req, res) =>
-    removeCardFromCollectionController.execute(req, res),
+  router.delete(
+    '/:cardId/collections',
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => removeCardFromCollectionController.execute(req, res),
   );
 
   return router;

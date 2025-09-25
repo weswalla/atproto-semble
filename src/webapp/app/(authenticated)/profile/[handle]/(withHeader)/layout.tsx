@@ -60,7 +60,7 @@ export default async function Layout(props: Props) {
           zIndex: 1,
         }}
       >
-        <Container bg={'white'} px={'xs'} size={'xl'}>
+        <Container bg={'white'} px={'xs'} mt={'md'} size={'xl'}>
           <ProfileTabs handle={data.handle} />
         </Container>
       </Box>

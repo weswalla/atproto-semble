@@ -54,7 +54,7 @@ export class ValidationError extends Error {
   }
 }
 
-export class GetMyCollectionsUseCase
+export class GetCollectionsUseCase
   implements UseCase<GetMyCollectionsQuery, Result<GetMyCollectionsResult>>
 {
   constructor(

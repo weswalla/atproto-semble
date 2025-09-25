@@ -10,6 +10,7 @@ import {
   GetMyUrlCardsParams,
   GetCollectionPageParams,
   GetMyCollectionsParams,
+  GetUserCollectionsParams,
 } from '../types';
 
 export class QueryClient extends BaseClient {
@@ -87,6 +88,24 @@ export class QueryClient extends BaseClient {
     const endpoint = queryString
       ? `/api/collections?${queryString}`
       : '/api/collections';
+
+    return this.request<GetMyCollectionsResponse>('GET', endpoint);
+  }
+
+  async getUserCollections(
+    params: GetUserCollectionsParams,
+  ): Promise<GetMyCollectionsResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    if (params.searchText) searchParams.set('searchText', params.searchText);
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/collections/user/${params.handle}?${queryString}`
+      : `/api/collections/user/${params.handle}`;
 
     return this.request<GetMyCollectionsResponse>('GET', endpoint);
   }

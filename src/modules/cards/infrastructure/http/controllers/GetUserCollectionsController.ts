@@ -1,25 +1,26 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
-import { Response } from 'express';
-import { GetCollectionsUseCase } from '../../../application/useCases/queries/GetMyCollectionsUseCase';
-import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
+import { Request, Response } from 'express';
+import { GetCollectionsUseCase } from '../../../application/useCases/queries/GetCollectionsUseCase';
 import {
   CollectionSortField,
   SortOrder,
 } from '../../../domain/ICollectionQueryRepository';
 
-export class GetMyCollectionsController extends Controller {
+export class GetUserCollectionsController extends Controller {
   constructor(private getCollectionsUseCase: GetCollectionsUseCase) {
     super();
   }
 
-  async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
+  async executeImpl(req: Request, res: Response): Promise<any> {
     try {
-      const curatorId = req.did;
+      const { did } = req.params;
       const { page, limit, sortBy, sortOrder, searchText } = req.query;
 
-      if (!curatorId) {
-        return this.unauthorized(res);
+      if (!did) {
+        return this.fail(res, 'DID is required');
       }
+
+      const curatorId = did;
 
       const result = await this.getCollectionsUseCase.execute({
         curatorId,

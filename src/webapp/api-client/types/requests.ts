@@ -67,6 +67,15 @@ export interface GetMyCollectionsParams {
   searchText?: string;
 }
 
+export interface GetUserCollectionsParams {
+  handle: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  searchText?: string;
+}
+
 // Feed request types
 export interface GetGlobalFeedParams {
   page?: number;

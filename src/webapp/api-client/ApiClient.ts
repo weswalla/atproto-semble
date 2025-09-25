@@ -29,6 +29,7 @@ import type {
   GetMyUrlCardsParams,
   GetCollectionPageParams,
   GetMyCollectionsParams,
+  GetUserCollectionsParams,
   GetGlobalFeedParams,
   // Response types
   AddUrlToLibraryResponse,
@@ -126,6 +127,12 @@ export class ApiClient {
   ): Promise<GetMyCollectionsResponse> {
     this.requireAuthentication('getMyCollections');
     return this.queryClient.getMyCollections(params);
+  }
+
+  async getUserCollections(
+    params: GetUserCollectionsParams,
+  ): Promise<GetMyCollectionsResponse> {
+    return this.queryClient.getUserCollections(params);
   }
 
   // Card operations - delegate to CardClient (all require authentication)

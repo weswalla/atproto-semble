@@ -11,6 +11,7 @@ import { GetUrlMetadataController } from '../../../../modules/cards/infrastructu
 import { GetUrlCardViewController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlCardViewController';
 import { GetLibrariesForCardController } from '../../../../modules/cards/infrastructure/http/controllers/GetLibrariesForCardController';
 import { GetMyUrlCardsController } from '../../../../modules/cards/infrastructure/http/controllers/GetMyUrlCardsController';
+import { GetUserUrlCardsController } from '../../../../modules/cards/infrastructure/http/controllers/GetUserUrlCardsController';
 import { CreateCollectionController } from '../../../../modules/cards/infrastructure/http/controllers/CreateCollectionController';
 import { UpdateCollectionController } from '../../../../modules/cards/infrastructure/http/controllers/UpdateCollectionController';
 import { DeleteCollectionController } from '../../../../modules/cards/infrastructure/http/controllers/DeleteCollectionController';
@@ -44,6 +45,7 @@ export interface Controllers {
   getUrlCardViewController: GetUrlCardViewController;
   getLibrariesForCardController: GetLibrariesForCardController;
   getMyUrlCardsController: GetMyUrlCardsController;
+  getUserUrlCardsController: GetUserUrlCardsController;
   createCollectionController: CreateCollectionController;
   updateCollectionController: UpdateCollectionController;
   deleteCollectionController: DeleteCollectionController;
@@ -108,6 +110,9 @@ export class ControllerFactory {
         useCases.getLibrariesForCardUseCase,
       ),
       getMyUrlCardsController: new GetMyUrlCardsController(
+        useCases.getMyUrlCardsUseCase,
+      ),
+      getUserUrlCardsController: new GetUserUrlCardsController(
         useCases.getMyUrlCardsUseCase,
       ),
       createCollectionController: new CreateCollectionController(

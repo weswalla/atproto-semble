@@ -11,6 +11,7 @@ import { GetUrlMetadataController } from '../controllers/GetUrlMetadataControlle
 import { GetUrlCardViewController } from '../controllers/GetUrlCardViewController';
 import { GetLibrariesForCardController } from '../controllers/GetLibrariesForCardController';
 import { GetMyUrlCardsController } from '../controllers/GetMyUrlCardsController';
+import { GetUserUrlCardsController } from '../controllers/GetUserUrlCardsController';
 import { CreateCollectionController } from '../controllers/CreateCollectionController';
 import { UpdateCollectionController } from '../controllers/UpdateCollectionController';
 import { DeleteCollectionController } from '../controllers/DeleteCollectionController';
@@ -32,6 +33,7 @@ export function createCardsModuleRoutes(
   getUrlCardViewController: GetUrlCardViewController,
   getLibrariesForCardController: GetLibrariesForCardController,
   getMyUrlCardsController: GetMyUrlCardsController,
+  getUserUrlCardsController: GetUserUrlCardsController,
   // Collection controllers
   createCollectionController: CreateCollectionController,
   updateCollectionController: UpdateCollectionController,
@@ -57,6 +59,7 @@ export function createCardsModuleRoutes(
       getUrlCardViewController,
       getLibrariesForCardController,
       getMyUrlCardsController,
+      getUserUrlCardsController,
     ),
   );
 

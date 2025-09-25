@@ -10,7 +10,7 @@ import { RemoveCardFromCollectionUseCase } from '../../../../modules/cards/appli
 import { GetUrlMetadataUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlMetadataUseCase';
 import { GetUrlCardViewUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlCardViewUseCase';
 import { GetLibrariesForCardUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForCardUseCase';
-import { GetMyUrlCardsUseCase } from '../../../../modules/cards/application/useCases/queries/GetMyUrlCardsUseCase';
+import { GetUrlCardsUseCase } from '../../../../modules/cards/application/useCases/queries/GetMyUrlCardsUseCase';
 import { CreateCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/CreateCollectionUseCase';
 import { UpdateCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateCollectionUseCase';
 import { DeleteCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/DeleteCollectionUseCase';
@@ -44,7 +44,7 @@ export interface UseCases {
   getUrlMetadataUseCase: GetUrlMetadataUseCase;
   getUrlCardViewUseCase: GetUrlCardViewUseCase;
   getLibrariesForCardUseCase: GetLibrariesForCardUseCase;
-  getMyUrlCardsUseCase: GetMyUrlCardsUseCase;
+  getMyUrlCardsUseCase: GetUrlCardsUseCase;
   createCollectionUseCase: CreateCollectionUseCase;
   updateCollectionUseCase: UpdateCollectionUseCase;
   deleteCollectionUseCase: DeleteCollectionUseCase;
@@ -132,7 +132,7 @@ export class UseCaseFactory {
         repositories.cardQueryRepository,
         services.profileService,
       ),
-      getMyUrlCardsUseCase: new GetMyUrlCardsUseCase(
+      getMyUrlCardsUseCase: new GetUrlCardsUseCase(
         repositories.cardQueryRepository,
       ),
       createCollectionUseCase: new CreateCollectionUseCase(

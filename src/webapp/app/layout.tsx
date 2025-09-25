@@ -1,5 +1,6 @@
 import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
+import GlobalStyles from '@/styles/global.module.css';
 import { ColorSchemeScript, mantineHtmlProps } from '@mantine/core';
 import { Hanken_Grotesk } from 'next/font/google';
 import Providers from '@/providers';
@@ -30,7 +31,7 @@ export default function RootLayout({
       <head>
         <ColorSchemeScript />
       </head>
-      <body>
+      <body className={GlobalStyles.body}>
         <Providers>{children}</Providers>
         <Analytics />
       </body>

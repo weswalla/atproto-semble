@@ -9,11 +9,13 @@ Many business operations naturally support both authenticated and unauthenticate
 ## Why This Pattern Makes Sense
 
 ### Business Reality
+
 - Many operations serve both user types (e.g., viewing public collections)
 - Authenticated users often get enhanced functionality or additional data
 - Same core business logic with context-dependent variations
 
 ### Architectural Benefits
+
 - **Single Responsibility**: One use case per business operation
 - **Explicit Dependencies**: Clear what context is needed
 - **Clean Layer Separation**: Each layer handles its concerns appropriately
@@ -22,6 +24,7 @@ Many business operations naturally support both authenticated and unauthenticate
 ## Implementation Pattern
 
 ### Controller Layer
+
 Extract authentication context from HTTP layer and pass it down:
 
 ```typescript
@@ -34,6 +37,7 @@ async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
 ```
 
 ### Use Case Layer
+
 Accept optional caller context and pass it to domain services:
 
 ```typescript
@@ -53,6 +57,7 @@ async execute(query: SomeQuery): Promise<Result<SomeResult>> {
 ```
 
 ### Domain Service Layer
+
 Make decisions based on caller identity:
 
 ```typescript
@@ -71,21 +76,26 @@ async doSomething(targetId: string, callerDid?: string): Promise<Result<Data>> {
 
 ```typescript
 export class GetCollectionPageUseCase {
-  async execute(query: GetCollectionPageQuery): Promise<Result<GetCollectionPageResult>> {
+  async execute(
+    query: GetCollectionPageQuery,
+  ): Promise<Result<GetCollectionPageResult>> {
     // Core business logic remains the same
     const collection = await this.getCollection(query.collectionId);
-    
+
     // Context affects behavior where needed
     const profile = await this.profileService.getProfile(
       collection.authorId.value,
-      query.callerDid // undefined for unauth users
+      query.callerDid, // undefined for unauth users
     );
-    
+
     // Business rules can vary based on context
-    if (this.isPrivateCollection(collection) && !this.canAccess(collection, query.callerDid)) {
+    if (
+      this.isPrivateCollection(collection) &&
+      !this.canAccess(collection, query.callerDid)
+    ) {
       return err(new UnauthorizedError());
     }
-    
+
     return ok(result);
   }
 }
@@ -94,6 +104,7 @@ export class GetCollectionPageUseCase {
 ## Common Use Cases
 
 This pattern works well for:
+
 - **Profile viewing** (public vs private details)
 - **Content feeds** (personalized vs generic)
 - **Collection browsing** (access control based on caller)
@@ -102,6 +113,7 @@ This pattern works well for:
 ## When to Split Use Cases
 
 Consider separate use cases when:
+
 - **Fundamentally different operations**: `LoginUseCase` vs `GetPublicDataUseCase`
 - **Complex branching**: If auth/unauth paths are completely different
 - **Security isolation**: When you want to ensure certain code paths never run for unauthenticated users
@@ -120,9 +132,10 @@ For routes that support both contexts:
 
 ```typescript
 // In routes
-router.get('/:id', 
+router.get(
+  '/:id',
   authMiddleware.optionalAuthentication(), // Sets req.did if token present
-  (req, res) => controller.execute(req, res)
+  (req, res) => controller.execute(req, res),
 );
 ```
 

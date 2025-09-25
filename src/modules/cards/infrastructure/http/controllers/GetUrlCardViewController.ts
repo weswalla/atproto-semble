@@ -17,9 +17,9 @@ export class GetUrlCardViewController extends Controller {
         return this.badRequest(res, 'Card ID is required');
       }
 
-      const result = await this.getUrlCardViewUseCase.execute({ 
+      const result = await this.getUrlCardViewUseCase.execute({
         cardId,
-        callerDid 
+        callerDid,
       });
 
       if (result.isErr()) {

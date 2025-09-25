@@ -1,5 +1,5 @@
 import { ApiClient } from '@/api-client/ApiClient';
-import { getAccessTokenInServerComponent } from '@/services/auth';
+import { createServerTokenManager } from '@/services/auth';
 import {
   Container,
   Stack,
@@ -16,11 +16,11 @@ interface Props {
 }
 
 export default async function ProfileHeader(props: Props) {
-  const accessToken = await getAccessTokenInServerComponent();
+  const serverTokenManager = await createServerTokenManager();
 
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    () => accessToken,
+    serverTokenManager,
   );
   const data = await apiClient.getMyProfile();
 

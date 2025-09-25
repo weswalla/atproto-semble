@@ -17,7 +17,7 @@ import { BiRightArrowAlt } from 'react-icons/bi';
 import { IoMdHelpCircleOutline } from 'react-icons/io';
 import { MdOutlineAlternateEmail, MdLock } from 'react-icons/md';
 import { useAuth } from '@/hooks/useAuth';
-import { getAccessToken } from '@/services/auth';
+import { createClientTokenManager } from '@/services/auth';
 import { useForm } from '@mantine/form';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -34,7 +34,7 @@ export default function LoginForm() {
   const isExtensionLogin = searchParams.get('extension-login') === 'true';
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    () => getAccessToken(),
+    createClientTokenManager(),
   );
 
   const handleExtensionTokenGeneration = async () => {

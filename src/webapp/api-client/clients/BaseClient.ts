@@ -1,9 +1,10 @@
 import { ApiError, ApiErrorResponse } from '../types/errors';
+import { TokenManager } from '../../services/TokenManager';
 
 export abstract class BaseClient {
   constructor(
     protected baseUrl: string,
-    protected getAuthToken: () => string | null,
+    protected tokenManager: TokenManager,
   ) {}
 
   protected async request<T>(
@@ -11,28 +12,46 @@ export abstract class BaseClient {
     endpoint: string,
     data?: any,
   ): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
-    const token = this.getAuthToken();
+    const makeRequest = async (): Promise<T> => {
+      const url = `${this.baseUrl}${endpoint}`;
+      const token = await this.tokenManager.getAccessToken();
 
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const config: RequestInit = {
+        method,
+        headers,
+      };
+
+      if (
+        data &&
+        (method === 'POST' || method === 'PUT' || method === 'PATCH')
+      ) {
+        config.body = JSON.stringify(data);
+      }
+
+      const response = await fetch(url, config);
+      return this.handleResponse<T>(response);
     };
 
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+    try {
+      return await makeRequest();
+    } catch (error) {
+      // Handle 401/403 errors with automatic token refresh
+      if (
+        error instanceof ApiError &&
+        (error.status === 401 || error.status === 403)
+      ) {
+        return this.tokenManager.handleAuthError(makeRequest);
+      }
+      throw error;
     }
-
-    const config: RequestInit = {
-      method,
-      headers,
-    };
-
-    if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-      config.body = JSON.stringify(data);
-    }
-
-    const response = await fetch(url, config);
-    return this.handleResponse<T>(response);
   }
 
   private async handleResponse<T>(response: Response): Promise<T> {

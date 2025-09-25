@@ -1,5 +1,5 @@
 import { ApiClient } from '@/api-client/ApiClient';
-import { getAccessToken } from '@/services/auth';
+import { createClientTokenManager } from '@/services/auth';
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
 export default function useCollection(props: Props) {
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    () => getAccessToken(),
+    createClientTokenManager(),
   );
 
   const limit = props.limit ?? 20;

@@ -10,7 +10,12 @@ import {
 } from 'react';
 import { useRouter } from 'next/navigation';
 import { ApiClient, UserProfile } from '@/api-client/ApiClient';
-import { getAccessToken, getRefreshToken, clearAuth } from '@/services/auth';
+import {
+  getAccessToken,
+  getRefreshToken,
+  clearAuth,
+  createClientTokenManager,
+} from '@/services/auth';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -22,6 +27,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   refreshTokens: () => Promise<boolean>;
   setTokens: (accessToken: string, refreshToken: string) => Promise<void>;
+  revokeTokens: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const createApiClient = useCallback(() => {
     return new ApiClient(
       process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-      () => getAccessToken(),
+      createClientTokenManager(),
     );
   }, []);
 
@@ -57,22 +63,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const handleLogout = useCallback(async () => {
     try {
-      // Note: No logout endpoint call needed since refresh tokens are handled server-side
-      // and will naturally expire
+      // Call logout endpoint to revoke refresh token
+      const apiClient = createApiClient();
+      await apiClient.logout();
     } catch (error) {
       console.error('Logout error:', error);
+      // Continue with logout even if API call fails
     } finally {
-      // Clear auth state
-      clearAuth();
-      setAccessToken(null);
-      setRefreshToken(null);
-      setUser(null);
-      setIsAuthenticated(false);
+      revokeTokens();
 
       // Redirect to login
       router.push('/login');
     }
-  }, [router]);
+  }, [router, createApiClient]);
 
   const refreshTokens = useCallback(async (): Promise<boolean> => {
     if (!refreshToken) return false;
@@ -91,75 +94,73 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [refreshToken, createApiClient, handleLogout]);
 
+  // Initialize auth state from stored tokens
   useEffect(() => {
-    // Check if user is already authenticated
-    const storedAccessToken = getAccessToken();
-    const storedRefreshToken = getRefreshToken();
+    const initializeAuth = async () => {
+      const storedAccessToken = getAccessToken();
+      const storedRefreshToken = getRefreshToken();
 
-    if (storedAccessToken) {
-      setAccessToken(storedAccessToken);
-      setRefreshToken(storedRefreshToken);
-      setIsAuthenticated(true);
+      if (storedAccessToken && storedRefreshToken) {
+        setAccessToken(storedAccessToken);
+        setRefreshToken(storedRefreshToken);
+        setIsAuthenticated(true);
 
-      // Check if token is expired
-      if (isTokenExpired(storedAccessToken) && storedRefreshToken) {
-        // Try to refresh the token
-        refreshTokens()
-          .then((success) => {
-            if (success) {
-              // Token refreshed, now fetch user data with new token
-              const apiClient = createApiClient();
-              return apiClient.getMyProfile();
+        try {
+          // If token is expired, refresh it first
+          if (isTokenExpired(storedAccessToken)) {
+            const refreshSuccess = await refreshTokens();
+            if (!refreshSuccess) {
+              throw new Error('Token refresh failed');
             }
-            throw new Error('Token refresh failed');
-          })
-          .then((userData) => {
-            setUser(userData);
-          })
-          .catch((error) => {
-            console.error(
-              'Error refreshing token or fetching user data:',
-              error,
-            );
-            handleLogout();
-          })
-          .finally(() => {
-            setIsLoading(false);
-          });
-      } else {
-        // Token is still valid, fetch user data
-        const apiClient = createApiClient();
-        apiClient
-          .getMyProfile()
-          .then((userData) => {
-            setUser(userData);
-          })
-          .catch((error) => {
-            console.error('Error fetching user data:', error);
-            // If token is invalid, log out
-            handleLogout();
-          })
-          .finally(() => {
-            setIsLoading(false);
-          });
-      }
-    } else {
-      setIsLoading(false);
-    }
-  }, [refreshTokens]);
+          }
 
-  // Set up automatic token refresh
+          // Fetch user profile
+          const apiClient = createApiClient();
+          const userData = await apiClient.getMyProfile();
+          setUser(userData);
+        } catch (error) {
+          console.error('Error initializing auth:', error);
+          handleLogout();
+        }
+      }
+
+      setIsLoading(false);
+    };
+
+    initializeAuth();
+  }, []);
+
+  // Helper function to check if a JWT token is expired or will expire soon
+  const isTokenExpiredWithBuffer = (
+    token: string,
+    bufferMinutes: number = 5,
+  ): boolean => {
+    if (!token) return true;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expiry = payload.exp * 1000; // Convert to milliseconds
+      const bufferTime = bufferMinutes * 60 * 1000; // Buffer in milliseconds
+      return Date.now() >= expiry - bufferTime;
+    } catch (e) {
+      return true;
+    }
+  };
+
+  // Proactive token refresh
   useEffect(() => {
     if (!accessToken || !refreshToken) return;
 
-    const checkTokenExpiration = async () => {
-      if (isTokenExpired(accessToken)) {
+    const checkAndRefreshToken = async () => {
+      if (isTokenExpiredWithBuffer(accessToken, 10)) {
         await refreshTokens();
       }
     };
 
-    // Check token expiration every minute
-    const interval = setInterval(checkTokenExpiration, 60000);
+    // Check immediately
+    checkAndRefreshToken();
+
+    const interval = setInterval(checkAndRefreshToken, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, [accessToken, refreshToken, refreshTokens]);
@@ -207,6 +208,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     [],
   );
 
+  const revokeTokens = useCallback(async () => {
+    // Clear auth state
+    clearAuth();
+    setAccessToken(null);
+    setRefreshToken(null);
+    setUser(null);
+    setIsAuthenticated(false);
+
+    // Clear server-side cookies
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include', // Important for cookie handling
+      });
+    } catch (error) {
+      console.error('Failed to clear server-side cookies:', error);
+      // Don't throw error - localStorage tokens are already cleared
+    }
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -219,6 +240,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         logout: handleLogout,
         refreshTokens,
         setTokens,
+        revokeTokens,
       }}
     >
       {children}

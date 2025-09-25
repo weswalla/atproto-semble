@@ -14,7 +14,9 @@ export abstract class BaseClient {
   ): Promise<T> {
     const makeRequest = async (): Promise<T> => {
       const url = `${this.baseUrl}${endpoint}`;
-      const token = this.tokenManager ? await this.tokenManager.getAccessToken() : null;
+      const token = this.tokenManager
+        ? await this.tokenManager.getAccessToken()
+        : null;
 
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',

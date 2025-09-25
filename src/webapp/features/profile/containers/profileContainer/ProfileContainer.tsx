@@ -15,6 +15,9 @@ import {
   Grid,
 } from '@mantine/core';
 import Link from 'next/link';
+import ProfileEmptyTab from '../../components/profileEmptyTab/ProfileEmptyTab';
+import { BiCollection } from 'react-icons/bi';
+import { FaRegNoteSticky } from 'react-icons/fa6';
 
 interface Props {
   handle: string;
@@ -68,11 +71,7 @@ export default function ProfileContainer(props: Props) {
                 ))}
               </Grid>
             ) : (
-              <Stack align="center" gap="xs">
-                <Text fz="h3" fw={600} c="gray">
-                  No cards
-                </Text>
-              </Stack>
+              <ProfileEmptyTab message="No cards" icon={FaRegNoteSticky} />
             )}
           </Stack>
 
@@ -99,11 +98,7 @@ export default function ProfileContainer(props: Props) {
                 ))}
               </SimpleGrid>
             ) : (
-              <Stack align="center" gap="xs">
-                <Text fz="h3" fw={600} c="gray">
-                  No collections
-                </Text>
-              </Stack>
+              <ProfileEmptyTab message="No collections" icon={BiCollection} />
             )}
           </Stack>
         </Stack>

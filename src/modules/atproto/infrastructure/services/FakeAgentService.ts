@@ -21,6 +21,15 @@ export class FakeAgentService implements IAgentService {
             },
           };
         },
+        resolveHandle: async ({ handle }: { handle: string }) => {
+          const did = process.env.BSKY_DID || 'did:example:123456789abcdefghi';
+          return {
+            success: true,
+            data: {
+              did: did,
+            },
+          };
+        },
       } as Agent;
 
       return ok(mockAgent);

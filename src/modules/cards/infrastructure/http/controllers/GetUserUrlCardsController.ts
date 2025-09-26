@@ -10,15 +10,15 @@ export class GetUserUrlCardsController extends Controller {
 
   async executeImpl(req: Request, res: Response): Promise<any> {
     try {
-      const { did } = req.params;
+      const { identifier } = req.params;
       const { page, limit, sortBy, sortOrder } = req.query;
 
-      if (!did) {
-        return this.fail(res, 'DID is required');
+      if (!identifier) {
+        return this.fail(res, 'Identifier (DID or handle) is required');
       }
 
       const result = await this.getUrlCardsUseCase.execute({
-        userId: did,
+        userId: identifier,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,
         sortBy: sortBy as CardSortField,

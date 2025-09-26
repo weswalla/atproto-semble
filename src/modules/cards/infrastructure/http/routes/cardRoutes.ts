@@ -39,8 +39,8 @@ export function createCardRoutes(
     getMyUrlCardsController.execute(req, res),
   );
 
-  // GET /api/cards/user/:did - Get user's URL cards by DID
-  router.get('/user/:did', authMiddleware.optionalAuth(), (req, res) =>
+  // GET /api/cards/user/:identifier - Get user's URL cards by identifier
+  router.get('/user/:identifier', authMiddleware.optionalAuth(), (req, res) =>
     getUserUrlCardsController.execute(req, res),
   );
 

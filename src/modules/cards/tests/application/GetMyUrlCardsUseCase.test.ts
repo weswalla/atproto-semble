@@ -2,6 +2,7 @@ import { GetUrlCardsUseCase } from '../../application/useCases/queries/GetUrlCar
 import { InMemoryCardQueryRepository } from '../utils/InMemoryCardQueryRepository';
 import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
+import { FakeIdentityResolutionService } from '../utils/FakeIdentityResolutionService';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { Card } from '../../domain/Card';
 import { CardType, CardTypeEnum } from '../../domain/value-objects/CardType';
@@ -16,13 +17,15 @@ describe('GetUrlCardsUseCase', () => {
   let cardQueryRepo: InMemoryCardQueryRepository;
   let cardRepo: InMemoryCardRepository;
   let collectionRepo: InMemoryCollectionRepository;
+  let identityResolutionService: FakeIdentityResolutionService;
   let curatorId: CuratorId;
 
   beforeEach(() => {
     cardRepo = new InMemoryCardRepository();
     collectionRepo = new InMemoryCollectionRepository();
     cardQueryRepo = new InMemoryCardQueryRepository(cardRepo, collectionRepo);
-    useCase = new GetUrlCardsUseCase(cardQueryRepo);
+    identityResolutionService = new FakeIdentityResolutionService();
+    useCase = new GetUrlCardsUseCase(cardQueryRepo, identityResolutionService);
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
   });
@@ -31,6 +34,7 @@ describe('GetUrlCardsUseCase', () => {
     cardRepo.clear();
     collectionRepo.clear();
     cardQueryRepo.clear();
+    identityResolutionService.clear();
   });
 
   describe('Basic functionality', () => {
@@ -610,7 +614,7 @@ describe('GetUrlCardsUseCase', () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain('Invalid user ID');
+        expect(result.error.message).toContain('Invalid user identifier');
       }
     });
 
@@ -629,7 +633,10 @@ describe('GetUrlCardsUseCase', () => {
         getLibrariesForCard: jest.fn(),
       };
 
-      const errorUseCase = new GetUrlCardsUseCase(errorRepo);
+      const errorUseCase = new GetUrlCardsUseCase(
+        errorRepo,
+        identityResolutionService,
+      );
 
       const query = {
         userId: curatorId.value,

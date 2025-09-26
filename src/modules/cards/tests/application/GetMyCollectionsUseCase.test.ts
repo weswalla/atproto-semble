@@ -1,6 +1,7 @@
 import { InMemoryCollectionQueryRepository } from '../utils/InMemoryCollectionQueryRepository';
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
 import { FakeProfileService } from '../utils/FakeProfileService';
+import { FakeIdentityResolutionService } from '../utils/FakeIdentityResolutionService';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { Collection, CollectionAccessType } from '../../domain/Collection';
 import {
@@ -15,6 +16,7 @@ describe('GetMyCollectionsUseCase', () => {
   let collectionQueryRepo: InMemoryCollectionQueryRepository;
   let collectionRepo: InMemoryCollectionRepository;
   let profileService: FakeProfileService;
+  let identityResolutionService: FakeIdentityResolutionService;
   let curatorId: CuratorId;
   let userProfile: UserProfile;
 
@@ -22,7 +24,12 @@ describe('GetMyCollectionsUseCase', () => {
     collectionRepo = new InMemoryCollectionRepository();
     collectionQueryRepo = new InMemoryCollectionQueryRepository(collectionRepo);
     profileService = new FakeProfileService();
-    useCase = new GetCollectionsUseCase(collectionQueryRepo, profileService);
+    identityResolutionService = new FakeIdentityResolutionService();
+    useCase = new GetCollectionsUseCase(
+      collectionQueryRepo,
+      profileService,
+      identityResolutionService,
+    );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
     userProfile = {
@@ -40,6 +47,7 @@ describe('GetMyCollectionsUseCase', () => {
     collectionRepo.clear();
     collectionQueryRepo.clear();
     profileService.clear();
+    identityResolutionService.clear();
   });
 
   describe('Basic functionality', () => {
@@ -546,7 +554,7 @@ describe('GetMyCollectionsUseCase', () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain('Invalid curator ID');
+        expect(result.error.message).toContain('Invalid curator identifier');
       }
     });
 

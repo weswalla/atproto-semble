@@ -6,7 +6,8 @@ import {
   SortOrder,
 } from '../../../domain/ICollectionQueryRepository';
 import { IProfileService } from 'src/modules/cards/domain/services/IProfileService';
-import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
+import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
+import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
 
 export interface GetCollectionsQuery {
   curatorId: string;
@@ -60,6 +61,7 @@ export class GetCollectionsUseCase
   constructor(
     private collectionQueryRepo: ICollectionQueryRepository,
     private profileService: IProfileService,
+    private identityResolver: IIdentityResolutionService,
   ) {}
 
   async execute(
@@ -71,29 +73,38 @@ export class GetCollectionsUseCase
     const sortBy = query.sortBy || CollectionSortField.UPDATED_AT;
     const sortOrder = query.sortOrder || SortOrder.DESC;
 
-    // Validate curator ID
-    const curatorIdResult = CuratorId.create(query.curatorId);
-    if (curatorIdResult.isErr()) {
-      return err(new ValidationError('Invalid curator ID'));
+    // Parse and validate curator identifier
+    const identifierResult = DIDOrHandle.create(query.curatorId);
+    if (identifierResult.isErr()) {
+      return err(new ValidationError('Invalid curator identifier'));
     }
 
-    try {
-      // Execute query to get raw collection data
-      const result = await this.collectionQueryRepo.findByCreator(
-        query.curatorId,
-        {
-          page,
-          limit,
-          sortBy,
-          sortOrder,
-          searchText: query.searchText,
-        },
+    // Resolve to DID
+    const didResult = await this.identityResolver.resolveToDID(
+      identifierResult.value,
+    );
+    if (didResult.isErr()) {
+      return err(
+        new ValidationError(
+          `Could not resolve curator identifier: ${didResult.error.message}`,
+        ),
       );
+    }
 
-      // Get user profile for the curator
-      const profileResult = await this.profileService.getProfile(
-        query.curatorId,
-      );
+    const resolvedDid = didResult.value.value;
+
+    try {
+      // Execute query to get raw collection data using the resolved DID
+      const result = await this.collectionQueryRepo.findByCreator(resolvedDid, {
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        searchText: query.searchText,
+      });
+
+      // Get user profile for the curator using the resolved DID
+      const profileResult = await this.profileService.getProfile(resolvedDid);
 
       if (profileResult.isErr()) {
         return err(

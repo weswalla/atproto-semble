@@ -18,8 +18,15 @@ export class BlueskyProfileService implements IProfileService {
 
       if (callerDid) {
         // Use caller's authenticated agent
+        const didResult = DID.create(callerDid);
+        if (didResult.isErr()) {
+          return err(
+            new Error(`Invalid caller DID: ${didResult.error.message}`),
+          );
+        }
+
         const agentResult = await this.agentService.getAuthenticatedAgent(
-          new DID(callerDid),
+          didResult.value,
         );
         if (agentResult.isErr()) {
           return err(

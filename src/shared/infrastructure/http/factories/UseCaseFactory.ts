@@ -82,7 +82,10 @@ export class UseCaseFactory {
         repositories.userRepository,
         services.userAuthService,
       ),
-      getMyProfileUseCase: new GetProfileUseCase(services.profileService),
+      getMyProfileUseCase: new GetProfileUseCase(
+        services.profileService,
+        services.identityResolutionService,
+      ),
       refreshAccessTokenUseCase: new RefreshAccessTokenUseCase(
         services.tokenService,
       ),
@@ -134,6 +137,7 @@ export class UseCaseFactory {
       ),
       getMyUrlCardsUseCase: new GetUrlCardsUseCase(
         repositories.cardQueryRepository,
+        services.identityResolutionService,
       ),
       createCollectionUseCase: new CreateCollectionUseCase(
         repositories.collectionRepository,
@@ -155,6 +159,7 @@ export class UseCaseFactory {
       getCollectionsUseCase: new GetCollectionsUseCase(
         repositories.collectionQueryRepository,
         services.profileService,
+        services.identityResolutionService,
       ),
 
       // Feed use cases

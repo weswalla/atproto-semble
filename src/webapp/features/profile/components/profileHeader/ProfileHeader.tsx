@@ -6,6 +6,9 @@ import {
   Text,
   Title,
   Button,
+  Spoiler,
+  Grid,
+  GridCol,
 } from '@mantine/core';
 import { truncateText } from '@/lib/utils/text';
 import MinimalProfileHeaderContainer from '../../containers/minimalProfileHeaderContainer/MinimalProfileHeaderContainer';
@@ -34,28 +37,42 @@ export default async function ProfileHeader(props: Props) {
         name={profile.name}
         handle={profile.handle}
       />
+      <Stack gap={'sm'}>
+        <Stack gap={'xl'}>
+          <Grid gutter={'md'} align={'center'} grow>
+            <GridCol span={'auto'}>
+              <Avatar
+                src={profile.avatarUrl}
+                alt={`${profile.name}'s avatar`}
+                size={'clamp(100px, 22vw, 180px)'}
+                radius={'lg'}
+              />
+            </GridCol>
 
-      <Stack gap={'xl'}>
-        <Group justify="space-between" align="end">
-          <Group gap={'lg'} align="end">
-            <Avatar
-              src={profile.avatarUrl}
-              alt={`${profile.name}'s avatar`}
-              size={'clamp(95px, 14vw, 180px)'}
-              radius={'lg'}
-            />
-            <Stack gap={'sm'}>
-              <Stack gap={0}>
-                <Title order={1} fz={{ base: 'h2', md: 'h1' }}>
-                  {profile.name}
-                </Title>
-                <Text c="blue" fw={600} fz={{ base: 'lg', md: 'xl' }}>
-                  @{profile.handle}
-                </Text>
+            <GridCol span={{ base: 12, xs: 9 }}>
+              <Stack gap={'sm'}>
+                <Stack gap={0}>
+                  <Title order={1} fz={{ base: 'h2', md: 'h1' }}>
+                    {profile.name}
+                  </Title>
+                  <Text c="blue" fw={600} fz={{ base: 'lg', md: 'xl' }}>
+                    @{profile.handle}
+                  </Text>
+                </Stack>
+                {profile.description && (
+                  <Spoiler
+                    showLabel={'Read more'}
+                    hideLabel={'See less'}
+                    maxHeight={45}
+                  >
+                    <Text>{profile.description}</Text>
+                  </Spoiler>
+                )}
               </Stack>
-              {profile.description && <Text>{profile.description}</Text>}
-            </Stack>
-          </Group>
+            </GridCol>
+          </Grid>
+        </Stack>
+        <Group>
           <Button
             component="a"
             href={`https://bsky.app/profile/${profile.handle}`}

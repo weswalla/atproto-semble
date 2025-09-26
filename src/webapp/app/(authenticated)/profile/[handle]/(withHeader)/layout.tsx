@@ -1,11 +1,8 @@
-import { ApiClient } from '@/api-client/ApiClient';
+import type { Metadata } from 'next';
 import Header from '@/components/navigation/header/Header';
 import ProfileHeader from '@/features/profile/components/profileHeader/ProfileHeader';
 import ProfileTabs from '@/features/profile/components/profileTabs/ProfileTabs';
-import { Box, Button, Container, Stack, Title } from '@mantine/core';
-import { createServerTokenManager } from '@/services/auth';
-import type { Metadata } from 'next';
-import Link from 'next/link';
+import { Box, Container } from '@mantine/core';
 import { Fragment } from 'react';
 
 interface Props {
@@ -24,30 +21,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Layout(props: Props) {
   const { handle } = await props.params;
-  const serverTokenManager = await createServerTokenManager();
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    serverTokenManager,
-  );
-  const data = await apiClient.getMyProfile();
-
-  // TODO: use profile endpoints to fetch profile information
-  // for now we'll use getMyProfile
-  if (data.handle !== handle) {
-    return (
-      <Fragment>
-        <Header />
-        <Container p="xs" size="md">
-          <Stack align="center">
-            <Title order={1}>Public profiles are coming soon!</Title>
-            <Button component={Link} href={`/profile/${data.handle}`} fw={600}>
-              Visit your own profile
-            </Button>
-          </Stack>
-        </Container>
-      </Fragment>
-    );
-  }
 
   return (
     <Fragment>
@@ -61,7 +34,7 @@ export default async function Layout(props: Props) {
         }}
       >
         <Container bg={'white'} px={'xs'} mt={'md'} size={'xl'}>
-          <ProfileTabs handle={data.handle} />
+          <ProfileTabs handle={handle} />
         </Container>
       </Box>
       {props.children}

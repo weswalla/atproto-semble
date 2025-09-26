@@ -12,17 +12,16 @@ import {
 } from '@mantine/core';
 import { FaBluesky } from 'react-icons/fa6';
 import { truncateText } from '@/lib/utils/text';
-import useMyProfile from '../../lib/queries/useMyProfile';
+import useProfile from '../../lib/queries/useProfile';
 import { useWindowScroll } from '@mantine/hooks';
 import MinimalProfileHeader from './MinimalProfileHeader';
 
-// TODO: once we have profile endpoints, we'll use handle to fetch profile data
 interface Props {
   handle: string;
 }
 
 export default function ProfileHeader(props: Props) {
-  const { data } = useMyProfile();
+  const { data } = useProfile({ handleOrDid: props.handle });
   const [{ y: yScroll }] = useWindowScroll();
   const HEADER_REVEAL_SCROLL_THRESHOLD = 140;
 

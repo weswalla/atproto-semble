@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  Button,
-  Container,
-  Stack,
-  Text,
-  SimpleGrid,
-  Center,
-} from '@mantine/core';
+import { Button, Container, Stack, SimpleGrid, Center } from '@mantine/core';
 import useCollections from '../../lib/queries/useCollections';
 import CollectionCard from '../../components/collectionCard/CollectionCard';
 import CreateCollectionDrawer from '../../components/createCollectionDrawer/CreateCollectionDrawer';

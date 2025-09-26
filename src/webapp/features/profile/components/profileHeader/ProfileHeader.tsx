@@ -24,7 +24,7 @@ export default async function ProfileHeader(props: Props) {
   );
 
   const profile = await apiClient.getProfile({
-    did: props.handle,
+    identifier: props.handle,
   });
 
   return (

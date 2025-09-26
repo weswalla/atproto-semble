@@ -21,7 +21,7 @@ export default async function Image(props: Props) {
     createClientTokenManager(),
   );
 
-  const profile = await apiClient.getProfile({ did: handle });
+  const profile = await apiClient.getProfile({ identifier: handle });
 
   return await OpenGraphCard({
     children: (

@@ -14,7 +14,7 @@ export default function useProfile(props: Props) {
 
   const profile = useSuspenseQuery({
     queryKey: ['profile', props.handleOrDid],
-    queryFn: () => apiClient.getProfile({ did: props.handleOrDid }),
+    queryFn: () => apiClient.getProfile({ identifier: props.handleOrDid }),
   });
 
   return profile;

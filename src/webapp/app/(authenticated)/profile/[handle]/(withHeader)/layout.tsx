@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   );
 
   const profile = await apiClient.getProfile({
-    did: handle,
+    identifier: handle,
   });
 
   return {

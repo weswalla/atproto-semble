@@ -11,7 +11,6 @@ import {
   Text,
   Title,
   Center,
-  Loader,
   Avatar,
 } from '@mantine/core';
 import useCollection from '../../lib/queries/useCollection';

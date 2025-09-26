@@ -4,6 +4,8 @@ import ProfileHeader from '@/features/profile/components/profileHeader/ProfileHe
 import ProfileTabs from '@/features/profile/components/profileTabs/ProfileTabs';
 import { Box, Container } from '@mantine/core';
 import { Fragment } from 'react';
+import { ApiClient } from '@/api-client/ApiClient';
+import { createClientTokenManager } from '@/services/auth';
 
 interface Props {
   params: Promise<{ handle: string }>;
@@ -13,9 +15,19 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params;
 
+  const apiClient = new ApiClient(
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+    createClientTokenManager(),
+  );
+
+  const profile = await apiClient.getProfile({
+    did: handle,
+  });
+
   return {
-    title: handle,
-    description: 'Profile',
+    title: profile.name,
+    description:
+      profile.description ?? `Explore ${profile.name}'s profile on Semble`,
   };
 }
 

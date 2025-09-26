@@ -11,7 +11,6 @@ import {
   SimpleGrid,
   Stack,
   Title,
-  Text,
   Grid,
 } from '@mantine/core';
 import Link from 'next/link';

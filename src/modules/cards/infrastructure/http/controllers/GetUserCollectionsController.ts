@@ -5,7 +5,6 @@ import {
   CollectionSortField,
   SortOrder,
 } from '../../../domain/ICollectionQueryRepository';
-import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
 
 export class GetUserCollectionsController extends Controller {
   constructor(private getCollectionsUseCase: GetCollectionsUseCase) {
@@ -21,14 +20,8 @@ export class GetUserCollectionsController extends Controller {
         return this.fail(res, 'Identifier (DID or handle) is required');
       }
 
-      // Validate the identifier as either DID or handle
-      const didOrHandleResult = DIDOrHandle.create(identifier);
-      if (didOrHandleResult.isErr()) {
-        return this.fail(res, `Invalid identifier: ${didOrHandleResult.error.message}`);
-      }
-
       const result = await this.getCollectionsUseCase.execute({
-        curatorId: didOrHandleResult.value,
+        curatorId: identifier,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,
         sortBy: sortBy as CollectionSortField,

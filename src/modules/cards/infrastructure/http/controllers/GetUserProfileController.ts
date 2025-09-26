@@ -1,7 +1,6 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Request, Response } from 'express';
 import { GetProfileUseCase } from '../../../application/useCases/queries/GetProfileUseCase';
-import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
 
 export class GetUserProfileController extends Controller {
   constructor(private getProfileUseCase: GetProfileUseCase) {
@@ -16,13 +15,7 @@ export class GetUserProfileController extends Controller {
         return this.fail(res, 'Identifier (DID or handle) is required');
       }
 
-      // Validate the identifier as either DID or handle
-      const didOrHandleResult = DIDOrHandle.create(identifier);
-      if (didOrHandleResult.isErr()) {
-        return this.fail(res, `Invalid identifier: ${didOrHandleResult.error.message}`);
-      }
-
-      const result = await this.getProfileUseCase.execute({ userId: didOrHandleResult.value });
+      const result = await this.getProfileUseCase.execute({ userId: identifier });
 
       if (result.isErr()) {
         return this.fail(res, result.error as any);

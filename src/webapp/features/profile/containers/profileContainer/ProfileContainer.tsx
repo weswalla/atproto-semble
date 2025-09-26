@@ -66,6 +66,7 @@ export default function ProfileContainer(props: Props) {
                       cardContent={card.cardContent}
                       note={card.note}
                       collections={card.collections}
+                      authorHandle={props.handle}
                     />
                   </Grid.Col>
                 ))}

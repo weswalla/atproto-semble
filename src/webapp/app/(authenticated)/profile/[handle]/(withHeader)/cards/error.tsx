@@ -1,7 +1,7 @@
 'use client';
 
-import MyCardsContainerError from '@/features/cards/containers/myCardsContainer/Error.MyCardsContainer';
+import CardsContainerError from '@/features/cards/containers/cardsContainer/Error.CardsContainer';
 
 export default function Error() {
-  return <MyCardsContainerError />;
+  return <CardsContainerError />;
 }

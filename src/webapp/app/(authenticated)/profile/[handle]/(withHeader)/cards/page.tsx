@@ -1,5 +1,11 @@
-import MyCardsContainer from '@/features/cards/containers/myCardsContainer/MyCardsContainer';
+import CardsContainer from '@/features/cards/containers/cardsContainer/CardsContainer';
 
-export default function Page() {
-  return <MyCardsContainer />;
+interface Props {
+  params: Promise<{ handle: string }>;
+}
+
+export default async function Page(props: Props) {
+  const { handle } = await props.params;
+
+  return <CardsContainer handle={handle} />;
 }

@@ -1,7 +1,7 @@
 import { Container, Grid, GridCol, Stack } from '@mantine/core';
 import UrlCardSkeleton from '../../components/urlCard/Skeleton.UrlCard';
 
-export default function MyCardsContainerSkeleton() {
+export default function CardsContainerSkeleton() {
   return (
     <Container p="xs" size="xl">
       <Stack>

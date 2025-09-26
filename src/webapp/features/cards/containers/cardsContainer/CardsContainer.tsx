@@ -1,15 +1,19 @@
 'use client';
 
 import { Container, Grid, Stack, Button, Text, Center } from '@mantine/core';
-import useMyCards from '../../lib/queries/useMyCards';
+import useCards from '../../lib/queries/useCards';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
-import MyCardsContainerError from './Error.MyCardsContainer';
-import MyCardsContainerSkeleton from './Skeleton.MyCardsContainer';
+import CardsContainerError from './Error.CardsContainer';
+import CardsContainerSkeleton from './Skeleton.CardsContainer';
 import { Fragment, useState } from 'react';
 import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 
-export default function MyCardsContainer() {
+interface Props {
+  handle: string;
+}
+
+export default function CardsContainer(props: Props) {
   const {
     data,
     error,
@@ -17,16 +21,16 @@ export default function MyCardsContainer() {
     hasNextPage,
     isFetchingNextPage,
     isPending,
-  } = useMyCards();
+  } = useCards({ didOrHandle: props.handle });
 
   const allCards = data?.pages.flatMap((page) => page.cards ?? []) ?? [];
 
   if (isPending) {
-    return <MyCardsContainerSkeleton />;
+    return <CardsContainerSkeleton />;
   }
 
   if (error) {
-    return <MyCardsContainerError />;
+    return <CardsContainerError />;
   }
 
   if (allCards.length === 0) {

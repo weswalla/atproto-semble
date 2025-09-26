@@ -3,9 +3,10 @@ import Header from '@/components/navigation/header/Header';
 import ProfileHeader from '@/features/profile/components/profileHeader/ProfileHeader';
 import ProfileTabs from '@/features/profile/components/profileTabs/ProfileTabs';
 import { Box, Container } from '@mantine/core';
-import { Fragment } from 'react';
+import { Fragment, Suspense } from 'react';
 import { ApiClient } from '@/api-client/ApiClient';
 import { createClientTokenManager } from '@/services/auth';
+import ProfileHeaderSkeleton from '@/features/profile/components/profileHeader/Skeleton.ProfileHeader';
 
 interface Props {
   params: Promise<{ handle: string }>;
@@ -37,7 +38,9 @@ export default async function Layout(props: Props) {
   return (
     <Fragment>
       <Header />
-      <ProfileHeader handle={handle} />
+      <Suspense fallback={<ProfileHeaderSkeleton />}>
+        <ProfileHeader handle={handle} />
+      </Suspense>
       <Box
         style={{
           position: 'sticky',

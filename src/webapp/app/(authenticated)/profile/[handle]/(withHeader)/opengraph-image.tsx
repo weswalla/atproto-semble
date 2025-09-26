@@ -26,13 +26,15 @@ export default async function Image(props: Props) {
   return await OpenGraphCard({
     children: (
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <img
-          src={profile.avatarUrl}
-          width={164}
-          height={164}
-          alt={`${handle}'s avatar`}
-          style={{ borderRadius: '20px', marginTop: 'auto' }}
-        />
+        {profile.avatarUrl && (
+          <img
+            src={profile.avatarUrl}
+            width={164}
+            height={164}
+            alt={`${handle}'s avatar`}
+            style={{ borderRadius: '20px', marginTop: 'auto' }}
+          />
+        )}
         <div
           style={{
             display: 'flex',

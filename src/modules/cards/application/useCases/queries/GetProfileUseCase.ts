@@ -1,6 +1,8 @@
 import { UseCase } from 'src/shared/core/UseCase';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { err, ok, Result } from 'src/shared/core/Result';
+import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
+import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
 
 export interface GetMyProfileQuery {
   userId: string;
@@ -24,7 +26,10 @@ export class ValidationError extends Error {
 export class GetProfileUseCase
   implements UseCase<GetMyProfileQuery, Result<GetMyProfileResult>>
 {
-  constructor(private profileService: IProfileService) {}
+  constructor(
+    private profileService: IProfileService,
+    private identityResolver: IIdentityResolutionService,
+  ) {}
 
   async execute(query: GetMyProfileQuery): Promise<Result<GetMyProfileResult>> {
     // Validate user ID
@@ -32,9 +37,29 @@ export class GetProfileUseCase
       return err(new ValidationError('User ID is required'));
     }
 
+    // Parse and validate user identifier
+    const identifierResult = DIDOrHandle.create(query.userId);
+    if (identifierResult.isErr()) {
+      return err(new ValidationError('Invalid user identifier'));
+    }
+
+    // Resolve to DID
+    const didResult = await this.identityResolver.resolveToDID(
+      identifierResult.value,
+    );
+    if (didResult.isErr()) {
+      return err(
+        new ValidationError(
+          `Could not resolve user identifier: ${didResult.error.message}`,
+        ),
+      );
+    }
+
     try {
-      // Fetch user profile
-      const profileResult = await this.profileService.getProfile(query.userId);
+      // Fetch user profile using the resolved DID
+      const profileResult = await this.profileService.getProfile(
+        didResult.value.value,
+      );
 
       if (profileResult.isErr()) {
         return err(

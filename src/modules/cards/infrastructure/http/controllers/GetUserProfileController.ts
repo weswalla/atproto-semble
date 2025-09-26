@@ -9,13 +9,15 @@ export class GetUserProfileController extends Controller {
 
   async executeImpl(req: Request, res: Response): Promise<any> {
     try {
-      const { did } = req.params;
+      const { identifier } = req.params;
 
-      if (!did) {
-        return this.fail(res, 'DID is required');
+      if (!identifier) {
+        return this.fail(res, 'Identifier (DID or handle) is required');
       }
 
-      const result = await this.getProfileUseCase.execute({ userId: did });
+      const result = await this.getProfileUseCase.execute({
+        userId: identifier,
+      });
 
       if (result.isErr()) {
         return this.fail(res, result.error as any);

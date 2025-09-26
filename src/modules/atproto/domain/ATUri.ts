@@ -15,8 +15,11 @@ export class ATUri {
     if (parts.length !== 5) {
       throw new Error('Invalid AT URI');
     }
-    const did = new DID(parts[2]!);
-    this.did = did;
+    const didResult = DID.create(parts[2]!);
+    if (didResult.isErr()) {
+      throw new Error(`Invalid DID in AT URI: ${didResult.error.message}`);
+    }
+    this.did = didResult.value;
     this.collection = parts[3]!;
     this.rkey = parts[4]!;
   }

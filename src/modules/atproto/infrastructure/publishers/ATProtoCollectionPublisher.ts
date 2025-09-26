@@ -24,7 +24,15 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
     collection: Collection,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
-      const curatorDid = new DID(collection.authorId.value);
+      const curatorDidResult = DID.create(collection.authorId.value);
+
+      if (curatorDidResult.isErr()) {
+        return err(
+          new Error(`Invalid curator DID: ${curatorDidResult.error.message}`),
+        );
+      }
+
+      const curatorDid = curatorDidResult.value;
 
       // Get an authenticated agent for this curator
       const agentResult =
@@ -94,7 +102,15 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
     curatorId: CuratorId,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
-      const curatorDid = new DID(curatorId.value);
+      const curatorDidResult = DID.create(curatorId.value);
+
+      if (curatorDidResult.isErr()) {
+        return err(
+          new Error(`Invalid curator DID: ${curatorDidResult.error.message}`),
+        );
+      }
+
+      const curatorDid = curatorDidResult.value;
 
       // Get an authenticated agent for this curator
       const agentResult =

@@ -52,8 +52,8 @@ export class QueryClient extends BaseClient {
 
     const queryString = searchParams.toString();
     const endpoint = queryString
-      ? `/api/cards/user/${params.did}?${queryString}`
-      : `/api/cards/user/${params.did}`;
+      ? `/api/cards/user/${params.identifier}?${queryString}`
+      : `/api/cards/user/${params.identifier}`;
 
     return this.request<GetUrlCardsResponse>('GET', endpoint);
   }
@@ -76,7 +76,10 @@ export class QueryClient extends BaseClient {
   }
 
   async getUserProfile(params: GetProfileParams): Promise<GetProfileResponse> {
-    return this.request<GetProfileResponse>('GET', `/api/users/${params.did}`);
+    return this.request<GetProfileResponse>(
+      'GET',
+      `/api/users/${params.identifier}`,
+    );
   }
 
   async getCollectionPage(
@@ -127,8 +130,8 @@ export class QueryClient extends BaseClient {
 
     const queryString = searchParams.toString();
     const endpoint = queryString
-      ? `/api/collections/user/${params.did}?${queryString}`
-      : `/api/collections/user/${params.did}`;
+      ? `/api/collections/user/${params.identifier}?${queryString}`
+      : `/api/collections/user/${params.identifier}`;
 
     return this.request<GetCollectionsResponse>('GET', endpoint);
   }

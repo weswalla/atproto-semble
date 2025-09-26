@@ -53,7 +53,7 @@ export interface GetMyUrlCardsParams {
 }
 
 export interface GetUrlCardsParams {
-  did: string;
+  identifier: string; // Can be DID or handle
   page?: number;
   limit?: number;
   sortBy?: string;
@@ -76,7 +76,7 @@ export interface GetMyCollectionsParams {
 }
 
 export interface GetCollectionsParams {
-  did: string;
+  identifier: string; // Can be DID or handle
   page?: number;
   limit?: number;
   sortBy?: string;
@@ -116,5 +116,5 @@ export interface GenerateExtensionTokensRequest {
 }
 
 export interface GetProfileParams {
-  did: string;
+  identifier: string; // Can be DID or handle
 }

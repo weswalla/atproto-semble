@@ -1,4 +1,3 @@
-import { GetMyCollectionsUseCase } from '../../application/useCases/queries/GetMyCollectionsUseCase';
 import { InMemoryCollectionQueryRepository } from '../utils/InMemoryCollectionQueryRepository';
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
 import { FakeProfileService } from '../utils/FakeProfileService';
@@ -9,9 +8,10 @@ import {
   SortOrder,
 } from '../../domain/ICollectionQueryRepository';
 import { UserProfile } from '../../domain/services/IProfileService';
+import { GetCollectionsUseCase } from '../../application/useCases/queries/GetCollectionsUseCase';
 
 describe('GetMyCollectionsUseCase', () => {
-  let useCase: GetMyCollectionsUseCase;
+  let useCase: GetCollectionsUseCase;
   let collectionQueryRepo: InMemoryCollectionQueryRepository;
   let collectionRepo: InMemoryCollectionRepository;
   let profileService: FakeProfileService;
@@ -22,7 +22,7 @@ describe('GetMyCollectionsUseCase', () => {
     collectionRepo = new InMemoryCollectionRepository();
     collectionQueryRepo = new InMemoryCollectionQueryRepository(collectionRepo);
     profileService = new FakeProfileService();
-    useCase = new GetMyCollectionsUseCase(collectionQueryRepo, profileService);
+    useCase = new GetCollectionsUseCase(collectionQueryRepo, profileService);
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
     userProfile = {

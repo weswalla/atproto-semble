@@ -9,6 +9,7 @@ import { GetUrlMetadataController } from '../controllers/GetUrlMetadataControlle
 import { GetUrlCardViewController } from '../controllers/GetUrlCardViewController';
 import { GetLibrariesForCardController } from '../controllers/GetLibrariesForCardController';
 import { GetMyUrlCardsController } from '../controllers/GetMyUrlCardsController';
+import { GetUserUrlCardsController } from '../controllers/GetUserUrlCardsController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 
 export function createCardRoutes(
@@ -23,6 +24,7 @@ export function createCardRoutes(
   getUrlCardViewController: GetUrlCardViewController,
   getLibrariesForCardController: GetLibrariesForCardController,
   getMyUrlCardsController: GetMyUrlCardsController,
+  getUserUrlCardsController: GetUserUrlCardsController,
 ): Router {
   const router = Router();
 
@@ -35,6 +37,11 @@ export function createCardRoutes(
   // GET /api/cards/my - Get my URL cards
   router.get('/my', authMiddleware.ensureAuthenticated(), (req, res) =>
     getMyUrlCardsController.execute(req, res),
+  );
+
+  // GET /api/cards/user/:did - Get user's URL cards by DID
+  router.get('/user/:did', authMiddleware.optionalAuth(), (req, res) =>
+    getUserUrlCardsController.execute(req, res),
   );
 
   // GET /api/cards/:cardId - Get URL card view

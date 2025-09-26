@@ -46,13 +46,16 @@ import type {
   RefreshAccessTokenResponse,
   GenerateExtensionTokensResponse,
   GetUrlMetadataResponse,
-  GetMyUrlCardsResponse,
   GetUrlCardViewResponse,
   GetLibrariesForCardResponse,
-  GetMyProfileResponse,
   GetCollectionPageResponse,
-  GetMyCollectionsResponse,
   GetGlobalFeedResponse,
+  GetCollectionsResponse,
+  GetCollectionsParams,
+  GetUrlCardsParams,
+  GetUrlCardsResponse,
+  GetProfileResponse,
+  GetProfileParams,
 } from './types';
 
 // Main API Client class using composition
@@ -93,9 +96,13 @@ export class ApiClient {
 
   async getMyUrlCards(
     params?: GetMyUrlCardsParams,
-  ): Promise<GetMyUrlCardsResponse> {
+  ): Promise<GetUrlCardsResponse> {
     this.requireAuthentication('getMyUrlCards');
     return this.queryClient.getMyUrlCards(params);
+  }
+
+  async getUrlCards(params: GetUrlCardsParams): Promise<GetUrlCardsResponse> {
+    return this.queryClient.getUserUrlCards(params);
   }
 
   async getUrlCardView(cardId: string): Promise<GetUrlCardViewResponse> {
@@ -109,9 +116,13 @@ export class ApiClient {
     return this.queryClient.getLibrariesForCard(cardId);
   }
 
-  async getMyProfile(): Promise<GetMyProfileResponse> {
+  async getMyProfile(): Promise<GetProfileResponse> {
     this.requireAuthentication('getMyProfile');
     return this.queryClient.getMyProfile();
+  }
+
+  async getProfile(params: GetProfileParams): Promise<GetProfileResponse> {
+    return this.queryClient.getUserProfile(params);
   }
 
   async getCollectionPage(
@@ -123,9 +134,15 @@ export class ApiClient {
 
   async getMyCollections(
     params?: GetMyCollectionsParams,
-  ): Promise<GetMyCollectionsResponse> {
+  ): Promise<GetCollectionsResponse> {
     this.requireAuthentication('getMyCollections');
     return this.queryClient.getMyCollections(params);
+  }
+
+  async getCollections(
+    params: GetCollectionsParams,
+  ): Promise<GetCollectionsResponse> {
+    return this.queryClient.getUserCollections(params);
   }
 
   // Card operations - delegate to CardClient (all require authentication)

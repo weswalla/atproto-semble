@@ -1,15 +1,18 @@
 import { BaseClient } from './BaseClient';
 import {
   GetUrlMetadataResponse,
-  GetMyUrlCardsResponse,
+  GetUrlCardsResponse,
   GetUrlCardViewResponse,
   GetLibrariesForCardResponse,
-  GetMyProfileResponse,
+  GetProfileResponse,
   GetCollectionPageResponse,
-  GetMyCollectionsResponse,
+  GetCollectionsResponse,
   GetMyUrlCardsParams,
+  GetUrlCardsParams,
   GetCollectionPageParams,
   GetMyCollectionsParams,
+  GetCollectionsParams,
+  GetProfileParams,
 } from '../types';
 
 export class QueryClient extends BaseClient {
@@ -23,7 +26,7 @@ export class QueryClient extends BaseClient {
 
   async getMyUrlCards(
     params?: GetMyUrlCardsParams,
-  ): Promise<GetMyUrlCardsResponse> {
+  ): Promise<GetUrlCardsResponse> {
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.set('page', params.page.toString());
     if (params?.limit) searchParams.set('limit', params.limit.toString());
@@ -35,7 +38,24 @@ export class QueryClient extends BaseClient {
       ? `/api/cards/my?${queryString}`
       : '/api/cards/my';
 
-    return this.request<GetMyUrlCardsResponse>('GET', endpoint);
+    return this.request<GetUrlCardsResponse>('GET', endpoint);
+  }
+
+  async getUserUrlCards(
+    params: GetUrlCardsParams,
+  ): Promise<GetUrlCardsResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/cards/user/${params.did}?${queryString}`
+      : `/api/cards/user/${params.did}`;
+
+    return this.request<GetUrlCardsResponse>('GET', endpoint);
   }
 
   async getUrlCardView(cardId: string): Promise<GetUrlCardViewResponse> {
@@ -51,8 +71,12 @@ export class QueryClient extends BaseClient {
     );
   }
 
-  async getMyProfile(): Promise<GetMyProfileResponse> {
-    return this.request<GetMyProfileResponse>('GET', '/api/users/me');
+  async getMyProfile(): Promise<GetProfileResponse> {
+    return this.request<GetProfileResponse>('GET', '/api/users/me');
+  }
+
+  async getUserProfile(params: GetProfileParams): Promise<GetProfileResponse> {
+    return this.request<GetProfileResponse>('GET', `/api/users/${params.did}`);
   }
 
   async getCollectionPage(
@@ -75,7 +99,7 @@ export class QueryClient extends BaseClient {
 
   async getMyCollections(
     params?: GetMyCollectionsParams,
-  ): Promise<GetMyCollectionsResponse> {
+  ): Promise<GetCollectionsResponse> {
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.set('page', params.page.toString());
     if (params?.limit) searchParams.set('limit', params.limit.toString());
@@ -88,6 +112,24 @@ export class QueryClient extends BaseClient {
       ? `/api/collections?${queryString}`
       : '/api/collections';
 
-    return this.request<GetMyCollectionsResponse>('GET', endpoint);
+    return this.request<GetCollectionsResponse>('GET', endpoint);
+  }
+
+  async getUserCollections(
+    params: GetCollectionsParams,
+  ): Promise<GetCollectionsResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    if (params.searchText) searchParams.set('searchText', params.searchText);
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/collections/user/${params.did}?${queryString}`
+      : `/api/collections/user/${params.did}`;
+
+    return this.request<GetCollectionsResponse>('GET', endpoint);
   }
 }

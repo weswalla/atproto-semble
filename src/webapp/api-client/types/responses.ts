@@ -106,7 +106,7 @@ export interface UserProfile {
   avatarUrl?: string;
 }
 
-export interface GetMyProfileResponse extends UserProfile {}
+export interface GetProfileResponse extends UserProfile {}
 
 export interface UrlCardListItem {
   id: string;
@@ -146,7 +146,7 @@ export interface Sorting {
   sortOrder: 'asc' | 'desc';
 }
 
-export interface GetMyUrlCardsResponse {
+export interface GetUrlCardsResponse {
   cards: UrlCardListItem[];
   pagination: Pagination;
   sorting: Sorting;
@@ -187,7 +187,7 @@ export interface GetCollectionPageResponse {
   sorting: Sorting;
 }
 
-export interface GetMyCollectionsResponse {
+export interface GetCollectionsResponse {
   collections: Array<{
     id: string;
     name: string;

@@ -11,7 +11,7 @@ import {
   Anchor,
 } from '@mantine/core';
 import Link from 'next/link';
-import { GetMyCollectionsResponse, UrlCardView } from '@/api-client/types';
+import { GetCollectionsResponse, UrlCardView } from '@/api-client/types';
 import { BiCollection } from 'react-icons/bi';
 import { LuLibrary } from 'react-icons/lu';
 import { getDomain } from '@/lib/utils/link';
@@ -20,7 +20,7 @@ import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 interface Props {
   cardId: string;
   cardContent: UrlCardView['cardContent'];
-  collectionsWithCard: GetMyCollectionsResponse['collections'];
+  collectionsWithCard: GetCollectionsResponse['collections'];
   isInLibrary: boolean;
 }
 

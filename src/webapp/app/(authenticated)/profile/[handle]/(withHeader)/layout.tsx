@@ -38,7 +38,7 @@ export default async function Layout(props: Props) {
   return (
     <Fragment>
       <Header />
-      <Suspense fallback={<ProfileHeaderSkeleton />}>
+      <Suspense fallback={<ProfileHeaderSkeleton />} key={handle}>
         <ProfileHeader handle={handle} />
       </Suspense>
       <Box

@@ -7,7 +7,8 @@ import {
   WithCollections,
   UrlCardView,
 } from '../../../domain/ICardQueryRepository';
-import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
+import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
+import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
 
 export interface GetUrlCardsQuery {
   userId: string;
@@ -44,7 +45,10 @@ export class ValidationError extends Error {
 export class GetUrlCardsUseCase
   implements UseCase<GetUrlCardsQuery, Result<GetUrlCardsResult>>
 {
-  constructor(private cardQueryRepo: ICardQueryRepository) {}
+  constructor(
+    private cardQueryRepo: ICardQueryRepository,
+    private identityResolver: IIdentityResolutionService,
+  ) {}
 
   async execute(query: GetUrlCardsQuery): Promise<Result<GetUrlCardsResult>> {
     // Set defaults
@@ -53,15 +57,21 @@ export class GetUrlCardsUseCase
     const sortBy = query.sortBy || CardSortField.UPDATED_AT;
     const sortOrder = query.sortOrder || SortOrder.DESC;
 
-    // Validate user ID
-    const userIdResult = CuratorId.create(query.userId);
-    if (userIdResult.isErr()) {
-      return err(new ValidationError('Invalid user ID'));
+    // Parse and validate user identifier
+    const identifierResult = DIDOrHandle.create(query.userId);
+    if (identifierResult.isErr()) {
+      return err(new ValidationError('Invalid user identifier'));
+    }
+
+    // Resolve to DID
+    const didResult = await this.identityResolver.resolveToDID(identifierResult.value);
+    if (didResult.isErr()) {
+      return err(new ValidationError(`Could not resolve user identifier: ${didResult.error.message}`));
     }
 
     try {
-      // Execute query to get raw card data
-      const result = await this.cardQueryRepo.getUrlCardsOfUser(query.userId, {
+      // Execute query to get raw card data using the resolved DID
+      const result = await this.cardQueryRepo.getUrlCardsOfUser(didResult.value.value, {
         page,
         limit,
         sortBy,

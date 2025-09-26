@@ -42,7 +42,7 @@ export const createUserRoutes = (
   );
 
   // Public routes
-  router.get('/:did', authMiddleware.optionalAuth(), (req, res) =>
+  router.get('/:identifier', authMiddleware.optionalAuth(), (req, res) =>
     getUserProfileController.execute(req, res),
   );
 

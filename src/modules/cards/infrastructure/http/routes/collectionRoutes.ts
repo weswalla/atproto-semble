@@ -24,8 +24,8 @@ export function createCollectionRoutes(
     getMyCollectionsController.execute(req, res),
   );
 
-  // GET /api/collections/user/:did - Get user's collections by did
-  router.get('/user/:did', authMiddleware.optionalAuth(), (req, res) =>
+  // GET /api/collections/user/:identifier - Get user's collections by identifier
+  router.get('/user/:identifier', authMiddleware.optionalAuth(), (req, res) =>
     getUserCollectionsController.execute(req, res),
   );
 

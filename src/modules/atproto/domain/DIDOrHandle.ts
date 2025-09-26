@@ -34,7 +34,9 @@ export class DIDOrHandle extends ValueObject<DIDOrHandleProps> {
     super(props);
   }
 
-  public static create(value: string): Result<DIDOrHandle, InvalidDIDOrHandleError> {
+  public static create(
+    value: string,
+  ): Result<DIDOrHandle, InvalidDIDOrHandleError> {
     if (!value || value.trim().length === 0) {
       return err(new InvalidDIDOrHandleError('Value cannot be empty'));
     }
@@ -45,27 +47,39 @@ export class DIDOrHandle extends ValueObject<DIDOrHandleProps> {
     if (trimmedValue.startsWith('did:')) {
       const didResult = DID.create(trimmedValue);
       if (didResult.isErr()) {
-        return err(new InvalidDIDOrHandleError(`Invalid DID: ${didResult.error.message}`));
+        return err(
+          new InvalidDIDOrHandleError(
+            `Invalid DID: ${didResult.error.message}`,
+          ),
+        );
       }
 
-      return ok(new DIDOrHandle({
-        value: trimmedValue,
-        isDID: true,
-        did: didResult.value,
-      }));
+      return ok(
+        new DIDOrHandle({
+          value: trimmedValue,
+          isDID: true,
+          did: didResult.value,
+        }),
+      );
     }
 
     // Otherwise, try to parse as handle
     const handleResult = Handle.create(trimmedValue);
     if (handleResult.isErr()) {
-      return err(new InvalidDIDOrHandleError(`Invalid handle: ${handleResult.error.message}`));
+      return err(
+        new InvalidDIDOrHandleError(
+          `Invalid handle: ${handleResult.error.message}`,
+        ),
+      );
     }
 
-    return ok(new DIDOrHandle({
-      value: trimmedValue,
-      isDID: false,
-      handle: handleResult.value,
-    }));
+    return ok(
+      new DIDOrHandle({
+        value: trimmedValue,
+        isDID: false,
+        handle: handleResult.value,
+      }),
+    );
   }
 
   public getDID(): DID | undefined {
@@ -81,6 +95,9 @@ export class DIDOrHandle extends ValueObject<DIDOrHandleProps> {
   }
 
   public equals(other: DIDOrHandle): boolean {
-    return this.props.value === other.props.value && this.props.isDID === other.props.isDID;
+    return (
+      this.props.value === other.props.value &&
+      this.props.isDID === other.props.isDID
+    );
   }
 }

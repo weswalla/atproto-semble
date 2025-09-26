@@ -64,19 +64,28 @@ export class GetUrlCardsUseCase
     }
 
     // Resolve to DID
-    const didResult = await this.identityResolver.resolveToDID(identifierResult.value);
+    const didResult = await this.identityResolver.resolveToDID(
+      identifierResult.value,
+    );
     if (didResult.isErr()) {
-      return err(new ValidationError(`Could not resolve user identifier: ${didResult.error.message}`));
+      return err(
+        new ValidationError(
+          `Could not resolve user identifier: ${didResult.error.message}`,
+        ),
+      );
     }
 
     try {
       // Execute query to get raw card data using the resolved DID
-      const result = await this.cardQueryRepo.getUrlCardsOfUser(didResult.value.value, {
-        page,
-        limit,
-        sortBy,
-        sortOrder,
-      });
+      const result = await this.cardQueryRepo.getUrlCardsOfUser(
+        didResult.value.value,
+        {
+          page,
+          limit,
+          sortBy,
+          sortOrder,
+        },
+      );
 
       // Transform raw data to enriched DTOs
       const enrichedCards: UrlCardListItemDTO[] = result.items;

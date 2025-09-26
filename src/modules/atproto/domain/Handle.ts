@@ -44,8 +44,12 @@ export class Handle extends ValueObject<HandleProps> {
     }
 
     // Must not start or end with dot or hyphen
-    if (domain.startsWith('.') || domain.endsWith('.') || 
-        domain.startsWith('-') || domain.endsWith('-')) {
+    if (
+      domain.startsWith('.') ||
+      domain.endsWith('.') ||
+      domain.startsWith('-') ||
+      domain.endsWith('-')
+    ) {
       return false;
     }
 

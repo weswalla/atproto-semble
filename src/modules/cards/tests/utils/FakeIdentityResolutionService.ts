@@ -3,7 +3,9 @@ import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/
 import { DID } from 'src/modules/atproto/domain/DID';
 import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 
-export class FakeIdentityResolutionService implements IIdentityResolutionService {
+export class FakeIdentityResolutionService
+  implements IIdentityResolutionService
+{
   private handleToDIDMap: Map<string, string> = new Map();
   private shouldFail = false;
 
@@ -37,7 +39,9 @@ export class FakeIdentityResolutionService implements IIdentityResolutionService
       // Create and return the DID
       const didResult = DID.create(mappedDID);
       if (didResult.isErr()) {
-        return err(new Error(`Invalid DID in mapping: ${didResult.error.message}`));
+        return err(
+          new Error(`Invalid DID in mapping: ${didResult.error.message}`),
+        );
       }
 
       return ok(didResult.value);

@@ -80,30 +80,31 @@ export class GetCollectionsUseCase
     }
 
     // Resolve to DID
-    const didResult = await this.identityResolver.resolveToDID(identifierResult.value);
+    const didResult = await this.identityResolver.resolveToDID(
+      identifierResult.value,
+    );
     if (didResult.isErr()) {
-      return err(new ValidationError(`Could not resolve curator identifier: ${didResult.error.message}`));
+      return err(
+        new ValidationError(
+          `Could not resolve curator identifier: ${didResult.error.message}`,
+        ),
+      );
     }
 
     const resolvedDid = didResult.value.value;
 
     try {
       // Execute query to get raw collection data using the resolved DID
-      const result = await this.collectionQueryRepo.findByCreator(
-        resolvedDid,
-        {
-          page,
-          limit,
-          sortBy,
-          sortOrder,
-          searchText: query.searchText,
-        },
-      );
+      const result = await this.collectionQueryRepo.findByCreator(resolvedDid, {
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        searchText: query.searchText,
+      });
 
       // Get user profile for the curator using the resolved DID
-      const profileResult = await this.profileService.getProfile(
-        resolvedDid,
-      );
+      const profileResult = await this.profileService.getProfile(resolvedDid);
 
       if (profileResult.isErr()) {
         return err(

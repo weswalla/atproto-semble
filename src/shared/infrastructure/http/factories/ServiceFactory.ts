@@ -274,7 +274,9 @@ export class ServiceFactory {
     const feedService = new FeedService(repositories.feedRepository);
 
     // Identity Resolution Service
-    const identityResolutionService = new ATProtoIdentityResolutionService(atProtoAgentService);
+    const identityResolutionService = new ATProtoIdentityResolutionService(
+      atProtoAgentService,
+    );
 
     return {
       tokenService,

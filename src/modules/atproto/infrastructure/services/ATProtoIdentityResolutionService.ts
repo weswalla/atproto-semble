@@ -4,7 +4,9 @@ import { DID } from '../../domain/DID';
 import { DIDOrHandle } from '../../domain/DIDOrHandle';
 import { IAgentService } from '../../application/IAgentService';
 
-export class ATProtoIdentityResolutionService implements IIdentityResolutionService {
+export class ATProtoIdentityResolutionService
+  implements IIdentityResolutionService
+{
   constructor(private readonly agentService: IAgentService) {}
 
   async resolveToDID(identifier: DIDOrHandle): Promise<Result<DID>> {

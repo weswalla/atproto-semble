@@ -23,13 +23,13 @@ export class ATProtoCardPublisher implements ICardPublisher {
     try {
       const record = CardMapper.toCreateRecordDTO(card);
       const curatorDidResult = DID.create(curatorId.value);
-      
+
       if (curatorDidResult.isErr()) {
         return err(
           new Error(`Invalid curator DID: ${curatorDidResult.error.message}`),
         );
       }
-      
+
       const curatorDid = curatorDidResult.value;
 
       // Get an authenticated agent for this curator
@@ -105,13 +105,13 @@ export class ATProtoCardPublisher implements ICardPublisher {
       const strongRef = new StrongRef(publishedRecordId);
       const atUri = strongRef.atUri;
       const curatorDidResult = DID.create(curatorId.value);
-      
+
       if (curatorDidResult.isErr()) {
         return err(
           new Error(`Invalid curator DID: ${curatorDidResult.error.message}`),
         );
       }
-      
+
       const curatorDid = curatorDidResult.value;
       const repo = curatorDid.value;
       const rkey = atUri.rkey;

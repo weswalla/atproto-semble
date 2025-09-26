@@ -21,12 +21,10 @@ export class BlueskyProfileService implements IProfileService {
         const didResult = DID.create(callerDid);
         if (didResult.isErr()) {
           return err(
-            new Error(
-              `Invalid caller DID: ${didResult.error.message}`,
-            ),
+            new Error(`Invalid caller DID: ${didResult.error.message}`),
           );
         }
-        
+
         const agentResult = await this.agentService.getAuthenticatedAgent(
           didResult.value,
         );

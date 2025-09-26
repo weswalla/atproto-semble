@@ -73,7 +73,9 @@ describe('DID', () => {
     });
 
     it('should reject unsupported DID method', () => {
-      const result = DID.create('did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK');
+      const result = DID.create(
+        'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK',
+      );
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {

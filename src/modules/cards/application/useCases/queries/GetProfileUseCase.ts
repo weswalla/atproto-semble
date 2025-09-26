@@ -44,14 +44,22 @@ export class GetProfileUseCase
     }
 
     // Resolve to DID
-    const didResult = await this.identityResolver.resolveToDID(identifierResult.value);
+    const didResult = await this.identityResolver.resolveToDID(
+      identifierResult.value,
+    );
     if (didResult.isErr()) {
-      return err(new ValidationError(`Could not resolve user identifier: ${didResult.error.message}`));
+      return err(
+        new ValidationError(
+          `Could not resolve user identifier: ${didResult.error.message}`,
+        ),
+      );
     }
 
     try {
       // Fetch user profile using the resolved DID
-      const profileResult = await this.profileService.getProfile(didResult.value.value);
+      const profileResult = await this.profileService.getProfile(
+        didResult.value.value,
+      );
 
       if (profileResult.isErr()) {
         return err(

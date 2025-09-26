@@ -10,20 +10,20 @@ import { RemoveCardFromCollectionUseCase } from '../../../../modules/cards/appli
 import { GetUrlMetadataUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlMetadataUseCase';
 import { GetUrlCardViewUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlCardViewUseCase';
 import { GetLibrariesForCardUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForCardUseCase';
-import { GetMyUrlCardsUseCase } from '../../../../modules/cards/application/useCases/queries/GetMyUrlCardsUseCase';
+import { GetUrlCardsUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlCardsUseCase';
 import { CreateCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/CreateCollectionUseCase';
 import { UpdateCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateCollectionUseCase';
 import { DeleteCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/DeleteCollectionUseCase';
 import { GetCollectionPageUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionPageUseCase';
-import { GetMyCollectionsUseCase } from '../../../../modules/cards/application/useCases/queries/GetMyCollectionsUseCase';
 import { Repositories } from './RepositoryFactory';
 import { Services, SharedServices } from './ServiceFactory';
-import { GetMyProfileUseCase } from 'src/modules/cards/application/useCases/queries/GetMyProfileUseCase';
+import { GetProfileUseCase } from 'src/modules/cards/application/useCases/queries/GetProfileUseCase';
 import { LoginWithAppPasswordUseCase } from 'src/modules/user/application/use-cases/LoginWithAppPasswordUseCase';
 import { LogoutUseCase } from 'src/modules/user/application/use-cases/LogoutUseCase';
 import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use-cases/GenerateExtensionTokensUseCase';
 import { GetGlobalFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGlobalFeedUseCase';
 import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/useCases/commands/AddActivityToFeedUseCase';
+import { GetCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionsUseCase';
 
 export interface UseCases {
   // User use cases
@@ -31,7 +31,7 @@ export interface UseCases {
   logoutUseCase: LogoutUseCase;
   initiateOAuthSignInUseCase: InitiateOAuthSignInUseCase;
   completeOAuthSignInUseCase: CompleteOAuthSignInUseCase;
-  getMyProfileUseCase: GetMyProfileUseCase;
+  getMyProfileUseCase: GetProfileUseCase;
   refreshAccessTokenUseCase: RefreshAccessTokenUseCase;
   generateExtensionTokensUseCase: GenerateExtensionTokensUseCase;
   // Card use cases
@@ -44,12 +44,12 @@ export interface UseCases {
   getUrlMetadataUseCase: GetUrlMetadataUseCase;
   getUrlCardViewUseCase: GetUrlCardViewUseCase;
   getLibrariesForCardUseCase: GetLibrariesForCardUseCase;
-  getMyUrlCardsUseCase: GetMyUrlCardsUseCase;
+  getMyUrlCardsUseCase: GetUrlCardsUseCase;
   createCollectionUseCase: CreateCollectionUseCase;
   updateCollectionUseCase: UpdateCollectionUseCase;
   deleteCollectionUseCase: DeleteCollectionUseCase;
   getCollectionPageUseCase: GetCollectionPageUseCase;
-  getMyCollectionsUseCase: GetMyCollectionsUseCase;
+  getCollectionsUseCase: GetCollectionsUseCase;
   // Feed use cases
   getGlobalFeedUseCase: GetGlobalFeedUseCase;
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
@@ -82,7 +82,7 @@ export class UseCaseFactory {
         repositories.userRepository,
         services.userAuthService,
       ),
-      getMyProfileUseCase: new GetMyProfileUseCase(services.profileService),
+      getMyProfileUseCase: new GetProfileUseCase(services.profileService),
       refreshAccessTokenUseCase: new RefreshAccessTokenUseCase(
         services.tokenService,
       ),
@@ -132,7 +132,7 @@ export class UseCaseFactory {
         repositories.cardQueryRepository,
         services.profileService,
       ),
-      getMyUrlCardsUseCase: new GetMyUrlCardsUseCase(
+      getMyUrlCardsUseCase: new GetUrlCardsUseCase(
         repositories.cardQueryRepository,
       ),
       createCollectionUseCase: new CreateCollectionUseCase(
@@ -152,7 +152,7 @@ export class UseCaseFactory {
         repositories.cardQueryRepository,
         services.profileService,
       ),
-      getMyCollectionsUseCase: new GetMyCollectionsUseCase(
+      getCollectionsUseCase: new GetCollectionsUseCase(
         repositories.collectionQueryRepository,
         services.profileService,
       ),

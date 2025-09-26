@@ -11,6 +11,7 @@ import { GetUrlMetadataController } from '../../../../modules/cards/infrastructu
 import { GetUrlCardViewController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlCardViewController';
 import { GetLibrariesForCardController } from '../../../../modules/cards/infrastructure/http/controllers/GetLibrariesForCardController';
 import { GetMyUrlCardsController } from '../../../../modules/cards/infrastructure/http/controllers/GetMyUrlCardsController';
+import { GetUserUrlCardsController } from '../../../../modules/cards/infrastructure/http/controllers/GetUserUrlCardsController';
 import { CreateCollectionController } from '../../../../modules/cards/infrastructure/http/controllers/CreateCollectionController';
 import { UpdateCollectionController } from '../../../../modules/cards/infrastructure/http/controllers/UpdateCollectionController';
 import { DeleteCollectionController } from '../../../../modules/cards/infrastructure/http/controllers/DeleteCollectionController';
@@ -19,9 +20,11 @@ import { GetMyCollectionsController } from '../../../../modules/cards/infrastruc
 import { GetGlobalFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetGlobalFeedController';
 import { UseCases } from './UseCaseFactory';
 import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetMyProfileController';
+import { GetUserProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetUserProfileController';
 import { LoginWithAppPasswordController } from 'src/modules/user/infrastructure/http/controllers/LoginWithAppPasswordController';
 import { LogoutController } from 'src/modules/user/infrastructure/http/controllers/LogoutController';
 import { GenerateExtensionTokensController } from 'src/modules/user/infrastructure/http/controllers/GenerateExtensionTokensController';
+import { GetUserCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/GetUserCollectionsController';
 
 export interface Controllers {
   // User controllers
@@ -30,6 +33,7 @@ export interface Controllers {
   initiateOAuthSignInController: InitiateOAuthSignInController;
   completeOAuthSignInController: CompleteOAuthSignInController;
   getMyProfileController: GetMyProfileController;
+  getUserProfileController: GetUserProfileController;
   refreshAccessTokenController: RefreshAccessTokenController;
   generateExtensionTokensController: GenerateExtensionTokensController;
   // Card controllers
@@ -43,11 +47,13 @@ export interface Controllers {
   getUrlCardViewController: GetUrlCardViewController;
   getLibrariesForCardController: GetLibrariesForCardController;
   getMyUrlCardsController: GetMyUrlCardsController;
+  getUserUrlCardsController: GetUserUrlCardsController;
   createCollectionController: CreateCollectionController;
   updateCollectionController: UpdateCollectionController;
   deleteCollectionController: DeleteCollectionController;
   getCollectionPageController: GetCollectionPageController;
   getMyCollectionsController: GetMyCollectionsController;
+  getCollectionsController: GetUserCollectionsController;
   // Feed controllers
   getGlobalFeedController: GetGlobalFeedController;
 }
@@ -67,6 +73,9 @@ export class ControllerFactory {
         useCases.completeOAuthSignInUseCase,
       ),
       getMyProfileController: new GetMyProfileController(
+        useCases.getMyProfileUseCase,
+      ),
+      getUserProfileController: new GetUserProfileController(
         useCases.getMyProfileUseCase,
       ),
       refreshAccessTokenController: new RefreshAccessTokenController(
@@ -108,6 +117,9 @@ export class ControllerFactory {
       getMyUrlCardsController: new GetMyUrlCardsController(
         useCases.getMyUrlCardsUseCase,
       ),
+      getUserUrlCardsController: new GetUserUrlCardsController(
+        useCases.getMyUrlCardsUseCase,
+      ),
       createCollectionController: new CreateCollectionController(
         useCases.createCollectionUseCase,
       ),
@@ -121,7 +133,10 @@ export class ControllerFactory {
         useCases.getCollectionPageUseCase,
       ),
       getMyCollectionsController: new GetMyCollectionsController(
-        useCases.getMyCollectionsUseCase,
+        useCases.getCollectionsUseCase,
+      ),
+      getCollectionsController: new GetUserCollectionsController(
+        useCases.getCollectionsUseCase,
       ),
 
       // Feed controllers

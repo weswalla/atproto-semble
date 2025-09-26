@@ -46,6 +46,7 @@ export const createExpressApp = (
     controllers.loginWithAppPasswordController,
     controllers.logoutController,
     controllers.getMyProfileController,
+    controllers.getUserProfileController,
     controllers.refreshAccessTokenController,
     controllers.generateExtensionTokensController,
   );
@@ -65,12 +66,14 @@ export const createExpressApp = (
     controllers.getUrlCardViewController,
     controllers.getLibrariesForCardController,
     controllers.getMyUrlCardsController,
+    controllers.getUserUrlCardsController,
     // Collection controllers
     controllers.createCollectionController,
     controllers.updateCollectionController,
     controllers.deleteCollectionController,
     controllers.getCollectionPageController,
     controllers.getMyCollectionsController,
+    controllers.getCollectionsController,
   );
 
   const feedRouter = createFeedRoutes(

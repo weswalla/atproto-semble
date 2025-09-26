@@ -52,6 +52,14 @@ export interface GetMyUrlCardsParams {
   sortOrder?: 'asc' | 'desc';
 }
 
+export interface GetUrlCardsParams {
+  did: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
 export interface GetCollectionPageParams {
   page?: number;
   limit?: number;
@@ -60,6 +68,15 @@ export interface GetCollectionPageParams {
 }
 
 export interface GetMyCollectionsParams {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  searchText?: string;
+}
+
+export interface GetCollectionsParams {
+  did: string;
   page?: number;
   limit?: number;
   sortBy?: string;
@@ -96,4 +113,8 @@ export interface RefreshAccessTokenRequest {
 
 export interface GenerateExtensionTokensRequest {
   // No additional parameters needed - user is authenticated via middleware
+}
+
+export interface GetProfileParams {
+  did: string;
 }

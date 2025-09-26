@@ -48,6 +48,8 @@ import { RedisFactory } from '../../redis/RedisFactory';
 import { IEventSubscriber } from 'src/shared/application/events/IEventSubscriber';
 import { FeedService } from '../../../../modules/feeds/domain/services/FeedService';
 import { CardCollectionSaga } from '../../../../modules/feeds/application/sagas/CardCollectionSaga';
+import { ATProtoIdentityResolutionService } from '../../../../modules/atproto/infrastructure/services/ATProtoIdentityResolutionService';
+import { IIdentityResolutionService } from '../../../../modules/atproto/domain/services/IIdentityResolutionService';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -58,6 +60,7 @@ export interface SharedServices {
   profileService: IProfileService;
   feedService: FeedService;
   nodeOauthClient: NodeOAuthClient;
+  identityResolutionService: IIdentityResolutionService;
 }
 
 // Web app specific services (includes publishers, auth middleware)
@@ -270,6 +273,9 @@ export class ServiceFactory {
     // Feed Service
     const feedService = new FeedService(repositories.feedRepository);
 
+    // Identity Resolution Service
+    const identityResolutionService = new ATProtoIdentityResolutionService(atProtoAgentService);
+
     return {
       tokenService,
       userAuthService,
@@ -278,6 +284,7 @@ export class ServiceFactory {
       profileService,
       feedService,
       nodeOauthClient,
+      identityResolutionService,
     };
   }
 }

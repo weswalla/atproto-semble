@@ -43,16 +43,16 @@ export class DIDOrHandle extends ValueObject<DIDOrHandleProps> {
 
     // Check if it's a DID first
     if (trimmedValue.startsWith('did:')) {
-      try {
-        const did = new DID(trimmedValue);
-        return ok(new DIDOrHandle({
-          value: trimmedValue,
-          isDID: true,
-          did,
-        }));
-      } catch (error) {
-        return err(new InvalidDIDOrHandleError(`Invalid DID: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      const didResult = DID.create(trimmedValue);
+      if (didResult.isErr()) {
+        return err(new InvalidDIDOrHandleError(`Invalid DID: ${didResult.error.message}`));
       }
+
+      return ok(new DIDOrHandle({
+        value: trimmedValue,
+        isDID: true,
+        did: didResult.value,
+      }));
     }
 
     // Otherwise, try to parse as handle

@@ -76,7 +76,10 @@ export class QueryClient extends BaseClient {
   }
 
   async getUserProfile(params: GetProfileParams): Promise<GetProfileResponse> {
-    return this.request<GetProfileResponse>('GET', `/api/users/${params.identifier}`);
+    return this.request<GetProfileResponse>(
+      'GET',
+      `/api/users/${params.identifier}`,
+    );
   }
 
   async getCollectionPage(

@@ -15,7 +15,9 @@ export class GetUserProfileController extends Controller {
         return this.fail(res, 'Identifier (DID or handle) is required');
       }
 
-      const result = await this.getProfileUseCase.execute({ userId: identifier });
+      const result = await this.getProfileUseCase.execute({
+        userId: identifier,
+      });
 
       if (result.isErr()) {
         return this.fail(res, result.error as any);

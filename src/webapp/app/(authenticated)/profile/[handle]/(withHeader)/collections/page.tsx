@@ -1,5 +1,11 @@
 import CollectionsContainer from '@/features/collections/containers/collectionsContainer/CollectionsContainer';
 
-export default function Page() {
-  return <CollectionsContainer />;
+interface Props {
+  params: Promise<{ handle: string }>;
+}
+
+export default async function Page(props: Props) {
+  const { handle } = await props.params;
+
+  return <CollectionsContainer handle={handle} />;
 }

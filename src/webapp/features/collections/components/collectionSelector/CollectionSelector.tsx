@@ -16,7 +16,7 @@ import {
 } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { useDebouncedValue } from '@mantine/hooks';
-import useCollections from '../../lib/queries/useCollections';
+import useMyCollections from '../../lib/queries/useMyCollections';
 import useCollectionSearch from '../../lib/queries/useCollectionSearch';
 import CollectionSelectorItemList from '../collectionSelectorItemList/CollectionSelectorItemList';
 import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
@@ -35,7 +35,7 @@ interface Props {
 }
 
 export default function CollectionSelector(props: Props) {
-  const { data, error } = useCollections();
+  const { data, error } = useMyCollections();
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch] = useDebouncedValue(search, 200);
   const searchedCollections = useCollectionSearch({ query: debouncedSearch });

@@ -15,9 +15,13 @@ import { useState } from 'react';
 import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
 import { BiCollection } from 'react-icons/bi';
 
-export default function CollectionsContainer() {
+interface Props {
+  handle: string;
+}
+
+export default function CollectionsContainer(props: Props) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useCollections();
+    useCollections({ didOrHandle: props.handle });
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 

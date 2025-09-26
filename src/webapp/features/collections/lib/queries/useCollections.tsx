@@ -3,10 +3,11 @@ import { createClientTokenManager } from '@/services/auth';
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 
 interface Props {
+  didOrHandle: string;
   limit?: number;
 }
 
-export default function useCollections(props?: Props) {
+export default function useCollections(props: Props) {
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     createClientTokenManager(),
@@ -15,10 +16,14 @@ export default function useCollections(props?: Props) {
   const limit = props?.limit ?? 15;
 
   return useSuspenseInfiniteQuery({
-    queryKey: ['collections', limit],
+    queryKey: ['collections', props.didOrHandle, limit],
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
-      apiClient.getMyCollections({ limit, page: pageParam }),
+      apiClient.getCollections({
+        limit,
+        page: pageParam,
+        identifier: props.didOrHandle,
+      }),
     getNextPageParam: (lastPage) => {
       return lastPage.pagination.hasMore
         ? lastPage.pagination.currentPage + 1

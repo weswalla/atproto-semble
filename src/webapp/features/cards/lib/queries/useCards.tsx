@@ -3,10 +3,11 @@ import { createClientTokenManager } from '@/services/auth';
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 
 interface Props {
+  didOrHandle: string;
   limit?: number;
 }
 
-export default function useMyCards(props?: Props) {
+export default function useCards(props: Props) {
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     createClientTokenManager(),
@@ -14,11 +15,15 @@ export default function useMyCards(props?: Props) {
 
   const limit = props?.limit ?? 16;
 
-  const myCards = useSuspenseInfiniteQuery({
-    queryKey: ['my cards', limit],
+  const cards = useSuspenseInfiniteQuery({
+    queryKey: ['cards', props.didOrHandle, limit],
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
-      return apiClient.getMyUrlCards({ limit, page: pageParam });
+      return apiClient.getUrlCards({
+        limit,
+        page: pageParam,
+        identifier: props.didOrHandle,
+      });
     },
     getNextPageParam: (lastPage) => {
       if (lastPage.pagination.hasMore) {
@@ -28,5 +33,5 @@ export default function useMyCards(props?: Props) {
     },
   });
 
-  return myCards;
+  return cards;
 }

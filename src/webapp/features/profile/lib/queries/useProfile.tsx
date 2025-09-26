@@ -3,7 +3,7 @@ import { createClientTokenManager } from '@/services/auth';
 import { useSuspenseQuery } from '@tanstack/react-query';
 
 interface Props {
-  handleOrDid: string;
+  didOrHandle: string;
 }
 
 export default function useProfile(props: Props) {
@@ -13,8 +13,8 @@ export default function useProfile(props: Props) {
   );
 
   const profile = useSuspenseQuery({
-    queryKey: ['profile', props.handleOrDid],
-    queryFn: () => apiClient.getProfile({ identifier: props.handleOrDid }),
+    queryKey: ['profile', props.didOrHandle],
+    queryFn: () => apiClient.getProfile({ identifier: props.didOrHandle }),
   });
 
   return profile;

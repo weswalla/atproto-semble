@@ -6,27 +6,23 @@ interface Props {
   limit?: number;
 }
 
-export default function useMyCards(props?: Props) {
+export default function useMyCollections(props?: Props) {
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     createClientTokenManager(),
   );
 
-  const limit = props?.limit ?? 16;
+  const limit = props?.limit ?? 15;
 
-  const myCards = useSuspenseInfiniteQuery({
-    queryKey: ['my cards', limit],
+  return useSuspenseInfiniteQuery({
+    queryKey: ['collections', limit],
     initialPageParam: 1,
-    queryFn: ({ pageParam = 1 }) => {
-      return apiClient.getMyUrlCards({ limit, page: pageParam });
-    },
+    queryFn: ({ pageParam }) =>
+      apiClient.getMyCollections({ limit, page: pageParam }),
     getNextPageParam: (lastPage) => {
-      if (lastPage.pagination.hasMore) {
-        return lastPage.pagination.currentPage + 1;
-      }
-      return undefined;
+      return lastPage.pagination.hasMore
+        ? lastPage.pagination.currentPage + 1
+        : undefined;
     },
   });
-
-  return myCards;
 }

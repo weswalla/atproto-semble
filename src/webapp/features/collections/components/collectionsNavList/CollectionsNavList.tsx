@@ -2,14 +2,14 @@ import Link from 'next/link';
 import { NavLink, Stack } from '@mantine/core';
 import { BiCollection, BiRightArrowAlt } from 'react-icons/bi';
 import CollectionNavItem from '../collectionNavItem/CollectionNavItem';
-import useCollections from '../../lib/queries/useCollections';
+import useMyCollections from '../../lib/queries/useMyCollections';
 import { useToggle } from '@mantine/hooks';
 import CollectionsNavListError from './Error.CollectionsNavList';
 import CreateCollectionShortcut from '../createCollectionShortcut/CreateCollectionShortcut';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 
 export default function CollectionsNavList() {
-  const { data, error } = useCollections({ limit: 30 });
+  const { data, error } = useMyCollections({ limit: 30 });
   const { data: profile } = useMyProfile();
   const [opened, toggleMenu] = useToggle([true, false]);
 

@@ -3,7 +3,7 @@
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import useMyCards from '@/features/cards/lib/queries/useMyCards';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
-import useCollections from '@/features/collections/lib/queries/useCollections';
+import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
 import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
 import {
   Anchor,
@@ -24,7 +24,7 @@ import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDraw
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 
 export default function HomeContainer() {
-  const { data: collectionsData } = useCollections({ limit: 4 });
+  const { data: collectionsData } = useMyCollections({ limit: 4 });
   const { data: myCardsData } = useMyCards({ limit: 4 });
   const { data: profile } = useMyProfile();
 

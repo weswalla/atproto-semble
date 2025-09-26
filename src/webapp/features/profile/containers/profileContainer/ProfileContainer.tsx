@@ -1,7 +1,7 @@
 'use client';
 
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
-import useMyCards from '@/features/cards/lib/queries/useMyCards';
+import useCards from '@/features/cards/lib/queries/useCards';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import useCollections from '@/features/collections/lib/queries/useCollections';
 import {
@@ -23,14 +23,15 @@ interface Props {
 }
 
 export default function ProfileContainer(props: Props) {
-  // TODO: use profile endpoints to fetch profile information
-  // for now we'll use getMyProfile
-  const { data: collectionsData } = useCollections({ limit: 4 });
-  const { data: myCardsData } = useMyCards({ limit: 4 });
+  const { data: collectionsData } = useCollections({
+    limit: 4,
+    didOrHandle: props.handle,
+  });
+  const { data: cardsData } = useCards({ limit: 4, didOrHandle: props.handle });
 
   const collections =
     collectionsData?.pages.flatMap((page) => page.collections) ?? [];
-  const cards = myCardsData?.pages.flatMap((page) => page.cards) ?? [];
+  const cards = cardsData?.pages.flatMap((page) => page.cards) ?? [];
 
   return (
     <Container p={'xs'} size={'xl'}>

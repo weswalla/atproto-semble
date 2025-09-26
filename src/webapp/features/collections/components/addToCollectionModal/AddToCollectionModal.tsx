@@ -18,7 +18,7 @@ import { useDebouncedValue } from '@mantine/hooks';
 import { Fragment, useState } from 'react';
 import { IoSearch } from 'react-icons/io5';
 import { BiPlus } from 'react-icons/bi';
-import useCollections from '../../lib/queries/useCollections';
+import useMyCollections from '../../lib/queries/useMyCollections';
 import useCard from '@/features/cards/lib/queries/useGetCard';
 import useAddCardToCollection from '@/features/collections/lib/mutations/useAddCardToCollection';
 import { notifications } from '@mantine/notifications';
@@ -43,7 +43,7 @@ export default function AddToCollectionModal(props: Props) {
 
   const addCardToCollection = useAddCardToCollection();
   const card = useCard({ id: props.cardId });
-  const { data, error } = useCollections();
+  const { data, error } = useMyCollections();
   const [selectedCollections, setSelectedCollections] = useState<
     SelectableCollectionItem[]
   >([]);

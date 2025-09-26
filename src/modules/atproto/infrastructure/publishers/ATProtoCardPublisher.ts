@@ -22,7 +22,15 @@ export class ATProtoCardPublisher implements ICardPublisher {
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
       const record = CardMapper.toCreateRecordDTO(card);
-      const curatorDid = new DID(curatorId.value);
+      const curatorDidResult = DID.create(curatorId.value);
+      
+      if (curatorDidResult.isErr()) {
+        return err(
+          new Error(`Invalid curator DID: ${curatorDidResult.error.message}`),
+        );
+      }
+      
+      const curatorDid = curatorDidResult.value;
 
       // Get an authenticated agent for this curator
       const agentResult =
@@ -96,7 +104,15 @@ export class ATProtoCardPublisher implements ICardPublisher {
       const publishedRecordId = recordId.getValue();
       const strongRef = new StrongRef(publishedRecordId);
       const atUri = strongRef.atUri;
-      const curatorDid = new DID(curatorId.value);
+      const curatorDidResult = DID.create(curatorId.value);
+      
+      if (curatorDidResult.isErr()) {
+        return err(
+          new Error(`Invalid curator DID: ${curatorDidResult.error.message}`),
+        );
+      }
+      
+      const curatorDid = curatorDidResult.value;
       const repo = curatorDid.value;
       const rkey = atUri.rkey;
 

@@ -1,5 +1,4 @@
-import { BG_IMAGE_BASE_64, loadGoogleFont } from '@/lib/utils/og';
-import { truncateText } from '@/lib/utils/text';
+import { BG_IMAGE_BASE_64, loadGoogleFont } from '../../lib/utils';
 import { ImageResponse } from 'next/og';
 
 interface Props {

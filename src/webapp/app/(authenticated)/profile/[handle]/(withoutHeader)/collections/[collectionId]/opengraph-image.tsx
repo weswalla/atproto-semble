@@ -51,6 +51,18 @@ export default async function Image(props: Props) {
           >
             {truncateText(truncateText(collection.name), 35)}
           </p>
+          <p
+            style={{
+              fontSize: '40px',
+              lineHeight: '20px',
+              marginTop: '40px',
+            }}
+          >
+            <span>By&nbsp;</span>
+            <span style={{ color: '#23AFED' }}>
+              @{truncateText(truncateText(collection.author.handle), 35)}
+            </span>
+          </p>
         </div>
       </div>
     ),

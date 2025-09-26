@@ -1,5 +1,3 @@
-'use client';
-
 import {
   Container,
   Stack,
@@ -8,74 +6,66 @@ import {
   Text,
   Title,
   Button,
-  Box,
 } from '@mantine/core';
-import { FaBluesky } from 'react-icons/fa6';
 import { truncateText } from '@/lib/utils/text';
-import useProfile from '../../lib/queries/useProfile';
-import { useWindowScroll } from '@mantine/hooks';
-import MinimalProfileHeader from './MinimalProfileHeader';
+import MinimalProfileHeaderContainer from '../../containers/minimalProfileHeaderContainer/MinimalProfileHeaderContainer';
+import { FaBluesky } from 'react-icons/fa6';
+import { ApiClient } from '@/api-client/ApiClient';
+import { createClientTokenManager } from '@/services/auth';
 
 interface Props {
   handle: string;
 }
 
-export default function ProfileHeader(props: Props) {
-  const { data } = useProfile({ handleOrDid: props.handle });
-  const [{ y: yScroll }] = useWindowScroll();
-  const HEADER_REVEAL_SCROLL_THRESHOLD = 140;
+export default async function ProfileHeader(props: Props) {
+  const apiClient = new ApiClient(
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+    createClientTokenManager(),
+  );
+
+  const profile = await apiClient.getProfile({
+    did: props.handle,
+  });
 
   return (
     <Container bg={'white'} p={'xs'} size={'xl'}>
-      <Box
-        style={{
-          position: 'fixed',
-          top: 0,
-          width: '100%',
-          zIndex: 2,
-          transform: `translateY(${yScroll > HEADER_REVEAL_SCROLL_THRESHOLD ? '0' : '-100px'})`,
-          transition: 'transform 100ms ease',
-          backgroundColor: 'var(--mantine-color-body)',
-        }}
-      >
-        <MinimalProfileHeader
-          avatarUrl={data.avatarUrl}
-          name={data.name}
-          handle={data.handle}
-        />
-      </Box>
+      <MinimalProfileHeaderContainer
+        avatarUrl={profile.avatarUrl}
+        name={profile.name}
+        handle={profile.handle}
+      />
 
       <Stack gap={'xl'}>
         <Group justify="space-between" align="end">
           <Group gap={'lg'} align="end">
             <Avatar
-              src={data.avatarUrl}
-              alt={`${data.name}'s avatar`}
+              src={profile.avatarUrl}
+              alt={`${profile.name}'s avatar`}
               size={'clamp(95px, 14vw, 180px)'}
               radius={'lg'}
             />
             <Stack gap={'sm'}>
               <Stack gap={0}>
                 <Title order={1} fz={{ base: 'h2', md: 'h1' }}>
-                  {data.name}
+                  {profile.name}
                 </Title>
                 <Text c="blue" fw={600} fz={{ base: 'lg', md: 'xl' }}>
-                  @{data.handle}
+                  @{profile.handle}
                 </Text>
               </Stack>
-              {data.description && <Text>{data.description}</Text>}
+              {profile.description && <Text>{profile.description}</Text>}
             </Stack>
           </Group>
           <Button
             component="a"
-            href={`https://bsky.app/profile/${data.handle}`}
+            href={`https://bsky.app/profile/${profile.handle}`}
             target="_blank"
             radius={'xl'}
             bg="gray.2"
             c={'gray'}
             leftSection={<FaBluesky />}
           >
-            {truncateText(data.handle, 14)}
+            {truncateText(profile.handle, 14)}
           </Button>
         </Group>
       </Stack>

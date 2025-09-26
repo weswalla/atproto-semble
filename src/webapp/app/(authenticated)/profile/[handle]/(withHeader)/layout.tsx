@@ -1,11 +1,11 @@
-import { ApiClient } from '@/api-client/ApiClient';
+import type { Metadata } from 'next';
 import Header from '@/components/navigation/header/Header';
 import ProfileHeader from '@/features/profile/components/profileHeader/ProfileHeader';
-import { createServerTokenManager } from '@/services/auth';
-import { Button, Container, Stack, Text, Title } from '@mantine/core';
-import type { Metadata } from 'next';
-import Link from 'next/link';
+import ProfileTabs from '@/features/profile/components/profileTabs/ProfileTabs';
+import { Box, Container } from '@mantine/core';
 import { Fragment } from 'react';
+import { ApiClient } from '@/api-client/ApiClient';
+import { createClientTokenManager } from '@/services/auth';
 
 interface Props {
   params: Promise<{ handle: string }>;
@@ -15,43 +15,40 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params;
 
+  const apiClient = new ApiClient(
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+    createClientTokenManager(),
+  );
+
+  const profile = await apiClient.getProfile({
+    identifier: handle,
+  });
+
   return {
-    title: handle,
-    description: 'Profile',
+    title: profile.name,
+    description:
+      profile.description ?? `Explore ${profile.name}'s profile on Semble`,
   };
 }
 
 export default async function Layout(props: Props) {
   const { handle } = await props.params;
-  const serverTokenManager = await createServerTokenManager();
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    serverTokenManager,
-  );
-  const data = await apiClient.getMyProfile();
-
-  // TODO: use profile endpoints to fetch profile information
-  // for now we'll use getMyProfile
-  if (data.handle !== handle) {
-    return (
-      <Fragment>
-        <Header />
-        <Container p="xs" size="md">
-          <Stack align="center">
-            <Title order={1}>Public profiles are coming soon!</Title>
-            <Button component={Link} href={`/profile/${data.handle}`} fw={600}>
-              Visit your own profile
-            </Button>
-          </Stack>
-        </Container>
-      </Fragment>
-    );
-  }
 
   return (
     <Fragment>
       <Header />
       <ProfileHeader handle={handle} />
+      <Box
+        style={{
+          position: 'sticky',
+          top: 59,
+          zIndex: 1,
+        }}
+      >
+        <Container bg={'white'} px={'xs'} mt={'md'} size={'xl'}>
+          <ProfileTabs handle={handle} />
+        </Container>
+      </Box>
       {props.children}
     </Fragment>
   );

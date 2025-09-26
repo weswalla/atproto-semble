@@ -60,7 +60,7 @@ export default function ProfileMenu() {
         <Menu.Dropdown>
           <Menu.Item component={Link} href={`/profile/${data.handle}`}>
             <Group gap={'xs'} wrap="nowrap">
-              <Avatar src={data.avatarUrl} size={48} />
+              <Avatar src={data.avatarUrl} size={'lg'} />
               <Stack gap={0}>
                 <Text fw={500} lineClamp={1} style={{ wordBreak: 'break-all' }}>
                   {data.name}

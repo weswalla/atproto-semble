@@ -12,7 +12,7 @@ export default function useMyCards(props?: Props) {
     createClientTokenManager(),
   );
 
-  const limit = props?.limit ?? 15;
+  const limit = props?.limit ?? 16;
 
   const query = useSuspenseInfiniteQuery({
     queryKey: ['my cards', limit],

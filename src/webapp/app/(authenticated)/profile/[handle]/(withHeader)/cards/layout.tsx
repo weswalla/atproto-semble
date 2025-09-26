@@ -1,11 +1,30 @@
-import Header from '@/components/navigation/header/Header';
+import { ApiClient } from '@/api-client/ApiClient';
+import { createClientTokenManager } from '@/services/auth';
 import type { Metadata } from 'next';
 import { Fragment } from 'react';
 
-export const metadata: Metadata = {
-  title: 'My Cards',
-  description: 'All my cards',
-};
+interface Props {
+  params: Promise<{ handle: string }>;
+  children: React.ReactNode;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { handle } = await params;
+
+  const apiClient = new ApiClient(
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+    createClientTokenManager(),
+  );
+
+  const profile = await apiClient.getProfile({
+    identifier: handle,
+  });
+
+  return {
+    title: `${profile.name}'s cards`,
+    description: `Explore ${profile.name}'s cards on Semble`,
+  };
+}
 
 interface Props {
   children: React.ReactNode;

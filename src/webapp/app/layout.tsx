@@ -1,14 +1,12 @@
 import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
+import GlobalStyles from '@/styles/global.module.css';
 import { ColorSchemeScript, mantineHtmlProps } from '@mantine/core';
 import { Hanken_Grotesk } from 'next/font/google';
 import Providers from '@/providers';
 
 export const metadata: Metadata = {
-  title: {
-    template: 'Semble | %s',
-    default: 'Semble | A social knowledge network for researchers',
-  },
+  title: 'Semble | A social knowledge network for researchers',
   description: `Follow your peers' research trails. Surface and discover new connections. Built on ATProto so you own your data.`,
 };
 
@@ -30,7 +28,7 @@ export default function RootLayout({
       <head>
         <ColorSchemeScript />
       </head>
-      <body>
+      <body className={GlobalStyles.main}>
         <Providers>{children}</Providers>
         <Analytics />
       </body>

@@ -1,5 +1,3 @@
-import { ApiClient } from '@/api-client/ApiClient';
-import { createServerTokenManager } from '@/services/auth';
 import {
   Container,
   Stack,
@@ -9,52 +7,65 @@ import {
   Title,
   Button,
 } from '@mantine/core';
+import { truncateText } from '@/lib/utils/text';
+import MinimalProfileHeaderContainer from '../../containers/minimalProfileHeaderContainer/MinimalProfileHeaderContainer';
 import { FaBluesky } from 'react-icons/fa6';
+import { ApiClient } from '@/api-client/ApiClient';
+import { createClientTokenManager } from '@/services/auth';
 
 interface Props {
   handle: string;
 }
 
 export default async function ProfileHeader(props: Props) {
-  const serverTokenManager = await createServerTokenManager();
-
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    serverTokenManager,
+    createClientTokenManager(),
   );
-  const data = await apiClient.getMyProfile();
+
+  const profile = await apiClient.getProfile({
+    identifier: props.handle,
+  });
 
   return (
-    <Container p={'xs'} size={'xl'}>
-      <Stack>
-        <Group justify="space-between">
-          <Group>
+    <Container bg={'white'} p={'xs'} size={'xl'}>
+      <MinimalProfileHeaderContainer
+        avatarUrl={profile.avatarUrl}
+        name={profile.name}
+        handle={profile.handle}
+      />
+
+      <Stack gap={'xl'}>
+        <Group justify="space-between" align="end">
+          <Group gap={'lg'} align="end">
             <Avatar
-              src={data.avatarUrl}
-              alt={`${data.name}'s avatar`}
-              size={'xl'}
+              src={profile.avatarUrl}
+              alt={`${profile.name}'s avatar`}
+              size={'clamp(95px, 14vw, 180px)'}
               radius={'lg'}
             />
             <Stack gap={'sm'}>
-              <Group>
-                <Title order={1} fz={'h4'}>
-                  {data.name}
+              <Stack gap={0}>
+                <Title order={1} fz={{ base: 'h2', md: 'h1' }}>
+                  {profile.name}
                 </Title>
-                <Text c="blue" fw={600} fz={'h4'}>
-                  {data.handle}
+                <Text c="blue" fw={600} fz={{ base: 'lg', md: 'xl' }}>
+                  @{profile.handle}
                 </Text>
-              </Group>
-              {data.description && <Text>{data.description}</Text>}
+              </Stack>
+              {profile.description && <Text>{profile.description}</Text>}
             </Stack>
           </Group>
           <Button
             component="a"
-            href={`https://bsky.app/profile/${data.handle}`}
+            href={`https://bsky.app/profile/${profile.handle}`}
             target="_blank"
-            color="gray"
-            leftSection={<FaBluesky size={22} />}
+            radius={'xl'}
+            bg="gray.2"
+            c={'gray'}
+            leftSection={<FaBluesky />}
           >
-            @{data.handle}
+            {truncateText(profile.handle, 14)}
           </Button>
         </Group>
       </Stack>

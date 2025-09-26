@@ -1,14 +1,15 @@
 'use client';
 
 import {
+  createTheme,
   Avatar,
   Button,
   CheckboxIndicator,
-  createTheme,
   MenuItem,
   Modal,
   NavLink,
   Spoiler,
+  TabsTab,
 } from '@mantine/core';
 
 export const theme = createTheme({
@@ -109,6 +110,12 @@ export const theme = createTheme({
           color: 'gray',
           fontWeight: 600,
         },
+      },
+    }),
+    TabsTab: TabsTab.extend({
+      defaultProps: {
+        fw: 500,
+        fz: 'md',
       },
     }),
   },

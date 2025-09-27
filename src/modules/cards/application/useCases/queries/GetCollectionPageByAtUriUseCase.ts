@@ -1,6 +1,9 @@
 import { err, ok, Result } from 'src/shared/core/Result';
 import { UseCase } from 'src/shared/core/UseCase';
 import { IAtUriResolutionService } from '../../../domain/services/IAtUriResolutionService';
+import { IIdentityResolutionService } from '../../../../atproto/domain/services/IIdentityResolutionService';
+import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
+import { ATUri } from '../../../../atproto/domain/ATUri';
 import { 
   GetCollectionPageUseCase, 
   GetCollectionPageResult,
@@ -10,7 +13,8 @@ import {
 } from './GetCollectionPageUseCase';
 
 export interface GetCollectionPageByAtUriQuery {
-  atUri: string;
+  handle: string;
+  recordKey: string;
   callerDid?: string;
   page?: number;
   limit?: number;
@@ -22,6 +26,7 @@ export class GetCollectionPageByAtUriUseCase
   implements UseCase<GetCollectionPageByAtUriQuery, Result<GetCollectionPageResult>>
 {
   constructor(
+    private identityResolutionService: IIdentityResolutionService,
     private atUriResolutionService: IAtUriResolutionService,
     private getCollectionPageUseCase: GetCollectionPageUseCase,
   ) {}
@@ -29,9 +34,30 @@ export class GetCollectionPageByAtUriUseCase
   async execute(
     query: GetCollectionPageByAtUriQuery,
   ): Promise<Result<GetCollectionPageResult>> {
-    // First resolve the AT URI to a collection ID
+    // First resolve the handle to a DID
+    const identifierResult = DIDOrHandle.create(query.handle);
+    if (identifierResult.isErr()) {
+      return err(new Error(`Invalid handle: ${identifierResult.error.message}`));
+    }
+
+    const didResult = await this.identityResolutionService.resolveToDID(identifierResult.value);
+    if (didResult.isErr()) {
+      return err(new Error(`Failed to resolve handle to DID: ${didResult.error.message}`));
+    }
+
+    // Construct the AT URI using the resolved DID
+    const atUriResult = ATUri.fromParts(
+      didResult.value,
+      'network.cosmik.collection',
+      query.recordKey
+    );
+    if (atUriResult.isErr()) {
+      return err(new Error(`Failed to construct AT URI: ${atUriResult.error.message}`));
+    }
+
+    // Resolve the AT URI to a collection ID
     const collectionIdResult = await this.atUriResolutionService
-      .resolveCollectionId(query.atUri);
+      .resolveCollectionId(atUriResult.value.value);
 
     if (collectionIdResult.isErr()) {
       return err(collectionIdResult.error);

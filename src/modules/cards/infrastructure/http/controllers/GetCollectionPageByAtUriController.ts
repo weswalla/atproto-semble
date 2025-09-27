@@ -15,11 +15,9 @@ export class GetCollectionPageByAtUriController extends Controller {
       const { page, limit, sortBy, sortOrder } = req.query;
       const callerDid = req.did;
 
-      // Construct the AT URI from handle and record key
-      const atUri = `at://${handle}/network.cosmik.collection/${recordKey}`;
-
       const result = await this.getCollectionPageByAtUriUseCase.execute({
-        atUri,
+        handle,
+        recordKey,
         callerDid,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,

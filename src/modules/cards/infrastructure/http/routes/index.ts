@@ -74,9 +74,9 @@ export function createCardsModuleRoutes(
       updateCollectionController,
       deleteCollectionController,
       getCollectionPageController,
-      getCollectionPageByAtUriController,
       getMyCollectionsController,
       getCollectionsController,
+      getCollectionPageByAtUriController,
     ),
   );
 

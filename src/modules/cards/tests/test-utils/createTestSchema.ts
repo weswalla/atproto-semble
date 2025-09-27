@@ -98,4 +98,9 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_feed_activities_actor_id ON feed_activities(actor_id);
   `);
+
+  // Index for efficient AT URI lookups
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS published_records_uri_idx ON published_records(uri);
+  `);
 }

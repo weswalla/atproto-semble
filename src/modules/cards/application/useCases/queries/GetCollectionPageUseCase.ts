@@ -9,9 +9,19 @@ import {
 } from '../../../domain/ICardQueryRepository';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { IProfileService } from '../../../domain/services/IProfileService';
+import { IAtUriResolutionService } from '../../../domain/services/IAtUriResolutionService';
 
 export interface GetCollectionPageQuery {
   collectionId: string;
+  callerDid?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: CardSortField;
+  sortOrder?: SortOrder;
+}
+
+export interface GetCollectionPageByAtUriQuery {
+  atUri: string;
   callerDid?: string;
   page?: number;
   limit?: number;
@@ -65,6 +75,7 @@ export class GetCollectionPageUseCase
     private collectionRepo: ICollectionRepository,
     private cardQueryRepo: ICardQueryRepository,
     private profileService: IProfileService,
+    private atUriResolutionService?: IAtUriResolutionService,
   ) {}
 
   async execute(
@@ -163,5 +174,35 @@ export class GetCollectionPageUseCase
         ),
       );
     }
+  }
+
+  async executeByAtUri(
+    query: GetCollectionPageByAtUriQuery,
+  ): Promise<Result<GetCollectionPageResult>> {
+    if (!this.atUriResolutionService) {
+      return err(new Error('AT URI resolution service not available'));
+    }
+
+    // First resolve the AT URI to a collection ID
+    const collectionIdResult = await this.atUriResolutionService
+      .resolveCollectionId(query.atUri);
+
+    if (collectionIdResult.isErr()) {
+      return err(collectionIdResult.error);
+    }
+
+    if (!collectionIdResult.value) {
+      return err(new CollectionNotFoundError('Collection not found for AT URI'));
+    }
+
+    // Now use the existing execute method
+    return this.execute({
+      collectionId: collectionIdResult.value.getStringValue(),
+      callerDid: query.callerDid,
+      page: query.page,
+      limit: query.limit,
+      sortBy: query.sortBy,
+      sortOrder: query.sortOrder,
+    });
   }
 }

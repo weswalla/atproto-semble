@@ -5,13 +5,18 @@ import { AuthenticatedRequest } from 'src/shared/infrastructure/http/middleware/
 import { CardSortField, SortOrder } from '../../../domain/ICardQueryRepository';
 
 export class GetCollectionPageByAtUriController extends Controller {
-  constructor(private getCollectionPageByAtUriUseCase: GetCollectionPageByAtUriUseCase) {
+  constructor(
+    private getCollectionPageByAtUriUseCase: GetCollectionPageByAtUriUseCase,
+  ) {
     super();
   }
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const { handle, recordKey } = req.params;
+      if (!handle || !recordKey) {
+        return this.badRequest(res, 'Handle and recordKey are required');
+      }
       const { page, limit, sortBy, sortOrder } = req.query;
       const callerDid = req.did;
 

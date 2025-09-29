@@ -105,11 +105,8 @@ export class GetCollectionPageUseCase
       }
 
       const collectionPublishedRecordId = collection.publishedRecordId;
-      if (!collectionPublishedRecordId) {
-        return err(new CollectionNotFoundError('Collection not published'));
-      }
 
-      const collectionUri = collectionPublishedRecordId.uri;
+      const collectionUri = collectionPublishedRecordId?.uri;
 
       // Get author profile
       const profileResult = await this.profileService.getProfile(

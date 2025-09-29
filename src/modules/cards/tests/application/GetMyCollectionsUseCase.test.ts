@@ -112,6 +112,11 @@ describe('GetMyCollectionsUseCase', () => {
       expect(firstCollection.createdBy.name).toBe(userProfile.name);
       expect(firstCollection.createdBy.handle).toBe(userProfile.handle);
       expect(firstCollection.createdBy.avatarUrl).toBe(userProfile.avatarUrl);
+
+      // Verify URI is included
+      expect(firstCollection.uri).toBeDefined();
+      expect(typeof firstCollection.uri).toBe('string');
+      expect(firstCollection.uri.length).toBeGreaterThan(0);
     });
 
     it('should only return collections for the specified curator', async () => {
@@ -153,6 +158,10 @@ describe('GetMyCollectionsUseCase', () => {
       const response = result.unwrap();
       expect(response.collections).toHaveLength(1);
       expect(response.collections[0]!.name).toBe('My Collection');
+      
+      // Verify URI is present for the collection
+      expect(response.collections[0]!.uri).toBeDefined();
+      expect(typeof response.collections[0]!.uri).toBe('string');
     });
   });
 
@@ -511,6 +520,13 @@ describe('GetMyCollectionsUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.collections).toHaveLength(3);
+      
+      // Verify all collections have URIs
+      response.collections.forEach(collection => {
+        expect(collection.uri).toBeDefined();
+        expect(typeof collection.uri).toBe('string');
+        expect(collection.uri.length).toBeGreaterThan(0);
+      });
     });
 
     it('should search collections with no description', async () => {
@@ -541,6 +557,100 @@ describe('GetMyCollectionsUseCase', () => {
       const response = result.unwrap();
       expect(response.collections).toHaveLength(1);
       expect(response.collections[0]!.name).toBe('No Description Collection');
+    });
+  });
+
+  describe('URI validation', () => {
+    it('should return valid URIs for all collections', async () => {
+      // Create test collections
+      const collection1Result = Collection.create({
+        name: 'Test Collection 1',
+        description: 'First test collection',
+        authorId: curatorId,
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const collection2Result = Collection.create({
+        name: 'Test Collection 2',
+        description: 'Second test collection',
+        authorId: curatorId,
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      if (collection1Result.isErr() || collection2Result.isErr()) {
+        throw new Error('Failed to create test collections');
+      }
+
+      await collectionRepo.save(collection1Result.value);
+      await collectionRepo.save(collection2Result.value);
+
+      const query = {
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(query);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.collections).toHaveLength(2);
+
+      // Verify each collection has a valid URI
+      response.collections.forEach((collection, index) => {
+        expect(collection.uri).toBeDefined();
+        expect(typeof collection.uri).toBe('string');
+        expect(collection.uri.length).toBeGreaterThan(0);
+        
+        // URIs should be unique
+        const otherUris = response.collections
+          .filter((_, i) => i !== index)
+          .map(c => c.uri);
+        expect(otherUris).not.toContain(collection.uri);
+      });
+    });
+
+    it('should return consistent URIs across multiple calls', async () => {
+      // Create a test collection
+      const collectionResult = Collection.create({
+        name: 'Consistent URI Test',
+        description: 'Testing URI consistency',
+        authorId: curatorId,
+        accessType: CollectionAccessType.OPEN,
+        collaboratorIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      if (collectionResult.isErr()) {
+        throw new Error('Failed to create test collection');
+      }
+
+      await collectionRepo.save(collectionResult.value);
+
+      const query = {
+        curatorId: curatorId.value,
+      };
+
+      // Execute the same query twice
+      const result1 = await useCase.execute(query);
+      const result2 = await useCase.execute(query);
+
+      expect(result1.isOk()).toBe(true);
+      expect(result2.isOk()).toBe(true);
+
+      const response1 = result1.unwrap();
+      const response2 = result2.unwrap();
+
+      expect(response1.collections).toHaveLength(1);
+      expect(response2.collections).toHaveLength(1);
+
+      // URIs should be consistent across calls
+      expect(response1.collections[0]!.uri).toBe(response2.collections[0]!.uri);
     });
   });
 

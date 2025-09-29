@@ -12,6 +12,7 @@ import {
   GetCollectionPageParams,
   GetMyCollectionsParams,
   GetCollectionsParams,
+  GetCollectionPageByAtUriParams,
   GetProfileParams,
 } from '../types';
 
@@ -96,6 +97,25 @@ export class QueryClient extends BaseClient {
     const endpoint = queryString
       ? `/api/collections/${collectionId}?${queryString}`
       : `/api/collections/${collectionId}`;
+
+    return this.request<GetCollectionPageResponse>('GET', endpoint);
+  }
+
+  async getCollectionPageByAtUri(
+    params: GetCollectionPageByAtUriParams,
+  ): Promise<GetCollectionPageResponse> {
+    const { handle, recordKey, ...queryParams } = params;
+    const searchParams = new URLSearchParams();
+    
+    if (queryParams.page) searchParams.set('page', queryParams.page.toString());
+    if (queryParams.limit) searchParams.set('limit', queryParams.limit.toString());
+    if (queryParams.sortBy) searchParams.set('sortBy', queryParams.sortBy);
+    if (queryParams.sortOrder) searchParams.set('sortOrder', queryParams.sortOrder);
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString
+      ? `/api/collections/at/${handle}/${recordKey}?${queryString}`
+      : `/api/collections/at/${handle}/${recordKey}`;
 
     return this.request<GetCollectionPageResponse>('GET', endpoint);
   }

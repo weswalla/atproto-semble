@@ -41,7 +41,7 @@ export class CollectionMapper {
   }): CollectionQueryResultDTO {
     return {
       id: raw.id,
-      uri: raw.uri || '',
+      uri: raw.uri || undefined,
       name: raw.name,
       description: raw.description || undefined,
       createdAt: raw.createdAt,

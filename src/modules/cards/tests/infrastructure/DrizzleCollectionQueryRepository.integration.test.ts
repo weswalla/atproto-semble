@@ -149,12 +149,6 @@ describe('DrizzleCollectionQueryRepository', () => {
       result.items.forEach((item) => {
         expect(item.authorId).toBe(curatorId.value);
       });
-
-      // Check that URI field is present (should be empty string for unpublished collections)
-      result.items.forEach((item) => {
-        expect(item.uri).toBeDefined();
-        expect(item.uri).toBe('');
-      });
     });
 
     it('should not return collections from other curators', async () => {
@@ -973,7 +967,7 @@ describe('DrizzleCollectionQueryRepository', () => {
       });
 
       expect(result.items).toHaveLength(1);
-      expect(result.items[0]?.uri).toBe('');
+      expect(result.items[0]?.uri).toBeUndefined();
     });
 
     it('should return URI for collections with published records', async () => {
@@ -1062,7 +1056,7 @@ describe('DrizzleCollectionQueryRepository', () => {
       );
 
       expect(publishedItem?.uri).toBe(publishedRecordId.uri);
-      expect(unpublishedItem?.uri).toBe('');
+      expect(unpublishedItem?.uri).toBeUndefined();
     });
   });
 

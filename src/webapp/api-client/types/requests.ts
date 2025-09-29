@@ -84,6 +84,15 @@ export interface GetCollectionsParams {
   searchText?: string;
 }
 
+export interface GetCollectionPageByAtUriParams {
+  handle: string;
+  recordKey: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
 // Feed request types
 export interface GetGlobalFeedParams {
   page?: number;

@@ -22,6 +22,7 @@ export interface GetCollectionPageQuery {
 export type CollectionPageUrlCardDTO = UrlCardView;
 export interface GetCollectionPageResult {
   id: string;
+  uri: string;
   name: string;
   description?: string;
   author: {
@@ -103,6 +104,13 @@ export class GetCollectionPageUseCase
         return err(new CollectionNotFoundError('Collection not found'));
       }
 
+      const collectionPublishedRecordId = collection.publishedRecordId;
+      if (!collectionPublishedRecordId) {
+        return err(new CollectionNotFoundError('Collection not published'));
+      }
+
+      const collectionUri = collectionPublishedRecordId.uri;
+
       // Get author profile
       const profileResult = await this.profileService.getProfile(
         collection.authorId.value,
@@ -135,6 +143,7 @@ export class GetCollectionPageUseCase
 
       return ok({
         id: collection.collectionId.getStringValue(),
+        uri: collectionUri,
         name: collection.name.value,
         description: collection.description?.value,
         author: {

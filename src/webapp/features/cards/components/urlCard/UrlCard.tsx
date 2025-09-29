@@ -34,7 +34,7 @@ export default function UrlCard(props: Props) {
       <Card withBorder radius={'lg'} p={'sm'} flex={1}>
         <Stack justify="space-between" gap={'sm'} flex={1}>
           <Group justify="space-between" align="start" gap={'lg'}>
-            <Stack gap={0} flex={0.9}>
+            <Stack gap={0} flex={1}>
               <Anchor
                 component={Link}
                 href={props.url}
@@ -45,7 +45,7 @@ export default function UrlCard(props: Props) {
                 {domain}
               </Anchor>
               {props.cardContent.title && (
-                <Text fw={500} lineClamp={1}>
+                <Text fw={500} lineClamp={2}>
                   {props.cardContent.title}
                 </Text>
               )}

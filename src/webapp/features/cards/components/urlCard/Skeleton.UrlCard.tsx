@@ -6,11 +6,12 @@ export default function UrlCardSkeleton() {
       <Card withBorder radius={'lg'} p={'sm'} flex={1}>
         <Stack justify="space-between" gap={'sm'} flex={1}>
           <Group justify="space-between" align="start" gap={'lg'}>
-            <Stack gap={'xs'} flex={0.9}>
+            <Stack gap={'xs'} flex={1}>
               <Stack gap={5}>
                 {/* Domain */}
                 <Skeleton w={80} h={14} />
                 {/* Title */}
+                <Skeleton w={'100%'} h={14} />
                 <Skeleton w={'100%'} h={14} />
               </Stack>
 

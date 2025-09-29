@@ -32,8 +32,10 @@ export function createCollectionRoutes(
   );
 
   // GET /api/collections/at/:handle/:recordKey - Get collection by AT URI
-  router.get('/at/:handle/:recordKey', authMiddleware.optionalAuth(), (req, res) =>
-    getCollectionPageByAtUriController.execute(req, res),
+  router.get(
+    '/at/:handle/:recordKey',
+    authMiddleware.optionalAuth(),
+    (req, res) => getCollectionPageByAtUriController.execute(req, res),
   );
 
   // GET /api/collections/:collectionId - Get collection page

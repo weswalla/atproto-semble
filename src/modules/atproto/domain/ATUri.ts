@@ -50,12 +50,20 @@ export class ATUri extends ValueObject<ATUriProps> {
 
     const parts = trimmedUri.split('/');
     if (parts.length !== 5) {
-      return err(new InvalidATUriError('AT URI must have exactly 5 parts separated by "/"'));
+      return err(
+        new InvalidATUriError(
+          'AT URI must have exactly 5 parts separated by "/"',
+        ),
+      );
     }
 
     const didResult = DID.create(parts[2]!);
     if (didResult.isErr()) {
-      return err(new InvalidATUriError(`Invalid DID in AT URI: ${didResult.error.message}`));
+      return err(
+        new InvalidATUriError(
+          `Invalid DID in AT URI: ${didResult.error.message}`,
+        ),
+      );
     }
 
     const collection = parts[3]!;
@@ -69,15 +77,21 @@ export class ATUri extends ValueObject<ATUriProps> {
       return err(new InvalidATUriError('Record key cannot be empty'));
     }
 
-    return ok(new ATUri({
-      value: trimmedUri,
-      did: didResult.value,
-      collection,
-      rkey,
-    }));
+    return ok(
+      new ATUri({
+        value: trimmedUri,
+        did: didResult.value,
+        collection,
+        rkey,
+      }),
+    );
   }
 
-  public static fromParts(did: DID, collection: string, rkey: string): Result<ATUri, InvalidATUriError> {
+  public static fromParts(
+    did: DID,
+    collection: string,
+    rkey: string,
+  ): Result<ATUri, InvalidATUriError> {
     if (!collection || collection.length === 0) {
       return err(new InvalidATUriError('Collection cannot be empty'));
     }
@@ -87,13 +101,15 @@ export class ATUri extends ValueObject<ATUriProps> {
     }
 
     const uri = `at://${did.value}/${collection}/${rkey}`;
-    
-    return ok(new ATUri({
-      value: uri,
-      did,
-      collection,
-      rkey,
-    }));
+
+    return ok(
+      new ATUri({
+        value: uri,
+        did,
+        collection,
+        rkey,
+      }),
+    );
   }
 
   public toString(): string {

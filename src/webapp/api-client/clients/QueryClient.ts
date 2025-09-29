@@ -106,11 +106,13 @@ export class QueryClient extends BaseClient {
   ): Promise<GetCollectionPageResponse> {
     const { handle, recordKey, ...queryParams } = params;
     const searchParams = new URLSearchParams();
-    
+
     if (queryParams.page) searchParams.set('page', queryParams.page.toString());
-    if (queryParams.limit) searchParams.set('limit', queryParams.limit.toString());
+    if (queryParams.limit)
+      searchParams.set('limit', queryParams.limit.toString());
     if (queryParams.sortBy) searchParams.set('sortBy', queryParams.sortBy);
-    if (queryParams.sortOrder) searchParams.set('sortOrder', queryParams.sortOrder);
+    if (queryParams.sortOrder)
+      searchParams.set('sortOrder', queryParams.sortOrder);
 
     const queryString = searchParams.toString();
     const endpoint = queryString

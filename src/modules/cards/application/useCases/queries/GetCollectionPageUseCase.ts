@@ -19,7 +19,6 @@ export interface GetCollectionPageQuery {
   sortOrder?: SortOrder;
 }
 
-
 export type CollectionPageUrlCardDTO = UrlCardView;
 export interface GetCollectionPageResult {
   id: string;
@@ -165,5 +164,4 @@ export class GetCollectionPageUseCase
       );
     }
   }
-
 }

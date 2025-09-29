@@ -16,7 +16,7 @@ export class InMemoryAtUriResolutionService implements IAtUriResolutionService {
     try {
       // Get all collections and check if any have a published record with this URI
       const allCollections = this.collectionRepository.getAllCollections();
-      
+
       for (const collection of allCollections) {
         if (collection.publishedRecordId?.uri === atUri) {
           return ok({

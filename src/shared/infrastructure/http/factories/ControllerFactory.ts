@@ -134,9 +134,10 @@ export class ControllerFactory {
       getCollectionPageController: new GetCollectionPageController(
         useCases.getCollectionPageUseCase,
       ),
-      getCollectionPageByAtUriController: new GetCollectionPageByAtUriController(
-        useCases.getCollectionPageByAtUriUseCase,
-      ),
+      getCollectionPageByAtUriController:
+        new GetCollectionPageByAtUriController(
+          useCases.getCollectionPageByAtUriUseCase,
+        ),
       getMyCollectionsController: new GetMyCollectionsController(
         useCases.getCollectionsUseCase,
       ),

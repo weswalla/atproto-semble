@@ -21,7 +21,7 @@ export interface GetCollectionsQuery {
 // Enriched data for the final use case result
 export interface CollectionListItemDTO {
   id: string;
-  uri: string;
+  uri?: string;
   name: string;
   description?: string;
   updatedAt: Date;

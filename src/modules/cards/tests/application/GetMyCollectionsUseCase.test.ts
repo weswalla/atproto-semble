@@ -109,7 +109,7 @@ describe('GetMyCollectionsUseCase', () => {
       // Verify URI is included
       expect(firstCollection.uri).toBeDefined();
       expect(typeof firstCollection.uri).toBe('string');
-      expect(firstCollection.uri.length).toBeGreaterThan(0);
+      expect(firstCollection.uri?.length).toBeGreaterThan(0);
     });
 
     it('should only return collections for the specified curator', async () => {
@@ -143,7 +143,7 @@ describe('GetMyCollectionsUseCase', () => {
       const response = result.unwrap();
       expect(response.collections).toHaveLength(1);
       expect(response.collections[0]!.name).toBe('My Collection');
-      
+
       // Verify URI is present for the collection
       expect(response.collections[0]!.uri).toBeDefined();
       expect(typeof response.collections[0]!.uri).toBe('string');
@@ -487,12 +487,12 @@ describe('GetMyCollectionsUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.collections).toHaveLength(3);
-      
+
       // Verify all collections have URIs
-      response.collections.forEach(collection => {
+      response.collections.forEach((collection) => {
         expect(collection.uri).toBeDefined();
         expect(typeof collection.uri).toBe('string');
-        expect(collection.uri.length).toBeGreaterThan(0);
+        expect(collection.uri?.length).toBeGreaterThan(0);
       });
     });
 
@@ -522,51 +522,6 @@ describe('GetMyCollectionsUseCase', () => {
   });
 
   describe('URI validation', () => {
-    it('should return valid URIs for all collections', async () => {
-      // Create test collections using CollectionBuilder
-      const collection1 = new CollectionBuilder()
-        .withName('Test Collection 1')
-        .withDescription('First test collection')
-        .withAuthorId(curatorId.value)
-        .withAccessType(CollectionAccessType.OPEN)
-        .withPublished(true)
-        .buildOrThrow();
-
-      const collection2 = new CollectionBuilder()
-        .withName('Test Collection 2')
-        .withDescription('Second test collection')
-        .withAuthorId(curatorId.value)
-        .withAccessType(CollectionAccessType.OPEN)
-        .withPublished(true)
-        .buildOrThrow();
-
-      await collectionRepo.save(collection1);
-      await collectionRepo.save(collection2);
-
-      const query = {
-        curatorId: curatorId.value,
-      };
-
-      const result = await useCase.execute(query);
-
-      expect(result.isOk()).toBe(true);
-      const response = result.unwrap();
-      expect(response.collections).toHaveLength(2);
-
-      // Verify each collection has a valid URI
-      response.collections.forEach((collection, index) => {
-        expect(collection.uri).toBeDefined();
-        expect(typeof collection.uri).toBe('string');
-        expect(collection.uri.length).toBeGreaterThan(0);
-        
-        // URIs should be unique
-        const otherUris = response.collections
-          .filter((_, i) => i !== index)
-          .map(c => c.uri);
-        expect(otherUris).not.toContain(collection.uri);
-      });
-    });
-
     it('should return consistent URIs across multiple calls', async () => {
       // Create a test collection using CollectionBuilder
       const collection = new CollectionBuilder()

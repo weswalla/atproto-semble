@@ -39,10 +39,12 @@ export default function MyFeedContainer() {
             </Text>
           </Center>
         ) : (
-          <Stack gap="xl">
-            {allActivities.map((item) => (
-              <FeedItem key={item.id} item={item} />
-            ))}
+          <Stack gap={'xl'} mx={'auto'} maw={600}>
+            <Stack gap={60}>
+              {allActivities.map((item, i) => (
+                <FeedItem key={item.id} item={item} />
+              ))}
+            </Stack>
 
             {hasNextPage && (
               <Center>

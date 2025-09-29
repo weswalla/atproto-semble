@@ -1,4 +1,4 @@
-import { Anchor, Avatar, Box, Group, Text } from '@mantine/core';
+import { Anchor, Avatar, Group, Paper, Stack, Text } from '@mantine/core';
 import { FeedItem } from '@/api-client/types';
 import { Fragment } from 'react';
 import Link from 'next/link';
@@ -16,14 +16,14 @@ export default function FeedActivityStatus(props: Props) {
     const remainingCount = props.collections.length - MAX_DISPLAYED;
 
     return (
-      <Text c={'gray'} fw={500}>
+      <Text fw={500} c={'gray.7'}>
         <Anchor
           component={Link}
           href={`/profile/${props.user.handle}`}
           c="blue"
           fw={600}
         >
-          @{props.user.handle}
+          {props.user.name}
         </Anchor>{' '}
         {props.collections.length === 0 ? (
           'added to library'
@@ -42,26 +42,33 @@ export default function FeedActivityStatus(props: Props) {
                   {collection.name}
                 </Anchor>
 
-                {index < displayedCollections.length - 1 ? ' and ' : ''}
+                {index < displayedCollections.length - 1 ? ', ' : ''}
               </span>
             ))}
             {remainingCount > 0 &&
-              ` and ${remainingCount} other${remainingCount > 1 ? 's' : ''}`}
+              ` and ${remainingCount} other collection${remainingCount > 1 ? 's' : ''}`}
           </Fragment>
         )}
+        <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
+          Timestamp
+        </Text>
       </Text>
     );
   };
 
   return (
-    <Group gap={'xs'}>
-      <Avatar
-        component={Link}
-        href={`/profile/${props.user.handle}`}
-        src={props.user.avatarUrl}
-        alt={`${props.user.name}'s' avatar`}
-      />
-      {renderActivityText()}
-    </Group>
+    <Paper bg={'gray.1'} radius={'lg'}>
+      <Stack gap={'xs'}>
+        <Group gap={'xs'} wrap="nowrap" align="center" p={'xs'}>
+          <Avatar
+            component={Link}
+            href={`/profile/${props.user.handle}`}
+            src={props.user.avatarUrl}
+            alt={`${props.user.name}'s' avatar`}
+          />
+          {renderActivityText()}
+        </Group>
+      </Stack>
+    </Paper>
   );
 }

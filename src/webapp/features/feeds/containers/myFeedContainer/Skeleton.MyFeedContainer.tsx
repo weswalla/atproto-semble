@@ -7,7 +7,7 @@ export default function MyFeedContainerSkeleton() {
       <Stack>
         <Title order={1}>Explore</Title>
 
-        <Stack gap={'xl'}>
+        <Stack gap={60} mx={'auto'} maw={600} w={'100%'} align="stretch">
           {Array.from({ length: 4 }).map((_, i) => (
             <FeedItemSkeleton key={i} />
           ))}

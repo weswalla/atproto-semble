@@ -22,7 +22,7 @@ export default function MinimalProfileHeaderContainer(props: Props) {
         width: '100%',
         zIndex: 2,
         transform: `translateY(${yScroll > HEADER_REVEAL_SCROLL_THRESHOLD ? '0' : '-100px'})`,
-        transition: 'transform 100ms ease',
+        transition: 'transform 300ms ease',
         backgroundColor: 'var(--mantine-color-body)',
       }}
     >

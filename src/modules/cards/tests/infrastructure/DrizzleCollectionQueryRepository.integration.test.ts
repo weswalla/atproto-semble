@@ -143,6 +143,12 @@ describe('DrizzleCollectionQueryRepository', () => {
       result.items.forEach((item) => {
         expect(item.authorId).toBe(curatorId.value);
       });
+
+      // Check that URI field is present (should be empty string for unpublished collections)
+      result.items.forEach((item) => {
+        expect(item.uri).toBeDefined();
+        expect(item.uri).toBe('');
+      });
     });
 
     it('should not return collections from other curators', async () => {
@@ -934,6 +940,146 @@ describe('DrizzleCollectionQueryRepository', () => {
       });
 
       expect(result.items).toHaveLength(2);
+    });
+  });
+
+  describe('published record URIs', () => {
+    it('should return empty string for collections without published records', async () => {
+      const collection = Collection.create(
+        {
+          authorId: curatorId,
+          name: 'Unpublished Collection',
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID(),
+      ).unwrap();
+
+      await collectionRepository.save(collection);
+
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]?.uri).toBe('');
+    });
+
+    it('should return URI for collections with published records', async () => {
+      // First create a published record
+      const publishedRecordId = new UniqueEntityID().toString();
+      const testUri = 'at://did:plc:testcurator/network.cosmik.collection/test123';
+      
+      await db.insert(publishedRecords).values({
+        id: publishedRecordId,
+        uri: testUri,
+        cid: 'bafytest123',
+        recordedAt: new Date(),
+      });
+
+      // Create collection with published record
+      const collectionId = new UniqueEntityID();
+      const collection = Collection.create(
+        {
+          authorId: curatorId,
+          name: 'Published Collection',
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        collectionId,
+      ).unwrap();
+
+      await collectionRepository.save(collection);
+
+      // Manually update the collection to have the published record ID
+      // (since the domain model doesn't handle this directly)
+      await db
+        .update(collections)
+        .set({ publishedRecordId })
+        .where(eq(collections.id, collectionId.toString()));
+
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]?.uri).toBe(testUri);
+      expect(result.items[0]?.name).toBe('Published Collection');
+    });
+
+    it('should handle mix of published and unpublished collections', async () => {
+      // Create published record
+      const publishedRecordId = new UniqueEntityID().toString();
+      const testUri = 'at://did:plc:testcurator/network.cosmik.collection/published123';
+      
+      await db.insert(publishedRecords).values({
+        id: publishedRecordId,
+        uri: testUri,
+        cid: 'bafypublished123',
+        recordedAt: new Date(),
+      });
+
+      // Create published collection
+      const publishedCollectionId = new UniqueEntityID();
+      const publishedCollection = Collection.create(
+        {
+          authorId: curatorId,
+          name: 'Published Collection',
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-01'),
+        },
+        publishedCollectionId,
+      ).unwrap();
+
+      // Create unpublished collection
+      const unpublishedCollection = Collection.create(
+        {
+          authorId: curatorId,
+          name: 'Unpublished Collection',
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date('2023-01-02'),
+          updatedAt: new Date('2023-01-02'),
+        },
+        new UniqueEntityID(),
+      ).unwrap();
+
+      await collectionRepository.save(publishedCollection);
+      await collectionRepository.save(unpublishedCollection);
+
+      // Link published record to collection
+      await db
+        .update(collections)
+        .set({ publishedRecordId })
+        .where(eq(collections.id, publishedCollectionId.toString()));
+
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(2);
+
+      // Find collections by name and check URIs
+      const publishedItem = result.items.find(item => item.name === 'Published Collection');
+      const unpublishedItem = result.items.find(item => item.name === 'Unpublished Collection');
+
+      expect(publishedItem?.uri).toBe(testUri);
+      expect(unpublishedItem?.uri).toBe('');
     });
   });
 

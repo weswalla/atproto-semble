@@ -87,7 +87,7 @@ function InnerPage() {
             Sign up
           </Anchor>
         </Text>
-        <Popover withArrow shadow="md">
+        <Popover withArrow shadow="sm">
           <PopoverTarget>
             <Button
               variant="white"

@@ -27,7 +27,6 @@ import {
 import { createTestSchema } from '../test-utils/createTestSchema';
 import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
 import { FakeCollectionPublisher } from '../utils/FakeCollectionPublisher';
-import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
 
 describe('DrizzleCollectionQueryRepository', () => {
   let container: StartedPostgreSqlContainer;
@@ -978,7 +977,8 @@ describe('DrizzleCollectionQueryRepository', () => {
     });
 
     it('should return URI for collections with published records', async () => {
-      const testUri = 'at://did:plc:testcurator/network.cosmik.collection/test123';
+      const testUri =
+        'at://did:plc:testcurator/network.cosmik.collection/test123';
       const testCid = 'bafytest123';
 
       // Create collection using builder
@@ -991,9 +991,9 @@ describe('DrizzleCollectionQueryRepository', () => {
       // Publish the collection using the fake publisher
       const publishResult = await fakePublisher.publish(collection);
       expect(publishResult.isOk()).toBe(true);
-      
+
       const publishedRecordId = publishResult.unwrap();
-      
+
       // Mark the collection as published in the domain model
       collection.markAsPublished(publishedRecordId);
 
@@ -1034,9 +1034,9 @@ describe('DrizzleCollectionQueryRepository', () => {
       // Publish the first collection using the fake publisher
       const publishResult = await fakePublisher.publish(publishedCollection);
       expect(publishResult.isOk()).toBe(true);
-      
+
       const publishedRecordId = publishResult.unwrap();
-      
+
       // Mark the collection as published in the domain model
       publishedCollection.markAsPublished(publishedRecordId);
 
@@ -1054,8 +1054,12 @@ describe('DrizzleCollectionQueryRepository', () => {
       expect(result.items).toHaveLength(2);
 
       // Find collections by name and check URIs
-      const publishedItem = result.items.find(item => item.name === 'Published Collection');
-      const unpublishedItem = result.items.find(item => item.name === 'Unpublished Collection');
+      const publishedItem = result.items.find(
+        (item) => item.name === 'Published Collection',
+      );
+      const unpublishedItem = result.items.find(
+        (item) => item.name === 'Unpublished Collection',
+      );
 
       expect(publishedItem?.uri).toBe(publishedRecordId.uri);
       expect(unpublishedItem?.uri).toBe('');

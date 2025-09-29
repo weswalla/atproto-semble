@@ -1,4 +1,4 @@
-import { eq, desc, asc, count, sql, or, ilike, leftJoin } from 'drizzle-orm';
+import { eq, desc, asc, count, sql, or, ilike } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   ICollectionQueryRepository,
@@ -8,7 +8,7 @@ import {
   CollectionSortField,
   SortOrder,
 } from '../../domain/ICollectionQueryRepository';
-import { collections, collectionCards } from './schema/collection.sql';
+import { collections } from './schema/collection.sql';
 import { publishedRecords } from './schema/publishedRecord.sql';
 import { CollectionMapper } from './mappers/CollectionMapper';
 
@@ -55,7 +55,10 @@ export class DrizzleCollectionQueryRepository
           uri: publishedRecords.uri,
         })
         .from(collections)
-        .leftJoin(publishedRecords, eq(collections.publishedRecordId, publishedRecords.id))
+        .leftJoin(
+          publishedRecords,
+          eq(collections.publishedRecordId, publishedRecords.id),
+        )
         .where(
           sql`${whereConditions.reduce((acc, condition, index) =>
             index === 0 ? condition : sql`${acc} AND ${condition}`,
@@ -84,13 +87,13 @@ export class DrizzleCollectionQueryRepository
       const items = collectionsResult.map((raw) =>
         CollectionMapper.toQueryResult({
           id: raw.id,
+          uri: raw.uri,
           name: raw.name,
           description: raw.description,
           createdAt: raw.createdAt,
           updatedAt: raw.updatedAt,
           authorId: raw.authorId,
           cardCount: raw.cardCount,
-          uri: raw.uri || '', // Default to empty string if no published record
         }),
       );
 

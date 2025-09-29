@@ -22,7 +22,7 @@ export interface GetCollectionPageQuery {
 export type CollectionPageUrlCardDTO = UrlCardView;
 export interface GetCollectionPageResult {
   id: string;
-  uri: string;
+  uri?: string;
   name: string;
   description?: string;
   author: {

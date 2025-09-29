@@ -174,7 +174,7 @@ export interface CollectionPageUrlCard {
 
 export interface GetCollectionPageResponse {
   id: string;
-  uri: string;
+  uri?: string;
   name: string;
   description?: string;
   author: {
@@ -191,7 +191,7 @@ export interface GetCollectionPageResponse {
 export interface GetCollectionsResponse {
   collections: {
     id: string;
-    uri: string;
+    uri?: string;
     name: string;
     description?: string;
     cardCount: number;

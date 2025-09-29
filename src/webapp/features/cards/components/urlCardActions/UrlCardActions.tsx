@@ -61,7 +61,7 @@ export default function UrlCardActions(props: Props) {
         {isAuthor && (
           <Menu shadow="sm">
             <Menu.Target>
-              <ActionIcon variant="subtle" color={'gray'}>
+              <ActionIcon variant="subtle" color={'gray'} radius={'xl'}>
                 <BsThreeDots size={22} />
               </ActionIcon>
             </Menu.Target>

@@ -250,6 +250,70 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
       );
     });
 
+    it('should only include notes by collection author, not notes by other users', async () => {
+      // Create URL card
+      const url = URL.create('https://example.com/shared-article').unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+
+      // Create note by collection author
+      const authorNote = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withNoteCard('Note by collection author', 'Author Note')
+        .withParentCard(urlCard.cardId)
+        .buildOrThrow();
+
+      await cardRepository.save(authorNote);
+
+      // Create note by different user on the same URL card
+      const otherUserNote = new CardBuilder()
+        .withCuratorId(otherCuratorId.value)
+        .withNoteCard('Note by other user', 'Other User Note')
+        .withParentCard(urlCard.cardId)
+        .buildOrThrow();
+
+      await cardRepository.save(otherUserNote);
+
+      // Create collection authored by curatorId and add URL card
+      const collection = Collection.create(
+        {
+          authorId: curatorId,
+          name: 'Collection by First User',
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID(),
+      ).unwrap();
+
+      collection.addCard(urlCard.cardId, curatorId);
+      await collectionRepository.save(collection);
+
+      // Query cards in collection
+      const result = await queryRepository.getCardsInCollection(
+        collection.collectionId.getStringValue(),
+        {
+          page: 1,
+          limit: 10,
+          sortBy: CardSortField.UPDATED_AT,
+          sortOrder: SortOrder.DESC,
+        },
+      );
+
+      expect(result.items).toHaveLength(1);
+      const urlCardResult = result.items[0];
+
+      // Should only include the note by the collection author, not the other user's note
+      expect(urlCardResult?.note).toBeDefined();
+      expect(urlCardResult?.note?.id).toBe(authorNote.cardId.getStringValue());
+      expect(urlCardResult?.note?.text).toBe('Note by collection author');
+    });
+
     it('should not include note cards that are not connected to collection URL cards', async () => {
       // Create URL card in collection
       const url = URL.create('https://example.com/collection-article').unwrap();

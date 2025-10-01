@@ -279,6 +279,7 @@ export interface FeedItem {
   id: string;
   user: FeedActivityActor;
   card: FeedActivityCard;
+  createdAt: Date;
   collections: {
     id: string;
     name: string;

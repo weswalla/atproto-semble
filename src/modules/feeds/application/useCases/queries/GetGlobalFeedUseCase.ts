@@ -29,6 +29,7 @@ export interface FeedItemView {
   id: string;
   user: ActivityActorDTO;
   card: UrlCardView;
+  createdAt: Date;
   collections: {
     id: string;
     name: string;
@@ -236,6 +237,7 @@ export class GetGlobalFeedUseCase
             avatarUrl: actor.avatarUrl,
           },
           card: cardData,
+          createdAt: activity.createdAt,
           collections,
         });
       }

@@ -199,6 +199,8 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
         .withUrlCard(url)
         .buildOrThrow();
 
+      urlCard.addToLibrary(curatorId);
+
       await cardRepository.save(urlCard);
 
       // Create note by collection author
@@ -208,6 +210,8 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
         .withParentCard(urlCard.cardId)
         .buildOrThrow();
 
+      authorNote.addToLibrary(curatorId);
+
       await cardRepository.save(authorNote);
 
       // Create note by different user on the same URL card
@@ -216,6 +220,8 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
         .withNoteCard('Note by other user', 'Other User Note')
         .withParentCard(urlCard.cardId)
         .buildOrThrow();
+
+      otherUserNote.addToLibrary(otherCuratorId);
 
       await cardRepository.save(otherUserNote);
 

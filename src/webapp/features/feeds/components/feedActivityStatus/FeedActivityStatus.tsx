@@ -2,14 +2,18 @@ import { Anchor, Avatar, Group, Paper, Stack, Text } from '@mantine/core';
 import { FeedItem } from '@/api-client/types';
 import { Fragment } from 'react';
 import Link from 'next/link';
+import { getRelativeTime } from '@/lib/utils/time';
 
 interface Props {
   user: FeedItem['user'];
   collections: FeedItem['collections'];
+  createdAt: Date;
 }
 
 export default function FeedActivityStatus(props: Props) {
   const MAX_DISPLAYED = 2;
+  const time = getRelativeTime(props.createdAt.toString());
+  const relativeCreatedDate = time === 'just now' ? `Now` : `${time} ago`;
 
   const renderActivityText = () => {
     const displayedCollections = props.collections.slice(0, MAX_DISPLAYED);
@@ -50,7 +54,7 @@ export default function FeedActivityStatus(props: Props) {
           </Fragment>
         )}
         <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>
-          Timestamp
+          {relativeCreatedDate}
         </Text>
       </Text>
     );

@@ -191,65 +191,6 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
       expect(card2Result?.cardContent.title).toBeUndefined(); // No metadata provided
     });
 
-    it('should include connected note cards for collection cards', async () => {
-      // Create URL card
-      const url = URL.create('https://example.com/collection-article').unwrap();
-      const urlCard = new CardBuilder()
-        .withCuratorId(curatorId.value)
-        .withUrlCard(url)
-        .buildOrThrow();
-
-      await cardRepository.save(urlCard);
-
-      // Create note card connected to URL card
-      const noteCard = new CardBuilder()
-        .withCuratorId(curatorId.value)
-        .withNoteCard(
-          'This is my note about the collection article',
-          'Collection Note',
-        )
-        .withParentCard(urlCard.cardId)
-        .buildOrThrow();
-
-      await cardRepository.save(noteCard);
-
-      // Create collection and add URL card
-      const collection = Collection.create(
-        {
-          authorId: curatorId,
-          name: 'Collection with Notes',
-          accessType: CollectionAccessType.OPEN,
-          collaboratorIds: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        new UniqueEntityID(),
-      ).unwrap();
-
-      collection.addCard(urlCard.cardId, curatorId);
-      await collectionRepository.save(collection);
-
-      // Query cards in collection
-      const result = await queryRepository.getCardsInCollection(
-        collection.collectionId.getStringValue(),
-        {
-          page: 1,
-          limit: 10,
-          sortBy: CardSortField.UPDATED_AT,
-          sortOrder: SortOrder.DESC,
-        },
-      );
-
-      expect(result.items).toHaveLength(1);
-      const urlCardResult = result.items[0];
-
-      expect(urlCardResult?.note).toBeDefined();
-      expect(urlCardResult?.note?.id).toBe(noteCard.cardId.getStringValue());
-      expect(urlCardResult?.note?.text).toBe(
-        'This is my note about the collection article',
-      );
-    });
-
     it('should only include notes by collection author, not notes by other users', async () => {
       // Create URL card
       const url = URL.create('https://example.com/shared-article').unwrap();

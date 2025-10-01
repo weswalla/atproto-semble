@@ -2,6 +2,7 @@ import { Result, ok, err } from 'src/shared/core/Result';
 import { IIdentityResolutionService } from '../../domain/services/IIdentityResolutionService';
 import { DID } from '../../domain/DID';
 import { DIDOrHandle } from '../../domain/DIDOrHandle';
+import { Handle } from '../../domain/Handle';
 import { IAgentService } from '../../application/IAgentService';
 
 export class ATProtoIdentityResolutionService
@@ -64,6 +65,66 @@ export class ATProtoIdentityResolutionService
       return err(
         new Error(
           `Error resolving identifier to DID: ${error instanceof Error ? error.message : String(error)}`,
+        ),
+      );
+    }
+  }
+
+  async resolveToHandle(identifier: DIDOrHandle): Promise<Result<Handle>> {
+    try {
+      // If it's already a handle, return it directly
+      if (identifier.isHandle) {
+        const handle = identifier.getHandle();
+        if (!handle) {
+          return err(new Error('Invalid handle in identifier'));
+        }
+        return ok(handle);
+      }
+
+      // If it's a DID, resolve it to a handle
+      const did = identifier.getDID();
+      if (!did) {
+        return err(new Error('Invalid DID in identifier'));
+      }
+
+      // Get an unauthenticated agent to resolve the DID
+      const agentResult = this.agentService.getUnauthenticatedAgent();
+      if (agentResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to get agent for DID resolution: ${agentResult.error.message}`,
+          ),
+        );
+      }
+
+      const agent = agentResult.value;
+
+      // Get the profile to extract the handle
+      const profileResult = await agent.getProfile({ actor: did.value });
+
+      if (!profileResult.success) {
+        return err(
+          new Error(
+            `Failed to resolve DID ${did.value}: ${JSON.stringify(profileResult)}`,
+          ),
+        );
+      }
+
+      // Create and return the Handle
+      const handleResult = Handle.create(profileResult.data.handle);
+      if (handleResult.isErr()) {
+        return err(
+          new Error(
+            `Invalid handle returned from DID resolution: ${handleResult.error.message}`,
+          ),
+        );
+      }
+
+      return ok(handleResult.value);
+    } catch (error) {
+      return err(
+        new Error(
+          `Error resolving identifier to handle: ${error instanceof Error ? error.message : String(error)}`,
         ),
       );
     }

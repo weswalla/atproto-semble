@@ -283,6 +283,8 @@ export interface FeedItem {
   collections: {
     id: string;
     name: string;
+    authorHandle: string;
+    uri?: string;
   }[];
 }
 

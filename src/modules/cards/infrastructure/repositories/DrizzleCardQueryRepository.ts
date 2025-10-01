@@ -182,7 +182,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
         .where(eq(collections.id, collectionId));
 
       const collectionResult = await collectionQuery;
-      
+
       if (collectionResult.length === 0) {
         return {
           items: [],

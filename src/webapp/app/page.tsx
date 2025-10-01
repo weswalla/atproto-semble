@@ -23,7 +23,6 @@ import CommunityIcon from '@/assets/icons/community-icon.svg';
 import DBIcon from '@/assets/icons/db-icon.svg';
 import BigPictureIcon from '@/assets/icons/big-picture-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
-import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -226,14 +225,6 @@ export default function Home() {
                       </Anchor>
                     </Text>
                   </Text>
-                  <Anchor
-                    component={Link}
-                    href="/privacy-policy"
-                    c="dark.2"
-                    fw={600}
-                  >
-                    Privacy Policy
-                  </Anchor>
                 </Stack>
               </Stack>
             </Box>

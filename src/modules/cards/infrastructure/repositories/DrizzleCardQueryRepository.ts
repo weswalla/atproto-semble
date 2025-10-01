@@ -173,6 +173,26 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
       // Build the sort order
       const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
 
+      // First, get the collection to know its author
+      const collectionQuery = this.db
+        .select({
+          authorId: collections.authorId,
+        })
+        .from(collections)
+        .where(eq(collections.id, collectionId));
+
+      const collectionResult = await collectionQuery;
+      
+      if (collectionResult.length === 0) {
+        return {
+          items: [],
+          totalCount: 0,
+          hasMore: false,
+        };
+      }
+
+      const collectionAuthorId = collectionResult[0]!.authorId;
+
       // Get URL cards in the collection
       const cardsQuery = this.db
         .select({
@@ -207,7 +227,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
 
       const cardIds = cardsResult.map((card) => card.id);
 
-      // Get note cards for these URL cards (parentCardId matches, type = NOTE)
+      // Get note cards for these URL cards, but only by the collection author
       const notesQuery = this.db
         .select({
           id: cards.id,
@@ -215,10 +235,12 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
           contentData: cards.contentData,
         })
         .from(cards)
+        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
         .where(
           and(
             eq(cards.type, CardTypeEnum.NOTE),
             inArray(cards.parentCardId, cardIds),
+            eq(libraryMemberships.userId, collectionAuthorId),
           ),
         );
 

@@ -3,6 +3,7 @@ import { FeedItem } from '@/api-client/types';
 import { Fragment } from 'react';
 import Link from 'next/link';
 import { getRelativeTime } from '@/lib/utils/time';
+import { getRecordKey } from '@/lib/utils/atproto';
 
 interface Props {
   user: FeedItem['user'];
@@ -39,7 +40,7 @@ export default function FeedActivityStatus(props: Props) {
                 {/* TODO: use collection creator's handle to direct to profile/creatorHandle/collections/id */}
                 <Anchor
                   component={Link}
-                  href={`/profile/${props.user.handle}/collections/${collection.id}`}
+                  href={`/profile/${collection.authorHandle}/collections/${getRecordKey(collection.uri!!)}`}
                   c="grape"
                   fw={500}
                 >

@@ -1,5 +1,6 @@
 'use client';
 
+import { getRecordKey } from '@/lib/utils/atproto';
 import { getRelativeTime } from '@/lib/utils/time';
 import { Card, Group, Stack, Text } from '@mantine/core';
 import { useRouter } from 'next/navigation';
@@ -8,6 +9,7 @@ interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
   collection: {
     id: string;
+    uri?: string;
     name: string;
     description?: string;
     cardCount: number;
@@ -25,6 +27,7 @@ interface Props {
 export default function CollectionCard(props: Props) {
   const router = useRouter();
   const { collection } = props;
+  const rkey = getRecordKey(collection.uri!!);
   const time = getRelativeTime(collection.updatedAt);
   const relativeUpdateDate =
     time === 'just now' ? `Updated ${time}` : `Updated ${time} ago`;
@@ -35,7 +38,7 @@ export default function CollectionCard(props: Props) {
       withBorder
       onClick={() =>
         router.push(
-          `/profile/${collection.createdBy.handle}/collections/${collection.id}`,
+          `/profile/${collection.createdBy.handle}/collections/${rkey}`,
         )
       }
       radius={'lg'}

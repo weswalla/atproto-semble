@@ -22,12 +22,14 @@ import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDraw
 import CollectionActions from '../../components/collectionActions/CollectionActions';
 import CollectionContainerError from './Error.CollectionContainer';
 import CollectionContainerSkeleton from './Skeleton.CollectionContainer';
+import { log } from 'node:console';
 
 interface Props {
-  id: string;
+  rkey: string;
+  handle: string;
 }
 
-export default function CollectionContainer({ id }: Props) {
+export default function CollectionContainer(props: Props) {
   const {
     data,
     isPending,
@@ -35,7 +37,7 @@ export default function CollectionContainer({ id }: Props) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useCollection({ id });
+  } = useCollection({ rkey: props.rkey, handle: props.handle });
 
   const [showAddDrawer, setShowAddDrawer] = useState(false);
 
@@ -94,7 +96,7 @@ export default function CollectionContainer({ id }: Props) {
 
         <Group justify="end">
           <CollectionActions
-            id={id}
+            id={props.rkey}
             name={firstPage.name}
             description={firstPage.description}
             authorHandle={firstPage.author.handle}

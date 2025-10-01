@@ -5,18 +5,21 @@ import type { Metadata } from 'next';
 import { Fragment } from 'react';
 
 interface Props {
-  params: Promise<{ collectionId: string }>;
+  params: Promise<{ rkey: string; handle: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { collectionId } = await params;
+  const { rkey, handle } = await params;
 
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     createClientTokenManager(),
   );
 
-  const collection = await apiClient.getCollectionPage(collectionId);
+  const collection = await apiClient.getCollectionPageByAtUri({
+    recordKey: rkey,
+    handle: handle,
+  });
 
   return {
     title: collection.name,

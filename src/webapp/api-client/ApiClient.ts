@@ -28,6 +28,7 @@ import type {
   GenerateExtensionTokensRequest,
   GetMyUrlCardsParams,
   GetCollectionPageParams,
+  GetCollectionPageByAtUriParams,
   GetMyCollectionsParams,
   GetGlobalFeedParams,
   // Response types
@@ -130,6 +131,12 @@ export class ApiClient {
     params?: GetCollectionPageParams,
   ): Promise<GetCollectionPageResponse> {
     return this.queryClient.getCollectionPage(collectionId, params);
+  }
+
+  async getCollectionPageByAtUri(
+    params: GetCollectionPageByAtUriParams,
+  ): Promise<GetCollectionPageResponse> {
+    return this.queryClient.getCollectionPageByAtUri(params);
   }
 
   async getMyCollections(

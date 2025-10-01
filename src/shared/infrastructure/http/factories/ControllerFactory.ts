@@ -25,6 +25,7 @@ import { LoginWithAppPasswordController } from 'src/modules/user/infrastructure/
 import { LogoutController } from 'src/modules/user/infrastructure/http/controllers/LogoutController';
 import { GenerateExtensionTokensController } from 'src/modules/user/infrastructure/http/controllers/GenerateExtensionTokensController';
 import { GetUserCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/GetUserCollectionsController';
+import { GetCollectionPageByAtUriController } from 'src/modules/cards/infrastructure/http/controllers/GetCollectionPageByAtUriController';
 
 export interface Controllers {
   // User controllers
@@ -52,6 +53,7 @@ export interface Controllers {
   updateCollectionController: UpdateCollectionController;
   deleteCollectionController: DeleteCollectionController;
   getCollectionPageController: GetCollectionPageController;
+  getCollectionPageByAtUriController: GetCollectionPageByAtUriController;
   getMyCollectionsController: GetMyCollectionsController;
   getCollectionsController: GetUserCollectionsController;
   // Feed controllers
@@ -132,6 +134,10 @@ export class ControllerFactory {
       getCollectionPageController: new GetCollectionPageController(
         useCases.getCollectionPageUseCase,
       ),
+      getCollectionPageByAtUriController:
+        new GetCollectionPageByAtUriController(
+          useCases.getCollectionPageByAtUriUseCase,
+        ),
       getMyCollectionsController: new GetMyCollectionsController(
         useCases.getCollectionsUseCase,
       ),

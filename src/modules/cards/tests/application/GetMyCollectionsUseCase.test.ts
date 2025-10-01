@@ -2,6 +2,7 @@ import { InMemoryCollectionQueryRepository } from '../utils/InMemoryCollectionQu
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
 import { FakeProfileService } from '../utils/FakeProfileService';
 import { FakeIdentityResolutionService } from '../utils/FakeIdentityResolutionService';
+import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { Collection, CollectionAccessType } from '../../domain/Collection';
 import {
@@ -67,33 +68,25 @@ describe('GetMyCollectionsUseCase', () => {
     });
 
     it("should return curator's collections with profile data", async () => {
-      // Create test collections
-      const collection1Result = Collection.create({
-        name: 'First Collection',
-        description: 'First collection description',
-        authorId: curatorId,
-        accessType: CollectionAccessType.OPEN,
-        collaboratorIds: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      // Create test collections using CollectionBuilder
+      const collection1 = new CollectionBuilder()
+        .withName('First Collection')
+        .withDescription('First collection description')
+        .withAuthorId(curatorId.value)
+        .withAccessType(CollectionAccessType.OPEN)
+        .withPublished(true)
+        .buildOrThrow();
 
-      const collection2Result = Collection.create({
-        name: 'Second Collection',
-        description: 'Second collection description',
-        authorId: curatorId,
-        accessType: CollectionAccessType.OPEN,
-        collaboratorIds: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      const collection2 = new CollectionBuilder()
+        .withName('Second Collection')
+        .withDescription('Second collection description')
+        .withAuthorId(curatorId.value)
+        .withAccessType(CollectionAccessType.OPEN)
+        .withPublished(true)
+        .buildOrThrow();
 
-      if (collection1Result.isErr() || collection2Result.isErr()) {
-        throw new Error('Failed to create test collections');
-      }
-
-      await collectionRepo.save(collection1Result.value);
-      await collectionRepo.save(collection2Result.value);
+      await collectionRepo.save(collection1);
+      await collectionRepo.save(collection2);
 
       const query = {
         curatorId: curatorId.value,
@@ -112,36 +105,33 @@ describe('GetMyCollectionsUseCase', () => {
       expect(firstCollection.createdBy.name).toBe(userProfile.name);
       expect(firstCollection.createdBy.handle).toBe(userProfile.handle);
       expect(firstCollection.createdBy.avatarUrl).toBe(userProfile.avatarUrl);
+
+      // Verify URI is included
+      expect(firstCollection.uri).toBeDefined();
+      expect(typeof firstCollection.uri).toBe('string');
+      expect(firstCollection.uri?.length).toBeGreaterThan(0);
     });
 
     it('should only return collections for the specified curator', async () => {
       const otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
 
-      // Create collections for different curators
-      const myCollectionResult = Collection.create({
-        name: 'My Collection',
-        authorId: curatorId,
-        accessType: CollectionAccessType.OPEN,
-        collaboratorIds: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      // Create collections for different curators using CollectionBuilder
+      const myCollection = new CollectionBuilder()
+        .withName('My Collection')
+        .withAuthorId(curatorId.value)
+        .withAccessType(CollectionAccessType.OPEN)
+        .withPublished(true)
+        .buildOrThrow();
 
-      const otherCollectionResult = Collection.create({
-        name: 'Other Collection',
-        authorId: otherCuratorId,
-        accessType: CollectionAccessType.OPEN,
-        collaboratorIds: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      const otherCollection = new CollectionBuilder()
+        .withName('Other Collection')
+        .withAuthorId(otherCuratorId.value)
+        .withAccessType(CollectionAccessType.OPEN)
+        .withPublished(true)
+        .buildOrThrow();
 
-      if (myCollectionResult.isErr() || otherCollectionResult.isErr()) {
-        throw new Error('Failed to create test collections');
-      }
-
-      await collectionRepo.save(myCollectionResult.value);
-      await collectionRepo.save(otherCollectionResult.value);
+      await collectionRepo.save(myCollection);
+      await collectionRepo.save(otherCollection);
 
       const query = {
         curatorId: curatorId.value,
@@ -153,27 +143,25 @@ describe('GetMyCollectionsUseCase', () => {
       const response = result.unwrap();
       expect(response.collections).toHaveLength(1);
       expect(response.collections[0]!.name).toBe('My Collection');
+
+      // Verify URI is present for the collection
+      expect(response.collections[0]!.uri).toBeDefined();
+      expect(typeof response.collections[0]!.uri).toBe('string');
     });
   });
 
   describe('Pagination', () => {
     beforeEach(async () => {
-      // Create multiple collections for pagination testing
+      // Create multiple collections for pagination testing using CollectionBuilder
       for (let i = 1; i <= 5; i++) {
-        const collectionResult = Collection.create({
-          name: `Collection ${i}`,
-          authorId: curatorId,
-          accessType: CollectionAccessType.OPEN,
-          collaboratorIds: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
+        const collection = new CollectionBuilder()
+          .withName(`Collection ${i}`)
+          .withAuthorId(curatorId.value)
+          .withAccessType(CollectionAccessType.OPEN)
+          .withPublished(true)
+          .buildOrThrow();
 
-        if (collectionResult.isErr()) {
-          throw new Error(`Failed to create collection ${i}`);
-        }
-
-        await collectionRepo.save(collectionResult.value);
+        await collectionRepo.save(collection);
       }
     });
 
@@ -244,33 +232,29 @@ describe('GetMyCollectionsUseCase', () => {
 
   describe('Sorting', () => {
     beforeEach(async () => {
-      // Create collections with different properties for sorting
+      // Create collections with different properties for sorting using CollectionBuilder
       const now = new Date();
 
-      const collection1Result = Collection.create({
-        name: 'Alpha Collection',
-        authorId: curatorId,
-        accessType: CollectionAccessType.OPEN,
-        collaboratorIds: [],
-        createdAt: new Date(now.getTime() - 2000),
-        updatedAt: new Date(now.getTime() - 1000),
-      });
+      const collection1 = new CollectionBuilder()
+        .withName('Alpha Collection')
+        .withAuthorId(curatorId.value)
+        .withAccessType(CollectionAccessType.OPEN)
+        .withCreatedAt(new Date(now.getTime() - 2000))
+        .withUpdatedAt(new Date(now.getTime() - 1000))
+        .withPublished(true)
+        .buildOrThrow();
 
-      const collection2Result = Collection.create({
-        name: 'Beta Collection',
-        authorId: curatorId,
-        accessType: CollectionAccessType.OPEN,
-        collaboratorIds: [],
-        createdAt: new Date(now.getTime() - 1000),
-        updatedAt: new Date(now.getTime() - 2000),
-      });
+      const collection2 = new CollectionBuilder()
+        .withName('Beta Collection')
+        .withAuthorId(curatorId.value)
+        .withAccessType(CollectionAccessType.OPEN)
+        .withCreatedAt(new Date(now.getTime() - 1000))
+        .withUpdatedAt(new Date(now.getTime() - 2000))
+        .withPublished(true)
+        .buildOrThrow();
 
-      if (collection1Result.isErr() || collection2Result.isErr()) {
-        throw new Error('Failed to create test collections');
-      }
-
-      await collectionRepo.save(collection1Result.value);
-      await collectionRepo.save(collection2Result.value);
+      await collectionRepo.save(collection1);
+      await collectionRepo.save(collection2);
     });
 
     it('should sort by name ascending', async () => {
@@ -321,7 +305,7 @@ describe('GetMyCollectionsUseCase', () => {
 
   describe('Text search', () => {
     beforeEach(async () => {
-      // Create collections with different names and descriptions for search testing
+      // Create collections with different names and descriptions for search testing using CollectionBuilder
       const collections = [
         {
           name: 'Machine Learning Papers',
@@ -346,23 +330,15 @@ describe('GetMyCollectionsUseCase', () => {
       ];
 
       for (const collectionData of collections) {
-        const collectionResult = Collection.create({
-          name: collectionData.name,
-          description: collectionData.description,
-          authorId: curatorId,
-          accessType: CollectionAccessType.OPEN,
-          collaboratorIds: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
+        const collection = new CollectionBuilder()
+          .withName(collectionData.name)
+          .withDescription(collectionData.description)
+          .withAuthorId(curatorId.value)
+          .withAccessType(CollectionAccessType.OPEN)
+          .withPublished(true)
+          .buildOrThrow();
 
-        if (collectionResult.isErr()) {
-          throw new Error(
-            `Failed to create collection: ${collectionData.name}`,
-          );
-        }
-
-        await collectionRepo.save(collectionResult.value);
+        await collectionRepo.save(collection);
       }
     });
 
@@ -511,24 +487,25 @@ describe('GetMyCollectionsUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.collections).toHaveLength(3);
+
+      // Verify all collections have URIs
+      response.collections.forEach((collection) => {
+        expect(collection.uri).toBeDefined();
+        expect(typeof collection.uri).toBe('string');
+        expect(collection.uri?.length).toBeGreaterThan(0);
+      });
     });
 
     it('should search collections with no description', async () => {
-      // Create a collection without description
-      const collectionResult = Collection.create({
-        name: 'No Description Collection',
-        authorId: curatorId,
-        accessType: CollectionAccessType.OPEN,
-        collaboratorIds: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      // Create a collection without description using CollectionBuilder
+      const collection = new CollectionBuilder()
+        .withName('No Description Collection')
+        .withAuthorId(curatorId.value)
+        .withAccessType(CollectionAccessType.OPEN)
+        .withPublished(true)
+        .buildOrThrow();
 
-      if (collectionResult.isErr()) {
-        throw new Error('Failed to create collection without description');
-      }
-
-      await collectionRepo.save(collectionResult.value);
+      await collectionRepo.save(collection);
 
       const query = {
         curatorId: curatorId.value,
@@ -541,6 +518,41 @@ describe('GetMyCollectionsUseCase', () => {
       const response = result.unwrap();
       expect(response.collections).toHaveLength(1);
       expect(response.collections[0]!.name).toBe('No Description Collection');
+    });
+  });
+
+  describe('URI validation', () => {
+    it('should return consistent URIs across multiple calls', async () => {
+      // Create a test collection using CollectionBuilder
+      const collection = new CollectionBuilder()
+        .withName('Consistent URI Test')
+        .withDescription('Testing URI consistency')
+        .withAuthorId(curatorId.value)
+        .withAccessType(CollectionAccessType.OPEN)
+        .withPublished(true)
+        .buildOrThrow();
+
+      await collectionRepo.save(collection);
+
+      const query = {
+        curatorId: curatorId.value,
+      };
+
+      // Execute the same query twice
+      const result1 = await useCase.execute(query);
+      const result2 = await useCase.execute(query);
+
+      expect(result1.isOk()).toBe(true);
+      expect(result2.isOk()).toBe(true);
+
+      const response1 = result1.unwrap();
+      const response2 = result2.unwrap();
+
+      expect(response1.collections).toHaveLength(1);
+      expect(response2.collections).toHaveLength(1);
+
+      // URIs should be consistent across calls
+      expect(response1.collections[0]!.uri).toBe(response2.collections[0]!.uri);
     });
   });
 

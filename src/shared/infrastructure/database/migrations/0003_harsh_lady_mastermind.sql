@@ -1,0 +1,1 @@
+CREATE INDEX "published_records_uri_idx" ON "published_records" USING btree ("uri");

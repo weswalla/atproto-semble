@@ -25,6 +25,8 @@ import {
   SortOrder,
 } from '../../domain/ICollectionQueryRepository';
 import { createTestSchema } from '../test-utils/createTestSchema';
+import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
+import { FakeCollectionPublisher } from '../utils/FakeCollectionPublisher';
 
 describe('DrizzleCollectionQueryRepository', () => {
   let container: StartedPostgreSqlContainer;
@@ -32,6 +34,7 @@ describe('DrizzleCollectionQueryRepository', () => {
   let queryRepository: DrizzleCollectionQueryRepository;
   let collectionRepository: DrizzleCollectionRepository;
   let cardRepository: DrizzleCardRepository;
+  let fakePublisher: FakeCollectionPublisher;
 
   // Test data
   let curatorId: CuratorId;
@@ -52,6 +55,7 @@ describe('DrizzleCollectionQueryRepository', () => {
     queryRepository = new DrizzleCollectionQueryRepository(db);
     collectionRepository = new DrizzleCollectionRepository(db);
     cardRepository = new DrizzleCardRepository(db);
+    fakePublisher = new FakeCollectionPublisher();
 
     // Create schema using helper function
     await createTestSchema(db);
@@ -75,6 +79,8 @@ describe('DrizzleCollectionQueryRepository', () => {
     await db.delete(libraryMemberships);
     await db.delete(cards);
     await db.delete(publishedRecords);
+    // Clear fake publisher state between tests
+    fakePublisher.clear();
   });
 
   describe('findByCreator', () => {
@@ -934,6 +940,123 @@ describe('DrizzleCollectionQueryRepository', () => {
       });
 
       expect(result.items).toHaveLength(2);
+    });
+  });
+
+  describe('published record URIs', () => {
+    it('should return empty string for collections without published records', async () => {
+      const collection = Collection.create(
+        {
+          authorId: curatorId,
+          name: 'Unpublished Collection',
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID(),
+      ).unwrap();
+
+      await collectionRepository.save(collection);
+
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]?.uri).toBeUndefined();
+    });
+
+    it('should return URI for collections with published records', async () => {
+      const testUri =
+        'at://did:plc:testcurator/network.cosmik.collection/test123';
+      const testCid = 'bafytest123';
+
+      // Create collection using builder
+      const collection = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Published Collection')
+        .withAccessType(CollectionAccessType.OPEN)
+        .buildOrThrow();
+
+      // Publish the collection using the fake publisher
+      const publishResult = await fakePublisher.publish(collection);
+      expect(publishResult.isOk()).toBe(true);
+
+      const publishedRecordId = publishResult.unwrap();
+
+      // Mark the collection as published in the domain model
+      collection.markAsPublished(publishedRecordId);
+
+      // Save the collection
+      await collectionRepository.save(collection);
+
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]?.uri).toBe(publishedRecordId.uri);
+      expect(result.items[0]?.name).toBe('Published Collection');
+    });
+
+    it('should handle mix of published and unpublished collections', async () => {
+      // Create published collection using builder
+      const publishedCollection = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Published Collection')
+        .withAccessType(CollectionAccessType.OPEN)
+        .withCreatedAt(new Date('2023-01-01'))
+        .withUpdatedAt(new Date('2023-01-01'))
+        .buildOrThrow();
+
+      // Create unpublished collection using builder
+      const unpublishedCollection = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Unpublished Collection')
+        .withAccessType(CollectionAccessType.OPEN)
+        .withCreatedAt(new Date('2023-01-02'))
+        .withUpdatedAt(new Date('2023-01-02'))
+        .buildOrThrow();
+
+      // Publish the first collection using the fake publisher
+      const publishResult = await fakePublisher.publish(publishedCollection);
+      expect(publishResult.isOk()).toBe(true);
+
+      const publishedRecordId = publishResult.unwrap();
+
+      // Mark the collection as published in the domain model
+      publishedCollection.markAsPublished(publishedRecordId);
+
+      // Save both collections
+      await collectionRepository.save(publishedCollection);
+      await collectionRepository.save(unpublishedCollection);
+
+      const result = await queryRepository.findByCreator(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(2);
+
+      // Find collections by name and check URIs
+      const publishedItem = result.items.find(
+        (item) => item.name === 'Published Collection',
+      );
+      const unpublishedItem = result.items.find(
+        (item) => item.name === 'Unpublished Collection',
+      );
+
+      expect(publishedItem?.uri).toBe(publishedRecordId.uri);
+      expect(unpublishedItem?.uri).toBeUndefined();
     });
   });
 

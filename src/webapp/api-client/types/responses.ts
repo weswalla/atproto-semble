@@ -174,6 +174,7 @@ export interface CollectionPageUrlCard {
 
 export interface GetCollectionPageResponse {
   id: string;
+  uri?: string;
   name: string;
   description?: string;
   author: {
@@ -188,8 +189,9 @@ export interface GetCollectionPageResponse {
 }
 
 export interface GetCollectionsResponse {
-  collections: Array<{
+  collections: {
     id: string;
+    uri?: string;
     name: string;
     description?: string;
     cardCount: number;
@@ -201,7 +203,7 @@ export interface GetCollectionsResponse {
       handle: string;
       avatarUrl?: string;
     };
-  }>;
+  }[];
   pagination: Pagination;
   sorting: {
     sortBy: 'name' | 'createdAt' | 'updatedAt' | 'cardCount';

@@ -72,6 +72,7 @@ export const createExpressApp = (
     controllers.updateCollectionController,
     controllers.deleteCollectionController,
     controllers.getCollectionPageController,
+    controllers.getCollectionPageByAtUriController,
     controllers.getMyCollectionsController,
     controllers.getCollectionsController,
   );

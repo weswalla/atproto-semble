@@ -24,6 +24,7 @@ import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use
 import { GetGlobalFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGlobalFeedUseCase';
 import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/useCases/commands/AddActivityToFeedUseCase';
 import { GetCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionsUseCase';
+import { GetCollectionPageByAtUriUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionPageByAtUriUseCase';
 
 export interface UseCases {
   // User use cases
@@ -49,6 +50,7 @@ export interface UseCases {
   updateCollectionUseCase: UpdateCollectionUseCase;
   deleteCollectionUseCase: DeleteCollectionUseCase;
   getCollectionPageUseCase: GetCollectionPageUseCase;
+  getCollectionPageByAtUriUseCase: GetCollectionPageByAtUriUseCase;
   getCollectionsUseCase: GetCollectionsUseCase;
   // Feed use cases
   getGlobalFeedUseCase: GetGlobalFeedUseCase;
@@ -64,6 +66,12 @@ export class UseCaseFactory {
     repositories: Repositories,
     services: Services,
   ): UseCases {
+    const getCollectionPageUseCase = new GetCollectionPageUseCase(
+      repositories.collectionRepository,
+      repositories.cardQueryRepository,
+      services.profileService,
+    );
+
     return {
       // User use cases
       loginWithAppPasswordUseCase: new LoginWithAppPasswordUseCase(
@@ -151,10 +159,11 @@ export class UseCaseFactory {
         repositories.collectionRepository,
         services.collectionPublisher,
       ),
-      getCollectionPageUseCase: new GetCollectionPageUseCase(
-        repositories.collectionRepository,
-        repositories.cardQueryRepository,
-        services.profileService,
+      getCollectionPageUseCase,
+      getCollectionPageByAtUriUseCase: new GetCollectionPageByAtUriUseCase(
+        services.identityResolutionService,
+        repositories.atUriResolutionService,
+        getCollectionPageUseCase,
       ),
       getCollectionsUseCase: new GetCollectionsUseCase(
         repositories.collectionQueryRepository,

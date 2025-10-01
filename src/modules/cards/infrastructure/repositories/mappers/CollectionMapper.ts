@@ -31,6 +31,7 @@ export interface CollectionDTO extends PublishedRecordRefDTO {
 export class CollectionMapper {
   public static toQueryResult(raw: {
     id: string;
+    uri: string | null;
     name: string;
     description?: string | null;
     createdAt: Date;
@@ -40,6 +41,7 @@ export class CollectionMapper {
   }): CollectionQueryResultDTO {
     return {
       id: raw.id,
+      uri: raw.uri || undefined,
       name: raw.name,
       description: raw.description || undefined,
       createdAt: raw.createdAt,

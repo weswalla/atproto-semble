@@ -57,16 +57,20 @@ export class InMemoryCollectionQueryRepository
 
       // Transform to DTOs
       const items: CollectionQueryResultDTO[] = paginatedCollections.map(
-        (collection) => ({
-          id: collection.collectionId.getStringValue(),
-          authorId: collection.authorId.value,
-          name: collection.name.value,
-          description: collection.description?.value,
-          accessType: collection.accessType,
-          cardCount: collection.cardCount,
-          createdAt: collection.createdAt,
-          updatedAt: collection.updatedAt,
-        }),
+        (collection) => {
+          const collectionPublishedRecordId = collection.publishedRecordId;
+          return {
+            id: collection.collectionId.getStringValue(),
+            uri: collectionPublishedRecordId?.uri,
+            authorId: collection.authorId.value,
+            name: collection.name.value,
+            description: collection.description?.value,
+            accessType: collection.accessType,
+            cardCount: collection.cardCount,
+            createdAt: collection.createdAt,
+            updatedAt: collection.updatedAt,
+          };
+        },
       );
 
       return {

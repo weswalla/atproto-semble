@@ -32,6 +32,9 @@ import {
 import { DrizzleFeedRepository } from '../../../../modules/feeds/infrastructure/repositories/DrizzleFeedRepository';
 import { InMemoryFeedRepository } from '../../../../modules/feeds/tests/infrastructure/InMemoryFeedRepository';
 import { IFeedRepository } from '../../../../modules/feeds/domain/IFeedRepository';
+import { IAtUriResolutionService } from '../../../../modules/cards/domain/services/IAtUriResolutionService';
+import { DrizzleAtUriResolutionService } from '../../../../modules/cards/infrastructure/services/DrizzleAtUriResolutionService';
+import { InMemoryAtUriResolutionService } from '../../../../modules/cards/tests/utils/InMemoryAtUriResolutionService';
 
 export interface Repositories {
   userRepository: IUserRepository;
@@ -42,6 +45,7 @@ export interface Repositories {
   collectionQueryRepository: ICollectionQueryRepository;
   appPasswordSessionRepository: IAppPasswordSessionRepository;
   feedRepository: IFeedRepository;
+  atUriResolutionService: IAtUriResolutionService;
   oauthStateStore: NodeSavedStateStore;
   oauthSessionStore: NodeSavedSessionStore;
 }
@@ -66,6 +70,9 @@ export class RepositoryFactory {
       const appPasswordSessionRepository =
         new InMemoryAppPasswordSessionRepository();
       const feedRepository = InMemoryFeedRepository.getInstance();
+      const atUriResolutionService = new InMemoryAtUriResolutionService(
+        collectionRepository,
+      );
       const oauthStateStore = new InMemoryStateStore();
       const oauthSessionStore = new InMemorySessionStore();
 
@@ -78,6 +85,7 @@ export class RepositoryFactory {
         collectionQueryRepository,
         appPasswordSessionRepository,
         feedRepository,
+        atUriResolutionService,
         oauthStateStore,
         oauthSessionStore,
       };
@@ -99,6 +107,7 @@ export class RepositoryFactory {
       collectionQueryRepository: new DrizzleCollectionQueryRepository(db),
       appPasswordSessionRepository: new DrizzleAppPasswordSessionRepository(db),
       feedRepository: new DrizzleFeedRepository(db),
+      atUriResolutionService: new DrizzleAtUriResolutionService(db),
       oauthStateStore,
       oauthSessionStore,
     };

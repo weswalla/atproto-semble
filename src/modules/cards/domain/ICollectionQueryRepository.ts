@@ -27,6 +27,7 @@ export enum SortOrder {
 // Raw data from repository - minimal, just what's stored
 export interface CollectionQueryResultDTO {
   id: string;
+  uri?: string;
   name: string;
   description?: string;
   updatedAt: Date;

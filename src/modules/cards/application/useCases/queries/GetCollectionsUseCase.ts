@@ -21,6 +21,7 @@ export interface GetCollectionsQuery {
 // Enriched data for the final use case result
 export interface CollectionListItemDTO {
   id: string;
+  uri?: string;
   name: string;
   description?: string;
   updatedAt: Date;
@@ -120,6 +121,7 @@ export class GetCollectionsUseCase
         (item) => {
           return {
             id: item.id,
+            uri: item.uri,
             name: item.name,
             description: item.description,
             updatedAt: item.updatedAt,

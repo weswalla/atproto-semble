@@ -23,6 +23,7 @@ import CommunityIcon from '@/assets/icons/community-icon.svg';
 import DBIcon from '@/assets/icons/db-icon.svg';
 import BigPictureIcon from '@/assets/icons/big-picture-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -182,48 +183,58 @@ export default function Home() {
                 >
                   Follow our blog for updates
                 </Button>
-                <Text c="dark.1" fw={600} ta="center">
-                  Made by &nbsp;
-                  <Anchor
-                    href="https://cosmik.network/"
-                    target="_blank"
-                    style={{ verticalAlign: 'middle' }}
-                  >
-                    <Box
-                      component="span"
-                      display="inline-flex"
+                <Stack align="center" gap={'0'}>
+                  <Text c="dark.1" fw={600} ta="center">
+                    Made by &nbsp;
+                    <Anchor
+                      href="https://cosmik.network/"
+                      target="_blank"
                       style={{ verticalAlign: 'middle' }}
                     >
-                      <Image
-                        src={CosmikLogo.src}
-                        alt="Cosmik logo"
-                        w={92}
-                        h={28.4}
-                      />
-                    </Box>
-                  </Anchor>
-                  &nbsp;&nbsp;
-                  <Text c="dark.1" fw={600} span>
-                    with support from&nbsp;
-                    <Anchor
-                      href="https://www.openphilanthropy.org/"
-                      target="_blank"
-                      c="dark.2"
-                      fw={600}
-                    >
-                      Open Philanthropy
-                    </Anchor>{' '}
-                    and{' '}
-                    <Anchor
-                      href="https://astera.org/"
-                      target="_blank"
-                      c="dark.2"
-                      fw={600}
-                    >
-                      Astera
+                      <Box
+                        component="span"
+                        display="inline-flex"
+                        style={{ verticalAlign: 'middle' }}
+                      >
+                        <Image
+                          src={CosmikLogo.src}
+                          alt="Cosmik logo"
+                          w={92}
+                          h={28.4}
+                        />
+                      </Box>
                     </Anchor>
+                    &nbsp;&nbsp;
+                    <Text c="dark.1" fw={600} span>
+                      with support from&nbsp;
+                      <Anchor
+                        href="https://www.openphilanthropy.org/"
+                        target="_blank"
+                        c="dark.2"
+                        fw={600}
+                      >
+                        Open Philanthropy
+                      </Anchor>{' '}
+                      and{' '}
+                      <Anchor
+                        href="https://astera.org/"
+                        target="_blank"
+                        c="dark.2"
+                        fw={600}
+                      >
+                        Astera
+                      </Anchor>
+                    </Text>
                   </Text>
-                </Text>
+                  <Anchor
+                    component={Link}
+                    href="/privacy-policy"
+                    c="dark.2"
+                    fw={600}
+                  >
+                    Privacy Policy
+                  </Anchor>
+                </Stack>
               </Stack>
             </Box>
           </Stack>

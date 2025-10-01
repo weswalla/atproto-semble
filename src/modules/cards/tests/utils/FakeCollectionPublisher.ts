@@ -30,9 +30,10 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     }
 
     const collectionId = collection.collectionId.getStringValue();
+    const fakeDid = process.env.BSKY_DID || 'did:plc:rlknsba2qldjkicxsmni3vyn';
 
     // Simulate publishing the collection record itself
-    const fakeCollectionUri = `at://fake-did/network.cosmik.collection/${collectionId}`;
+    const fakeCollectionUri = `at://${fakeDid}/network.cosmik.collection/${collectionId}`;
     const fakeCollectionCid = `fake-collection-cid-${collectionId}`;
 
     const collectionRecord = PublishedRecordId.create({

@@ -22,7 +22,6 @@ import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDraw
 import CollectionActions from '../../components/collectionActions/CollectionActions';
 import CollectionContainerError from './Error.CollectionContainer';
 import CollectionContainerSkeleton from './Skeleton.CollectionContainer';
-import { log } from 'node:console';
 
 interface Props {
   rkey: string;
@@ -96,7 +95,7 @@ export default function CollectionContainer(props: Props) {
 
         <Group justify="end">
           <CollectionActions
-            id={props.rkey}
+            id={firstPage.id}
             name={firstPage.name}
             description={firstPage.description}
             authorHandle={firstPage.author.handle}

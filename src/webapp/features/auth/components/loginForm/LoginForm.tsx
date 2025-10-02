@@ -7,14 +7,11 @@ import {
   Text,
   Button,
   UnstyledButton,
-  Anchor,
-  Popover,
   TextInput,
   PasswordInput,
   Alert,
 } from '@mantine/core';
 import { BiRightArrowAlt } from 'react-icons/bi';
-import { IoMdHelpCircleOutline } from 'react-icons/io';
 import { MdOutlineAlternateEmail, MdLock } from 'react-icons/md';
 import { useAuth } from '@/hooks/useAuth';
 import { createClientTokenManager } from '@/services/auth';

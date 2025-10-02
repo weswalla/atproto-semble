@@ -13,6 +13,7 @@ export default function FeedItem(props: Props) {
       <FeedActivityStatus
         user={props.item.user}
         collections={props.item.collections}
+        createdAt={props.item.createdAt}
       />
       <UrlCard
         id={props.item.card.id}

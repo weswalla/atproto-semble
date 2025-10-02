@@ -11,6 +11,9 @@ import {
 } from '../../../../cards/domain/ICardQueryRepository';
 import { ICollectionRepository } from 'src/modules/cards/domain/ICollectionRepository';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
+import { IIdentityResolutionService } from '../../../../atproto/domain/services/IIdentityResolutionService';
+import { DID } from '../../../../atproto/domain/DID';
+import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
 
 export interface GetGlobalFeedQuery {
   page?: number;
@@ -33,6 +36,8 @@ export interface FeedItemView {
   collections: {
     id: string;
     name: string;
+    authorHandle: string;
+    uri?: string;
   }[];
 }
 
@@ -65,6 +70,7 @@ export class GetGlobalFeedUseCase
     private profileService: IProfileService,
     private cardQueryRepository: ICardQueryRepository,
     private collectionRepository: ICollectionRepository,
+    private identityResolutionService: IIdentityResolutionService,
   ) {}
 
   async execute(
@@ -174,7 +180,10 @@ export class GetGlobalFeedUseCase
         ),
       ];
 
-      const collectionDataMap = new Map<string, { id: string; name: string }>();
+      const collectionDataMap = new Map<
+        string,
+        { id: string; name: string; authorHandle: string; uri?: string }
+      >();
       // Fetch all collections in parallel using Promise.all
       const collectionResults = await Promise.all(
         collectionIds.map(async (collectionId) => {
@@ -186,15 +195,37 @@ export class GetGlobalFeedUseCase
           const collectionResult = await this.collectionRepository.findById(
             collectionIdResult.value,
           );
-          if (collectionResult.isOk() && collectionResult.value) {
-            const collection = collectionResult.value;
-            return {
-              id: collection.collectionId.getStringValue(),
-              name: collection.name.toString(),
-              collectionId,
-            };
+          if (collectionResult.isErr() || !collectionResult.value) {
+            return null;
           }
-          return null;
+
+          const collection = collectionResult.value;
+
+          const didOrHandleResult = DIDOrHandle.create(
+            collection.authorId.value,
+          );
+          if (didOrHandleResult.isErr()) {
+            return null;
+          }
+
+          const resolvedHandleResult =
+            await this.identityResolutionService.resolveToHandle(
+              didOrHandleResult.value,
+            );
+          if (resolvedHandleResult.isErr()) {
+            return null;
+          }
+
+          const handle = resolvedHandleResult.value;
+          const uri = collection.publishedRecordId?.uri;
+
+          return {
+            id: collection.collectionId.getStringValue(),
+            name: collection.name.toString(),
+            authorHandle: handle.value,
+            uri,
+            collectionId,
+          };
         }),
       );
 
@@ -203,6 +234,8 @@ export class GetGlobalFeedUseCase
           collectionDataMap.set(result.collectionId, {
             id: result.id,
             name: result.name,
+            authorHandle: result.authorHandle,
+            uri: result.uri,
           });
         }
       });
@@ -223,19 +256,11 @@ export class GetGlobalFeedUseCase
 
         const collections = (activity.metadata.collectionIds || [])
           .map((collectionId) => collectionDataMap.get(collectionId))
-          .filter(
-            (collection): collection is { id: string; name: string } =>
-              !!collection,
-          );
+          .filter((collection) => !!collection);
 
         feedItems.push({
           id: activity.activityId.getStringValue(),
-          user: {
-            id: actor.id,
-            handle: actor.handle,
-            name: actor.name,
-            avatarUrl: actor.avatarUrl,
-          },
+          user: actor,
           card: cardData,
           createdAt: activity.createdAt,
           collections,

@@ -7,6 +7,7 @@ import { useToggle } from '@mantine/hooks';
 import CollectionsNavListError from './Error.CollectionsNavList';
 import CreateCollectionShortcut from '../createCollectionShortcut/CreateCollectionShortcut';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
+import { getRecordKey } from '@/lib/utils/atproto';
 
 export default function CollectionsNavList() {
   const { data, error } = useMyCollections({ limit: 30 });
@@ -45,7 +46,7 @@ export default function CollectionsNavList() {
           <CollectionNavItem
             key={collection.id}
             name={collection.name}
-            url={`/profile/${collection.createdBy.handle}/collections/${collection.id}`}
+            url={`/profile/${collection.createdBy.handle}/collections/${getRecordKey(collection.uri!!)}`}
             cardCount={collection.cardCount}
           />
         ))}

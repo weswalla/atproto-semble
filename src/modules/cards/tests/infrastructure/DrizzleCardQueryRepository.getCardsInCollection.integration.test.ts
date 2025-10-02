@@ -263,7 +263,9 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
 
     it('should not include notes when only other users have notes, not collection author', async () => {
       // Create URL card
-      const url = URL.create('https://example.com/article-with-other-notes').unwrap();
+      const url = URL.create(
+        'https://example.com/article-with-other-notes',
+      ).unwrap();
       const urlCard = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withUrlCard(url)

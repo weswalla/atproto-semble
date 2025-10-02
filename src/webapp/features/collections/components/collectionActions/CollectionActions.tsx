@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
   id: string;
+  rkey: string;
   name: string;
   description?: string;
   authorHandle: string;
@@ -52,6 +53,7 @@ export default function CollectionActions(props: Props) {
         onClose={() => setShowEditDrawer(false)}
         collection={{
           id: props.id,
+          rkey: props.rkey,
           name: props.name,
           description: props.description,
         }}

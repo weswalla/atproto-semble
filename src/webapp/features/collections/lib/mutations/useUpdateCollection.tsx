@@ -13,16 +13,20 @@ export default function useUpdateCollection() {
   const mutation = useMutation({
     mutationFn: (collection: {
       collectionId: string;
+      rkey: string;
       name: string;
       description?: string;
     }) => {
       return apiClient.updateCollection(collection);
     },
 
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['collections'] });
       queryClient.invalidateQueries({
         queryKey: ['collection', data.collectionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['collection', variables.rkey],
       });
     },
   });

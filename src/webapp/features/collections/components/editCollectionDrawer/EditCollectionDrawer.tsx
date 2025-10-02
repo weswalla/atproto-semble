@@ -17,6 +17,7 @@ interface Props {
   onClose: () => void;
   collection: {
     id: string;
+    rkey: string;
     name: string;
     description?: string;
   };
@@ -38,6 +39,7 @@ export default function EditCollectionDrawer(props: Props) {
     updateCollection.mutate(
       {
         collectionId: props.collection.id,
+        rkey: props.collection.rkey,
         name: form.values.name,
         description: form.values.description,
       },

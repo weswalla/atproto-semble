@@ -96,6 +96,7 @@ export default function CollectionContainer(props: Props) {
         <Group justify="end">
           <CollectionActions
             id={firstPage.id}
+            rkey={props.rkey}
             name={firstPage.name}
             description={firstPage.description}
             authorHandle={firstPage.author.handle}

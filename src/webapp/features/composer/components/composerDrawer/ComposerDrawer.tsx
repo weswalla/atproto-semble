@@ -15,7 +15,7 @@ export default function ComposerDrawer() {
   return (
     <Fragment key={shouldShowFab.toString()}>
       {shouldShowFab && (
-        <Affix m="xs" style={{ zIndex: 102 }}>
+        <Affix m={{ base: 'xl', sm: 'xs' }} style={{ zIndex: 102 }}>
           <ActionIcon
             size="input-xl"
             radius="xl"

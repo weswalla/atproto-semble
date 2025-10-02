@@ -191,33 +191,45 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
       expect(card2Result?.cardContent.title).toBeUndefined(); // No metadata provided
     });
 
-    it('should include connected note cards for collection cards', async () => {
+    it('should only include notes by collection author, not notes by other users', async () => {
       // Create URL card
-      const url = URL.create('https://example.com/collection-article').unwrap();
+      const url = URL.create('https://example.com/shared-article').unwrap();
       const urlCard = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withUrlCard(url)
         .buildOrThrow();
 
+      urlCard.addToLibrary(curatorId);
+
       await cardRepository.save(urlCard);
 
-      // Create note card connected to URL card
-      const noteCard = new CardBuilder()
+      // Create note by collection author
+      const authorNote = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard(
-          'This is my note about the collection article',
-          'Collection Note',
-        )
+        .withNoteCard('Note by collection author', 'Author Note')
         .withParentCard(urlCard.cardId)
         .buildOrThrow();
 
-      await cardRepository.save(noteCard);
+      authorNote.addToLibrary(curatorId);
 
-      // Create collection and add URL card
+      await cardRepository.save(authorNote);
+
+      // Create note by different user on the same URL card
+      const otherUserNote = new CardBuilder()
+        .withCuratorId(otherCuratorId.value)
+        .withNoteCard('Note by other user', 'Other User Note')
+        .withParentCard(urlCard.cardId)
+        .buildOrThrow();
+
+      otherUserNote.addToLibrary(otherCuratorId);
+
+      await cardRepository.save(otherUserNote);
+
+      // Create collection authored by curatorId and add URL card
       const collection = Collection.create(
         {
           authorId: curatorId,
-          name: 'Collection with Notes',
+          name: 'Collection by First User',
           accessType: CollectionAccessType.OPEN,
           collaboratorIds: [],
           createdAt: new Date(),
@@ -243,11 +255,69 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
       expect(result.items).toHaveLength(1);
       const urlCardResult = result.items[0];
 
+      // Should only include the note by the collection author, not the other user's note
       expect(urlCardResult?.note).toBeDefined();
-      expect(urlCardResult?.note?.id).toBe(noteCard.cardId.getStringValue());
-      expect(urlCardResult?.note?.text).toBe(
-        'This is my note about the collection article',
+      expect(urlCardResult?.note?.id).toBe(authorNote.cardId.getStringValue());
+      expect(urlCardResult?.note?.text).toBe('Note by collection author');
+    });
+
+    it('should not include notes when only other users have notes, not collection author', async () => {
+      // Create URL card
+      const url = URL.create(
+        'https://example.com/article-with-other-notes',
+      ).unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      urlCard.addToLibrary(curatorId);
+
+      await cardRepository.save(urlCard);
+
+      // Create note by different user on the URL card (NO note by collection author)
+      const otherUserNote = new CardBuilder()
+        .withCuratorId(otherCuratorId.value)
+        .withNoteCard('Note by other user only', 'Other User Note')
+        .withParentCard(urlCard.cardId)
+        .buildOrThrow();
+
+      otherUserNote.addToLibrary(otherCuratorId);
+
+      await cardRepository.save(otherUserNote);
+
+      // Create collection authored by curatorId and add URL card
+      const collection = Collection.create(
+        {
+          authorId: curatorId,
+          name: 'Collection with Other User Notes Only',
+          accessType: CollectionAccessType.OPEN,
+          collaboratorIds: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        new UniqueEntityID(),
+      ).unwrap();
+
+      collection.addCard(urlCard.cardId, curatorId);
+      await collectionRepository.save(collection);
+
+      // Query cards in collection
+      const result = await queryRepository.getCardsInCollection(
+        collection.collectionId.getStringValue(),
+        {
+          page: 1,
+          limit: 10,
+          sortBy: CardSortField.UPDATED_AT,
+          sortOrder: SortOrder.DESC,
+        },
       );
+
+      expect(result.items).toHaveLength(1);
+      const urlCardResult = result.items[0];
+
+      // Should not include any note since only other users have notes, not the collection author
+      expect(urlCardResult?.note).toBeUndefined();
     });
 
     it('should not include note cards that are not connected to collection URL cards', async () => {

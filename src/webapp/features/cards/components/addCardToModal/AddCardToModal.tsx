@@ -198,11 +198,23 @@ export default function AddCardToModal(props: Props) {
                           ))}
                       </Fragment>
                     ) : hasCollections ? (
-                      <CollectionSelectorItemList
-                        collections={collectionsWithoutCard}
-                        selectedCollections={selectedCollections}
-                        onChange={handleCollectionChange}
-                      />
+                      <Fragment>
+                        <Button
+                          variant="light"
+                          size="md"
+                          color="grape"
+                          radius="lg"
+                          leftSection={<BiPlus size={22} />}
+                          onClick={() => setIsDrawerOpen(true)}
+                        >
+                          Create new collection
+                        </Button>
+                        <CollectionSelectorItemList
+                          collections={collectionsWithoutCard}
+                          selectedCollections={selectedCollections}
+                          onChange={handleCollectionChange}
+                        />
+                      </Fragment>
                     ) : (
                       <Stack align="center" gap="xs">
                         <Text fz="lg" fw={600} c="gray">

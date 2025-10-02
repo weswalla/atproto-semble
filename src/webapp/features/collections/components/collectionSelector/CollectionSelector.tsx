@@ -148,11 +148,23 @@ export default function CollectionSelector(props: Props) {
                           ))}
                       </Fragment>
                     ) : hasCollections ? (
-                      <CollectionSelectorItemList
-                        collections={allCollections}
-                        selectedCollections={props.selectedCollections}
-                        onChange={handleCollectionChange}
-                      />
+                      <Fragment>
+                        <Button
+                          variant="light"
+                          size="md"
+                          color="grape"
+                          radius="lg"
+                          leftSection={<BiPlus size={22} />}
+                          onClick={() => setIsDrawerOpen(true)}
+                        >
+                          Create new collection
+                        </Button>
+                        <CollectionSelectorItemList
+                          collections={allCollections}
+                          selectedCollections={props.selectedCollections}
+                          onChange={handleCollectionChange}
+                        />
+                      </Fragment>
                     ) : (
                       <Stack align="center" gap="xs">
                         <Text fz="lg" fw={600} c="gray">

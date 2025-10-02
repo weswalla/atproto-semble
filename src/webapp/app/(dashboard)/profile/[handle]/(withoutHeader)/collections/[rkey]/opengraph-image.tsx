@@ -4,7 +4,7 @@ import OpenGraphCard from '@/features/openGraph/components/openGraphCard/OpenGra
 import { truncateText } from '@/lib/utils/text';
 
 interface Props {
-  params: Promise<{ collectionId: string }>;
+  params: Promise<{ rkey: string; handle: string }>;
 }
 
 export const contentType = 'image/png';
@@ -14,14 +14,17 @@ export const size = {
 };
 
 export default async function Image(props: Props) {
-  const { collectionId } = await props.params;
+  const { rkey, handle } = await props.params;
 
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
     createClientTokenManager(),
   );
 
-  const collection = await apiClient.getCollectionPage(collectionId);
+  const collection = await apiClient.getCollectionPageByAtUri({
+    recordKey: rkey,
+    handle: handle,
+  });
 
   return await OpenGraphCard({
     children: (

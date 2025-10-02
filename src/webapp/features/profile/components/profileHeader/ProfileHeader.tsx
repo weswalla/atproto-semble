@@ -44,7 +44,7 @@ export default async function ProfileHeader(props: Props) {
               <Avatar
                 src={profile.avatarUrl}
                 alt={`${profile.name}'s avatar`}
-                size={'clamp(100px, 22vw, 180px)'}
+                size={'clamp(100px, 22vw, 140px)'}
                 radius={'lg'}
               />
             </GridCol>

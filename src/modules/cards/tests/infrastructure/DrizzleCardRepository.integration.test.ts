@@ -135,7 +135,6 @@ describe('DrizzleCardRepository', () => {
     expect(retrievedCard?.content.noteContent?.text).toBe(
       'This is a test note',
     );
-    expect(retrievedCard?.content.noteContent?.title).toBeUndefined();
   });
 
   it('should save and retrieve a card with library memberships', async () => {

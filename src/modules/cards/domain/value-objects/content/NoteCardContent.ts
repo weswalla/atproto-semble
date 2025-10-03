@@ -27,11 +27,6 @@ export class NoteCardContent extends ValueObject<NoteCardContentProps> {
     return this.props.text;
   }
 
-  get title(): string | undefined {
-    // For backward compatibility, we don't store title separately in the new model
-    return undefined;
-  }
-
   get authorId(): CuratorId {
     return this.props.authorId;
   }

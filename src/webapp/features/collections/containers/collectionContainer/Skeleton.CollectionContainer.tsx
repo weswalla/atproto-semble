@@ -32,8 +32,8 @@ export default function CollectionContainerSkeleton() {
         </Group>
 
         <Group justify="end">
-          <Skeleton w={32} h={32} radius={'md'} />
           <Skeleton w={100} h={32} radius={'md'} />
+          <Skeleton w={32} h={32} radius={'md'} />
         </Group>
 
         <Grid gutter="md">

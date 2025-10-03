@@ -31,7 +31,7 @@ export class GetMyCollectionsController extends Controller {
       });
 
       if (result.isErr()) {
-        return this.fail(res, result.error as any);
+        return this.fail(res, result.error);
       }
 
       return this.ok(res, result.value);

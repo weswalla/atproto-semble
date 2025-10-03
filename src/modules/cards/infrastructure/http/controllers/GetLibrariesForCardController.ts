@@ -19,7 +19,7 @@ export class GetLibrariesForCardController extends Controller {
       const result = await this.getLibrariesForCardUseCase.execute({ cardId });
 
       if (result.isErr()) {
-        return this.fail(res, result.error as any);
+        return this.fail(res, result.error);
       }
 
       return this.ok(res, result.value);

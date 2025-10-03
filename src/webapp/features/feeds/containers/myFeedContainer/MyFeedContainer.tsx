@@ -2,9 +2,11 @@
 
 import useMyFeed from '@/features/feeds/lib/queries/useMyFeed';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
-import { Button, Stack, Title, Text, Center, Container } from '@mantine/core';
+import { Stack, Title, Text, Center, Container } from '@mantine/core';
 import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
 import MyFeedContainerError from './Error.MyFeedContainer';
+import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
+import FeedItemSkeleton from '../../components/feedItem/Skeleton.FeedItem';
 
 export default function MyFeedContainer() {
   const {
@@ -39,26 +41,27 @@ export default function MyFeedContainer() {
             </Text>
           </Center>
         ) : (
-          <Stack gap={'xl'} mx={'auto'} maw={600}>
-            <Stack gap={60}>
-              {allActivities.map((item, i) => (
-                <FeedItem key={item.id} item={item} />
-              ))}
+          <InfiniteScroll
+            dataLength={allActivities.length}
+            hasMore={!!hasNextPage}
+            isInitialLoading={isPending}
+            isLoading={isFetchingNextPage}
+            loadMore={fetchNextPage}
+            manualLoadButton={false}
+            loader={
+              <Stack mx={'auto'} maw={600} w={'100%'} align="stretch">
+                <FeedItemSkeleton />
+              </Stack>
+            }
+          >
+            <Stack gap={'xl'} mx={'auto'} maw={600}>
+              <Stack gap={60}>
+                {allActivities.map((item) => (
+                  <FeedItem key={item.id} item={item} />
+                ))}
+              </Stack>
             </Stack>
-
-            {hasNextPage && (
-              <Center>
-                <Button
-                  onClick={() => fetchNextPage()}
-                  loading={isFetchingNextPage}
-                  variant="light"
-                  color="gray"
-                >
-                  Load More
-                </Button>
-              </Center>
-            )}
-          </Stack>
+          </InfiniteScroll>
         )}
       </Stack>
     </Container>

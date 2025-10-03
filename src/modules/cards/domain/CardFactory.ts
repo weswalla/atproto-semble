@@ -17,7 +17,6 @@ export interface IUrlCardInput {
 export interface INoteCardInput {
   type: CardTypeEnum.NOTE;
   text: string;
-  title?: string;
   parentCardId?: string;
   url?: string;
 }
@@ -160,7 +159,7 @@ export class CardFactory {
     input: INoteCardInput,
     curatorId: CuratorId,
   ): Result<CardContent, CardValidationError> {
-    return CardContent.createNoteContent(input.text, input.title, curatorId);
+    return CardContent.createNoteContent(input.text, curatorId);
   }
 
   // Type guards

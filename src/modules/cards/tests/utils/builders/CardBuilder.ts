@@ -45,7 +45,6 @@ export class CardBuilder {
         if (curatorIdResult.isOk()) {
           const contentResult = CardContent.createNoteContent(
             'Default note text',
-            undefined,
             curatorIdResult.value,
           );
           if (contentResult.isOk()) {
@@ -101,9 +100,12 @@ export class CardBuilder {
     return this;
   }
 
-  withNoteCard(text: string, title?: string): CardBuilder {
+  withNoteCard(text: string): CardBuilder {
     this._type = CardTypeEnum.NOTE;
-    const contentResult = CardContent.createNoteContent(text, title);
+    const contentResult = CardContent.createNoteContent(
+      text,
+      CuratorId.create(this._curatorId).unwrap(),
+    );
     if (contentResult.isErr()) {
       throw new Error(
         `Failed to create note content: ${contentResult.error.message}`,
@@ -138,7 +140,6 @@ export class CardBuilder {
         } else if (this._type === CardTypeEnum.NOTE) {
           const contentResult = CardContent.createNoteContent(
             'Default note text',
-            undefined,
             curatorIdResult.value,
           );
           if (contentResult.isErr()) {

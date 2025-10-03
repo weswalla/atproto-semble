@@ -173,7 +173,7 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       // Create note card connected to URL card
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard('This is my note about the article', 'My Thoughts')
+        .withNoteCard('This is my note about the article')
         .withParentCard(urlCard.cardId)
         .buildOrThrow();
 
@@ -423,7 +423,7 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       // Create connected note
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard('Detailed analysis of the complex article', 'Analysis')
+        .withNoteCard('Detailed analysis of the complex article')
         .withParentCard(urlCard.cardId)
         .buildOrThrow();
 

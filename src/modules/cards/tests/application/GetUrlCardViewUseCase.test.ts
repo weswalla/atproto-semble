@@ -107,6 +107,7 @@ describe('GetUrlCardViewUseCase', () => {
         type: CardType.create(CardTypeEnum.NOTE).unwrap(),
         content: CardContent.createNoteContent(
           'This is my note about the article',
+          curatorId,
         ).unwrap(),
         parentCardId: card.cardId,
         url: url,

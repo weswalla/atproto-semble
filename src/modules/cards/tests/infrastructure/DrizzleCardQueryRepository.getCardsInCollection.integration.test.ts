@@ -206,7 +206,7 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
       // Create note by collection author
       const authorNote = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard('Note by collection author', 'Author Note')
+        .withNoteCard('Note by collection author')
         .withParentCard(urlCard.cardId)
         .buildOrThrow();
 
@@ -217,7 +217,7 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
       // Create note by different user on the same URL card
       const otherUserNote = new CardBuilder()
         .withCuratorId(otherCuratorId.value)
-        .withNoteCard('Note by other user', 'Other User Note')
+        .withNoteCard('Note by other user')
         .withParentCard(urlCard.cardId)
         .buildOrThrow();
 
@@ -278,7 +278,7 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
       // Create note by different user on the URL card (NO note by collection author)
       const otherUserNote = new CardBuilder()
         .withCuratorId(otherCuratorId.value)
-        .withNoteCard('Note by other user only', 'Other User Note')
+        .withNoteCard('Note by other user only')
         .withParentCard(urlCard.cardId)
         .buildOrThrow();
 
@@ -342,7 +342,7 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
       // Create note card connected to the OTHER URL card (not in collection)
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard('This note is for the other article', 'Other Note')
+        .withNoteCard('This note is for the other article')
         .withParentCard(otherUrlCard.cardId)
         .buildOrThrow();
 

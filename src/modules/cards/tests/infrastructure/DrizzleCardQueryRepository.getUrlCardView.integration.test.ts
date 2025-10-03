@@ -88,7 +88,7 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
       // Create a note card
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard('This is a note', 'Note Title')
+        .withNoteCard('This is a note')
         .buildOrThrow();
 
       await cardRepository.save(noteCard);
@@ -570,7 +570,6 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
         .withCuratorId(curatorId.value)
         .withNoteCard(
           'This is my detailed analysis of the article. It covers several key points and provides additional insights.',
-          'My Analysis',
         )
         .withParentCard(urlCard.cardId)
         .buildOrThrow();
@@ -637,7 +636,7 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
       // Create note card connected to the SECOND URL card
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard('This note is for article 2', 'Article 2 Notes')
+        .withNoteCard('This note is for article 2')
         .withParentCard(urlCard2.cardId)
         .buildOrThrow();
 
@@ -783,7 +782,7 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
       // Create note card
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard('Test note', 'Note Title')
+        .withNoteCard('Test note')
         .buildOrThrow();
 
       await cardRepository.save(noteCard);

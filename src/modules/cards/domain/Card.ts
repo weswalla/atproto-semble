@@ -260,19 +260,4 @@ export class Card extends AggregateRoot<CardProps> {
       link.curatorId.equals(userId),
     );
   }
-
-  private getCardTitle(): string | undefined {
-    if (this.isUrlCard) {
-      const urlContent = this.props.content.content;
-      if ('metadata' in urlContent) {
-        return urlContent.metadata?.title;
-      }
-    } else if (this.isNoteCard) {
-      const noteContent = this.props.content.content;
-      if ('title' in noteContent) {
-        return noteContent.title;
-      }
-    }
-    return undefined;
-  }
 }

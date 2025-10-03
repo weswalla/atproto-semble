@@ -144,7 +144,7 @@ describe('ATProtoCardPublisher', () => {
       // Create a note card
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard('This is a test note for publishing', 'Test Note Title')
+        .withNoteCard('This is a test note for publishing')
         .buildOrThrow();
 
       // Add card to curator's library first
@@ -201,7 +201,7 @@ describe('ATProtoCardPublisher', () => {
       // Create a note card with optional URL
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard('This note references a URL', 'Note with URL')
+        .withNoteCard('This note references a URL')
         .withUrl(referenceUrl)
         .buildOrThrow();
 
@@ -302,7 +302,7 @@ describe('ATProtoCardPublisher', () => {
         // 2. Create a note card that references the parent URL card
         const noteCard = new CardBuilder()
           .withCuratorId(curatorId.value)
-          .withNoteCard('This is my note about the parent article', 'My Notes')
+          .withNoteCard('This is my note about the parent article')
           .withParentCard(parentUrlCard.cardId)
           .withUrl(parentUrl) // Optional: include the same URL as reference
           .buildOrThrow();

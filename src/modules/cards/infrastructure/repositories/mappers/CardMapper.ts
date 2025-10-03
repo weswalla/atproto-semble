@@ -208,7 +208,10 @@ export class CardMapper {
           const noteData = data as NoteContentData;
           const authorIdResult = CuratorId.create(noteData.authorId);
           if (authorIdResult.isErr()) return err(authorIdResult.error);
-          return CardContent.createNoteContent(noteData.text);
+          return CardContent.createNoteContent(
+            noteData.text,
+            authorIdResult.value,
+          );
         }
 
         default:

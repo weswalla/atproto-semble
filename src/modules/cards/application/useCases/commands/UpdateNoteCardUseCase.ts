@@ -110,7 +110,6 @@ export class UpdateNoteCardUseCase
       // Create new card content with updated note
       const updatedCardContentResult = CardContent.createNoteContent(
         request.note,
-        undefined,
         curatorId,
       );
       if (updatedCardContentResult.isErr()) {

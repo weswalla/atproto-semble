@@ -1,4 +1,4 @@
-import { Loader, Skeleton, Stack } from '@mantine/core';
+import { Skeleton, Stack } from '@mantine/core';
 
 export default function CollectionSelectorSkeleton() {
   return (

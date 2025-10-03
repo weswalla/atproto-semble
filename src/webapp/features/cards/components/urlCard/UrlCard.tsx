@@ -12,6 +12,7 @@ import {
 import Link from 'next/link';
 import UrlCardActions from '../urlCardActions/UrlCardActions';
 import NoteCard from '@/features/notes/components/noteCard/NoteCard';
+import { Suspense } from 'react';
 
 interface Props {
   size?: 'large' | 'compact' | 'small';
@@ -68,14 +69,16 @@ export default function UrlCard(props: Props) {
             )}
           </Group>
 
-          <UrlCardActions
-            cardContent={props.cardContent}
-            id={props.id}
-            authorHandle={props.authorHandle}
-            note={props.note}
-            currentCollection={props.currentCollection}
-            libraries={props.libraries}
-          />
+          <Suspense>
+            <UrlCardActions
+              cardContent={props.cardContent}
+              id={props.id}
+              authorHandle={props.authorHandle}
+              note={props.note}
+              currentCollection={props.currentCollection}
+              libraries={props.libraries}
+            />
+          </Suspense>
         </Stack>
       </Card>
       {props.note && <NoteCard note={props.note.text} />}

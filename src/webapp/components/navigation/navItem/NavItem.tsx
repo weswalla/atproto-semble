@@ -1,5 +1,6 @@
 'use client';
 
+import { useNavbarContext } from '@/providers/navbar';
 import { NavLink } from '@mantine/core';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function NavItem(props: Props) {
+  const { toggleMobile } = useNavbarContext();
   const pathname = usePathname();
   const isActive = pathname === props.href;
 
@@ -25,6 +27,7 @@ export default function NavItem(props: Props) {
       label={props.label}
       leftSection={props.icon}
       active={isActive}
+      onClick={toggleMobile}
     />
   );
 }

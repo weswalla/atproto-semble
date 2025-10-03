@@ -8,8 +8,10 @@ import CollectionsNavListError from './Error.CollectionsNavList';
 import CreateCollectionShortcut from '../createCollectionShortcut/CreateCollectionShortcut';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { getRecordKey } from '@/lib/utils/atproto';
+import { useNavbarContext } from '@/providers/navbar';
 
 export default function CollectionsNavList() {
+  const { toggleMobile } = useNavbarContext();
   const { data, error } = useMyCollections({ limit: 30 });
   const { data: profile } = useMyProfile();
   const [opened, toggleMenu] = useToggle([true, false]);
@@ -39,6 +41,7 @@ export default function CollectionsNavList() {
         variant="subtle"
         c="blue"
         leftSection={<BiRightArrowAlt size={25} />}
+        onClick={toggleMobile}
       />
 
       <Stack gap={0}>

@@ -15,9 +15,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { MdLogout } from 'react-icons/md';
+import { useNavbarContext } from '@/providers/navbar';
 
 export default function ProfileMenu() {
   const router = useRouter();
+  const { toggleMobile } = useNavbarContext();
   const { data, error, isPending } = useMyProfile();
   const { logout } = useAuth();
 
@@ -58,7 +60,11 @@ export default function ProfileMenu() {
           </Button>
         </Menu.Target>
         <Menu.Dropdown>
-          <Menu.Item component={Link} href={`/profile/${data.handle}`}>
+          <Menu.Item
+            component={Link}
+            href={`/profile/${data.handle}`}
+            onClick={toggleMobile}
+          >
             <Group gap={'xs'} wrap="nowrap">
               <Avatar src={data.avatarUrl} size={'lg'} />
               <Stack gap={0}>

@@ -1,3 +1,4 @@
+import { useNavbarContext } from '@/providers/navbar';
 import { Badge, NavLink } from '@mantine/core';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function CollectionNavItem(props: Props) {
+  const { toggleMobile } = useNavbarContext();
   const pathname = usePathname();
   const isActive = pathname === props.url;
 
@@ -19,6 +21,7 @@ export default function CollectionNavItem(props: Props) {
       label={props.name}
       variant="subtle"
       c={isActive ? 'dark' : 'gray'}
+      onClick={toggleMobile}
       rightSection={
         props.cardCount > 0 ? (
           <Badge

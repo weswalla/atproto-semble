@@ -1,8 +1,8 @@
 'use client';
 
-import { ReactNode, useEffect, startTransition } from 'react';
+import { ReactNode, useEffect, startTransition, useRef } from 'react';
 import { Center, Button, Stack } from '@mantine/core';
-import { useInViewport } from '@mantine/hooks';
+import { useIntersection } from '@mantine/hooks';
 
 interface Props {
   children: ReactNode;
@@ -16,15 +16,19 @@ interface Props {
 }
 
 export default function InfiniteScroll(props: Props) {
-  const { ref, inViewport } = useInViewport();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { ref, entry } = useIntersection({
+    root: containerRef.current,
+    threshold: 0,
+  });
 
   useEffect(() => {
     startTransition(() => {
-      if (inViewport && props.hasMore && !props.isLoading) {
+      if (entry?.isIntersecting && props.hasMore && !props.isLoading) {
         props.loadMore();
       }
     });
-  }, [inViewport, props.hasMore, props.isLoading, props.loadMore]);
+  }, [entry?.isIntersecting, props.hasMore, props.isLoading, props.loadMore]);
 
   return (
     <Stack>

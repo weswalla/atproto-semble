@@ -2,6 +2,7 @@ import { Result, ok, err } from '../../../../shared/core/Result';
 import { ICardRepository } from '../../domain/ICardRepository';
 import { Card } from '../../domain/Card';
 import { CardId } from '../../domain/value-objects/CardId';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { URL } from '../../domain/value-objects/URL';
 
 export class InMemoryCardRepository implements ICardRepository {
@@ -13,12 +14,14 @@ export class InMemoryCardRepository implements ICardRepository {
     // Simple clone - in a real implementation you'd want proper deep cloning
     const cardResult = Card.create(
       {
+        curatorId: card.props.curatorId,
         type: card.type,
         content: card.content,
         parentCardId: card.parentCardId,
         url: card.url,
-        originalPublishedRecordId: card.originalPublishedRecordId,
+        publishedRecordId: card.publishedRecordId,
         libraryMemberships: card.libraryMemberships,
+        libraryCount: card.libraryCount,
         createdAt: card.createdAt,
         updatedAt: card.updatedAt,
       },
@@ -44,12 +47,16 @@ export class InMemoryCardRepository implements ICardRepository {
     }
   }
 
-  async findUrlCardByUrl(url: URL): Promise<Result<Card | null>> {
+  async findUsersUrlCardByUrl(
+    url: URL,
+    curatorId: CuratorId,
+  ): Promise<Result<Card | null>> {
     try {
       const card = Array.from(this.cards.values()).find(
         (card) =>
           card.content.type === 'URL' &&
-          card.content.urlContent?.url.value === url.value,
+          card.content.urlContent?.url.value === url.value &&
+          card.props.curatorId.equals(curatorId),
       );
       return ok(card ? this.clone(card) : null);
     } catch (error) {

@@ -155,6 +155,16 @@ export class Card extends AggregateRoot<CardProps> {
       return err(new CardValidationError('URL cards can only be in one library'));
     }
 
+    // URL cards can only have library memberships for the creator
+    if (props.type.value === CardTypeEnum.URL && libraryMemberships.length > 0) {
+      const hasNonCreatorMembership = libraryMemberships.some(
+        membership => !membership.curatorId.equals(props.curatorId)
+      );
+      if (hasNonCreatorMembership) {
+        return err(new CardValidationError('URL cards can only be in one library'));
+      }
+    }
+
     // Validate libraryCount matches libraryMemberships length when both are provided
     if (
       props.libraryCount !== undefined &&

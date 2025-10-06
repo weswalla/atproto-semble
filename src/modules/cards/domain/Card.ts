@@ -150,8 +150,13 @@ export class Card extends AggregateRoot<CardProps> {
       return err(new CardValidationError('URL cards must have a url property'));
     }
 
-    // Validate libraryCount matches libraryMemberships length when both are provided
+    // URL cards can only be in one library
     const libraryMemberships = props.libraryMemberships || [];
+    if (props.type.value === CardTypeEnum.URL && libraryMemberships.length > 1) {
+      return err(new CardValidationError('URL cards can only be in one library'));
+    }
+
+    // Validate libraryCount matches libraryMemberships length when both are provided
     if (
       props.libraryCount !== undefined &&
       props.libraryCount !== libraryMemberships.length
@@ -188,6 +193,11 @@ export class Card extends AggregateRoot<CardProps> {
       )
     ) {
       return err(new CardValidationError("Card is already in user's library"));
+    }
+
+    // URL cards can only be in one library
+    if (this.isUrlCard && this.props.libraryMemberships.length > 0) {
+      return err(new CardValidationError("URL cards can only be in one library"));
     }
 
     this.props.libraryMemberships.push({

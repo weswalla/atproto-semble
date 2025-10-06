@@ -23,13 +23,14 @@ export interface CardInLibraryLink {
 }
 
 interface CardProps {
+  curatorId: CuratorId;
   type: CardType;
   content: CardContent;
   url?: URL;
   parentCardId?: CardId; // For NOTE and HIGHLIGHT cards that reference other cards
   libraryMemberships: CardInLibraryLink[]; // Set of users who have this card in their library
   libraryCount: number; // Cached count of library memberships
-  originalPublishedRecordId?: PublishedRecordId; // The first published record ID for this card
+  publishedRecordId?: PublishedRecordId; // The first published record ID for this card
   createdAt: Date;
   updatedAt: Date;
 }
@@ -75,8 +76,8 @@ export class Card extends AggregateRoot<CardProps> {
     return this.props.libraryCount;
   }
 
-  get originalPublishedRecordId(): PublishedRecordId | undefined {
-    return this.props.originalPublishedRecordId;
+  get publishedRecordId(): PublishedRecordId | undefined {
+    return this.props.publishedRecordId;
   }
 
   // Type-specific convenience getters
@@ -245,9 +246,8 @@ export class Card extends AggregateRoot<CardProps> {
 
     membership.publishedRecordId = publishedRecordId;
 
-    // Set the original published record ID if it hasn't been set yet
-    if (!this.props.originalPublishedRecordId) {
-      this.props.originalPublishedRecordId = publishedRecordId;
+    if (!this.props.publishedRecordId) {
+      this.props.publishedRecordId = publishedRecordId;
     }
 
     this.props.updatedAt = new Date();

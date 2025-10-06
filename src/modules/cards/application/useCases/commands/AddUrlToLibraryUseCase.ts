@@ -80,7 +80,7 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
 
       // Check if URL card already exists
       const existingUrlCardResult =
-        await this.cardRepository.findUrlCardByUrl(url);
+        await this.cardRepository.findUsersUrlCardByUrl(url, curatorId);
       if (existingUrlCardResult.isErr()) {
         return err(
           AppError.UnexpectedError.create(existingUrlCardResult.error),

@@ -65,7 +65,7 @@ describe('Card', () => {
       expect(card.libraryCount).toBe(0);
     });
 
-    it('should fail to create URL card with multiple library memberships', () => {
+    it('should fail to create URL card with library membership different from creator', () => {
       // Arrange
       const curatorId = CuratorId.create('did:plc:test789').unwrap();
       const otherUserId = CuratorId.create('did:plc:other123').unwrap();
@@ -96,6 +96,53 @@ describe('Card', () => {
         url,
         libraryMemberships: existingMemberships,
         libraryCount: 1,
+      });
+
+      // Assert
+      if (result.isOk()) {
+        throw new Error('Expected creation to fail but it succeeded');
+      }
+      expect(result.isErr()).toBe(true);
+      expect(result.error.message).toBe('URL cards can only be in one library');
+    });
+
+    it('should fail to create URL card with multiple library memberships', () => {
+      // Arrange
+      const curatorId = CuratorId.create('did:plc:test789').unwrap();
+      const otherUserId1 = CuratorId.create('did:plc:other123').unwrap();
+      const otherUserId2 = CuratorId.create('did:plc:other456').unwrap();
+      const cardType = CardType.create(CardTypeEnum.URL).unwrap();
+      const url = URL.create('https://example.com').unwrap();
+      const cardContent = CardContent.createUrlContent(
+        url,
+        UrlMetadata.create({
+          url: url.toString(),
+          title: 'Test Title',
+          description: 'Test Description',
+        }).unwrap(),
+      ).unwrap();
+
+      const existingMemberships = [
+        {
+          curatorId: otherUserId1,
+          addedAt: new Date('2023-01-01'),
+          publishedRecordId: undefined,
+        },
+        {
+          curatorId: otherUserId2,
+          addedAt: new Date('2023-01-02'),
+          publishedRecordId: undefined,
+        },
+      ];
+
+      // Act
+      const result = Card.create({
+        curatorId,
+        type: cardType,
+        content: cardContent,
+        url,
+        libraryMemberships: existingMemberships,
+        libraryCount: 2,
       });
 
       // Assert

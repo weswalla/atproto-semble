@@ -100,6 +100,7 @@ export class CardFactory {
 
       // Create the card
       return Card.create({
+        curatorId,
         type: cardType,
         content,
         url,

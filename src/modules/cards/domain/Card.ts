@@ -127,7 +127,15 @@ export class Card extends AggregateRoot<CardProps> {
     };
 
     const card = new Card(cardProps, id);
-    card.addToLibrary(props.curatorId); // Add to creator's library by default
+    
+    // Add to creator's library by default only if not already present
+    if (!libraryMemberships.some(membership => membership.curatorId.equals(props.curatorId))) {
+      const addResult = card.addToLibrary(props.curatorId);
+      if (addResult.isErr()) {
+        return err(addResult.error);
+      }
+    }
+    
     return ok(card);
   }
 

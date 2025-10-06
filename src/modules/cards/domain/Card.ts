@@ -126,7 +126,9 @@ export class Card extends AggregateRoot<CardProps> {
       updatedAt: props.updatedAt || now,
     };
 
-    return ok(new Card(cardProps, id));
+    const card = new Card(cardProps, id);
+    card.addToLibrary(props.curatorId); // Add to creator's library by default
+    return ok(card);
   }
 
   private static validateCardRelationships(
@@ -231,6 +233,12 @@ export class Card extends AggregateRoot<CardProps> {
         link.curatorId.equals(userId),
       ) !== undefined
     );
+  }
+
+  public markAsPublished(publishedRecordId: PublishedRecordId): void {
+    this.props.publishedRecordId = publishedRecordId;
+    this.props.updatedAt = new Date();
+    this.markCardInLibraryAsPublished(this.props.curatorId, publishedRecordId);
   }
 
   public markCardInLibraryAsPublished(

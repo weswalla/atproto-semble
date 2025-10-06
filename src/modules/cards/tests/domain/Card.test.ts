@@ -7,7 +7,7 @@ import { UrlMetadata } from '../../domain/value-objects/UrlMetadata';
 
 describe('Card', () => {
   describe('create', () => {
-    it('should automatically add card to curator library when created', () => {
+    it('should create URL card without automatically adding to library', () => {
       // Arrange
       const curatorId = CuratorId.create('did:plc:test123').unwrap();
       const cardType = CardType.create(CardTypeEnum.URL).unwrap();
@@ -33,20 +33,13 @@ describe('Card', () => {
       expect(result.isOk()).toBe(true);
       const card = result.unwrap();
 
-      // Verify card is in curator's library
-      expect(card.isInLibrary(curatorId)).toBe(true);
-      expect(card.libraryMembershipCount).toBe(1);
-      expect(card.libraryCount).toBe(1);
-
-      // Verify library membership details
-      const libraryInfo = card.getLibraryInfo(curatorId);
-      expect(libraryInfo).toBeDefined();
-      expect(libraryInfo!.curatorId.equals(curatorId)).toBe(true);
-      expect(libraryInfo!.addedAt).toBeInstanceOf(Date);
-      expect(libraryInfo!.publishedRecordId).toBeUndefined();
+      // Verify card is NOT automatically in curator's library
+      expect(card.isInLibrary(curatorId)).toBe(false);
+      expect(card.libraryMembershipCount).toBe(0);
+      expect(card.libraryCount).toBe(0);
     });
 
-    it('should create note card and add to curator library', () => {
+    it('should create note card without automatically adding to library', () => {
       // Arrange
       const curatorId = CuratorId.create('did:plc:test456').unwrap();
       const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
@@ -66,10 +59,10 @@ describe('Card', () => {
       expect(result.isOk()).toBe(true);
       const card = result.unwrap();
 
-      // Verify card is in curator's library
-      expect(card.isInLibrary(curatorId)).toBe(true);
-      expect(card.libraryMembershipCount).toBe(1);
-      expect(card.libraryCount).toBe(1);
+      // Verify card is NOT automatically in curator's library
+      expect(card.isInLibrary(curatorId)).toBe(false);
+      expect(card.libraryMembershipCount).toBe(0);
+      expect(card.libraryCount).toBe(0);
     });
 
     it('should fail to create URL card with multiple library memberships', () => {
@@ -144,15 +137,45 @@ describe('Card', () => {
       expect(result.isOk()).toBe(true);
       const card = result.unwrap();
 
-      // Should have both the existing membership and the new curator membership
-      expect(card.libraryMembershipCount).toBe(2);
-      expect(card.libraryCount).toBe(2);
-      expect(card.isInLibrary(curatorId)).toBe(true);
+      // Should have only the existing membership (no automatic curator addition)
+      expect(card.libraryMembershipCount).toBe(1);
+      expect(card.libraryCount).toBe(1);
+      expect(card.isInLibrary(curatorId)).toBe(false);
       expect(card.isInLibrary(otherUserId)).toBe(true);
     });
   });
 
   describe('addToLibrary', () => {
+    it('should allow adding URL card to first library', () => {
+      // Arrange
+      const curatorId = CuratorId.create('did:plc:test123').unwrap();
+      const cardType = CardType.create(CardTypeEnum.URL).unwrap();
+      const url = URL.create('https://example.com').unwrap();
+      const cardContent = CardContent.createUrlContent(
+        url,
+        UrlMetadata.create({
+          url: url.toString(),
+          title: 'Test Title',
+          description: 'Test Description',
+        }).unwrap(),
+      ).unwrap();
+
+      const card = Card.create({
+        curatorId,
+        type: cardType,
+        content: cardContent,
+        url,
+      }).unwrap();
+
+      // Act - add to curator's library
+      const result = card.addToLibrary(curatorId);
+
+      // Assert
+      expect(result.isOk()).toBe(true);
+      expect(card.libraryMembershipCount).toBe(1);
+      expect(card.isInLibrary(curatorId)).toBe(true);
+    });
+
     it('should prevent adding URL card to multiple libraries', () => {
       // Arrange
       const curatorId = CuratorId.create('did:plc:test123').unwrap();
@@ -174,6 +197,9 @@ describe('Card', () => {
         content: cardContent,
         url,
       }).unwrap();
+
+      // First add to curator's library
+      card.addToLibrary(curatorId);
 
       // Act - try to add to another user's library
       const result = card.addToLibrary(otherUserId);
@@ -205,11 +231,13 @@ describe('Card', () => {
         content: cardContent,
       }).unwrap();
 
-      // Act - add to another user's library
-      const result = card.addToLibrary(otherUserId);
+      // Act - add to both libraries
+      const result1 = card.addToLibrary(curatorId);
+      const result2 = card.addToLibrary(otherUserId);
 
       // Assert
-      expect(result.isOk()).toBe(true);
+      expect(result1.isOk()).toBe(true);
+      expect(result2.isOk()).toBe(true);
       expect(card.libraryMembershipCount).toBe(2);
       expect(card.isInLibrary(curatorId)).toBe(true);
       expect(card.isInLibrary(otherUserId)).toBe(true);
@@ -229,6 +257,9 @@ describe('Card', () => {
         type: cardType,
         content: cardContent,
       }).unwrap();
+
+      // First add to library
+      card.addToLibrary(curatorId);
 
       // Act - try to add same user again
       const result = card.addToLibrary(curatorId);

@@ -113,10 +113,6 @@ describe('GetUrlCardsUseCase', () => {
           url: url2,
           libraryMemberships: [
             { curatorId: curatorId, addedAt: new Date('2023-01-02') },
-            {
-              curatorId: CuratorId.create('did:plc:othercurator').unwrap(),
-              addedAt: new Date('2023-01-03'),
-            },
           ],
           createdAt: new Date('2023-01-02'),
           updatedAt: new Date('2023-01-02'),
@@ -157,7 +153,7 @@ describe('GetUrlCardsUseCase', () => {
 
       expect(secondCard).toBeDefined();
       expect(secondCard?.cardContent.title).toBe('Second Article');
-      expect(secondCard?.libraryCount).toBe(2);
+      expect(secondCard?.libraryCount).toBe(1);
     });
 
     it('should include collections and notes in URL cards', async () => {

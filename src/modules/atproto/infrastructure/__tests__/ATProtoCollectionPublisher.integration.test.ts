@@ -315,6 +315,129 @@ describe('ATProtoCollectionPublisher', () => {
         );
       }
     }, 30000);
+
+    it('should publish a collection with a card shared between users', async () => {
+      // Skip test if credentials are not available
+      if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
+        console.warn('Skipping test: BSKY credentials not found in .env.test');
+        return;
+      }
+
+      // Create two different users (we'll simulate userB with the same credentials for testing)
+      const userA = CuratorId.create('did:plc:userA').unwrap();
+      const userB = curatorId; // Use our test credentials as userB
+
+      // 1. User A creates and publishes a note card to their library
+      const originalNote = new CardBuilder()
+        .withCuratorId(userA.value)
+        .withNoteCard('This is an original note created by User A')
+        .withPublishedRecordId({
+          uri: 'at://did:plc:userA/network.cosmik.card/original-note',
+          cid: 'bafyuserAnote123',
+        })
+        .buildOrThrow();
+
+      // Simulate User A adding to their own library and publishing
+      originalNote.addToLibrary(userA);
+      const userALibraryRecordId = PublishedRecordId.create({
+        uri: 'at://did:plc:userA/network.cosmik.card/userA-library-note',
+        cid: 'bafyuserAlib123',
+      });
+      originalNote.markCardInLibraryAsPublished(userA, userALibraryRecordId);
+
+      console.log(
+        `Simulated User A publishing note: ${originalNote.publishedRecordId?.getValue().uri}`,
+      );
+
+      // 2. User B adds the same card to their library
+      const addToLibraryResult = originalNote.addToLibrary(userB);
+      expect(addToLibraryResult.isOk()).toBe(true);
+
+      // User B publishes the card to their library (this creates a new record in User B's repo)
+      const userBPublishResult = await cardPublisher.publishCardToLibrary(
+        originalNote,
+        userB,
+      );
+      expect(userBPublishResult.isOk()).toBe(true);
+      const userBLibraryRecordId = userBPublishResult.unwrap();
+      originalNote.markCardInLibraryAsPublished(userB, userBLibraryRecordId);
+
+      console.log(
+        `User B published note to their library: ${userBLibraryRecordId.getValue().uri}`,
+      );
+
+      // 3. User B creates a collection
+      const userBCollection = new CollectionBuilder()
+        .withAuthorId(userB.value)
+        .withName('User B Collection with Shared Card')
+        .withDescription('Collection containing a card originally created by User A')
+        .withAccessType(CollectionAccessType.OPEN)
+        .buildOrThrow();
+
+      // 4. User B adds the card to their collection
+      const addCardResult = userBCollection.addCard(originalNote.cardId, userB);
+      expect(addCardResult.isOk()).toBe(true);
+
+      // 5. Publish User B's collection
+      const collectionPublishResult = await collectionPublisher.publish(userBCollection);
+      expect(collectionPublishResult.isOk()).toBe(true);
+
+      if (collectionPublishResult.isOk()) {
+        const collectionRecordId = collectionPublishResult.value;
+        publishedCollectionIds.push(collectionRecordId);
+        userBCollection.markAsPublished(collectionRecordId);
+
+        console.log(
+          `Published User B's collection: ${collectionRecordId.getValue().uri}`,
+        );
+
+        // 6. Publish the collection link (this should reference both User B's copy and User A's original)
+        const linkPublishResult =
+          await collectionPublisher.publishCardAddedToCollection(
+            originalNote,
+            userBCollection,
+            userB,
+          );
+        expect(linkPublishResult.isOk()).toBe(true);
+
+        if (linkPublishResult.isOk()) {
+          const linkRecordId = linkPublishResult.value;
+          publishedLinkIds.push(linkRecordId);
+          userBCollection.markCardLinkAsPublished(originalNote.cardId, linkRecordId);
+
+          console.log(
+            `Published collection link with cross-user card reference: ${linkRecordId.getValue().uri}`,
+          );
+
+          // Verify the card has different library memberships
+          expect(originalNote.libraryMembershipCount).toBe(2);
+          expect(originalNote.isInLibrary(userA)).toBe(true);
+          expect(originalNote.isInLibrary(userB)).toBe(true);
+
+          // Verify User B's library membership has a different published record ID than the original
+          const userBMembership = originalNote.getLibraryInfo(userB);
+          expect(userBMembership).toBeDefined();
+          expect(userBMembership!.publishedRecordId).toBeDefined();
+          expect(userBMembership!.publishedRecordId!.uri).not.toBe(
+            originalNote.publishedRecordId!.uri,
+          );
+
+          console.log(
+            `Verified cross-user card sharing: Original=${originalNote.publishedRecordId!.uri}, UserB=${userBMembership!.publishedRecordId!.uri}`,
+          );
+        }
+
+        // 7. Clean up
+        const unpublishResult = await collectionPublisher.unpublish(collectionRecordId);
+        expect(unpublishResult.isOk()).toBe(true);
+
+        console.log('Successfully unpublished collection with shared card');
+
+        publishedCollectionIds = publishedCollectionIds.filter(
+          (id) => id !== collectionRecordId,
+        );
+      }
+    }, 30000);
   });
 
   describe.skip('Closed Collection Publishing', () => {

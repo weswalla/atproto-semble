@@ -45,7 +45,6 @@ describe('Card', () => {
       const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
       const cardContent = CardContent.createNoteContent(
         'This is a test note',
-        curatorId,
       ).unwrap();
 
       // Act
@@ -160,7 +159,6 @@ describe('Card', () => {
       const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
       const cardContent = CardContent.createNoteContent(
         'This is a test note',
-        curatorId,
       ).unwrap();
 
       const existingMemberships = [
@@ -269,7 +267,6 @@ describe('Card', () => {
       const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
       const cardContent = CardContent.createNoteContent(
         'This is a test note',
-        curatorId,
       ).unwrap();
 
       const card = Card.create({
@@ -296,7 +293,6 @@ describe('Card', () => {
       const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
       const cardContent = CardContent.createNoteContent(
         'This is a test note',
-        curatorId,
       ).unwrap();
 
       const card = Card.create({

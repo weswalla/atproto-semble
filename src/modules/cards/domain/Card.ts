@@ -40,6 +40,10 @@ export class Card extends AggregateRoot<CardProps> {
     return CardId.create(this._id).unwrap();
   }
 
+  get curatorId(): CuratorId {
+    return this.props.curatorId;
+  }
+
   get type(): CardType {
     return this.props.type;
   }

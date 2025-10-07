@@ -15,7 +15,7 @@ export class CardBuilder {
   private _content?: CardContent;
   private _url?: URL;
   private _parentCardId?: CardId;
-  private _originalPublishedRecordId?: PublishedRecordId;
+  private _publishedRecordId?: PublishedRecordId;
   private _createdAt?: Date;
   private _updatedAt?: Date;
 
@@ -43,10 +43,8 @@ export class CardBuilder {
       } else if (type === CardTypeEnum.NOTE) {
         const curatorIdResult = CuratorId.create(this._curatorId);
         if (curatorIdResult.isOk()) {
-          const contentResult = CardContent.createNoteContent(
-            'Default note text',
-            curatorIdResult.value,
-          );
+          const contentResult =
+            CardContent.createNoteContent('Default note text');
           if (contentResult.isOk()) {
             this._content = contentResult.value;
           }
@@ -70,7 +68,7 @@ export class CardBuilder {
     uri: string;
     cid: string;
   }): CardBuilder {
-    this._originalPublishedRecordId = PublishedRecordId.create(
+    this._publishedRecordId = PublishedRecordId.create(
       originalPublishedRecordId,
     );
     return this;
@@ -102,10 +100,7 @@ export class CardBuilder {
 
   withNoteCard(text: string): CardBuilder {
     this._type = CardTypeEnum.NOTE;
-    const contentResult = CardContent.createNoteContent(
-      text,
-      CuratorId.create(this._curatorId).unwrap(),
-    );
+    const contentResult = CardContent.createNoteContent(text);
     if (contentResult.isErr()) {
       throw new Error(
         `Failed to create note content: ${contentResult.error.message}`,
@@ -138,10 +133,8 @@ export class CardBuilder {
           }
           this._content = contentResult.value;
         } else if (this._type === CardTypeEnum.NOTE) {
-          const contentResult = CardContent.createNoteContent(
-            'Default note text',
-            curatorIdResult.value,
-          );
+          const contentResult =
+            CardContent.createNoteContent('Default note text');
           if (contentResult.isErr()) {
             return new Error(
               `Failed to create note content: ${contentResult.error.message}`,
@@ -167,11 +160,12 @@ export class CardBuilder {
 
       const cardResult = Card.create(
         {
+          curatorId: curatorIdResult.value,
           type: cardTypeResult.value,
           content: this._content,
           url: this._url,
           parentCardId: this._parentCardId,
-          originalPublishedRecordId: this._originalPublishedRecordId,
+          publishedRecordId: this._publishedRecordId,
           createdAt: this._createdAt,
           updatedAt: this._updatedAt,
         },

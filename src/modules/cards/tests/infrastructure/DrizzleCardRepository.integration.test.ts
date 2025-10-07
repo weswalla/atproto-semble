@@ -142,11 +142,11 @@ describe('DrizzleCardRepository', () => {
     // Create a note card
     const noteContent = CardContent.createNoteContent(
       'Card with library memberships',
-      curatorId,
     ).unwrap();
     const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
 
     const cardResult = Card.create({
+      curatorId,
       type: cardType,
       content: noteContent,
     });
@@ -228,9 +228,8 @@ describe('DrizzleCardRepository', () => {
 
   it('should delete a card and its library memberships', async () => {
     // Create a card
-    const noteContent = CardContent.createNoteContent(
-      'Card to delete',
-    ).unwrap();
+    const noteContent =
+      CardContent.createNoteContent('Card to delete').unwrap();
     const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
 
     const cardResult = Card.create({
@@ -262,9 +261,8 @@ describe('DrizzleCardRepository', () => {
   });
 
   it('should return null when card is not found', async () => {
-    const noteContent = CardContent.createNoteContent(
-      'Non-existent card',
-    ).unwrap();
+    const noteContent =
+      CardContent.createNoteContent('Non-existent card').unwrap();
     const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
 
     const nonExistentCardId = Card.create({
@@ -324,12 +322,8 @@ describe('DrizzleCardRepository', () => {
     const retrievedCard = retrievedResult.unwrap();
 
     expect(retrievedCard?.publishedRecordId).toBeDefined();
-    expect(retrievedCard?.publishedRecordId?.uri).toBe(
-      publishedRecordId.uri,
-    );
-    expect(retrievedCard?.publishedRecordId?.cid).toBe(
-      publishedRecordId.cid,
-    );
+    expect(retrievedCard?.publishedRecordId?.uri).toBe(publishedRecordId.uri);
+    expect(retrievedCard?.publishedRecordId?.cid).toBe(publishedRecordId.cid);
   });
 
   it('should find URL card by URL', async () => {
@@ -358,7 +352,10 @@ describe('DrizzleCardRepository', () => {
     await cardRepository.save(card);
 
     // Find the card by URL
-    const foundResult = await cardRepository.findUsersUrlCardByUrl(url, curatorId);
+    const foundResult = await cardRepository.findUsersUrlCardByUrl(
+      url,
+      curatorId,
+    );
     expect(foundResult.isOk()).toBe(true);
 
     const foundCard = foundResult.unwrap();
@@ -373,7 +370,10 @@ describe('DrizzleCardRepository', () => {
   it('should return null when URL card is not found', async () => {
     const nonExistentUrl = URL.create('https://example.com/notfound').unwrap();
 
-    const result = await cardRepository.findUsersUrlCardByUrl(nonExistentUrl, curatorId);
+    const result = await cardRepository.findUsersUrlCardByUrl(
+      nonExistentUrl,
+      curatorId,
+    );
     expect(result.isOk()).toBe(true);
     expect(result.unwrap()).toBeNull();
   });
@@ -381,9 +381,8 @@ describe('DrizzleCardRepository', () => {
   it('should not find note cards when searching by URL', async () => {
     // Create a note card with a URL (but it's not a URL card type)
     const url = URL.create('https://example.com/note-url').unwrap();
-    const noteContent = CardContent.createNoteContent(
-      'Note about a URL',
-    ).unwrap();
+    const noteContent =
+      CardContent.createNoteContent('Note about a URL').unwrap();
     const cardType = CardType.create(CardTypeEnum.NOTE).unwrap();
 
     const cardResult = Card.create({
@@ -397,7 +396,10 @@ describe('DrizzleCardRepository', () => {
     await cardRepository.save(card);
 
     // Try to find it as a URL card - should return null because it's a NOTE type
-    const foundResult = await cardRepository.findUsersUrlCardByUrl(url, curatorId);
+    const foundResult = await cardRepository.findUsersUrlCardByUrl(
+      url,
+      curatorId,
+    );
     expect(foundResult.isOk()).toBe(true);
     expect(foundResult.unwrap()).toBeNull();
   });

@@ -3,7 +3,10 @@ import { Collection } from 'src/modules/cards/domain/Collection';
 import { Card } from 'src/modules/cards/domain/Card';
 import { Result, ok, err } from 'src/shared/core/Result';
 import { UseCaseError } from 'src/shared/core/UseCaseError';
-import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
+import {
+  PublishedRecordId,
+  PublishedRecordIdProps,
+} from 'src/modules/cards/domain/value-objects/PublishedRecordId';
 import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 import { CollectionMapper } from '../mappers/CollectionMapper';
 import { CollectionLinkMapper } from '../mappers/CollectionLinkMapper';
@@ -150,8 +153,8 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
       }
 
       // Get the original published record ID
-      if (!card.originalPublishedRecordId) {
-        return err(new Error('Card must have an original published record ID'));
+      if (!card.publishedRecordId) {
+        return err(new Error('Card must have a published record ID'));
       }
 
       // Find the card link in the collection
@@ -163,11 +166,18 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         return err(new Error('Card is not linked to this collection'));
       }
 
+      let originalCardRecordId: PublishedRecordIdProps | undefined;
+      if (
+        libraryMembership.publishedRecordId.uri !== card.publishedRecordId.uri
+      ) {
+        originalCardRecordId = card.publishedRecordId.getValue();
+      }
+
       const linkRecordDTO = CollectionLinkMapper.toCreateRecordDTO(
         cardLink,
         collection.publishedRecordId.getValue(),
         libraryMembership.publishedRecordId.getValue(),
-        card.originalPublishedRecordId.getValue(),
+        originalCardRecordId,
       );
 
       const createResult = await agent.com.atproto.repo.createRecord({

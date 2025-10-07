@@ -15,7 +15,7 @@ export interface Record {
   $type: 'network.cosmik.collectionLink'
   collection: ComAtprotoRepoStrongRef.Main
   card: ComAtprotoRepoStrongRef.Main
-  originalCard: ComAtprotoRepoStrongRef.Main
+  originalCard?: ComAtprotoRepoStrongRef.Main
   /** DID of the user who added the card to the collection */
   addedBy: string
   /** Timestamp when the card was added to the collection. */

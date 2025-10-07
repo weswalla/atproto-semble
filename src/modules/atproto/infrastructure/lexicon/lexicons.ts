@@ -201,13 +201,7 @@ export const schemaDict = {
         key: 'tid',
         record: {
           type: 'object',
-          required: [
-            'collection',
-            'card',
-            'originalCard',
-            'addedBy',
-            'addedAt',
-          ],
+          required: ['collection', 'card', 'addedBy', 'addedAt'],
           properties: {
             collection: {
               type: 'ref',

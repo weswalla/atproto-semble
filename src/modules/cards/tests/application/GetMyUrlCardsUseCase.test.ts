@@ -72,6 +72,7 @@ describe('GetUrlCardsUseCase', () => {
 
       const cardResult1 = Card.create(
         {
+          curatorId: curatorId,
           type: cardType1,
           content: cardContent1,
           url: url1,
@@ -106,6 +107,7 @@ describe('GetUrlCardsUseCase', () => {
 
       const cardResult2 = Card.create(
         {
+          curatorId: curatorId,
           type: cardType2,
           content: cardContent2,
           url: url2,
@@ -179,6 +181,7 @@ describe('GetUrlCardsUseCase', () => {
       // Create card
       const cardResult = Card.create(
         {
+          curatorId: curatorId,
           type: cardType,
           content: cardContent,
           url: url,
@@ -234,6 +237,7 @@ describe('GetUrlCardsUseCase', () => {
 
       const myCardResult = Card.create(
         {
+          curatorId: curatorId,
           type: myCardType,
           content: myCardContent,
           url: myUrl,
@@ -264,6 +268,7 @@ describe('GetUrlCardsUseCase', () => {
 
       const otherCardResult = Card.create(
         {
+          curatorId: otherCuratorId,
           type: otherCardType,
           content: otherCardContent,
           url: otherUrl,
@@ -316,6 +321,7 @@ describe('GetUrlCardsUseCase', () => {
 
         const cardResult = Card.create(
           {
+            curatorId: curatorId,
             type: cardType,
             content: cardContent,
             url: url,
@@ -425,6 +431,7 @@ describe('GetUrlCardsUseCase', () => {
 
       const alphaCardResult = Card.create(
         {
+          curatorId: curatorId,
           type: alphaCardType,
           content: alphaCardContent,
           url: alphaUrl,
@@ -457,6 +464,7 @@ describe('GetUrlCardsUseCase', () => {
 
       const betaCardResult = Card.create(
         {
+          curatorId: curatorId,
           type: betaCardType,
           content: betaCardContent,
           url: betaUrl,
@@ -497,6 +505,7 @@ describe('GetUrlCardsUseCase', () => {
 
       const gammaCardResult = Card.create(
         {
+          curatorId: curatorId,
           type: gammaCardType,
           content: gammaCardContent,
           url: gammaUrl,
@@ -661,6 +670,7 @@ describe('GetUrlCardsUseCase', () => {
 
       const cardResult = Card.create(
         {
+          curatorId: curatorId,
           type: cardType,
           content: cardContent,
           url: url,
@@ -709,6 +719,7 @@ describe('GetUrlCardsUseCase', () => {
 
       const cardResult = Card.create(
         {
+          curatorId: curatorId,
           type: cardType,
           content: cardContent,
           url: url,

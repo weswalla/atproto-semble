@@ -49,7 +49,6 @@ export interface UrlMetadata {
 
 export interface GetUrlMetadataResponse {
   metadata: UrlMetadata;
-  existingCardId?: string;
 }
 
 export interface UrlCardView {

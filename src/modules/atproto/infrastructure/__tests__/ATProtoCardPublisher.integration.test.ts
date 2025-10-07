@@ -312,13 +312,13 @@ describe('ATProtoCardPublisher', () => {
           .withUrl(parentUrl) // Optional: include the same URL as reference
           .buildOrThrow();
 
-        // Add note card to curator's library
         noteCard.addToLibrary(curatorId);
 
         // 3. Publish the note card
         const notePublishResult = await publisher.publishCardToLibrary(
           noteCard,
           curatorId,
+          parentUrlCard,
         );
         expect(notePublishResult.isOk()).toBe(true);
 
@@ -406,14 +406,20 @@ describe('ATProtoCardPublisher', () => {
         cid: 'bafyoriginal123',
       };
 
+      const curatorId2 = CuratorId.create('did:plc:defaultCurator2').unwrap();
       const noteCardWithOriginal = new CardBuilder()
-        .withCuratorId(curatorId.value)
+        .withCuratorId(curatorId2.value)
         .withNoteCard('This is my note about the referenced article')
         .withUrl(referenceUrl) // Optional URL reference
-        .withOriginalPublishedRecordId(originalRecordId)
+        .withPublishedRecordId(originalRecordId)
         .buildOrThrow();
 
       // Add card to curator's library first
+      noteCardWithOriginal.addToLibrary(curatorId2);
+      noteCardWithOriginal.markCardInLibraryAsPublished(
+        curatorId2,
+        PublishedRecordId.create(originalRecordId),
+      );
       noteCardWithOriginal.addToLibrary(curatorId);
 
       // 1. Publish the card
@@ -432,11 +438,11 @@ describe('ATProtoCardPublisher', () => {
         );
 
         // Verify the card has the original published record ID
-        expect(noteCardWithOriginal.originalPublishedRecordId).toBeDefined();
-        expect(noteCardWithOriginal.originalPublishedRecordId!.getValue().uri).toBe(
+        expect(noteCardWithOriginal.publishedRecordId).toBeDefined();
+        expect(noteCardWithOriginal.publishedRecordId!.getValue().uri).toBe(
           originalRecordId.uri,
         );
-        expect(noteCardWithOriginal.originalPublishedRecordId!.getValue().cid).toBe(
+        expect(noteCardWithOriginal.publishedRecordId!.getValue().cid).toBe(
           originalRecordId.cid,
         );
 
@@ -459,7 +465,9 @@ describe('ATProtoCardPublisher', () => {
           );
           expect(unpublishResult.isOk()).toBe(true);
 
-          console.log('Successfully unpublished note card with original record ID');
+          console.log(
+            'Successfully unpublished note card with original record ID',
+          );
 
           // Remove from cleanup list since we've already unpublished it
           publishedCardIds = publishedCardIds.filter(

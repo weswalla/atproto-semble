@@ -6,6 +6,7 @@ import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 import dotenv from 'dotenv';
 import { AppPasswordAgentService } from './AppPasswordAgentService';
 import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
+import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 
 // Load environment variables from .env.test
 dotenv.config({ path: '.env.test' });
@@ -17,6 +18,7 @@ describe('ATProtoCardPublisher', () => {
   let publisher: ATProtoCardPublisher;
   let curatorId: CuratorId;
   let publishedCardIds: PublishedRecordId[] = [];
+  const envConfig: EnvironmentConfigService = new EnvironmentConfigService();
 
   beforeAll(async () => {
     if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
@@ -30,7 +32,10 @@ describe('ATProtoCardPublisher', () => {
       password: process.env.BSKY_APP_PASSWORD,
     });
 
-    publisher = new ATProtoCardPublisher(agentService);
+    publisher = new ATProtoCardPublisher(
+      agentService,
+      envConfig.getAtProtoConfig().collections.card,
+    );
     curatorId = CuratorId.create(process.env.BSKY_DID).unwrap();
   });
 
@@ -482,7 +487,10 @@ describe('ATProtoCardPublisher', () => {
         password: 'invalid-password',
       });
 
-      const invalidPublisher = new ATProtoCardPublisher(invalidAgentService);
+      const invalidPublisher = new ATProtoCardPublisher(
+        invalidAgentService,
+        envConfig.getAtProtoConfig().collections.card,
+      );
 
       const invalidCuratorId = CuratorId.create('did:plc:invalid').unwrap();
       const testCard = new CardBuilder()

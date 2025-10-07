@@ -20,9 +20,10 @@ export class ATProtoCardPublisher implements ICardPublisher {
   async publishCardToLibrary(
     card: Card,
     curatorId: CuratorId,
+    parentCard?: Card,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
-      const record = CardMapper.toCreateRecordDTO(card);
+      const record = CardMapper.toCreateRecordDTO(card, curatorId, parentCard);
       const curatorDidResult = DID.create(curatorId.value);
 
       if (curatorDidResult.isErr()) {

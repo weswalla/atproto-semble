@@ -9,11 +9,16 @@ import {
 } from '../lexicon/types/network/cosmik/card';
 import { StrongRef } from '../../domain';
 import { UrlMetadata as UrlMetadataVO } from 'src/modules/cards/domain/value-objects/UrlMetadata';
+import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 
 type CardRecordDTO = Record;
 
 export class CardMapper {
-  static toCreateRecordDTO(card: Card): CardRecordDTO {
+  static toCreateRecordDTO(
+    card: Card,
+    curatorId: CuratorId,
+    parentCard?: Card,
+  ): CardRecordDTO {
     const record: CardRecordDTO = {
       $type: 'network.cosmik.card',
       type: card.type.value,
@@ -26,11 +31,20 @@ export class CardMapper {
       record.url = card.url.value;
     }
 
-    // Add optional parent card reference
-    if (card.parentCardId) {
-      // Note: This would need the parent card's published record ID
-      // For now, we'll skip this until we have a way to resolve the parent card's published record
-      // TODO: Implement parent card reference resolution
+    if (card.publishedRecordId && !curatorId.equals(card.curatorId)) {
+      const strongRef = new StrongRef(card.publishedRecordId.getValue());
+      record.originalCard = {
+        uri: strongRef.getValue().uri,
+        cid: strongRef.getValue().cid,
+      };
+    }
+
+    if (card.parentCardId && parentCard && parentCard.publishedRecordId) {
+      const strongRef = new StrongRef(parentCard.publishedRecordId.getValue());
+      record.parentCard = {
+        uri: strongRef.getValue().uri,
+        cid: strongRef.getValue().cid,
+      };
     }
 
     return record;

@@ -45,11 +45,33 @@ export class CardLibraryService implements DomainService {
           ),
         );
       }
+      let parentCard: Card | undefined = undefined;
+
+      if (card.parentCardId) {
+        // Ensure parent card is in the curator's library
+        const parentCardResult = await this.cardRepository.findById(
+          card.parentCardId,
+        );
+        if (parentCardResult.isErr()) {
+          return err(
+            new CardLibraryValidationError(
+              `Failed to fetch parent card: ${parentCardResult.error.message}`,
+            ),
+          );
+        }
+        const parentCardValue = parentCardResult.value;
+
+        if (!parentCardValue) {
+          return err(new CardLibraryValidationError(`Parent card not found`));
+        }
+        parentCard = parentCardValue;
+      }
 
       // Publish card to library
       const publishResult = await this.cardPublisher.publishCardToLibrary(
         card,
         curatorId,
+        parentCard,
       );
       if (publishResult.isErr()) {
         return err(

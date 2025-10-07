@@ -8,6 +8,7 @@ export interface ICardPublisher {
   publishCardToLibrary(
     card: Card,
     curatorId: CuratorId,
+    parentCard?: Card,
   ): Promise<Result<PublishedRecordId, UseCaseError>>;
 
   unpublishCardFromLibrary(

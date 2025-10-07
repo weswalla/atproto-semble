@@ -114,6 +114,7 @@ describe('GetUrlCardsUseCase', () => {
           libraryMemberships: [
             { curatorId: curatorId, addedAt: new Date('2023-01-02') },
           ],
+          libraryCount: 1,
           createdAt: new Date('2023-01-02'),
           updatedAt: new Date('2023-01-02'),
         },

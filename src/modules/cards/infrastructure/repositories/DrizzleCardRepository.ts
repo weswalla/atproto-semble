@@ -9,6 +9,7 @@ import { publishedRecords } from './schema/publishedRecord.sql';
 import { CardDTO, CardMapper } from './mappers/CardMapper';
 import { Result, ok, err } from '../../../../shared/core/Result';
 import { URL } from '../../domain/value-objects/URL';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
 
 export class DrizzleCardRepository implements ICardRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -47,33 +48,34 @@ export class DrizzleCardRepository implements ICardRepository {
         )
         .where(eq(libraryMemberships.cardId, cardId));
 
-      // Get original published record if it exists
-      let originalPublishedRecord = null;
-      if (result.originalPublishedRecordId) {
-        const originalRecordResult = await this.db
+      // Get published record if it exists
+      let publishedRecord = null;
+      if (result.publishedRecordId) {
+        const publishedRecordResult = await this.db
           .select({
             uri: publishedRecords.uri,
             cid: publishedRecords.cid,
           })
           .from(publishedRecords)
-          .where(eq(publishedRecords.id, result.originalPublishedRecordId))
+          .where(eq(publishedRecords.id, result.publishedRecordId))
           .limit(1);
 
-        if (originalRecordResult.length > 0) {
-          originalPublishedRecord = originalRecordResult[0];
+        if (publishedRecordResult.length > 0) {
+          publishedRecord = publishedRecordResult[0];
         }
       }
 
       const cardDTO: CardDTO = {
         id: result.id,
+        curatorId: result.authorId,
         type: result.type,
         contentData: result.contentData,
         url: result.url || undefined,
         parentCardId: result.parentCardId || undefined,
-        originalPublishedRecordId: originalPublishedRecord
+        publishedRecordId: publishedRecord
           ? {
-              uri: originalPublishedRecord.uri,
-              cid: originalPublishedRecord.cid,
+              uri: publishedRecord.uri,
+              cid: publishedRecord.cid,
             }
           : undefined,
         libraryCount: result.libraryCount ?? 0,
@@ -108,45 +110,45 @@ export class DrizzleCardRepository implements ICardRepository {
       const {
         card: cardData,
         libraryMemberships: membershipData,
-        originalPublishedRecord,
+        publishedRecord,
         membershipPublishedRecords,
       } = CardMapper.toPersistence(card);
 
       await this.db.transaction(async (tx) => {
-        // Handle original published record if it exists
-        let originalPublishedRecordId: string | undefined = undefined;
+        // Handle published record if it exists
+        let publishedRecordId: string | undefined = undefined;
 
-        if (originalPublishedRecord) {
-          const originalRecordResult = await tx
+        if (publishedRecord) {
+          const publishedRecordResult = await tx
             .insert(publishedRecords)
             .values({
-              id: originalPublishedRecord.id,
-              uri: originalPublishedRecord.uri,
-              cid: originalPublishedRecord.cid,
-              recordedAt: originalPublishedRecord.recordedAt || new Date(),
+              id: publishedRecord.id,
+              uri: publishedRecord.uri,
+              cid: publishedRecord.cid,
+              recordedAt: publishedRecord.recordedAt || new Date(),
             })
             .onConflictDoNothing({
               target: [publishedRecords.uri, publishedRecords.cid],
             })
             .returning({ id: publishedRecords.id });
 
-          if (originalRecordResult.length === 0) {
+          if (publishedRecordResult.length === 0) {
             const existingRecord = await tx
               .select()
               .from(publishedRecords)
               .where(
                 and(
-                  eq(publishedRecords.uri, originalPublishedRecord.uri),
-                  eq(publishedRecords.cid, originalPublishedRecord.cid),
+                  eq(publishedRecords.uri, publishedRecord.uri),
+                  eq(publishedRecords.cid, publishedRecord.cid),
                 ),
               )
               .limit(1);
 
             if (existingRecord.length > 0) {
-              originalPublishedRecordId = existingRecord[0]!.id;
+              publishedRecordId = existingRecord[0]!.id;
             }
           } else {
-            originalPublishedRecordId = originalRecordResult[0]!.id;
+            publishedRecordId = publishedRecordResult[0]!.id;
           }
         }
 
@@ -201,16 +203,17 @@ export class DrizzleCardRepository implements ICardRepository {
           .insert(cards)
           .values({
             ...cardData,
-            originalPublishedRecordId: originalPublishedRecordId,
+            publishedRecordId: publishedRecordId,
           })
           .onConflictDoUpdate({
             target: cards.id,
             set: {
+              authorId: cardData.curatorId,
               type: cardData.type,
               contentData: cardData.contentData,
               url: cardData.url,
               parentCardId: cardData.parentCardId,
-              originalPublishedRecordId: originalPublishedRecordId,
+              publishedRecordId: publishedRecordId,
               libraryCount: cardData.libraryCount,
               updatedAt: cardData.updatedAt,
             },
@@ -257,14 +260,23 @@ export class DrizzleCardRepository implements ICardRepository {
     }
   }
 
-  async findUrlCardByUrl(url: URL): Promise<Result<Card | null>> {
+  async findUsersUrlCardByUrl(
+    url: URL,
+    curatorId: CuratorId,
+  ): Promise<Result<Card | null>> {
     try {
       const urlValue = url.value;
 
       const cardResult = await this.db
         .select()
         .from(cards)
-        .where(and(eq(cards.url, urlValue), eq(cards.type, 'URL')))
+        .where(
+          and(
+            eq(cards.url, urlValue),
+            eq(cards.type, 'URL'),
+            eq(cards.authorId, curatorId.value),
+          ),
+        )
         .limit(1);
 
       if (cardResult.length === 0) {
@@ -291,33 +303,34 @@ export class DrizzleCardRepository implements ICardRepository {
         )
         .where(eq(libraryMemberships.cardId, result.id));
 
-      // Get original published record if it exists
-      let originalPublishedRecord = null;
-      if (result.originalPublishedRecordId) {
-        const originalRecordResult = await this.db
+      // Get published record if it exists
+      let publishedRecord = null;
+      if (result.publishedRecordId) {
+        const publishedRecordResult = await this.db
           .select({
             uri: publishedRecords.uri,
             cid: publishedRecords.cid,
           })
           .from(publishedRecords)
-          .where(eq(publishedRecords.id, result.originalPublishedRecordId))
+          .where(eq(publishedRecords.id, result.publishedRecordId))
           .limit(1);
 
-        if (originalRecordResult.length > 0) {
-          originalPublishedRecord = originalRecordResult[0];
+        if (publishedRecordResult.length > 0) {
+          publishedRecord = publishedRecordResult[0];
         }
       }
 
       const cardDTO: CardDTO = {
         id: result.id,
+        curatorId: result.authorId,
         type: result.type,
         contentData: result.contentData,
         url: result.url || undefined,
         parentCardId: result.parentCardId || undefined,
-        originalPublishedRecordId: originalPublishedRecord
+        publishedRecordId: publishedRecord
           ? {
-              uri: originalPublishedRecord.uri,
-              cid: originalPublishedRecord.cid,
+              uri: publishedRecord.uri,
+              cid: publishedRecord.cid,
             }
           : undefined,
         libraryCount: result.libraryCount ?? 0,

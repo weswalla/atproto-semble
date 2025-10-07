@@ -37,6 +37,39 @@ interface NoteContentData {
 
 type CardContentData = UrlContentData | NoteContentData;
 
+// Persistence layer types
+export interface CardPersistenceData {
+  card: {
+    id: string;
+    authorId: string;
+    type: string;
+    contentData: CardContentData;
+    url?: string;
+    parentCardId?: string;
+    libraryCount: number;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+  libraryMemberships: Array<{
+    cardId: string;
+    userId: string;
+    addedAt: Date;
+    publishedRecordId?: string;
+  }>;
+  publishedRecord?: {
+    id: string;
+    uri: string;
+    cid: string;
+    recordedAt?: Date;
+  };
+  membershipPublishedRecords?: Array<{
+    id: string;
+    uri: string;
+    cid: string;
+    recordedAt?: Date;
+  }>;
+}
+
 // Raw data for URL card queries
 export interface RawUrlCardData {
   id: string;
@@ -221,37 +254,7 @@ export class CardMapper {
     }
   }
 
-  public static toPersistence(card: Card): {
-    card: {
-      id: string;
-      authorId: string;
-      type: string;
-      contentData: CardContentData;
-      url?: string;
-      parentCardId?: string;
-      libraryCount: number;
-      createdAt: Date;
-      updatedAt: Date;
-    };
-    libraryMemberships: Array<{
-      cardId: string;
-      userId: string;
-      addedAt: Date;
-      publishedRecordId?: string;
-    }>;
-    publishedRecord?: {
-      id: string;
-      uri: string;
-      cid: string;
-      recordedAt?: Date;
-    };
-    membershipPublishedRecords?: Array<{
-      id: string;
-      uri: string;
-      cid: string;
-      recordedAt?: Date;
-    }>;
-  } {
+  public static toPersistence(card: Card): CardPersistenceData {
     const content = card.content;
     let contentData: CardContentData;
 

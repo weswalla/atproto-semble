@@ -19,6 +19,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
     // Cards table (references published_records and self-references)
     sql`CREATE TABLE IF NOT EXISTS cards (
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      author_id TEXT NOT NULL,
       type TEXT NOT NULL,
       content_data JSONB NOT NULL,
       url TEXT,

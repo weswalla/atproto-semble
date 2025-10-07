@@ -64,7 +64,7 @@ export class CardBuilder {
     return this;
   }
 
-  withOriginalPublishedRecordId(originalPublishedRecordId: {
+  withPublishedRecordId(originalPublishedRecordId: {
     uri: string;
     cid: string;
   }): CardBuilder {

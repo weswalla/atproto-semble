@@ -51,8 +51,8 @@ describe('RemoveCardFromLibraryUseCase', () => {
     cardPublisher.clear();
   });
 
-  const createCard = async (type: CardTypeEnum = CardTypeEnum.URL) => {
-    const card = new CardBuilder().withType(type).build();
+  const createCard = async (type: CardTypeEnum = CardTypeEnum.URL, creatorId: CuratorId = curatorId) => {
+    const card = new CardBuilder().withType(type).withCuratorId(creatorId.value).build();
 
     if (card instanceof Error) {
       throw new Error(`Failed to create card: ${card.message}`);
@@ -63,6 +63,11 @@ describe('RemoveCardFromLibraryUseCase', () => {
   };
 
   const addCardToLibrary = async (card: any, curatorId: CuratorId) => {
+    // For URL cards, can only add to creator's library
+    if (card.isUrlCard && !card.curatorId.equals(curatorId)) {
+      throw new Error('URL cards can only be added to creator\'s library');
+    }
+    
     const addResult = await cardLibraryService.addCardToLibrary(
       card,
       curatorId,
@@ -162,8 +167,10 @@ describe('RemoveCardFromLibraryUseCase', () => {
     });
 
     it('should handle different card types', async () => {
-      const urlCard = await createCard(CardTypeEnum.URL);
-      const noteCard = await createCard(CardTypeEnum.NOTE);
+      // Create URL card with curatorId as creator
+      const urlCard = await createCard(CardTypeEnum.URL, curatorId);
+      // Create note card with curatorId as creator  
+      const noteCard = await createCard(CardTypeEnum.NOTE, curatorId);
 
       await addCardToLibrary(urlCard, curatorId);
       await addCardToLibrary(noteCard, curatorId);
@@ -488,7 +495,8 @@ describe('RemoveCardFromLibraryUseCase', () => {
 
   describe('Edge cases', () => {
     it('should handle URL card with single library membership', async () => {
-      const card = await createCard();
+      // Create URL card with curatorId as creator
+      const card = await createCard(CardTypeEnum.URL, curatorId);
 
       // Add to creator's library only (URL cards can only be in creator's library)
       await addCardToLibrary(card, curatorId);
@@ -529,7 +537,8 @@ describe('RemoveCardFromLibraryUseCase', () => {
     });
 
     it('should preserve card properties when removing from library', async () => {
-      const card = await createCard();
+      // Create URL card with curatorId as creator
+      const card = await createCard(CardTypeEnum.URL, curatorId);
       await addCardToLibrary(card, curatorId);
 
       const originalCreatedAt = card.createdAt;

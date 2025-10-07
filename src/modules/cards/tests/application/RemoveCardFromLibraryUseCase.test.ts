@@ -131,10 +131,10 @@ describe('RemoveCardFromLibraryUseCase', () => {
       const response = result.unwrap();
       expect(response.cardId).toBe(card.cardId.getStringValue());
 
-      // Verify card was removed from library
+      // Verify card was removed from library and deleted (since it's no longer in any libraries and curator is owner)
       const updatedCardResult = await cardRepository.findById(card.cardId);
-      const updatedCard = updatedCardResult.unwrap()!;
-      expect(updatedCard.isInLibrary(curatorId)).toBe(false);
+      const updatedCard = updatedCardResult.unwrap();
+      expect(updatedCard).toBeNull();
 
       // Verify unpublish operation occurred
       const unpublishedCards = cardPublisher.getUnpublishedCards();
@@ -156,10 +156,10 @@ describe('RemoveCardFromLibraryUseCase', () => {
 
       expect(result.isOk()).toBe(true);
 
-      // Verify card was removed from creator's library
+      // Verify card was removed from creator's library and deleted (since it's no longer in any libraries and curator is owner)
       const updatedCardResult = await cardRepository.findById(card.cardId);
-      const updatedCard = updatedCardResult.unwrap()!;
-      expect(updatedCard.isInLibrary(curatorId)).toBe(false);
+      const updatedCard = updatedCardResult.unwrap();
+      expect(updatedCard).toBeNull();
 
       // Verify unpublish operation occurred
       const unpublishedCards = cardPublisher.getUnpublishedCards();
@@ -193,7 +193,7 @@ describe('RemoveCardFromLibraryUseCase', () => {
       const noteResult = await useCase.execute(noteRequest);
       expect(noteResult.isOk()).toBe(true);
 
-      // Verify both cards were removed
+      // Verify both cards were removed from library and deleted (since they're no longer in any libraries and curator is owner)
       const updatedUrlCardResult = await cardRepository.findById(
         urlCard.cardId,
       );
@@ -201,11 +201,11 @@ describe('RemoveCardFromLibraryUseCase', () => {
         noteCard.cardId,
       );
 
-      const updatedUrlCard = updatedUrlCardResult.unwrap()!;
-      const updatedNoteCard = updatedNoteCardResult.unwrap()!;
+      const updatedUrlCard = updatedUrlCardResult.unwrap();
+      const updatedNoteCard = updatedNoteCardResult.unwrap();
 
-      expect(updatedUrlCard.isInLibrary(curatorId)).toBe(false);
-      expect(updatedNoteCard.isInLibrary(curatorId)).toBe(false);
+      expect(updatedUrlCard).toBeNull();
+      expect(updatedNoteCard).toBeNull();
     });
   });
 
@@ -328,10 +328,10 @@ describe('RemoveCardFromLibraryUseCase', () => {
       const finalUnpublishCount = cardPublisher.getUnpublishedCards().length;
       expect(finalUnpublishCount).toBe(initialUnpublishCount);
 
-      // Verify card was still removed from library
+      // Verify card was still removed from library and deleted (since it's no longer in any libraries and curator is owner)
       const updatedCardResult = await cardRepository.findById(card.cardId);
-      const updatedCard = updatedCardResult.unwrap()!;
-      expect(updatedCard.isInLibrary(curatorId)).toBe(false);
+      const updatedCard = updatedCardResult.unwrap();
+      expect(updatedCard).toBeNull();
     });
   });
 
@@ -387,10 +387,10 @@ describe('RemoveCardFromLibraryUseCase', () => {
 
       expect(result.isOk()).toBe(true);
 
-      // Verify card was removed from library
+      // Verify card was removed from library and deleted (since it's no longer in any libraries and curator is owner)
       const updatedCardResult = await cardRepository.findById(card.cardId);
-      const updatedCard = updatedCardResult.unwrap()!;
-      expect(updatedCard.isInLibrary(curatorId)).toBe(false);
+      const updatedCard = updatedCardResult.unwrap();
+      expect(updatedCard).toBeNull();
 
       // Verify card was removed from all collections
       const finalCollection1Result = await collectionRepository.findById(
@@ -458,10 +458,10 @@ describe('RemoveCardFromLibraryUseCase', () => {
           .cardIds.some((id) => id.equals(card.cardId)),
       ).toBe(false);
 
-      // Verify card was removed from creator's library
+      // Verify card was removed from creator's library and deleted (since it's no longer in any libraries and curator is owner)
       const updatedCardResult = await cardRepository.findById(card.cardId);
-      const updatedCard = updatedCardResult.unwrap()!;
-      expect(updatedCard.isInLibrary(curatorId)).toBe(false);
+      const updatedCard = updatedCardResult.unwrap();
+      expect(updatedCard).toBeNull();
     });
 
     it('should handle card removal when no collections contain the card', async () => {
@@ -481,15 +481,97 @@ describe('RemoveCardFromLibraryUseCase', () => {
 
       expect(result.isOk()).toBe(true);
 
-      // Verify card was removed from library
+      // Verify card was removed from library and deleted (since it's no longer in any libraries and curator is owner)
       const updatedCardResult = await cardRepository.findById(card.cardId);
-      const updatedCard = updatedCardResult.unwrap()!;
-      expect(updatedCard.isInLibrary(curatorId)).toBe(false);
+      const updatedCard = updatedCardResult.unwrap();
+      expect(updatedCard).toBeNull();
 
       // Verify no collection unpublish operations occurred
       const unpublishedCollections =
         collectionPublisher.getUnpublishedCollections();
       expect(unpublishedCollections).toHaveLength(0);
+    });
+  });
+
+  describe('Card deletion behavior', () => {
+    it('should delete card when removed from last library and curator is owner', async () => {
+      const card = await createCard();
+      await addCardToLibrary(card, curatorId);
+
+      // Verify card exists and is in library
+      expect(card.isInLibrary(curatorId)).toBe(true);
+      expect(card.libraryMembershipCount).toBe(1);
+
+      const request = {
+        cardId: card.cardId.getStringValue(),
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isOk()).toBe(true);
+
+      // Verify card was deleted
+      const cardResult = await cardRepository.findById(card.cardId);
+      const cardFromRepo = cardResult.unwrap();
+      expect(cardFromRepo).toBeNull();
+    });
+
+    it('should not delete card when curator is not the owner', async () => {
+      // Create card with different owner
+      const card = await createCard(CardTypeEnum.NOTE, otherCuratorId);
+      
+      // Add to other curator's library first
+      await addCardToLibrary(card, otherCuratorId);
+      
+      // Add to current curator's library (note cards can be in multiple libraries)
+      await addCardToLibrary(card, curatorId);
+
+      // Remove from current curator's library
+      const request = {
+        cardId: card.cardId.getStringValue(),
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isOk()).toBe(true);
+
+      // Verify card still exists (not deleted because curator is not owner)
+      const cardResult = await cardRepository.findById(card.cardId);
+      const cardFromRepo = cardResult.unwrap()!;
+      expect(cardFromRepo).not.toBeNull();
+      expect(cardFromRepo.isInLibrary(curatorId)).toBe(false);
+      expect(cardFromRepo.isInLibrary(otherCuratorId)).toBe(true);
+    });
+
+    it('should not delete card when it still has other library memberships', async () => {
+      // Create note card (can be in multiple libraries)
+      const card = await createCard(CardTypeEnum.NOTE, curatorId);
+      
+      // Add to both curator's libraries
+      await addCardToLibrary(card, curatorId);
+      await addCardToLibrary(card, otherCuratorId);
+
+      expect(card.libraryMembershipCount).toBe(2);
+
+      // Remove from curator's library
+      const request = {
+        cardId: card.cardId.getStringValue(),
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isOk()).toBe(true);
+
+      // Verify card still exists (not deleted because it's still in other curator's library)
+      const cardResult = await cardRepository.findById(card.cardId);
+      const cardFromRepo = cardResult.unwrap()!;
+      expect(cardFromRepo).not.toBeNull();
+      expect(cardFromRepo.isInLibrary(curatorId)).toBe(false);
+      expect(cardFromRepo.isInLibrary(otherCuratorId)).toBe(true);
+      expect(cardFromRepo.libraryMembershipCount).toBe(1);
     });
   });
 
@@ -512,11 +594,10 @@ describe('RemoveCardFromLibraryUseCase', () => {
 
       expect(result.isOk()).toBe(true);
 
-      // Verify card has no library memberships after removal
+      // Verify card was deleted (since it's no longer in any libraries and curator is owner)
       const updatedCardResult = await cardRepository.findById(card.cardId);
-      const updatedCard = updatedCardResult.unwrap()!;
-      expect(updatedCard.libraryMembershipCount).toBe(0);
-      expect(updatedCard.isInLibrary(curatorId)).toBe(false);
+      const updatedCard = updatedCardResult.unwrap();
+      expect(updatedCard).toBeNull();
     });
 
     it('should handle repository save failure', async () => {
@@ -554,16 +635,10 @@ describe('RemoveCardFromLibraryUseCase', () => {
 
       expect(result.isOk()).toBe(true);
 
-      // Verify card properties are preserved
+      // Verify card was deleted (since it's no longer in any libraries and curator is owner)
       const updatedCardResult = await cardRepository.findById(card.cardId);
-      const updatedCard = updatedCardResult.unwrap()!;
-
-      expect(updatedCard.createdAt).toEqual(originalCreatedAt);
-      expect(updatedCard.type.value).toBe(originalType);
-      expect(updatedCard.content).toEqual(originalContent);
-      expect(updatedCard.updatedAt.getTime()).toBeGreaterThanOrEqual(
-        originalCreatedAt.getTime(),
-      );
+      const updatedCard = updatedCardResult.unwrap();
+      expect(updatedCard).toBeNull();
     });
   });
 });

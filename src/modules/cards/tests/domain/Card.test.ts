@@ -102,7 +102,9 @@ describe('Card', () => {
         throw new Error('Expected creation to fail but it succeeded');
       }
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toBe('URL cards can only be in one library');
+      expect(result.error.message).toBe(
+        'URL cards can only be in the library of the creator',
+      );
     });
 
     it('should fail to create URL card with multiple library memberships', () => {

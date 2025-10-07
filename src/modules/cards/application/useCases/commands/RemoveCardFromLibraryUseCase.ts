@@ -87,6 +87,18 @@ export class RemoveCardFromLibraryUseCase
         return err(new ValidationError(removeFromLibraryResult.error.message));
       }
 
+      const updatedCard = removeFromLibraryResult.value;
+      if (
+        updatedCard.libraryCount == 0 &&
+        updatedCard.curatorId.equals(curatorId)
+      ) {
+        // If no curators have this card in their library and the curator is the owner, delete the card
+        const deleteResult = await this.cardRepository.delete(card.cardId);
+        if (deleteResult.isErr()) {
+          return err(AppError.UnexpectedError.create(deleteResult.error));
+        }
+      }
+
       return ok({
         cardId: card.cardId.getStringValue(),
       });

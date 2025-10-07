@@ -95,7 +95,7 @@ export class UpdateNoteCardUseCase
         );
       }
 
-      if (!noteContent.authorId.equals(curatorId)) {
+      if (!card.curatorId.equals(curatorId)) {
         return err(
           new ValidationError('Only the author can update this note card'),
         );
@@ -110,7 +110,6 @@ export class UpdateNoteCardUseCase
       // Create new card content with updated note
       const updatedCardContentResult = CardContent.createNoteContent(
         request.note,
-        curatorId,
       );
       if (updatedCardContentResult.isErr()) {
         return err(new ValidationError(updatedCardContentResult.error.message));

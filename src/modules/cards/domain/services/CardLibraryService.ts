@@ -37,6 +37,14 @@ export class CardLibraryService implements DomainService {
         // Card is already in library, nothing to do
         return ok(card);
       }
+      const addToLibResult = card.addToLibrary(curatorId);
+      if (addToLibResult.isErr()) {
+        return err(
+          new CardLibraryValidationError(
+            `Failed to add card to library: ${addToLibResult.error.message}`,
+          ),
+        );
+      }
 
       // Publish card to library
       const publishResult = await this.cardPublisher.publishCardToLibrary(
@@ -52,8 +60,17 @@ export class CardLibraryService implements DomainService {
       }
 
       // Mark card as published in library
-      card.addToLibrary(curatorId);
-      card.markCardInLibraryAsPublished(curatorId, publishResult.value);
+      const markCardAsPublishedResult = card.markCardInLibraryAsPublished(
+        curatorId,
+        publishResult.value,
+      );
+      if (markCardAsPublishedResult.isErr()) {
+        return err(
+          new CardLibraryValidationError(
+            `Failed to mark card as published in library: ${markCardAsPublishedResult.error.message}`,
+          ),
+        );
+      }
 
       // Save updated card
       const saveResult = await this.cardRepository.save(card);

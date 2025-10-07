@@ -9,6 +9,7 @@ import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
 import { CardBuilder } from '../utils/builders/CardBuilder';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
+import { CARD_ERROR_MESSAGES } from '../../domain/Card';
 
 describe('AddCardToLibraryUseCase', () => {
   let useCase: AddCardToLibraryUseCase;
@@ -19,6 +20,7 @@ describe('AddCardToLibraryUseCase', () => {
   let cardLibraryService: CardLibraryService;
   let cardCollectionService: CardCollectionService;
   let curatorId: CuratorId;
+  let curatorId2: CuratorId;
 
   beforeEach(() => {
     cardRepository = new InMemoryCardRepository();
@@ -44,6 +46,7 @@ describe('AddCardToLibraryUseCase', () => {
     );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
+    curatorId2 = CuratorId.create('did:plc:testcurator2').unwrap();
   });
 
   afterEach(() => {
@@ -65,11 +68,18 @@ describe('AddCardToLibraryUseCase', () => {
         throw new Error(`Failed to create card: ${card.message}`);
       }
 
+      const addToLibResult = card.addToLibrary(curatorId);
+      if (addToLibResult.isErr()) {
+        throw new Error(
+          `Failed to add card to library: ${addToLibResult.error.message}`,
+        );
+      }
+
       await cardRepository.save(card);
 
       const request = {
         cardId: card.cardId.getStringValue(),
-        curatorId: curatorId.value,
+        curatorId: curatorId2.value,
       };
 
       const result = await useCase.execute(request);
@@ -79,7 +89,7 @@ describe('AddCardToLibraryUseCase', () => {
       }
       expect(result.isErr()).toBe(true);
       expect(result.error.message).toContain(
-        'URL cards can only be in one library',
+        CARD_ERROR_MESSAGES.URL_CARD_SINGLE_LIBRARY_ONLY,
       );
     });
 

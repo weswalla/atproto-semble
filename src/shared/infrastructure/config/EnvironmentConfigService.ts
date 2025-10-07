@@ -11,6 +11,11 @@ export interface EnvironmentConfig {
   atproto: {
     serviceEndpoint: string;
     baseUrl: string;
+    collections: {
+      card: string;
+      collection: string;
+      collectionLink: string;
+    };
   };
   server: {
     port: number;
@@ -63,6 +68,11 @@ export class EnvironmentConfigService {
         serviceEndpoint:
           process.env.ATPROTO_SERVICE_ENDPOINT || 'https://bsky.social',
         baseUrl: process.env.BASE_URL || 'http://127.0.0.1:3000',
+        collections: {
+          card: environment === 'prod' ? 'network.cosmik.card' : 'network.cosmik.dev.card',
+          collection: environment === 'prod' ? 'network.cosmik.collection' : 'network.cosmik.dev.collection',
+          collectionLink: environment === 'prod' ? 'network.cosmik.collectionLink' : 'network.cosmik.dev.collectionLink',
+        },
       },
       server: {
         port: parseInt(process.env.PORT || '3000'),
@@ -122,6 +132,10 @@ export class EnvironmentConfigService {
 
   public getAtProtoConfig() {
     return this.config.atproto;
+  }
+
+  public getAtProtoCollections() {
+    return this.config.atproto.collections;
   }
 
   public getServerConfig() {

@@ -12,10 +12,11 @@ import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
 
 export class ATProtoCollectionPublisher implements ICollectionPublisher {
-  private readonly COLLECTION_COLLECTION = 'network.cosmik.collection';
-  private readonly COLLECTION_LINK_COLLECTION = 'network.cosmik.collectionLink';
-
-  constructor(private readonly agentService: IAgentService) {}
+  constructor(
+    private readonly agentService: IAgentService,
+    private readonly collectionCollection: string,
+    private readonly collectionLinkCollection: string,
+  ) {}
 
   /**
    * Publishes a Collection record only (not the card links)
@@ -62,7 +63,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
         await agent.com.atproto.repo.putRecord({
           repo: curatorDid.value,
-          collection: this.COLLECTION_COLLECTION,
+          collection: this.collectionCollection,
           rkey: rkey,
           record: collectionRecordDTO,
         });
@@ -75,7 +76,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
         const createResult = await agent.com.atproto.repo.createRecord({
           repo: curatorDid.value,
-          collection: this.COLLECTION_COLLECTION,
+          collection: this.collectionCollection,
           record: collectionRecordDTO,
         });
 
@@ -171,7 +172,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
       const createResult = await agent.com.atproto.repo.createRecord({
         repo: curatorDid.value,
-        collection: this.COLLECTION_LINK_COLLECTION,
+        collection: this.collectionLinkCollection,
         record: linkRecordDTO,
       });
 
@@ -220,7 +221,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
       await agent.com.atproto.repo.deleteRecord({
         repo,
-        collection: this.COLLECTION_LINK_COLLECTION,
+        collection: this.collectionLinkCollection,
         rkey,
       });
 
@@ -265,7 +266,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
       // Delete the collection record
       await agent.com.atproto.repo.deleteRecord({
         repo,
-        collection: this.COLLECTION_COLLECTION,
+        collection: this.collectionCollection,
         rkey,
       });
 

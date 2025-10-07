@@ -136,12 +136,11 @@ describe('RemoveCardFromLibraryUseCase', () => {
       expect(unpublishedCards).toHaveLength(1);
     });
 
-    it("should remove card from one user's library without affecting others", async () => {
+    it("should remove URL card from creator's library", async () => {
       const card = await createCard();
 
-      // Add card to both users' libraries
+      // Add card to creator's library only (URL cards can only be in creator's library)
       await addCardToLibrary(card, curatorId);
-      await addCardToLibrary(card, otherCuratorId);
 
       const request = {
         cardId: card.cardId.getStringValue(),
@@ -152,13 +151,12 @@ describe('RemoveCardFromLibraryUseCase', () => {
 
       expect(result.isOk()).toBe(true);
 
-      // Verify card was removed from curatorId's library but not otherCuratorId's
+      // Verify card was removed from creator's library
       const updatedCardResult = await cardRepository.findById(card.cardId);
       const updatedCard = updatedCardResult.unwrap()!;
       expect(updatedCard.isInLibrary(curatorId)).toBe(false);
-      expect(updatedCard.isInLibrary(otherCuratorId)).toBe(true);
 
-      // Verify only one unpublish operation occurred
+      // Verify unpublish operation occurred
       const unpublishedCards = cardPublisher.getUnpublishedCards();
       expect(unpublishedCards).toHaveLength(1);
     });
@@ -419,26 +417,20 @@ describe('RemoveCardFromLibraryUseCase', () => {
       expect(unpublishedCollectionLinks).toHaveLength(3);
     });
 
-    it('should only remove card from curator collections, not other curator collections', async () => {
+    it('should remove URL card from creator collections only', async () => {
       const card = await createCard();
       await addCardToLibrary(card, curatorId);
-      await addCardToLibrary(card, otherCuratorId);
 
-      // Create collections for both curators
+      // Create collections for the creator only (URL cards can only be in creator's library)
       const curatorCollection = await createCollection(
         curatorId,
         'Curator Collection',
       );
-      const otherCuratorCollection = await createCollection(
-        otherCuratorId,
-        'Other Curator Collection',
-      );
 
-      // Add card to both collections
+      // Add card to creator's collection
       await addCardToCollection(card, curatorCollection, curatorId);
-      await addCardToCollection(card, otherCuratorCollection, otherCuratorId);
 
-      // Remove card from first curator's library
+      // Remove card from creator's library
       const request = {
         cardId: card.cardId.getStringValue(),
         curatorId: curatorId.value,
@@ -448,12 +440,9 @@ describe('RemoveCardFromLibraryUseCase', () => {
 
       expect(result.isOk()).toBe(true);
 
-      // Verify card was removed from curator's collection but not other curator's collection
+      // Verify card was removed from curator's collection
       const curatorCollectionResult = await collectionRepository.findById(
         curatorCollection.collectionId,
-      );
-      const otherCuratorCollectionResult = await collectionRepository.findById(
-        otherCuratorCollection.collectionId,
       );
 
       expect(
@@ -461,17 +450,11 @@ describe('RemoveCardFromLibraryUseCase', () => {
           .unwrap()!
           .cardIds.some((id) => id.equals(card.cardId)),
       ).toBe(false);
-      expect(
-        otherCuratorCollectionResult
-          .unwrap()!
-          .cardIds.some((id) => id.equals(card.cardId)),
-      ).toBe(true);
 
-      // Verify card is still in other curator's library
+      // Verify card was removed from creator's library
       const updatedCardResult = await cardRepository.findById(card.cardId);
       const updatedCard = updatedCardResult.unwrap()!;
       expect(updatedCard.isInLibrary(curatorId)).toBe(false);
-      expect(updatedCard.isInLibrary(otherCuratorId)).toBe(true);
     });
 
     it('should handle card removal when no collections contain the card', async () => {
@@ -504,14 +487,13 @@ describe('RemoveCardFromLibraryUseCase', () => {
   });
 
   describe('Edge cases', () => {
-    it('should handle card with multiple library memberships', async () => {
+    it('should handle URL card with single library membership', async () => {
       const card = await createCard();
 
-      // Add to multiple users' libraries
+      // Add to creator's library only (URL cards can only be in creator's library)
       await addCardToLibrary(card, curatorId);
-      await addCardToLibrary(card, otherCuratorId);
 
-      expect(card.libraryMembershipCount).toBe(2);
+      expect(card.libraryMembershipCount).toBe(1);
 
       const request = {
         cardId: card.cardId.getStringValue(),
@@ -522,11 +504,11 @@ describe('RemoveCardFromLibraryUseCase', () => {
 
       expect(result.isOk()).toBe(true);
 
-      // Verify card still has one library membership
+      // Verify card has no library memberships after removal
       const updatedCardResult = await cardRepository.findById(card.cardId);
       const updatedCard = updatedCardResult.unwrap()!;
-      expect(updatedCard.libraryMembershipCount).toBe(1);
-      expect(updatedCard.isInLibrary(otherCuratorId)).toBe(true);
+      expect(updatedCard.libraryMembershipCount).toBe(0);
+      expect(updatedCard.isInLibrary(curatorId)).toBe(false);
     });
 
     it('should handle repository save failure', async () => {

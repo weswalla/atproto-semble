@@ -26,15 +26,11 @@ export class CardMapper {
       record.url = card.url.value;
     }
 
-    // Add optional original card reference
-    if (card.originalPublishedRecordId) {
-      const strongRef = new StrongRef(
-        card.originalPublishedRecordId.getValue(),
-      );
-      record.originalCard = {
-        uri: strongRef.getValue().uri,
-        cid: strongRef.getValue().cid,
-      };
+    // Add optional parent card reference
+    if (card.parentCardId) {
+      // Note: This would need the parent card's published record ID
+      // For now, we'll skip this until we have a way to resolve the parent card's published record
+      // TODO: Implement parent card reference resolution
     }
 
     return record;

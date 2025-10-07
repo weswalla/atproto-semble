@@ -125,6 +125,7 @@ describe('GetCollectionPageUseCase', () => {
       ).unwrap();
 
       const card1Result = Card.create({
+        curatorId: curatorId,
         type: cardType1,
         content: cardContent1,
         url: url1,
@@ -157,6 +158,7 @@ describe('GetCollectionPageUseCase', () => {
       ).unwrap();
 
       const card2Result = Card.create({
+        curatorId: curatorId,
         type: cardType2,
         content: cardContent2,
         url: url2,
@@ -234,6 +236,7 @@ describe('GetCollectionPageUseCase', () => {
       ).unwrap();
 
       const cardResult = Card.create({
+        curatorId: curatorId,
         type: cardType,
         content: cardContent,
         url: url,
@@ -252,10 +255,10 @@ describe('GetCollectionPageUseCase', () => {
 
       // Create a note card that references the same URL
       const noteCardResult = Card.create({
+        curatorId: curatorId,
         type: CardType.create(CardTypeEnum.NOTE).unwrap(),
         content: CardContent.createNoteContent(
           'This is my note about the article',
-          curatorId,
         ).unwrap(),
         parentCardId: card.cardId,
         url: url,
@@ -353,6 +356,7 @@ describe('GetCollectionPageUseCase', () => {
         ).unwrap();
 
         const cardResult = Card.create({
+          curatorId: curatorId,
           type: cardType,
           content: cardContent,
           url: url,
@@ -475,6 +479,7 @@ describe('GetCollectionPageUseCase', () => {
       ).unwrap();
 
       const alphaCardResult = Card.create({
+        curatorId: curatorId,
         type: alphaCardType,
         content: alphaCardContent,
         url: alphaUrl,
@@ -506,6 +511,7 @@ describe('GetCollectionPageUseCase', () => {
       ).unwrap();
 
       const betaCardResult = Card.create({
+        curatorId: curatorId,
         type: betaCardType,
         content: betaCardContent,
         url: betaUrl,
@@ -545,6 +551,7 @@ describe('GetCollectionPageUseCase', () => {
       ).unwrap();
 
       const gammaCardResult = Card.create({
+        curatorId: curatorId,
         type: gammaCardType,
         content: gammaCardContent,
         url: gammaUrl,
@@ -823,6 +830,7 @@ describe('GetCollectionPageUseCase', () => {
       const cardContent = CardContent.createUrlContent(url).unwrap();
 
       const cardResult = Card.create({
+        curatorId: curatorId,
         type: cardType,
         content: cardContent,
         url: url,

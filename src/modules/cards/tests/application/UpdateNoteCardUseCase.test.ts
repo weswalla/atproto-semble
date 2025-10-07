@@ -141,9 +141,7 @@ describe('UpdateNoteCardUseCase', () => {
         originalCreatedAt.getTime(),
       );
       expect(updatedCard.type.value).toBe(CardTypeEnum.NOTE);
-      expect(updatedCard.content.noteContent!.authorId.equals(curatorId)).toBe(
-        true,
-      );
+      expect(updatedCard.curatorId.equals(curatorId)).toBe(true);
     });
   });
 

@@ -54,7 +54,7 @@ describe('AddCardToLibraryUseCase', () => {
   });
 
   describe('Basic card addition to library', () => {
-    it('should add an existing card to library', async () => {
+    it('should not allow adding an existing url card to library', async () => {
       // Create and save a card first
       const card = new CardBuilder()
         .withCuratorId(curatorId.value)
@@ -74,15 +74,12 @@ describe('AddCardToLibraryUseCase', () => {
 
       const result = await useCase.execute(request);
 
-      expect(result.isOk()).toBe(true);
-      const response = result.unwrap();
-      expect(response.cardId).toBe(card.cardId.getStringValue());
-
-      // Verify card was published to library
-      const publishedCards = cardPublisher.getPublishedCards();
-      expect(publishedCards).toHaveLength(1);
-      expect(publishedCards[0]?.cardId.getStringValue()).toBe(
-        card.cardId.getStringValue(),
+      if (result.isOk()) {
+        throw new Error('Expected use case to fail, but it succeeded');
+      }
+      expect(result.isErr()).toBe(true);
+      expect(result.error.message).toContain(
+        'URL cards can only be in one library',
       );
     });
 

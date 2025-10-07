@@ -151,17 +151,29 @@ export class Card extends AggregateRoot<CardProps> {
 
     // URL cards can only be in one library
     const libraryMemberships = props.libraryMemberships || [];
-    if (props.type.value === CardTypeEnum.URL && libraryMemberships.length > 1) {
-      return err(new CardValidationError('URL cards can only be in one library'));
+    if (
+      props.type.value === CardTypeEnum.URL &&
+      libraryMemberships.length > 1
+    ) {
+      return err(
+        new CardValidationError('URL cards can only be in one library'),
+      );
     }
 
     // URL cards can only have library memberships for the creator
-    if (props.type.value === CardTypeEnum.URL && libraryMemberships.length > 0) {
+    if (
+      props.type.value === CardTypeEnum.URL &&
+      libraryMemberships.length > 0
+    ) {
       const hasNonCreatorMembership = libraryMemberships.some(
-        membership => !membership.curatorId.equals(props.curatorId)
+        (membership) => !membership.curatorId.equals(props.curatorId),
       );
       if (hasNonCreatorMembership) {
-        return err(new CardValidationError('URL cards can only be in one library'));
+        return err(
+          new CardValidationError(
+            'URL cards can only be in the library of the creator',
+          ),
+        );
       }
     }
 
@@ -206,7 +218,9 @@ export class Card extends AggregateRoot<CardProps> {
 
     // URL cards can only be in one library
     if (this.isUrlCard && this.props.libraryMemberships.length > 0) {
-      return err(new CardValidationError("URL cards can only be in one library"));
+      return err(
+        new CardValidationError('URL cards can only be in one library'),
+      );
     }
 
     this.props.libraryMemberships.push({

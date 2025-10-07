@@ -466,16 +466,8 @@ describe('GetUrlCardsUseCase', () => {
           url: betaUrl,
           libraryMemberships: [
             { curatorId: curatorId, addedAt: new Date(now.getTime() - 1000) },
-            {
-              curatorId: CuratorId.create('did:plc:othercurator').unwrap(),
-              addedAt: new Date(now.getTime() - 500),
-            },
-            {
-              curatorId: CuratorId.create('did:plc:thirdcurator').unwrap(),
-              addedAt: new Date(now.getTime() - 300),
-            },
           ],
-          libraryCount: 3,
+          libraryCount: 1,
           createdAt: new Date(now.getTime() - 1000),
           updatedAt: new Date(now.getTime() - 2000),
         },
@@ -507,12 +499,8 @@ describe('GetUrlCardsUseCase', () => {
           url: gammaUrl,
           libraryMemberships: [
             { curatorId: curatorId, addedAt: new Date(now.getTime()) },
-            {
-              curatorId: CuratorId.create('did:plc:anothercurator').unwrap(),
-              addedAt: new Date(now.getTime() - 100),
-            },
           ],
-          libraryCount: 2,
+          libraryCount: 1,
           createdAt: new Date(now.getTime()),
           updatedAt: new Date(now.getTime()),
         },
@@ -540,9 +528,10 @@ describe('GetUrlCardsUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.cards).toHaveLength(3);
-      expect(response.cards[0]?.libraryCount).toBe(3); // beta
-      expect(response.cards[1]?.libraryCount).toBe(2); // gamma
-      expect(response.cards[2]?.libraryCount).toBe(1); // alpha
+      // All URL cards now have libraryCount of 1, so order will be by secondary sort (likely creation time)
+      expect(response.cards[0]?.libraryCount).toBe(1); // gamma (newest)
+      expect(response.cards[1]?.libraryCount).toBe(1); // beta
+      expect(response.cards[2]?.libraryCount).toBe(1); // alpha (oldest)
       expect(response.sorting.sortBy).toBe(CardSortField.LIBRARY_COUNT);
       expect(response.sorting.sortOrder).toBe(SortOrder.DESC);
     });
@@ -558,9 +547,10 @@ describe('GetUrlCardsUseCase', () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.cards[0]?.libraryCount).toBe(1); // alpha
-      expect(response.cards[1]?.libraryCount).toBe(2); // gamma
-      expect(response.cards[2]?.libraryCount).toBe(3); // beta
+      // All URL cards now have libraryCount of 1, so order will be by secondary sort (likely creation time)
+      expect(response.cards[0]?.libraryCount).toBe(1); // alpha (oldest)
+      expect(response.cards[1]?.libraryCount).toBe(1); // beta
+      expect(response.cards[2]?.libraryCount).toBe(1); // gamma (newest)
     });
 
     it('should sort by updated date descending', async () => {

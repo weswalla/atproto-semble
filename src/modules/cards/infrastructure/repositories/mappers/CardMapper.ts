@@ -224,7 +224,7 @@ export class CardMapper {
   public static toPersistence(card: Card): {
     card: {
       id: string;
-      curatorId: string;
+      authorId: string;
       type: string;
       contentData: CardContentData;
       url?: string;
@@ -322,7 +322,7 @@ export class CardMapper {
     return {
       card: {
         id: card.cardId.getStringValue(),
-        curatorId: card.curatorId.value,
+        authorId: card.curatorId.value,
         type: card.type.value,
         contentData,
         url: card.url?.value,

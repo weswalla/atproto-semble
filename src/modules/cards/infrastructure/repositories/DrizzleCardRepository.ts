@@ -208,7 +208,7 @@ export class DrizzleCardRepository implements ICardRepository {
           .onConflictDoUpdate({
             target: cards.id,
             set: {
-              authorId: cardData.curatorId,
+              authorId: cardData.authorId,
               type: cardData.type,
               contentData: cardData.contentData,
               url: cardData.url,

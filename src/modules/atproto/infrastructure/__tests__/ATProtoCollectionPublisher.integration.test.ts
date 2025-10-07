@@ -3,16 +3,13 @@ import { FakeCardPublisher } from 'src/modules/cards/tests/utils/FakeCardPublish
 import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
 import { CollectionBuilder } from 'src/modules/cards/tests/utils/builders/CollectionBuilder';
 import { CardBuilder } from 'src/modules/cards/tests/utils/builders/CardBuilder';
-import {
-  Collection,
-  CollectionAccessType,
-} from 'src/modules/cards/domain/Collection';
-import { Card } from 'src/modules/cards/domain/Card';
+import { CollectionAccessType } from 'src/modules/cards/domain/Collection';
 import { URL } from 'src/modules/cards/domain/value-objects/URL';
 import { UrlMetadata } from 'src/modules/cards/domain/value-objects/UrlMetadata';
 import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 import dotenv from 'dotenv';
 import { AppPasswordAgentService } from './AppPasswordAgentService';
+import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 
 // Load environment variables from .env.test
 dotenv.config({ path: '.env.test' });
@@ -23,6 +20,7 @@ describe('ATProtoCollectionPublisher', () => {
   let curatorId: CuratorId;
   let publishedCollectionIds: PublishedRecordId[] = [];
   let publishedLinkIds: PublishedRecordId[] = [];
+  const envConfig: EnvironmentConfigService = new EnvironmentConfigService();
 
   beforeAll(async () => {
     if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
@@ -36,7 +34,11 @@ describe('ATProtoCollectionPublisher', () => {
       password: process.env.BSKY_APP_PASSWORD,
     });
 
-    collectionPublisher = new ATProtoCollectionPublisher(agentService);
+    collectionPublisher = new ATProtoCollectionPublisher(
+      agentService,
+      envConfig.getAtProtoConfig().collections.collection,
+      envConfig.getAtProtoConfig().collections.collectionLink,
+    );
     cardPublisher = new FakeCardPublisher();
     curatorId = CuratorId.create(process.env.BSKY_DID).unwrap();
   });
@@ -148,7 +150,7 @@ describe('ATProtoCollectionPublisher', () => {
         .withCuratorId(curatorId.value)
         .withUrlCard(testUrl1, metadata1)
         .withUrl(testUrl1)
-        .withOriginalPublishedRecordId({
+        .withPublishedRecordId({
           uri: 'at://did:plc:original/network.cosmik.card/original1',
           cid: 'bafyoriginal1',
         })
@@ -166,7 +168,7 @@ describe('ATProtoCollectionPublisher', () => {
         .withCuratorId(curatorId.value)
         .withUrlCard(testUrl2, metadata2)
         .withUrl(testUrl2)
-        .withOriginalPublishedRecordId({
+        .withPublishedRecordId({
           uri: 'at://did:plc:original/network.cosmik.card/original2',
           cid: 'bafyoriginal2',
         })
@@ -266,7 +268,7 @@ describe('ATProtoCollectionPublisher', () => {
           .withCuratorId(curatorId.value)
           .withUrlCard(testUrl3, metadata3)
           .withUrl(testUrl3)
-          .withOriginalPublishedRecordId({
+          .withPublishedRecordId({
             uri: 'at://did:plc:original/network.cosmik.card/original3',
             cid: 'bafyoriginal3',
           })
@@ -379,6 +381,8 @@ describe('ATProtoCollectionPublisher', () => {
 
       const invalidPublisher = new ATProtoCollectionPublisher(
         invalidAgentService,
+        envConfig.getAtProtoConfig().collections.collection,
+        envConfig.getAtProtoConfig().collections.collectionLink,
       );
 
       const testCollection = new CollectionBuilder()

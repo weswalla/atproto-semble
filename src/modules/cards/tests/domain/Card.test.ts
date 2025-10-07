@@ -1,4 +1,4 @@
-import { Card } from '../../domain/Card';
+import { Card, CARD_ERROR_MESSAGES } from '../../domain/Card';
 import { CardType, CardTypeEnum } from '../../domain/value-objects/CardType';
 import { CardContent } from '../../domain/value-objects/CardContent';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
@@ -103,7 +103,7 @@ describe('Card', () => {
       }
       expect(result.isErr()).toBe(true);
       expect(result.error.message).toBe(
-        'URL cards can only be in the library of the creator',
+        CARD_ERROR_MESSAGES.URL_CARD_CREATOR_LIBRARY_ONLY,
       );
     });
 
@@ -151,7 +151,7 @@ describe('Card', () => {
         throw new Error('Expected creation to fail but it succeeded');
       }
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toBe('URL cards can only be in one library');
+      expect(result.error.message).toBe(CARD_ERROR_MESSAGES.URL_CARD_SINGLE_LIBRARY_ONLY);
     });
 
     it('should allow NOTE cards to have multiple library memberships', () => {
@@ -256,7 +256,7 @@ describe('Card', () => {
         throw new Error('Expected creation to fail but it succeeded');
       }
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toBe('URL cards can only be in one library');
+      expect(result.error.message).toBe(CARD_ERROR_MESSAGES.URL_CARD_SINGLE_LIBRARY_ONLY);
       expect(card.libraryMembershipCount).toBe(1);
       expect(card.isInLibrary(curatorId)).toBe(true);
       expect(card.isInLibrary(otherUserId)).toBe(false);
@@ -314,7 +314,7 @@ describe('Card', () => {
         throw new Error('Expected creation to fail but it succeeded');
       }
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toBe("Card is already in user's library");
+      expect(result.error.message).toBe(CARD_ERROR_MESSAGES.ALREADY_IN_LIBRARY);
       expect(card.libraryMembershipCount).toBe(1);
     });
   });

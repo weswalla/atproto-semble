@@ -9,6 +9,18 @@ import { PublishedRecordId } from './value-objects/PublishedRecordId';
 import { URL } from './value-objects/URL';
 import { CardAddedToLibraryEvent } from './events/CardAddedToLibraryEvent';
 
+export const CARD_ERROR_MESSAGES = {
+  CARD_TYPE_CONTENT_MISMATCH: 'Card type must match content type',
+  URL_CARD_CANNOT_HAVE_PARENT: 'URL cards cannot have parent cards',
+  URL_CARD_MUST_HAVE_URL: 'URL cards must have a url property',
+  URL_CARD_SINGLE_LIBRARY_ONLY: 'URL cards can only be in one library',
+  URL_CARD_CREATOR_LIBRARY_ONLY: 'URL cards can only be in the library of the creator',
+  LIBRARY_COUNT_MISMATCH: 'Library count does not match library memberships length',
+  CANNOT_CHANGE_CONTENT_TYPE: 'Cannot change card content to different type',
+  ALREADY_IN_LIBRARY: "Card is already in user's library",
+  NOT_IN_LIBRARY: "Card is not in user's library",
+} as const;
+
 export class CardValidationError extends Error {
   constructor(message: string) {
     super(message);
@@ -111,7 +123,7 @@ export class Card extends AggregateRoot<CardProps> {
   ): Result<Card, CardValidationError> {
     // Validate content type matches card type
     if (props.type.value !== props.content.type) {
-      return err(new CardValidationError('Card type must match content type'));
+      return err(new CardValidationError(CARD_ERROR_MESSAGES.CARD_TYPE_CONTENT_MISMATCH));
     }
 
     // Validate parent/source card relationships
@@ -145,12 +157,12 @@ export class Card extends AggregateRoot<CardProps> {
   ): Result<void, CardValidationError> {
     // URL cards should not have parent cards
     if (props.type.value === CardTypeEnum.URL && props.parentCardId) {
-      return err(new CardValidationError('URL cards cannot have parent cards'));
+      return err(new CardValidationError(CARD_ERROR_MESSAGES.URL_CARD_CANNOT_HAVE_PARENT));
     }
 
     // URL cards must have a URL property
     if (props.type.value === CardTypeEnum.URL && !props.url) {
-      return err(new CardValidationError('URL cards must have a url property'));
+      return err(new CardValidationError(CARD_ERROR_MESSAGES.URL_CARD_MUST_HAVE_URL));
     }
 
     // URL cards can only be in one library
@@ -160,7 +172,7 @@ export class Card extends AggregateRoot<CardProps> {
       libraryMemberships.length > 1
     ) {
       return err(
-        new CardValidationError('URL cards can only be in one library'),
+        new CardValidationError(CARD_ERROR_MESSAGES.URL_CARD_SINGLE_LIBRARY_ONLY),
       );
     }
 
@@ -174,9 +186,7 @@ export class Card extends AggregateRoot<CardProps> {
       );
       if (hasNonCreatorMembership) {
         return err(
-          new CardValidationError(
-            'URL cards can only be in the library of the creator',
-          ),
+          new CardValidationError(CARD_ERROR_MESSAGES.URL_CARD_CREATOR_LIBRARY_ONLY),
         );
       }
     }
@@ -188,7 +198,7 @@ export class Card extends AggregateRoot<CardProps> {
     ) {
       return err(
         new CardValidationError(
-          `Library count (${props.libraryCount}) does not match library memberships length (${libraryMemberships.length})`,
+          `${CARD_ERROR_MESSAGES.LIBRARY_COUNT_MISMATCH} (${props.libraryCount} vs ${libraryMemberships.length})`,
         ),
       );
     }
@@ -201,7 +211,7 @@ export class Card extends AggregateRoot<CardProps> {
   ): Result<void, CardValidationError> {
     if (this.props.type.value !== newContent.type) {
       return err(
-        new CardValidationError('Cannot change card content to different type'),
+        new CardValidationError(CARD_ERROR_MESSAGES.CANNOT_CHANGE_CONTENT_TYPE),
       );
     }
 
@@ -217,13 +227,13 @@ export class Card extends AggregateRoot<CardProps> {
         link.curatorId.equals(userId),
       )
     ) {
-      return err(new CardValidationError("Card is already in user's library"));
+      return err(new CardValidationError(CARD_ERROR_MESSAGES.ALREADY_IN_LIBRARY));
     }
 
     // URL cards can only be in one library
     if (this.isUrlCard && this.props.libraryMemberships.length > 0) {
       return err(
-        new CardValidationError('URL cards can only be in one library'),
+        new CardValidationError(CARD_ERROR_MESSAGES.URL_CARD_SINGLE_LIBRARY_ONLY),
       );
     }
 
@@ -252,7 +262,7 @@ export class Card extends AggregateRoot<CardProps> {
         link.curatorId.equals(userId),
       )
     ) {
-      return err(new CardValidationError("Card is not in user's library"));
+      return err(new CardValidationError(CARD_ERROR_MESSAGES.NOT_IN_LIBRARY));
     }
 
     this.props.libraryMemberships = this.props.libraryMemberships.filter(
@@ -286,7 +296,7 @@ export class Card extends AggregateRoot<CardProps> {
       link.curatorId.equals(userId),
     );
     if (!membership) {
-      return err(new CardValidationError("Card is not in user's library"));
+      return err(new CardValidationError(CARD_ERROR_MESSAGES.NOT_IN_LIBRARY));
     }
 
     membership.publishedRecordId = publishedRecordId;

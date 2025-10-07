@@ -70,7 +70,6 @@ export class CardMapper {
   private static mapUrlMetadata(metadata: UrlMetadataVO): $Typed<UrlMetadata> {
     return {
       $type: 'network.cosmik.card#urlMetadata',
-      url: metadata.url,
       title: metadata.title,
       description: metadata.description,
       author: metadata.author,

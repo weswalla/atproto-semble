@@ -104,4 +104,28 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS published_records_uri_idx ON published_records(uri);
   `);
+
+  // Cards table indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS cards_author_url_idx ON cards(author_id, url);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS cards_author_id_idx ON cards(author_id);
+  `);
+
+  // Collections table indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS collections_author_id_idx ON collections(author_id);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS collections_author_updated_at_idx ON collections(author_id, updated_at);
+  `);
+
+  // Collection cards table indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS collection_cards_card_id_idx ON collection_cards(card_id);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS collection_cards_collection_id_idx ON collection_cards(collection_id);
+  `);
 }

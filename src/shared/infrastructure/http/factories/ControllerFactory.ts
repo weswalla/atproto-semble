@@ -26,6 +26,7 @@ import { LogoutController } from 'src/modules/user/infrastructure/http/controlle
 import { GenerateExtensionTokensController } from 'src/modules/user/infrastructure/http/controllers/GenerateExtensionTokensController';
 import { GetUserCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/GetUserCollectionsController';
 import { GetCollectionPageByAtUriController } from 'src/modules/cards/infrastructure/http/controllers/GetCollectionPageByAtUriController';
+import { GetUrlStatusForMyLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlStatusForMyLibraryController';
 
 export interface Controllers {
   // User controllers
@@ -56,6 +57,7 @@ export interface Controllers {
   getCollectionPageByAtUriController: GetCollectionPageByAtUriController;
   getMyCollectionsController: GetMyCollectionsController;
   getCollectionsController: GetUserCollectionsController;
+  getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController;
   // Feed controllers
   getGlobalFeedController: GetGlobalFeedController;
 }
@@ -144,6 +146,10 @@ export class ControllerFactory {
       getCollectionsController: new GetUserCollectionsController(
         useCases.getCollectionsUseCase,
       ),
+      getUrlStatusForMyLibraryController:
+        new GetUrlStatusForMyLibraryController(
+          useCases.getUrlStatusForMyLibraryUseCase,
+        ),
 
       // Feed controllers
       getGlobalFeedController: new GetGlobalFeedController(

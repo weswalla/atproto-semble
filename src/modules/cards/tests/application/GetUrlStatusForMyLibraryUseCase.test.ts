@@ -10,6 +10,7 @@ import { CardBuilder } from '../utils/builders/CardBuilder';
 import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
+import { URL } from '../../domain/value-objects/URL';
 
 describe('GetUrlStatusForMyLibraryUseCase', () => {
   let useCase: GetUrlStatusForMyLibraryUseCase;
@@ -54,10 +55,11 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       const testUrl = 'https://example.com/test-article';
 
       // Create a URL card
+      const url = URL.create(testUrl).unwrap();
       const card = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withType(CardTypeEnum.URL)
-        .withUrl(testUrl)
+        .withUrl(url)
         .build();
 
       if (card instanceof Error) {
@@ -73,7 +75,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       await cardRepository.save(card);
 
       // Publish the card to simulate it being published
-      cardPublisher.publishCard(card);
+      cardPublisher.publishCardToLibrary(card, curatorId);
 
       // Create first collection
       const collection1 = new CollectionBuilder()
@@ -112,12 +114,12 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       const collection1PublishedRecordId = PublishedRecordId.create({
         uri: 'at://did:plc:testcurator/network.cosmik.collection/collection1',
         cid: 'bafyreicollection1cid',
-      }).unwrap();
+      });
 
       const collection2PublishedRecordId = PublishedRecordId.create({
         uri: 'at://did:plc:testcurator/network.cosmik.collection/collection2',
         cid: 'bafyreicollection2cid',
-      }).unwrap();
+      });
 
       collection1.markAsPublished(collection1PublishedRecordId);
       collection2.markAsPublished(collection2PublishedRecordId);
@@ -126,12 +128,12 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       const cardLinkPublishedRecordId1 = PublishedRecordId.create({
         uri: 'at://did:plc:testcurator/network.cosmik.collection/collection1/link1',
         cid: 'bafyreilink1cid',
-      }).unwrap();
+      });
 
       const cardLinkPublishedRecordId2 = PublishedRecordId.create({
         uri: 'at://did:plc:testcurator/network.cosmik.collection/collection2/link2',
         cid: 'bafyreilink2cid',
-      }).unwrap();
+      });
 
       collection1.markCardLinkAsPublished(card.cardId, cardLinkPublishedRecordId1);
       collection2.markCardLinkAsPublished(card.cardId, cardLinkPublishedRecordId2);
@@ -141,16 +143,10 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       await collectionRepository.save(collection2);
 
       // Publish collections and links
-      collectionPublisher.publishCollection(collection1);
-      collectionPublisher.publishCollection(collection2);
-      collectionPublisher.publishCardLink(collection1.collectionId.getStringValue(), {
-        cardId: card.cardId.getStringValue(),
-        publishedRecordId: cardLinkPublishedRecordId1,
-      });
-      collectionPublisher.publishCardLink(collection2.collectionId.getStringValue(), {
-        cardId: card.cardId.getStringValue(),
-        publishedRecordId: cardLinkPublishedRecordId2,
-      });
+      collectionPublisher.publish(collection1);
+      collectionPublisher.publish(collection2);
+      collectionPublisher.publishCardAddedToCollection(card, collection1, curatorId);
+      collectionPublisher.publishCardAddedToCollection(card, collection2, curatorId);
 
       // Execute the use case
       const query = {
@@ -188,10 +184,11 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       const testUrl = 'https://example.com/standalone-article';
 
       // Create a URL card
+      const url = URL.create(testUrl).unwrap();
       const card = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withType(CardTypeEnum.URL)
-        .withUrl(testUrl)
+        .withUrl(url)
         .build();
 
       if (card instanceof Error) {
@@ -207,7 +204,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       await cardRepository.save(card);
 
       // Publish the card
-      cardPublisher.publishCard(card);
+      cardPublisher.publishCardToLibrary(card, curatorId);
 
       // Execute the use case
       const query = {
@@ -248,10 +245,11 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       const testUrl = 'https://example.com/shared-article';
 
       // Create URL card for first user
+      const url = URL.create(testUrl).unwrap();
       const card1 = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withType(CardTypeEnum.URL)
-        .withUrl(testUrl)
+        .withUrl(url)
         .build();
 
       if (card1 instanceof Error) {
@@ -269,7 +267,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       const card2 = new CardBuilder()
         .withCuratorId(otherCuratorId.value)
         .withType(CardTypeEnum.URL)
-        .withUrl(testUrl)
+        .withUrl(url)
         .build();
 
       if (card2 instanceof Error) {
@@ -320,10 +318,11 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       const testUrl = 'https://example.com/multi-user-article';
 
       // Create URL card for the user
+      const url = URL.create(testUrl).unwrap();
       const card = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withType(CardTypeEnum.URL)
-        .withUrl(testUrl)
+        .withUrl(url)
         .build();
 
       if (card instanceof Error) {
@@ -454,10 +453,11 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       const testUrl = 'https://example.com/error-test';
 
       // Create a URL card
+      const url = URL.create(testUrl).unwrap();
       const card = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withType(CardTypeEnum.URL)
-        .withUrl(testUrl)
+        .withUrl(url)
         .build();
 
       if (card instanceof Error) {

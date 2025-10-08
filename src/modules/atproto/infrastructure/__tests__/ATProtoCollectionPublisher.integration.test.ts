@@ -14,6 +14,9 @@ import { EnvironmentConfigService } from 'src/shared/infrastructure/config/Envir
 // Load environment variables from .env.test
 dotenv.config({ path: '.env.test' });
 
+// Set to false to skip unpublishing (useful for debugging published records)
+const UNPUBLISH = false;
+
 describe('ATProtoCollectionPublisher', () => {
   let collectionPublisher: ATProtoCollectionPublisher;
   let cardPublisher: FakeCardPublisher;
@@ -44,8 +47,11 @@ describe('ATProtoCollectionPublisher', () => {
   });
 
   afterAll(async () => {
-    // Skip cleanup if credentials are not available
-    if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
+    // Skip cleanup if credentials are not available or UNPUBLISH is false
+    if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD || !UNPUBLISH) {
+      if (!UNPUBLISH) {
+        console.log('Skipping cleanup: UNPUBLISH is set to false');
+      }
       return;
     }
 
@@ -117,16 +123,20 @@ describe('ATProtoCollectionPublisher', () => {
         }
 
         // 3. Unpublish the collection
-        const unpublishResult =
-          await collectionPublisher.unpublish(collectionRecordId);
-        expect(unpublishResult.isOk()).toBe(true);
+        if (UNPUBLISH) {
+          const unpublishResult =
+            await collectionPublisher.unpublish(collectionRecordId);
+          expect(unpublishResult.isOk()).toBe(true);
 
-        console.log('Successfully unpublished empty collection');
+          console.log('Successfully unpublished empty collection');
 
-        // Remove from cleanup list since we've already unpublished it
-        publishedCollectionIds = publishedCollectionIds.filter(
-          (id) => id !== collectionRecordId,
-        );
+          // Remove from cleanup list since we've already unpublished it
+          publishedCollectionIds = publishedCollectionIds.filter(
+            (id) => id !== collectionRecordId,
+          );
+        } else {
+          console.log('Skipping unpublish: UNPUBLISH is set to false');
+        }
       }
     }, 15000);
 
@@ -303,16 +313,20 @@ describe('ATProtoCollectionPublisher', () => {
         );
 
         // 6. Unpublish the collection
-        const unpublishResult =
-          await collectionPublisher.unpublish(collectionRecordId);
-        expect(unpublishResult.isOk()).toBe(true);
+        if (UNPUBLISH) {
+          const unpublishResult =
+            await collectionPublisher.unpublish(collectionRecordId);
+          expect(unpublishResult.isOk()).toBe(true);
 
-        console.log('Successfully unpublished collection with cards');
+          console.log('Successfully unpublished collection with cards');
 
-        // Remove from cleanup list since we've already unpublished it
-        publishedCollectionIds = publishedCollectionIds.filter(
-          (id) => id !== collectionRecordId,
-        );
+          // Remove from cleanup list since we've already unpublished it
+          publishedCollectionIds = publishedCollectionIds.filter(
+            (id) => id !== collectionRecordId,
+          );
+        } else {
+          console.log('Skipping unpublish: UNPUBLISH is set to false');
+        }
       }
     }, 30000);
 
@@ -428,14 +442,18 @@ describe('ATProtoCollectionPublisher', () => {
         }
 
         // 7. Clean up
-        const unpublishResult = await collectionPublisher.unpublish(collectionRecordId);
-        expect(unpublishResult.isOk()).toBe(true);
+        if (UNPUBLISH) {
+          const unpublishResult = await collectionPublisher.unpublish(collectionRecordId);
+          expect(unpublishResult.isOk()).toBe(true);
 
-        console.log('Successfully unpublished collection with shared card');
+          console.log('Successfully unpublished collection with shared card');
 
-        publishedCollectionIds = publishedCollectionIds.filter(
-          (id) => id !== collectionRecordId,
-        );
+          publishedCollectionIds = publishedCollectionIds.filter(
+            (id) => id !== collectionRecordId,
+          );
+        } else {
+          console.log('Skipping unpublish: UNPUBLISH is set to false');
+        }
       }
     }, 30000);
   });
@@ -480,16 +498,20 @@ describe('ATProtoCollectionPublisher', () => {
         expect(collection.collaboratorIds[0]?.value).toBe(collaboratorDid);
 
         // 2. Unpublish the collection
-        const unpublishResult =
-          await collectionPublisher.unpublish(collectionRecordId);
-        expect(unpublishResult.isOk()).toBe(true);
+        if (UNPUBLISH) {
+          const unpublishResult =
+            await collectionPublisher.unpublish(collectionRecordId);
+          expect(unpublishResult.isOk()).toBe(true);
 
-        console.log('Successfully unpublished closed collection');
+          console.log('Successfully unpublished closed collection');
 
-        // Remove from cleanup list since we've already unpublished it
-        publishedCollectionIds = publishedCollectionIds.filter(
-          (id) => id !== collectionRecordId,
-        );
+          // Remove from cleanup list since we've already unpublished it
+          publishedCollectionIds = publishedCollectionIds.filter(
+            (id) => id !== collectionRecordId,
+          );
+        } else {
+          console.log('Skipping unpublish: UNPUBLISH is set to false');
+        }
       }
     }, 15000);
   });
@@ -595,12 +617,16 @@ describe('ATProtoCollectionPublisher', () => {
         }
 
         // Clean up
-        const unpublishResult =
-          await collectionPublisher.unpublish(collectionRecordId);
-        expect(unpublishResult.isOk()).toBe(true);
-        publishedCollectionIds = publishedCollectionIds.filter(
-          (id) => id !== collectionRecordId,
-        );
+        if (UNPUBLISH) {
+          const unpublishResult =
+            await collectionPublisher.unpublish(collectionRecordId);
+          expect(unpublishResult.isOk()).toBe(true);
+          publishedCollectionIds = publishedCollectionIds.filter(
+            (id) => id !== collectionRecordId,
+          );
+        } else {
+          console.log('Skipping unpublish: UNPUBLISH is set to false');
+        }
       }
     }, 15000);
   });

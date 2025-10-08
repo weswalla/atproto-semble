@@ -58,6 +58,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         // Update existing collection record
         const collectionRecordDTO =
           CollectionMapper.toCreateRecordDTO(collection);
+        collectionRecordDTO.$type = this.collectionCollection as any;
 
         const publishedRecordId = collection.publishedRecordId.getValue();
         const strongRef = new StrongRef(publishedRecordId);
@@ -76,6 +77,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         // Create new collection record
         const collectionRecordDTO =
           CollectionMapper.toCreateRecordDTO(collection);
+        collectionRecordDTO.$type = this.collectionCollection as any;
 
         const createResult = await agent.com.atproto.repo.createRecord({
           repo: curatorDid.value,
@@ -179,6 +181,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         libraryMembership.publishedRecordId.getValue(),
         originalCardRecordId,
       );
+      linkRecordDTO.$type = this.collectionLinkCollection as any;
 
       const createResult = await agent.com.atproto.repo.createRecord({
         repo: curatorDid.value,

@@ -297,3 +297,13 @@ export interface GetGlobalFeedResponse {
     nextCursor?: string;
   };
 }
+
+export interface GetUrlStatusForMyLibraryResponse {
+  cardId?: string;
+  collections?: {
+    id: string;
+    uri?: string;
+    name: string;
+    description?: string;
+  }[];
+}

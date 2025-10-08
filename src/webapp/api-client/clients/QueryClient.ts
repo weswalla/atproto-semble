@@ -7,6 +7,7 @@ import {
   GetProfileResponse,
   GetCollectionPageResponse,
   GetCollectionsResponse,
+  GetUrlStatusForMyLibraryResponse,
   GetMyUrlCardsParams,
   GetUrlCardsParams,
   GetCollectionPageParams,
@@ -14,6 +15,7 @@ import {
   GetCollectionsParams,
   GetCollectionPageByAtUriParams,
   GetProfileParams,
+  GetUrlStatusForMyLibraryParams,
 } from '../types';
 
 export class QueryClient extends BaseClient {
@@ -156,5 +158,15 @@ export class QueryClient extends BaseClient {
       : `/api/collections/user/${params.identifier}`;
 
     return this.request<GetCollectionsResponse>('GET', endpoint);
+  }
+
+  async getUrlStatusForMyLibrary(
+    params: GetUrlStatusForMyLibraryParams,
+  ): Promise<GetUrlStatusForMyLibraryResponse> {
+    const searchParams = new URLSearchParams({ url: params.url });
+    return this.request<GetUrlStatusForMyLibraryResponse>(
+      'GET',
+      `/api/cards/library/status?${searchParams}`,
+    );
   }
 }

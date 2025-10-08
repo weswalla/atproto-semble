@@ -43,6 +43,13 @@
       "when": 1759957391430,
       "tag": "0005_truncate-tables",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1759962763890,
+      "tag": "0006_lovely_randall",
+      "breakpoints": true
     }
   ]
 }

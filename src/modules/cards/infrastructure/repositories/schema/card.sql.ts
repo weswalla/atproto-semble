@@ -5,6 +5,7 @@ import {
   jsonb,
   uuid,
   integer,
+  index,
   type PgTableWithColumns,
 } from 'drizzle-orm/pg-core';
 import { publishedRecords } from './publishedRecord.sql';
@@ -22,4 +23,12 @@ export const cards: PgTableWithColumns<any> = pgTable('cards', {
   libraryCount: integer('library_count').notNull().default(0),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => {
+  return {
+    // Critical for findUsersUrlCardByUrl queries
+    authorUrlIdx: index('cards_author_url_idx').on(table.authorId, table.url),
+    
+    // For general card queries by author
+    authorIdIdx: index('cards_author_id_idx').on(table.authorId),
+  };
 });

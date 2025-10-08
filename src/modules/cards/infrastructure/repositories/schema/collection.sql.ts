@@ -5,6 +5,7 @@ import {
   uuid,
   boolean,
   integer,
+  index,
 } from 'drizzle-orm/pg-core';
 import { publishedRecords } from './publishedRecord.sql';
 import { cards } from './card.sql';
@@ -21,6 +22,14 @@ export const collections = pgTable('collections', {
   publishedRecordId: uuid('published_record_id').references(
     () => publishedRecords.id,
   ),
+}, (table) => {
+  return {
+    // Critical for all collection queries by user
+    authorIdIdx: index('collections_author_id_idx').on(table.authorId),
+    
+    // For paginated collection listings (most common sort)
+    authorUpdatedAtIdx: index('collections_author_updated_at_idx').on(table.authorId, table.updatedAt),
+  };
 });
 
 // Join table for collection collaborators
@@ -46,4 +55,10 @@ export const collectionCards = pgTable('collection_cards', {
   publishedRecordId: uuid('published_record_id').references(
     () => publishedRecords.id,
   ),
+}, (table) => {
+  return {
+    // Critical for getCollectionsContainingCardForUser queries
+    cardIdIdx: index('collection_cards_card_id_idx').on(table.cardId),
+    collectionIdIdx: index('collection_cards_collection_id_idx').on(table.collectionId),
+  };
 });

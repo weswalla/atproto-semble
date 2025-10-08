@@ -384,7 +384,9 @@ describe('ATProtoCollectionPublisher', () => {
       const userBCollection = new CollectionBuilder()
         .withAuthorId(userB.value)
         .withName('User B Collection with Shared Card')
-        .withDescription('Collection containing a card originally created by User A')
+        .withDescription(
+          'Collection containing a card originally created by User A',
+        )
         .withAccessType(CollectionAccessType.OPEN)
         .buildOrThrow();
 
@@ -393,7 +395,8 @@ describe('ATProtoCollectionPublisher', () => {
       expect(addCardResult.isOk()).toBe(true);
 
       // 5. Publish User B's collection
-      const collectionPublishResult = await collectionPublisher.publish(userBCollection);
+      const collectionPublishResult =
+        await collectionPublisher.publish(userBCollection);
       expect(collectionPublishResult.isOk()).toBe(true);
 
       if (collectionPublishResult.isOk()) {
@@ -417,7 +420,10 @@ describe('ATProtoCollectionPublisher', () => {
         if (linkPublishResult.isOk()) {
           const linkRecordId = linkPublishResult.value;
           publishedLinkIds.push(linkRecordId);
-          userBCollection.markCardLinkAsPublished(originalNote.cardId, linkRecordId);
+          userBCollection.markCardLinkAsPublished(
+            originalNote.cardId,
+            linkRecordId,
+          );
 
           console.log(
             `Published collection link with cross-user card reference: ${linkRecordId.getValue().uri}`,
@@ -443,7 +449,8 @@ describe('ATProtoCollectionPublisher', () => {
 
         // 7. Clean up
         if (UNPUBLISH) {
-          const unpublishResult = await collectionPublisher.unpublish(collectionRecordId);
+          const unpublishResult =
+            await collectionPublisher.unpublish(collectionRecordId);
           expect(unpublishResult.isOk()).toBe(true);
 
           console.log('Successfully unpublished collection with shared card');

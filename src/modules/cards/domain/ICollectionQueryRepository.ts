@@ -36,9 +36,22 @@ export interface CollectionQueryResultDTO {
   authorId: string; // Just the curator ID, not enriched data
 }
 
+// View data for collections containing a specific card
+export interface CollectionContainingCardDTO {
+  id: string;
+  uri?: string;
+  name: string;
+  description?: string;
+}
+
 export interface ICollectionQueryRepository {
   findByCreator(
     curatorId: string,
     options: CollectionQueryOptions,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>>;
+  
+  getCollectionsContainingCardForUser(
+    cardId: string,
+    curatorId: string,
+  ): Promise<CollectionContainingCardDTO[]>;
 }

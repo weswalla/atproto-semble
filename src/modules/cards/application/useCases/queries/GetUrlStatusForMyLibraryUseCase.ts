@@ -15,9 +15,9 @@ export interface GetUrlStatusForMyLibraryQuery {
 
 export interface CollectionInfo {
   id: string;
-  uri: string;
+  uri?: string;
   name: string;
-  description: string;
+  description?: string;
 }
 
 export interface GetUrlStatusForMyLibraryResult {
@@ -33,7 +33,10 @@ export class ValidationError extends UseCaseError {
 
 export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
   GetUrlStatusForMyLibraryQuery,
-  Result<GetUrlStatusForMyLibraryResult, ValidationError | AppError.UnexpectedError>
+  Result<
+    GetUrlStatusForMyLibraryResult,
+    ValidationError | AppError.UnexpectedError
+  >
 > {
   constructor(
     private cardRepository: ICardRepository,
@@ -73,10 +76,8 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
       const url = urlResult.value;
 
       // Check if user has a URL card with this URL
-      const existingCardResult = await this.cardRepository.findUsersUrlCardByUrl(
-        url,
-        curatorId,
-      );
+      const existingCardResult =
+        await this.cardRepository.findUsersUrlCardByUrl(url, curatorId);
       if (existingCardResult.isErr()) {
         return err(AppError.UnexpectedError.create(existingCardResult.error));
       }
@@ -87,24 +88,23 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
       if (card) {
         result.cardId = card.cardId.getStringValue();
 
-        // TODO: Need to extend ICollectionQueryRepository with method to get collections containing a specific card for a user
-        // For now, we'll note this limitation
-        // const collectionsResult = await this.collectionQueryRepository.getCollectionsContainingCardForUser(
-        //   card.cardId,
-        //   curatorId,
-        // );
-        // if (collectionsResult.isErr()) {
-        //   return err(AppError.UnexpectedError.create(collectionsResult.error));
-        // }
-        // result.collections = collectionsResult.value.map(collection => ({
-        //   id: collection.id,
-        //   uri: collection.uri,
-        //   name: collection.name,
-        //   description: collection.description,
-        // }));
+        // Get collections containing this card for the user
+        try {
+          const collections =
+            await this.collectionQueryRepository.getCollectionsContainingCardForUser(
+              card.cardId.getStringValue(),
+              curatorId.value,
+            );
 
-        // Placeholder for collections - will need repository extension
-        result.collections = [];
+          result.collections = collections.map((collection) => ({
+            id: collection.id,
+            uri: collection.uri,
+            name: collection.name,
+            description: collection.description,
+          }));
+        } catch (error) {
+          return err(AppError.UnexpectedError.create(error));
+        }
       }
 
       return ok(result);

@@ -54,8 +54,8 @@ export class InMemoryCardRepository implements ICardRepository {
     try {
       const card = Array.from(this.cards.values()).find(
         (card) =>
-          card.content.type === 'URL' &&
-          card.content.urlContent?.url.value === url.value &&
+          card.type.value === 'URL' &&
+          card.url?.value === url.value &&
           card.props.curatorId.equals(curatorId),
       );
       return ok(card ? this.clone(card) : null);

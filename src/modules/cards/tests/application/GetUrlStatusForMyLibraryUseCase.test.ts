@@ -11,6 +11,7 @@ import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
 import { URL } from '../../domain/value-objects/URL';
+import { err } from 'src/shared/core/Result';
 
 describe('GetUrlStatusForMyLibraryUseCase', () => {
   let useCase: GetUrlStatusForMyLibraryUseCase;
@@ -26,7 +27,9 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
   beforeEach(() => {
     cardRepository = new InMemoryCardRepository();
     collectionRepository = new InMemoryCollectionRepository();
-    collectionQueryRepository = new InMemoryCollectionQueryRepository(collectionRepository);
+    collectionQueryRepository = new InMemoryCollectionQueryRepository(
+      collectionRepository,
+    );
     cardPublisher = new FakeCardPublisher();
     collectionPublisher = new FakeCollectionPublisher();
     eventPublisher = new FakeEventPublisher();
@@ -69,7 +72,9 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       // Add card to library
       const addToLibResult = card.addToLibrary(curatorId);
       if (addToLibResult.isErr()) {
-        throw new Error(`Failed to add card to library: ${addToLibResult.error.message}`);
+        throw new Error(
+          `Failed to add card to library: ${addToLibResult.error.message}`,
+        );
       }
 
       await cardRepository.save(card);
@@ -100,14 +105,24 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       }
 
       // Add card to both collections
-      const addToCollection1Result = collection1.addCard(card.cardId, curatorId);
+      const addToCollection1Result = collection1.addCard(
+        card.cardId,
+        curatorId,
+      );
       if (addToCollection1Result.isErr()) {
-        throw new Error(`Failed to add card to collection1: ${addToCollection1Result.error.message}`);
+        throw new Error(
+          `Failed to add card to collection1: ${addToCollection1Result.error.message}`,
+        );
       }
 
-      const addToCollection2Result = collection2.addCard(card.cardId, curatorId);
+      const addToCollection2Result = collection2.addCard(
+        card.cardId,
+        curatorId,
+      );
       if (addToCollection2Result.isErr()) {
-        throw new Error(`Failed to add card to collection2: ${addToCollection2Result.error.message}`);
+        throw new Error(
+          `Failed to add card to collection2: ${addToCollection2Result.error.message}`,
+        );
       }
 
       // Mark collections as published
@@ -135,8 +150,14 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
         cid: 'bafyreilink2cid',
       });
 
-      collection1.markCardLinkAsPublished(card.cardId, cardLinkPublishedRecordId1);
-      collection2.markCardLinkAsPublished(card.cardId, cardLinkPublishedRecordId2);
+      collection1.markCardLinkAsPublished(
+        card.cardId,
+        cardLinkPublishedRecordId1,
+      );
+      collection2.markCardLinkAsPublished(
+        card.cardId,
+        cardLinkPublishedRecordId2,
+      );
 
       // Save collections
       await collectionRepository.save(collection1);
@@ -145,8 +166,16 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       // Publish collections and links
       collectionPublisher.publish(collection1);
       collectionPublisher.publish(collection2);
-      collectionPublisher.publishCardAddedToCollection(card, collection1, curatorId);
-      collectionPublisher.publishCardAddedToCollection(card, collection2, curatorId);
+      collectionPublisher.publishCardAddedToCollection(
+        card,
+        collection1,
+        curatorId,
+      );
+      collectionPublisher.publishCardAddedToCollection(
+        card,
+        collection2,
+        curatorId,
+      );
 
       // Execute the use case
       const query = {
@@ -164,20 +193,36 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       expect(response.collections).toHaveLength(2);
 
       // Verify collection details
-      const techArticlesCollection = response.collections?.find(c => c.name === 'Tech Articles');
-      const readingListCollection = response.collections?.find(c => c.name === 'Reading List');
+      const techArticlesCollection = response.collections?.find(
+        (c) => c.name === 'Tech Articles',
+      );
+      const readingListCollection = response.collections?.find(
+        (c) => c.name === 'Reading List',
+      );
 
       expect(techArticlesCollection).toBeDefined();
-      expect(techArticlesCollection?.id).toBe(collection1.collectionId.getStringValue());
-      expect(techArticlesCollection?.uri).toBe('at://did:plc:testcurator/network.cosmik.collection/collection1');
+      expect(techArticlesCollection?.id).toBe(
+        collection1.collectionId.getStringValue(),
+      );
+      expect(techArticlesCollection?.uri).toBe(
+        'at://did:plc:testcurator/network.cosmik.collection/collection1',
+      );
       expect(techArticlesCollection?.name).toBe('Tech Articles');
-      expect(techArticlesCollection?.description).toBe('Collection of technology articles');
+      expect(techArticlesCollection?.description).toBe(
+        'Collection of technology articles',
+      );
 
       expect(readingListCollection).toBeDefined();
-      expect(readingListCollection?.id).toBe(collection2.collectionId.getStringValue());
-      expect(readingListCollection?.uri).toBe('at://did:plc:testcurator/network.cosmik.collection/collection2');
+      expect(readingListCollection?.id).toBe(
+        collection2.collectionId.getStringValue(),
+      );
+      expect(readingListCollection?.uri).toBe(
+        'at://did:plc:testcurator/network.cosmik.collection/collection2',
+      );
       expect(readingListCollection?.name).toBe('Reading List');
-      expect(readingListCollection?.description).toBe('My personal reading list');
+      expect(readingListCollection?.description).toBe(
+        'My personal reading list',
+      );
     });
 
     it('should return card ID and empty collections when user has URL card but not in any collections', async () => {
@@ -198,7 +243,9 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       // Add card to library
       const addToLibResult = card.addToLibrary(curatorId);
       if (addToLibResult.isErr()) {
-        throw new Error(`Failed to add card to library: ${addToLibResult.error.message}`);
+        throw new Error(
+          `Failed to add card to library: ${addToLibResult.error.message}`,
+        );
       }
 
       await cardRepository.save(card);
@@ -258,7 +305,9 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
 
       const addToLibResult1 = card1.addToLibrary(curatorId);
       if (addToLibResult1.isErr()) {
-        throw new Error(`Failed to add card1 to library: ${addToLibResult1.error.message}`);
+        throw new Error(
+          `Failed to add card1 to library: ${addToLibResult1.error.message}`,
+        );
       }
 
       await cardRepository.save(card1);
@@ -276,7 +325,9 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
 
       const addToLibResult2 = card2.addToLibrary(otherCuratorId);
       if (addToLibResult2.isErr()) {
-        throw new Error(`Failed to add card2 to library: ${addToLibResult2.error.message}`);
+        throw new Error(
+          `Failed to add card2 to library: ${addToLibResult2.error.message}`,
+        );
       }
 
       await cardRepository.save(card2);
@@ -288,12 +339,19 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
         .build();
 
       if (otherUserCollection instanceof Error) {
-        throw new Error(`Failed to create other user collection: ${otherUserCollection.message}`);
+        throw new Error(
+          `Failed to create other user collection: ${otherUserCollection.message}`,
+        );
       }
 
-      const addToOtherCollectionResult = otherUserCollection.addCard(card2.cardId, otherCuratorId);
+      const addToOtherCollectionResult = otherUserCollection.addCard(
+        card2.cardId,
+        otherCuratorId,
+      );
       if (addToOtherCollectionResult.isErr()) {
-        throw new Error(`Failed to add card2 to other collection: ${addToOtherCollectionResult.error.message}`);
+        throw new Error(
+          `Failed to add card2 to other collection: ${addToOtherCollectionResult.error.message}`,
+        );
       }
 
       await collectionRepository.save(otherUserCollection);
@@ -331,7 +389,9 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
 
       const addToLibResult = card.addToLibrary(curatorId);
       if (addToLibResult.isErr()) {
-        throw new Error(`Failed to add card to library: ${addToLibResult.error.message}`);
+        throw new Error(
+          `Failed to add card to library: ${addToLibResult.error.message}`,
+        );
       }
 
       await cardRepository.save(card);
@@ -343,12 +403,19 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
         .build();
 
       if (userCollection instanceof Error) {
-        throw new Error(`Failed to create user collection: ${userCollection.message}`);
+        throw new Error(
+          `Failed to create user collection: ${userCollection.message}`,
+        );
       }
 
-      const addToUserCollectionResult = userCollection.addCard(card.cardId, curatorId);
+      const addToUserCollectionResult = userCollection.addCard(
+        card.cardId,
+        curatorId,
+      );
       if (addToUserCollectionResult.isErr()) {
-        throw new Error(`Failed to add card to user collection: ${addToUserCollectionResult.error.message}`);
+        throw new Error(
+          `Failed to add card to user collection: ${addToUserCollectionResult.error.message}`,
+        );
       }
 
       await collectionRepository.save(userCollection);
@@ -360,7 +427,9 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
         .build();
 
       if (otherUserCollection instanceof Error) {
-        throw new Error(`Failed to create other user collection: ${otherUserCollection.message}`);
+        throw new Error(
+          `Failed to create other user collection: ${otherUserCollection.message}`,
+        );
       }
 
       // Note: We don't add the card to the other user's collection since they can't add
@@ -383,7 +452,9 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       expect(response.cardId).toBe(card.cardId.getStringValue());
       expect(response.collections).toHaveLength(1);
       expect(response.collections?.[0]?.name).toBe('My Collection');
-      expect(response.collections?.[0]?.id).toBe(userCollection.collectionId.getStringValue());
+      expect(response.collections?.[0]?.id).toBe(
+        userCollection.collectionId.getStringValue(),
+      );
     });
   });
 
@@ -419,9 +490,11 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
 
   describe('Error handling', () => {
     it('should handle repository errors gracefully', async () => {
-      // Create a mock repository that throws an error
+      // Create a mock repository that returns an error Result
       const errorCardRepository = {
-        findUsersUrlCardByUrl: jest.fn().mockRejectedValue(new Error('Database error')),
+        findUsersUrlCardByUrl: jest
+          .fn()
+          .mockResolvedValue(err(new Error('Database error'))),
         save: jest.fn(),
         findById: jest.fn(),
         delete: jest.fn(),
@@ -466,7 +539,9 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
 
       const addToLibResult = card.addToLibrary(curatorId);
       if (addToLibResult.isErr()) {
-        throw new Error(`Failed to add card to library: ${addToLibResult.error.message}`);
+        throw new Error(
+          `Failed to add card to library: ${addToLibResult.error.message}`,
+        );
       }
 
       await cardRepository.save(card);
@@ -474,7 +549,9 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       // Create a mock collection query repository that throws an error
       const errorCollectionQueryRepository = {
         findByCreator: jest.fn(),
-        getCollectionsContainingCardForUser: jest.fn().mockRejectedValue(new Error('Collection query error')),
+        getCollectionsContainingCardForUser: jest
+          .fn()
+          .mockRejectedValue(new Error('Collection query error')),
       };
 
       const errorUseCase = new GetUrlStatusForMyLibraryUseCase(

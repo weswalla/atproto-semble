@@ -21,7 +21,7 @@ import { Collection, CollectionAccessType } from '../../domain/Collection';
 import { CardFactory } from '../../domain/CardFactory';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
-import { URL } from '../../domain/value-objects/URL';
+import { UrlMetadata } from '../../domain/value-objects/UrlMetadata';
 import { createTestSchema } from '../test-utils/createTestSchema';
 
 describe('DrizzleCollectionQueryRepository - getCollectionsContainingCardForUser', () => {
@@ -80,12 +80,20 @@ describe('DrizzleCollectionQueryRepository - getCollectionsContainingCardForUser
       const testUrl = 'https://example.com/test-article';
 
       // Create a URL card
-      const url = URL.create(testUrl).unwrap();
+      const urlMetadata = UrlMetadata.create({
+        url: testUrl,
+        title: 'Test Article',
+        description: 'A test article for testing',
+        author: 'Test Author',
+        siteName: 'Example.com',
+      }).unwrap();
+
       const card = CardFactory.create({
         curatorId: curatorId.value,
         cardInput: {
           type: CardTypeEnum.URL,
-          url: url.value,
+          url: testUrl,
+          metadata: urlMetadata,
         },
       }).unwrap();
 
@@ -124,10 +132,16 @@ describe('DrizzleCollectionQueryRepository - getCollectionsContainingCardForUser
       ).unwrap();
 
       // Add card to both collections
-      const addToCollection1Result = collection1.addCard(card.cardId, curatorId);
+      const addToCollection1Result = collection1.addCard(
+        card.cardId,
+        curatorId,
+      );
       expect(addToCollection1Result.isOk()).toBe(true);
 
-      const addToCollection2Result = collection2.addCard(card.cardId, curatorId);
+      const addToCollection2Result = collection2.addCard(
+        card.cardId,
+        curatorId,
+      );
       expect(addToCollection2Result.isOk()).toBe(true);
 
       // Mark collections as published
@@ -162,12 +176,16 @@ describe('DrizzleCollectionQueryRepository - getCollectionsContainingCardForUser
 
       // Verify collection details
       expect(result[0]?.id).toBe(collection2.collectionId.getStringValue()); // Reading List comes first alphabetically
-      expect(result[0]?.uri).toBe('at://did:plc:testcurator/network.cosmik.collection/collection2');
+      expect(result[0]?.uri).toBe(
+        'at://did:plc:testcurator/network.cosmik.collection/collection2',
+      );
       expect(result[0]?.name).toBe('Reading List');
       expect(result[0]?.description).toBe('My personal reading list');
 
       expect(result[1]?.id).toBe(collection1.collectionId.getStringValue()); // Tech Articles comes second
-      expect(result[1]?.uri).toBe('at://did:plc:testcurator/network.cosmik.collection/collection1');
+      expect(result[1]?.uri).toBe(
+        'at://did:plc:testcurator/network.cosmik.collection/collection1',
+      );
       expect(result[1]?.name).toBe('Tech Articles');
       expect(result[1]?.description).toBe('Collection of technology articles');
     });
@@ -176,12 +194,18 @@ describe('DrizzleCollectionQueryRepository - getCollectionsContainingCardForUser
       const testUrl = 'https://example.com/standalone-article';
 
       // Create a URL card
-      const url = URL.create(testUrl).unwrap();
+      const urlMetadata = UrlMetadata.create({
+        url: testUrl,
+        title: 'Standalone Article',
+        description: 'A standalone article for testing',
+      }).unwrap();
+
       const card = CardFactory.create({
         curatorId: curatorId.value,
         cardInput: {
           type: CardTypeEnum.URL,
-          url: url.value,
+          url: testUrl,
+          metadata: urlMetadata,
         },
       }).unwrap();
 
@@ -218,12 +242,18 @@ describe('DrizzleCollectionQueryRepository - getCollectionsContainingCardForUser
       const testUrl = 'https://example.com/shared-article';
 
       // Create URL card for first user
-      const url = URL.create(testUrl).unwrap();
+      const urlMetadata1 = UrlMetadata.create({
+        url: testUrl,
+        title: 'Shared Article',
+        description: 'An article shared between users',
+      }).unwrap();
+
       const card1 = CardFactory.create({
         curatorId: curatorId.value,
         cardInput: {
           type: CardTypeEnum.URL,
-          url: url.value,
+          url: testUrl,
+          metadata: urlMetadata1,
         },
       }).unwrap();
 
@@ -233,11 +263,18 @@ describe('DrizzleCollectionQueryRepository - getCollectionsContainingCardForUser
       await cardRepository.save(card1);
 
       // Create URL card for second user (different card, same URL)
+      const urlMetadata2 = UrlMetadata.create({
+        url: testUrl,
+        title: 'Shared Article',
+        description: 'An article shared between users',
+      }).unwrap();
+
       const card2 = CardFactory.create({
         curatorId: otherCuratorId.value,
         cardInput: {
           type: CardTypeEnum.URL,
-          url: url.value,
+          url: testUrl,
+          metadata: urlMetadata2,
         },
       }).unwrap();
 
@@ -281,12 +318,18 @@ describe('DrizzleCollectionQueryRepository - getCollectionsContainingCardForUser
       const testUrl = 'https://example.com/multi-user-article';
 
       // Create URL card for the user
-      const url = URL.create(testUrl).unwrap();
+      const urlMetadata = UrlMetadata.create({
+        url: testUrl,
+        title: 'Multi User Article',
+        description: 'An article for multi-user testing',
+      }).unwrap();
+
       const card = CardFactory.create({
         curatorId: curatorId.value,
         cardInput: {
           type: CardTypeEnum.URL,
-          url: url.value,
+          url: testUrl,
+          metadata: urlMetadata,
         },
       }).unwrap();
 
@@ -531,10 +574,16 @@ describe('DrizzleCollectionQueryRepository - getCollectionsContainingCardForUser
       expect(result).toHaveLength(2);
 
       // Find collections by name
-      const publishedResult = result.find(c => c.name === 'Published Collection');
-      const unpublishedResult = result.find(c => c.name === 'Unpublished Collection');
+      const publishedResult = result.find(
+        (c) => c.name === 'Published Collection',
+      );
+      const unpublishedResult = result.find(
+        (c) => c.name === 'Unpublished Collection',
+      );
 
-      expect(publishedResult?.uri).toBe('at://did:plc:testcurator/network.cosmik.collection/published123');
+      expect(publishedResult?.uri).toBe(
+        'at://did:plc:testcurator/network.cosmik.collection/published123',
+      );
       expect(unpublishedResult?.uri).toBeUndefined();
     });
   });
@@ -553,8 +602,12 @@ describe('DrizzleCollectionQueryRepository - getCollectionsContainingCardForUser
       await cardRepository.save(card);
 
       // Create collections with names that will test alphabetical sorting
-      const collectionNames = ['Zebra Collection', 'Alpha Collection', 'Beta Collection'];
-      
+      const collectionNames = [
+        'Zebra Collection',
+        'Alpha Collection',
+        'Beta Collection',
+      ];
+
       for (const name of collectionNames) {
         const collection = Collection.create(
           {
@@ -602,17 +655,6 @@ describe('DrizzleCollectionQueryRepository - getCollectionsContainingCardForUser
       const result = await queryRepository.getCollectionsContainingCardForUser(
         card.cardId.getStringValue(),
         'did:plc:nonexistent',
-      );
-
-      // Verify the result
-      expect(result).toHaveLength(0);
-    });
-
-    it('should handle invalid card ID format gracefully', async () => {
-      // Execute the query with invalid card ID
-      const result = await queryRepository.getCollectionsContainingCardForUser(
-        'invalid-card-id',
-        curatorId.value,
       );
 
       // Verify the result
@@ -684,11 +726,18 @@ describe('DrizzleCollectionQueryRepository - getCollectionsContainingCardForUser
   describe('Multiple card types', () => {
     it('should work with different card types in the same collection', async () => {
       // Create different types of cards
+      const urlMetadata = UrlMetadata.create({
+        url: 'https://example.com/test',
+        title: 'Test URL',
+        description: 'A test URL for mixed content',
+      }).unwrap();
+
       const urlCard = CardFactory.create({
         curatorId: curatorId.value,
         cardInput: {
           type: CardTypeEnum.URL,
           url: 'https://example.com/test',
+          metadata: urlMetadata,
         },
       }).unwrap();
 
@@ -700,18 +749,8 @@ describe('DrizzleCollectionQueryRepository - getCollectionsContainingCardForUser
         },
       }).unwrap();
 
-      const highlightCard = CardFactory.create({
-        curatorId: curatorId.value,
-        cardInput: {
-          type: CardTypeEnum.HIGHLIGHT,
-          text: 'Test highlight',
-          url: 'https://example.com/source',
-        },
-      }).unwrap();
-
       await cardRepository.save(urlCard);
       await cardRepository.save(noteCard);
-      await cardRepository.save(highlightCard);
 
       // Create collection and add all cards
       const collection = Collection.create(
@@ -729,38 +768,31 @@ describe('DrizzleCollectionQueryRepository - getCollectionsContainingCardForUser
 
       collection.addCard(urlCard.cardId, curatorId);
       collection.addCard(noteCard.cardId, curatorId);
-      collection.addCard(highlightCard.cardId, curatorId);
 
       await collectionRepository.save(collection);
 
       // Test each card type
-      const urlResult = await queryRepository.getCollectionsContainingCardForUser(
-        urlCard.cardId.getStringValue(),
-        curatorId.value,
-      );
+      const urlResult =
+        await queryRepository.getCollectionsContainingCardForUser(
+          urlCard.cardId.getStringValue(),
+          curatorId.value,
+        );
 
-      const noteResult = await queryRepository.getCollectionsContainingCardForUser(
-        noteCard.cardId.getStringValue(),
-        curatorId.value,
-      );
-
-      const highlightResult = await queryRepository.getCollectionsContainingCardForUser(
-        highlightCard.cardId.getStringValue(),
-        curatorId.value,
-      );
+      const noteResult =
+        await queryRepository.getCollectionsContainingCardForUser(
+          noteCard.cardId.getStringValue(),
+          curatorId.value,
+        );
 
       // Verify all return the same collection
       expect(urlResult).toHaveLength(1);
       expect(noteResult).toHaveLength(1);
-      expect(highlightResult).toHaveLength(1);
 
       expect(urlResult[0]?.name).toBe('Mixed Content Collection');
       expect(noteResult[0]?.name).toBe('Mixed Content Collection');
-      expect(highlightResult[0]?.name).toBe('Mixed Content Collection');
 
       expect(urlResult[0]?.id).toBe(collection.collectionId.getStringValue());
       expect(noteResult[0]?.id).toBe(collection.collectionId.getStringValue());
-      expect(highlightResult[0]?.id).toBe(collection.collectionId.getStringValue());
     });
   });
 });

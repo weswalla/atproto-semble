@@ -166,6 +166,7 @@ export class UseCaseFactory {
         services.identityResolutionService,
         repositories.atUriResolutionService,
         getCollectionPageUseCase,
+        services.collectionString,
       ),
       getCollectionsUseCase: new GetCollectionsUseCase(
         repositories.collectionQueryRepository,

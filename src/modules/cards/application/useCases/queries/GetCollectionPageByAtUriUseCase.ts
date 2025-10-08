@@ -13,7 +13,6 @@ import {
   CardSortField,
   SortOrder,
 } from 'src/modules/cards/domain/ICardQueryRepository';
-import { REPOSITORY_COLLECTION_IDS } from 'src/modules/atproto/infrastructure/services/RepositoryCollectionIds';
 
 export interface GetCollectionPageByAtUriQuery {
   handle: string;
@@ -33,6 +32,7 @@ export class GetCollectionPageByAtUriUseCase
     private identityResolutionService: IIdentityResolutionService,
     private atUriResolutionService: IAtUriResolutionService,
     private getCollectionPageUseCase: GetCollectionPageUseCase,
+    private collectionString: string,
   ) {}
 
   async execute(
@@ -60,7 +60,7 @@ export class GetCollectionPageByAtUriUseCase
     // Construct the AT URI using the resolved DID
     const atUriResult = ATUri.fromParts(
       didResult.value,
-      REPOSITORY_COLLECTION_IDS.COLLECTIONS,
+      this.collectionString,
       query.recordKey,
     );
     if (atUriResult.isErr()) {

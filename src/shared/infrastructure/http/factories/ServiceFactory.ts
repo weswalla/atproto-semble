@@ -73,6 +73,7 @@ export interface WebAppServices extends SharedServices {
   cardCollectionService: CardCollectionService;
   authMiddleware: AuthMiddleware;
   eventPublisher: IEventPublisher;
+  collectionString: string;
 }
 
 // Worker specific services (includes subscribers)
@@ -175,6 +176,7 @@ export class ServiceFactory {
       cardCollectionService,
       authMiddleware,
       eventPublisher,
+      collectionString: collections.collection,
     };
   }
 

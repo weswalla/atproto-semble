@@ -36,6 +36,13 @@
       "when": 1759875361391,
       "tag": "0004_brainy_rocket_racer",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1759957391430,
+      "tag": "0005_truncate-tables",
+      "breakpoints": true
     }
   ]
 }

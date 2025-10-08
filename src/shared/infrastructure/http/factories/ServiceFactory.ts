@@ -61,6 +61,7 @@ export interface SharedServices {
   feedService: FeedService;
   nodeOauthClient: NodeOAuthClient;
   identityResolutionService: IIdentityResolutionService;
+  configService: EnvironmentConfigService;
 }
 
 // Web app specific services (includes publishers, auth middleware)
@@ -73,7 +74,6 @@ export interface WebAppServices extends SharedServices {
   cardCollectionService: CardCollectionService;
   authMiddleware: AuthMiddleware;
   eventPublisher: IEventPublisher;
-  collectionString: string;
 }
 
 // Worker specific services (includes subscribers)
@@ -176,7 +176,6 @@ export class ServiceFactory {
       cardCollectionService,
       authMiddleware,
       eventPublisher,
-      collectionString: collections.collection,
     };
   }
 
@@ -297,6 +296,7 @@ export class ServiceFactory {
       feedService,
       nodeOauthClient,
       identityResolutionService,
+      configService,
     };
   }
 }

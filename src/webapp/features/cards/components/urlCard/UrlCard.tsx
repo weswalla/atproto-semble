@@ -8,6 +8,7 @@ import {
   Group,
   Anchor,
   AspectRatio,
+  Skeleton,
 } from '@mantine/core';
 import Link from 'next/link';
 import UrlCardActions from '../urlCardActions/UrlCardActions';
@@ -69,7 +70,16 @@ export default function UrlCard(props: Props) {
             )}
           </Group>
 
-          <Suspense>
+          <Suspense
+            fallback={
+              <Group justify="space-between">
+                <Group gap={'xs'}>
+                  <Skeleton w={22} h={22} />
+                </Group>
+                <Skeleton w={22} h={22} />
+              </Group>
+            }
+          >
             <UrlCardActions
               cardContent={props.cardContent}
               id={props.id}

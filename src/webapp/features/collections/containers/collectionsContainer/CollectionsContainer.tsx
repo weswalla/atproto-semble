@@ -1,12 +1,13 @@
 'use client';
 
-import { Button, Container, Stack, SimpleGrid, Center } from '@mantine/core';
+import { Button, Container, Stack, SimpleGrid } from '@mantine/core';
 import useCollections from '../../lib/queries/useCollections';
 import CollectionCard from '../../components/collectionCard/CollectionCard';
 import CreateCollectionDrawer from '../../components/createCollectionDrawer/CreateCollectionDrawer';
 import { useState } from 'react';
 import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
 import { BiCollection } from 'react-icons/bi';
+import InfiniteLoadTrigger from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 
 interface Props {
   handle: string;
@@ -32,28 +33,21 @@ export default function CollectionsContainer(props: Props) {
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <Stack>
+        <InfiniteLoadTrigger
+          dataLength={collections.length}
+          hasMore={!!hasNextPage}
+          isInitialLoading={false} // or you can manage initial loading state if needed
+          isLoading={isFetchingNextPage}
+          loadMore={fetchNextPage}
+          manualLoadButton={false} // automatic infinite scroll; set true if you want manual button
+          loader={<div>Loading...</div>} // replace with your loader component if you want
+        >
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
             {collections.map((collection) => (
               <CollectionCard key={collection.id} collection={collection} />
             ))}
           </SimpleGrid>
-
-          {hasNextPage && (
-            <Center>
-              <Button
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                loading={isFetchingNextPage}
-                variant="light"
-                color="gray"
-                mt="md"
-              >
-                Load More
-              </Button>
-            </Center>
-          )}
-        </Stack>
+        </InfiniteLoadTrigger>
       </Stack>
 
       <CreateCollectionDrawer

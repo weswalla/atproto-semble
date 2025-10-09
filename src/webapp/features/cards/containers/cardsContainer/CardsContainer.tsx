@@ -1,13 +1,13 @@
 'use client';
 
-import { Container, Grid, Stack, Button, Text, Center } from '@mantine/core';
+import { Center, Container, Grid, Loader, Stack } from '@mantine/core';
 import useCards from '../../lib/queries/useCards';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import CardsContainerError from './Error.CardsContainer';
 import CardsContainerSkeleton from './Skeleton.CardsContainer';
-import { Fragment, useState } from 'react';
 import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
 import { FaRegNoteSticky } from 'react-icons/fa6';
+import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 
 interface Props {
   handle: string;
@@ -43,39 +43,34 @@ export default function CardsContainer(props: Props) {
 
   return (
     <Container p="xs" size="xl">
-      <Stack>
-        <Fragment>
-          <Grid gutter="md">
-            {allCards.map((card) => (
-              <Grid.Col key={card.id} span={{ base: 12, xs: 6, sm: 4, lg: 3 }}>
-                <UrlCard
-                  id={card.id}
-                  url={card.url}
-                  cardContent={card.cardContent}
-                  note={card.note}
-                  collections={card.collections}
-                  authorHandle={props.handle}
-                />
-              </Grid.Col>
-            ))}
-          </Grid>
-
-          {hasNextPage && (
-            <Center>
-              <Button
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                loading={isFetchingNextPage}
-                variant="light"
-                color="gray"
-                mt="md"
-              >
-                Load More
-              </Button>
-            </Center>
-          )}
-        </Fragment>
-      </Stack>
+      <InfiniteScroll
+        dataLength={allCards.length}
+        hasMore={!!hasNextPage}
+        isInitialLoading={isPending}
+        isLoading={isFetchingNextPage}
+        loadMore={fetchNextPage}
+        manualLoadButton={false}
+        loader={
+          <Center>
+            <Loader />
+          </Center>
+        }
+      >
+        <Grid gutter="md">
+          {allCards.map((card) => (
+            <Grid.Col key={card.id} span={{ base: 12, xs: 6, sm: 4, lg: 3 }}>
+              <UrlCard
+                id={card.id}
+                url={card.url}
+                cardContent={card.cardContent}
+                note={card.note}
+                collections={card.collections}
+                authorHandle={props.handle}
+              />
+            </Grid.Col>
+          ))}
+        </Grid>
+      </InfiniteScroll>
     </Container>
   );
 }

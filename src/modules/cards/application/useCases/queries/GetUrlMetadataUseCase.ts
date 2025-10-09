@@ -18,7 +18,6 @@ export interface GetUrlMetadataResult {
     imageUrl?: string;
     type?: string;
   };
-  existingCardId?: string;
 }
 
 export class ValidationError extends Error {
@@ -49,20 +48,6 @@ export class GetUrlMetadataUseCase
     const url = urlResult.value;
 
     try {
-      // Check if a card already exists for this URL
-      const existingCardResult =
-        await this.cardRepository.findUrlCardByUrl(url);
-      if (existingCardResult.isErr()) {
-        return err(
-          new Error(
-            `Failed to check for existing card: ${existingCardResult.error instanceof Error ? existingCardResult.error.message : 'Unknown error'}`,
-          ),
-        );
-      }
-
-      const existingCard = existingCardResult.value;
-      const existingCardId = existingCard?.id?.toString();
-
       // Fetch metadata from external service
       const metadataResult = await this.metadataService.fetchMetadata(url);
       if (metadataResult.isErr()) {
@@ -85,7 +70,6 @@ export class GetUrlMetadataUseCase
           imageUrl: metadata.imageUrl,
           type: metadata.type,
         },
-        existingCardId,
       });
     } catch (error) {
       return err(

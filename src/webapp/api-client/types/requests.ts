@@ -127,3 +127,7 @@ export interface GenerateExtensionTokensRequest {
 export interface GetProfileParams {
   identifier: string; // Can be DID or handle
 }
+
+export interface GetUrlStatusForMyLibraryParams {
+  url: string;
+}

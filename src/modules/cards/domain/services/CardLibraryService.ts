@@ -37,11 +37,41 @@ export class CardLibraryService implements DomainService {
         // Card is already in library, nothing to do
         return ok(card);
       }
+      const addToLibResult = card.addToLibrary(curatorId);
+      if (addToLibResult.isErr()) {
+        return err(
+          new CardLibraryValidationError(
+            `Failed to add card to library: ${addToLibResult.error.message}`,
+          ),
+        );
+      }
+      let parentCard: Card | undefined = undefined;
+
+      if (card.parentCardId) {
+        // Ensure parent card is in the curator's library
+        const parentCardResult = await this.cardRepository.findById(
+          card.parentCardId,
+        );
+        if (parentCardResult.isErr()) {
+          return err(
+            new CardLibraryValidationError(
+              `Failed to fetch parent card: ${parentCardResult.error.message}`,
+            ),
+          );
+        }
+        const parentCardValue = parentCardResult.value;
+
+        if (!parentCardValue) {
+          return err(new CardLibraryValidationError(`Parent card not found`));
+        }
+        parentCard = parentCardValue;
+      }
 
       // Publish card to library
       const publishResult = await this.cardPublisher.publishCardToLibrary(
         card,
         curatorId,
+        parentCard,
       );
       if (publishResult.isErr()) {
         return err(
@@ -52,8 +82,17 @@ export class CardLibraryService implements DomainService {
       }
 
       // Mark card as published in library
-      card.addToLibrary(curatorId);
-      card.markCardInLibraryAsPublished(curatorId, publishResult.value);
+      const markCardAsPublishedResult = card.markCardInLibraryAsPublished(
+        curatorId,
+        publishResult.value,
+      );
+      if (markCardAsPublishedResult.isErr()) {
+        return err(
+          new CardLibraryValidationError(
+            `Failed to mark card as published in library: ${markCardAsPublishedResult.error.message}`,
+          ),
+        );
+      }
 
       // Save updated card
       const saveResult = await this.cardRepository.save(card);

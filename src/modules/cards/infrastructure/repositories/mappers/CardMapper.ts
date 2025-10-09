@@ -33,10 +33,42 @@ interface UrlContentData {
 
 interface NoteContentData {
   text: string;
-  authorId: string;
 }
 
 type CardContentData = UrlContentData | NoteContentData;
+
+// Persistence layer types
+export interface CardPersistenceData {
+  card: {
+    id: string;
+    authorId: string;
+    type: string;
+    contentData: CardContentData;
+    url?: string;
+    parentCardId?: string;
+    libraryCount: number;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+  libraryMemberships: Array<{
+    cardId: string;
+    userId: string;
+    addedAt: Date;
+    publishedRecordId?: string;
+  }>;
+  publishedRecord?: {
+    id: string;
+    uri: string;
+    cid: string;
+    recordedAt?: Date;
+  };
+  membershipPublishedRecords?: Array<{
+    id: string;
+    uri: string;
+    cid: string;
+    recordedAt?: Date;
+  }>;
+}
 
 // Raw data for URL card queries
 export interface RawUrlCardData {
@@ -60,11 +92,12 @@ export interface RawUrlCardData {
 // Database representation of a card
 export interface CardDTO {
   id: string;
+  curatorId: string;
   type: string;
   contentData: CardContentData; // Type-safe JSON data for the content
   url?: string;
   parentCardId?: string;
-  originalPublishedRecordId?: {
+  publishedRecordId?: {
     uri: string;
     cid: string;
   };
@@ -84,6 +117,9 @@ export interface CardDTO {
 export class CardMapper {
   public static toDomain(dto: CardDTO): Result<Card> {
     try {
+      const curatorIdOrError = CuratorId.create(dto.curatorId);
+      if (curatorIdOrError.isErr()) return err(curatorIdOrError.error);
+
       const cardTypeOrError = CardType.create(dto.type as CardTypeEnum);
       if (cardTypeOrError.isErr()) return err(cardTypeOrError.error);
 
@@ -110,12 +146,12 @@ export class CardMapper {
         parentCardId = parentCardIdOrError.value;
       }
 
-      // Create optional original published record ID
-      let originalPublishedRecordId: PublishedRecordId | undefined;
-      if (dto.originalPublishedRecordId) {
-        originalPublishedRecordId = PublishedRecordId.create({
-          uri: dto.originalPublishedRecordId.uri,
-          cid: dto.originalPublishedRecordId.cid,
+      // Create optional published record ID
+      let publishedRecordId: PublishedRecordId | undefined;
+      if (dto.publishedRecordId) {
+        publishedRecordId = PublishedRecordId.create({
+          uri: dto.publishedRecordId.uri,
+          cid: dto.publishedRecordId.cid,
         });
       }
       const libraryMemberships = dto.libraryMemberships.map((membership) => {
@@ -145,11 +181,12 @@ export class CardMapper {
       // Create the card
       const cardOrError = Card.create(
         {
+          curatorId: curatorIdOrError.value,
           type: cardTypeOrError.value,
           content: contentOrError.value,
           url,
           parentCardId,
-          originalPublishedRecordId,
+          publishedRecordId,
           libraryMemberships,
           libraryCount: dto.libraryCount,
           createdAt: dto.createdAt,
@@ -206,12 +243,7 @@ export class CardMapper {
 
         case CardTypeEnum.NOTE: {
           const noteData = data as NoteContentData;
-          const authorIdResult = CuratorId.create(noteData.authorId);
-          if (authorIdResult.isErr()) return err(authorIdResult.error);
-          return CardContent.createNoteContent(
-            noteData.text,
-            authorIdResult.value,
-          );
+          return CardContent.createNoteContent(noteData.text);
         }
 
         default:
@@ -222,36 +254,7 @@ export class CardMapper {
     }
   }
 
-  public static toPersistence(card: Card): {
-    card: {
-      id: string;
-      type: string;
-      contentData: CardContentData;
-      url?: string;
-      parentCardId?: string;
-      libraryCount: number;
-      createdAt: Date;
-      updatedAt: Date;
-    };
-    libraryMemberships: Array<{
-      cardId: string;
-      userId: string;
-      addedAt: Date;
-      publishedRecordId?: string;
-    }>;
-    originalPublishedRecord?: {
-      id: string;
-      uri: string;
-      cid: string;
-      recordedAt?: Date;
-    };
-    membershipPublishedRecords?: Array<{
-      id: string;
-      uri: string;
-      cid: string;
-      recordedAt?: Date;
-    }>;
-  } {
+  public static toPersistence(card: Card): CardPersistenceData {
     const content = card.content;
     let contentData: CardContentData;
 
@@ -276,22 +279,19 @@ export class CardMapper {
       } as UrlContentData;
     } else if (content.type === CardTypeEnum.NOTE) {
       const noteContent = content.noteContent!;
-      // For note content, we need to get the author ID from the content
-      // Since NoteCardContent now has authorId, we need to access it
       contentData = {
         text: noteContent.text,
-        authorId: (noteContent as any).props.authorId.value, // Access the authorId from props
       } as NoteContentData;
     } else {
       throw new Error(`Unknown card type: ${content.type}`);
     }
 
     // Collect all published records that need to be created
-    const originalPublishedRecord = card.originalPublishedRecordId
+    const publishedRecord = card.publishedRecordId
       ? {
           id: uuid(),
-          uri: card.originalPublishedRecordId.uri,
-          cid: card.originalPublishedRecordId.cid,
+          uri: card.publishedRecordId.uri,
+          cid: card.publishedRecordId.cid,
         }
       : undefined;
 
@@ -325,6 +325,7 @@ export class CardMapper {
     return {
       card: {
         id: card.cardId.getStringValue(),
+        authorId: card.curatorId.value,
         type: card.type.value,
         contentData,
         url: card.url?.value,
@@ -334,7 +335,7 @@ export class CardMapper {
         updatedAt: card.updatedAt,
       },
       libraryMemberships,
-      originalPublishedRecord,
+      publishedRecord,
       membershipPublishedRecords:
         membershipPublishedRecords.length > 0
           ? membershipPublishedRecords

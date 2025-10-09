@@ -11,17 +11,21 @@ import {
   Anchor,
 } from '@mantine/core';
 import Link from 'next/link';
-import { GetCollectionsResponse, UrlCardView } from '@/api-client/types';
+import {
+  GetUrlStatusForMyLibraryResponse,
+  UrlCardView,
+} from '@/api-client/types';
 import { BiCollection } from 'react-icons/bi';
 import { LuLibrary } from 'react-icons/lu';
 import { getDomain } from '@/lib/utils/link';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { getRecordKey } from '@/lib/utils/atproto';
+import { Fragment } from 'react';
 
 interface Props {
   cardId: string;
   cardContent: UrlCardView['cardContent'];
-  collectionsWithCard: GetCollectionsResponse['collections'];
+  collectionsWithCard: GetUrlStatusForMyLibraryResponse['collections'];
   isInLibrary: boolean;
 }
 
@@ -78,7 +82,7 @@ export default function CardToBeAddedPreview(props: Props) {
             In Library
           </Button>
         )}
-        {props.collectionsWithCard.length > 0 && (
+        {props.collectionsWithCard && props.collectionsWithCard.length > 0 && (
           <Menu shadow="sm">
             <Menu.Target>
               <Button
@@ -93,16 +97,19 @@ export default function CardToBeAddedPreview(props: Props) {
             <Menu.Dropdown maw={380}>
               <ScrollArea.Autosize mah={150} type="auto">
                 {props.collectionsWithCard.map((c) => (
-                  <Menu.Item
-                    key={c.id}
-                    component={Link}
-                    href={`/profile/${c.createdBy.handle}/collections/${getRecordKey(c.uri!)}`}
-                    target="_blank"
-                    c="blue"
-                    fw={600}
-                  >
-                    {c.name}
-                  </Menu.Item>
+                  <Fragment key={c.id}>
+                    {c.uri && (
+                      <Menu.Item
+                        component={Link}
+                        href={`/profile/${profile.handle}/collections/${getRecordKey(c.uri)}`}
+                        target="_blank"
+                        c="blue"
+                        fw={600}
+                      >
+                        {c.name}
+                      </Menu.Item>
+                    )}
+                  </Fragment>
                 ))}
               </ScrollArea.Autosize>
             </Menu.Dropdown>

@@ -3,7 +3,10 @@ import { Collection } from 'src/modules/cards/domain/Collection';
 import { Card } from 'src/modules/cards/domain/Card';
 import { Result, ok, err } from 'src/shared/core/Result';
 import { UseCaseError } from 'src/shared/core/UseCaseError';
-import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
+import {
+  PublishedRecordId,
+  PublishedRecordIdProps,
+} from 'src/modules/cards/domain/value-objects/PublishedRecordId';
 import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 import { CollectionMapper } from '../mappers/CollectionMapper';
 import { CollectionLinkMapper } from '../mappers/CollectionLinkMapper';
@@ -12,10 +15,11 @@ import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
 
 export class ATProtoCollectionPublisher implements ICollectionPublisher {
-  private readonly COLLECTION_COLLECTION = 'network.cosmik.collection';
-  private readonly COLLECTION_LINK_COLLECTION = 'network.cosmik.collectionLink';
-
-  constructor(private readonly agentService: IAgentService) {}
+  constructor(
+    private readonly agentService: IAgentService,
+    private readonly collectionCollection: string,
+    private readonly collectionLinkCollection: string,
+  ) {}
 
   /**
    * Publishes a Collection record only (not the card links)
@@ -54,6 +58,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         // Update existing collection record
         const collectionRecordDTO =
           CollectionMapper.toCreateRecordDTO(collection);
+        collectionRecordDTO.$type = this.collectionCollection as any;
 
         const publishedRecordId = collection.publishedRecordId.getValue();
         const strongRef = new StrongRef(publishedRecordId);
@@ -62,7 +67,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
         await agent.com.atproto.repo.putRecord({
           repo: curatorDid.value,
-          collection: this.COLLECTION_COLLECTION,
+          collection: this.collectionCollection,
           rkey: rkey,
           record: collectionRecordDTO,
         });
@@ -72,10 +77,11 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         // Create new collection record
         const collectionRecordDTO =
           CollectionMapper.toCreateRecordDTO(collection);
+        collectionRecordDTO.$type = this.collectionCollection as any;
 
         const createResult = await agent.com.atproto.repo.createRecord({
           repo: curatorDid.value,
-          collection: this.COLLECTION_COLLECTION,
+          collection: this.collectionCollection,
           record: collectionRecordDTO,
         });
 
@@ -149,8 +155,8 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
       }
 
       // Get the original published record ID
-      if (!card.originalPublishedRecordId) {
-        return err(new Error('Card must have an original published record ID'));
+      if (!card.publishedRecordId) {
+        return err(new Error('Card must have a published record ID'));
       }
 
       // Find the card link in the collection
@@ -162,16 +168,24 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         return err(new Error('Card is not linked to this collection'));
       }
 
+      let originalCardRecordId: PublishedRecordIdProps | undefined;
+      if (
+        libraryMembership.publishedRecordId.uri !== card.publishedRecordId.uri
+      ) {
+        originalCardRecordId = card.publishedRecordId.getValue();
+      }
+
       const linkRecordDTO = CollectionLinkMapper.toCreateRecordDTO(
         cardLink,
         collection.publishedRecordId.getValue(),
         libraryMembership.publishedRecordId.getValue(),
-        card.originalPublishedRecordId.getValue(),
+        originalCardRecordId,
       );
+      linkRecordDTO.$type = this.collectionLinkCollection as any;
 
       const createResult = await agent.com.atproto.repo.createRecord({
         repo: curatorDid.value,
-        collection: this.COLLECTION_LINK_COLLECTION,
+        collection: this.collectionLinkCollection,
         record: linkRecordDTO,
       });
 
@@ -220,7 +234,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
       await agent.com.atproto.repo.deleteRecord({
         repo,
-        collection: this.COLLECTION_LINK_COLLECTION,
+        collection: this.collectionLinkCollection,
         rkey,
       });
 
@@ -265,7 +279,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
       // Delete the collection record
       await agent.com.atproto.repo.deleteRecord({
         repo,
-        collection: this.COLLECTION_COLLECTION,
+        collection: this.collectionCollection,
         rkey,
       });
 

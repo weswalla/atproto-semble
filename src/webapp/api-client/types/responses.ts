@@ -49,7 +49,6 @@ export interface UrlMetadata {
 
 export interface GetUrlMetadataResponse {
   metadata: UrlMetadata;
-  existingCardId?: string;
 }
 
 export interface UrlCardView {
@@ -297,4 +296,14 @@ export interface GetGlobalFeedResponse {
     limit: number;
     nextCursor?: string;
   };
+}
+
+export interface GetUrlStatusForMyLibraryResponse {
+  cardId?: string;
+  collections?: {
+    id: string;
+    uri?: string;
+    name: string;
+    description?: string;
+  }[];
 }

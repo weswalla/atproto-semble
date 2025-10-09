@@ -6,6 +6,7 @@ import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 import dotenv from 'dotenv';
 import { AppPasswordAgentService } from './AppPasswordAgentService';
 import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
+import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 
 // Load environment variables from .env.test
 dotenv.config({ path: '.env.test' });
@@ -17,6 +18,7 @@ describe('ATProtoCardPublisher', () => {
   let publisher: ATProtoCardPublisher;
   let curatorId: CuratorId;
   let publishedCardIds: PublishedRecordId[] = [];
+  const envConfig: EnvironmentConfigService = new EnvironmentConfigService();
 
   beforeAll(async () => {
     if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
@@ -30,7 +32,10 @@ describe('ATProtoCardPublisher', () => {
       password: process.env.BSKY_APP_PASSWORD,
     });
 
-    publisher = new ATProtoCardPublisher(agentService);
+    publisher = new ATProtoCardPublisher(
+      agentService,
+      envConfig.getAtProtoConfig().collections.card,
+    );
     curatorId = CuratorId.create(process.env.BSKY_DID).unwrap();
   });
 
@@ -307,13 +312,13 @@ describe('ATProtoCardPublisher', () => {
           .withUrl(parentUrl) // Optional: include the same URL as reference
           .buildOrThrow();
 
-        // Add note card to curator's library
         noteCard.addToLibrary(curatorId);
 
         // 3. Publish the note card
         const notePublishResult = await publisher.publishCardToLibrary(
           noteCard,
           curatorId,
+          parentUrlCard,
         );
         expect(notePublishResult.isOk()).toBe(true);
 
@@ -383,48 +388,43 @@ describe('ATProtoCardPublisher', () => {
     }, 20000);
   });
 
-  describe('Card with Original Published Record ID', () => {
-    it('should publish a card that references an original published record', async () => {
+  describe('Note Card with Original Published Record ID', () => {
+    it('should publish a note card that references an original published record', async () => {
       // Skip test if credentials are not available
       if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
         console.warn('Skipping test: BSKY credentials not found in .env.test');
         return;
       }
 
-      const testUrl = URL.create(
-        'https://example.com/original-article',
+      const referenceUrl = URL.create(
+        'https://example.com/referenced-article',
       ).unwrap();
 
-      // Create URL metadata
-      const metadata = UrlMetadata.create({
-        url: testUrl.value,
-        title: 'Original Article',
-        description: 'An original article that will be referenced',
-        author: 'Original Author',
-        siteName: 'Example.com',
-        type: 'article',
-        retrievedAt: new Date(),
-      }).unwrap();
-
-      // Create a card with an original published record ID (simulating a card that references another published card)
+      // Create a note card with an original published record ID (simulating a note that references another published card)
       const originalRecordId = {
         uri: 'at://did:plc:example/network.cosmik.card/original123',
         cid: 'bafyoriginal123',
       };
 
-      const cardWithOriginal = new CardBuilder()
-        .withCuratorId(curatorId.value)
-        .withUrlCard(testUrl, metadata)
-        .withUrl(testUrl)
-        .withOriginalPublishedRecordId(originalRecordId)
+      const curatorId2 = CuratorId.create('did:plc:defaultCurator2').unwrap();
+      const noteCardWithOriginal = new CardBuilder()
+        .withCuratorId(curatorId2.value)
+        .withNoteCard('This is my note about the referenced article')
+        .withUrl(referenceUrl) // Optional URL reference
+        .withPublishedRecordId(originalRecordId)
         .buildOrThrow();
 
       // Add card to curator's library first
-      cardWithOriginal.addToLibrary(curatorId);
+      noteCardWithOriginal.addToLibrary(curatorId2);
+      noteCardWithOriginal.markCardInLibraryAsPublished(
+        curatorId2,
+        PublishedRecordId.create(originalRecordId),
+      );
+      noteCardWithOriginal.addToLibrary(curatorId);
 
       // 1. Publish the card
       const publishResult = await publisher.publishCardToLibrary(
-        cardWithOriginal,
+        noteCardWithOriginal,
         curatorId,
       );
       expect(publishResult.isOk()).toBe(true);
@@ -434,24 +434,28 @@ describe('ATProtoCardPublisher', () => {
         publishedCardIds.push(publishedRecordId);
 
         console.log(
-          `Published card with original record ID: ${publishedRecordId.getValue().uri}`,
+          `Published note card with original record ID: ${publishedRecordId.getValue().uri}`,
         );
 
         // Verify the card has the original published record ID
-        expect(cardWithOriginal.originalPublishedRecordId).toBeDefined();
-        expect(cardWithOriginal.originalPublishedRecordId!.getValue().uri).toBe(
+        expect(noteCardWithOriginal.publishedRecordId).toBeDefined();
+        expect(noteCardWithOriginal.publishedRecordId!.getValue().uri).toBe(
           originalRecordId.uri,
         );
-        expect(cardWithOriginal.originalPublishedRecordId!.getValue().cid).toBe(
+        expect(noteCardWithOriginal.publishedRecordId!.getValue().cid).toBe(
           originalRecordId.cid,
         );
 
+        // Verify it's a note card with optional URL
+        expect(noteCardWithOriginal.isNoteCard).toBe(true);
+        expect(noteCardWithOriginal.url).toBe(referenceUrl);
+
         // Mark card as published in library
-        cardWithOriginal.markCardInLibraryAsPublished(
+        noteCardWithOriginal.markCardInLibraryAsPublished(
           curatorId,
           publishedRecordId,
         );
-        expect(cardWithOriginal.isInLibrary(curatorId)).toBe(true);
+        expect(noteCardWithOriginal.isInLibrary(curatorId)).toBe(true);
 
         // 2. Unpublish the card
         if (UNPUBLISH) {
@@ -461,7 +465,9 @@ describe('ATProtoCardPublisher', () => {
           );
           expect(unpublishResult.isOk()).toBe(true);
 
-          console.log('Successfully unpublished card with original record ID');
+          console.log(
+            'Successfully unpublished note card with original record ID',
+          );
 
           // Remove from cleanup list since we've already unpublished it
           publishedCardIds = publishedCardIds.filter(
@@ -482,7 +488,10 @@ describe('ATProtoCardPublisher', () => {
         password: 'invalid-password',
       });
 
-      const invalidPublisher = new ATProtoCardPublisher(invalidAgentService);
+      const invalidPublisher = new ATProtoCardPublisher(
+        invalidAgentService,
+        envConfig.getAtProtoConfig().collections.card,
+      );
 
       const invalidCuratorId = CuratorId.create('did:plc:invalid').unwrap();
       const testCard = new CardBuilder()

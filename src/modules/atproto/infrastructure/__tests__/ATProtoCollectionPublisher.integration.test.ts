@@ -3,19 +3,19 @@ import { FakeCardPublisher } from 'src/modules/cards/tests/utils/FakeCardPublish
 import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
 import { CollectionBuilder } from 'src/modules/cards/tests/utils/builders/CollectionBuilder';
 import { CardBuilder } from 'src/modules/cards/tests/utils/builders/CardBuilder';
-import {
-  Collection,
-  CollectionAccessType,
-} from 'src/modules/cards/domain/Collection';
-import { Card } from 'src/modules/cards/domain/Card';
+import { CollectionAccessType } from 'src/modules/cards/domain/Collection';
 import { URL } from 'src/modules/cards/domain/value-objects/URL';
 import { UrlMetadata } from 'src/modules/cards/domain/value-objects/UrlMetadata';
 import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 import dotenv from 'dotenv';
 import { AppPasswordAgentService } from './AppPasswordAgentService';
+import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 
 // Load environment variables from .env.test
 dotenv.config({ path: '.env.test' });
+
+// Set to false to skip unpublishing (useful for debugging published records)
+const UNPUBLISH = false;
 
 describe('ATProtoCollectionPublisher', () => {
   let collectionPublisher: ATProtoCollectionPublisher;
@@ -23,6 +23,7 @@ describe('ATProtoCollectionPublisher', () => {
   let curatorId: CuratorId;
   let publishedCollectionIds: PublishedRecordId[] = [];
   let publishedLinkIds: PublishedRecordId[] = [];
+  const envConfig: EnvironmentConfigService = new EnvironmentConfigService();
 
   beforeAll(async () => {
     if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
@@ -36,14 +37,21 @@ describe('ATProtoCollectionPublisher', () => {
       password: process.env.BSKY_APP_PASSWORD,
     });
 
-    collectionPublisher = new ATProtoCollectionPublisher(agentService);
+    collectionPublisher = new ATProtoCollectionPublisher(
+      agentService,
+      envConfig.getAtProtoConfig().collections.collection,
+      envConfig.getAtProtoConfig().collections.collectionLink,
+    );
     cardPublisher = new FakeCardPublisher();
     curatorId = CuratorId.create(process.env.BSKY_DID).unwrap();
   });
 
   afterAll(async () => {
-    // Skip cleanup if credentials are not available
-    if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
+    // Skip cleanup if credentials are not available or UNPUBLISH is false
+    if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD || !UNPUBLISH) {
+      if (!UNPUBLISH) {
+        console.log('Skipping cleanup: UNPUBLISH is set to false');
+      }
       return;
     }
 
@@ -115,16 +123,20 @@ describe('ATProtoCollectionPublisher', () => {
         }
 
         // 3. Unpublish the collection
-        const unpublishResult =
-          await collectionPublisher.unpublish(collectionRecordId);
-        expect(unpublishResult.isOk()).toBe(true);
+        if (UNPUBLISH) {
+          const unpublishResult =
+            await collectionPublisher.unpublish(collectionRecordId);
+          expect(unpublishResult.isOk()).toBe(true);
 
-        console.log('Successfully unpublished empty collection');
+          console.log('Successfully unpublished empty collection');
 
-        // Remove from cleanup list since we've already unpublished it
-        publishedCollectionIds = publishedCollectionIds.filter(
-          (id) => id !== collectionRecordId,
-        );
+          // Remove from cleanup list since we've already unpublished it
+          publishedCollectionIds = publishedCollectionIds.filter(
+            (id) => id !== collectionRecordId,
+          );
+        } else {
+          console.log('Skipping unpublish: UNPUBLISH is set to false');
+        }
       }
     }, 15000);
 
@@ -148,7 +160,7 @@ describe('ATProtoCollectionPublisher', () => {
         .withCuratorId(curatorId.value)
         .withUrlCard(testUrl1, metadata1)
         .withUrl(testUrl1)
-        .withOriginalPublishedRecordId({
+        .withPublishedRecordId({
           uri: 'at://did:plc:original/network.cosmik.card/original1',
           cid: 'bafyoriginal1',
         })
@@ -166,7 +178,7 @@ describe('ATProtoCollectionPublisher', () => {
         .withCuratorId(curatorId.value)
         .withUrlCard(testUrl2, metadata2)
         .withUrl(testUrl2)
-        .withOriginalPublishedRecordId({
+        .withPublishedRecordId({
           uri: 'at://did:plc:original/network.cosmik.card/original2',
           cid: 'bafyoriginal2',
         })
@@ -266,7 +278,7 @@ describe('ATProtoCollectionPublisher', () => {
           .withCuratorId(curatorId.value)
           .withUrlCard(testUrl3, metadata3)
           .withUrl(testUrl3)
-          .withOriginalPublishedRecordId({
+          .withPublishedRecordId({
             uri: 'at://did:plc:original/network.cosmik.card/original3',
             cid: 'bafyoriginal3',
           })
@@ -301,16 +313,154 @@ describe('ATProtoCollectionPublisher', () => {
         );
 
         // 6. Unpublish the collection
-        const unpublishResult =
-          await collectionPublisher.unpublish(collectionRecordId);
-        expect(unpublishResult.isOk()).toBe(true);
+        if (UNPUBLISH) {
+          const unpublishResult =
+            await collectionPublisher.unpublish(collectionRecordId);
+          expect(unpublishResult.isOk()).toBe(true);
 
-        console.log('Successfully unpublished collection with cards');
+          console.log('Successfully unpublished collection with cards');
 
-        // Remove from cleanup list since we've already unpublished it
-        publishedCollectionIds = publishedCollectionIds.filter(
-          (id) => id !== collectionRecordId,
+          // Remove from cleanup list since we've already unpublished it
+          publishedCollectionIds = publishedCollectionIds.filter(
+            (id) => id !== collectionRecordId,
+          );
+        } else {
+          console.log('Skipping unpublish: UNPUBLISH is set to false');
+        }
+      }
+    }, 30000);
+
+    it('should publish a collection with a card shared between users', async () => {
+      // Skip test if credentials are not available
+      if (!process.env.BSKY_DID || !process.env.BSKY_APP_PASSWORD) {
+        console.warn('Skipping test: BSKY credentials not found in .env.test');
+        return;
+      }
+
+      // Create two different users (we'll simulate userB with the same credentials for testing)
+      const userA = CuratorId.create('did:plc:userA').unwrap();
+      const userB = curatorId; // Use our test credentials as userB
+
+      // 1. User A creates and publishes a note card to their library
+      const originalNote = new CardBuilder()
+        .withCuratorId(userA.value)
+        .withNoteCard('This is an original note created by User A')
+        .withPublishedRecordId({
+          uri: 'at://did:plc:userA/network.cosmik.card/original-note',
+          cid: 'bafyuserAnote123',
+        })
+        .buildOrThrow();
+
+      // Simulate User A adding to their own library and publishing
+      originalNote.addToLibrary(userA);
+      const userALibraryRecordId = PublishedRecordId.create({
+        uri: 'at://did:plc:userA/network.cosmik.card/userA-library-note',
+        cid: 'bafyuserAlib123',
+      });
+      originalNote.markCardInLibraryAsPublished(userA, userALibraryRecordId);
+
+      console.log(
+        `Simulated User A publishing note: ${originalNote.publishedRecordId?.getValue().uri}`,
+      );
+
+      // 2. User B adds the same card to their library
+      const addToLibraryResult = originalNote.addToLibrary(userB);
+      expect(addToLibraryResult.isOk()).toBe(true);
+
+      // User B publishes the card to their library (this creates a new record in User B's repo)
+      const userBPublishResult = await cardPublisher.publishCardToLibrary(
+        originalNote,
+        userB,
+      );
+      expect(userBPublishResult.isOk()).toBe(true);
+      const userBLibraryRecordId = userBPublishResult.unwrap();
+      originalNote.markCardInLibraryAsPublished(userB, userBLibraryRecordId);
+
+      console.log(
+        `User B published note to their library: ${userBLibraryRecordId.getValue().uri}`,
+      );
+
+      // 3. User B creates a collection
+      const userBCollection = new CollectionBuilder()
+        .withAuthorId(userB.value)
+        .withName('User B Collection with Shared Card')
+        .withDescription(
+          'Collection containing a card originally created by User A',
+        )
+        .withAccessType(CollectionAccessType.OPEN)
+        .buildOrThrow();
+
+      // 4. User B adds the card to their collection
+      const addCardResult = userBCollection.addCard(originalNote.cardId, userB);
+      expect(addCardResult.isOk()).toBe(true);
+
+      // 5. Publish User B's collection
+      const collectionPublishResult =
+        await collectionPublisher.publish(userBCollection);
+      expect(collectionPublishResult.isOk()).toBe(true);
+
+      if (collectionPublishResult.isOk()) {
+        const collectionRecordId = collectionPublishResult.value;
+        publishedCollectionIds.push(collectionRecordId);
+        userBCollection.markAsPublished(collectionRecordId);
+
+        console.log(
+          `Published User B's collection: ${collectionRecordId.getValue().uri}`,
         );
+
+        // 6. Publish the collection link (this should reference both User B's copy and User A's original)
+        const linkPublishResult =
+          await collectionPublisher.publishCardAddedToCollection(
+            originalNote,
+            userBCollection,
+            userB,
+          );
+        expect(linkPublishResult.isOk()).toBe(true);
+
+        if (linkPublishResult.isOk()) {
+          const linkRecordId = linkPublishResult.value;
+          publishedLinkIds.push(linkRecordId);
+          userBCollection.markCardLinkAsPublished(
+            originalNote.cardId,
+            linkRecordId,
+          );
+
+          console.log(
+            `Published collection link with cross-user card reference: ${linkRecordId.getValue().uri}`,
+          );
+
+          // Verify the card has different library memberships
+          expect(originalNote.libraryMembershipCount).toBe(2);
+          expect(originalNote.isInLibrary(userA)).toBe(true);
+          expect(originalNote.isInLibrary(userB)).toBe(true);
+
+          // Verify User B's library membership has a different published record ID than the original
+          const userBMembership = originalNote.getLibraryInfo(userB);
+          expect(userBMembership).toBeDefined();
+          expect(userBMembership!.publishedRecordId).toBeDefined();
+          expect(userBMembership!.publishedRecordId!.uri).not.toBe(
+            originalNote.publishedRecordId!.uri,
+          );
+
+          console.log(
+            `Verified cross-user card sharing: Original=${originalNote.publishedRecordId!.uri}, UserB=${userBMembership!.publishedRecordId!.uri}`,
+          );
+        }
+
+        // 7. Clean up
+        if (UNPUBLISH) {
+          const unpublishResult =
+            await collectionPublisher.unpublish(collectionRecordId);
+          expect(unpublishResult.isOk()).toBe(true);
+
+          console.log('Successfully unpublished collection with shared card');
+
+          publishedCollectionIds = publishedCollectionIds.filter(
+            (id) => id !== collectionRecordId,
+          );
+        } else {
+          console.log('Skipping unpublish: UNPUBLISH is set to false');
+        }
       }
     }, 30000);
   });
@@ -355,16 +505,20 @@ describe('ATProtoCollectionPublisher', () => {
         expect(collection.collaboratorIds[0]?.value).toBe(collaboratorDid);
 
         // 2. Unpublish the collection
-        const unpublishResult =
-          await collectionPublisher.unpublish(collectionRecordId);
-        expect(unpublishResult.isOk()).toBe(true);
+        if (UNPUBLISH) {
+          const unpublishResult =
+            await collectionPublisher.unpublish(collectionRecordId);
+          expect(unpublishResult.isOk()).toBe(true);
 
-        console.log('Successfully unpublished closed collection');
+          console.log('Successfully unpublished closed collection');
 
-        // Remove from cleanup list since we've already unpublished it
-        publishedCollectionIds = publishedCollectionIds.filter(
-          (id) => id !== collectionRecordId,
-        );
+          // Remove from cleanup list since we've already unpublished it
+          publishedCollectionIds = publishedCollectionIds.filter(
+            (id) => id !== collectionRecordId,
+          );
+        } else {
+          console.log('Skipping unpublish: UNPUBLISH is set to false');
+        }
       }
     }, 15000);
   });
@@ -379,6 +533,8 @@ describe('ATProtoCollectionPublisher', () => {
 
       const invalidPublisher = new ATProtoCollectionPublisher(
         invalidAgentService,
+        envConfig.getAtProtoConfig().collections.collection,
+        envConfig.getAtProtoConfig().collections.collectionLink,
       );
 
       const testCollection = new CollectionBuilder()
@@ -468,12 +624,16 @@ describe('ATProtoCollectionPublisher', () => {
         }
 
         // Clean up
-        const unpublishResult =
-          await collectionPublisher.unpublish(collectionRecordId);
-        expect(unpublishResult.isOk()).toBe(true);
-        publishedCollectionIds = publishedCollectionIds.filter(
-          (id) => id !== collectionRecordId,
-        );
+        if (UNPUBLISH) {
+          const unpublishResult =
+            await collectionPublisher.unpublish(collectionRecordId);
+          expect(unpublishResult.isOk()).toBe(true);
+          publishedCollectionIds = publishedCollectionIds.filter(
+            (id) => id !== collectionRecordId,
+          );
+        } else {
+          console.log('Skipping unpublish: UNPUBLISH is set to false');
+        }
       }
     }, 15000);
   });

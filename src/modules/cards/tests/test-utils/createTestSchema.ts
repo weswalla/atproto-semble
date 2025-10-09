@@ -19,11 +19,12 @@ export async function createTestSchema(db: PostgresJsDatabase) {
     // Cards table (references published_records and self-references)
     sql`CREATE TABLE IF NOT EXISTS cards (
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      author_id TEXT NOT NULL,
       type TEXT NOT NULL,
       content_data JSONB NOT NULL,
       url TEXT,
       parent_card_id UUID REFERENCES cards(id),
-      original_published_record_id UUID REFERENCES published_records(id),
+      published_record_id UUID REFERENCES published_records(id),
       library_count INTEGER NOT NULL DEFAULT 0,
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -102,5 +103,29 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   // Index for efficient AT URI lookups
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS published_records_uri_idx ON published_records(uri);
+  `);
+
+  // Cards table indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS cards_author_url_idx ON cards(author_id, url);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS cards_author_id_idx ON cards(author_id);
+  `);
+
+  // Collections table indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS collections_author_id_idx ON collections(author_id);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS collections_author_updated_at_idx ON collections(author_id, updated_at);
+  `);
+
+  // Collection cards table indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS collection_cards_card_id_idx ON collection_cards(card_id);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS collection_cards_collection_id_idx ON collection_cards(collection_id);
   `);
 }

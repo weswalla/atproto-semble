@@ -1,8 +1,8 @@
-import { Result, ok, err } from '../../../../shared/core/Result';
 import {
   ICollectionQueryRepository,
   CollectionQueryOptions,
   CollectionQueryResultDTO,
+  CollectionContainingCardDTO,
   PaginatedQueryResult,
   CollectionSortField,
   SortOrder,
@@ -114,6 +114,45 @@ export class InMemoryCollectionQueryRepository
     });
 
     return sorted;
+  }
+
+  async getCollectionsContainingCardForUser(
+    cardId: string,
+    curatorId: string,
+  ): Promise<CollectionContainingCardDTO[]> {
+    try {
+      // Get all collections and filter by creator
+      const allCollections = this.collectionRepository.getAllCollections();
+      const creatorCollections = allCollections.filter(
+        (collection) => collection.authorId.value === curatorId,
+      );
+
+      // Filter collections that contain the specified card
+      const collectionsWithCard = creatorCollections.filter((collection) =>
+        collection.cardLinks.some(
+          (link) => link.cardId.getStringValue() === cardId,
+        ),
+      );
+
+      // Transform to DTOs
+      const result: CollectionContainingCardDTO[] = collectionsWithCard.map(
+        (collection) => {
+          const collectionPublishedRecordId = collection.publishedRecordId;
+          return {
+            id: collection.collectionId.getStringValue(),
+            uri: collectionPublishedRecordId?.uri,
+            name: collection.name.value,
+            description: collection.description?.value,
+          };
+        },
+      );
+
+      return result;
+    } catch (error) {
+      throw new Error(
+        `Failed to get collections containing card: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
   }
 
   clear(): void {

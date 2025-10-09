@@ -1,4 +1,4 @@
-import { eq, desc, asc, count, sql, or, ilike } from 'drizzle-orm';
+import { eq, desc, asc, count, sql, or, ilike, and } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   ICollectionQueryRepository,
@@ -7,8 +7,9 @@ import {
   CollectionQueryResultDTO,
   CollectionSortField,
   SortOrder,
+  CollectionContainingCardDTO,
 } from '../../domain/ICollectionQueryRepository';
-import { collections } from './schema/collection.sql';
+import { collections, collectionCards } from './schema/collection.sql';
 import { publishedRecords } from './schema/publishedRecord.sql';
 import { CollectionMapper } from './mappers/CollectionMapper';
 
@@ -104,6 +105,48 @@ export class DrizzleCollectionQueryRepository
       };
     } catch (error) {
       console.error('Error in findByCreator:', error);
+      throw error;
+    }
+  }
+
+  async getCollectionsContainingCardForUser(
+    cardId: string,
+    curatorId: string,
+  ): Promise<CollectionContainingCardDTO[]> {
+    try {
+      // Find collections authored by this curator that contain this card
+      const collectionResults = await this.db
+        .select({
+          id: collections.id,
+          name: collections.name,
+          description: collections.description,
+          uri: publishedRecords.uri,
+        })
+        .from(collections)
+        .leftJoin(
+          publishedRecords,
+          eq(collections.publishedRecordId, publishedRecords.id),
+        )
+        .innerJoin(
+          collectionCards,
+          eq(collections.id, collectionCards.collectionId),
+        )
+        .where(
+          and(
+            eq(collections.authorId, curatorId),
+            eq(collectionCards.cardId, cardId),
+          ),
+        )
+        .orderBy(asc(collections.name));
+
+      return collectionResults.map((result) => ({
+        id: result.id,
+        uri: result.uri || undefined,
+        name: result.name,
+        description: result.description || undefined,
+      }));
+    } catch (error) {
+      console.error('Error in getCollectionsContainingCardForUser:', error);
       throw error;
     }
   }

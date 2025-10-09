@@ -9,11 +9,16 @@ import {
 } from '../lexicon/types/network/cosmik/card';
 import { StrongRef } from '../../domain';
 import { UrlMetadata as UrlMetadataVO } from 'src/modules/cards/domain/value-objects/UrlMetadata';
+import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 
 type CardRecordDTO = Record;
 
 export class CardMapper {
-  static toCreateRecordDTO(card: Card): CardRecordDTO {
+  static toCreateRecordDTO(
+    card: Card,
+    curatorId: CuratorId,
+    parentCard?: Card,
+  ): CardRecordDTO {
     const record: CardRecordDTO = {
       $type: 'network.cosmik.card',
       type: card.type.value,
@@ -26,12 +31,17 @@ export class CardMapper {
       record.url = card.url.value;
     }
 
-    // Add optional original card reference
-    if (card.originalPublishedRecordId) {
-      const strongRef = new StrongRef(
-        card.originalPublishedRecordId.getValue(),
-      );
+    if (card.publishedRecordId && !curatorId.equals(card.curatorId)) {
+      const strongRef = new StrongRef(card.publishedRecordId.getValue());
       record.originalCard = {
+        uri: strongRef.getValue().uri,
+        cid: strongRef.getValue().cid,
+      };
+    }
+
+    if (card.parentCardId && parentCard && parentCard.publishedRecordId) {
+      const strongRef = new StrongRef(parentCard.publishedRecordId.getValue());
+      record.parentCard = {
         uri: strongRef.getValue().uri,
         cid: strongRef.getValue().cid,
       };
@@ -74,7 +84,6 @@ export class CardMapper {
   private static mapUrlMetadata(metadata: UrlMetadataVO): $Typed<UrlMetadata> {
     return {
       $type: 'network.cosmik.card#urlMetadata',
-      url: metadata.url,
       title: metadata.title,
       description: metadata.description,
       author: metadata.author,

@@ -100,6 +100,7 @@ export class CardFactory {
 
       // Create the card
       return Card.create({
+        curatorId,
         type: cardType,
         content,
         url,
@@ -123,7 +124,7 @@ export class CardFactory {
         return this.createUrlContent(cardInput);
 
       case CardTypeEnum.NOTE:
-        return this.createNoteContent(cardInput, curatorId);
+        return this.createNoteContent(cardInput);
 
       default:
         return err(new CardValidationError('Invalid card type'));
@@ -157,9 +158,8 @@ export class CardFactory {
 
   private static createNoteContent(
     input: INoteCardInput,
-    curatorId: CuratorId,
   ): Result<CardContent, CardValidationError> {
-    return CardContent.createNoteContent(input.text, curatorId);
+    return CardContent.createNoteContent(input.text);
   }
 
   // Type guards

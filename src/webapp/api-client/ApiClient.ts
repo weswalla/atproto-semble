@@ -57,6 +57,8 @@ import type {
   GetUrlCardsResponse,
   GetProfileResponse,
   GetProfileParams,
+  GetUrlStatusForMyLibraryParams,
+  GetUrlStatusForMyLibraryResponse,
 } from './types';
 
 // Main API Client class using composition
@@ -150,6 +152,13 @@ export class ApiClient {
     params: GetCollectionsParams,
   ): Promise<GetCollectionsResponse> {
     return this.queryClient.getUserCollections(params);
+  }
+
+  async getUrlStatusForMyLibrary(
+    params: GetUrlStatusForMyLibraryParams,
+  ): Promise<GetUrlStatusForMyLibraryResponse> {
+    this.requireAuthentication('getUrlStatusForMyLibrary');
+    return this.queryClient.getUrlStatusForMyLibrary(params);
   }
 
   // Card operations - delegate to CardClient (all require authentication)

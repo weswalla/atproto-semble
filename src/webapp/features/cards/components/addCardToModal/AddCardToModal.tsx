@@ -15,19 +15,17 @@ import {
   Alert,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
 import { Fragment, useState } from 'react';
 import { IoSearch } from 'react-icons/io5';
 import { BiPlus } from 'react-icons/bi';
-import useMyCollections from '../../../collections/lib/queries/useMyCollections';
-import useCard from '@/features/cards/lib/queries/useGetCard';
-import { notifications } from '@mantine/notifications';
 import CollectionSelectorError from '../../../collections/components/collectionSelector/Error.CollectionSelector';
 import CollectionSelectorItemList from '../../../collections/components/collectionSelectorItemList/CollectionSelectorItemList';
 import CreateCollectionDrawer from '../../../collections/components/createCollectionDrawer/CreateCollectionDrawer';
 import CardToBeAddedPreview from './CardToBeAddedPreview';
 import useAddCardToLibrary from '../../lib/mutations/useAddCardToLibrary';
-import useGetLibrariesForCard from '../../lib/queries/useGetLibrariesForcard';
-import { useAuth } from '@/hooks/useAuth';
+import useGetCardFromMyLibrary from '../../lib/queries/useGetCardFromMyLibrary';
+import useMyCollections from '../../../collections/lib/queries/useMyCollections';
 
 interface Props {
   isOpen: boolean;
@@ -37,18 +35,15 @@ interface Props {
 }
 
 export default function AddCardToModal(props: Props) {
-  const { user, isLoading: isLoadingUser } = useAuth();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch] = useDebouncedValue(search, 200);
   const searchedCollections = useCollectionSearch({ query: debouncedSearch });
 
-  const libraries = useGetLibrariesForCard({ id: props.cardId });
-  const isInUserLibrary = libraries.data.users.some((u) => u.id === user?.id);
-
   const addCardToLibrary = useAddCardToLibrary();
-  const card = useCard({ id: props.cardId });
+
+  const cardStaus = useGetCardFromMyLibrary({ url: props.cardContent.url });
   const { data, error } = useMyCollections();
   const [selectedCollections, setSelectedCollections] = useState<
     SelectableCollectionItem[]
@@ -73,12 +68,14 @@ export default function AddCardToModal(props: Props) {
     data?.pages.flatMap((page) => page.collections ?? []) ?? [];
 
   const collectionsWithCard = allCollections.filter((c) =>
-    card.data?.collections.some((col) => col.id === c.id),
+    cardStaus.data.collections?.some((col) => col.id === c.id),
   );
 
   const collectionsWithoutCard = allCollections.filter(
     (c) => !collectionsWithCard.some((col) => col.id === c.id),
   );
+
+  const isInUserLibrary = collectionsWithCard.length > 0;
 
   const hasCollections = allCollections.length > 0;
   const hasSelectedCollections = selectedCollections.length > 0;
@@ -88,7 +85,7 @@ export default function AddCardToModal(props: Props) {
 
     addCardToLibrary.mutate(
       {
-        cardId: props.cardId,
+        url: props.cardContent.url,
         collectionIds: selectedCollections.map((c) => c.id),
       },
       {
@@ -278,11 +275,8 @@ export default function AddCardToModal(props: Props) {
                 onClick={handleAddCard}
                 // disabled when:
                 // user already has the card in a collection (and therefore in library)
-                // and when it's already in library and no new collection is selected yet
-                disabled={
-                  isLoadingUser ||
-                  (isInUserLibrary && selectedCollections.length === 0)
-                }
+                // and no new collection is selected yet
+                disabled={isInUserLibrary && selectedCollections.length === 0}
                 loading={addCardToLibrary.isPending}
               >
                 Add

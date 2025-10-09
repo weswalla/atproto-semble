@@ -125,6 +125,7 @@ describe('GetCollectionPageUseCase', () => {
       ).unwrap();
 
       const card1Result = Card.create({
+        curatorId: curatorId,
         type: cardType1,
         content: cardContent1,
         url: url1,
@@ -157,6 +158,7 @@ describe('GetCollectionPageUseCase', () => {
       ).unwrap();
 
       const card2Result = Card.create({
+        curatorId: curatorId,
         type: cardType2,
         content: cardContent2,
         url: url2,
@@ -234,6 +236,7 @@ describe('GetCollectionPageUseCase', () => {
       ).unwrap();
 
       const cardResult = Card.create({
+        curatorId: curatorId,
         type: cardType,
         content: cardContent,
         url: url,
@@ -252,10 +255,10 @@ describe('GetCollectionPageUseCase', () => {
 
       // Create a note card that references the same URL
       const noteCardResult = Card.create({
+        curatorId: curatorId,
         type: CardType.create(CardTypeEnum.NOTE).unwrap(),
         content: CardContent.createNoteContent(
           'This is my note about the article',
-          curatorId,
         ).unwrap(),
         parentCardId: card.cardId,
         url: url,
@@ -353,6 +356,7 @@ describe('GetCollectionPageUseCase', () => {
         ).unwrap();
 
         const cardResult = Card.create({
+          curatorId: curatorId,
           type: cardType,
           content: cardContent,
           url: url,
@@ -461,7 +465,7 @@ describe('GetCollectionPageUseCase', () => {
       // Create URL cards with different properties for sorting
       const now = new Date();
 
-      // Create Alpha card
+      // Create Alpha card (oldest created, middle updated)
       const alphaMetadata = UrlMetadata.create({
         url: 'https://example.com/alpha',
         title: 'Alpha Article',
@@ -475,6 +479,7 @@ describe('GetCollectionPageUseCase', () => {
       ).unwrap();
 
       const alphaCardResult = Card.create({
+        curatorId: curatorId,
         type: alphaCardType,
         content: alphaCardContent,
         url: alphaUrl,
@@ -482,8 +487,8 @@ describe('GetCollectionPageUseCase', () => {
           { curatorId: curatorId, addedAt: new Date(now.getTime() - 5000) },
         ],
         libraryCount: 1,
-        createdAt: new Date(now.getTime() - 2000),
-        updatedAt: new Date(now.getTime() - 1000),
+        createdAt: new Date(now.getTime() - 3000), // oldest
+        updatedAt: new Date(now.getTime() - 1000), // middle
       });
 
       if (alphaCardResult.isErr()) {
@@ -492,7 +497,7 @@ describe('GetCollectionPageUseCase', () => {
 
       await cardRepo.save(alphaCardResult.value);
 
-      // Create Beta card
+      // Create Beta card (middle created, oldest updated)
       const betaMetadata = UrlMetadata.create({
         url: 'https://example.com/beta',
         title: 'Beta Article',
@@ -506,23 +511,16 @@ describe('GetCollectionPageUseCase', () => {
       ).unwrap();
 
       const betaCardResult = Card.create({
+        curatorId: curatorId,
         type: betaCardType,
         content: betaCardContent,
         url: betaUrl,
         libraryMemberships: [
           { curatorId: curatorId, addedAt: new Date(now.getTime() - 5000) },
-          {
-            curatorId: CuratorId.create('did:plc:anothercurator').unwrap(),
-            addedAt: new Date(now.getTime() - 2000),
-          },
-          {
-            curatorId: CuratorId.create('did:plc:thirdcurator').unwrap(),
-            addedAt: new Date(now.getTime() - 1000),
-          },
         ],
-        libraryCount: 3,
-        createdAt: new Date(now.getTime() - 1000),
-        updatedAt: new Date(now.getTime() - 2000),
+        libraryCount: 1,
+        createdAt: new Date(now.getTime() - 2000), // middle
+        updatedAt: new Date(now.getTime() - 3000), // oldest
       });
 
       if (betaCardResult.isErr()) {
@@ -531,7 +529,7 @@ describe('GetCollectionPageUseCase', () => {
 
       await cardRepo.save(betaCardResult.value);
 
-      // Create Gamma card
+      // Create Gamma card (newest created, newest updated)
       const gammaMetadata = UrlMetadata.create({
         url: 'https://example.com/gamma',
         title: 'Gamma Article',
@@ -545,19 +543,16 @@ describe('GetCollectionPageUseCase', () => {
       ).unwrap();
 
       const gammaCardResult = Card.create({
+        curatorId: curatorId,
         type: gammaCardType,
         content: gammaCardContent,
         url: gammaUrl,
         libraryMemberships: [
           { curatorId: curatorId, addedAt: new Date(now.getTime() - 3000) },
-          {
-            curatorId: CuratorId.create('did:plc:anothercurator').unwrap(),
-            addedAt: new Date(now.getTime() - 1000),
-          },
         ],
-        libraryCount: 2,
-        createdAt: new Date(now.getTime()),
-        updatedAt: new Date(now.getTime()),
+        libraryCount: 1,
+        createdAt: new Date(now.getTime() - 1000), // newest
+        updatedAt: new Date(now.getTime()), // newest
       });
 
       if (gammaCardResult.isErr()) {
@@ -573,41 +568,6 @@ describe('GetCollectionPageUseCase', () => {
       await collectionRepo.save(collection);
     });
 
-    it('should sort by library count descending', async () => {
-      const query = {
-        collectionId: collectionId.getStringValue(),
-        sortBy: CardSortField.LIBRARY_COUNT,
-        sortOrder: SortOrder.DESC,
-      };
-
-      const result = await useCase.execute(query);
-
-      expect(result.isOk()).toBe(true);
-      const response = result.unwrap();
-      expect(response.urlCards).toHaveLength(3);
-      expect(response.urlCards[0]?.libraryCount).toBe(3); // beta
-      expect(response.urlCards[1]?.libraryCount).toBe(2); // gamma
-      expect(response.urlCards[2]?.libraryCount).toBe(1); // alpha
-      expect(response.sorting.sortBy).toBe(CardSortField.LIBRARY_COUNT);
-      expect(response.sorting.sortOrder).toBe(SortOrder.DESC);
-    });
-
-    it('should sort by library count ascending', async () => {
-      const query = {
-        collectionId: collectionId.getStringValue(),
-        sortBy: CardSortField.LIBRARY_COUNT,
-        sortOrder: SortOrder.ASC,
-      };
-
-      const result = await useCase.execute(query);
-
-      expect(result.isOk()).toBe(true);
-      const response = result.unwrap();
-      expect(response.urlCards[0]?.libraryCount).toBe(1); // alpha
-      expect(response.urlCards[1]?.libraryCount).toBe(2); // gamma
-      expect(response.urlCards[2]?.libraryCount).toBe(3); // beta
-    });
-
     it('should sort by updated date descending', async () => {
       const query = {
         collectionId: collectionId.getStringValue(),
@@ -619,9 +579,9 @@ describe('GetCollectionPageUseCase', () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.urlCards[0]?.cardContent.title).toBe('Gamma Article'); // most recent
-      expect(response.urlCards[1]?.cardContent.title).toBe('Alpha Article');
-      expect(response.urlCards[2]?.cardContent.title).toBe('Beta Article'); // oldest
+      expect(response.urlCards[0]?.cardContent.title).toBe('Gamma Article'); // newest updated
+      expect(response.urlCards[1]?.cardContent.title).toBe('Alpha Article'); // middle updated
+      expect(response.urlCards[2]?.cardContent.title).toBe('Beta Article'); // oldest updated
     });
 
     it('should sort by created date ascending', async () => {
@@ -635,9 +595,29 @@ describe('GetCollectionPageUseCase', () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.urlCards[0]?.cardContent.title).toBe('Alpha Article'); // oldest
-      expect(response.urlCards[1]?.cardContent.title).toBe('Beta Article');
-      expect(response.urlCards[2]?.cardContent.title).toBe('Gamma Article'); // newest
+      expect(response.urlCards[0]?.cardContent.title).toBe('Alpha Article'); // oldest created
+      expect(response.urlCards[1]?.cardContent.title).toBe('Beta Article'); // middle created
+      expect(response.urlCards[2]?.cardContent.title).toBe('Gamma Article'); // newest created
+    });
+
+    it('should sort by library count (all URL cards have same count)', async () => {
+      const query = {
+        collectionId: collectionId.getStringValue(),
+        sortBy: CardSortField.LIBRARY_COUNT,
+        sortOrder: SortOrder.DESC,
+      };
+
+      const result = await useCase.execute(query);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.urlCards).toHaveLength(3);
+      // All URL cards have library count of 1 (only creator's library)
+      expect(response.urlCards[0]?.libraryCount).toBe(1);
+      expect(response.urlCards[1]?.libraryCount).toBe(1);
+      expect(response.urlCards[2]?.libraryCount).toBe(1);
+      expect(response.sorting.sortBy).toBe(CardSortField.LIBRARY_COUNT);
+      expect(response.sorting.sortOrder).toBe(SortOrder.DESC);
     });
 
     it('should use default sorting when not specified', async () => {
@@ -823,6 +803,7 @@ describe('GetCollectionPageUseCase', () => {
       const cardContent = CardContent.createUrlContent(url).unwrap();
 
       const cardResult = Card.create({
+        curatorId: curatorId,
         type: cardType,
         content: cardContent,
         url: url,

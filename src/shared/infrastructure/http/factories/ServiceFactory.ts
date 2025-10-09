@@ -61,6 +61,7 @@ export interface SharedServices {
   feedService: FeedService;
   nodeOauthClient: NodeOAuthClient;
   identityResolutionService: IIdentityResolutionService;
+  configService: EnvironmentConfigService;
 }
 
 // Web app specific services (includes publishers, auth middleware)
@@ -123,14 +124,22 @@ export class ServiceFactory {
       : new AtProtoOAuthProcessor(sharedServices.nodeOauthClient);
 
     const useFakePublishers = process.env.USE_FAKE_PUBLISHERS === 'true';
+    const collections = configService.getAtProtoCollections();
 
     const collectionPublisher = useFakePublishers
       ? new FakeCollectionPublisher()
-      : new ATProtoCollectionPublisher(sharedServices.atProtoAgentService);
+      : new ATProtoCollectionPublisher(
+          sharedServices.atProtoAgentService,
+          collections.collection,
+          collections.collectionLink,
+        );
 
     const cardPublisher = useFakePublishers
       ? new FakeCardPublisher()
-      : new ATProtoCardPublisher(sharedServices.atProtoAgentService);
+      : new ATProtoCardPublisher(
+          sharedServices.atProtoAgentService,
+          collections.card,
+        );
 
     const cardCollectionService = new CardCollectionService(
       repositories.collectionRepository,
@@ -287,6 +296,7 @@ export class ServiceFactory {
       feedService,
       nodeOauthClient,
       identityResolutionService,
+      configService,
     };
   }
 }

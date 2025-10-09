@@ -19,6 +19,7 @@ export class FakeCardPublisher implements ICardPublisher {
   async publishCardToLibrary(
     card: Card,
     curatorId: CuratorId,
+    parentCard?: Card,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     if (this.shouldFail) {
       return err(
@@ -28,7 +29,7 @@ export class FakeCardPublisher implements ICardPublisher {
 
     const cardId = card.cardId.getStringValue();
     // Simulate generating an AT URI based on curator DID and collection/rkey
-    const fakeUri = `at://${curatorId.value}/network.cosmik.card/${cardId}`;
+    const fakeUri = `at://${curatorId.value}/network.cosmik.dev.card/${cardId}`;
     const fakeCid = `fake-cid-${cardId}`;
     const publishedRecordId = PublishedRecordId.create({
       uri: fakeUri,

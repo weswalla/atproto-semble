@@ -145,6 +145,7 @@ describe('GetCollectionsForUrlUseCase', () => {
       const response = result.unwrap();
 
       expect(response.collections).toHaveLength(3);
+      expect(response.pagination.totalCount).toBe(3);
 
       // Check that all three collections are included
       const collectionIds = response.collections.map((c) => c.id);
@@ -197,6 +198,7 @@ describe('GetCollectionsForUrlUseCase', () => {
       const response = result.unwrap();
 
       expect(response.collections).toHaveLength(0);
+      expect(response.pagination.totalCount).toBe(0);
     });
 
     it('should not return collections that contain cards with different URLs', async () => {
@@ -382,6 +384,126 @@ describe('GetCollectionsForUrlUseCase', () => {
       expect(response.collections).toHaveLength(1);
       expect(response.collections[0]!.name).toBe('Unpublished Collection');
       expect(response.collections[0]!.uri).toBeUndefined();
+    });
+  });
+
+  describe('Pagination', () => {
+    it('should paginate results correctly', async () => {
+      const testUrl = 'https://example.com/popular-article';
+      const url = URL.create(testUrl).unwrap();
+
+      // Create 5 cards with the same URL from different users
+      const cards = [];
+      const curators = [];
+      const collections = [];
+
+      for (let i = 1; i <= 5; i++) {
+        const curator = CuratorId.create(`did:plc:curator${i}`).unwrap();
+        curators.push(curator);
+
+        const card = new CardBuilder()
+          .withCuratorId(curator.value)
+          .withType(CardTypeEnum.URL)
+          .withUrl(url)
+          .build();
+
+        if (card instanceof Error) {
+          throw new Error(`Failed to create card ${i}`);
+        }
+
+        card.addToLibrary(curator);
+        cards.push(card);
+        await cardRepository.save(card);
+
+        // Create collection for each user
+        const collection = new CollectionBuilder()
+          .withAuthorId(curator.value)
+          .withName(`Collection ${i}`)
+          .build();
+
+        if (collection instanceof Error) {
+          throw new Error(`Failed to create collection ${i}`);
+        }
+
+        collection.addCard(card.cardId, curator);
+        collections.push(collection);
+        await collectionRepository.save(collection);
+      }
+
+      // Test first page with limit 2
+      const query1 = {
+        url: testUrl,
+        page: 1,
+        limit: 2,
+      };
+
+      const result1 = await useCase.execute(query1);
+      expect(result1.isOk()).toBe(true);
+      const response1 = result1.unwrap();
+
+      expect(response1.collections).toHaveLength(2);
+      expect(response1.pagination.currentPage).toBe(1);
+      expect(response1.pagination.totalCount).toBe(5);
+      expect(response1.pagination.totalPages).toBe(3);
+      expect(response1.pagination.hasMore).toBe(true);
+
+      // Test second page
+      const query2 = {
+        url: testUrl,
+        page: 2,
+        limit: 2,
+      };
+
+      const result2 = await useCase.execute(query2);
+      expect(result2.isOk()).toBe(true);
+      const response2 = result2.unwrap();
+
+      expect(response2.collections).toHaveLength(2);
+      expect(response2.pagination.currentPage).toBe(2);
+      expect(response2.pagination.hasMore).toBe(true);
+
+      // Test last page
+      const query3 = {
+        url: testUrl,
+        page: 3,
+        limit: 2,
+      };
+
+      const result3 = await useCase.execute(query3);
+      expect(result3.isOk()).toBe(true);
+      const response3 = result3.unwrap();
+
+      expect(response3.collections).toHaveLength(1);
+      expect(response3.pagination.currentPage).toBe(3);
+      expect(response3.pagination.hasMore).toBe(false);
+    });
+
+    it('should respect limit cap of 100', async () => {
+      const query = {
+        url: 'https://example.com/test',
+        limit: 200, // Should be capped at 100
+      };
+
+      const result = await useCase.execute(query);
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+
+      expect(response.pagination.limit).toBe(100);
+    });
+
+    it('should use default pagination values', async () => {
+      const testUrl = 'https://example.com/test-article';
+
+      const query = {
+        url: testUrl,
+      };
+
+      const result = await useCase.execute(query);
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+
+      expect(response.pagination.currentPage).toBe(1);
+      expect(response.pagination.limit).toBe(20);
     });
   });
 

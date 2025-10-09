@@ -5,6 +5,8 @@ import { URL } from '../../../domain/value-objects/URL';
 
 export interface GetCollectionsForUrlQuery {
   url: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface CollectionForUrlDTO {
@@ -17,6 +19,13 @@ export interface CollectionForUrlDTO {
 
 export interface GetCollectionsForUrlResult {
   collections: CollectionForUrlDTO[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalCount: number;
+    hasMore: boolean;
+    limit: number;
+  };
 }
 
 export class ValidationError extends Error {
@@ -43,13 +52,29 @@ export class GetCollectionsForUrlUseCase
       );
     }
 
+    // Set defaults
+    const page = query.page || 1;
+    const limit = Math.min(query.limit || 20, 100); // Cap at 100
+
     try {
       // Execute query to get collections containing cards with this URL
-      const collections =
-        await this.collectionQueryRepo.getCollectionsWithUrl(query.url);
+      const result = await this.collectionQueryRepo.getCollectionsWithUrl(
+        query.url,
+        {
+          page,
+          limit,
+        },
+      );
 
       return ok({
-        collections,
+        collections: result.items,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(result.totalCount / limit),
+          totalCount: result.totalCount,
+          hasMore: result.hasMore,
+          limit,
+        },
       });
     } catch (error) {
       return err(

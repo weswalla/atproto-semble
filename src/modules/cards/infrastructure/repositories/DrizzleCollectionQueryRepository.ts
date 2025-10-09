@@ -9,6 +9,7 @@ import {
   SortOrder,
   CollectionContainingCardDTO,
   CollectionForUrlDTO,
+  CollectionForUrlQueryOptions,
 } from '../../domain/ICollectionQueryRepository';
 import { collections, collectionCards } from './schema/collection.sql';
 import { publishedRecords } from './schema/publishedRecord.sql';
@@ -154,8 +155,14 @@ export class DrizzleCollectionQueryRepository
     }
   }
 
-  async getCollectionsWithUrl(url: string): Promise<CollectionForUrlDTO[]> {
+  async getCollectionsWithUrl(
+    url: string,
+    options: CollectionForUrlQueryOptions,
+  ): Promise<PaginatedQueryResult<CollectionForUrlDTO>> {
     try {
+      const { page, limit } = options;
+      const offset = (page - 1) * limit;
+
       // Find all URL cards with this URL
       const urlCardsQuery = this.db
         .select({
@@ -167,12 +174,16 @@ export class DrizzleCollectionQueryRepository
       const urlCardsResult = await urlCardsQuery;
 
       if (urlCardsResult.length === 0) {
-        return [];
+        return {
+          items: [],
+          totalCount: 0,
+          hasMore: false,
+        };
       }
 
       const cardIds = urlCardsResult.map((card) => card.id);
 
-      // Find all collections that contain any of these cards
+      // Find all collections that contain any of these cards with pagination
       const collectionsQuery = this.db
         .selectDistinct({
           id: collections.id,
@@ -191,17 +202,41 @@ export class DrizzleCollectionQueryRepository
           eq(collections.id, collectionCards.collectionId),
         )
         .where(inArray(collectionCards.cardId, cardIds))
-        .orderBy(asc(collections.name));
+        .orderBy(asc(collections.name))
+        .limit(limit)
+        .offset(offset);
 
       const collectionsResult = await collectionsQuery;
 
-      return collectionsResult.map((result) => ({
+      // Get total count of distinct collections
+      const totalCountQuery = this.db
+        .selectDistinct({
+          id: collections.id,
+        })
+        .from(collections)
+        .innerJoin(
+          collectionCards,
+          eq(collections.id, collectionCards.collectionId),
+        )
+        .where(inArray(collectionCards.cardId, cardIds));
+
+      const totalCountResult = await totalCountQuery;
+      const totalCount = totalCountResult.length;
+      const hasMore = offset + collectionsResult.length < totalCount;
+
+      const items = collectionsResult.map((result) => ({
         id: result.id,
         uri: result.uri || undefined,
         name: result.name,
         description: result.description || undefined,
         authorId: result.authorId,
       }));
+
+      return {
+        items,
+        totalCount,
+        hasMore,
+      };
     } catch (error) {
       console.error('Error in getCollectionsWithUrl:', error);
       throw error;

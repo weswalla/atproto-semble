@@ -7,6 +7,7 @@ import {
   PaginatedQueryResult,
   CollectionSortField,
   SortOrder,
+  CollectionForUrlQueryOptions,
 } from '../../domain/ICollectionQueryRepository';
 import { Collection } from '../../domain/Collection';
 import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
@@ -152,7 +153,10 @@ export class InMemoryCollectionQueryRepository
     }
   }
 
-  async getCollectionsWithUrl(url: string): Promise<CollectionForUrlDTO[]> {
+  async getCollectionsWithUrl(
+    url: string,
+    options: CollectionForUrlQueryOptions,
+  ): Promise<PaginatedQueryResult<CollectionForUrlDTO>> {
     try {
       if (!this.cardRepository) {
         throw new Error(
@@ -176,7 +180,18 @@ export class InMemoryCollectionQueryRepository
         ),
       );
 
-      const result: CollectionForUrlDTO[] = collectionsWithUrl.map(
+      // Sort by name (alphabetically)
+      const sortedCollections = [...collectionsWithUrl].sort((a, b) =>
+        a.name.value.localeCompare(b.name.value),
+      );
+
+      // Apply pagination
+      const { page, limit } = options;
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedCollections = sortedCollections.slice(startIndex, endIndex);
+
+      const items: CollectionForUrlDTO[] = paginatedCollections.map(
         (collection) => {
           const collectionPublishedRecordId = collection.publishedRecordId;
           return {
@@ -189,7 +204,11 @@ export class InMemoryCollectionQueryRepository
         },
       );
 
-      return result;
+      return {
+        items,
+        totalCount: sortedCollections.length,
+        hasMore: endIndex < sortedCollections.length,
+      };
     } catch (error) {
       throw new Error(
         `Failed to get collections with URL: ${error instanceof Error ? error.message : String(error)}`,

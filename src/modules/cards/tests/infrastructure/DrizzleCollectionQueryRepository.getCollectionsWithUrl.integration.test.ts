@@ -153,13 +153,18 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       await collectionRepository.save(collection3);
 
       // Execute the query
-      const result = await queryRepository.getCollectionsWithUrl(testUrl);
+      const result = await queryRepository.getCollectionsWithUrl(testUrl, {
+        page: 1,
+        limit: 10,
+      });
 
       // Verify the result
-      expect(result).toHaveLength(3);
+      expect(result.items).toHaveLength(3);
+      expect(result.totalCount).toBe(3);
+      expect(result.hasMore).toBe(false);
 
       // Check that all three collections are included
-      const collectionIds = result.map((c) => c.id);
+      const collectionIds = result.items.map((c) => c.id);
       expect(collectionIds).toContain(
         collection1.collectionId.getStringValue(),
       );
@@ -171,7 +176,7 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       );
 
       // Verify collection details
-      const techArticles = result.find((c) => c.name === 'Tech Articles');
+      const techArticles = result.items.find((c) => c.name === 'Tech Articles');
       expect(techArticles).toBeDefined();
       expect(techArticles?.description).toBe('My tech articles');
       expect(techArticles?.authorId).toBe(curator1.value);
@@ -179,12 +184,12 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
         'at://did:plc:curator1/network.cosmik.collection/collection1',
       );
 
-      const readingList = result.find((c) => c.name === 'Reading List');
+      const readingList = result.items.find((c) => c.name === 'Reading List');
       expect(readingList).toBeDefined();
       expect(readingList?.description).toBe('Articles to read');
       expect(readingList?.authorId).toBe(curator2.value);
 
-      const favorites = result.find((c) => c.name === 'Favorites');
+      const favorites = result.items.find((c) => c.name === 'Favorites');
       expect(favorites).toBeDefined();
       expect(favorites?.description).toBeUndefined();
       expect(favorites?.authorId).toBe(curator3.value);
@@ -193,9 +198,14 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
     it('should return empty array when no collections contain cards with the specified URL', async () => {
       const testUrl = 'https://example.com/nonexistent-article';
 
-      const result = await queryRepository.getCollectionsWithUrl(testUrl);
+      const result = await queryRepository.getCollectionsWithUrl(testUrl, {
+        page: 1,
+        limit: 10,
+      });
 
-      expect(result).toHaveLength(0);
+      expect(result.items).toHaveLength(0);
+      expect(result.totalCount).toBe(0);
+      expect(result.hasMore).toBe(false);
     });
 
     it('should not return collections that contain cards with different URLs', async () => {
@@ -241,11 +251,14 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       await collectionRepository.save(collection2);
 
       // Query for testUrl1
-      const result = await queryRepository.getCollectionsWithUrl(testUrl1);
+      const result = await queryRepository.getCollectionsWithUrl(testUrl1, {
+        page: 1,
+        limit: 10,
+      });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]!.name).toBe('Collection 1');
-      expect(result[0]!.authorId).toBe(curator1.value);
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]!.name).toBe('Collection 1');
+      expect(result.items[0]!.authorId).toBe(curator1.value);
     });
 
     it('should return multiple collections from the same user if they contain the URL', async () => {
@@ -288,17 +301,20 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       await collectionRepository.save(collection3);
 
       // Execute the query
-      const result = await queryRepository.getCollectionsWithUrl(testUrl);
+      const result = await queryRepository.getCollectionsWithUrl(testUrl, {
+        page: 1,
+        limit: 10,
+      });
 
-      expect(result).toHaveLength(3);
+      expect(result.items).toHaveLength(3);
 
-      const collectionNames = result.map((c) => c.name);
+      const collectionNames = result.items.map((c) => c.name);
       expect(collectionNames).toContain('Tech');
       expect(collectionNames).toContain('Favorites');
       expect(collectionNames).toContain('To Read');
 
       // All should have the same author
-      result.forEach((collection) => {
+      result.items.forEach((collection) => {
         expect(collection.authorId).toBe(curator1.value);
       });
     });
@@ -327,11 +343,14 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       await collectionRepository.save(collection);
 
       // Execute the query
-      const result = await queryRepository.getCollectionsWithUrl(testUrl);
+      const result = await queryRepository.getCollectionsWithUrl(testUrl, {
+        page: 1,
+        limit: 10,
+      });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]!.name).toBe('Unpublished Collection');
-      expect(result[0]!.uri).toBeUndefined();
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]!.name).toBe('Unpublished Collection');
+      expect(result.items[0]!.uri).toBeUndefined();
     });
 
     it('should handle multiple cards with same URL from different users in same collection', async () => {
@@ -369,12 +388,15 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       await collectionRepository.save(collection);
 
       // Execute the query
-      const result = await queryRepository.getCollectionsWithUrl(testUrl);
+      const result = await queryRepository.getCollectionsWithUrl(testUrl, {
+        page: 1,
+        limit: 10,
+      });
 
       // Should return the collection only once, even though it has multiple cards with the URL
-      expect(result).toHaveLength(1);
-      expect(result[0]!.name).toBe('Shared Collection');
-      expect(result[0]!.authorId).toBe(curator1.value);
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]!.name).toBe('Shared Collection');
+      expect(result.items[0]!.authorId).toBe(curator1.value);
     });
 
     it('should not return collections containing NOTE cards with the URL', async () => {
@@ -418,12 +440,15 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       await collectionRepository.save(collection1);
       await collectionRepository.save(collection2);
 
-      const result = await queryRepository.getCollectionsWithUrl(testUrl);
+      const result = await queryRepository.getCollectionsWithUrl(testUrl, {
+        page: 1,
+        limit: 10,
+      });
 
       // Should only return the collection with the URL card, not the NOTE card
-      expect(result).toHaveLength(1);
-      expect(result[0]!.name).toBe('URL Collection');
-      expect(result[0]!.authorId).toBe(curator1.value);
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]!.name).toBe('URL Collection');
+      expect(result.items[0]!.authorId).toBe(curator1.value);
     });
 
     it('should handle cards not in any collection', async () => {
@@ -440,10 +465,13 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       card.addToLibrary(curator1);
       await cardRepository.save(card);
 
-      const result = await queryRepository.getCollectionsWithUrl(testUrl);
+      const result = await queryRepository.getCollectionsWithUrl(testUrl, {
+        page: 1,
+        limit: 10,
+      });
 
       // Should return empty since card is not in any collection
-      expect(result).toHaveLength(0);
+      expect(result.items).toHaveLength(0);
     });
 
     it('should return collections sorted alphabetically by name', async () => {
@@ -501,12 +529,137 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       await collectionRepository.save(collectionA);
       await collectionRepository.save(collectionM);
 
-      const result = await queryRepository.getCollectionsWithUrl(testUrl);
+      const result = await queryRepository.getCollectionsWithUrl(testUrl, {
+        page: 1,
+        limit: 10,
+      });
 
-      expect(result).toHaveLength(3);
-      expect(result[0]!.name).toBe('Apple Collection');
-      expect(result[1]!.name).toBe('Mango Collection');
-      expect(result[2]!.name).toBe('Zebra Collection');
+      expect(result.items).toHaveLength(3);
+      expect(result.items[0]!.name).toBe('Apple Collection');
+      expect(result.items[1]!.name).toBe('Mango Collection');
+      expect(result.items[2]!.name).toBe('Zebra Collection');
+    });
+  });
+
+  describe('Pagination', () => {
+    it('should paginate results correctly', async () => {
+      const testUrl = 'https://example.com/popular-article';
+      const url = URL.create(testUrl).unwrap();
+
+      // Create 5 cards with the same URL from different users
+      const cards = [];
+      const curators = [];
+      const collections = [];
+
+      for (let i = 1; i <= 5; i++) {
+        const curator = CuratorId.create(`did:plc:curator${i}`).unwrap();
+        curators.push(curator);
+
+        const card = new CardBuilder()
+          .withCuratorId(curator.value)
+          .withType(CardTypeEnum.URL)
+          .withUrl(url)
+          .buildOrThrow();
+
+        card.addToLibrary(curator);
+        cards.push(card);
+        await cardRepository.save(card);
+
+        // Create collection for each user
+        const collection = new CollectionBuilder()
+          .withAuthorId(curator.value)
+          .withName(`Collection ${i}`)
+          .buildOrThrow();
+
+        collection.addCard(card.cardId, curator);
+        collections.push(collection);
+        await collectionRepository.save(collection);
+      }
+
+      // Test first page with limit 2
+      const result1 = await queryRepository.getCollectionsWithUrl(testUrl, {
+        page: 1,
+        limit: 2,
+      });
+
+      expect(result1.items).toHaveLength(2);
+      expect(result1.totalCount).toBe(5);
+      expect(result1.hasMore).toBe(true);
+
+      // Test second page
+      const result2 = await queryRepository.getCollectionsWithUrl(testUrl, {
+        page: 2,
+        limit: 2,
+      });
+
+      expect(result2.items).toHaveLength(2);
+      expect(result2.totalCount).toBe(5);
+      expect(result2.hasMore).toBe(true);
+
+      // Test last page
+      const result3 = await queryRepository.getCollectionsWithUrl(testUrl, {
+        page: 3,
+        limit: 2,
+      });
+
+      expect(result3.items).toHaveLength(1);
+      expect(result3.totalCount).toBe(5);
+      expect(result3.hasMore).toBe(false);
+
+      // Verify no duplicate entries across pages
+      const allCollectionIds = [
+        ...result1.items.map((c) => c.id),
+        ...result2.items.map((c) => c.id),
+        ...result3.items.map((c) => c.i),
+      ];
+      const uniqueCollectionIds = [...new Set(allCollectionIds)];
+      expect(uniqueCollectionIds).toHaveLength(5);
+    });
+
+    it('should handle empty pages correctly', async () => {
+      const testUrl = 'https://example.com/empty-test';
+
+      const result = await queryRepository.getCollectionsWithUrl(testUrl, {
+        page: 2,
+        limit: 10,
+      });
+
+      expect(result.items).toHaveLength(0);
+      expect(result.totalCount).toBe(0);
+      expect(result.hasMore).toBe(false);
+    });
+
+    it('should handle large page numbers gracefully', async () => {
+      const testUrl = 'https://example.com/single-collection';
+      const url = URL.create(testUrl).unwrap();
+
+      // Create single card and collection
+      const card = new CardBuilder()
+        .withCuratorId(curator1.value)
+        .withType(CardTypeEnum.URL)
+        .withUrl(url)
+        .buildOrThrow();
+
+      card.addToLibrary(curator1);
+      await cardRepository.save(card);
+
+      const collection = new CollectionBuilder()
+        .withAuthorId(curator1.value)
+        .withName('Single Collection')
+        .buildOrThrow();
+
+      collection.addCard(card.cardId, curator1);
+      await collectionRepository.save(collection);
+
+      // Request page 10 when there's only 1 item
+      const result = await queryRepository.getCollectionsWithUrl(testUrl, {
+        page: 10,
+        limit: 10,
+      });
+
+      expect(result.items).toHaveLength(0);
+      expect(result.totalCount).toBe(1);
+      expect(result.hasMore).toBe(false);
     });
   });
 });

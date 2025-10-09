@@ -50,6 +50,11 @@ export interface CollectionForUrlDTO {
   authorId: string;
 }
 
+export interface CollectionForUrlQueryOptions {
+  page: number;
+  limit: number;
+}
+
 export interface ICollectionQueryRepository {
   findByCreator(
     curatorId: string,
@@ -61,5 +66,8 @@ export interface ICollectionQueryRepository {
     curatorId: string,
   ): Promise<CollectionContainingCardDTO[]>;
 
-  getCollectionsWithUrl(url: string): Promise<CollectionForUrlDTO[]>;
+  getCollectionsWithUrl(
+    url: string,
+    options: CollectionForUrlQueryOptions,
+  ): Promise<PaginatedQueryResult<CollectionForUrlDTO>>;
 }

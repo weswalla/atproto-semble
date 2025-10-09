@@ -275,12 +275,7 @@ export class UrlCardQueryService {
         })
         .from(libraryMemberships)
         .innerJoin(cards, eq(libraryMemberships.cardId, cards.id))
-        .where(
-          and(
-            eq(cards.url, url),
-            eq(cards.type, CardTypeEnum.URL),
-          ),
-        )
+        .where(and(eq(cards.url, url), eq(cards.type, CardTypeEnum.URL)))
         .limit(limit)
         .offset(offset);
 
@@ -291,12 +286,7 @@ export class UrlCardQueryService {
         .select({ count: count() })
         .from(libraryMemberships)
         .innerJoin(cards, eq(libraryMemberships.cardId, cards.id))
-        .where(
-          and(
-            eq(cards.url, url),
-            eq(cards.type, CardTypeEnum.URL),
-          ),
-        );
+        .where(and(eq(cards.url, url), eq(cards.type, CardTypeEnum.URL)));
 
       const totalCount = totalCountResult[0]?.count || 0;
       const hasMore = offset + librariesResult.length < totalCount;

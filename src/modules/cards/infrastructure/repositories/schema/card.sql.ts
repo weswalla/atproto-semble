@@ -37,11 +37,12 @@ export const cards: PgTableWithColumns<any> = pgTable(
 
       // Performance indexes
       // Optimizes sorting cards by type and update time in query results
-      typeUpdatedAtIdx: index('idx_cards_type_updated_at')
-        .on(table.type, table.updatedAt.desc()),
+      typeUpdatedAtIdx: index('idx_cards_type_updated_at').on(
+        table.type,
+        table.updatedAt.desc(),
+      ),
       // Index for getLibrariesForUrl - fast URL+type lookups
-      urlTypeIdx: index('idx_cards_url_type')
-        .on(table.url, table.type),
+      urlTypeIdx: index('idx_cards_url_type').on(table.url, table.type),
       // Partial index for finding NOTE cards by parent - only indexes NOTE type cards
       parentTypeIdx: index('idx_cards_parent_type')
         .on(table.parentCardId, table.type)

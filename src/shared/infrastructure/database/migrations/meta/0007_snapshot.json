@@ -224,12 +224,8 @@
           "name": "cards_parent_card_id_cards_id_fk",
           "tableFrom": "cards",
           "tableTo": "cards",
-          "columnsFrom": [
-            "parent_card_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_card_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -237,12 +233,8 @@
           "name": "cards_published_record_id_published_records_id_fk",
           "tableFrom": "cards",
           "tableTo": "published_records",
-          "columnsFrom": [
-            "published_record_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["published_record_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -368,12 +360,8 @@
           "name": "collection_cards_collection_id_collections_id_fk",
           "tableFrom": "collection_cards",
           "tableTo": "collections",
-          "columnsFrom": [
-            "collection_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["collection_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -381,12 +369,8 @@
           "name": "collection_cards_card_id_cards_id_fk",
           "tableFrom": "collection_cards",
           "tableTo": "cards",
-          "columnsFrom": [
-            "card_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["card_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -394,12 +378,8 @@
           "name": "collection_cards_published_record_id_published_records_id_fk",
           "tableFrom": "collection_cards",
           "tableTo": "published_records",
-          "columnsFrom": [
-            "published_record_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["published_record_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -439,12 +419,8 @@
           "name": "collection_collaborators_collection_id_collections_id_fk",
           "tableFrom": "collection_collaborators",
           "tableTo": "collections",
-          "columnsFrom": [
-            "collection_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["collection_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -560,12 +536,8 @@
           "name": "collections_published_record_id_published_records_id_fk",
           "tableFrom": "collections",
           "tableTo": "published_records",
-          "columnsFrom": [
-            "published_record_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["published_record_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -664,12 +636,8 @@
           "name": "library_memberships_card_id_cards_id_fk",
           "tableFrom": "library_memberships",
           "tableTo": "cards",
-          "columnsFrom": [
-            "card_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["card_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -677,12 +645,8 @@
           "name": "library_memberships_published_record_id_published_records_id_fk",
           "tableFrom": "library_memberships",
           "tableTo": "published_records",
-          "columnsFrom": [
-            "published_record_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["published_record_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -690,10 +654,7 @@
       "compositePrimaryKeys": {
         "library_memberships_card_id_user_id_pk": {
           "name": "library_memberships_card_id_user_id_pk",
-          "columns": [
-            "card_id",
-            "user_id"
-          ]
+          "columns": ["card_id", "user_id"]
         }
       },
       "uniqueConstraints": {},
@@ -925,12 +886,8 @@
           "name": "auth_refresh_tokens_user_did_users_id_fk",
           "tableFrom": "auth_refresh_tokens",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_did"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_did"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }

@@ -11,8 +11,12 @@ export class GetLibrariesForUrlController extends Controller {
   async executeImpl(req: Request, res: Response): Promise<any> {
     try {
       const { url } = req.query;
-      const page = req.query.page ? parseInt(req.query.page as string) : undefined;
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      const page = req.query.page
+        ? parseInt(req.query.page as string)
+        : undefined;
+      const limit = req.query.limit
+        ? parseInt(req.query.limit as string)
+        : undefined;
       const sortBy = req.query.sortBy as CardSortField;
       const sortOrder = req.query.sortOrder as SortOrder;
 

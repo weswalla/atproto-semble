@@ -49,7 +49,9 @@ export class GetLibrariesForUrlUseCase
     // Validate URL
     const urlResult = URL.create(query.url);
     if (urlResult.isErr()) {
-      return err(new ValidationError(`Invalid URL: ${urlResult.error.message}`));
+      return err(
+        new ValidationError(`Invalid URL: ${urlResult.error.message}`),
+      );
     }
 
     // Set defaults

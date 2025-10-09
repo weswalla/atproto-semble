@@ -73,9 +73,11 @@ export const collectionCards = pgTable(
         table.collectionId,
       ),
       // Performance indexes
+      // Covering index for getCardsInCollection - sorted by add time with cardId included
       collectionAddedIdx: index('idx_collection_cards_collection_added')
         .on(table.collectionId, table.addedAt.desc())
         .include(table.cardId),
+      // Covering index for finding collections containing a card - avoids table lookups
       cardCollectionIdx: index('idx_collection_cards_card_collection')
         .on(table.cardId)
         .include(table.collectionId),

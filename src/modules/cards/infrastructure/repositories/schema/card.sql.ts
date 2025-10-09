@@ -7,8 +7,8 @@ import {
   integer,
   index,
   type PgTableWithColumns,
-  sql,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { publishedRecords } from './publishedRecord.sql';
 
 export const cards: PgTableWithColumns<any> = pgTable(
@@ -39,10 +39,9 @@ export const cards: PgTableWithColumns<any> = pgTable(
       // Optimizes sorting cards by type and update time in query results
       typeUpdatedAtIdx: index('idx_cards_type_updated_at')
         .on(table.type, table.updatedAt.desc()),
-      // Covering index for getLibrariesForUrl - fast URL+type lookups with card ID included
+      // Index for getLibrariesForUrl - fast URL+type lookups
       urlTypeIdx: index('idx_cards_url_type')
-        .on(table.url, table.type)
-        .include(table.id),
+        .on(table.url, table.type),
       // Partial index for finding NOTE cards by parent - only indexes NOTE type cards
       parentTypeIdx: index('idx_cards_parent_type')
         .on(table.parentCardId, table.type)

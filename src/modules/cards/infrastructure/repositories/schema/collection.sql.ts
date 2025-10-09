@@ -73,14 +73,12 @@ export const collectionCards = pgTable(
         table.collectionId,
       ),
       // Performance indexes
-      // Covering index for getCardsInCollection - sorted by add time with cardId included
+      // Index for getCardsInCollection - sorted by add time
       collectionAddedIdx: index('idx_collection_cards_collection_added')
-        .on(table.collectionId, table.addedAt.desc())
-        .include(table.cardId),
-      // Covering index for finding collections containing a card - avoids table lookups
+        .on(table.collectionId, table.addedAt.desc()),
+      // Index for finding collections containing a card
       cardCollectionIdx: index('idx_collection_cards_card_collection')
-        .on(table.cardId)
-        .include(table.collectionId),
+        .on(table.cardId),
     };
   },
 );

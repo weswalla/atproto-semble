@@ -27,10 +27,9 @@ export const libraryMemberships = pgTable(
       userCardsIdx: index('idx_user_cards').on(table.userId),
       cardUsersIdx: index('idx_card_users').on(table.cardId),
       // Performance indexes
-      // Covering index for getUrlCardsOfUser - avoids table lookups by including cardId
+      // Index for getUrlCardsOfUser
       userTypeCoveringIdx: index('idx_library_memberships_user_type_covering')
-        .on(table.userId, table.addedAt.desc())
-        .include(table.cardId),
+        .on(table.userId, table.addedAt.desc()),
     };
   },
 );

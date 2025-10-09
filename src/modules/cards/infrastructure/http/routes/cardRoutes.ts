@@ -42,8 +42,10 @@ export function createCardRoutes(
   );
 
   // GET /api/cards/library/status - Get URL status for my library
-  router.get('/library/status', authMiddleware.ensureAuthenticated(), (req, res) =>
-    getUrlStatusForMyLibraryController.execute(req, res),
+  router.get(
+    '/library/status',
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => getUrlStatusForMyLibraryController.execute(req, res),
   );
 
   // GET /api/cards/user/:identifier - Get user's URL cards by identifier

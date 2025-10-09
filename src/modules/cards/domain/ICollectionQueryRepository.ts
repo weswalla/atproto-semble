@@ -49,7 +49,7 @@ export interface ICollectionQueryRepository {
     curatorId: string,
     options: CollectionQueryOptions,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>>;
-  
+
   getCollectionsContainingCardForUser(
     cardId: string,
     curatorId: string,

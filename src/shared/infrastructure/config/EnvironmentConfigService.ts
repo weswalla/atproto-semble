@@ -69,9 +69,18 @@ export class EnvironmentConfigService {
           process.env.ATPROTO_SERVICE_ENDPOINT || 'https://bsky.social',
         baseUrl: process.env.BASE_URL || 'http://127.0.0.1:3000',
         collections: {
-          card: environment === 'prod' ? 'network.cosmik.card' : 'network.cosmik.dev.card',
-          collection: environment === 'prod' ? 'network.cosmik.collection' : 'network.cosmik.dev.collection',
-          collectionLink: environment === 'prod' ? 'network.cosmik.collectionLink' : 'network.cosmik.dev.collectionLink',
+          card:
+            environment === 'prod'
+              ? 'network.cosmik.card'
+              : 'network.cosmik.dev.card',
+          collection:
+            environment === 'prod'
+              ? 'network.cosmik.collection'
+              : 'network.cosmik.dev.collection',
+          collectionLink:
+            environment === 'prod'
+              ? 'network.cosmik.collectionLink'
+              : 'network.cosmik.dev.collectionLink',
         },
       },
       server: {

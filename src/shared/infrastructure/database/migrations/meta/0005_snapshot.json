@@ -122,26 +122,18 @@
         "cards_parent_card_id_cards_id_fk": {
           "name": "cards_parent_card_id_cards_id_fk",
           "tableFrom": "cards",
-          "columnsFrom": [
-            "parent_card_id"
-          ],
+          "columnsFrom": ["parent_card_id"],
           "tableTo": "cards",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "cards_published_record_id_published_records_id_fk": {
           "name": "cards_published_record_id_published_records_id_fk",
           "tableFrom": "cards",
-          "columnsFrom": [
-            "published_record_id"
-          ],
+          "columnsFrom": ["published_record_id"],
           "tableTo": "published_records",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -199,39 +191,27 @@
         "collection_cards_collection_id_collections_id_fk": {
           "name": "collection_cards_collection_id_collections_id_fk",
           "tableFrom": "collection_cards",
-          "columnsFrom": [
-            "collection_id"
-          ],
+          "columnsFrom": ["collection_id"],
           "tableTo": "collections",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "collection_cards_card_id_cards_id_fk": {
           "name": "collection_cards_card_id_cards_id_fk",
           "tableFrom": "collection_cards",
-          "columnsFrom": [
-            "card_id"
-          ],
+          "columnsFrom": ["card_id"],
           "tableTo": "cards",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "collection_cards_published_record_id_published_records_id_fk": {
           "name": "collection_cards_published_record_id_published_records_id_fk",
           "tableFrom": "collection_cards",
-          "columnsFrom": [
-            "published_record_id"
-          ],
+          "columnsFrom": ["published_record_id"],
           "tableTo": "published_records",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -270,13 +250,9 @@
         "collection_collaborators_collection_id_collections_id_fk": {
           "name": "collection_collaborators_collection_id_collections_id_fk",
           "tableFrom": "collection_collaborators",
-          "columnsFrom": [
-            "collection_id"
-          ],
+          "columnsFrom": ["collection_id"],
           "tableTo": "collections",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -354,13 +330,9 @@
         "collections_published_record_id_published_records_id_fk": {
           "name": "collections_published_record_id_published_records_id_fk",
           "tableFrom": "collections",
-          "columnsFrom": [
-            "published_record_id"
-          ],
+          "columnsFrom": ["published_record_id"],
           "tableTo": "published_records",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -437,26 +409,18 @@
         "library_memberships_card_id_cards_id_fk": {
           "name": "library_memberships_card_id_cards_id_fk",
           "tableFrom": "library_memberships",
-          "columnsFrom": [
-            "card_id"
-          ],
+          "columnsFrom": ["card_id"],
           "tableTo": "cards",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "library_memberships_published_record_id_published_records_id_fk": {
           "name": "library_memberships_published_record_id_published_records_id_fk",
           "tableFrom": "library_memberships",
-          "columnsFrom": [
-            "published_record_id"
-          ],
+          "columnsFrom": ["published_record_id"],
           "tableTo": "published_records",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -464,10 +428,7 @@
       "compositePrimaryKeys": {
         "library_memberships_card_id_user_id_pk": {
           "name": "library_memberships_card_id_user_id_pk",
-          "columns": [
-            "card_id",
-            "user_id"
-          ]
+          "columns": ["card_id", "user_id"]
         }
       },
       "uniqueConstraints": {},
@@ -698,13 +659,9 @@
         "auth_refresh_tokens_user_did_users_id_fk": {
           "name": "auth_refresh_tokens_user_did_users_id_fk",
           "tableFrom": "auth_refresh_tokens",
-          "columnsFrom": [
-            "user_did"
-          ],
+          "columnsFrom": ["user_did"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }

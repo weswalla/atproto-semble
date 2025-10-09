@@ -151,7 +151,9 @@ describe('Card', () => {
         throw new Error('Expected creation to fail but it succeeded');
       }
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toBe(CARD_ERROR_MESSAGES.URL_CARD_SINGLE_LIBRARY_ONLY);
+      expect(result.error.message).toBe(
+        CARD_ERROR_MESSAGES.URL_CARD_SINGLE_LIBRARY_ONLY,
+      );
     });
 
     it('should allow NOTE cards to have multiple library memberships', () => {
@@ -256,7 +258,9 @@ describe('Card', () => {
         throw new Error('Expected creation to fail but it succeeded');
       }
       expect(result.isErr()).toBe(true);
-      expect(result.error.message).toBe(CARD_ERROR_MESSAGES.URL_CARD_SINGLE_LIBRARY_ONLY);
+      expect(result.error.message).toBe(
+        CARD_ERROR_MESSAGES.URL_CARD_SINGLE_LIBRARY_ONLY,
+      );
       expect(card.libraryMembershipCount).toBe(1);
       expect(card.isInLibrary(curatorId)).toBe(true);
       expect(card.isInLibrary(otherUserId)).toBe(false);

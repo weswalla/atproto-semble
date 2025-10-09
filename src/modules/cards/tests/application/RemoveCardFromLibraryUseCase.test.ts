@@ -51,8 +51,14 @@ describe('RemoveCardFromLibraryUseCase', () => {
     cardPublisher.clear();
   });
 
-  const createCard = async (type: CardTypeEnum = CardTypeEnum.URL, creatorId: CuratorId = curatorId) => {
-    const card = new CardBuilder().withType(type).withCuratorId(creatorId.value).build();
+  const createCard = async (
+    type: CardTypeEnum = CardTypeEnum.URL,
+    creatorId: CuratorId = curatorId,
+  ) => {
+    const card = new CardBuilder()
+      .withType(type)
+      .withCuratorId(creatorId.value)
+      .build();
 
     if (card instanceof Error) {
       throw new Error(`Failed to create card: ${card.message}`);
@@ -65,9 +71,9 @@ describe('RemoveCardFromLibraryUseCase', () => {
   const addCardToLibrary = async (card: any, curatorId: CuratorId) => {
     // For URL cards, can only add to creator's library
     if (card.isUrlCard && !card.curatorId.equals(curatorId)) {
-      throw new Error('URL cards can only be added to creator\'s library');
+      throw new Error("URL cards can only be added to creator's library");
     }
-    
+
     const addResult = await cardLibraryService.addCardToLibrary(
       card,
       curatorId,
@@ -169,7 +175,7 @@ describe('RemoveCardFromLibraryUseCase', () => {
     it('should handle different card types', async () => {
       // Create URL card with curatorId as creator
       const urlCard = await createCard(CardTypeEnum.URL, curatorId);
-      // Create note card with curatorId as creator  
+      // Create note card with curatorId as creator
       const noteCard = await createCard(CardTypeEnum.NOTE, curatorId);
 
       await addCardToLibrary(urlCard, curatorId);
@@ -520,10 +526,10 @@ describe('RemoveCardFromLibraryUseCase', () => {
     it('should not delete card when curator is not the owner', async () => {
       // Create card with different owner
       const card = await createCard(CardTypeEnum.NOTE, otherCuratorId);
-      
+
       // Add to other curator's library first
       await addCardToLibrary(card, otherCuratorId);
-      
+
       // Add to current curator's library (note cards can be in multiple libraries)
       await addCardToLibrary(card, curatorId);
 
@@ -548,7 +554,7 @@ describe('RemoveCardFromLibraryUseCase', () => {
     it('should not delete card when it still has other library memberships', async () => {
       // Create note card (can be in multiple libraries)
       const card = await createCard(CardTypeEnum.NOTE, curatorId);
-      
+
       // Add to both curator's libraries
       await addCardToLibrary(card, curatorId);
       await addCardToLibrary(card, otherCuratorId);

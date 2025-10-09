@@ -627,6 +627,7 @@ describe('GetUrlCardsUseCase', () => {
           .fn()
           .mockRejectedValue(new Error('Database connection failed')),
         getLibrariesForCard: jest.fn(),
+        getLibrariesForUrl: jest.fn(),
       };
 
       const errorUseCase = new GetUrlCardsUseCase(

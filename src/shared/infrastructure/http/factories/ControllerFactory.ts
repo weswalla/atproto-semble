@@ -28,6 +28,7 @@ import { GetUserCollectionsController } from 'src/modules/cards/infrastructure/h
 import { GetCollectionPageByAtUriController } from 'src/modules/cards/infrastructure/http/controllers/GetCollectionPageByAtUriController';
 import { GetUrlStatusForMyLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlStatusForMyLibraryController';
 import { GetLibrariesForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetLibrariesForUrlController';
+import { GetCollectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionsForUrlController';
 
 export interface Controllers {
   // User controllers
@@ -60,6 +61,7 @@ export interface Controllers {
   getCollectionsController: GetUserCollectionsController;
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController;
   getLibrariesForUrlController: GetLibrariesForUrlController;
+  getCollectionsForUrlController: GetCollectionsForUrlController;
   // Feed controllers
   getGlobalFeedController: GetGlobalFeedController;
 }
@@ -154,6 +156,9 @@ export class ControllerFactory {
         ),
       getLibrariesForUrlController: new GetLibrariesForUrlController(
         useCases.getLibrariesForUrlUseCase,
+      ),
+      getCollectionsForUrlController: new GetCollectionsForUrlController(
+        useCases.getCollectionsForUrlUseCase,
       ),
 
       // Feed controllers

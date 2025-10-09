@@ -32,7 +32,7 @@ import {
 import { DrizzleFeedRepository } from '../../../../modules/feeds/infrastructure/repositories/DrizzleFeedRepository';
 import { InMemoryFeedRepository } from '../../../../modules/feeds/tests/infrastructure/InMemoryFeedRepository';
 import { IFeedRepository } from '../../../../modules/feeds/domain/IFeedRepository';
-import { IAtUriResolutionService } from '../../../../modules/cards/domain/services/IAtUriResolutionService';
+import { IAtUriResolutionService } from '../../../../modules/cards/domain/services/IAtUriResolut ionService';
 import { DrizzleAtUriResolutionService } from '../../../../modules/cards/infrastructure/services/DrizzleAtUriResolutionService';
 import { InMemoryAtUriResolutionService } from '../../../../modules/cards/tests/utils/InMemoryAtUriResolutionService';
 
@@ -66,6 +66,7 @@ export class RepositoryFactory {
       );
       const collectionQueryRepository = new InMemoryCollectionQueryRepository(
         collectionRepository,
+        cardRepository,
       );
       const appPasswordSessionRepository =
         new InMemoryAppPasswordSessionRepository();

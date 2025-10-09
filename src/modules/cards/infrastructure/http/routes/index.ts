@@ -22,6 +22,7 @@ import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { GetMyCollectionsController } from '../controllers/GetMyCollectionsController';
 import { GetUserCollectionsController } from '../controllers/GetUserCollectionsController';
 import { GetCollectionPageByAtUriController } from '../controllers/GetCollectionPageByAtUriController';
+import { GetCollectionsForUrlController } from '../controllers/GetCollectionsForUrlController';
 
 export function createCardsModuleRoutes(
   authMiddleware: AuthMiddleware,
@@ -47,6 +48,7 @@ export function createCardsModuleRoutes(
   getCollectionPageByAtUriController: GetCollectionPageByAtUriController,
   getMyCollectionsController: GetMyCollectionsController,
   getCollectionsController: GetUserCollectionsController,
+  getCollectionsForUrlController: GetCollectionsForUrlController,
 ): Router {
   const router = Router();
 
@@ -83,6 +85,7 @@ export function createCardsModuleRoutes(
       getMyCollectionsController,
       getCollectionsController,
       getCollectionPageByAtUriController,
+      getCollectionsForUrlController,
     ),
   );
 

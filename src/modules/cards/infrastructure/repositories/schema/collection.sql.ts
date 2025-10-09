@@ -72,6 +72,13 @@ export const collectionCards = pgTable(
       collectionIdIdx: index('collection_cards_collection_id_idx').on(
         table.collectionId,
       ),
+      // Performance indexes
+      collectionAddedIdx: index('idx_collection_cards_collection_added')
+        .on(table.collectionId, table.addedAt.desc())
+        .include(table.cardId),
+      cardCollectionIdx: index('idx_collection_cards_card_collection')
+        .on(table.cardId)
+        .include(table.collectionId),
     };
   },
 );

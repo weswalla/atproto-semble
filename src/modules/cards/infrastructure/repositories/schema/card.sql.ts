@@ -7,6 +7,7 @@ import {
   integer,
   index,
   type PgTableWithColumns,
+  sql,
 } from 'drizzle-orm/pg-core';
 import { publishedRecords } from './publishedRecord.sql';
 
@@ -33,6 +34,16 @@ export const cards: PgTableWithColumns<any> = pgTable(
 
       // For general card queries by author
       authorIdIdx: index('cards_author_id_idx').on(table.authorId),
+
+      // Performance indexes
+      typeUpdatedAtIdx: index('idx_cards_type_updated_at')
+        .on(table.type, table.updatedAt.desc()),
+      urlTypeIdx: index('idx_cards_url_type')
+        .on(table.url, table.type)
+        .include(table.id),
+      parentTypeIdx: index('idx_cards_parent_type')
+        .on(table.parentCardId, table.type)
+        .where(sql`type = 'NOTE'`),
     };
   },
 );

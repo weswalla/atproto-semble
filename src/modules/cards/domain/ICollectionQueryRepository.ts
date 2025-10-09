@@ -53,6 +53,8 @@ export interface CollectionForUrlDTO {
 export interface CollectionForUrlQueryOptions {
   page: number;
   limit: number;
+  sortBy: CollectionSortField;
+  sortOrder: SortOrder;
 }
 
 export interface ICollectionQueryRepository {

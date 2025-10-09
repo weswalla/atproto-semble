@@ -50,7 +50,7 @@ export class InMemoryCollectionQueryRepository
         options.sortOrder,
       );
 
-      const startIndex = (options.page - 1) * options.limit;
+      const start Index = (options.page - 1) * options.limit;
       const endIndex = startIndex + options.limit;
       const paginatedCollections = sortedCollections.slice(
         startIndex,
@@ -180,9 +180,11 @@ export class InMemoryCollectionQueryRepository
         ),
       );
 
-      // Sort by name (alphabetically)
-      const sortedCollections = [...collectionsWithUrl].sort((a, b) =>
-        a.name.value.localeCompare(b.name.value),
+      // Sort collections
+      const sortedCollections = this.sortCollections(
+        collectionsWithUrl,
+        options.sortBy,
+        options.sortOrder,
       );
 
       // Apply pagination

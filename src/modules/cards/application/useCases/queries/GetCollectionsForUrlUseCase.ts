@@ -1,12 +1,18 @@
 import { Result, ok, err } from '../../../../../shared/core/Result';
 import { UseCase } from '../../../../../shared/core/UseCase';
-import { ICollectionQueryRepository } from '../../../domain/ICollectionQueryRepository';
+import {
+  ICollectionQueryRepository,
+  CollectionSortField,
+  SortOrder,
+} from '../../../domain/ICollectionQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
 
 export interface GetCollectionsForUrlQuery {
   url: string;
   page?: number;
   limit?: number;
+  sortBy?: CollectionSortField;
+  sortOrder?: SortOrder;
 }
 
 export interface CollectionForUrlDTO {
@@ -25,6 +31,10 @@ export interface GetCollectionsForUrlResult {
     totalCount: number;
     hasMore: boolean;
     limit: number;
+  };
+  sorting: {
+    sortBy: CollectionSortField;
+    sortOrder: SortOrder;
   };
 }
 
@@ -55,6 +65,8 @@ export class GetCollectionsForUrlUseCase
     // Set defaults
     const page = query.page || 1;
     const limit = Math.min(query.limit || 20, 100); // Cap at 100
+    const sortBy = query.sortBy || CollectionSortField.NAME;
+    const sortOrder = query.sortOrder || SortOrder.ASC;
 
     try {
       // Execute query to get collections containing cards with this URL
@@ -63,6 +75,8 @@ export class GetCollectionsForUrlUseCase
         {
           page,
           limit,
+          sortBy,
+          sortOrder,
         },
       );
 
@@ -74,6 +88,10 @@ export class GetCollectionsForUrlUseCase
           totalCount: result.totalCount,
           hasMore: result.hasMore,
           limit,
+        },
+        sorting: {
+          sortBy,
+          sortOrder,
         },
       });
     } catch (error) {

@@ -8,6 +8,7 @@ import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { URL } from '../../domain/value-objects/URL';
 import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
+import { CollectionSortField, SortOrder } from '../../domain/ICollectionQueryRepository';
 
 describe('GetCollectionsForUrlUseCase', () => {
   let useCase: GetCollectionsForUrlUseCase;
@@ -504,6 +505,212 @@ describe('GetCollectionsForUrlUseCase', () => {
 
       expect(response.pagination.currentPage).toBe(1);
       expect(response.pagination.limit).toBe(20);
+    });
+  });
+
+  describe('Sorting', () => {
+    it('should use default sorting parameters (NAME, ASC)', async () => {
+      const testUrl = 'https://example.com/test-article';
+
+      const query = {
+        url: testUrl,
+      };
+
+      const result = await useCase.execute(query);
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+
+      expect(response.sorting.sortBy).toBe(CollectionSortField.NAME);
+      expect(response.sorting.sortOrder).toBe(SortOrder.ASC);
+    });
+
+    it('should use provided sorting parameters', async () => {
+      const testUrl = 'https://example.com/test-article';
+
+      const query = {
+        url: testUrl,
+        sortBy: CollectionSortField.CREATED_AT,
+        sortOrder: SortOrder.DESC,
+      };
+
+      const result = await useCase.execute(query);
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+
+      expect(response.sorting.sortBy).toBe(CollectionSortField.CREATED_AT);
+      expect(response.sorting.sortOrder).toBe(SortOrder.DESC);
+    });
+
+    it('should sort collections by name in ascending order by default', async () => {
+      const testUrl = 'https://example.com/article';
+      const url = URL.create(testUrl).unwrap();
+
+      // Create URL cards
+      const card1 = new CardBuilder()
+        .withCuratorId(curator1.value)
+        .withType(CardTypeEnum.URL)
+        .withUrl(url)
+        .build();
+
+      const card2 = new CardBuilder()
+        .withCuratorId(curator2.value)
+        .withType(CardTypeEnum.URL)
+        .withUrl(url)
+        .build();
+
+      const card3 = new CardBuilder()
+        .withCuratorId(curator3.value)
+        .withType(CardTypeEnum.URL)
+        .withUrl(url)
+        .build();
+
+      if (
+        card1 instanceof Error ||
+        card2 instanceof Error ||
+        card3 instanceof Error
+      ) {
+        throw new Error('Failed to create cards');
+      }
+
+      card1.addToLibrary(curator1);
+      card2.addToLibrary(curator2);
+      card3.addToLibrary(curator3);
+
+      await cardRepository.save(card1);
+      await cardRepository.save(card2);
+      await cardRepository.save(card3);
+
+      // Create collections with names that should be sorted
+      const collectionZ = new CollectionBuilder()
+        .withAuthorId(curator1.value)
+        .withName('Zebra Collection')
+        .build();
+
+      const collectionA = new CollectionBuilder()
+        .withAuthorId(curator2.value)
+        .withName('Apple Collection')
+        .build();
+
+      const collectionM = new CollectionBuilder()
+        .withAuthorId(curator3.value)
+        .withName('Mango Collection')
+        .build();
+
+      if (
+        collectionZ instanceof Error ||
+        collectionA instanceof Error ||
+        collectionM instanceof Error
+      ) {
+        throw new Error('Failed to create collections');
+      }
+
+      collectionZ.addCard(card1.cardId, curator1);
+      collectionA.addCard(card2.cardId, curator2);
+      collectionM.addCard(card3.cardId, curator3);
+
+      await collectionRepository.save(collectionZ);
+      await collectionRepository.save(collectionA);
+      await collectionRepository.save(collectionM);
+
+      const query = {
+        url: testUrl,
+      };
+
+      const result = await useCase.execute(query);
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+
+      expect(response.collections).toHaveLength(3);
+      expect(response.collections[0]!.name).toBe('Apple Collection');
+      expect(response.collections[1]!.name).toBe('Mango Collection');
+      expect(response.collections[2]!.name).toBe('Zebra Collection');
+    });
+
+    it('should sort collections by name in descending order', async () => {
+      const testUrl = 'https://example.com/article';
+      const url = URL.create(testUrl).unwrap();
+
+      // Create URL cards
+      const card1 = new CardBuilder()
+        .withCuratorId(curator1.value)
+        .withType(CardTypeEnum.URL)
+        .withUrl(url)
+        .build();
+
+      const card2 = new CardBuilder()
+        .withCuratorId(curator2.value)
+        .withType(CardTypeEnum.URL)
+        .withUrl(url)
+        .build();
+
+      const card3 = new CardBuilder()
+        .withCuratorId(curator3.value)
+        .withType(CardTypeEnum.URL)
+        .withUrl(url)
+        .build();
+
+      if (
+        card1 instanceof Error ||
+        card2 instanceof Error ||
+        card3 instanceof Error
+      ) {
+        throw new Error('Failed to create cards');
+      }
+
+      card1.addToLibrary(curator1);
+      card2.addToLibrary(curator2);
+      card3.addToLibrary(curator3);
+
+      await cardRepository.save(card1);
+      await cardRepository.save(card2);
+      await cardRepository.save(card3);
+
+      // Create collections with names that should be sorted
+      const collectionZ = new CollectionBuilder()
+        .withAuthorId(curator1.value)
+        .withName('Zebra Collection')
+        .build();
+
+      const collectionA = new CollectionBuilder()
+        .withAuthorId(curator2.value)
+        .withName('Apple Collection')
+        .build();
+
+      const collectionM = new CollectionBuilder()
+        .withAuthorId(curator3.value)
+        .withName('Mango Collection')
+        .build();
+
+      if (
+        collectionZ instanceof Error ||
+        collectionA instanceof Error ||
+        collectionM instanceof Error
+      ) {
+        throw new Error('Failed to create collections');
+      }
+
+      collectionZ.addCard(card1.cardId, curator1);
+      collectionA.addCard(card2.cardId, curator2);
+      collectionM.addCard(card3.cardId, curator3);
+
+      await collectionRepository.save(collectionZ);
+      await collectionRepository.save(collectionA);
+      await collectionRepository.save(collectionM);
+
+      const query = {
+        url: testUrl,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.DESC,
+      };
+
+      const result = await useCase.execute(query);
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+
+      expect(response.collections).toHaveLength(3);
+      expect(response.collections[0]!.name).toBe('Zebra Collection');
+      expect(response.collections[1]!.name).toBe('Mango Collection');
+      expect(response.collections[2]!.name).toBe('Apple Collection');
     });
   });
 

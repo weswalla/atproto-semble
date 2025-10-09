@@ -160,8 +160,11 @@ export class DrizzleCollectionQueryRepository
     options: CollectionForUrlQueryOptions,
   ): Promise<PaginatedQueryResult<CollectionForUrlDTO>> {
     try {
-      const { page, limit } = options;
+      const { page, limit, sortBy, sortOrder } = options;
       const offset = (page - 1) * limit;
+
+      // Build the sort order
+      const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
 
       // Find all URL cards with this URL
       const urlCardsQuery = this.db
@@ -183,7 +186,7 @@ export class DrizzleCollectionQueryRepository
 
       const cardIds = urlCardsResult.map((card) => card.id);
 
-      // Find all collections that contain any of these cards with pagination
+      // Find all collections that contain any of these cards with pagination and sorting
       const collectionsQuery = this.db
         .selectDistinct({
           id: collections.id,
@@ -191,6 +194,9 @@ export class DrizzleCollectionQueryRepository
           description: collections.description,
           authorId: collections.authorId,
           uri: publishedRecords.uri,
+          createdAt: collections.createdAt,
+          updatedAt: collections.updatedAt,
+          cardCount: collections.cardCount,
         })
         .from(collections)
         .leftJoin(
@@ -202,7 +208,7 @@ export class DrizzleCollectionQueryRepository
           eq(collections.id, collectionCards.collectionId),
         )
         .where(inArray(collectionCards.cardId, cardIds))
-        .orderBy(asc(collections.name))
+        .orderBy(orderDirection(this.getSortColumn(sortBy)))
         .limit(limit)
         .offset(offset);
 
@@ -254,7 +260,7 @@ export class DrizzleCollectionQueryRepository
       case CollectionSortField.CARD_COUNT:
         return collections.cardCount;
       default:
-        return collections.updatedAt;
+        return collections.name;
     }
   }
 }

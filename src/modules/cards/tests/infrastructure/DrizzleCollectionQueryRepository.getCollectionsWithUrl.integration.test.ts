@@ -21,6 +21,7 @@ import { URL } from '../../domain/value-objects/URL';
 import { createTestSchema } from '../test-utils/createTestSchema';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
+import { CollectionSortField, SortOrder } from '../../domain/ICollectionQueryRepository';
 
 describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
   let container: StartedPostgreSqlContainer;
@@ -156,6 +157,8 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       const result = await queryRepository.getCollectionsWithUrl(testUrl, {
         page: 1,
         limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
       });
 
       // Verify the result
@@ -201,6 +204,8 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       const result = await queryRepository.getCollectionsWithUrl(testUrl, {
         page: 1,
         limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
       });
 
       expect(result.items).toHaveLength(0);
@@ -254,6 +259,8 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       const result = await queryRepository.getCollectionsWithUrl(testUrl1, {
         page: 1,
         limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
       });
 
       expect(result.items).toHaveLength(1);
@@ -304,6 +311,8 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       const result = await queryRepository.getCollectionsWithUrl(testUrl, {
         page: 1,
         limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
       });
 
       expect(result.items).toHaveLength(3);
@@ -346,6 +355,8 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       const result = await queryRepository.getCollectionsWithUrl(testUrl, {
         page: 1,
         limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
       });
 
       expect(result.items).toHaveLength(1);
@@ -391,6 +402,8 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       const result = await queryRepository.getCollectionsWithUrl(testUrl, {
         page: 1,
         limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
       });
 
       // Should return the collection only once, even though it has multiple cards with the URL
@@ -443,6 +456,8 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       const result = await queryRepository.getCollectionsWithUrl(testUrl, {
         page: 1,
         limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
       });
 
       // Should only return the collection with the URL card, not the NOTE card
@@ -468,13 +483,15 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       const result = await queryRepository.getCollectionsWithUrl(testUrl, {
         page: 1,
         limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
       });
 
       // Should return empty since card is not in any collection
       expect(result.items).toHaveLength(0);
     });
 
-    it('should return collections sorted alphabetically by name', async () => {
+    it('should return collections sorted alphabetically by name in ascending order', async () => {
       const testUrl = 'https://example.com/article';
       const url = URL.create(testUrl).unwrap();
 
@@ -532,12 +549,82 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       const result = await queryRepository.getCollectionsWithUrl(testUrl, {
         page: 1,
         limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
       });
 
       expect(result.items).toHaveLength(3);
       expect(result.items[0]!.name).toBe('Apple Collection');
       expect(result.items[1]!.name).toBe('Mango Collection');
       expect(result.items[2]!.name).toBe('Zebra Collection');
+    });
+
+    it('should return collections sorted alphabetically by name in descending order', async () => {
+      const testUrl = 'https://example.com/article';
+      const url = URL.create(testUrl).unwrap();
+
+      // Create URL cards
+      const card1 = new CardBuilder()
+        .withCuratorId(curator1.value)
+        .withType(CardTypeEnum.URL)
+        .withUrl(url)
+        .buildOrThrow();
+
+      const card2 = new CardBuilder()
+        .withCuratorId(curator2.value)
+        .withType(CardTypeEnum.URL)
+        .withUrl(url)
+        .buildOrThrow();
+
+      const card3 = new CardBuilder()
+        .withCuratorId(curator3.value)
+        .withType(CardTypeEnum.URL)
+        .withUrl(url)
+        .buildOrThrow();
+
+      card1.addToLibrary(curator1);
+      card2.addToLibrary(curator2);
+      card3.addToLibrary(curator3);
+
+      await cardRepository.save(card1);
+      await cardRepository.save(card2);
+      await cardRepository.save(card3);
+
+      // Create collections with names that should be sorted
+      const collectionZ = new CollectionBuilder()
+        .withAuthorId(curator1.value)
+        .withName('Zebra Collection')
+        .buildOrThrow();
+
+      const collectionA = new CollectionBuilder()
+        .withAuthorId(curator2.value)
+        .withName('Apple Collection')
+        .buildOrThrow();
+
+      const collectionM = new CollectionBuilder()
+        .withAuthorId(curator3.value)
+        .withName('Mango Collection')
+        .buildOrThrow();
+
+      collectionZ.addCard(card1.cardId, curator1);
+      collectionA.addCard(card2.cardId, curator2);
+      collectionM.addCard(card3.cardId, curator3);
+
+      await collectionRepository.save(collectionZ);
+      await collectionRepository.save(collectionA);
+      await collectionRepository.save(collectionM);
+
+      const result = await queryRepository.getCollectionsWithUrl(testUrl, {
+        page: 1,
+        limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(3);
+      expect(result.items[0]!.name).toBe('Zebra Collection');
+      expect(result.items[1]!.name).toBe('Mango Collection');
+      expect(result.items[2]!.name).toBe('Apple Collection');
     });
   });
 
@@ -580,6 +667,8 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       const result1 = await queryRepository.getCollectionsWithUrl(testUrl, {
         page: 1,
         limit: 2,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
       });
 
       expect(result1.items).toHaveLength(2);
@@ -590,6 +679,8 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       const result2 = await queryRepository.getCollectionsWithUrl(testUrl, {
         page: 2,
         limit: 2,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
       });
 
       expect(result2.items).toHaveLength(2);
@@ -600,6 +691,8 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       const result3 = await queryRepository.getCollectionsWithUrl(testUrl, {
         page: 3,
         limit: 2,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
       });
 
       expect(result3.items).toHaveLength(1);
@@ -610,7 +703,7 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       const allCollectionIds = [
         ...result1.items.map((c) => c.id),
         ...result2.items.map((c) => c.id),
-        ...result3.items.map((c) => c.i),
+        ...result3.items.map((c) => c.id),
       ];
       const uniqueCollectionIds = [...new Set(allCollectionIds)];
       expect(uniqueCollectionIds).toHaveLength(5);
@@ -622,6 +715,8 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       const result = await queryRepository.getCollectionsWithUrl(testUrl, {
         page: 2,
         limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
       });
 
       expect(result.items).toHaveLength(0);
@@ -655,6 +750,8 @@ describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
       const result = await queryRepository.getCollectionsWithUrl(testUrl, {
         page: 10,
         limit: 10,
+        sortBy: CollectionSortField.NAME,
+        sortOrder: SortOrder.ASC,
       });
 
       expect(result.items).toHaveLength(0);

@@ -64,6 +64,14 @@ export interface LibraryForUrlDTO {
   cardId: string;
 }
 
+export interface NoteCardForUrlDTO {
+  id: string;
+  note: string;
+  authorId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface ICardQueryRepository {
   getUrlCardsOfUser(
     userId: string,
@@ -83,4 +91,9 @@ export interface ICardQueryRepository {
     url: string,
     options: CardQueryOptions,
   ): Promise<PaginatedQueryResult<LibraryForUrlDTO>>;
+
+  getNoteCardsForUrl(
+    url: string,
+    options: CardQueryOptions,
+  ): Promise<PaginatedQueryResult<NoteCardForUrlDTO>>;
 }

@@ -29,6 +29,7 @@ import { GetCollectionPageByAtUriController } from 'src/modules/cards/infrastruc
 import { GetUrlStatusForMyLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlStatusForMyLibraryController';
 import { GetLibrariesForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetLibrariesForUrlController';
 import { GetCollectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionsForUrlController';
+import { GetNoteCardsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetNoteCardsForUrlController';
 
 export interface Controllers {
   // User controllers
@@ -62,6 +63,7 @@ export interface Controllers {
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController;
   getLibrariesForUrlController: GetLibrariesForUrlController;
   getCollectionsForUrlController: GetCollectionsForUrlController;
+  getNoteCardsForUrlController: GetNoteCardsForUrlController;
   // Feed controllers
   getGlobalFeedController: GetGlobalFeedController;
 }
@@ -159,6 +161,9 @@ export class ControllerFactory {
       ),
       getCollectionsForUrlController: new GetCollectionsForUrlController(
         useCases.getCollectionsForUrlUseCase,
+      ),
+      getNoteCardsForUrlController: new GetNoteCardsForUrlController(
+        useCases.getNoteCardsForUrlUseCase,
       ),
 
       // Feed controllers

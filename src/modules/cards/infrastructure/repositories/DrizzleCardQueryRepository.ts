@@ -7,20 +7,24 @@ import {
   CollectionCardQueryResultDTO,
   UrlCardViewDTO,
   LibraryForUrlDTO,
+  NoteCardForUrlDTO,
 } from '../../domain/ICardQueryRepository';
 import { UrlCardQueryService } from './query-services/UrlCardQueryService';
 import { CollectionCardQueryService } from './query-services/CollectionCardQueryService';
 import { LibraryQueryService } from './query-services/LibraryQueryService';
+import { NoteCardQueryService } from './query-services/NoteCardQueryService';
 
 export class DrizzleCardQueryRepository implements ICardQueryRepository {
   private urlCardQueryService: UrlCardQueryService;
   private collectionCardQueryService: CollectionCardQueryService;
   private libraryQueryService: LibraryQueryService;
+  private noteCardQueryService: NoteCardQueryService;
 
   constructor(private db: PostgresJsDatabase) {
     this.urlCardQueryService = new UrlCardQueryService(db);
     this.collectionCardQueryService = new CollectionCardQueryService(db);
     this.libraryQueryService = new LibraryQueryService(db);
+    this.noteCardQueryService = new NoteCardQueryService(db);
   }
 
   async getUrlCardsOfUser(
@@ -53,5 +57,12 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
     options: CardQueryOptions,
   ): Promise<PaginatedQueryResult<LibraryForUrlDTO>> {
     return this.urlCardQueryService.getLibrariesForUrl(url, options);
+  }
+
+  async getNoteCardsForUrl(
+    url: string,
+    options: CardQueryOptions,
+  ): Promise<PaginatedQueryResult<NoteCardForUrlDTO>> {
+    return this.noteCardQueryService.getNoteCardsForUrl(url, options);
   }
 }

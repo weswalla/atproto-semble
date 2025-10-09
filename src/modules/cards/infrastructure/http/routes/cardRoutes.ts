@@ -12,6 +12,7 @@ import { GetMyUrlCardsController } from '../controllers/GetMyUrlCardsController'
 import { GetUserUrlCardsController } from '../controllers/GetUserUrlCardsController';
 import { GetUrlStatusForMyLibraryController } from '../controllers/GetUrlStatusForMyLibraryController';
 import { GetLibrariesForUrlController } from '../controllers/GetLibrariesForUrlController';
+import { GetNoteCardsForUrlController } from '../controllers/GetNoteCardsForUrlController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 
 export function createCardRoutes(
@@ -29,6 +30,7 @@ export function createCardRoutes(
   getUserUrlCardsController: GetUserUrlCardsController,
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController,
   getLibrariesForUrlController: GetLibrariesForUrlController,
+  getNoteCardsForUrlController: GetNoteCardsForUrlController,
 ): Router {
   const router = Router();
 
@@ -53,6 +55,11 @@ export function createCardRoutes(
   // GET /api/cards/libraries/url - Get libraries for URL
   router.get('/libraries/url', authMiddleware.optionalAuth(), (req, res) =>
     getLibrariesForUrlController.execute(req, res),
+  );
+
+  // GET /api/cards/notes/url - Get note cards for URL
+  router.get('/notes/url', authMiddleware.optionalAuth(), (req, res) =>
+    getNoteCardsForUrlController.execute(req, res),
   );
 
   // GET /api/cards/user/:identifier - Get user's URL cards by identifier

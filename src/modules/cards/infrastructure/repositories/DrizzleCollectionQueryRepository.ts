@@ -1,4 +1,4 @@
-import { eq, desc, asc, count, sql, or, ilike, and } from 'drizzle-orm';
+import { eq, desc, asc, count, sql, or, ilike, and, inArray } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   ICollectionQueryRepository,
@@ -8,10 +8,13 @@ import {
   CollectionSortField,
   SortOrder,
   CollectionContainingCardDTO,
+  CollectionForUrlDTO,
 } from '../../domain/ICollectionQueryRepository';
 import { collections, collectionCards } from './schema/collection.sql';
 import { publishedRecords } from './schema/publishedRecord.sql';
+import { cards } from './schema/card.sql';
 import { CollectionMapper } from './mappers/CollectionMapper';
+import { CardTypeEnum } from '../../domain/value-objects/CardType';
 
 export class DrizzleCollectionQueryRepository
   implements ICollectionQueryRepository
@@ -147,6 +150,60 @@ export class DrizzleCollectionQueryRepository
       }));
     } catch (error) {
       console.error('Error in getCollectionsContainingCardForUser:', error);
+      throw error;
+    }
+  }
+
+  async getCollectionsWithUrl(url: string): Promise<CollectionForUrlDTO[]> {
+    try {
+      // Find all URL cards with this URL
+      const urlCardsQuery = this.db
+        .select({
+          id: cards.id,
+        })
+        .from(cards)
+        .where(and(eq(cards.url, url), eq(cards.type, CardTypeEnum.URL)));
+
+      const urlCardsResult = await urlCardsQuery;
+
+      if (urlCardsResult.length === 0) {
+        return [];
+      }
+
+      const cardIds = urlCardsResult.map((card) => card.id);
+
+      // Find all collections that contain any of these cards
+      const collectionsQuery = this.db
+        .selectDistinct({
+          id: collections.id,
+          name: collections.name,
+          description: collections.description,
+          authorId: collections.authorId,
+          uri: publishedRecords.uri,
+        })
+        .from(collections)
+        .leftJoin(
+          publishedRecords,
+          eq(collections.publishedRecordId, publishedRecords.id),
+        )
+        .innerJoin(
+          collectionCards,
+          eq(collections.id, collectionCards.collectionId),
+        )
+        .where(inArray(collectionCards.cardId, cardIds))
+        .orderBy(asc(collections.name));
+
+      const collectionsResult = await collectionsQuery;
+
+      return collectionsResult.map((result) => ({
+        id: result.id,
+        uri: result.uri || undefined,
+        name: result.name,
+        description: result.description || undefined,
+        authorId: result.authorId,
+      }));
+    } catch (error) {
+      console.error('Error in getCollectionsWithUrl:', error);
       throw error;
     }
   }

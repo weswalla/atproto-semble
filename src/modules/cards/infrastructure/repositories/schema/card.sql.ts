@@ -41,7 +41,7 @@ export const cards: PgTableWithColumns<any> = pgTable(
         table.type,
         table.updatedAt.desc(),
       ),
-      // Index for getLibrariesForUrl - fast URL+type lookups
+      // Index for getLibrariesForUrl and getCollectionsWithUrl - fast URL+type lookups
       urlTypeIdx: index('idx_cards_url_type').on(table.url, table.type),
       // Partial index for finding NOTE cards by parent - only indexes NOTE type cards
       parentTypeIdx: index('idx_cards_parent_type')

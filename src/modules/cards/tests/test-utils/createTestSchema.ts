@@ -107,7 +107,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
     ON cards(type, updated_at DESC)
   `);
 
-  // Covering index for getLibrariesForUrl - fast URL+type lookups with card ID included
+  // Index for getLibrariesForUrl and getCollectionsWithUrl - fast URL+type lookups with card ID included
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_cards_url_type 
     ON cards(url, type) INCLUDE (id)
@@ -139,7 +139,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
     CREATE INDEX IF NOT EXISTS idx_feed_activities_actor_id ON feed_activities(actor_id);
   `);
 
-  // Index for efficient AT URI lookups
+  // Index for efficient AT URI look ups
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS published_records_uri_idx ON published_records(uri);
   `);

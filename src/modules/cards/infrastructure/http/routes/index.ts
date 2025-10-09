@@ -13,6 +13,7 @@ import { GetLibrariesForCardController } from '../controllers/GetLibrariesForCar
 import { GetMyUrlCardsController } from '../controllers/GetMyUrlCardsController';
 import { GetUserUrlCardsController } from '../controllers/GetUserUrlCardsController';
 import { GetUrlStatusForMyLibraryController } from '../controllers/GetUrlStatusForMyLibraryController';
+import { GetLibrariesForUrlController } from '../controllers/GetLibrariesForUrlController';
 import { CreateCollectionController } from '../controllers/CreateCollectionController';
 import { UpdateCollectionController } from '../controllers/UpdateCollectionController';
 import { DeleteCollectionController } from '../controllers/DeleteCollectionController';
@@ -37,6 +38,7 @@ export function createCardsModuleRoutes(
   getMyUrlCardsController: GetMyUrlCardsController,
   getUserUrlCardsController: GetUserUrlCardsController,
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController,
+  getLibrariesForUrlController: GetLibrariesForUrlController,
   // Collection controllers
   createCollectionController: CreateCollectionController,
   updateCollectionController: UpdateCollectionController,
@@ -65,6 +67,7 @@ export function createCardsModuleRoutes(
       getMyUrlCardsController,
       getUserUrlCardsController,
       getUrlStatusForMyLibraryController,
+      getLibrariesForUrlController,
     ),
   );
 

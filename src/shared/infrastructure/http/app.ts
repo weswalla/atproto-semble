@@ -68,6 +68,7 @@ export const createExpressApp = (
     controllers.getMyUrlCardsController,
     controllers.getUserUrlCardsController,
     controllers.getUrlStatusForMyLibraryController,
+    controllers.getLibrariesForUrlController,
     // Collection controllers
     controllers.createCollectionController,
     controllers.updateCollectionController,

@@ -26,6 +26,7 @@ import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/
 import { GetCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionsUseCase';
 import { GetCollectionPageByAtUriUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionPageByAtUriUseCase';
 import { GetUrlStatusForMyLibraryUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlStatusForMyLibraryUseCase';
+import { GetLibrariesForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase';
 
 export interface UseCases {
   // User use cases
@@ -54,6 +55,7 @@ export interface UseCases {
   getCollectionPageByAtUriUseCase: GetCollectionPageByAtUriUseCase;
   getCollectionsUseCase: GetCollectionsUseCase;
   getUrlStatusForMyLibraryUseCase: GetUrlStatusForMyLibraryUseCase;
+  getLibrariesForUrlUseCase: GetLibrariesForUrlUseCase;
   // Feed use cases
   getGlobalFeedUseCase: GetGlobalFeedUseCase;
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
@@ -177,6 +179,9 @@ export class UseCaseFactory {
         repositories.cardRepository,
         repositories.collectionQueryRepository,
         services.eventPublisher,
+      ),
+      getLibrariesForUrlUseCase: new GetLibrariesForUrlUseCase(
+        repositories.cardQueryRepository,
       ),
 
       // Feed use cases

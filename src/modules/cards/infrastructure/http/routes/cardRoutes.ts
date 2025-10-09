@@ -11,6 +11,7 @@ import { GetLibrariesForCardController } from '../controllers/GetLibrariesForCar
 import { GetMyUrlCardsController } from '../controllers/GetMyUrlCardsController';
 import { GetUserUrlCardsController } from '../controllers/GetUserUrlCardsController';
 import { GetUrlStatusForMyLibraryController } from '../controllers/GetUrlStatusForMyLibraryController';
+import { GetLibrariesForUrlController } from '../controllers/GetLibrariesForUrlController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 
 export function createCardRoutes(
@@ -27,6 +28,7 @@ export function createCardRoutes(
   getMyUrlCardsController: GetMyUrlCardsController,
   getUserUrlCardsController: GetUserUrlCardsController,
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController,
+  getLibrariesForUrlController: GetLibrariesForUrlController,
 ): Router {
   const router = Router();
 
@@ -46,6 +48,11 @@ export function createCardRoutes(
     '/library/status',
     authMiddleware.ensureAuthenticated(),
     (req, res) => getUrlStatusForMyLibraryController.execute(req, res),
+  );
+
+  // GET /api/cards/libraries/url - Get libraries for URL
+  router.get('/libraries/url', authMiddleware.optionalAuth(), (req, res) =>
+    getLibrariesForUrlController.execute(req, res),
   );
 
   // GET /api/cards/user/:identifier - Get user's URL cards by identifier

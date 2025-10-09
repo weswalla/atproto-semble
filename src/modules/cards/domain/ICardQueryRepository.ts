@@ -59,6 +59,11 @@ export type UrlCardQueryResultDTO = UrlCardView & WithCollections;
 // DTO for single URL card view with library and collection info
 export type UrlCardViewDTO = UrlCardView & WithCollections & WithLibraries;
 
+export interface LibraryForUrlDTO {
+  userId: string;
+  cardId: string;
+}
+
 export interface ICardQueryRepository {
   getUrlCardsOfUser(
     userId: string,
@@ -73,4 +78,9 @@ export interface ICardQueryRepository {
   getUrlCardView(cardId: string): Promise<UrlCardViewDTO | null>;
 
   getLibrariesForCard(cardId: string): Promise<string[]>;
+
+  getLibrariesForUrl(
+    url: string,
+    options: CardQueryOptions,
+  ): Promise<PaginatedQueryResult<LibraryForUrlDTO>>;
 }

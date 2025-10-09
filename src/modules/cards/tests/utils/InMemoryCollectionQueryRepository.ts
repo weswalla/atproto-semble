@@ -50,7 +50,7 @@ export class InMemoryCollectionQueryRepository
         options.sortOrder,
       );
 
-      const start Index = (options.page - 1) * options.limit;
+      const startIndex = (options.page - 1) * options.limit;
       const endIndex = startIndex + options.limit;
       const paginatedCollections = sortedCollections.slice(
         startIndex,
@@ -191,7 +191,10 @@ export class InMemoryCollectionQueryRepository
       const { page, limit } = options;
       const startIndex = (page - 1) * limit;
       const endIndex = startIndex + limit;
-      const paginatedCollections = sortedCollections.slice(startIndex, endIndex);
+      const paginatedCollections = sortedCollections.slice(
+        startIndex,
+        endIndex,
+      );
 
       const items: CollectionForUrlDTO[] = paginatedCollections.map(
         (collection) => {

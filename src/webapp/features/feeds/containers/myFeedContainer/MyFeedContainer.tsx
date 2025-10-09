@@ -2,9 +2,10 @@
 
 import useMyFeed from '@/features/feeds/lib/queries/useMyFeed';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
-import { Button, Stack, Title, Text, Center, Container } from '@mantine/core';
+import { Stack, Title, Text, Center, Container, Loader } from '@mantine/core';
 import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
 import MyFeedContainerError from './Error.MyFeedContainer';
+import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 
 export default function MyFeedContainer() {
   const {
@@ -39,26 +40,27 @@ export default function MyFeedContainer() {
             </Text>
           </Center>
         ) : (
-          <Stack gap={'xl'} mx={'auto'} maw={600}>
-            <Stack gap={60}>
-              {allActivities.map((item, i) => (
-                <FeedItem key={item.id} item={item} />
-              ))}
-            </Stack>
-
-            {hasNextPage && (
+          <InfiniteScroll
+            dataLength={allActivities.length}
+            hasMore={!!hasNextPage}
+            isInitialLoading={isPending}
+            isLoading={isFetchingNextPage}
+            loadMore={fetchNextPage}
+            manualLoadButton={false}
+            loader={
               <Center>
-                <Button
-                  onClick={() => fetchNextPage()}
-                  loading={isFetchingNextPage}
-                  variant="light"
-                  color="gray"
-                >
-                  Load More
-                </Button>
+                <Loader />
               </Center>
-            )}
-          </Stack>
+            }
+          >
+            <Stack gap={'xl'} mx={'auto'} maw={600}>
+              <Stack gap={60}>
+                {allActivities.map((item) => (
+                  <FeedItem key={item.id} item={item} />
+                ))}
+              </Stack>
+            </Stack>
+          </InfiniteScroll>
         )}
       </Stack>
     </Container>

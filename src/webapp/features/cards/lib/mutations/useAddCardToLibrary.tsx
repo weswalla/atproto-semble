@@ -12,17 +12,21 @@ export default function useAddCardToLibrary() {
 
   const mutation = useMutation({
     mutationFn: ({
-      cardId,
+      url,
+      note,
       collectionIds,
     }: {
-      cardId: string;
+      url: string;
+      note?: string;
       collectionIds: string[];
     }) => {
-      return apiClient.addCardToLibrary({ cardId, collectionIds });
+      return apiClient.addUrlToLibrary({ url, note, collectionIds });
     },
 
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['card', variables.cardId] });
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['card', data.urlCardId] });
+      queryClient.invalidateQueries({ queryKey: ['card', data.noteCardId] });
+      queryClient.invalidateQueries({ queryKey: ['card', variables.url] });
       queryClient.invalidateQueries({ queryKey: ['my cards'] });
       queryClient.invalidateQueries({ queryKey: ['home'] });
       queryClient.invalidateQueries({ queryKey: ['collections'] });

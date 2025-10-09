@@ -30,7 +30,7 @@ export default function Navbar() {
   const { data: profile } = useMyProfile();
 
   return (
-    <AppShellNavbar px={'xs'} pb={'md'} pt={'xs'} style={{ zIndex: 3 }}>
+    <AppShellNavbar p={'xs'} style={{ zIndex: 3 }}>
       <Group justify="space-between" ml={'sm'}>
         <Anchor component={Link} href={'/home'}>
           <Image src={SembleLogo.src} alt="Semble logo" w={20.84} h={28} />

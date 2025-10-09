@@ -47,7 +47,7 @@ export function UrlCardForm({
   // URL metadata hook
   const {
     metadata,
-    existingCard,
+    existingCardCollections,
     loading: metadataLoading,
     error: metadataError,
   } = useUrlMetadata({
@@ -58,11 +58,9 @@ export function UrlCardForm({
 
   // Get existing collections for this card (filtered by current user)
   const existingCollections = useMemo(() => {
-    if (!existingCard || !userId) return [];
-    return existingCard.collections.filter(
-      (collection) => collection.authorId === userId,
-    );
-  }, [existingCard, userId]);
+    if (!existingCardCollections || !userId) return [];
+    return existingCardCollections.map((c) => ({ ...c, authorId: userId }));
+  }, [existingCardCollections, userId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

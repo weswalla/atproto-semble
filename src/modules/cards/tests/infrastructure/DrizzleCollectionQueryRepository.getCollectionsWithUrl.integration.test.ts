@@ -21,7 +21,10 @@ import { URL } from '../../domain/value-objects/URL';
 import { createTestSchema } from '../test-utils/createTestSchema';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
-import { CollectionSortField, SortOrder } from '../../domain/ICollectionQueryRepository';
+import {
+  CollectionSortField,
+  SortOrder,
+} from '../../domain/ICollectionQueryRepository';
 
 describe('DrizzleCollectionQueryRepository - getCollectionsWithUrl', () => {
   let container: StartedPostgreSqlContainer;

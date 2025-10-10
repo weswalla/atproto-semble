@@ -8,7 +8,10 @@ import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { URL } from '../../domain/value-objects/URL';
 import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
-import { CollectionSortField, SortOrder } from '../../domain/ICollectionQueryRepository';
+import {
+  CollectionSortField,
+  SortOrder,
+} from '../../domain/ICollectionQueryRepository';
 
 describe('GetCollectionsForUrlUseCase', () => {
   let useCase: GetCollectionsForUrlUseCase;

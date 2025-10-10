@@ -386,9 +386,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       // Get all note cards with the specified URL
       const allCards = this.cardRepository.getAllCards();
       const noteCards = allCards
-        .filter(
-          (card) => card.isNoteCard && card.url?.value === url,
-        )
+        .filter((card) => card.isNoteCard && card.url?.value === url)
         .map((card) => ({
           id: card.cardId.getStringValue(),
           note: card.content.noteContent?.text || '',

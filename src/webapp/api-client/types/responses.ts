@@ -155,7 +155,6 @@ export interface CollectionSorting extends BaseSorting {
   sortBy: 'name' | 'createdAt' | 'updatedAt' | 'cardCount';
 }
 
-
 export interface GetUrlCardsResponse {
   cards: UrlCardListItem[];
   pagination: Pagination;

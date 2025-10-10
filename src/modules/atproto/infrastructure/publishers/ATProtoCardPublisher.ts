@@ -23,7 +23,11 @@ export class ATProtoCardPublisher implements ICardPublisher {
     parentCardPublishedRecordId?: PublishedRecordId,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
-      let record = CardMapper.toCreateRecordDTO(card, curatorId, parentCardPublishedRecordId);
+      let record = CardMapper.toCreateRecordDTO(
+        card,
+        curatorId,
+        parentCardPublishedRecordId,
+      );
       record.$type = this.cardCollection as any;
 
       const curatorDidResult = DID.create(curatorId.value);

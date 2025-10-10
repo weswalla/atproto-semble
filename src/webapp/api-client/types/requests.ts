@@ -9,7 +9,9 @@ export interface SortingParams {
   sortOrder?: 'asc' | 'desc';
 }
 
-export interface PaginatedSortedParams extends PaginationParams, SortingParams {}
+export interface PaginatedSortedParams
+  extends PaginationParams,
+    SortingParams {}
 
 // Request types - cleaned up from backend DTOs
 export interface AddUrlToLibraryRequest {

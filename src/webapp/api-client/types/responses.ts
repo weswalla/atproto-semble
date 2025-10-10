@@ -155,21 +155,11 @@ export interface CollectionSorting extends BaseSorting {
   sortBy: 'name' | 'createdAt' | 'updatedAt' | 'cardCount';
 }
 
-// Base paginated response interface
-export interface PaginatedResponse {
-  pagination: Pagination;
-}
 
-// Base sorted response interface
-export interface SortedResponse<T extends BaseSorting> {
-  sorting: T;
-}
-
-// Combined interface for paginated and sorted responses
-export interface PaginatedSortedResponse<T extends BaseSorting> extends PaginatedResponse, SortedResponse<T> {}
-
-export interface GetUrlCardsResponse extends PaginatedSortedResponse<CardSorting> {
+export interface GetUrlCardsResponse {
   cards: UrlCardListItem[];
+  pagination: Pagination;
+  sorting: CardSorting;
 }
 
 export interface CollectionPageUrlCard {
@@ -192,7 +182,7 @@ export interface CollectionPageUrlCard {
   };
 }
 
-export interface GetCollectionPageResponse extends PaginatedSortedResponse<CardSorting> {
+export interface GetCollectionPageResponse {
   id: string;
   uri?: string;
   name: string;
@@ -204,9 +194,11 @@ export interface GetCollectionPageResponse extends PaginatedSortedResponse<CardS
     avatarUrl?: string;
   };
   urlCards: CollectionPageUrlCard[];
+  pagination: Pagination;
+  sorting: CardSorting;
 }
 
-export interface GetCollectionsResponse extends PaginatedSortedResponse<CollectionSorting> {
+export interface GetCollectionsResponse {
   collections: {
     id: string;
     uri?: string;
@@ -222,6 +214,8 @@ export interface GetCollectionsResponse extends PaginatedSortedResponse<Collecti
       avatarUrl?: string;
     };
   }[];
+  pagination: Pagination;
+  sorting: CollectionSorting;
 }
 
 // User authentication response types
@@ -305,7 +299,7 @@ export interface FeedPagination extends Pagination {
   nextCursor?: string;
 }
 
-export interface GetGlobalFeedResponse extends PaginatedResponse {
+export interface GetGlobalFeedResponse {
   activities: FeedItem[];
   pagination: FeedPagination;
 }
@@ -320,16 +314,18 @@ export interface GetUrlStatusForMyLibraryResponse {
   }[];
 }
 
-export interface GetLibrariesForUrlResponse extends PaginatedSortedResponse<CardSorting> {
+export interface GetLibrariesForUrlResponse {
   libraries: {
     userId: string;
     name: string;
     handle: string;
     avatarUrl?: string;
   }[];
+  pagination: Pagination;
+  sorting: CardSorting;
 }
 
-export interface GetNoteCardsForUrlResponse extends PaginatedSortedResponse<CardSorting> {
+export interface GetNoteCardsForUrlResponse {
   notes: {
     id: string;
     note: string;
@@ -337,9 +333,11 @@ export interface GetNoteCardsForUrlResponse extends PaginatedSortedResponse<Card
     createdAt: string;
     updatedAt: string;
   }[];
+  pagination: Pagination;
+  sorting: CardSorting;
 }
 
-export interface GetCollectionsForUrlResponse extends PaginatedSortedResponse<CollectionSorting> {
+export interface GetCollectionsForUrlResponse {
   collections: {
     id: string;
     uri?: string;
@@ -347,4 +345,6 @@ export interface GetCollectionsForUrlResponse extends PaginatedSortedResponse<Co
     description?: string;
     authorId: string;
   }[];
+  pagination: Pagination;
+  sorting: CollectionSorting;
 }

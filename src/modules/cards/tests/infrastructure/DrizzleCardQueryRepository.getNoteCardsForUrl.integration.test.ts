@@ -8,7 +8,10 @@ import { DrizzleCardQueryRepository } from '../../infrastructure/repositories/Dr
 import { DrizzleCardRepository } from '../../infrastructure/repositories/DrizzleCardRepository';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { cards } from '../../infrastructure/repositories/schema/card.sql';
-import { collections, collectionCards } from '../../infrastructure/repositories/schema/collection.sql';
+import {
+  collections,
+  collectionCards,
+} from '../../infrastructure/repositories/schema/collection.sql';
 import { libraryMemberships } from '../../infrastructure/repositories/schema/libraryMembership.sql';
 import { publishedRecords } from '../../infrastructure/repositories/schema/publishedRecord.sql';
 import { CardBuilder } from '../utils/builders/CardBuilder';
@@ -215,7 +218,7 @@ describe('DrizzleCardQueryRepository - getNoteCardsForUrl', () => {
       expect(page1.items[1]!.note).toBe('Note 2 about the article');
 
       // Test second page
-      const page2 = await queryRepository.getNoteCardsFor Url(testUrl, {
+      const page2 = await queryRepository.getNoteCardsForUrl(testUrl, {
         page: 2,
         limit: 2,
         sortBy: CardSortField.CREATED_AT,

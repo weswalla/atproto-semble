@@ -317,6 +317,7 @@ describe('GetLibrariesForUrlUseCase', () => {
         getLibrariesForUrl: jest
           .fn()
           .mockRejectedValue(new Error('Database error')),
+        getNoteCardsForUrl: jest.fn(),
       };
 
       const errorUseCase = new GetLibrariesForUrlUseCase(

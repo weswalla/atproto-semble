@@ -9,6 +9,7 @@ import {
 } from '../../../domain/ICardQueryRepository';
 import { cards } from '../schema/card.sql';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
+import { NoteContentData } from '../mappers/CardMapper';
 
 export class NoteCardQueryService {
   constructor(private db: PostgresJsDatabase) {}
@@ -52,8 +53,8 @@ export class NoteCardQueryService {
 
       // Map to DTOs
       const items: NoteCardForUrlDTO[] = noteCardsResult.map((card) => {
-        const contentData = card.contentData as any;
-        const noteText = contentData?.note?.text || '';
+        const contentData = card.contentData as NoteContentData;
+        const noteText = contentData.text;
 
         return {
           id: card.id,

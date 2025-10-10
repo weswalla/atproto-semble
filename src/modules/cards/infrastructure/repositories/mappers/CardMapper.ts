@@ -31,11 +31,11 @@ interface UrlContentData {
   };
 }
 
-interface NoteContentData {
+export interface NoteContentData {
   text: string;
 }
 
-type CardContentData = UrlContentData | NoteContentData;
+export type CardContentData = UrlContentData | NoteContentData;
 
 // Persistence layer types
 export interface CardPersistenceData {

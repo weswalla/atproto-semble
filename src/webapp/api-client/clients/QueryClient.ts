@@ -16,6 +16,12 @@ import {
   GetCollectionPageByAtUriParams,
   GetProfileParams,
   GetUrlStatusForMyLibraryParams,
+  GetLibrariesForUrlParams,
+  GetLibrariesForUrlResponse,
+  GetNoteCardsForUrlParams,
+  GetNoteCardsForUrlResponse,
+  GetCollectionsForUrlParams,
+  GetCollectionsForUrlResponse,
 } from '../types';
 
 export class QueryClient extends BaseClient {
@@ -167,6 +173,51 @@ export class QueryClient extends BaseClient {
     return this.request<GetUrlStatusForMyLibraryResponse>(
       'GET',
       `/api/cards/library/status?${searchParams}`,
+    );
+  }
+
+  async getLibrariesForUrl(
+    params: GetLibrariesForUrlParams,
+  ): Promise<GetLibrariesForUrlResponse> {
+    const searchParams = new URLSearchParams({ url: params.url });
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+
+    return this.request<GetLibrariesForUrlResponse>(
+      'GET',
+      `/api/cards/libraries/url?${searchParams}`,
+    );
+  }
+
+  async getNoteCardsForUrl(
+    params: GetNoteCardsForUrlParams,
+  ): Promise<GetNoteCardsForUrlResponse> {
+    const searchParams = new URLSearchParams({ url: params.url });
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+
+    return this.request<GetNoteCardsForUrlResponse>(
+      'GET',
+      `/api/cards/notes/url?${searchParams}`,
+    );
+  }
+
+  async getCollectionsForUrl(
+    params: GetCollectionsForUrlParams,
+  ): Promise<GetCollectionsForUrlResponse> {
+    const searchParams = new URLSearchParams({ url: params.url });
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+
+    return this.request<GetCollectionsForUrlResponse>(
+      'GET',
+      `/api/collections/url?${searchParams}`,
     );
   }
 }

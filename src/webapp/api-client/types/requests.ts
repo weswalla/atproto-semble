@@ -131,3 +131,27 @@ export interface GetProfileParams {
 export interface GetUrlStatusForMyLibraryParams {
   url: string;
 }
+
+export interface GetLibrariesForUrlParams {
+  url: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface GetNoteCardsForUrlParams {
+  url: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface GetCollectionsForUrlParams {
+  url: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}

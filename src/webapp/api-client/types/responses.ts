@@ -307,3 +307,41 @@ export interface GetUrlStatusForMyLibraryResponse {
     description?: string;
   }[];
 }
+
+export interface GetLibrariesForUrlResponse {
+  libraries: {
+    userId: string;
+    name: string;
+    handle: string;
+    avatarUrl?: string;
+  }[];
+  pagination: Pagination;
+  sorting: Sorting;
+}
+
+export interface GetNoteCardsForUrlResponse {
+  notes: {
+    id: string;
+    note: string;
+    authorId: string;
+    createdAt: string;
+    updatedAt: string;
+  }[];
+  pagination: Pagination;
+  sorting: Sorting;
+}
+
+export interface GetCollectionsForUrlResponse {
+  collections: {
+    id: string;
+    uri?: string;
+    name: string;
+    description?: string;
+    authorId: string;
+  }[];
+  pagination: Pagination;
+  sorting: {
+    sortBy: 'name' | 'createdAt' | 'updatedAt' | 'cardCount';
+    sortOrder: 'asc' | 'desc';
+  };
+}

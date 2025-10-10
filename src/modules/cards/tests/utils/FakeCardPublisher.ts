@@ -16,7 +16,8 @@ export class FakeCardPublisher implements ICardPublisher {
     uri: string;
     cid: string;
   }> = [];
-  private cardType = new EnvironmentConfigService().getAtProtoCollections().card;
+  private cardType = new EnvironmentConfigService().getAtProtoCollections()
+    .card;
 
   async publishCardToLibrary(
     card: Card,

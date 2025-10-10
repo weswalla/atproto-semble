@@ -13,6 +13,8 @@ import { GetLibrariesForCardController } from '../controllers/GetLibrariesForCar
 import { GetMyUrlCardsController } from '../controllers/GetMyUrlCardsController';
 import { GetUserUrlCardsController } from '../controllers/GetUserUrlCardsController';
 import { GetUrlStatusForMyLibraryController } from '../controllers/GetUrlStatusForMyLibraryController';
+import { GetLibrariesForUrlController } from '../controllers/GetLibrariesForUrlController';
+import { GetNoteCardsForUrlController } from '../controllers/GetNoteCardsForUrlController';
 import { CreateCollectionController } from '../controllers/CreateCollectionController';
 import { UpdateCollectionController } from '../controllers/UpdateCollectionController';
 import { DeleteCollectionController } from '../controllers/DeleteCollectionController';
@@ -21,6 +23,7 @@ import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { GetMyCollectionsController } from '../controllers/GetMyCollectionsController';
 import { GetUserCollectionsController } from '../controllers/GetUserCollectionsController';
 import { GetCollectionPageByAtUriController } from '../controllers/GetCollectionPageByAtUriController';
+import { GetCollectionsForUrlController } from '../controllers/GetCollectionsForUrlController';
 
 export function createCardsModuleRoutes(
   authMiddleware: AuthMiddleware,
@@ -37,6 +40,8 @@ export function createCardsModuleRoutes(
   getMyUrlCardsController: GetMyUrlCardsController,
   getUserUrlCardsController: GetUserUrlCardsController,
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController,
+  getLibrariesForUrlController: GetLibrariesForUrlController,
+  getNoteCardsForUrlController: GetNoteCardsForUrlController,
   // Collection controllers
   createCollectionController: CreateCollectionController,
   updateCollectionController: UpdateCollectionController,
@@ -45,6 +50,7 @@ export function createCardsModuleRoutes(
   getCollectionPageByAtUriController: GetCollectionPageByAtUriController,
   getMyCollectionsController: GetMyCollectionsController,
   getCollectionsController: GetUserCollectionsController,
+  getCollectionsForUrlController: GetCollectionsForUrlController,
 ): Router {
   const router = Router();
 
@@ -65,6 +71,8 @@ export function createCardsModuleRoutes(
       getMyUrlCardsController,
       getUserUrlCardsController,
       getUrlStatusForMyLibraryController,
+      getLibrariesForUrlController,
+      getNoteCardsForUrlController,
     ),
   );
 
@@ -80,6 +88,7 @@ export function createCardsModuleRoutes(
       getMyCollectionsController,
       getCollectionsController,
       getCollectionPageByAtUriController,
+      getCollectionsForUrlController,
     ),
   );
 

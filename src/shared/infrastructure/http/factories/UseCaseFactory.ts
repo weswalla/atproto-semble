@@ -26,6 +26,9 @@ import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/
 import { GetCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionsUseCase';
 import { GetCollectionPageByAtUriUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionPageByAtUriUseCase';
 import { GetUrlStatusForMyLibraryUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlStatusForMyLibraryUseCase';
+import { GetLibrariesForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase';
+import { GetCollectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionsForUrlUseCase';
+import { GetNoteCardsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetNoteCardsForUrlUseCase';
 
 export interface UseCases {
   // User use cases
@@ -54,6 +57,9 @@ export interface UseCases {
   getCollectionPageByAtUriUseCase: GetCollectionPageByAtUriUseCase;
   getCollectionsUseCase: GetCollectionsUseCase;
   getUrlStatusForMyLibraryUseCase: GetUrlStatusForMyLibraryUseCase;
+  getLibrariesForUrlUseCase: GetLibrariesForUrlUseCase;
+  getCollectionsForUrlUseCase: GetCollectionsForUrlUseCase;
+  getNoteCardsForUrlUseCase: GetNoteCardsForUrlUseCase;
   // Feed use cases
   getGlobalFeedUseCase: GetGlobalFeedUseCase;
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
@@ -177,6 +183,15 @@ export class UseCaseFactory {
         repositories.cardRepository,
         repositories.collectionQueryRepository,
         services.eventPublisher,
+      ),
+      getLibrariesForUrlUseCase: new GetLibrariesForUrlUseCase(
+        repositories.cardQueryRepository,
+      ),
+      getCollectionsForUrlUseCase: new GetCollectionsForUrlUseCase(
+        repositories.collectionQueryRepository,
+      ),
+      getNoteCardsForUrlUseCase: new GetNoteCardsForUrlUseCase(
+        repositories.cardQueryRepository,
       ),
 
       // Feed use cases

@@ -282,27 +282,31 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       );
     });
 
-    it('should handle multiple users with library memberships', async () => {
-      // Create URL card
-      const url = URL.create('https://example.com/shared-article').unwrap();
-      const urlCard = new CardBuilder()
+    it('should only return URL cards in the specified user library', async () => {
+      // Create URL card for first user
+      const url1 = URL.create('https://example.com/user1-article').unwrap();
+      const urlCard1 = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withUrlCard(url)
+        .withUrlCard(url1)
         .buildOrThrow();
 
-      await cardRepository.save(urlCard);
+      await cardRepository.save(urlCard1);
 
-      // Add card to first user's library
-      urlCard.addToLibrary(curatorId);
-      await cardRepository.save(urlCard);
+      // Create URL card for second user
+      const url2 = URL.create('https://example.com/user2-article').unwrap();
+      const urlCard2 = new CardBuilder()
+        .withCuratorId(otherCuratorId.value)
+        .withUrlCard(url2)
+        .buildOrThrow();
 
-      // Add card to second user's library
-      urlCard.addToLibrary(otherCuratorId);
-      await cardRepository.save(urlCard);
+      await cardRepository.save(urlCard2);
 
-      // Add card to third user's library
-      urlCard.addToLibrary(thirdCuratorId);
-      await cardRepository.save(urlCard);
+      // Add cards to their respective creator's libraries
+      urlCard1.addToLibrary(curatorId);
+      await cardRepository.save(urlCard1);
+
+      urlCard2.addToLibrary(otherCuratorId);
+      await cardRepository.save(urlCard2);
 
       // Query URL cards for first user
       const result1 = await queryRepository.getUrlCardsOfUser(curatorId.value, {
@@ -323,26 +327,12 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
         },
       );
 
-      // Query URL cards for third user
-      const result3 = await queryRepository.getUrlCardsOfUser(
-        thirdCuratorId.value,
-        {
-          page: 1,
-          limit: 10,
-          sortBy: CardSortField.UPDATED_AT,
-          sortOrder: SortOrder.DESC,
-        },
-      );
-
-      // All users should see the card
+      // Each user should only see their own URL card
       expect(result1.items).toHaveLength(1);
-      expect(result2.items).toHaveLength(1);
-      expect(result3.items).toHaveLength(1);
+      expect(result1.items[0]?.url).toBe(url1.value);
 
-      // Library count should be 3 for all users
-      expect(result1.items[0]?.libraryCount).toBe(3);
-      expect(result2.items[0]?.libraryCount).toBe(3);
-      expect(result3.items[0]?.libraryCount).toBe(3);
+      expect(result2.items).toHaveLength(1);
+      expect(result2.items[0]?.url).toBe(url2.value);
     });
 
     it("should not return URL cards from other users' libraries", async () => {
@@ -462,18 +452,12 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       await collectionRepository.save(workCollection);
       await collectionRepository.save(personalCollection);
 
-      // Add both cards to user's library with multiple memberships using domain logic
+      // Add both cards to user's library - URL cards can only be in creator's library
       urlCard.addToLibrary(curatorId);
       await cardRepository.save(urlCard);
 
       noteCard.addToLibrary(curatorId);
       await cardRepository.save(noteCard);
-
-      urlCard.addToLibrary(otherCuratorId);
-      await cardRepository.save(urlCard);
-
-      urlCard.addToLibrary(thirdCuratorId);
-      await cardRepository.save(urlCard);
 
       // Query URL cards
       const result = await queryRepository.getUrlCardsOfUser(curatorId.value, {
@@ -498,8 +482,8 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
         'https://example.com/complex.jpg',
       );
 
-      // Check library count
-      expect(urlCardResult?.libraryCount).toBe(3);
+      // Check library count - URL cards can only be in one library (creator's)
+      expect(urlCardResult?.libraryCount).toBe(1);
 
       // Check connected note
       expect(urlCardResult?.note).toBeDefined();
@@ -527,20 +511,18 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
   describe('sorting', () => {
     beforeEach(async () => {
       // Create URL cards with different properties for sorting
+      // Each URL card is created by and belongs to curatorId
       const urls = [
         {
           url: 'https://example.com/alpha',
-          libraryCount: 1,
           date: '2023-01-01',
         },
         {
           url: 'https://example.com/beta',
-          libraryCount: 3,
           date: '2023-01-03',
         },
         {
           url: 'https://example.com/gamma',
-          libraryCount: 2,
           date: '2023-01-02',
         },
       ];
@@ -556,19 +538,9 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
 
         await cardRepository.save(urlCard);
 
-        // Add to library using domain logic - add multiple users to reach the desired library count
+        // Add to library using domain logic - URL cards can only be in creator's library
         urlCard.addToLibrary(curatorId);
         await cardRepository.save(urlCard);
-
-        // Add additional users to reach the test library count
-        if (urlData.libraryCount > 1) {
-          urlCard.addToLibrary(otherCuratorId);
-          await cardRepository.save(urlCard);
-        }
-        if (urlData.libraryCount > 2) {
-          urlCard.addToLibrary(thirdCuratorId);
-          await cardRepository.save(urlCard);
-        }
       }
     });
 
@@ -581,9 +553,10 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       });
 
       expect(result.items).toHaveLength(3);
-      expect(result.items[0]?.libraryCount).toBe(3); // beta
-      expect(result.items[1]?.libraryCount).toBe(2); // gamma
-      expect(result.items[2]?.libraryCount).toBe(1); // alpha
+      // All URL cards have library count of 1 (only in creator's library)
+      expect(result.items[0]?.libraryCount).toBe(1);
+      expect(result.items[1]?.libraryCount).toBe(1);
+      expect(result.items[2]?.libraryCount).toBe(1);
     });
 
     it('should sort by library count ascending', async () => {
@@ -595,9 +568,10 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       });
 
       expect(result.items).toHaveLength(3);
-      expect(result.items[0]?.libraryCount).toBe(1); // alpha
-      expect(result.items[1]?.libraryCount).toBe(2); // gamma
-      expect(result.items[2]?.libraryCount).toBe(3); // beta
+      // All URL cards have library count of 1 (only in creator's library)
+      expect(result.items[0]?.libraryCount).toBe(1);
+      expect(result.items[1]?.libraryCount).toBe(1);
+      expect(result.items[2]?.libraryCount).toBe(1);
     });
 
     it('should sort by updated date descending', async () => {

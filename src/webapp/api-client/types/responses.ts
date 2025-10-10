@@ -132,6 +132,7 @@ export interface UrlCardListItem {
   }[];
 }
 
+// Base pagination interface
 export interface Pagination {
   currentPage: number;
   totalPages: number;
@@ -140,15 +141,24 @@ export interface Pagination {
   limit: number;
 }
 
-export interface Sorting {
-  sortBy: 'createdAt' | 'updatedAt' | 'libraryCount';
+// Base sorting interface
+export interface BaseSorting {
   sortOrder: 'asc' | 'desc';
+}
+
+// Specific sorting interfaces
+export interface CardSorting extends BaseSorting {
+  sortBy: 'createdAt' | 'updatedAt' | 'libraryCount';
+}
+
+export interface CollectionSorting extends BaseSorting {
+  sortBy: 'name' | 'createdAt' | 'updatedAt' | 'cardCount';
 }
 
 export interface GetUrlCardsResponse {
   cards: UrlCardListItem[];
   pagination: Pagination;
-  sorting: Sorting;
+  sorting: CardSorting;
 }
 
 export interface CollectionPageUrlCard {
@@ -184,7 +194,7 @@ export interface GetCollectionPageResponse {
   };
   urlCards: CollectionPageUrlCard[];
   pagination: Pagination;
-  sorting: Sorting;
+  sorting: CardSorting;
 }
 
 export interface GetCollectionsResponse {
@@ -204,10 +214,7 @@ export interface GetCollectionsResponse {
     };
   }[];
   pagination: Pagination;
-  sorting: {
-    sortBy: 'name' | 'createdAt' | 'updatedAt' | 'cardCount';
-    sortOrder: 'asc' | 'desc';
-  };
+  sorting: CollectionSorting;
 }
 
 // User authentication response types
@@ -287,15 +294,13 @@ export interface FeedItem {
   }[];
 }
 
+export interface FeedPagination extends Pagination {
+  nextCursor?: string;
+}
+
 export interface GetGlobalFeedResponse {
   activities: FeedItem[];
-  pagination: {
-    currentPage: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-    nextCursor?: string;
-  };
+  pagination: FeedPagination;
 }
 
 export interface GetUrlStatusForMyLibraryResponse {
@@ -306,4 +311,39 @@ export interface GetUrlStatusForMyLibraryResponse {
     name: string;
     description?: string;
   }[];
+}
+
+export interface GetLibrariesForUrlResponse {
+  libraries: {
+    userId: string;
+    name: string;
+    handle: string;
+    avatarUrl?: string;
+  }[];
+  pagination: Pagination;
+  sorting: CardSorting;
+}
+
+export interface GetNoteCardsForUrlResponse {
+  notes: {
+    id: string;
+    note: string;
+    authorId: string;
+    createdAt: string;
+    updatedAt: string;
+  }[];
+  pagination: Pagination;
+  sorting: CardSorting;
+}
+
+export interface GetCollectionsForUrlResponse {
+  collections: {
+    id: string;
+    uri?: string;
+    name: string;
+    description?: string;
+    authorId: string;
+  }[];
+  pagination: Pagination;
+  sorting: CollectionSorting;
 }

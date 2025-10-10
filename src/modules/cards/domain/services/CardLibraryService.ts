@@ -7,6 +7,7 @@ import { ICollectionRepository } from '../ICollectionRepository';
 import { AppError } from '../../../../shared/core/AppError';
 import { DomainService } from '../../../../shared/domain/DomainService';
 import { CardCollectionService } from './CardCollectionService';
+import { PublishedRecordId } from '../value-objects/PublishedRecordId';
 
 export class CardLibraryValidationError extends Error {
   constructor(message: string) {
@@ -45,7 +46,8 @@ export class CardLibraryService implements DomainService {
           ),
         );
       }
-      let parentCard: Card | undefined = undefined;
+      let parentCardPublishedRecordId: PublishedRecordId | undefined =
+        undefined;
 
       if (card.parentCardId) {
         // Ensure parent card is in the curator's library
@@ -64,14 +66,14 @@ export class CardLibraryService implements DomainService {
         if (!parentCardValue) {
           return err(new CardLibraryValidationError(`Parent card not found`));
         }
-        parentCard = parentCardValue;
+        parentCardPublishedRecordId = parentCardValue.publishedRecordId;
       }
 
       // Publish card to library
       const publishResult = await this.cardPublisher.publishCardToLibrary(
         card,
         curatorId,
-        parentCard,
+        parentCardPublishedRecordId,
       );
       if (publishResult.isErr()) {
         return err(

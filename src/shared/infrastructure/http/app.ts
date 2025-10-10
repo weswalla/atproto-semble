@@ -68,6 +68,8 @@ export const createExpressApp = (
     controllers.getMyUrlCardsController,
     controllers.getUserUrlCardsController,
     controllers.getUrlStatusForMyLibraryController,
+    controllers.getLibrariesForUrlController,
+    controllers.getNoteCardsForUrlController,
     // Collection controllers
     controllers.createCollectionController,
     controllers.updateCollectionController,
@@ -76,6 +78,7 @@ export const createExpressApp = (
     controllers.getCollectionPageByAtUriController,
     controllers.getMyCollectionsController,
     controllers.getCollectionsController,
+    controllers.getCollectionsForUrlController,
   );
 
   const feedRouter = createFeedRoutes(

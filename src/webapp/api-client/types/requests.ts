@@ -1,3 +1,18 @@
+// Base interfaces for common parameters
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+}
+
+export interface SortingParams {
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface PaginatedSortedParams
+  extends PaginationParams,
+    SortingParams {}
+
 // Request types - cleaned up from backend DTOs
 export interface AddUrlToLibraryRequest {
   url: string;
@@ -45,58 +60,30 @@ export interface DeleteCollectionRequest {
 }
 
 // Query parameters
-export interface GetMyUrlCardsParams {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
+export interface GetMyUrlCardsParams extends PaginatedSortedParams {}
 
-export interface GetUrlCardsParams {
+export interface GetUrlCardsParams extends PaginatedSortedParams {
   identifier: string; // Can be DID or handle
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
 }
 
-export interface GetCollectionPageParams {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
+export interface GetCollectionPageParams extends PaginatedSortedParams {}
 
-export interface GetMyCollectionsParams {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+export interface GetMyCollectionsParams extends PaginatedSortedParams {
   searchText?: string;
 }
 
-export interface GetCollectionsParams {
+export interface GetCollectionsParams extends PaginatedSortedParams {
   identifier: string; // Can be DID or handle
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
   searchText?: string;
 }
 
-export interface GetCollectionPageByAtUriParams {
+export interface GetCollectionPageByAtUriParams extends PaginatedSortedParams {
   handle: string;
   recordKey: string;
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
 }
 
 // Feed request types
-export interface GetGlobalFeedParams {
-  page?: number;
-  limit?: number;
+export interface GetGlobalFeedParams extends PaginationParams {
   beforeActivityId?: string; // For cursor-based pagination
 }
 
@@ -129,5 +116,17 @@ export interface GetProfileParams {
 }
 
 export interface GetUrlStatusForMyLibraryParams {
+  url: string;
+}
+
+export interface GetLibrariesForUrlParams extends PaginatedSortedParams {
+  url: string;
+}
+
+export interface GetNoteCardsForUrlParams extends PaginatedSortedParams {
+  url: string;
+}
+
+export interface GetCollectionsForUrlParams extends PaginatedSortedParams {
   url: string;
 }

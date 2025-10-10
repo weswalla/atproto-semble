@@ -6,6 +6,7 @@ import { GetCollectionPageController } from '../controllers/GetCollectionPageCon
 import { GetMyCollectionsController } from '../controllers/GetMyCollectionsController';
 import { GetUserCollectionsController } from '../controllers/GetUserCollectionsController';
 import { GetCollectionPageByAtUriController } from '../controllers/GetCollectionPageByAtUriController';
+import { GetCollectionsForUrlController } from '../controllers/GetCollectionsForUrlController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 
 export function createCollectionRoutes(
@@ -17,6 +18,7 @@ export function createCollectionRoutes(
   getMyCollectionsController: GetMyCollectionsController,
   getUserCollectionsController: GetUserCollectionsController,
   getCollectionPageByAtUriController: GetCollectionPageByAtUriController,
+  getCollectionsForUrlController: GetCollectionsForUrlController,
 ): Router {
   const router = Router();
 
@@ -24,6 +26,11 @@ export function createCollectionRoutes(
   // GET /api/collections - Get my collections
   router.get('/', authMiddleware.ensureAuthenticated(), (req, res) =>
     getMyCollectionsController.execute(req, res),
+  );
+
+  // GET /api/collections/url - Get collections for URL
+  router.get('/url', authMiddleware.optionalAuth(), (req, res) =>
+    getCollectionsForUrlController.execute(req, res),
   );
 
   // GET /api/collections/user/:identifier - Get user's collections by identifier

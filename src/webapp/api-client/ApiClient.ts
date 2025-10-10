@@ -59,6 +59,12 @@ import type {
   GetProfileParams,
   GetUrlStatusForMyLibraryParams,
   GetUrlStatusForMyLibraryResponse,
+  GetLibrariesForUrlParams,
+  GetLibrariesForUrlResponse,
+  GetNoteCardsForUrlParams,
+  GetNoteCardsForUrlResponse,
+  GetCollectionsForUrlParams,
+  GetCollectionsForUrlResponse,
 } from './types';
 
 // Main API Client class using composition
@@ -159,6 +165,24 @@ export class ApiClient {
   ): Promise<GetUrlStatusForMyLibraryResponse> {
     this.requireAuthentication('getUrlStatusForMyLibrary');
     return this.queryClient.getUrlStatusForMyLibrary(params);
+  }
+
+  async getLibrariesForUrl(
+    params: GetLibrariesForUrlParams,
+  ): Promise<GetLibrariesForUrlResponse> {
+    return this.queryClient.getLibrariesForUrl(params);
+  }
+
+  async getNoteCardsForUrl(
+    params: GetNoteCardsForUrlParams,
+  ): Promise<GetNoteCardsForUrlResponse> {
+    return this.queryClient.getNoteCardsForUrl(params);
+  }
+
+  async getCollectionsForUrl(
+    params: GetCollectionsForUrlParams,
+  ): Promise<GetCollectionsForUrlResponse> {
+    return this.queryClient.getCollectionsForUrl(params);
   }
 
   // Card operations - delegate to CardClient (all require authentication)

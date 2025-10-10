@@ -92,6 +92,45 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   await db.execute(
     sql`CREATE INDEX IF NOT EXISTS idx_card_users ON library_memberships(card_id)`,
   );
+
+  // Performance indexes
+  // Covering index for getUrlCardsOfUser - avoids table lookups by including cardId
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_library_memberships_user_type_covering 
+    ON library_memberships(user_id, added_at DESC) 
+    INCLUDE (card_id)
+  `);
+
+  // Optimizes sorting cards by type and update time in query results
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_cards_type_updated_at 
+    ON cards(type, updated_at DESC)
+  `);
+
+  // Index for getLibrariesForUrl and getCollectionsWithUrl - fast URL+type lookups with card ID included
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_cards_url_type 
+    ON cards(url, type) INCLUDE (id)
+  `);
+
+  // Covering index for getCardsInCollection - sorted by add time with cardId included
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_collection_cards_collection_added 
+    ON collection_cards(collection_id, added_at DESC) 
+    INCLUDE (card_id)
+  `);
+
+  // Partial index for finding NOTE cards by parent - only indexes NOTE type cards
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_cards_parent_type 
+    ON cards(parent_card_id, type) WHERE type = 'NOTE'
+  `);
+
+  // Covering index for finding collections containing a card - avoids table lookups
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_collection_cards_card_collection 
+    ON collection_cards(card_id) INCLUDE (collection_id)
+  `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_feed_activities_created_at ON feed_activities(created_at DESC);
   `);
@@ -100,7 +139,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
     CREATE INDEX IF NOT EXISTS idx_feed_activities_actor_id ON feed_activities(actor_id);
   `);
 
-  // Index for efficient AT URI lookups
+  // Index for efficient AT URI look ups
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS published_records_uri_idx ON published_records(uri);
   `);

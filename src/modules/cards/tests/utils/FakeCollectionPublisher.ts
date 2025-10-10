@@ -6,6 +6,7 @@ import { ok, err, Result } from '../../../../shared/core/Result';
 import { UseCaseError } from '../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../shared/core/AppError';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
+import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 
 export class FakeCollectionPublisher implements ICollectionPublisher {
   private publishedCollections: Map<string, Collection> = new Map();
@@ -17,6 +18,11 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
   private removedLinks: Array<{ cardId: string; collectionId: string }> = [];
   private shouldFail: boolean = false;
   private shouldFailUnpublish: boolean = false;
+  private collectionType =
+    new EnvironmentConfigService().getAtProtoCollections().collection;
+
+  private cardCollectionLinkType =
+    new EnvironmentConfigService().getAtProtoCollections().collectionLink;
 
   async publish(
     collection: Collection,
@@ -33,7 +39,7 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     const fakeDid = process.env.BSKY_DID || 'did:plc:rlknsba2qldjkicxsmni3vyn';
 
     // Simulate publishing the collection record itself
-    const fakeCollectionUri = `at://${fakeDid}/network.cosmik.dev.collection/${collectionId}`;
+    const fakeCollectionUri = `at://${fakeDid}/${this.collectionType}/${collectionId}`;
     const fakeCollectionCid = `fake-collection-cid-${collectionId}`;
 
     const collectionRecord = PublishedRecordId.create({
@@ -68,7 +74,7 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     const cardId = card.cardId.getStringValue();
 
     // Simulate publishing a card-collection link
-    const fakeLinkUri = `at://${curatorId.value}/network.cosmik.cardCollectionLink/${collectionId}-${cardId}`;
+    const fakeLinkUri = `at://${curatorId.value}/${this.cardCollectionLinkType}/${collectionId}-${cardId}`;
     const fakeLinkCid = `fake-link-cid-${collectionId}-${cardId}`;
 
     const linkRecord = PublishedRecordId.create({

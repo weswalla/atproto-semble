@@ -1,4 +1,14 @@
-import { eq, desc, asc, count, sql, or, ilike, and } from 'drizzle-orm';
+import {
+  eq,
+  desc,
+  asc,
+  count,
+  sql,
+  or,
+  ilike,
+  and,
+  inArray,
+} from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   ICollectionQueryRepository,
@@ -8,10 +18,14 @@ import {
   CollectionSortField,
   SortOrder,
   CollectionContainingCardDTO,
+  CollectionForUrlDTO,
+  CollectionForUrlQueryOptions,
 } from '../../domain/ICollectionQueryRepository';
 import { collections, collectionCards } from './schema/collection.sql';
 import { publishedRecords } from './schema/publishedRecord.sql';
+import { cards } from './schema/card.sql';
 import { CollectionMapper } from './mappers/CollectionMapper';
+import { CardTypeEnum } from '../../domain/value-objects/CardType';
 
 export class DrizzleCollectionQueryRepository
   implements ICollectionQueryRepository
@@ -151,6 +165,100 @@ export class DrizzleCollectionQueryRepository
     }
   }
 
+  async getCollectionsWithUrl(
+    url: string,
+    options: CollectionForUrlQueryOptions,
+  ): Promise<PaginatedQueryResult<CollectionForUrlDTO>> {
+    try {
+      const { page, limit, sortBy, sortOrder } = options;
+      const offset = (page - 1) * limit;
+
+      // Build the sort order
+      const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
+
+      // Find all URL cards with this URL
+      const urlCardsQuery = this.db
+        .select({
+          id: cards.id,
+        })
+        .from(cards)
+        .where(and(eq(cards.url, url), eq(cards.type, CardTypeEnum.URL)));
+
+      const urlCardsResult = await urlCardsQuery;
+
+      if (urlCardsResult.length === 0) {
+        return {
+          items: [],
+          totalCount: 0,
+          hasMore: false,
+        };
+      }
+
+      const cardIds = urlCardsResult.map((card) => card.id);
+
+      // Find all collections that contain any of these cards with pagination and sorting
+      const collectionsQuery = this.db
+        .selectDistinct({
+          id: collections.id,
+          name: collections.name,
+          description: collections.description,
+          authorId: collections.authorId,
+          uri: publishedRecords.uri,
+          createdAt: collections.createdAt,
+          updatedAt: collections.updatedAt,
+          cardCount: collections.cardCount,
+        })
+        .from(collections)
+        .leftJoin(
+          publishedRecords,
+          eq(collections.publishedRecordId, publishedRecords.id),
+        )
+        .innerJoin(
+          collectionCards,
+          eq(collections.id, collectionCards.collectionId),
+        )
+        .where(inArray(collectionCards.cardId, cardIds))
+        .orderBy(orderDirection(this.getSortColumn(sortBy)))
+        .limit(limit)
+        .offset(offset);
+
+      const collectionsResult = await collectionsQuery;
+
+      // Get total count of distinct collections
+      const totalCountQuery = this.db
+        .selectDistinct({
+          id: collections.id,
+        })
+        .from(collections)
+        .innerJoin(
+          collectionCards,
+          eq(collections.id, collectionCards.collectionId),
+        )
+        .where(inArray(collectionCards.cardId, cardIds));
+
+      const totalCountResult = await totalCountQuery;
+      const totalCount = totalCountResult.length;
+      const hasMore = offset + collectionsResult.length < totalCount;
+
+      const items = collectionsResult.map((result) => ({
+        id: result.id,
+        uri: result.uri || undefined,
+        name: result.name,
+        description: result.description || undefined,
+        authorId: result.authorId,
+      }));
+
+      return {
+        items,
+        totalCount,
+        hasMore,
+      };
+    } catch (error) {
+      console.error('Error in getCollectionsWithUrl:', error);
+      throw error;
+    }
+  }
+
   private getSortColumn(sortBy: CollectionSortField) {
     switch (sortBy) {
       case CollectionSortField.NAME:
@@ -162,7 +270,7 @@ export class DrizzleCollectionQueryRepository
       case CollectionSortField.CARD_COUNT:
         return collections.cardCount;
       default:
-        return collections.updatedAt;
+        return collections.name;
     }
   }
 }

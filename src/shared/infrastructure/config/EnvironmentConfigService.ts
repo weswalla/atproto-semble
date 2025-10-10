@@ -72,15 +72,15 @@ export class EnvironmentConfigService {
           card:
             environment === 'prod'
               ? 'network.cosmik.card'
-              : 'network.cosmik.dev.card',
+              : `network.cosmik.${environment}.card`,
           collection:
             environment === 'prod'
               ? 'network.cosmik.collection'
-              : 'network.cosmik.dev.collection',
+              : `network.cosmik.${environment}.collection`,
           collectionLink:
             environment === 'prod'
               ? 'network.cosmik.collectionLink'
-              : 'network.cosmik.dev.collectionLink',
+              : `network.cosmik.${environment}.collectionLink`,
         },
       },
       server: {

@@ -27,6 +27,9 @@ import { GenerateExtensionTokensController } from 'src/modules/user/infrastructu
 import { GetUserCollectionsController } from 'src/modules/cards/infrastructure/http/controllers/GetUserCollectionsController';
 import { GetCollectionPageByAtUriController } from 'src/modules/cards/infrastructure/http/controllers/GetCollectionPageByAtUriController';
 import { GetUrlStatusForMyLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlStatusForMyLibraryController';
+import { GetLibrariesForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetLibrariesForUrlController';
+import { GetCollectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionsForUrlController';
+import { GetNoteCardsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetNoteCardsForUrlController';
 
 export interface Controllers {
   // User controllers
@@ -58,6 +61,9 @@ export interface Controllers {
   getMyCollectionsController: GetMyCollectionsController;
   getCollectionsController: GetUserCollectionsController;
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController;
+  getLibrariesForUrlController: GetLibrariesForUrlController;
+  getCollectionsForUrlController: GetCollectionsForUrlController;
+  getNoteCardsForUrlController: GetNoteCardsForUrlController;
   // Feed controllers
   getGlobalFeedController: GetGlobalFeedController;
 }
@@ -150,6 +156,15 @@ export class ControllerFactory {
         new GetUrlStatusForMyLibraryController(
           useCases.getUrlStatusForMyLibraryUseCase,
         ),
+      getLibrariesForUrlController: new GetLibrariesForUrlController(
+        useCases.getLibrariesForUrlUseCase,
+      ),
+      getCollectionsForUrlController: new GetCollectionsForUrlController(
+        useCases.getCollectionsForUrlUseCase,
+      ),
+      getNoteCardsForUrlController: new GetNoteCardsForUrlController(
+        useCases.getNoteCardsForUrlUseCase,
+      ),
 
       // Feed controllers
       getGlobalFeedController: new GetGlobalFeedController(

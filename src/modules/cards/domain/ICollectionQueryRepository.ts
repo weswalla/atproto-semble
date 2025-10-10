@@ -24,7 +24,6 @@ export enum SortOrder {
   DESC = 'desc',
 }
 
-// Raw data from repository - minimal, just what's stored
 export interface CollectionQueryResultDTO {
   id: string;
   uri?: string;
@@ -33,15 +32,29 @@ export interface CollectionQueryResultDTO {
   updatedAt: Date;
   createdAt: Date;
   cardCount: number;
-  authorId: string; // Just the curator ID, not enriched data
+  authorId: string;
 }
 
-// View data for collections containing a specific card
 export interface CollectionContainingCardDTO {
   id: string;
   uri?: string;
   name: string;
   description?: string;
+}
+
+export interface CollectionForUrlDTO {
+  id: string;
+  uri?: string;
+  name: string;
+  description?: string;
+  authorId: string;
+}
+
+export interface CollectionForUrlQueryOptions {
+  page: number;
+  limit: number;
+  sortBy: CollectionSortField;
+  sortOrder: SortOrder;
 }
 
 export interface ICollectionQueryRepository {
@@ -54,4 +67,9 @@ export interface ICollectionQueryRepository {
     cardId: string,
     curatorId: string,
   ): Promise<CollectionContainingCardDTO[]>;
+
+  getCollectionsWithUrl(
+    url: string,
+    options: CollectionForUrlQueryOptions,
+  ): Promise<PaginatedQueryResult<CollectionForUrlDTO>>;
 }

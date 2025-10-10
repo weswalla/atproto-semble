@@ -552,6 +552,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
         getCollectionsContainingCardForUser: jest
           .fn()
           .mockRejectedValue(new Error('Collection query error')),
+        getCollectionsWithUrl: jest.fn(),
       };
 
       const errorUseCase = new GetUrlStatusForMyLibraryUseCase(

@@ -3,30 +3,34 @@ import {
   CollectionQueryOptions,
   CollectionQueryResultDTO,
   CollectionContainingCardDTO,
+  CollectionForUrlDTO,
   PaginatedQueryResult,
   CollectionSortField,
   SortOrder,
+  CollectionForUrlQueryOptions,
 } from '../../domain/ICollectionQueryRepository';
 import { Collection } from '../../domain/Collection';
 import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
+import { InMemoryCardRepository } from './InMemoryCardRepository';
 
 export class InMemoryCollectionQueryRepository
   implements ICollectionQueryRepository
 {
-  constructor(private collectionRepository: InMemoryCollectionRepository) {}
+  constructor(
+    private collectionRepository: InMemoryCollectionRepository,
+    private cardRepository?: InMemoryCardRepository,
+  ) {}
 
   async findByCreator(
     curatorId: string,
     options: CollectionQueryOptions,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>> {
     try {
-      // Get all collections and filter by creator
       const allCollections = this.collectionRepository.getAllCollections();
       let creatorCollections = allCollections.filter(
         (collection) => collection.authorId.value === curatorId,
       );
 
-      // Apply text search if provided
       if (options.searchText && options.searchText.trim()) {
         const searchTerm = options.searchText.trim().toLowerCase();
         creatorCollections = creatorCollections.filter((collection) => {
@@ -40,14 +44,12 @@ export class InMemoryCollectionQueryRepository
         });
       }
 
-      // Sort collections
       const sortedCollections = this.sortCollections(
         creatorCollections,
         options.sortBy,
         options.sortOrder,
       );
 
-      // Apply pagination
       const startIndex = (options.page - 1) * options.limit;
       const endIndex = startIndex + options.limit;
       const paginatedCollections = sortedCollections.slice(
@@ -55,7 +57,6 @@ export class InMemoryCollectionQueryRepository
         endIndex,
       );
 
-      // Transform to DTOs
       const items: CollectionQueryResultDTO[] = paginatedCollections.map(
         (collection) => {
           const collectionPublishedRecordId = collection.publishedRecordId;
@@ -121,20 +122,17 @@ export class InMemoryCollectionQueryRepository
     curatorId: string,
   ): Promise<CollectionContainingCardDTO[]> {
     try {
-      // Get all collections and filter by creator
       const allCollections = this.collectionRepository.getAllCollections();
       const creatorCollections = allCollections.filter(
         (collection) => collection.authorId.value === curatorId,
       );
 
-      // Filter collections that contain the specified card
       const collectionsWithCard = creatorCollections.filter((collection) =>
         collection.cardLinks.some(
           (link) => link.cardId.getStringValue() === cardId,
         ),
       );
 
-      // Transform to DTOs
       const result: CollectionContainingCardDTO[] = collectionsWithCard.map(
         (collection) => {
           const collectionPublishedRecordId = collection.publishedRecordId;
@@ -151,6 +149,74 @@ export class InMemoryCollectionQueryRepository
     } catch (error) {
       throw new Error(
         `Failed to get collections containing card: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  async getCollectionsWithUrl(
+    url: string,
+    options: CollectionForUrlQueryOptions,
+  ): Promise<PaginatedQueryResult<CollectionForUrlDTO>> {
+    try {
+      if (!this.cardRepository) {
+        throw new Error(
+          'Card repository is required for getCollectionsWithUrl',
+        );
+      }
+
+      const allCards = this.cardRepository.getAllCards();
+      const cardsWithUrl = allCards.filter(
+        (card) => card.isUrlCard && card.url?.value === url,
+      );
+
+      const cardIds = new Set(
+        cardsWithUrl.map((card) => card.cardId.getStringValue()),
+      );
+
+      const allCollections = this.collectionRepository.getAllCollections();
+      const collectionsWithUrl = allCollections.filter((collection) =>
+        collection.cardLinks.some((link) =>
+          cardIds.has(link.cardId.getStringValue()),
+        ),
+      );
+
+      // Sort collections
+      const sortedCollections = this.sortCollections(
+        collectionsWithUrl,
+        options.sortBy,
+        options.sortOrder,
+      );
+
+      // Apply pagination
+      const { page, limit } = options;
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedCollections = sortedCollections.slice(
+        startIndex,
+        endIndex,
+      );
+
+      const items: CollectionForUrlDTO[] = paginatedCollections.map(
+        (collection) => {
+          const collectionPublishedRecordId = collection.publishedRecordId;
+          return {
+            id: collection.collectionId.getStringValue(),
+            uri: collectionPublishedRecordId?.uri,
+            name: collection.name.value,
+            description: collection.description?.value,
+            authorId: collection.authorId.value,
+          };
+        },
+      );
+
+      return {
+        items,
+        totalCount: sortedCollections.length,
+        hasMore: endIndex < sortedCollections.length,
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to get collections with URL: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }

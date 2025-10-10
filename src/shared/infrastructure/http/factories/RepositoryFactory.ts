@@ -66,6 +66,7 @@ export class RepositoryFactory {
       );
       const collectionQueryRepository = new InMemoryCollectionQueryRepository(
         collectionRepository,
+        cardRepository,
       );
       const appPasswordSessionRepository =
         new InMemoryAppPasswordSessionRepository();

@@ -7,6 +7,8 @@ import {
   PaginatedQueryResult,
   CardSortField,
   SortOrder,
+  LibraryForUrlDTO,
+  NoteCardForUrlDTO,
 } from '../../domain/ICardQueryRepository';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { InMemoryCardRepository } from './InMemoryCardRepository';
@@ -303,6 +305,147 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return card.libraryMemberships.map(
       (membership) => membership.curatorId.value,
     );
+  }
+
+  async getLibrariesForUrl(
+    url: string,
+    options: CardQueryOptions,
+  ): Promise<PaginatedQueryResult<LibraryForUrlDTO>> {
+    try {
+      // Get all cards and filter by URL
+      const allCards = this.cardRepository.getAllCards();
+      const urlCards = allCards.filter(
+        (card) => card.isUrlCard && card.url?.value === url,
+      );
+
+      // Create library entries for each card
+      const libraries: LibraryForUrlDTO[] = [];
+      for (const card of urlCards) {
+        for (const membership of card.libraryMemberships) {
+          libraries.push({
+            userId: membership.curatorId.value,
+            cardId: card.cardId.getStringValue(),
+          });
+        }
+      }
+
+      // Sort libraries (by userId for consistency)
+      const sortedLibraries = this.sortLibraries(
+        libraries,
+        options.sortBy,
+        options.sortOrder,
+      );
+
+      // Apply pagination
+      const startIndex = (options.page - 1) * options.limit;
+      const endIndex = startIndex + options.limit;
+      const paginatedLibraries = sortedLibraries.slice(startIndex, endIndex);
+
+      return {
+        items: paginatedLibraries,
+        totalCount: libraries.length,
+        hasMore: endIndex < libraries.length,
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to query libraries for URL: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  private sortLibraries(
+    libraries: LibraryForUrlDTO[],
+    sortBy: CardSortField,
+    sortOrder: SortOrder,
+  ): LibraryForUrlDTO[] {
+    const sorted = [...libraries].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortBy) {
+        case CardSortField.CREATED_AT:
+        case CardSortField.UPDATED_AT:
+        case CardSortField.LIBRARY_COUNT:
+          // For libraries, we'll sort by userId as a fallback
+          comparison = a.userId.localeCompare(b.userId);
+          break;
+        default:
+          comparison = a.userId.localeCompare(b.userId);
+      }
+
+      return sortOrder === SortOrder.DESC ? -comparison : comparison;
+    });
+
+    return sorted;
+  }
+
+  async getNoteCardsForUrl(
+    url: string,
+    options: CardQueryOptions,
+  ): Promise<PaginatedQueryResult<NoteCardForUrlDTO>> {
+    try {
+      // Get all note cards with the specified URL
+      const allCards = this.cardRepository.getAllCards();
+      const noteCards = allCards
+        .filter((card) => card.isNoteCard && card.url?.value === url)
+        .map((card) => ({
+          id: card.cardId.getStringValue(),
+          note: card.content.noteContent?.text || '',
+          authorId: card.curatorId.value,
+          createdAt: card.createdAt,
+          updatedAt: card.updatedAt,
+        }));
+
+      // Sort note cards
+      const sortedNotes = this.sortNoteCards(
+        noteCards,
+        options.sortBy,
+        options.sortOrder,
+      );
+
+      // Apply pagination
+      const startIndex = (options.page - 1) * options.limit;
+      const endIndex = startIndex + options.limit;
+      const paginatedNotes = sortedNotes.slice(startIndex, endIndex);
+
+      return {
+        items: paginatedNotes,
+        totalCount: noteCards.length,
+        hasMore: endIndex < noteCards.length,
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to query note cards for URL: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  private sortNoteCards(
+    notes: NoteCardForUrlDTO[],
+    sortBy: CardSortField,
+    sortOrder: SortOrder,
+  ): NoteCardForUrlDTO[] {
+    const sorted = [...notes].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortBy) {
+        case CardSortField.CREATED_AT:
+          comparison = a.createdAt.getTime() - b.createdAt.getTime();
+          break;
+        case CardSortField.UPDATED_AT:
+          comparison = a.updatedAt.getTime() - b.updatedAt.getTime();
+          break;
+        case CardSortField.LIBRARY_COUNT:
+          // For note cards, sort by authorId as fallback
+          comparison = a.authorId.localeCompare(b.authorId);
+          break;
+        default:
+          comparison = 0;
+      }
+
+      return sortOrder === SortOrder.DESC ? -comparison : comparison;
+    });
+
+    return sorted;
   }
 
   clear(): void {

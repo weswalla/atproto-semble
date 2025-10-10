@@ -26,6 +26,11 @@ export const libraryMemberships = pgTable(
       pk: primaryKey({ columns: [table.cardId, table.userId] }),
       userCardsIdx: index('idx_user_cards').on(table.userId),
       cardUsersIdx: index('idx_card_users').on(table.cardId),
+      // Performance indexes
+      // Index for getUrlCardsOfUser
+      userTypeCoveringIdx: index(
+        'idx_library_memberships_user_type_covering',
+      ).on(table.userId, table.addedAt.desc()),
     };
   },
 );

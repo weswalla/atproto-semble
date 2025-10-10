@@ -5,6 +5,7 @@ import { ok, err, Result } from '../../../../shared/core/Result';
 import { UseCaseError } from '../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../shared/core/AppError';
 import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
+import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 
 export class FakeCardPublisher implements ICardPublisher {
   private publishedRecords: Map<string, Card> = new Map();
@@ -15,6 +16,7 @@ export class FakeCardPublisher implements ICardPublisher {
     uri: string;
     cid: string;
   }> = [];
+  private cardType = new EnvironmentConfigService().getAtProtoCollections().card;
 
   async publishCardToLibrary(
     card: Card,
@@ -29,7 +31,7 @@ export class FakeCardPublisher implements ICardPublisher {
 
     const cardId = card.cardId.getStringValue();
     // Simulate generating an AT URI based on curator DID and collection/rkey
-    const fakeUri = `at://${curatorId.value}/network.cosmik.dev.card/${cardId}`;
+    const fakeUri = `at://${curatorId.value}/${this.cardType}/${cardId}`;
     const fakeCid = `fake-cid-${cardId}`;
     const publishedRecordId = PublishedRecordId.create({
       uri: fakeUri,

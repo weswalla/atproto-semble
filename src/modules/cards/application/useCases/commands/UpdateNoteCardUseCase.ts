@@ -125,6 +125,7 @@ export class UpdateNoteCardUseCase
       const publishResult = await this.cardPublisher.publishCardToLibrary(
         card,
         curatorId,
+        card.publishedRecordId,
       );
       if (publishResult.isErr()) {
         return err(AppError.UnexpectedError.create(publishResult.error));

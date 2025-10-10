@@ -11,6 +11,7 @@ import { StrongRef } from '../../domain';
 import { UrlMetadata as UrlMetadataVO } from 'src/modules/cards/domain/value-objects/UrlMetadata';
 import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
+import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
 
 type CardRecordDTO = Record;
 
@@ -20,7 +21,7 @@ export class CardMapper {
   static toCreateRecordDTO(
     card: Card,
     curatorId: CuratorId,
-    parentCard?: Card,
+    parentCardPublishedRecordId?: PublishedRecordId,
   ): CardRecordDTO {
     const record: CardRecordDTO = {
       $type: this.cardCollection as any,
@@ -42,8 +43,8 @@ export class CardMapper {
       };
     }
 
-    if (card.parentCardId && parentCard && parentCard.publishedRecordId) {
-      const strongRef = new StrongRef(parentCard.publishedRecordId.getValue());
+    if (card.parentCardId && parentCardPublishedRecordId) {
+      const strongRef = new StrongRef(parentCardPublishedRecordId.getValue());
       record.parentCard = {
         uri: strongRef.getValue().uri,
         cid: strongRef.getValue().cid,

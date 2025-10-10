@@ -318,7 +318,7 @@ describe('ATProtoCardPublisher', () => {
         const notePublishResult = await publisher.publishCardToLibrary(
           noteCard,
           curatorId,
-          parentUrlCard,
+          parentUrlCard.publishedRecordId,
         );
         expect(notePublishResult.isOk()).toBe(true);
 

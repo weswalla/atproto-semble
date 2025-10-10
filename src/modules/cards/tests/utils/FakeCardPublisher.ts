@@ -19,7 +19,7 @@ export class FakeCardPublisher implements ICardPublisher {
   async publishCardToLibrary(
     card: Card,
     curatorId: CuratorId,
-    parentCard?: Card,
+    parentCardPublishedRecordId?: PublishedRecordId,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     if (this.shouldFail) {
       return err(

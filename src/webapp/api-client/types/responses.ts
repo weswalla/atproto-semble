@@ -132,6 +132,7 @@ export interface UrlCardListItem {
   }[];
 }
 
+// Base pagination interface
 export interface Pagination {
   currentPage: number;
   totalPages: number;
@@ -140,15 +141,35 @@ export interface Pagination {
   limit: number;
 }
 
-export interface Sorting {
-  sortBy: 'createdAt' | 'updatedAt' | 'libraryCount';
+// Base sorting interface
+export interface BaseSorting {
   sortOrder: 'asc' | 'desc';
 }
 
-export interface GetUrlCardsResponse {
-  cards: UrlCardListItem[];
+// Specific sorting interfaces
+export interface CardSorting extends BaseSorting {
+  sortBy: 'createdAt' | 'updatedAt' | 'libraryCount';
+}
+
+export interface CollectionSorting extends BaseSorting {
+  sortBy: 'name' | 'createdAt' | 'updatedAt' | 'cardCount';
+}
+
+// Base paginated response interface
+export interface PaginatedResponse {
   pagination: Pagination;
-  sorting: Sorting;
+}
+
+// Base sorted response interface
+export interface SortedResponse<T extends BaseSorting> {
+  sorting: T;
+}
+
+// Combined interface for paginated and sorted responses
+export interface PaginatedSortedResponse<T extends BaseSorting> extends PaginatedResponse, SortedResponse<T> {}
+
+export interface GetUrlCardsResponse extends PaginatedSortedResponse<CardSorting> {
+  cards: UrlCardListItem[];
 }
 
 export interface CollectionPageUrlCard {
@@ -171,7 +192,7 @@ export interface CollectionPageUrlCard {
   };
 }
 
-export interface GetCollectionPageResponse {
+export interface GetCollectionPageResponse extends PaginatedSortedResponse<CardSorting> {
   id: string;
   uri?: string;
   name: string;
@@ -183,11 +204,9 @@ export interface GetCollectionPageResponse {
     avatarUrl?: string;
   };
   urlCards: CollectionPageUrlCard[];
-  pagination: Pagination;
-  sorting: Sorting;
 }
 
-export interface GetCollectionsResponse {
+export interface GetCollectionsResponse extends PaginatedSortedResponse<CollectionSorting> {
   collections: {
     id: string;
     uri?: string;
@@ -203,11 +222,6 @@ export interface GetCollectionsResponse {
       avatarUrl?: string;
     };
   }[];
-  pagination: Pagination;
-  sorting: {
-    sortBy: 'name' | 'createdAt' | 'updatedAt' | 'cardCount';
-    sortOrder: 'asc' | 'desc';
-  };
 }
 
 // User authentication response types
@@ -287,15 +301,13 @@ export interface FeedItem {
   }[];
 }
 
-export interface GetGlobalFeedResponse {
+export interface FeedPagination extends Pagination {
+  nextCursor?: string;
+}
+
+export interface GetGlobalFeedResponse extends PaginatedResponse {
   activities: FeedItem[];
-  pagination: {
-    currentPage: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-    nextCursor?: string;
-  };
+  pagination: FeedPagination;
 }
 
 export interface GetUrlStatusForMyLibraryResponse {
@@ -308,18 +320,16 @@ export interface GetUrlStatusForMyLibraryResponse {
   }[];
 }
 
-export interface GetLibrariesForUrlResponse {
+export interface GetLibrariesForUrlResponse extends PaginatedSortedResponse<CardSorting> {
   libraries: {
     userId: string;
     name: string;
     handle: string;
     avatarUrl?: string;
   }[];
-  pagination: Pagination;
-  sorting: Sorting;
 }
 
-export interface GetNoteCardsForUrlResponse {
+export interface GetNoteCardsForUrlResponse extends PaginatedSortedResponse<CardSorting> {
   notes: {
     id: string;
     note: string;
@@ -327,11 +337,9 @@ export interface GetNoteCardsForUrlResponse {
     createdAt: string;
     updatedAt: string;
   }[];
-  pagination: Pagination;
-  sorting: Sorting;
 }
 
-export interface GetCollectionsForUrlResponse {
+export interface GetCollectionsForUrlResponse extends PaginatedSortedResponse<CollectionSorting> {
   collections: {
     id: string;
     uri?: string;
@@ -339,9 +347,4 @@ export interface GetCollectionsForUrlResponse {
     description?: string;
     authorId: string;
   }[];
-  pagination: Pagination;
-  sorting: {
-    sortBy: 'name' | 'createdAt' | 'updatedAt' | 'cardCount';
-    sortOrder: 'asc' | 'desc';
-  };
 }

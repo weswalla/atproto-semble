@@ -1,3 +1,5 @@
+import SembleContaier from '@/features/semble/containers/sembleContainer/SembleContainer';
+
 interface Props {
   params: Promise<{ url: string[] }>;
 }
@@ -5,5 +7,5 @@ interface Props {
 export default async function Page(props: Props) {
   const { url } = await props.params;
 
-  return <>{url}</>;
+  return <SembleContaier url={url.join()} />;
 }

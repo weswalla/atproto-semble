@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect, startTransition, useRef } from 'react';
-import { Center, Button, Stack } from '@mantine/core';
+import { Center, Button, Stack, Text } from '@mantine/core';
 import { useIntersection } from '@mantine/hooks';
 
 interface Props {
@@ -22,13 +22,15 @@ export default function InfiniteScroll(props: Props) {
     threshold: 0,
   });
 
+  const { hasMore, isLoading, loadMore } = props;
+
   useEffect(() => {
     startTransition(() => {
-      if (entry?.isIntersecting && props.hasMore && !props.isLoading) {
-        props.loadMore();
+      if (entry?.isIntersecting && hasMore && !isLoading) {
+        loadMore();
       }
     });
-  }, [entry?.isIntersecting, props.hasMore, props.isLoading, props.loadMore]);
+  }, [entry?.isIntersecting, hasMore, isLoading, loadMore]);
 
   return (
     <Stack>
@@ -42,6 +44,14 @@ export default function InfiniteScroll(props: Props) {
           </Button>
         )}
       </Center>
+
+      {!props.hasMore && !isLoading && props.dataLength !== 0 && (
+        <Center>
+          <Text c={'gray'} fw={600}>
+            Nothing more to show
+          </Text>
+        </Center>
+      )}
     </Stack>
   );
 }

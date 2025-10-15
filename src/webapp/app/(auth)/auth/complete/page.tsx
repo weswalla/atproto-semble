@@ -22,14 +22,9 @@ function AuthCompleteContent() {
         createClientTokenManager(),
       );
 
-      const accessToken = searchParams.get('accessToken');
-      const refreshToken = searchParams.get('refreshToken');
       const error = searchParams.get('error');
 
-      // Clear the URL parameters for security
-      const cleanUrl = '/';
-      window.history.replaceState({}, document.title, cleanUrl);
-
+      // Check for error parameter
       if (error) {
         console.error('Authentication error:', error);
         router.push(`/login?error=${encodeURIComponent(error)}`);
@@ -57,24 +52,21 @@ function AuthCompleteContent() {
         }
       };
 
-      if (accessToken && refreshToken) {
-        // Store tokens using the auth context function
-        await setTokens(accessToken, refreshToken);
+      // With cookie-based auth, tokens are automatically set in cookies by the backend
+      // No need to handle tokens from URL parameters anymore
+      setMessage('Authentication successful!');
 
-        // Check if extension tokens were requested
-        if (ExtensionService.isExtensionTokensRequested()) {
-          handleExtensionTokenGeneration();
-        } else {
-          // Redirect to home
-          router.push('/home');
-        }
+      // Check if extension tokens were requested
+      if (ExtensionService.isExtensionTokensRequested()) {
+        handleExtensionTokenGeneration();
       } else {
-        router.push('/login?error=Authentication failed');
+        // Redirect to home after a brief moment
+        setTimeout(() => router.push('/home'), 500);
       }
     };
 
     handleAuth();
-  }, [router, searchParams, setTokens]);
+  }, [router, searchParams]);
 
   return (
     <Stack align="center">

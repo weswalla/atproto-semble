@@ -17,6 +17,7 @@ import Link from 'next/link';
 import ProfileEmptyTab from '../../components/profileEmptyTab/ProfileEmptyTab';
 import { BiCollection } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
+import { useNavbarContext } from '@/providers/navbar';
 
 interface Props {
   handle: string;
@@ -31,7 +32,10 @@ export default function ProfileContainer(props: Props) {
 
   const collections =
     collectionsData?.pages.flatMap((page) => page.collections) ?? [];
+
   const cards = cardsData?.pages.flatMap((page) => page.cards) ?? [];
+
+  const { desktopOpened } = useNavbarContext();
 
   return (
     <Container p={'xs'} size={'xl'}>
@@ -58,7 +62,13 @@ export default function ProfileContainer(props: Props) {
                 {cards.map((card) => (
                   <Grid.Col
                     key={card.id}
-                    span={{ base: 12, xs: 6, sm: 4, lg: 3 }}
+                    span={{
+                      base: 12,
+                      xs: desktopOpened ? 12 : 6,
+                      sm: desktopOpened ? 6 : 4,
+                      md: 4,
+                      lg: 3,
+                    }}
                   >
                     <UrlCard
                       id={card.id}

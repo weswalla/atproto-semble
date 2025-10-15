@@ -22,12 +22,14 @@ import { BiCollection, BiPlus } from 'react-icons/bi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
+import { useNavbarContext } from '@/providers/navbar';
 
 export default function HomeContainer() {
   const { data: collectionsData } = useMyCollections({ limit: 4 });
   const { data: myCardsData } = useMyCards({ limit: 4 });
   const { data: profile } = useMyProfile();
 
+  const { desktopOpened } = useNavbarContext();
   const [showCollectionDrawer, setShowCollectionDrawer] = useState(false);
   const [showAddDrawer, setShowAddDrawer] = useState(false);
 
@@ -104,7 +106,13 @@ export default function HomeContainer() {
                 {cards.map((card) => (
                   <Grid.Col
                     key={card.id}
-                    span={{ base: 12, xs: 6, sm: 4, lg: 3 }}
+                    span={{
+                      base: 12,
+                      xs: desktopOpened ? 12 : 6,
+                      sm: desktopOpened ? 6 : 4,
+                      md: 4,
+                      lg: 3,
+                    }}
                   >
                     <UrlCard
                       id={card.id}

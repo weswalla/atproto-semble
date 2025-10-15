@@ -8,12 +8,15 @@ import CardsContainerSkeleton from './Skeleton.CardsContainer';
 import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
+import { useNavbarContext } from '@/providers/navbar';
 
 interface Props {
   handle: string;
 }
 
 export default function CardsContainer(props: Props) {
+  const { desktopOpened } = useNavbarContext();
+
   const {
     data,
     error,
@@ -58,7 +61,16 @@ export default function CardsContainer(props: Props) {
       >
         <Grid gutter="md">
           {allCards.map((card) => (
-            <Grid.Col key={card.id} span={{ base: 12, xs: 6, sm: 4, lg: 3 }}>
+            <Grid.Col
+              key={card.id}
+              span={{
+                base: 12,
+                xs: desktopOpened ? 12 : 6,
+                sm: desktopOpened ? 6 : 4,
+                md: 4,
+                lg: 3,
+              }}
+            >
               <UrlCard
                 id={card.id}
                 url={card.url}

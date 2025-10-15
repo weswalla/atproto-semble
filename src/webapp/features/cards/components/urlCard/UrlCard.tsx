@@ -9,6 +9,7 @@ import {
   Anchor,
   AspectRatio,
   Skeleton,
+  Tooltip,
 } from '@mantine/core';
 import Link from 'next/link';
 import UrlCardActions from '../urlCardActions/UrlCardActions';
@@ -36,15 +37,17 @@ export default function UrlCard(props: Props) {
         <Stack justify="space-between" gap={'sm'} flex={1}>
           <Group justify="space-between" align="start" gap={'lg'}>
             <Stack gap={0} flex={1}>
-              <Anchor
-                component={Link}
-                href={props.url}
-                target="_blank"
-                c={'gray'}
-                lineClamp={1}
-              >
-                {domain}
-              </Anchor>
+              <Tooltip label={props.url}>
+                <Anchor
+                  component={Link}
+                  href={props.url}
+                  target="_blank"
+                  c={'gray'}
+                  lineClamp={1}
+                >
+                  {domain}
+                </Anchor>
+              </Tooltip>
               {props.cardContent.title && (
                 <Text fw={500} lineClamp={2}>
                   {props.cardContent.title}

@@ -9,6 +9,7 @@ import {
   Button,
   ScrollArea,
   Anchor,
+  Tooltip,
 } from '@mantine/core';
 import Link from 'next/link';
 import {
@@ -50,15 +51,17 @@ export default function CardToBeAddedPreview(props: Props) {
               </AspectRatio>
             )}
             <Stack gap={0} flex={0.9}>
-              <Anchor
-                component={Link}
-                href={props.cardContent.url}
-                target="_blank"
-                c={'gray'}
-                lineClamp={1}
-              >
-                {domain}
-              </Anchor>
+              <Tooltip label={props.cardContent.url}>
+                <Anchor
+                  component={Link}
+                  href={props.cardContent.url}
+                  target="_blank"
+                  c={'gray'}
+                  lineClamp={1}
+                >
+                  {domain}
+                </Anchor>
+              </Tooltip>
               {props.cardContent.title && (
                 <Text fw={500} lineClamp={1}>
                   {props.cardContent.title}

@@ -10,6 +10,7 @@ import {
   Stack,
   Text,
   Image,
+  Tooltip,
 } from '@mantine/core';
 import Link from 'next/link';
 
@@ -48,15 +49,17 @@ export default function NoteCardModal(props: Props) {
                 </AspectRatio>
               )}
               <Stack gap={0} flex={0.9}>
-                <Anchor
-                  component={Link}
-                  href={props.urlCardContent.url}
-                  target="_blank"
-                  c={'gray'}
-                  lineClamp={1}
-                >
-                  {domain}
-                </Anchor>
+                <Tooltip label={props.urlCardContent.url}>
+                  <Anchor
+                    component={Link}
+                    href={props.urlCardContent.url}
+                    target="_blank"
+                    c={'gray'}
+                    lineClamp={1}
+                  >
+                    {domain}
+                  </Anchor>
+                </Tooltip>
                 {props.urlCardContent.title && (
                   <Text fw={500} lineClamp={1}>
                     {props.urlCardContent.title}

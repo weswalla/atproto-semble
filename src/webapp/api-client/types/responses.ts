@@ -63,6 +63,7 @@ export interface UrlCardView {
     thumbnailUrl?: string;
   };
   libraryCount: number;
+  urlLibraryCount: number;
   createdAt: string;
   updatedAt: string;
   note?: {
@@ -119,6 +120,7 @@ export interface UrlCardListItem {
     thumbnailUrl?: string;
   };
   libraryCount: number;
+  urlLibraryCount: number;
   createdAt: string;
   updatedAt: string;
   note?: {
@@ -173,6 +175,7 @@ export interface CollectionPageUrlCard {
     thumbnailUrl?: string;
   };
   libraryCount: number;
+  urlLibraryCount: number;
   createdAt: string;
   updatedAt: string;
   note?: {
@@ -262,6 +265,7 @@ export interface FeedActivityCard {
     thumbnailUrl?: string;
   };
   libraryCount: number;
+  urlLibraryCount: number;
   createdAt: string;
   updatedAt: string;
   note?: {

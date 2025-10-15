@@ -12,7 +12,6 @@ import {
 } from '@mantine/core';
 import Link from 'next/link';
 import UrlCardActions from '../urlCardActions/UrlCardActions';
-import NoteCard from '@/features/notes/components/noteCard/NoteCard';
 import { Suspense } from 'react';
 
 interface Props {
@@ -23,7 +22,7 @@ interface Props {
   note?: UrlCardView['note'];
   collections?: UrlCardView['collections'];
   currentCollection?: UrlCardView['collections'][0];
-  libraries?: UrlCardView['libraries'];
+  libraryCount: number;
   authorHandle?: string;
 }
 
@@ -86,12 +85,11 @@ export default function UrlCard(props: Props) {
               authorHandle={props.authorHandle}
               note={props.note}
               currentCollection={props.currentCollection}
-              libraries={props.libraries}
+              libraryCount={props.libraryCount}
             />
           </Suspense>
         </Stack>
       </Card>
-      {props.note && <NoteCard note={props.note.text} />}
     </Stack>
   );
 }

@@ -2,7 +2,7 @@
 
 import { UrlCardView } from '@/api-client/types';
 import EditNoteDrawer from '@/features/notes/components/editNoteDrawer/EditNoteDrawer';
-import { ActionIcon, Group, Menu } from '@mantine/core';
+import { ActionIcon, Button, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { AiOutlineSignature } from 'react-icons/ai';
 import { BiPlus } from 'react-icons/bi';
@@ -11,6 +11,8 @@ import { LuUnplug } from 'react-icons/lu';
 import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
 import RemoveCardFromLibraryModal from '../removeCardFromLibraryModal/RemoveCardFromLibraryModal';
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
+import { MdOutlineStickyNote2 } from 'react-icons/md';
+import NoteCardModal from '@/features/notes/components/noteCardModal/NoteCardModal';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
@@ -19,7 +21,7 @@ interface Props {
   authorHandle?: string;
   note?: UrlCardView['note'];
   currentCollection?: UrlCardView['collections'][0];
-  libraries?: UrlCardView['libraries'];
+  libraryCount: number;
 }
 
 export default function UrlCardActions(props: Props) {
@@ -29,6 +31,7 @@ export default function UrlCardActions(props: Props) {
     ? user?.handle === props.authorHandle
     : true;
   const [showEditNoteModal, setShowEditNoteModal] = useState(false);
+  const [showNoteModal, setShowNoteModal] = useState(false);
   const [showRemoveFromCollectionModal, setShowRemoveFromCollectionModal] =
     useState(false);
   const [showRemoveFromLibaryModal, setShowRemoveFromLibraryModal] =
@@ -39,33 +42,43 @@ export default function UrlCardActions(props: Props) {
     <Fragment>
       <Group justify="space-between">
         <Group gap={'xs'}>
-          <ActionIcon
-            variant="subtle"
+          <Button
+            variant="light"
             color={'gray'}
+            size="xs"
             radius={'xl'}
+            leftSection={<BiPlus size={22} />}
             onClick={() => setShowAddToModal(true)}
           >
-            <BiPlus size={22} />
-          </ActionIcon>
-          {isAuthor && props.note && (
+            {props.libraryCount}
+          </Button>
+          {props.note && (
             <ActionIcon
-              variant="subtle"
+              variant="light"
               color="gray"
               radius={'xl'}
-              onClick={() => setShowEditNoteModal(true)}
+              onClick={() => setShowNoteModal(true)}
             >
-              <AiOutlineSignature size={22} />
+              <MdOutlineStickyNote2 />
             </ActionIcon>
           )}
         </Group>
         {isAuthor && (
           <Menu shadow="sm">
             <Menu.Target>
-              <ActionIcon variant="subtle" color={'gray'} radius={'xl'}>
+              <ActionIcon variant="light" color={'gray'} radius={'xl'}>
                 <BsThreeDots size={22} />
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
+              {props.note && (
+                <Menu.Item
+                  leftSection={<AiOutlineSignature />}
+                  onClick={() => setShowEditNoteModal(true)}
+                >
+                  Edit note
+                </Menu.Item>
+              )}
               {props.currentCollection && (
                 <Menu.Item
                   leftSection={<LuUnplug />}
@@ -91,6 +104,13 @@ export default function UrlCardActions(props: Props) {
         onClose={() => setShowAddToModal(false)}
         cardContent={props.cardContent}
         cardId={props.id}
+      />
+
+      <NoteCardModal
+        isOpen={showNoteModal}
+        onClose={() => setShowNoteModal(false)}
+        note={props.note}
+        urlCardContent={props.cardContent}
       />
 
       {props.note && (

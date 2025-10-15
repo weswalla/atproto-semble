@@ -160,7 +160,7 @@ export default function Home() {
                   >
                     <Image
                       src={TangledIcon.src}
-                      alt="Semble logo"
+                      alt="Tangled logo"
                       w={'auto'}
                       h={22}
                     />

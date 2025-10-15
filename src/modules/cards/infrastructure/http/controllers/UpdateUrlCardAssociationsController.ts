@@ -12,19 +12,20 @@ export class UpdateUrlCardAssociationsController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { url, note, addToCollections, removeFromCollections } = req.body;
+      const { cardId, note, addToCollections, removeFromCollections } =
+        req.body;
       const curatorId = req.did;
 
       if (!curatorId) {
         return this.unauthorized(res);
       }
 
-      if (!url) {
-        return this.badRequest(res, 'URL is required');
+      if (!cardId) {
+        return this.badRequest(res, 'Card ID is required');
       }
 
       const result = await this.updateUrlCardAssociationsUseCase.execute({
-        url,
+        cardId,
         curatorId,
         note,
         addToCollections,

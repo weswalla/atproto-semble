@@ -5,6 +5,7 @@ import { AppError } from '../../../../../shared/core/AppError';
 import { IEventPublisher } from '../../../../../shared/application/events/IEventPublisher';
 import { ICardRepository } from '../../../domain/ICardRepository';
 import { INoteCardInput } from '../../../domain/CardFactory';
+import { CardId } from '../../../domain/value-objects/CardId';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
@@ -15,7 +16,7 @@ import { CardFactory } from '../../../domain/CardFactory';
 import { CardLibraryService } from '../../../domain/services/CardLibraryService';
 
 export interface UpdateUrlCardAssociationsDTO {
-  url: string;
+  cardId: string;
   curatorId: string;
   note?: string;
   addToCollections?: string[];
@@ -71,18 +72,19 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
       }
       const curatorId = curatorIdResult.value;
 
-      // Validate URL
-      const urlResult = URL.create(request.url);
-      if (urlResult.isErr()) {
+      // Validate and create CardId
+      const cardIdResult = CardId.createFromString(request.cardId);
+      if (cardIdResult.isErr()) {
         return err(
-          new ValidationError(`Invalid URL: ${urlResult.error.message}`),
+          new ValidationError(
+            `Invalid card ID: ${cardIdResult.error.message}`,
+          ),
         );
       }
-      const url = urlResult.value;
+      const cardId = cardIdResult.value;
 
       // Find the URL card - it must already exist
-      const existingUrlCardResult =
-        await this.cardRepository.findUsersUrlCardByUrl(url, curatorId);
+      const existingUrlCardResult = await this.cardRepository.findById(cardId);
       if (existingUrlCardResult.isErr()) {
         return err(
           AppError.UnexpectedError.create(existingUrlCardResult.error),
@@ -97,6 +99,28 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
           ),
         );
       }
+
+      // Verify it's a URL card
+      if (!urlCard.isUrlCard) {
+        return err(
+          new ValidationError('Card must be a URL card to update associations.'),
+        );
+      }
+
+      // Verify ownership
+      if (!urlCard.curatorId.equals(curatorId)) {
+        return err(
+          new ValidationError('You do not have permission to update this card.'),
+        );
+      }
+
+      // Get the URL from the card for note operations
+      if (!urlCard.url) {
+        return err(
+          new ValidationError('URL card must have a URL property.'),
+        );
+      }
+      const url = urlCard.url;
 
       let noteCard;
 
@@ -141,7 +165,7 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
             type: CardTypeEnum.NOTE,
             text: request.note,
             parentCardId: urlCard.cardId.getStringValue(),
-            url: request.url,
+            url: url.value,
           };
 
           const noteCardResult = CardFactory.create({

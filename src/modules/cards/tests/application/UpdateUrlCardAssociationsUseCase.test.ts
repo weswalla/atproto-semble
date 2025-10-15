@@ -81,10 +81,11 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
         curatorId: curatorId.value,
       });
       expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
 
       // Now create a note for it
       const updateRequest = {
-        url,
+        cardId: urlCardId,
         curatorId: curatorId.value,
         note: 'This is my note',
       };
@@ -118,7 +119,7 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
 
       // Now update the note
       const updateRequest = {
-        url,
+        cardId: addResponse.urlCardId,
         curatorId: curatorId.value,
         note: 'Updated note',
       };
@@ -140,7 +141,7 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
 
     it('should fail if URL card does not exist', async () => {
       const request = {
-        url: 'https://example.com/nonexistent',
+        cardId: 'nonexistent-card-id',
         curatorId: curatorId.value,
         note: 'This should fail',
       };
@@ -183,10 +184,11 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
         curatorId: curatorId.value,
       });
       expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
 
       // Add to collections
       const updateRequest = {
-        url,
+        cardId: urlCardId,
         curatorId: curatorId.value,
         addToCollections: [
           collection1.collectionId.getStringValue(),
@@ -229,10 +231,11 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
         curatorId: curatorId.value,
       });
       expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
 
       // Remove from collection
       const updateRequest = {
-        url,
+        cardId: urlCardId,
         curatorId: curatorId.value,
         removeFromCollections: [collection.collectionId.getStringValue()],
       };
@@ -283,10 +286,11 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
         curatorId: curatorId.value,
       });
       expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
 
       // Add to collection2 and collection3, remove from collection1
       const updateRequest = {
-        url,
+        cardId: urlCardId,
         curatorId: curatorId.value,
         addToCollections: [
           collection2.collectionId.getStringValue(),
@@ -335,10 +339,11 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
         curatorId: curatorId.value,
       });
       expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
 
       // Update note and add to collection
       const updateRequest = {
-        url,
+        cardId: urlCardId,
         curatorId: curatorId.value,
         note: 'My note about this article',
         addToCollections: [collection.collectionId.getStringValue()],
@@ -367,9 +372,9 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
   });
 
   describe('Validation', () => {
-    it('should fail with invalid URL', async () => {
+    it('should fail when card does not exist', async () => {
       const request = {
-        url: 'not-a-valid-url',
+        cardId: 'nonexistent-card-id',
         curatorId: curatorId.value,
         note: 'This should fail',
       };
@@ -378,13 +383,25 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain('Invalid URL');
+        expect(result.error.message).toContain(
+          'URL card not found. Please add the URL to your library first.',
+        );
       }
     });
 
     it('should fail with invalid curator ID', async () => {
+      const url = 'https://example.com/article';
+
+      // Add URL to library first
+      const addResult = await addUrlToLibraryUseCase.execute({
+        url,
+        curatorId: curatorId.value,
+      });
+      expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
+
       const request = {
-        url: 'https://example.com/article',
+        cardId: urlCardId,
         curatorId: 'invalid-curator-id',
         note: 'This should fail',
       };
@@ -406,9 +423,10 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
         curatorId: curatorId.value,
       });
       expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
 
       const request = {
-        url,
+        cardId: urlCardId,
         curatorId: curatorId.value,
         addToCollections: ['invalid-collection-id'],
       };

@@ -60,6 +60,7 @@ export const createExpressApp = (
     controllers.addCardToLibraryController,
     controllers.addCardToCollectionController,
     controllers.updateNoteCardController,
+    controllers.updateUrlCardAssociationsController,
     controllers.removeCardFromLibraryController,
     controllers.removeCardFromCollectionController,
     controllers.getUrlMetadataController,

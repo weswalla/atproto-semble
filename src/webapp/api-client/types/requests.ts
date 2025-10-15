@@ -35,6 +35,13 @@ export interface UpdateNoteCardRequest {
   note: string;
 }
 
+export interface UpdateUrlCardAssociationsRequest {
+  cardId: string;
+  note?: string;
+  addToCollections?: string[];
+  removeFromCollections?: string[];
+}
+
 export interface RemoveCardFromLibraryRequest {
   cardId: string;
 }

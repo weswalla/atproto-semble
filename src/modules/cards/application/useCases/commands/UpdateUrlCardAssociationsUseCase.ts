@@ -4,30 +4,30 @@ import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
 import { IEventPublisher } from '../../../../../shared/application/events/IEventPublisher';
 import { ICardRepository } from '../../../domain/ICardRepository';
-import {
-  CardFactory,
-  IUrlCardInput,
-  INoteCardInput,
-} from '../../../domain/CardFactory';
+import { INoteCardInput } from '../../../domain/CardFactory';
+import { CardId } from '../../../domain/value-objects/CardId';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
-import { IMetadataService } from '../../../domain/services/IMetadataService';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 import { URL } from '../../../domain/value-objects/URL';
-import { CardLibraryService } from '../../../domain/services/CardLibraryService';
 import { CardCollectionService } from '../../../domain/services/CardCollectionService';
 import { CardContent } from '../../../domain/value-objects/CardContent';
+import { CardFactory } from '../../../domain/CardFactory';
+import { CardLibraryService } from '../../../domain/services/CardLibraryService';
 
-export interface AddUrlToLibraryDTO {
-  url: string;
-  note?: string;
-  collectionIds?: string[];
+export interface UpdateUrlCardAssociationsDTO {
+  cardId: string;
   curatorId: string;
+  note?: string;
+  addToCollections?: string[];
+  removeFromCollections?: string[];
 }
 
-export interface AddUrlToLibraryResponseDTO {
+export interface UpdateUrlCardAssociationsResponseDTO {
   urlCardId: string;
   noteCardId?: string;
+  addedToCollections: string[];
+  removedFromCollections: string[];
 }
 
 export class ValidationError extends UseCaseError {
@@ -36,13 +36,15 @@ export class ValidationError extends UseCaseError {
   }
 }
 
-export class AddUrlToLibraryUseCase extends BaseUseCase<
-  AddUrlToLibraryDTO,
-  Result<AddUrlToLibraryResponseDTO, ValidationError | AppError.UnexpectedError>
+export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
+  UpdateUrlCardAssociationsDTO,
+  Result<
+    UpdateUrlCardAssociationsResponseDTO,
+    ValidationError | AppError.UnexpectedError
+  >
 > {
   constructor(
     private cardRepository: ICardRepository,
-    private metadataService: IMetadataService,
     private cardLibraryService: CardLibraryService,
     private cardCollectionService: CardCollectionService,
     eventPublisher: IEventPublisher,
@@ -51,10 +53,10 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
   }
 
   async execute(
-    request: AddUrlToLibraryDTO,
+    request: UpdateUrlCardAssociationsDTO,
   ): Promise<
     Result<
-      AddUrlToLibraryResponseDTO,
+      UpdateUrlCardAssociationsResponseDTO,
       ValidationError | AppError.UnexpectedError
     >
   > {
@@ -70,83 +72,61 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
       }
       const curatorId = curatorIdResult.value;
 
-      // Validate URL
-      const urlResult = URL.create(request.url);
-      if (urlResult.isErr()) {
+      // Validate and create CardId
+      const cardIdResult = CardId.createFromString(request.cardId);
+      if (cardIdResult.isErr()) {
         return err(
-          new ValidationError(`Invalid URL: ${urlResult.error.message}`),
+          new ValidationError(`Invalid card ID: ${cardIdResult.error.message}`),
         );
       }
-      const url = urlResult.value;
+      const cardId = cardIdResult.value;
 
-      // Check if URL card already exists
-      const existingUrlCardResult =
-        await this.cardRepository.findUsersUrlCardByUrl(url, curatorId);
+      // Find the URL card - it must already exist
+      const existingUrlCardResult = await this.cardRepository.findById(cardId);
       if (existingUrlCardResult.isErr()) {
         return err(
           AppError.UnexpectedError.create(existingUrlCardResult.error),
         );
       }
 
-      let urlCard = existingUrlCardResult.value;
+      const urlCard = existingUrlCardResult.value;
       if (!urlCard) {
-        // Fetch metadata for URL
-        const metadataResult = await this.metadataService.fetchMetadata(url);
-        if (metadataResult.isErr()) {
-          return err(
-            new ValidationError(
-              `Failed to fetch metadata: ${metadataResult.error.message}`,
-            ),
-          );
-        }
-
-        // Create URL card
-        const urlCardInput: IUrlCardInput = {
-          type: CardTypeEnum.URL,
-          url: request.url,
-          metadata: metadataResult.value,
-        };
-
-        const urlCardResult = CardFactory.create({
-          curatorId: request.curatorId,
-          cardInput: urlCardInput,
-        });
-
-        if (urlCardResult.isErr()) {
-          return err(new ValidationError(urlCardResult.error.message));
-        }
-
-        urlCard = urlCardResult.value;
-
-        // Save URL card
-        const saveUrlCardResult = await this.cardRepository.save(urlCard);
-        if (saveUrlCardResult.isErr()) {
-          return err(AppError.UnexpectedError.create(saveUrlCardResult.error));
-        }
-      }
-
-      // Add URL card to library using domain service
-      const addUrlCardToLibraryResult =
-        await this.cardLibraryService.addCardToLibrary(urlCard, curatorId);
-      if (addUrlCardToLibraryResult.isErr()) {
-        if (
-          addUrlCardToLibraryResult.error instanceof AppError.UnexpectedError
-        ) {
-          return err(addUrlCardToLibraryResult.error);
-        }
         return err(
-          new ValidationError(addUrlCardToLibraryResult.error.message),
+          new ValidationError(
+            'URL card not found. Please add the URL to your library first.',
+          ),
         );
       }
 
-      // Update urlCard reference to the one returned by the service
-      urlCard = addUrlCardToLibraryResult.value;
+      // Verify it's a URL card
+      if (!urlCard.isUrlCard) {
+        return err(
+          new ValidationError(
+            'Card must be a URL card to update associations.',
+          ),
+        );
+      }
+
+      // Verify ownership
+      if (!urlCard.curatorId.equals(curatorId)) {
+        return err(
+          new ValidationError(
+            'You do not have permission to update this card.',
+          ),
+        );
+      }
+
+      // Get the URL from the card for note operations
+      if (!urlCard.url) {
+        return err(new ValidationError('URL card must have a URL property.'));
+      }
+      const url = urlCard.url;
 
       let noteCard;
 
-      // Handle note card creation or update if note is provided
-      if (request.note) {
-        // Check if note card already exists for this URL and curator
+      // Handle note updates/creation
+      if (request.note !== undefined) {
+        // Check if note card already exists
         const existingNoteCardResult =
           await this.cardRepository.findUsersNoteCardByUrl(url, curatorId);
         if (existingNoteCardResult.isErr()) {
@@ -184,7 +164,7 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
             type: CardTypeEnum.NOTE,
             text: request.note,
             parentCardId: urlCard.cardId.getStringValue(),
-            url: request.url,
+            url: url.value,
           };
 
           const noteCardResult = CardFactory.create({
@@ -226,14 +206,13 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
         }
       }
 
-      // Handle collection additions if specified
-      if (request.collectionIds && request.collectionIds.length > 0) {
-        // Always add the URL card to collections
-        const cardToAdd = urlCard;
+      const addedToCollections: string[] = [];
+      const removedFromCollections: string[] = [];
 
-        // Validate and create CollectionIds
+      // Handle adding to collections
+      if (request.addToCollections && request.addToCollections.length > 0) {
         const collectionIds: CollectionId[] = [];
-        for (const collectionIdStr of request.collectionIds) {
+        for (const collectionIdStr of request.addToCollections) {
           const collectionIdResult =
             CollectionId.createFromString(collectionIdStr);
           if (collectionIdResult.isErr()) {
@@ -246,10 +225,9 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
           collectionIds.push(collectionIdResult.value);
         }
 
-        // Add card to collections using domain service
         const addToCollectionsResult =
           await this.cardCollectionService.addCardToCollections(
-            cardToAdd,
+            urlCard,
             collectionIds,
             curatorId,
           );
@@ -274,23 +252,68 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
             );
             // Don't fail the operation if event publishing fails
           }
+          addedToCollections.push(collection.collectionId.getStringValue());
         }
       }
 
-      // Publish events for URL card (events are raised in addToLibrary method)
-      const publishUrlCardResult =
-        await this.publishEventsForAggregate(urlCard);
-      if (publishUrlCardResult.isErr()) {
-        console.error(
-          'Failed to publish events for URL card:',
-          publishUrlCardResult.error,
-        );
-        // Don't fail the operation if event publishing fails
+      // Handle removing from collections
+      if (
+        request.removeFromCollections &&
+        request.removeFromCollections.length > 0
+      ) {
+        const collectionIds: CollectionId[] = [];
+        for (const collectionIdStr of request.removeFromCollections) {
+          const collectionIdResult =
+            CollectionId.createFromString(collectionIdStr);
+          if (collectionIdResult.isErr()) {
+            return err(
+              new ValidationError(
+                `Invalid collection ID: ${collectionIdResult.error.message}`,
+              ),
+            );
+          }
+          collectionIds.push(collectionIdResult.value);
+        }
+
+        const removeFromCollectionsResult =
+          await this.cardCollectionService.removeCardFromCollections(
+            urlCard,
+            collectionIds,
+            curatorId,
+          );
+        if (removeFromCollectionsResult.isErr()) {
+          if (
+            removeFromCollectionsResult.error instanceof
+            AppError.UnexpectedError
+          ) {
+            return err(removeFromCollectionsResult.error);
+          }
+          return err(
+            new ValidationError(removeFromCollectionsResult.error.message),
+          );
+        }
+
+        // Publish events for all affected collections
+        const updatedCollections = removeFromCollectionsResult.value;
+        for (const collection of updatedCollections) {
+          const publishResult =
+            await this.publishEventsForAggregate(collection);
+          if (publishResult.isErr()) {
+            console.error(
+              'Failed to publish events for collection:',
+              publishResult.error,
+            );
+            // Don't fail the operation if event publishing fails
+          }
+          removedFromCollections.push(collection.collectionId.getStringValue());
+        }
       }
 
       return ok({
         urlCardId: urlCard.cardId.getStringValue(),
         noteCardId: noteCard?.cardId.getStringValue(),
+        addedToCollections,
+        removedFromCollections,
       });
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));

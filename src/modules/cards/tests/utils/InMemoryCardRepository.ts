@@ -64,6 +64,23 @@ export class InMemoryCardRepository implements ICardRepository {
     }
   }
 
+  async findUsersNoteCardByUrl(
+    url: URL,
+    curatorId: CuratorId,
+  ): Promise<Result<Card | null>> {
+    try {
+      const card = Array.from(this.cards.values()).find(
+        (card) =>
+          card.type.value === 'NOTE' &&
+          card.url?.value === url.value &&
+          card.props.curatorId.equals(curatorId),
+      );
+      return ok(card ? this.clone(card) : null);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   async save(card: Card): Promise<Result<void>> {
     if (this.shouldFailSave || this.shouldFail) {
       return err(new Error('Simulated save failure'));

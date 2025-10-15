@@ -359,4 +359,104 @@ export class DrizzleCardRepository implements ICardRepository {
       return err(error as Error);
     }
   }
+
+  async findUsersNoteCardByUrl(
+    url: URL,
+    curatorId: CuratorId,
+  ): Promise<Result<Card | null>> {
+    try {
+      const urlValue = url.value;
+
+      const cardResult = await this.db
+        .select()
+        .from(cards)
+        .where(
+          and(
+            eq(cards.url, urlValue),
+            eq(cards.type, 'NOTE'),
+            eq(cards.authorId, curatorId.value),
+          ),
+        )
+        .limit(1);
+
+      if (cardResult.length === 0) {
+        return ok(null);
+      }
+
+      const result = cardResult[0];
+      if (!result) {
+        return ok(null);
+      }
+
+      // Get library memberships for this card with published record details
+      const membershipResults = await this.db
+        .select({
+          userId: libraryMemberships.userId,
+          addedAt: libraryMemberships.addedAt,
+          publishedRecordUri: publishedRecords.uri,
+          publishedRecordCid: publishedRecords.cid,
+        })
+        .from(libraryMemberships)
+        .leftJoin(
+          publishedRecords,
+          eq(libraryMemberships.publishedRecordId, publishedRecords.id),
+        )
+        .where(eq(libraryMemberships.cardId, result.id));
+
+      // Get published record if it exists
+      let publishedRecord = null;
+      if (result.publishedRecordId) {
+        const publishedRecordResult = await this.db
+          .select({
+            uri: publishedRecords.uri,
+            cid: publishedRecords.cid,
+          })
+          .from(publishedRecords)
+          .where(eq(publishedRecords.id, result.publishedRecordId))
+          .limit(1);
+
+        if (publishedRecordResult.length > 0) {
+          publishedRecord = publishedRecordResult[0];
+        }
+      }
+
+      const cardDTO: CardDTO = {
+        id: result.id,
+        curatorId: result.authorId,
+        type: result.type,
+        contentData: result.contentData,
+        url: result.url || undefined,
+        parentCardId: result.parentCardId || undefined,
+        publishedRecordId: publishedRecord
+          ? {
+              uri: publishedRecord.uri,
+              cid: publishedRecord.cid,
+            }
+          : undefined,
+        libraryCount: result.libraryCount ?? 0,
+        libraryMemberships: membershipResults.map((membership) => ({
+          userId: membership.userId,
+          addedAt: membership.addedAt,
+          publishedRecordId:
+            membership.publishedRecordUri && membership.publishedRecordCid
+              ? {
+                  uri: membership.publishedRecordUri,
+                  cid: membership.publishedRecordCid,
+                }
+              : undefined,
+        })),
+        createdAt: result.createdAt,
+        updatedAt: result.updatedAt,
+      };
+
+      const domainResult = CardMapper.toDomain(cardDTO);
+      if (domainResult.isErr()) {
+        return err(domainResult.error);
+      }
+
+      return ok(domainResult.value);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
 }

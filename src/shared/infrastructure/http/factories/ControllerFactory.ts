@@ -5,6 +5,7 @@ import { AddUrlToLibraryController } from '../../../../modules/cards/infrastruct
 import { AddCardToLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/AddCardToLibraryController';
 import { AddCardToCollectionController } from '../../../../modules/cards/infrastructure/http/controllers/AddCardToCollectionController';
 import { UpdateNoteCardController } from '../../../../modules/cards/infrastructure/http/controllers/UpdateNoteCardController';
+import { UpdateUrlCardAssociationsController } from '../../../../modules/cards/infrastructure/http/controllers/UpdateUrlCardAssociationsController';
 import { RemoveCardFromLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/RemoveCardFromLibraryController';
 import { RemoveCardFromCollectionController } from '../../../../modules/cards/infrastructure/http/controllers/RemoveCardFromCollectionController';
 import { GetUrlMetadataController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlMetadataController';
@@ -46,6 +47,7 @@ export interface Controllers {
   addCardToLibraryController: AddCardToLibraryController;
   addCardToCollectionController: AddCardToCollectionController;
   updateNoteCardController: UpdateNoteCardController;
+  updateUrlCardAssociationsController: UpdateUrlCardAssociationsController;
   removeCardFromLibraryController: RemoveCardFromLibraryController;
   removeCardFromCollectionController: RemoveCardFromCollectionController;
   getUrlMetadataController: GetUrlMetadataController;
@@ -108,6 +110,10 @@ export class ControllerFactory {
       updateNoteCardController: new UpdateNoteCardController(
         useCases.updateNoteCardUseCase,
       ),
+      updateUrlCardAssociationsController:
+        new UpdateUrlCardAssociationsController(
+          useCases.updateUrlCardAssociationsUseCase,
+        ),
       removeCardFromLibraryController: new RemoveCardFromLibraryController(
         useCases.removeCardFromLibraryUseCase,
       ),

@@ -8,6 +8,8 @@ import {
   AddCardToCollectionResponse,
   UpdateNoteCardRequest,
   UpdateNoteCardResponse,
+  UpdateUrlCardAssociationsRequest,
+  UpdateUrlCardAssociationsResponse,
   RemoveCardFromLibraryRequest,
   RemoveCardFromLibraryResponse,
   RemoveCardFromCollectionRequest,
@@ -54,6 +56,16 @@ export class CardClient extends BaseClient {
       {
         note: request.note,
       },
+    );
+  }
+
+  async updateUrlCardAssociations(
+    request: UpdateUrlCardAssociationsRequest,
+  ): Promise<UpdateUrlCardAssociationsResponse> {
+    return this.request<UpdateUrlCardAssociationsResponse>(
+      'PUT',
+      '/api/cards/url/associations',
+      request,
     );
   }
 

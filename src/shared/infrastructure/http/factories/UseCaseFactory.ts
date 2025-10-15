@@ -5,6 +5,7 @@ import { AddUrlToLibraryUseCase } from '../../../../modules/cards/application/us
 import { AddCardToLibraryUseCase } from '../../../../modules/cards/application/useCases/commands/AddCardToLibraryUseCase';
 import { AddCardToCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/AddCardToCollectionUseCase';
 import { UpdateNoteCardUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateNoteCardUseCase';
+import { UpdateUrlCardAssociationsUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
 import { RemoveCardFromLibraryUseCase } from '../../../../modules/cards/application/useCases/commands/RemoveCardFromLibraryUseCase';
 import { RemoveCardFromCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/RemoveCardFromCollectionUseCase';
 import { GetUrlMetadataUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlMetadataUseCase';
@@ -44,6 +45,7 @@ export interface UseCases {
   addCardToLibraryUseCase: AddCardToLibraryUseCase;
   addCardToCollectionUseCase: AddCardToCollectionUseCase;
   updateNoteCardUseCase: UpdateNoteCardUseCase;
+  updateUrlCardAssociationsUseCase: UpdateUrlCardAssociationsUseCase;
   removeCardFromLibraryUseCase: RemoveCardFromLibraryUseCase;
   removeCardFromCollectionUseCase: RemoveCardFromCollectionUseCase;
   getUrlMetadataUseCase: GetUrlMetadataUseCase;
@@ -130,6 +132,12 @@ export class UseCaseFactory {
       updateNoteCardUseCase: new UpdateNoteCardUseCase(
         repositories.cardRepository,
         services.cardPublisher,
+      ),
+      updateUrlCardAssociationsUseCase: new UpdateUrlCardAssociationsUseCase(
+        repositories.cardRepository,
+        services.cardLibraryService,
+        services.cardCollectionService,
+        services.eventPublisher,
       ),
       removeCardFromLibraryUseCase: new RemoveCardFromLibraryUseCase(
         repositories.cardRepository,

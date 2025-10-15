@@ -5,6 +5,7 @@ import { AddUrlToLibraryController } from '../controllers/AddUrlToLibraryControl
 import { AddCardToLibraryController } from '../controllers/AddCardToLibraryController';
 import { AddCardToCollectionController } from '../controllers/AddCardToCollectionController';
 import { UpdateNoteCardController } from '../controllers/UpdateNoteCardController';
+import { UpdateUrlCardAssociationsController } from '../controllers/UpdateUrlCardAssociationsController';
 import { RemoveCardFromLibraryController } from '../controllers/RemoveCardFromLibraryController';
 import { RemoveCardFromCollectionController } from '../controllers/RemoveCardFromCollectionController';
 import { GetUrlMetadataController } from '../controllers/GetUrlMetadataController';
@@ -32,6 +33,7 @@ export function createCardsModuleRoutes(
   addCardToLibraryController: AddCardToLibraryController,
   addCardToCollectionController: AddCardToCollectionController,
   updateNoteCardController: UpdateNoteCardController,
+  updateUrlCardAssociationsController: UpdateUrlCardAssociationsController,
   removeCardFromLibraryController: RemoveCardFromLibraryController,
   removeCardFromCollectionController: RemoveCardFromCollectionController,
   getUrlMetadataController: GetUrlMetadataController,
@@ -63,6 +65,7 @@ export function createCardsModuleRoutes(
       addCardToLibraryController,
       addCardToCollectionController,
       updateNoteCardController,
+      updateUrlCardAssociationsController,
       removeCardFromLibraryController,
       removeCardFromCollectionController,
       getUrlMetadataController,

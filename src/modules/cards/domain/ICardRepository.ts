@@ -12,4 +12,8 @@ export interface ICardRepository {
     url: URL,
     curatorId: CuratorId,
   ): Promise<Result<Card | null>>;
+  findUsersNoteCardByUrl(
+    url: URL,
+    curatorId: CuratorId,
+  ): Promise<Result<Card | null>>;
 }

@@ -76,9 +76,7 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
       const cardIdResult = CardId.createFromString(request.cardId);
       if (cardIdResult.isErr()) {
         return err(
-          new ValidationError(
-            `Invalid card ID: ${cardIdResult.error.message}`,
-          ),
+          new ValidationError(`Invalid card ID: ${cardIdResult.error.message}`),
         );
       }
       const cardId = cardIdResult.value;
@@ -103,22 +101,24 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
       // Verify it's a URL card
       if (!urlCard.isUrlCard) {
         return err(
-          new ValidationError('Card must be a URL card to update associations.'),
+          new ValidationError(
+            'Card must be a URL card to update associations.',
+          ),
         );
       }
 
       // Verify ownership
       if (!urlCard.curatorId.equals(curatorId)) {
         return err(
-          new ValidationError('You do not have permission to update this card.'),
+          new ValidationError(
+            'You do not have permission to update this card.',
+          ),
         );
       }
 
       // Get the URL from the card for note operations
       if (!urlCard.url) {
-        return err(
-          new ValidationError('URL card must have a URL property.'),
-        );
+        return err(new ValidationError('URL card must have a URL property.'));
       }
       const url = urlCard.url;
 
@@ -152,8 +152,7 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
           }
 
           // Save updated note card
-          const saveNoteCardResult =
-            await this.cardRepository.save(noteCard);
+          const saveNoteCardResult = await this.cardRepository.save(noteCard);
           if (saveNoteCardResult.isErr()) {
             return err(
               AppError.UnexpectedError.create(saveNoteCardResult.error),
@@ -284,7 +283,8 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
           );
         if (removeFromCollectionsResult.isErr()) {
           if (
-            removeFromCollectionsResult.error instanceof AppError.UnexpectedError
+            removeFromCollectionsResult.error instanceof
+            AppError.UnexpectedError
           ) {
             return err(removeFromCollectionsResult.error);
           }

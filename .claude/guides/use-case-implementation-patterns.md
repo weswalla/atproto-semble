@@ -3,6 +3,7 @@
 This guide documents the patterns and best practices for implementing use cases in the Semble application, with full vertical stack integration.
 
 ## Table of Contents
+
 1. [Use Case Structure](#use-case-structure)
 2. [Repository Patterns](#repository-patterns)
 3. [Upsert Behavior Pattern](#upsert-behavior-pattern)
@@ -100,18 +101,26 @@ export class YourUseCase extends BaseUseCase<
 When you need to find related entities (e.g., note cards for a URL card), add specific repository methods:
 
 #### Interface Definition
+
 ```typescript
 // src/modules/cards/domain/ICardRepository.ts
 export interface ICardRepository {
   findById(id: CardId): Promise<Result<Card | null>>;
-  findUsersUrlCardByUrl(url: URL, curatorId: CuratorId): Promise<Result<Card | null>>;
-  findUsersNoteCardByUrl(url: URL, curatorId: CuratorId): Promise<Result<Card | null>>;
+  findUsersUrlCardByUrl(
+    url: URL,
+    curatorId: CuratorId,
+  ): Promise<Result<Card | null>>;
+  findUsersNoteCardByUrl(
+    url: URL,
+    curatorId: CuratorId,
+  ): Promise<Result<Card | null>>;
   save(card: Card): Promise<Result<void>>;
   delete(cardId: CardId): Promise<Result<void>>;
 }
 ```
 
 #### In-Memory Implementation (for tests)
+
 ```typescript
 async findUsersNoteCardByUrl(
   url: URL,
@@ -132,6 +141,7 @@ async findUsersNoteCardByUrl(
 ```
 
 #### Drizzle Implementation
+
 ```typescript
 async findUsersNoteCardByUrl(
   url: URL,
@@ -170,6 +180,7 @@ Use this pattern when you want **additive** behavior - only add, never remove.
 ### Example: AddUrlToLibraryUseCase
 
 This use case demonstrates modified upsert behavior:
+
 - If URL card doesn't exist: Create it
 - If URL card exists: Reuse it
 - If note is provided and note card exists: **Update** the note
@@ -178,8 +189,10 @@ This use case demonstrates modified upsert behavior:
 
 ```typescript
 // Check if note card already exists
-const existingNoteCardResult =
-  await this.cardRepository.findUsersNoteCardByUrl(url, curatorId);
+const existingNoteCardResult = await this.cardRepository.findUsersNoteCardByUrl(
+  url,
+  curatorId,
+);
 if (existingNoteCardResult.isErr()) {
   return err(AppError.UnexpectedError.create(existingNoteCardResult.error));
 }
@@ -227,13 +240,21 @@ it('should update existing note card when URL already exists with a note', async
   const url = 'https://example.com/existing';
 
   // First request creates URL card with note
-  const firstRequest = { url, note: 'Original note', curatorId: curatorId.value };
+  const firstRequest = {
+    url,
+    note: 'Original note',
+    curatorId: curatorId.value,
+  };
   const firstResult = await useCase.execute(firstRequest);
   expect(firstResult.isOk()).toBe(true);
   const firstResponse = firstResult.unwrap();
 
   // Second request updates the note
-  const secondRequest = { url, note: 'Updated note', curatorId: curatorId.value };
+  const secondRequest = {
+    url,
+    note: 'Updated note',
+    curatorId: curatorId.value,
+  };
   const secondResult = await useCase.execute(secondRequest);
   expect(secondResult.isOk()).toBe(true);
   const secondResponse = secondResult.unwrap();
@@ -257,6 +278,7 @@ Use this pattern when you need **precise control** over what gets added and remo
 ### Example: UpdateUrlCardAssociationsUseCase
 
 This use case demonstrates explicit control:
+
 - Requires URL card to already exist
 - Provides separate controls for adding vs removing collections
 - Can create or update notes
@@ -267,14 +289,14 @@ export interface UpdateUrlCardAssociationsDTO {
   url: string;
   curatorId: string;
   note?: string;
-  addToCollections?: string[];      // Explicit add
+  addToCollections?: string[]; // Explicit add
   removeFromCollections?: string[]; // Explicit remove
 }
 
 export interface UpdateUrlCardAssociationsResponseDTO {
   urlCardId: string;
   noteCardId?: string;
-  addedToCollections: string[];     // What was actually added
+  addedToCollections: string[]; // What was actually added
   removedFromCollections: string[]; // What was actually removed
 }
 
@@ -352,8 +374,12 @@ it('should add and remove from different collections in same request', async () 
   const response = result.unwrap();
   expect(response.addedToCollections).toHaveLength(2);
   expect(response.removedFromCollections).toHaveLength(1);
-  expect(response.addedToCollections).toContain(collection2.collectionId.getStringValue());
-  expect(response.removedFromCollections).toContain(collection1.collectionId.getStringValue());
+  expect(response.addedToCollections).toContain(
+    collection2.collectionId.getStringValue(),
+  );
+  expect(response.removedFromCollections).toContain(
+    collection1.collectionId.getStringValue(),
+  );
 });
 ```
 
@@ -373,11 +399,7 @@ describe('YourUseCase', () => {
     eventPublisher = new FakeEventPublisher();
     domainService = new DomainService(repository, eventPublisher);
 
-    useCase = new YourUseCase(
-      repository,
-      domainService,
-      eventPublisher,
-    );
+    useCase = new YourUseCase(repository, domainService, eventPublisher);
   });
 
   afterEach(() => {
@@ -388,7 +410,9 @@ describe('YourUseCase', () => {
   describe('Feature group 1', () => {
     it('should do X when Y', async () => {
       // Arrange
-      const request = { /* ... */ };
+      const request = {
+        /* ... */
+      };
 
       // Act
       const result = await useCase.execute(request);
@@ -401,7 +425,9 @@ describe('YourUseCase', () => {
 
   describe('Validation', () => {
     it('should fail with invalid input', async () => {
-      const result = await useCase.execute({ /* invalid */ });
+      const result = await useCase.execute({
+        /* invalid */
+      });
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
@@ -415,6 +441,7 @@ describe('YourUseCase', () => {
 ### Test Coverage Checklist
 
 For each use case, ensure tests cover:
+
 - ✅ Happy path (basic functionality)
 - ✅ Update existing entities
 - ✅ Create new entities
@@ -591,16 +618,21 @@ const cardsRouter = createCardsModuleRoutes(
 ## Best Practices
 
 ### 1. Value Object Validation
+
 Always validate and create value objects early in the use case:
+
 ```typescript
 const curatorIdResult = CuratorId.create(request.curatorId);
 if (curatorIdResult.isErr()) {
-  return err(new ValidationError(`Invalid curator ID: ${curatorIdResult.error.message}`));
+  return err(
+    new ValidationError(`Invalid curator ID: ${curatorIdResult.error.message}`),
+  );
 }
 const curatorId = curatorIdResult.value;
 ```
 
 ### 2. Error Handling
+
 - Use `ValidationError` for business rule violations
 - Use `AppError.UnexpectedError` for infrastructure errors
 - Don't fail operations if event publishing fails (log instead)
@@ -614,10 +646,16 @@ if (publishResult.isErr()) {
 ```
 
 ### 3. Domain Services
+
 Use domain services for cross-aggregate operations:
+
 ```typescript
 // ✅ Good - uses domain service
-await this.cardCollectionService.addCardToCollections(card, collectionIds, curatorId);
+await this.cardCollectionService.addCardToCollections(
+  card,
+  collectionIds,
+  curatorId,
+);
 
 // ❌ Bad - directly manipulating aggregates
 collection.addCard(card.cardId, curatorId);
@@ -625,39 +663,45 @@ await this.collectionRepository.save(collection);
 ```
 
 ### 4. Response DTOs
+
 Return detailed information about what changed:
+
 ```typescript
 return ok({
   id: entity.id.getStringValue(),
   created: !existingEntity,
   updated: !!existingEntity,
-  affectedCollections: updatedCollections.map(c => c.id.getStringValue()),
+  affectedCollections: updatedCollections.map((c) => c.id.getStringValue()),
 });
 ```
 
 ### 5. Idempotency
+
 Design use cases to be idempotent when possible:
+
 - Check existence before creating
 - Only update if values actually changed
 - Handle "already exists" gracefully
 
 ## Common Patterns Summary
 
-| Pattern | When to Use | Key Characteristics |
-|---------|-------------|---------------------|
-| **Upsert** | When user intent is "ensure this state" | - Create if not exists<br/>- Update if exists<br/>- Only add, never remove |
-| **Explicit Control** | When user needs precise control | - Separate add/remove operations<br/>- Returns what changed<br/>- Requires entity to exist |
-| **Create Only** | When creating new entities | - Fails if already exists<br/>- Simple validation |
-| **Update Only** | When modifying existing entities | - Requires entity to exist<br/>- Validates ownership/permissions |
+| Pattern              | When to Use                             | Key Characteristics                                                                        |
+| -------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Upsert**           | When user intent is "ensure this state" | - Create if not exists<br/>- Update if exists<br/>- Only add, never remove                 |
+| **Explicit Control** | When user needs precise control         | - Separate add/remove operations<br/>- Returns what changed<br/>- Requires entity to exist |
+| **Create Only**      | When creating new entities              | - Fails if already exists<br/>- Simple validation                                          |
+| **Update Only**      | When modifying existing entities        | - Requires entity to exist<br/>- Validates ownership/permissions                           |
 
 ## References
 
 ### Example Implementations
+
 - **Upsert**: `src/modules/cards/application/useCases/commands/AddUrlToLibraryUseCase.ts:147-234`
 - **Explicit Control**: `src/modules/cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase.ts`
 - **Repository Methods**: `src/modules/cards/domain/ICardRepository.ts:15-18`
 
 ### Related Guides
+
 - Domain-Driven Design patterns
 - Repository pattern
 - Event publishing

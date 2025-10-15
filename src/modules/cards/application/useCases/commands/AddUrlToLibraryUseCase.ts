@@ -172,8 +172,7 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
           }
 
           // Save updated note card
-          const saveNoteCardResult =
-            await this.cardRepository.save(noteCard);
+          const saveNoteCardResult = await this.cardRepository.save(noteCard);
           if (saveNoteCardResult.isErr()) {
             return err(
               AppError.UnexpectedError.create(saveNoteCardResult.error),

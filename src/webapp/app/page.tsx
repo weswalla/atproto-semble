@@ -22,6 +22,7 @@ import CurateIcon from '@/assets/icons/curate-icon.svg';
 import CommunityIcon from '@/assets/icons/community-icon.svg';
 import DBIcon from '@/assets/icons/db-icon.svg';
 import BigPictureIcon from '@/assets/icons/big-picture-icon.svg';
+import TangledIcon from '@/assets/icons/tangled-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
 
 export default function Home() {
@@ -147,6 +148,22 @@ export default function Home() {
                     m={0}
                   >
                     <FaBluesky size={22} />
+                  </ActionIcon>
+                  <ActionIcon
+                    component="a"
+                    href="https://tangled.org/@cosmik.network/semble"
+                    target="_blank"
+                    variant="subtle"
+                    color={'dark.2'}
+                    radius={'xl'}
+                    size={'xl'}
+                  >
+                    <Image
+                      src={TangledIcon.src}
+                      alt="Semble logo"
+                      w={'auto'}
+                      h={22}
+                    />
                   </ActionIcon>
                   <ActionIcon
                     component="a"

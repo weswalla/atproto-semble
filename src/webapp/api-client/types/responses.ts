@@ -16,6 +16,13 @@ export interface UpdateNoteCardResponse {
   cardId: string;
 }
 
+export interface UpdateUrlCardAssociationsResponse {
+  urlCardId: string;
+  noteCardId?: string;
+  addedToCollections: string[];
+  removedFromCollections: string[];
+}
+
 export interface RemoveCardFromLibraryResponse {
   cardId: string;
 }

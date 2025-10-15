@@ -3,6 +3,7 @@ import { AddUrlToLibraryController } from '../controllers/AddUrlToLibraryControl
 import { AddCardToLibraryController } from '../controllers/AddCardToLibraryController';
 import { AddCardToCollectionController } from '../controllers/AddCardToCollectionController';
 import { UpdateNoteCardController } from '../controllers/UpdateNoteCardController';
+import { UpdateUrlCardAssociationsController } from '../controllers/UpdateUrlCardAssociationsController';
 import { RemoveCardFromLibraryController } from '../controllers/RemoveCardFromLibraryController';
 import { RemoveCardFromCollectionController } from '../controllers/RemoveCardFromCollectionController';
 import { GetUrlMetadataController } from '../controllers/GetUrlMetadataController';
@@ -21,6 +22,7 @@ export function createCardRoutes(
   addCardToLibraryController: AddCardToLibraryController,
   addCardToCollectionController: AddCardToCollectionController,
   updateNoteCardController: UpdateNoteCardController,
+  updateUrlCardAssociationsController: UpdateUrlCardAssociationsController,
   removeCardFromLibraryController: RemoveCardFromLibraryController,
   removeCardFromCollectionController: RemoveCardFromCollectionController,
   getUrlMetadataController: GetUrlMetadataController,
@@ -102,6 +104,13 @@ export function createCardRoutes(
     '/:cardId/note',
     authMiddleware.ensureAuthenticated(),
     (req, res) => updateNoteCardController.execute(req, res),
+  );
+
+  // PUT /api/cards/url/associations - Update URL card associations (note, collections)
+  router.put(
+    '/url/associations',
+    authMiddleware.ensureAuthenticated(),
+    (req, res) => updateUrlCardAssociationsController.execute(req, res),
   );
 
   // DELETE /api/cards/:cardId/library - Remove card from user's library

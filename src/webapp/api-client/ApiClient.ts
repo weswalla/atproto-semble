@@ -16,6 +16,7 @@ import type {
   AddCardToLibraryRequest,
   AddCardToCollectionRequest,
   UpdateNoteCardRequest,
+  UpdateUrlCardAssociationsRequest,
   RemoveCardFromLibraryRequest,
   RemoveCardFromCollectionRequest,
   CreateCollectionRequest,
@@ -36,6 +37,7 @@ import type {
   AddCardToLibraryResponse,
   AddCardToCollectionResponse,
   UpdateNoteCardResponse,
+  UpdateUrlCardAssociationsResponse,
   RemoveCardFromLibraryResponse,
   RemoveCardFromCollectionResponse,
   CreateCollectionResponse,
@@ -212,6 +214,13 @@ export class ApiClient {
   ): Promise<UpdateNoteCardResponse> {
     this.requireAuthentication('updateNoteCard');
     return this.cardClient.updateNoteCard(request);
+  }
+
+  async updateUrlCardAssociations(
+    request: UpdateUrlCardAssociationsRequest,
+  ): Promise<UpdateUrlCardAssociationsResponse> {
+    this.requireAuthentication('updateUrlCardAssociations');
+    return this.cardClient.updateUrlCardAssociations(request);
   }
 
   async removeCardFromLibrary(

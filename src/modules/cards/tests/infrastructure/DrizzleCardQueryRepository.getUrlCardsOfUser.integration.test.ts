@@ -592,6 +592,181 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
     });
   });
 
+  describe('urlLibraryCount', () => {
+    it('should return urlLibraryCount of 1 when only one user has the URL', async () => {
+      const url = URL.create('https://example.com/unique-article').unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard);
+      urlCard.addToLibrary(curatorId);
+      await cardRepository.save(urlCard);
+
+      const result = await queryRepository.getUrlCardsOfUser(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CardSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]?.libraryCount).toBe(1);
+      expect(result.items[0]?.urlLibraryCount).toBe(1);
+    });
+
+    it('should return urlLibraryCount of 3 when three users have cards with the same URL', async () => {
+      const sharedUrl = 'https://example.com/popular-article';
+      const url = URL.create(sharedUrl).unwrap();
+
+      // Create URL card for first user
+      const urlCard1 = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard1);
+      urlCard1.addToLibrary(curatorId);
+      await cardRepository.save(urlCard1);
+
+      // Create URL card for second user (same URL)
+      const urlCard2 = new CardBuilder()
+        .withCuratorId(otherCuratorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard2);
+      urlCard2.addToLibrary(otherCuratorId);
+      await cardRepository.save(urlCard2);
+
+      // Create URL card for third user (same URL)
+      const urlCard3 = new CardBuilder()
+        .withCuratorId(thirdCuratorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard3);
+      urlCard3.addToLibrary(thirdCuratorId);
+      await cardRepository.save(urlCard3);
+
+      // Query from first user's perspective
+      const result = await queryRepository.getUrlCardsOfUser(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CardSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]?.url).toBe(sharedUrl);
+      expect(result.items[0]?.libraryCount).toBe(1); // Only in curator's library
+      expect(result.items[0]?.urlLibraryCount).toBe(3); // 3 users have this URL
+    });
+
+    it('should return different urlLibraryCounts for different URLs', async () => {
+      // URL 1: only curator has it
+      const url1 = URL.create('https://example.com/article1').unwrap();
+      const urlCard1 = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url1)
+        .withCreatedAt(new Date('2023-01-01'))
+        .withUpdatedAt(new Date('2023-01-01'))
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard1);
+      urlCard1.addToLibrary(curatorId);
+      await cardRepository.save(urlCard1);
+
+      // URL 2: curator and otherCurator have it
+      const url2 = URL.create('https://example.com/article2').unwrap();
+      const urlCard2a = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url2)
+        .withCreatedAt(new Date('2023-01-02'))
+        .withUpdatedAt(new Date('2023-01-02'))
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard2a);
+      urlCard2a.addToLibrary(curatorId);
+      await cardRepository.save(urlCard2a);
+
+      const urlCard2b = new CardBuilder()
+        .withCuratorId(otherCuratorId.value)
+        .withUrlCard(url2)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard2b);
+      urlCard2b.addToLibrary(otherCuratorId);
+      await cardRepository.save(urlCard2b);
+
+      // Query from curator's perspective
+      const result = await queryRepository.getUrlCardsOfUser(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CardSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(2);
+
+      const card1 = result.items.find((item) => item.url === url1.value);
+      const card2 = result.items.find((item) => item.url === url2.value);
+
+      expect(card1?.libraryCount).toBe(1);
+      expect(card1?.urlLibraryCount).toBe(1);
+
+      expect(card2?.libraryCount).toBe(1);
+      expect(card2?.urlLibraryCount).toBe(2);
+    });
+
+    it('should handle urlLibraryCount with multiple cards per user for same URL', async () => {
+      const sharedUrl = 'https://example.com/shared-article';
+      const url = URL.create(sharedUrl).unwrap();
+
+      // First user creates a card with this URL
+      const urlCard1 = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard1);
+      urlCard1.addToLibrary(curatorId);
+      await cardRepository.save(urlCard1);
+
+      // Second user creates TWO cards with the same URL (edge case)
+      const urlCard2a = new CardBuilder()
+        .withCuratorId(otherCuratorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard2a);
+      urlCard2a.addToLibrary(otherCuratorId);
+      await cardRepository.save(urlCard2a);
+
+      const urlCard2b = new CardBuilder()
+        .withCuratorId(otherCuratorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+
+      await cardRepository.save(urlCard2b);
+      urlCard2b.addToLibrary(otherCuratorId);
+      await cardRepository.save(urlCard2b);
+
+      // Query from first user's perspective
+      const result = await queryRepository.getUrlCardsOfUser(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CardSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]?.libraryCount).toBe(1); // Only in first user's library
+      expect(result.items[0]?.urlLibraryCount).toBe(2); // 2 unique users have this URL
+    });
+  });
+
   describe('pagination', () => {
     beforeEach(async () => {
       // Create 5 URL cards for pagination testing

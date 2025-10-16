@@ -13,7 +13,7 @@ export class GetUserUrlCardsController extends Controller {
     try {
       const { identifier } = req.params;
       const { page, limit, sortBy, sortOrder } = req.query;
-      const callingUserId = req.did;
+      const callerDid = req.did;
 
       if (!identifier) {
         return this.fail(res, 'Identifier (DID or handle) is required');
@@ -21,7 +21,7 @@ export class GetUserUrlCardsController extends Controller {
 
       const result = await this.getUrlCardsUseCase.execute({
         userId: identifier,
-        callingUserId,
+        callingUserId: callerDid,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,
         sortBy: sortBy as CardSortField,

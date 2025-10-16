@@ -11,16 +11,16 @@ export class GetMyUrlCardsController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const userId = req.did;
+      const callerDid = req.did;
       const { page, limit, sortBy, sortOrder } = req.query;
 
-      if (!userId) {
+      if (!callerDid) {
         return this.unauthorized(res);
       }
 
       const result = await this.getUrlCardsUseCase.execute({
-        userId,
-        callingUserId: userId,
+        userId: callerDid,
+        callingUserId: callerDid,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,
         sortBy: sortBy as CardSortField,

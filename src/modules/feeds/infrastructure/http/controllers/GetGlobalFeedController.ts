@@ -13,10 +13,10 @@ export class GetGlobalFeedController extends Controller {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
       const beforeActivityId = req.query.beforeActivityId as string;
-      const callingUserId = req.did;
+      const callerDid = req.did;
 
       const result = await this.getGlobalFeedUseCase.execute({
-        callingUserId,
+        callingUserId: callerDid,
         page,
         limit,
         beforeActivityId,

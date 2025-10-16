@@ -187,22 +187,14 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   }
 
   private isUrlInUserLibrary(url: string, userId: string): boolean {
-    // Get all URL cards with this URL
+    // Check if the user has any URL card with this URL (by checking authorId)
     const allCards = this.cardRepository.getAllCards();
-    const urlCards = allCards.filter(
-      (card) => card.isUrlCard && card.url?.value === url,
+    return allCards.some(
+      (card) =>
+        card.isUrlCard &&
+        card.url?.value === url &&
+        card.curatorId.value === userId,
     );
-
-    // Check if any of those cards have library memberships with the specified userId
-    for (const card of urlCards) {
-      for (const membership of card.libraryMemberships) {
-        if (membership.curatorId.value === userId) {
-          return true;
-        }
-      }
-    }
-
-    return false;
   }
 
   async getCardsInCollection(

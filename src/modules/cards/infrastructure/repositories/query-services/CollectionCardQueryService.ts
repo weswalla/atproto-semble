@@ -131,13 +131,9 @@ export class CollectionCardQueryService {
             url: cards.url,
           })
           .from(cards)
-          .innerJoin(
-            libraryMemberships,
-            eq(cards.id, libraryMemberships.cardId),
-          )
           .where(
             and(
-              eq(libraryMemberships.userId, callingUserId),
+              eq(cards.authorId, callingUserId),
               eq(cards.type, CardTypeEnum.URL),
               inArray(cards.url, urls),
             ),

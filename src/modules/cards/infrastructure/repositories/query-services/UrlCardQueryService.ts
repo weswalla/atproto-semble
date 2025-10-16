@@ -130,13 +130,9 @@ export class UrlCardQueryService {
             url: cards.url,
           })
           .from(cards)
-          .innerJoin(
-            libraryMemberships,
-            eq(cards.id, libraryMemberships.cardId),
-          )
           .where(
             and(
-              eq(libraryMemberships.userId, callingUserId),
+              eq(cards.authorId, callingUserId),
               eq(cards.type, CardTypeEnum.URL),
               inArray(cards.url, urls),
             ),
@@ -317,13 +313,9 @@ export class UrlCardQueryService {
             id: cards.id,
           })
           .from(cards)
-          .innerJoin(
-            libraryMemberships,
-            eq(cards.id, libraryMemberships.cardId),
-          )
           .where(
             and(
-              eq(libraryMemberships.userId, callingUserId),
+              eq(cards.authorId, callingUserId),
               eq(cards.type, CardTypeEnum.URL),
               eq(cards.url, card.url),
             ),

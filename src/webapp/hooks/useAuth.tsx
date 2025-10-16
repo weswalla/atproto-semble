@@ -3,7 +3,8 @@
 import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ClientCookieAuthService } from '@/services/auth';
-import { ApiClient, GetProfileResponse } from '@/api-client/ApiClient';
+import { ApiClient } from '@/api-client/ApiClient';
+import type { GetProfileResponse } from '@/api-client/ApiClient';
 
 type UserProfile = GetProfileResponse;
 
@@ -30,13 +31,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const router = useRouter();
 
-  // Refresh authentication (fetch user profile with HttpOnly cookies)
+  // Refresh authentication (fetch user profile with automatic token refresh)
   const refreshAuth = useCallback(async (): Promise<boolean> => {
     try {
-      // Check if authenticated via API (HttpOnly cookies sent automatically)
-      const isAuth = await ClientCookieAuthService.checkAuthStatus();
+      // Call /api/auth/me which handles token refresh + profile fetch
+      // HttpOnly cookies sent automatically with credentials: 'include'
+      const response = await fetch('/api/auth/me', {
+        method: 'GET',
+        credentials: 'include',
+      });
 
-      if (!isAuth) {
+      if (!response.ok) {
         setAuthState({
           isAuthenticated: false,
           user: null,
@@ -45,12 +50,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
 
-      // Fetch user profile (cookies sent automatically with credentials: 'include')
-      const apiClient = new ApiClient(
-        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000'
-      );
-
-      const user = await apiClient.getMyProfile();
+      const { user } = await response.json();
 
       setAuthState({
         isAuthenticated: true,

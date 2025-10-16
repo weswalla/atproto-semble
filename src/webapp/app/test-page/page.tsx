@@ -1,7 +1,6 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import { ClientCookieAuthService } from '@/services/auth';
 import {
   Container,
   Stack,
@@ -29,11 +28,6 @@ export default function TestPage() {
 
   const handleLogout = async () => {
     await logout();
-  };
-
-  const handleCheckAuth = async () => {
-    const isAuth = await ClientCookieAuthService.checkAuthStatus();
-    console.log('Auth check:', { isAuthenticated: isAuth });
   };
 
   return (
@@ -122,11 +116,7 @@ export default function TestPage() {
 
         <Stack gap="xs">
           <Button onClick={handleRefresh} variant="light">
-            Refresh Test
-          </Button>
-
-          <Button onClick={handleCheckAuth} variant="outline">
-            Check Auth Status (Console)
+            Refresh Auth
           </Button>
 
           {authenticated && (
@@ -149,17 +139,18 @@ export default function TestPage() {
               1. This page uses the <Code>useAuth</Code> hook
             </Text>
             <Text size="sm">
-              2. Cookies are HttpOnly and cannot be read from JavaScript
+              2. The hook calls <Code>/api/auth/me</Code> which handles auth +
+              refresh
             </Text>
             <Text size="sm">
-              3. The browser automatically sends cookies with{' '}
+              3. HttpOnly cookies are sent automatically with{' '}
               <Code>credentials: 'include'</Code>
             </Text>
             <Text size="sm">
-              4. Auth status is checked via API endpoint
+              4. Server refreshes tokens if needed (&lt; 5 min left)
             </Text>
             <Text size="sm">
-              5. Success = client-side cookie authentication works! ✅
+              5. Success = seamless cookie authentication! ✅
             </Text>
           </Stack>
         </Card>

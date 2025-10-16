@@ -42,10 +42,7 @@ export class UrlCardQueryService {
         })
         .from(cards)
         .where(
-          and(
-            eq(cards.authorId, userId),
-            eq(cards.type, CardTypeEnum.URL),
-          ),
+          and(eq(cards.authorId, userId), eq(cards.type, CardTypeEnum.URL)),
         )
         .orderBy(orderDirection(this.getSortColumn(sortBy)))
         .limit(limit)
@@ -154,10 +151,7 @@ export class UrlCardQueryService {
         .select({ count: count() })
         .from(cards)
         .where(
-          and(
-            eq(cards.authorId, userId),
-            eq(cards.type, CardTypeEnum.URL),
-          ),
+          and(eq(cards.authorId, userId), eq(cards.type, CardTypeEnum.URL)),
         );
 
       const totalCount = totalCountResult[0]?.count || 0;

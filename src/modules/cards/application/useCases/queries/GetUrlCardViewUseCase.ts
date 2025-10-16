@@ -10,7 +10,6 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 
 export interface GetUrlCardViewQuery {
   cardId: string;
-  callerDid?: string;
   callingUserId?: string;
 }
 
@@ -70,7 +69,7 @@ export class GetUrlCardViewUseCase
       // Get profiles for all users in libraries
       const userIds = cardView.libraries.map((lib) => lib.userId);
       const profilePromises = userIds.map((userId) =>
-        this.profileService.getProfile(userId, query.callerDid),
+        this.profileService.getProfile(userId, query.callingUserId),
       );
 
       const profileResults = await Promise.all(profilePromises);

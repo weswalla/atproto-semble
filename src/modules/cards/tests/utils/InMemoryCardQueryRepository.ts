@@ -138,6 +138,9 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         thumbnailUrl: card.content.urlContent.metadata?.imageUrl,
       },
       libraryCount: this.getLibraryCountForCard(card.cardId.getStringValue()),
+      urlLibraryCount: this.getUrlLibraryCount(
+        card.content.urlContent.url.value,
+      ),
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,
       collections,
@@ -150,6 +153,24 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       getStringValue: () => cardId,
     } as any);
     return card ? card.libraryMembershipCount : 0;
+  }
+
+  private getUrlLibraryCount(url: string): number {
+    // Get all URL cards with this URL and count unique library memberships
+    const allCards = this.cardRepository.getAllCards();
+    const urlCards = allCards.filter(
+      (card) => card.isUrlCard && card.url?.value === url,
+    );
+
+    // Get all unique user IDs who have any card with this URL
+    const uniqueUserIds = new Set<string>();
+    for (const card of urlCards) {
+      for (const membership of card.libraryMemberships) {
+        uniqueUserIds.add(membership.curatorId.value);
+      }
+    }
+
+    return uniqueUserIds.size;
   }
 
   async getCardsInCollection(
@@ -255,6 +276,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       url: card.url,
       cardContent: card.cardContent,
       libraryCount: card.libraryCount,
+      urlLibraryCount: card.urlLibraryCount,
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,
       note: card.note,

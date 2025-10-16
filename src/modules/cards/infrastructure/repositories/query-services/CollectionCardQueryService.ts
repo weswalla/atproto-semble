@@ -1,4 +1,4 @@
-import { eq, desc, asc, count, inArray, and } from 'drizzle-orm';
+import { eq, desc, asc, count, countDistinct, inArray, and } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   CardQueryOptions,
@@ -80,6 +80,7 @@ export class CollectionCardQueryService {
       }
 
       const cardIds = cardsResult.map((card) => card.id);
+      const urls = cardsResult.map((card) => card.url || '');
 
       // Get note cards for these URL cards, but only by the collection author
       const notesQuery = this.db
@@ -99,6 +100,27 @@ export class CollectionCardQueryService {
         );
 
       const notesResult = await notesQuery;
+
+      // Get urlLibraryCount for each URL (count of unique users who have cards with this URL)
+      const urlLibraryCountsQuery = this.db
+        .select({
+          url: cards.url,
+          count: countDistinct(libraryMemberships.userId),
+        })
+        .from(cards)
+        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
+        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
+        .groupBy(cards.url);
+
+      const urlLibraryCountsResult = await urlLibraryCountsQuery;
+
+      // Create a map of URL to urlLibraryCount
+      const urlLibraryCountMap = new Map<string, number>();
+      urlLibraryCountsResult.forEach((row) => {
+        if (row.url) {
+          urlLibraryCountMap.set(row.url, row.count);
+        }
+      });
 
       // Get total count
       const totalCountResult = await this.db
@@ -120,11 +142,15 @@ export class CollectionCardQueryService {
         // Find note for this card
         const note = notesResult.find((n) => n.parentCardId === card.id);
 
+        // Get urlLibraryCount from the map
+        const urlLibraryCount = urlLibraryCountMap.get(card.url || '') || 0;
+
         return {
           id: card.id,
           url: card.url || '',
           contentData: card.contentData,
           libraryCount: card.libraryCount,
+          urlLibraryCount,
           createdAt: card.createdAt,
           updatedAt: card.updatedAt,
           note: note

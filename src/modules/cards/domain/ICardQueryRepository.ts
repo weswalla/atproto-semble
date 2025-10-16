@@ -37,6 +37,7 @@ export interface UrlCardView {
     thumbnailUrl?: string;
   };
   libraryCount: number;
+  urlLibraryCount: number;
   createdAt: Date;
   updatedAt: Date;
   note?: {

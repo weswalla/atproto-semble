@@ -1,4 +1,4 @@
-import { eq, desc, asc, count, inArray, and } from 'drizzle-orm';
+import { eq, desc, asc, count, countDistinct, inArray, and } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   CardQueryOptions,
@@ -62,6 +62,7 @@ export class UrlCardQueryService {
       }
 
       const cardIds = urlCardsResult.map((card) => card.id);
+      const urls = urlCardsResult.map((card) => card.url || '');
 
       // Get collections for these cards
       const collectionsQuery = this.db
@@ -99,6 +100,27 @@ export class UrlCardQueryService {
 
       const notesResult = await notesQuery;
 
+      // Get urlLibraryCount for each URL (count of unique users who have cards with this URL)
+      const urlLibraryCountsQuery = this.db
+        .select({
+          url: cards.url,
+          count: countDistinct(libraryMemberships.userId),
+        })
+        .from(cards)
+        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
+        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
+        .groupBy(cards.url);
+
+      const urlLibraryCountsResult = await urlLibraryCountsQuery;
+
+      // Create a map of URL to urlLibraryCount
+      const urlLibraryCountMap = new Map<string, number>();
+      urlLibraryCountsResult.forEach((row) => {
+        if (row.url) {
+          urlLibraryCountMap.set(row.url, row.count);
+        }
+      });
+
       // Get total count
       const totalCountResult = await this.db
         .select({ count: count() })
@@ -128,11 +150,15 @@ export class UrlCardQueryService {
         // Find note for this card
         const note = notesResult.find((n) => n.parentCardId === card.id);
 
+        // Get urlLibraryCount from the map
+        const urlLibraryCount = urlLibraryCountMap.get(card.url || '') || 0;
+
         return {
           id: card.id,
           url: card.url || '',
           contentData: card.contentData,
           libraryCount: card.libraryCount,
+          urlLibraryCount,
           createdAt: card.createdAt,
           updatedAt: card.updatedAt,
           collections: cardCollections,
@@ -229,6 +255,18 @@ export class UrlCardQueryService {
       const noteResult = await noteQuery;
       const note = noteResult.length > 0 ? noteResult[0] : undefined;
 
+      // Get urlLibraryCount for this URL
+      const urlLibraryCountQuery = this.db
+        .select({
+          count: countDistinct(libraryMemberships.userId),
+        })
+        .from(cards)
+        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
+        .where(and(eq(cards.type, CardTypeEnum.URL), eq(cards.url, card.url)));
+
+      const urlLibraryCountResult = await urlLibraryCountQuery;
+      const urlLibraryCount = urlLibraryCountResult[0]?.count || 0;
+
       // Map to DTO
       const urlCardView = CardMapper.toUrlCardViewDTO({
         id: card.id,
@@ -236,6 +274,7 @@ export class UrlCardQueryService {
         url: card.url || '',
         contentData: card.contentData,
         libraryCount: card.libraryCount,
+        urlLibraryCount,
         createdAt: card.createdAt,
         updatedAt: card.updatedAt,
         inLibraries: libraryResult.map((lib) => ({ userId: lib.userId })),

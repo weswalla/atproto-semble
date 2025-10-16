@@ -91,12 +91,11 @@ export class CollectionCardQueryService {
           contentData: cards.contentData,
         })
         .from(cards)
-        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
         .where(
           and(
             eq(cards.type, CardTypeEnum.NOTE),
             inArray(cards.parentCardId, cardIds),
-            eq(libraryMemberships.userId, collectionAuthorId),
+            eq(cards.authorId, collectionAuthorId),
           ),
         );
 

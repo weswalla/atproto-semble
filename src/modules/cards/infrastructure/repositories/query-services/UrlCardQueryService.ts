@@ -30,7 +30,7 @@ export class UrlCardQueryService {
       // Build the sort order
       const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
 
-      // First, get the URL cards for the user from library memberships
+      // First, get the URL cards for the user
       const urlCardsQuery = this.db
         .select({
           id: cards.id,
@@ -41,10 +41,9 @@ export class UrlCardQueryService {
           updatedAt: cards.updatedAt,
         })
         .from(cards)
-        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
         .where(
           and(
-            eq(libraryMemberships.userId, userId),
+            eq(cards.authorId, userId),
             eq(cards.type, CardTypeEnum.URL),
           ),
         )
@@ -90,10 +89,9 @@ export class UrlCardQueryService {
           contentData: cards.contentData,
         })
         .from(cards)
-        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
         .where(
           and(
-            eq(libraryMemberships.userId, userId),
+            eq(cards.authorId, userId),
             eq(cards.type, CardTypeEnum.NOTE),
             inArray(cards.parentCardId, cardIds),
           ),
@@ -155,10 +153,9 @@ export class UrlCardQueryService {
       const totalCountResult = await this.db
         .select({ count: count() })
         .from(cards)
-        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
         .where(
           and(
-            eq(libraryMemberships.userId, userId),
+            eq(cards.authorId, userId),
             eq(cards.type, CardTypeEnum.URL),
           ),
         );

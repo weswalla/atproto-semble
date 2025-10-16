@@ -954,6 +954,8 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
         .buildOrThrow();
 
       await cardRepository.save(urlCard1);
+      urlCard1.addToLibrary(curatorId);
+      await cardRepository.save(urlCard1);
 
       // Create collection and add card
       const collection = Collection.create(

@@ -13,6 +13,7 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 export interface GetCollectionPageQuery {
   collectionId: string;
   callerDid?: string;
+  callingUserId?: string;
   page?: number;
   limit?: number;
   sortBy?: CardSortField;
@@ -133,6 +134,7 @@ export class GetCollectionPageUseCase
           sortBy,
           sortOrder,
         },
+        query.callingUserId,
       );
 
       // Transform raw card data to enriched DTOs

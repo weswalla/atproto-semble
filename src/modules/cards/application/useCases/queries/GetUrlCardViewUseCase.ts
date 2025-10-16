@@ -11,6 +11,7 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 export interface GetUrlCardViewQuery {
   cardId: string;
   callerDid?: string;
+  callingUserId?: string;
 }
 
 // Enriched data for the final use case result
@@ -57,7 +58,10 @@ export class GetUrlCardViewUseCase
 
     try {
       // Get the URL card view data
-      const cardView = await this.cardQueryRepo.getUrlCardView(query.cardId);
+      const cardView = await this.cardQueryRepo.getUrlCardView(
+        query.cardId,
+        query.callingUserId,
+      );
 
       if (!cardView) {
         return err(new CardNotFoundError('URL card not found'));

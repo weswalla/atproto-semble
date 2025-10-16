@@ -71,6 +71,7 @@ export interface UrlCardView {
   };
   libraryCount: number;
   urlLibraryCount: number;
+  urlInLibrary?: boolean;
   createdAt: string;
   updatedAt: string;
   note?: {
@@ -128,6 +129,7 @@ export interface UrlCardListItem {
   };
   libraryCount: number;
   urlLibraryCount: number;
+  urlInLibrary?: boolean;
   createdAt: string;
   updatedAt: string;
   note?: {
@@ -183,6 +185,7 @@ export interface CollectionPageUrlCard {
   };
   libraryCount: number;
   urlLibraryCount: number;
+  urlInLibrary?: boolean;
   createdAt: string;
   updatedAt: string;
   note?: {
@@ -273,6 +276,7 @@ export interface FeedActivityCard {
   };
   libraryCount: number;
   urlLibraryCount: number;
+  urlInLibrary?: boolean;
   createdAt: string;
   updatedAt: string;
   note?: {

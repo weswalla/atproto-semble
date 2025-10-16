@@ -38,6 +38,7 @@ export interface UrlCardView {
   };
   libraryCount: number;
   urlLibraryCount: number;
+  urlInLibrary?: boolean;
   createdAt: Date;
   updatedAt: Date;
   note?: {
@@ -77,14 +78,19 @@ export interface ICardQueryRepository {
   getUrlCardsOfUser(
     userId: string,
     options: CardQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<UrlCardQueryResultDTO>>;
 
   getCardsInCollection(
     collectionId: string,
     options: CardQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<CollectionCardQueryResultDTO>>;
 
-  getUrlCardView(cardId: string): Promise<UrlCardViewDTO | null>;
+  getUrlCardView(
+    cardId: string,
+    callingUserId?: string,
+  ): Promise<UrlCardViewDTO | null>;
 
   getLibrariesForCard(cardId: string): Promise<string[]>;
 

@@ -20,6 +20,7 @@ export class GetMyUrlCardsController extends Controller {
 
       const result = await this.getUrlCardsUseCase.execute({
         userId,
+        callingUserId: userId,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,
         sortBy: sortBy as CardSortField,

@@ -24,6 +24,7 @@ export class GetCollectionPageByAtUriController extends Controller {
         handle,
         recordKey,
         callerDid,
+        callingUserId: callerDid,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,
         sortBy: sortBy as CardSortField,

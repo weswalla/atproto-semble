@@ -19,6 +19,7 @@ export class CollectionCardQueryService {
   async getCardsInCollection(
     collectionId: string,
     options: CardQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<CollectionCardQueryResultDTO>> {
     try {
       const { page, limit, sortBy, sortOrder } = options;
@@ -122,6 +123,39 @@ export class CollectionCardQueryService {
         }
       });
 
+      // Get urlInLibrary for each URL if callingUserId is provided
+      let urlInLibraryMap: Map<string, boolean> | undefined;
+      if (callingUserId) {
+        const urlInLibraryQuery = this.db
+          .select({
+            url: cards.url,
+          })
+          .from(cards)
+          .innerJoin(
+            libraryMemberships,
+            eq(cards.id, libraryMemberships.cardId),
+          )
+          .where(
+            and(
+              eq(libraryMemberships.userId, callingUserId),
+              eq(cards.type, CardTypeEnum.URL),
+              inArray(cards.url, urls),
+            ),
+          );
+
+        const urlInLibraryResult = await urlInLibraryQuery;
+
+        urlInLibraryMap = new Map<string, boolean>();
+        // Initialize all URLs as false
+        urls.forEach((url) => urlInLibraryMap!.set(url, false));
+        // Set true for URLs the calling user has
+        urlInLibraryResult.forEach((row) => {
+          if (row.url) {
+            urlInLibraryMap!.set(row.url, true);
+          }
+        });
+      }
+
       // Get total count
       const totalCountResult = await this.db
         .select({ count: count() })
@@ -145,12 +179,16 @@ export class CollectionCardQueryService {
         // Get urlLibraryCount from the map
         const urlLibraryCount = urlLibraryCountMap.get(card.url || '') || 0;
 
+        // Get urlInLibrary from the map (undefined if callingUserId not provided)
+        const urlInLibrary = urlInLibraryMap?.get(card.url || '');
+
         return {
           id: card.id,
           url: card.url || '',
           contentData: card.contentData,
           libraryCount: card.libraryCount,
           urlLibraryCount,
+          urlInLibrary,
           createdAt: card.createdAt,
           updatedAt: card.updatedAt,
           note: note

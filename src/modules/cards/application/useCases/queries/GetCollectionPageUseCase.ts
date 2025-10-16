@@ -12,7 +12,7 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 
 export interface GetCollectionPageQuery {
   collectionId: string;
-  callerDid?: string;
+  callingUserId?: string;
   page?: number;
   limit?: number;
   sortBy?: CardSortField;
@@ -111,7 +111,7 @@ export class GetCollectionPageUseCase
       // Get author profile
       const profileResult = await this.profileService.getProfile(
         collection.authorId.value,
-        query.callerDid,
+        query.callingUserId,
       );
 
       if (profileResult.isErr()) {
@@ -133,6 +133,7 @@ export class GetCollectionPageUseCase
           sortBy,
           sortOrder,
         },
+        query.callingUserId,
       );
 
       // Transform raw card data to enriched DTOs

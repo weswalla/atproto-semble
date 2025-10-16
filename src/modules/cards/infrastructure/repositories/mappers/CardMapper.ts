@@ -77,6 +77,7 @@ export interface RawUrlCardData {
   contentData: any;
   libraryCount: number;
   urlLibraryCount: number;
+  urlInLibrary?: boolean;
   createdAt: Date;
   updatedAt: Date;
   collections: {
@@ -371,6 +372,7 @@ export class CardMapper {
       cardContent,
       libraryCount: raw.libraryCount,
       urlLibraryCount: raw.urlLibraryCount,
+      urlInLibrary: raw.urlInLibrary,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       collections: raw.collections,
@@ -384,6 +386,7 @@ export class CardMapper {
     contentData: any;
     libraryCount: number;
     urlLibraryCount: number;
+    urlInLibrary?: boolean;
     createdAt: Date;
     updatedAt: Date;
     note?: {
@@ -415,6 +418,7 @@ export class CardMapper {
       cardContent,
       libraryCount: raw.libraryCount,
       urlLibraryCount: raw.urlLibraryCount,
+      urlInLibrary: raw.urlInLibrary,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       note,
@@ -428,6 +432,7 @@ export class CardMapper {
     contentData: UrlContentData;
     libraryCount: number;
     urlLibraryCount: number;
+    urlInLibrary?: boolean;
     createdAt: Date;
     updatedAt: Date;
     inLibraries: {
@@ -467,6 +472,7 @@ export class CardMapper {
       cardContent,
       libraryCount: raw.libraryCount,
       urlLibraryCount: raw.urlLibraryCount,
+      urlInLibrary: raw.urlInLibrary,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       collections: raw.inCollections,

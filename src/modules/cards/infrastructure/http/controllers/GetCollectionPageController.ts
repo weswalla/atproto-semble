@@ -21,7 +21,7 @@ export class GetCollectionPageController extends Controller {
 
       const result = await this.getCollectionPageUseCase.execute({
         collectionId,
-        callerDid,
+        callingUserId: callerDid,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,
         sortBy: sortBy as CardSortField,

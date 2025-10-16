@@ -17,7 +17,7 @@ import {
 export interface GetCollectionPageByAtUriQuery {
   handle: string;
   recordKey: string;
-  callerDid?: string;
+  callingUserId?: string;
   page?: number;
   limit?: number;
   sortBy?: CardSortField;
@@ -88,7 +88,7 @@ export class GetCollectionPageByAtUriUseCase
     // Delegate to the existing use case
     return this.getCollectionPageUseCase.execute({
       collectionId: collectionIdResult.value.getStringValue(),
-      callerDid: query.callerDid,
+      callingUserId: query.callingUserId,
       page: query.page,
       limit: query.limit,
       sortBy: query.sortBy,

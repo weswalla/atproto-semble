@@ -21,6 +21,7 @@ export class UrlCardQueryService {
   async getUrlCardsOfUser(
     userId: string,
     options: CardQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<UrlCardQueryResultDTO>> {
     try {
       const { page, limit, sortBy, sortOrder } = options;
@@ -29,7 +30,7 @@ export class UrlCardQueryService {
       // Build the sort order
       const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
 
-      // First, get the URL cards for the user from library memberships
+      // First, get the URL cards for the user
       const urlCardsQuery = this.db
         .select({
           id: cards.id,
@@ -40,12 +41,8 @@ export class UrlCardQueryService {
           updatedAt: cards.updatedAt,
         })
         .from(cards)
-        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
         .where(
-          and(
-            eq(libraryMemberships.userId, userId),
-            eq(cards.type, CardTypeEnum.URL),
-          ),
+          and(eq(cards.authorId, userId), eq(cards.type, CardTypeEnum.URL)),
         )
         .orderBy(orderDirection(this.getSortColumn(sortBy)))
         .limit(limit)
@@ -89,10 +86,9 @@ export class UrlCardQueryService {
           contentData: cards.contentData,
         })
         .from(cards)
-        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
         .where(
           and(
-            eq(libraryMemberships.userId, userId),
+            eq(cards.authorId, userId),
             eq(cards.type, CardTypeEnum.NOTE),
             inArray(cards.parentCardId, cardIds),
           ),
@@ -121,16 +117,41 @@ export class UrlCardQueryService {
         }
       });
 
+      // Get urlInLibrary for each URL if callingUserId is provided
+      let urlInLibraryMap: Map<string, boolean> | undefined;
+      if (callingUserId) {
+        const urlInLibraryQuery = this.db
+          .select({
+            url: cards.url,
+          })
+          .from(cards)
+          .where(
+            and(
+              eq(cards.authorId, callingUserId),
+              eq(cards.type, CardTypeEnum.URL),
+              inArray(cards.url, urls),
+            ),
+          );
+
+        const urlInLibraryResult = await urlInLibraryQuery;
+
+        urlInLibraryMap = new Map<string, boolean>();
+        // Initialize all URLs as false
+        urls.forEach((url) => urlInLibraryMap!.set(url, false));
+        // Set true for URLs the calling user has
+        urlInLibraryResult.forEach((row) => {
+          if (row.url) {
+            urlInLibraryMap!.set(row.url, true);
+          }
+        });
+      }
+
       // Get total count
       const totalCountResult = await this.db
         .select({ count: count() })
         .from(cards)
-        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
         .where(
-          and(
-            eq(libraryMemberships.userId, userId),
-            eq(cards.type, CardTypeEnum.URL),
-          ),
+          and(eq(cards.authorId, userId), eq(cards.type, CardTypeEnum.URL)),
         );
 
       const totalCount = totalCountResult[0]?.count || 0;
@@ -153,12 +174,16 @@ export class UrlCardQueryService {
         // Get urlLibraryCount from the map
         const urlLibraryCount = urlLibraryCountMap.get(card.url || '') || 0;
 
+        // Get urlInLibrary from the map (undefined if callingUserId not provided)
+        const urlInLibrary = urlInLibraryMap?.get(card.url || '');
+
         return {
           id: card.id,
           url: card.url || '',
           contentData: card.contentData,
           libraryCount: card.libraryCount,
           urlLibraryCount,
+          urlInLibrary,
           createdAt: card.createdAt,
           updatedAt: card.updatedAt,
           collections: cardCollections,
@@ -187,7 +212,10 @@ export class UrlCardQueryService {
     }
   }
 
-  async getUrlCardView(cardId: string): Promise<UrlCardViewDTO | null> {
+  async getUrlCardView(
+    cardId: string,
+    callingUserId?: string,
+  ): Promise<UrlCardViewDTO | null> {
     try {
       // Get the URL card
       const cardQuery = this.db
@@ -267,6 +295,28 @@ export class UrlCardQueryService {
       const urlLibraryCountResult = await urlLibraryCountQuery;
       const urlLibraryCount = urlLibraryCountResult[0]?.count || 0;
 
+      // Get urlInLibrary if callingUserId is provided
+      let urlInLibrary: boolean | undefined;
+      if (callingUserId) {
+        // Check if the calling user has any card with this URL
+        const urlInLibraryQuery = this.db
+          .select({
+            id: cards.id,
+          })
+          .from(cards)
+          .where(
+            and(
+              eq(cards.authorId, callingUserId),
+              eq(cards.type, CardTypeEnum.URL),
+              eq(cards.url, card.url),
+            ),
+          )
+          .limit(1);
+
+        const urlInLibraryResult = await urlInLibraryQuery;
+        urlInLibrary = urlInLibraryResult.length > 0;
+      }
+
       // Map to DTO
       const urlCardView = CardMapper.toUrlCardViewDTO({
         id: card.id,
@@ -275,6 +325,7 @@ export class UrlCardQueryService {
         contentData: card.contentData,
         libraryCount: card.libraryCount,
         urlLibraryCount,
+        urlInLibrary,
         createdAt: card.createdAt,
         updatedAt: card.updatedAt,
         inLibraries: libraryResult.map((lib) => ({ userId: lib.userId })),

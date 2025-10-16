@@ -10,7 +10,7 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 
 export interface GetUrlCardViewQuery {
   cardId: string;
-  callerDid?: string;
+  callingUserId?: string;
 }
 
 // Enriched data for the final use case result
@@ -57,7 +57,10 @@ export class GetUrlCardViewUseCase
 
     try {
       // Get the URL card view data
-      const cardView = await this.cardQueryRepo.getUrlCardView(query.cardId);
+      const cardView = await this.cardQueryRepo.getUrlCardView(
+        query.cardId,
+        query.callingUserId,
+      );
 
       if (!cardView) {
         return err(new CardNotFoundError('URL card not found'));
@@ -66,7 +69,7 @@ export class GetUrlCardViewUseCase
       // Get profiles for all users in libraries
       const userIds = cardView.libraries.map((lib) => lib.userId);
       const profilePromises = userIds.map((userId) =>
-        this.profileService.getProfile(userId, query.callerDid),
+        this.profileService.getProfile(userId, query.callingUserId),
       );
 
       const profileResults = await Promise.all(profilePromises);

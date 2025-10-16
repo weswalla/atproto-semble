@@ -1,4 +1,4 @@
-import { eq, desc, asc, count, inArray, and } from 'drizzle-orm';
+import { eq, desc, asc, count, countDistinct, inArray, and } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   CardQueryOptions,
@@ -105,7 +105,7 @@ export class CollectionCardQueryService {
       const urlLibraryCountsQuery = this.db
         .select({
           url: cards.url,
-          count: count(libraryMemberships.userId).distinct(),
+          count: countDistinct(libraryMemberships.userId),
         })
         .from(cards)
         .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))

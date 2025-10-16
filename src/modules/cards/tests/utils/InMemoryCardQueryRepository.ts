@@ -138,7 +138,9 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         thumbnailUrl: card.content.urlContent.metadata?.imageUrl,
       },
       libraryCount: this.getLibraryCountForCard(card.cardId.getStringValue()),
-      urlLibraryCount: this.getUrlLibraryCount(card.content.urlContent.url.value),
+      urlLibraryCount: this.getUrlLibraryCount(
+        card.content.urlContent.url.value,
+      ),
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,
       collections,

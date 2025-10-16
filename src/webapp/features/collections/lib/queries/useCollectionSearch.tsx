@@ -11,7 +11,7 @@ interface Props {
 
 export default function useCollectionSearch(props: Props) {
   const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
     createClientTokenManager(),
   );
 

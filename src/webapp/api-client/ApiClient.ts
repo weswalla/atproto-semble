@@ -302,14 +302,14 @@ export * from './types';
 // Factory functions for different client types
 export const createAuthenticatedApiClient = () => {
   return new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
     createClientTokenManager(),
   );
 };
 
 export const createUnauthenticatedApiClient = () => {
   return new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
     undefined,
   );
 };
@@ -318,7 +318,7 @@ export const createUnauthenticatedApiClient = () => {
 export const createServerApiClient = async () => {
   const tokenManager = await createServerTokenManager();
   return new ApiClient(
-    process.env.API_BASE_URL || 'http://localhost:3000',
+    process.env.API_BASE_URL || 'http://127.0.0.1:3000',
     tokenManager,
   );
 };

@@ -24,7 +24,7 @@ export function SaveCardPage() {
   const apiClient = useMemo(
     () =>
       new ApiClient(
-        process.env.PLASMO_PUBLIC_API_URL || 'http://localhost:3000',
+        process.env.PLASMO_PUBLIC_API_URL || 'http://127.0.0.1:3000',
         createExtensionTokenManager(),
       ),
     [],

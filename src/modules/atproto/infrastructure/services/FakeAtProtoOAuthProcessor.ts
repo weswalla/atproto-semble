@@ -12,7 +12,7 @@ export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {
   async generateAuthUrl(handle?: string): Promise<Result<string>> {
     try {
       // Generate tokens for the mock DID
-      const mockUrl = `http://localhost:3000/api/users/oauth/callback?code=mockCode&state=mockState&iss=mockIssuer`;
+      const mockUrl = `http://127.0.0.1:3000/api/users/oauth/callback?code=mockCode&state=mockState&iss=mockIssuer`;
       return ok(mockUrl);
     } catch (error: any) {
       return err(error);

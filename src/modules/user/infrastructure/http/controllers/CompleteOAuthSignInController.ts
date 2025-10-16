@@ -16,9 +16,6 @@ export class CompleteOAuthSignInController extends Controller {
     const appUrl = configService.getAppConfig().appUrl;
     try {
       const { code, state, iss } = req.query;
-      console.log('OAuth callback received with params:', req.query);
-      console.log('request coming from:', req.headers.referer);
-      console.log('requesting host:', req.headers.host);
 
       if (!code || !state || !iss) {
         return this.badRequest(res, 'Missing required parameters');
@@ -36,9 +33,6 @@ export class CompleteOAuthSignInController extends Controller {
           `${appUrl}/login?error=${encodeURIComponent(result.error.message)}`,
         );
       }
-
-      console.log('setting cookies with tokens:', result.value);
-      console.log('redirecting to:', `${appUrl}/auth/complete`);
 
       // Set tokens in httpOnly cookies
       this.cookieService.setTokens(res, {

@@ -57,7 +57,10 @@ export const createExpressApp = (
   const repositories = RepositoryFactory.create(configService);
   const services = ServiceFactory.createForWebApp(configService, repositories);
   const useCases = UseCaseFactory.createForWebApp(repositories, services);
-  const controllers = ControllerFactory.create(useCases, services.cookieService);
+  const controllers = ControllerFactory.create(
+    useCases,
+    services.cookieService,
+  );
 
   // Routes
   const userRouter = Router();

@@ -153,7 +153,9 @@ export class AuthMiddleware {
         const token = this.cookieService.getAccessToken(req);
 
         if (!token) {
-          res.status(401).json({ message: 'No authentication cookie provided' });
+          res
+            .status(401)
+            .json({ message: 'No authentication cookie provided' });
           return;
         }
 

@@ -1,4 +1,4 @@
-import { cookies } from 'next/headers';
+import { getServerAuthStatus } from '@/lib/serverAuth';
 import {
   Container,
   Stack,
@@ -10,74 +10,8 @@ import {
   Button,
 } from '@mantine/core';
 
-interface UserProfile {
-  did: string;
-  handle: string;
-  displayName?: string;
-  avatar?: string;
-  description?: string;
-}
-
-async function getProfileFromCookies(): Promise<{
-  authenticated: boolean;
-  profile: UserProfile | null;
-  error: string | null;
-}> {
-  try {
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get('accessToken');
-
-    if (!accessToken) {
-      return {
-        authenticated: false,
-        profile: null,
-        error: 'No access token cookie found',
-      };
-    }
-
-    // Determine API base URL for server-side requests
-    const apiBaseUrl = process.env.API_BASE_URL || 'http://127.0.0.1:3000';
-
-    // Call the /me endpoint with the cookie token
-    const response = await fetch(`${apiBaseUrl}/api/users/me`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        // Cookie: `accessToken=${accessToken.value}`,
-      },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      return {
-        authenticated: true,
-        profile: data,
-        error: null,
-      };
-    } else if (response.status === 401 || response.status === 403) {
-      return {
-        authenticated: false,
-        profile: null,
-        error: `Authentication failed: HTTP ${response.status}`,
-      };
-    } else {
-      return {
-        authenticated: false,
-        profile: null,
-        error: `HTTP ${response.status}: ${response.statusText}`,
-      };
-    }
-  } catch (err: any) {
-    return {
-      authenticated: false,
-      profile: null,
-      error: err.message || 'Failed to fetch profile',
-    };
-  }
-}
-
 export default async function TestServerPage() {
-  const { authenticated, profile, error } = await getProfileFromCookies();
+  const { isAuthenticated: authenticated, user: profile, error } = await getServerAuthStatus();
 
   return (
     <Container size="sm" py="xl">
@@ -195,7 +129,7 @@ export default async function TestServerPage() {
               <Code>/api/users/me</Code>
             </Text>
             <Text size="sm">
-              4. The request includes the cookie value in the Cookie header
+              4. The API client automatically includes the cookie value in the Cookie header
             </Text>
             <Text size="sm">
               5. The backend validates the token and returns profile data

@@ -5,11 +5,6 @@ import {
   UserClient,
   FeedClient,
 } from './clients';
-import { TokenManager } from '../services/TokenManager';
-import {
-  createClientTokenManager,
-  createServerTokenManager,
-} from '../services/auth';
 import type {
   // Request types
   AddUrlToLibraryRequest,
@@ -75,27 +70,12 @@ export class ApiClient {
   private userClient: UserClient;
   private feedClient: FeedClient;
 
-  constructor(
-    private baseUrl: string,
-    private tokenManager?: TokenManager,
-  ) {
-    this.queryClient = new QueryClient(baseUrl, tokenManager);
-    this.cardClient = new CardClient(baseUrl, tokenManager);
-    this.collectionClient = new CollectionClient(baseUrl, tokenManager);
-    this.userClient = new UserClient(baseUrl, tokenManager);
-    this.feedClient = new FeedClient(baseUrl, tokenManager);
-  }
-
-  // Helper to check if client is authenticated
-  get isAuthenticated(): boolean {
-    return !!this.tokenManager;
-  }
-
-  // Helper method to ensure authentication for protected operations
-  private requireAuthentication(operation: string): void {
-    if (!this.tokenManager) {
-      throw new Error(`Authentication required for ${operation}`);
-    }
+  constructor(private baseUrl: string) {
+    this.queryClient = new QueryClient(baseUrl);
+    this.cardClient = new CardClient(baseUrl);
+    this.collectionClient = new CollectionClient(baseUrl);
+    this.userClient = new UserClient(baseUrl);
+    this.feedClient = new FeedClient(baseUrl);
   }
 
   // Query operations - delegate to QueryClient
@@ -106,7 +86,6 @@ export class ApiClient {
   async getMyUrlCards(
     params?: GetMyUrlCardsParams,
   ): Promise<GetUrlCardsResponse> {
-    this.requireAuthentication('getMyUrlCards');
     return this.queryClient.getMyUrlCards(params);
   }
 
@@ -121,12 +100,10 @@ export class ApiClient {
   async getLibrariesForCard(
     cardId: string,
   ): Promise<GetLibrariesForCardResponse> {
-    this.requireAuthentication('getLibrariesForCard');
     return this.queryClient.getLibrariesForCard(cardId);
   }
 
   async getMyProfile(): Promise<GetProfileResponse> {
-    this.requireAuthentication('getMyProfile');
     return this.queryClient.getMyProfile();
   }
 
@@ -150,7 +127,6 @@ export class ApiClient {
   async getMyCollections(
     params?: GetMyCollectionsParams,
   ): Promise<GetCollectionsResponse> {
-    this.requireAuthentication('getMyCollections');
     return this.queryClient.getMyCollections(params);
   }
 
@@ -163,7 +139,6 @@ export class ApiClient {
   async getUrlStatusForMyLibrary(
     params: GetUrlStatusForMyLibraryParams,
   ): Promise<GetUrlStatusForMyLibraryResponse> {
-    this.requireAuthentication('getUrlStatusForMyLibrary');
     return this.queryClient.getUrlStatusForMyLibrary(params);
   }
 
@@ -185,68 +160,59 @@ export class ApiClient {
     return this.queryClient.getCollectionsForUrl(params);
   }
 
-  // Card operations - delegate to CardClient (all require authentication)
+  // Card operations - delegate to CardClient
   async addUrlToLibrary(
     request: AddUrlToLibraryRequest,
   ): Promise<AddUrlToLibraryResponse> {
-    this.requireAuthentication('addUrlToLibrary');
     return this.cardClient.addUrlToLibrary(request);
   }
 
   async addCardToLibrary(
     request: AddCardToLibraryRequest,
   ): Promise<AddCardToLibraryResponse> {
-    this.requireAuthentication('addCardToLibrary');
     return this.cardClient.addCardToLibrary(request);
   }
 
   async addCardToCollection(
     request: AddCardToCollectionRequest,
   ): Promise<AddCardToCollectionResponse> {
-    this.requireAuthentication('addCardToCollection');
     return this.cardClient.addCardToCollection(request);
   }
 
   async updateNoteCard(
     request: UpdateNoteCardRequest,
   ): Promise<UpdateNoteCardResponse> {
-    this.requireAuthentication('updateNoteCard');
     return this.cardClient.updateNoteCard(request);
   }
 
   async removeCardFromLibrary(
     request: RemoveCardFromLibraryRequest,
   ): Promise<RemoveCardFromLibraryResponse> {
-    this.requireAuthentication('removeCardFromLibrary');
     return this.cardClient.removeCardFromLibrary(request);
   }
 
   async removeCardFromCollection(
     request: RemoveCardFromCollectionRequest,
   ): Promise<RemoveCardFromCollectionResponse> {
-    this.requireAuthentication('removeCardFromCollection');
     return this.cardClient.removeCardFromCollection(request);
   }
 
-  // Collection operations - delegate to CollectionClient (all require authentication)
+  // Collection operations - delegate to CollectionClient
   async createCollection(
     request: CreateCollectionRequest,
   ): Promise<CreateCollectionResponse> {
-    this.requireAuthentication('createCollection');
     return this.collectionClient.createCollection(request);
   }
 
   async updateCollection(
     request: UpdateCollectionRequest,
   ): Promise<UpdateCollectionResponse> {
-    this.requireAuthentication('updateCollection');
     return this.collectionClient.updateCollection(request);
   }
 
   async deleteCollection(
     request: DeleteCollectionRequest,
   ): Promise<DeleteCollectionResponse> {
-    this.requireAuthentication('deleteCollection');
     return this.collectionClient.deleteCollection(request);
   }
 
@@ -272,19 +238,16 @@ export class ApiClient {
   async refreshAccessToken(
     request: RefreshAccessTokenRequest,
   ): Promise<RefreshAccessTokenResponse> {
-    this.requireAuthentication('refreshAccessToken');
     return this.userClient.refreshAccessToken(request);
   }
 
   async generateExtensionTokens(
     request?: GenerateExtensionTokensRequest,
   ): Promise<GenerateExtensionTokensResponse> {
-    this.requireAuthentication('generateExtensionTokens');
     return this.userClient.generateExtensionTokens(request);
   }
 
   async logout(): Promise<{ success: boolean; message: string }> {
-    this.requireAuthentication('logout');
     return this.userClient.logout();
   }
 
@@ -300,31 +263,17 @@ export class ApiClient {
 export * from './types';
 
 // Factory functions for different client types
-export const createAuthenticatedApiClient = () => {
+export const createApiClient = () => {
   return new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-    createClientTokenManager(),
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000'
   );
 };
 
-export const createUnauthenticatedApiClient = () => {
+export const createServerApiClient = () => {
   return new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-    undefined,
+    process.env.API_BASE_URL || 'http://127.0.0.1:3000'
   );
 };
 
-// Factory function for server-side API client
-export const createServerApiClient = async () => {
-  const tokenManager = await createServerTokenManager();
-  return new ApiClient(
-    process.env.API_BASE_URL || 'http://127.0.0.1:3000',
-    tokenManager,
-  );
-};
-
-// Default authenticated client instance for client-side usage (backward compatibility)
-export const apiClient = createAuthenticatedApiClient();
-
-// Default unauthenticated client instance for public operations
-export const publicApiClient = createUnauthenticatedApiClient();
+// Default client instance for backward compatibility
+export const apiClient = createApiClient();

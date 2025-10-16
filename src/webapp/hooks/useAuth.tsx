@@ -1,246 +1,168 @@
 'use client';
 
-import {
-  useState,
-  useEffect,
-  createContext,
-  useContext,
-  ReactNode,
-  useCallback,
-} from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ApiClient, UserProfile } from '@/api-client/ApiClient';
-import {
-  getAccessToken,
-  getRefreshToken,
-  clearAuth,
-  createClientTokenManager,
-} from '@/services/auth';
+import { ClientCookieAuthService } from '@/services/auth';
+import { ApiClient } from '@/api-client/ApiClient';
 
-interface AuthContextType {
+interface UserProfile {
+  did: string;
+  handle: string;
+  displayName?: string;
+  avatar?: string;
+  description?: string;
+}
+
+interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
+  user: UserProfile | null;
   accessToken: string | null;
   refreshToken: string | null;
-  user: UserProfile | null;
+}
+
+interface AuthContextType extends AuthState {
   login: (handle: string) => Promise<{ authUrl: string }>;
   logout: () => Promise<void>;
-  refreshTokens: () => Promise<boolean>;
-  setTokens: (accessToken: string, refreshToken: string) => Promise<void>;
-  revokeTokens: () => Promise<void>;
+  refreshAuth: () => Promise<boolean>;
+  checkAuthStatus: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [refreshToken, setRefreshToken] = useState<string | null>(null);
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [authState, setAuthState] = useState<AuthState>({
+    isAuthenticated: false,
+    isLoading: true,
+    user: null,
+    accessToken: null,
+    refreshToken: null,
+  });
+  
   const router = useRouter();
 
-  // Create API client instance
-  const createApiClient = useCallback(() => {
-    return new ApiClient(
-      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-      createClientTokenManager(),
-    );
+  // Check auth status from cookies (lightweight)
+  const checkAuthStatus = useCallback((): boolean => {
+    const { accessToken } = ClientCookieAuthService.getTokens();
+    return !!accessToken && !ClientCookieAuthService.isTokenExpired(accessToken);
   }, []);
 
-  // Helper function to check if a JWT token is expired
-  const isTokenExpired = (token: string): boolean => {
-    if (!token) return true;
-
+  // Refresh authentication (handles token refresh + user fetch)
+  const refreshAuth = useCallback(async (): Promise<boolean> => {
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const expiry = payload.exp * 1000; // Convert to milliseconds
-      return Date.now() >= expiry;
-    } catch (e) {
-      return true;
-    }
-  };
+      const { accessToken, refreshToken } = ClientCookieAuthService.getTokens();
 
-  const handleLogout = useCallback(async () => {
-    try {
-      // Call logout endpoint to revoke refresh token
-      const apiClient = createApiClient();
-      await apiClient.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Continue with logout even if API call fails
-    } finally {
-      revokeTokens();
+      // No tokens at all
+      if (!accessToken && !refreshToken) {
+        setAuthState(prev => ({
+          ...prev,
+          isAuthenticated: false,
+          user: null,
+          accessToken: null,
+          refreshToken: null,
+          isLoading: false,
+        }));
+        return false;
+      }
 
-      // Redirect to login
-      router.push('/login');
-    }
-  }, [router, createApiClient]);
-
-  const refreshTokens = useCallback(async (): Promise<boolean> => {
-    if (!refreshToken) return false;
-
-    try {
-      const apiClient = createApiClient();
-      const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-        await apiClient.refreshAccessToken({ refreshToken });
-
-      await setTokens(newAccessToken, newRefreshToken);
-      return true;
-    } catch (error) {
-      console.error('Token refresh failed:', error);
-      handleLogout();
-      return false;
-    }
-  }, [refreshToken, createApiClient, handleLogout]);
-
-  // Initialize auth state from stored tokens
-  useEffect(() => {
-    const initializeAuth = async () => {
-      const storedAccessToken = getAccessToken();
-      const storedRefreshToken = getRefreshToken();
-
-      if (storedAccessToken && storedRefreshToken) {
-        setAccessToken(storedAccessToken);
-        setRefreshToken(storedRefreshToken);
-        setIsAuthenticated(true);
-
-        try {
-          // If token is expired, refresh it first
-          if (isTokenExpired(storedAccessToken)) {
-            const refreshSuccess = await refreshTokens();
-            if (!refreshSuccess) {
-              throw new Error('Token refresh failed');
-            }
-          }
-
-          // Fetch user profile
-          const apiClient = createApiClient();
-          const userData = await apiClient.getMyProfile();
-          setUser(userData);
-        } catch (error) {
-          console.error('Error initializing auth:', error);
-          handleLogout();
+      // Token expired, try refresh
+      if (ClientCookieAuthService.isTokenExpired(accessToken)) {
+        const newTokens = await ClientCookieAuthService.refreshTokens();
+        if (!newTokens) {
+          setAuthState(prev => ({
+            ...prev,
+            isAuthenticated: false,
+            user: null,
+            accessToken: null,
+            refreshToken: null,
+            isLoading: false,
+          }));
+          return false;
         }
       }
 
-      setIsLoading(false);
-    };
+      // Fetch user profile
+      const apiClient = new ApiClient(
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000'
+      );
+      
+      const user = await apiClient.getMyProfile();
+      const currentTokens = ClientCookieAuthService.getTokens();
 
-    initializeAuth();
+      setAuthState({
+        isAuthenticated: true,
+        user,
+        accessToken: currentTokens.accessToken,
+        refreshToken: currentTokens.refreshToken,
+        isLoading: false,
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Auth refresh failed:', error);
+      setAuthState(prev => ({
+        ...prev,
+        isAuthenticated: false,
+        user: null,
+        accessToken: null,
+        refreshToken: null,
+        isLoading: false,
+      }));
+      return false;
+    }
   }, []);
 
-  // Helper function to check if a JWT token is expired or will expire soon
-  const isTokenExpiredWithBuffer = (
-    token: string,
-    bufferMinutes: number = 5,
-  ): boolean => {
-    if (!token) return true;
-
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const expiry = payload.exp * 1000; // Convert to milliseconds
-      const bufferTime = bufferMinutes * 60 * 1000; // Buffer in milliseconds
-      return Date.now() >= expiry - bufferTime;
-    } catch (e) {
-      return true;
-    }
-  };
-
-  // Proactive token refresh
+  // Initialize auth on mount
   useEffect(() => {
-    if (!accessToken || !refreshToken) return;
+    refreshAuth();
+  }, [refreshAuth]);
 
-    const checkAndRefreshToken = async () => {
-      if (isTokenExpiredWithBuffer(accessToken, 10)) {
-        await refreshTokens();
+  // Periodic token refresh
+  useEffect(() => {
+    if (!authState.isAuthenticated) return;
+
+    const interval = setInterval(async () => {
+      const { accessToken } = ClientCookieAuthService.getTokens();
+      if (ClientCookieAuthService.isTokenExpired(accessToken, 10)) {
+        await refreshAuth();
       }
-    };
-
-    // Check immediately
-    checkAndRefreshToken();
-
-    const interval = setInterval(checkAndRefreshToken, 5 * 60 * 1000);
+    }, 5 * 60 * 1000); // Check every 5 minutes
 
     return () => clearInterval(interval);
-  }, [accessToken, refreshToken, refreshTokens]);
+  }, [authState.isAuthenticated, refreshAuth]);
 
-  const login = useCallback(
-    async (handle: string) => {
-      try {
-        const apiClient = createApiClient();
-        return await apiClient.initiateOAuthSignIn({ handle });
-      } catch (error) {
-        console.error('Login error:', error);
-        throw error;
-      }
-    },
-    [createApiClient],
-  );
-
-  const setTokens = useCallback(
-    async (accessToken: string, refreshToken: string) => {
-      // Store tokens in localStorage
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-
-      // Update state
-      setAccessToken(accessToken);
-      setRefreshToken(refreshToken);
-      setIsAuthenticated(true);
-
-      // Sync tokens with server-side cookies
-      try {
-        await fetch('/api/auth/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            accessToken,
-            refreshToken,
-          }),
-          credentials: 'include', // Important for cookie handling
-        });
-      } catch (error) {
-        console.error('Failed to sync tokens with server:', error);
-        // Don't throw error - localStorage tokens are still valid
-      }
-    },
-    [],
-  );
-
-  const revokeTokens = useCallback(async () => {
-    // Clear auth state
-    clearAuth();
-    setAccessToken(null);
-    setRefreshToken(null);
-    setUser(null);
-    setIsAuthenticated(false);
-
-    // Clear server-side cookies
-    try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include', // Important for cookie handling
-      });
-    } catch (error) {
-      console.error('Failed to clear server-side cookies:', error);
-      // Don't throw error - localStorage tokens are already cleared
-    }
+  const login = useCallback(async (handle: string) => {
+    const apiClient = new ApiClient(
+      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000'
+    );
+    return await apiClient.initiateOAuthSignIn({ handle });
   }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await ClientCookieAuthService.clearTokens();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setAuthState({
+        isAuthenticated: false,
+        isLoading: false,
+        user: null,
+        accessToken: null,
+        refreshToken: null,
+      });
+      router.push('/login');
+    }
+  }, [router]);
 
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated,
-        isLoading,
-        accessToken,
-        refreshToken,
-        user,
+        ...authState,
         login,
-        logout: handleLogout,
-        refreshTokens,
-        setTokens,
-        revokeTokens,
+        logout,
+        refreshAuth,
+        checkAuthStatus,
       }}
     >
       {children}
@@ -250,7 +172,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

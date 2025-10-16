@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { ClientCookieAuthService } from '@/services/auth';
 import {
   Container,
   Stack,
@@ -13,82 +14,21 @@ import {
   Button,
 } from '@mantine/core';
 
-interface UserProfile {
-  did: string;
-  handle: string;
-  displayName?: string;
-  avatar?: string;
-  description?: string;
-}
-
 export default function TestPage() {
-  const [loading, setLoading] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchProfile = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Determine API base URL
-      const apiBaseUrl =
-        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
-
-      // Call the /me endpoint - cookies will be sent automatically
-      const response = await fetch(`${apiBaseUrl}/api/users/me`, {
-        method: 'GET',
-        credentials: 'include', // Important: Include cookies in the request
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setProfile(data);
-        setAuthenticated(true);
-      } else if (response.status === 401 || response.status === 403) {
-        setAuthenticated(false);
-        setError('Not authenticated - cookies not working or expired');
-      } else {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch profile');
-      setAuthenticated(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  const { isAuthenticated: authenticated, user: profile, isLoading: loading, refreshAuth, logout } = useAuth();
 
   const handleRefresh = () => {
-    fetchProfile();
+    refreshAuth();
   };
 
   const handleLogout = async () => {
-    try {
-      const apiBaseUrl =
-        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
+    await logout();
+  };
 
-      await fetch(`${apiBaseUrl}/api/users/logout`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      // Refresh the page state
-      fetchProfile();
-    } catch (err: any) {
-      console.error('Logout error:', err);
-    }
+  const handleCheckCookies = () => {
+    const tokens = ClientCookieAuthService.getTokens();
+    const isExpired = ClientCookieAuthService.isTokenExpired(tokens.accessToken);
+    console.log('Cookie check:', { tokens, isExpired });
   };
 
   return (
@@ -186,6 +126,10 @@ export default function TestPage() {
             Refresh Test
           </Button>
 
+          <Button onClick={handleCheckCookies} variant="outline">
+            Check Cookies (Console)
+          </Button>
+
           {authenticated && (
             <Button onClick={handleLogout} variant="outline" color="red">
               Test Logout (Clear Cookies)
@@ -201,22 +145,40 @@ export default function TestPage() {
 
         <Card withBorder bg="gray.0">
           <Stack gap="xs">
-            <Title order={4}>How This Test Works</Title>
+            <Title order={4}>How This Client-Side Test Works</Title>
             <Text size="sm">
-              1. This page makes a request to <Code>/api/users/me</Code>
+              1. This page uses the <Code>useAuth</Code> hook
             </Text>
             <Text size="sm">
-              2. The request includes <Code>credentials: 'include'</Code> to
-              send cookies
+              2. The hook reads cookies using <Code>ClientCookieAuthService</Code>
             </Text>
             <Text size="sm">
-              3. The backend reads the access token from the cookie
+              3. API calls automatically include cookies via <Code>credentials: 'include'</Code>
             </Text>
             <Text size="sm">
-              4. If valid, it returns your profile information
+              4. Token refresh happens automatically on 401/403 errors
             </Text>
             <Text size="sm">
-              5. Success = cookies are working correctly! ✅
+              5. Success = client-side cookie authentication works! ✅
+            </Text>
+          </Stack>
+        </Card>
+
+        <Card withBorder bg="blue.0">
+          <Stack gap="xs">
+            <Title order={4}>Client vs Server Side Differences</Title>
+            <Text size="sm">
+              <strong>Client-side:</strong> Cookies are sent automatically with
+              fetch requests, authentication happens in the browser after page
+              load
+            </Text>
+            <Text size="sm">
+              <strong>Server-side:</strong> Cookies are read during page
+              generation, authentication happens before the page is sent to the
+              browser
+            </Text>
+            <Text size="sm">
+              Both approaches should work if cookies are configured correctly!
             </Text>
           </Stack>
         </Card>

@@ -1,7 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Container, Stack, Title, Text, Code, Card, Alert, Loader, Button } from '@mantine/core';
+import {
+  Container,
+  Stack,
+  Title,
+  Text,
+  Code,
+  Card,
+  Alert,
+  Loader,
+  Button,
+} from '@mantine/core';
 
 interface UserProfile {
   did: string;
@@ -23,7 +33,8 @@ export default function TestPage() {
 
     try {
       // Determine API base URL
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+      const apiBaseUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
 
       // Call the /me endpoint - cookies will be sent automatically
       const response = await fetch(`${apiBaseUrl}/api/users/me`, {
@@ -62,7 +73,8 @@ export default function TestPage() {
 
   const handleLogout = async () => {
     try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+      const apiBaseUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
 
       await fetch(`${apiBaseUrl}/api/users/logout`, {
         method: 'POST',
@@ -85,8 +97,9 @@ export default function TestPage() {
         <Title order={1}>Cookie Authentication Test Page</Title>
 
         <Text c="dimmed">
-          This page tests cookie-based authentication by calling the <Code>/api/users/me</Code> endpoint.
-          If cookies are working correctly, your profile information will be displayed below.
+          This page tests cookie-based authentication by calling the{' '}
+          <Code>/api/users/me</Code> endpoint. If cookies are working correctly,
+          your profile information will be displayed below.
         </Text>
 
         {loading && (
@@ -125,32 +138,42 @@ export default function TestPage() {
               <Title order={3}>Profile Information</Title>
 
               <div>
-                <Text fw={600} size="sm">DID:</Text>
+                <Text fw={600} size="sm">
+                  DID:
+                </Text>
                 <Code block>{profile.did}</Code>
               </div>
 
               <div>
-                <Text fw={600} size="sm">Handle:</Text>
+                <Text fw={600} size="sm">
+                  Handle:
+                </Text>
                 <Code>{profile.handle}</Code>
               </div>
 
               {profile.displayName && (
                 <div>
-                  <Text fw={600} size="sm">Display Name:</Text>
+                  <Text fw={600} size="sm">
+                    Display Name:
+                  </Text>
                   <Text>{profile.displayName}</Text>
                 </div>
               )}
 
               {profile.description && (
                 <div>
-                  <Text fw={600} size="sm">Description:</Text>
+                  <Text fw={600} size="sm">
+                    Description:
+                  </Text>
                   <Text>{profile.description}</Text>
                 </div>
               )}
 
               {profile.avatar && (
                 <div>
-                  <Text fw={600} size="sm">Avatar URL:</Text>
+                  <Text fw={600} size="sm">
+                    Avatar URL:
+                  </Text>
                   <Code block>{profile.avatar}</Code>
                 </div>
               )}
@@ -170,11 +193,7 @@ export default function TestPage() {
           )}
 
           {!authenticated && (
-            <Button
-              component="a"
-              href="/login"
-              variant="filled"
-            >
+            <Button component="a" href="/login" variant="filled">
               Go to Login
             </Button>
           )}
@@ -187,7 +206,8 @@ export default function TestPage() {
               1. This page makes a request to <Code>/api/users/me</Code>
             </Text>
             <Text size="sm">
-              2. The request includes <Code>credentials: 'include'</Code> to send cookies
+              2. The request includes <Code>credentials: 'include'</Code> to
+              send cookies
             </Text>
             <Text size="sm">
               3. The backend reads the access token from the cookie

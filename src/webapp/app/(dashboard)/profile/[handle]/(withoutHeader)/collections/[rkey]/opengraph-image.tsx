@@ -1,5 +1,4 @@
 import { ApiClient } from '@/api-client';
-import { createClientTokenManager } from '@/services/auth';
 import OpenGraphCard from '@/features/openGraph/components/openGraphCard/OpenGraphCard';
 import { truncateText } from '@/lib/utils/text';
 
@@ -18,7 +17,6 @@ export default async function Image(props: Props) {
 
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-    createClientTokenManager(),
   );
 
   const collection = await apiClient.getCollectionPageByAtUri({

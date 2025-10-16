@@ -14,7 +14,6 @@ import {
 import { BiRightArrowAlt } from 'react-icons/bi';
 import { MdOutlineAlternateEmail, MdLock } from 'react-icons/md';
 import { useAuth } from '@/hooks/useAuth';
-import { createClientTokenManager } from '@/services/auth';
 import { useForm } from '@mantine/form';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -22,7 +21,7 @@ import { useEffect, useState } from 'react';
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setTokens, isAuthenticated } = useAuth();
+  const { isAuthenticated, refreshAuth } = useAuth();
 
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +30,6 @@ export default function LoginForm() {
   const isExtensionLogin = searchParams.get('extension-login') === 'true';
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-    createClientTokenManager(),
   );
 
   const handleExtensionTokenGeneration = async () => {
@@ -107,13 +105,13 @@ export default function LoginForm() {
       setIsLoading(true);
       setError('');
 
-      const { accessToken, refreshToken } =
-        await apiClient.loginWithAppPassword({
-          identifier: form.values.handle,
-          appPassword: form.values.appPassword,
-        });
+      await apiClient.loginWithAppPassword({
+        identifier: form.values.handle,
+        appPassword: form.values.appPassword,
+      });
 
-      await setTokens(accessToken, refreshToken);
+      // Refresh auth state to fetch user profile with new tokens
+      await refreshAuth();
 
       if (isExtensionLogin) {
         await handleExtensionTokenGeneration();

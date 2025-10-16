@@ -11,7 +11,11 @@ import {
 } from '@mantine/core';
 
 export default async function TestServerPage() {
-  const { isAuthenticated: authenticated, user: profile, error } = await getServerAuthStatus();
+  const {
+    isAuthenticated: authenticated,
+    user: profile,
+    error,
+  } = await getServerAuthStatus();
 
   return (
     <Container size="sm" py="xl">
@@ -59,7 +63,7 @@ export default async function TestServerPage() {
                 <Text fw={600} size="sm">
                   DID:
                 </Text>
-                <Code block>{profile.did}</Code>
+                <Code block>{profile.id}</Code>
               </div>
 
               <div>
@@ -69,12 +73,12 @@ export default async function TestServerPage() {
                 <Code>{profile.handle}</Code>
               </div>
 
-              {profile.displayName && (
+              {profile.name && (
                 <div>
                   <Text fw={600} size="sm">
-                    Display Name:
+                    Name:
                   </Text>
-                  <Text>{profile.displayName}</Text>
+                  <Text>{profile.name}</Text>
                 </div>
               )}
 
@@ -87,12 +91,12 @@ export default async function TestServerPage() {
                 </div>
               )}
 
-              {profile.avatar && (
+              {profile.avatarUrl && (
                 <div>
                   <Text fw={600} size="sm">
                     Avatar URL:
                   </Text>
-                  <Code block>{profile.avatar}</Code>
+                  <Code block>{profile.avatarUrl}</Code>
                 </div>
               )}
             </Stack>
@@ -129,7 +133,8 @@ export default async function TestServerPage() {
               <Code>/api/users/me</Code>
             </Text>
             <Text size="sm">
-              4. The API client automatically includes the cookie value in the Cookie header
+              4. The API client automatically includes the cookie value in the
+              Cookie header
             </Text>
             <Text size="sm">
               5. The backend validates the token and returns profile data

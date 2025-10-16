@@ -7,7 +7,6 @@ import {
   useCallback,
 } from 'react';
 import { ApiClient } from '@/api-client/ApiClient';
-import { createExtensionTokenManager } from '@/services/auth';
 
 interface ExtensionAuthContextType {
   isAuthenticated: boolean;
@@ -37,7 +36,6 @@ export const ExtensionAuthProvider = ({
   const createApiClient = useCallback((token: string | null) => {
     return new ApiClient(
       process.env.PLASMO_PUBLIC_API_URL || 'http://127.0.0.1:3000',
-      createExtensionTokenManager(),
     );
   }, []);
 

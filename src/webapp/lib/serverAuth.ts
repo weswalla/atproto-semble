@@ -1,13 +1,7 @@
 import { ServerCookieAuthService } from '@/services/auth/CookieAuthService.server';
-import { ApiClient } from '@/api-client/ApiClient';
+import type { GetProfileResponse } from '@/api-client/ApiClient';
 
-interface UserProfile {
-  did: string;
-  handle: string;
-  displayName?: string;
-  avatar?: string;
-  description?: string;
-}
+type UserProfile = GetProfileResponse;
 
 export async function getServerAuthStatus(): Promise<{
   isAuthenticated: boolean;
@@ -16,7 +10,7 @@ export async function getServerAuthStatus(): Promise<{
 }> {
   try {
     const { accessToken } = await ServerCookieAuthService.getTokens();
-    
+
     if (!accessToken || ServerCookieAuthService.isTokenExpired(accessToken)) {
       return {
         isAuthenticated: false,
@@ -25,12 +19,27 @@ export async function getServerAuthStatus(): Promise<{
       };
     }
 
-    const apiClient = new ApiClient(
-      process.env.API_BASE_URL || 'http://127.0.0.1:3000'
-    );
-    
-    const user = await apiClient.getMyProfile();
-    
+    // Make direct API call with cookie header for server-side
+    const baseUrl = process.env.API_BASE_URL || 'http://127.0.0.1:3000';
+    const response = await fetch(`${baseUrl}/api/users/me`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': `accessToken=${accessToken}`,
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      return {
+        isAuthenticated: false,
+        user: null,
+        error: `API request failed: ${response.status}`,
+      };
+    }
+
+    const user: UserProfile = await response.json();
+
     return {
       isAuthenticated: true,
       user,

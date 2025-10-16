@@ -5,7 +5,6 @@ import ProfileTabs from '@/features/profile/components/profileTabs/ProfileTabs';
 import { Box, Container } from '@mantine/core';
 import { Fragment, Suspense } from 'react';
 import { ApiClient } from '@/api-client/ApiClient';
-import { createClientTokenManager } from '@/services/auth';
 import ProfileHeaderSkeleton from '@/features/profile/components/profileHeader/Skeleton.ProfileHeader';
 
 interface Props {
@@ -18,7 +17,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-    createClientTokenManager(),
   );
 
   const profile = await apiClient.getProfile({

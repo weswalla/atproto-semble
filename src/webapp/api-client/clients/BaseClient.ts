@@ -1,5 +1,5 @@
 import { ApiError, ApiErrorResponse } from '../types/errors';
-import { ClientCookieAuthService } from '../../services/auth';
+import { ClientCookieAuthService } from '@/services/auth';
 
 export abstract class BaseClient {
   constructor(protected baseUrl: string) {}
@@ -11,24 +11,15 @@ export abstract class BaseClient {
   ): Promise<T> {
     const makeRequest = async (): Promise<T> => {
       const url = `${this.baseUrl}${endpoint}`;
-      
+
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
 
-      // Server-side: manually add cookie header
-      if (typeof window === 'undefined') {
-        const { ServerCookieAuthService } = await import('../../services/auth/CookieAuthService.server');
-        const { accessToken } = await ServerCookieAuthService.getTokens();
-        if (accessToken) {
-          headers['Cookie'] = `accessToken=${accessToken}`;
-        }
-      }
-
       const config: RequestInit = {
         method,
         headers,
-        credentials: 'include', // Client-side: include cookies automatically
+        credentials: 'include', // Include cookies automatically (works for both client and server)
       };
 
       if (

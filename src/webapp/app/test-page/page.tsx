@@ -15,7 +15,13 @@ import {
 } from '@mantine/core';
 
 export default function TestPage() {
-  const { isAuthenticated: authenticated, user: profile, isLoading: loading, refreshAuth, logout } = useAuth();
+  const {
+    isAuthenticated: authenticated,
+    user: profile,
+    isLoading: loading,
+    refreshAuth,
+    logout,
+  } = useAuth();
 
   const handleRefresh = () => {
     refreshAuth();
@@ -25,10 +31,9 @@ export default function TestPage() {
     await logout();
   };
 
-  const handleCheckCookies = () => {
-    const tokens = ClientCookieAuthService.getTokens();
-    const isExpired = ClientCookieAuthService.isTokenExpired(tokens.accessToken);
-    console.log('Cookie check:', { tokens, isExpired });
+  const handleCheckAuth = async () => {
+    const isAuth = await ClientCookieAuthService.checkAuthStatus();
+    console.log('Auth check:', { isAuthenticated: isAuth });
   };
 
   return (
@@ -66,12 +71,6 @@ export default function TestPage() {
           </Alert>
         )}
 
-        {error && (
-          <Alert title="Error Details" color="orange">
-            <Code block>{error}</Code>
-          </Alert>
-        )}
-
         {profile && (
           <Card withBorder>
             <Stack gap="xs">
@@ -81,7 +80,7 @@ export default function TestPage() {
                 <Text fw={600} size="sm">
                   DID:
                 </Text>
-                <Code block>{profile.did}</Code>
+                <Code block>{profile.id}</Code>
               </div>
 
               <div>
@@ -91,12 +90,12 @@ export default function TestPage() {
                 <Code>{profile.handle}</Code>
               </div>
 
-              {profile.displayName && (
+              {profile.name && (
                 <div>
                   <Text fw={600} size="sm">
-                    Display Name:
+                    Name:
                   </Text>
-                  <Text>{profile.displayName}</Text>
+                  <Text>{profile.name}</Text>
                 </div>
               )}
 
@@ -109,12 +108,12 @@ export default function TestPage() {
                 </div>
               )}
 
-              {profile.avatar && (
+              {profile.avatarUrl && (
                 <div>
                   <Text fw={600} size="sm">
                     Avatar URL:
                   </Text>
-                  <Code block>{profile.avatar}</Code>
+                  <Code block>{profile.avatarUrl}</Code>
                 </div>
               )}
             </Stack>
@@ -126,8 +125,8 @@ export default function TestPage() {
             Refresh Test
           </Button>
 
-          <Button onClick={handleCheckCookies} variant="outline">
-            Check Cookies (Console)
+          <Button onClick={handleCheckAuth} variant="outline">
+            Check Auth Status (Console)
           </Button>
 
           {authenticated && (
@@ -150,13 +149,14 @@ export default function TestPage() {
               1. This page uses the <Code>useAuth</Code> hook
             </Text>
             <Text size="sm">
-              2. The hook reads cookies using <Code>ClientCookieAuthService</Code>
+              2. Cookies are HttpOnly and cannot be read from JavaScript
             </Text>
             <Text size="sm">
-              3. API calls automatically include cookies via <Code>credentials: 'include'</Code>
+              3. The browser automatically sends cookies with{' '}
+              <Code>credentials: 'include'</Code>
             </Text>
             <Text size="sm">
-              4. Token refresh happens automatically on 401/403 errors
+              4. Auth status is checked via API endpoint
             </Text>
             <Text size="sm">
               5. Success = client-side cookie authentication works! ✅

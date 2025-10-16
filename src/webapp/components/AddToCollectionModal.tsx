@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { createClientTokenManager } from '@/services/auth';
 import { ApiClient } from '@/api-client/ApiClient';
 import { Button, Group, Modal, Stack, Text } from '@mantine/core';
 import { CollectionSelector } from './CollectionSelector';
@@ -38,7 +37,6 @@ export function AddToCollectionModal({
   // Create API client instance
   const apiClient = new ApiClient(
     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-    createClientTokenManager(),
   );
 
   // Get existing collections for this card
@@ -51,7 +49,6 @@ export function AddToCollectionModal({
     // Create API client instance
     const apiClient = new ApiClient(
       process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-      createClientTokenManager(),
     );
 
     try {
@@ -86,7 +83,6 @@ export function AddToCollectionModal({
       // Create API client instance
       const apiClient = new ApiClient(
         process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-        createClientTokenManager(),
       );
 
       // Add card to all selected collections in a single request

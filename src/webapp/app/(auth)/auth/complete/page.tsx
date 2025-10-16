@@ -2,24 +2,20 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
 import { ExtensionService } from '@/services/extensionService';
 import { ApiClient } from '@/api-client/ApiClient';
-import { createClientTokenManager } from '@/services/auth';
 import { Card, Center, Loader, Stack, Title, Text } from '@mantine/core';
 
 function AuthCompleteContent() {
   const [message, setMessage] = useState('Processing your login...');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setTokens } = useAuth();
 
   useEffect(() => {
     const handleAuth = async () => {
       // Create API client instance
       const apiClient = new ApiClient(
         process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-        createClientTokenManager(),
       );
 
       const error = searchParams.get('error');

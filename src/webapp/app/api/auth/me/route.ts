@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict',
-          maxAge: 900, // 15 minutes
+          maxAge: parseInt(process.env.ACCESS_TOKEN_EXPIRES_IN || '3600'), // Default 1 hour
           path: '/',
         });
 
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict',
-          maxAge: 604800, // 7 days
+          maxAge: parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN || '2592000'), // Default 30 days
           path: '/',
         });
 

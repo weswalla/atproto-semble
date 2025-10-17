@@ -67,7 +67,8 @@ export default async function SembleHeader(props: Props) {
               alt={`${props.url} social preview image`}
               radius={'md'}
               mah={200}
-              w={'100%'}
+              w={'auto'}
+              maw={'100%'}
               fit="contain"
             />
           )}

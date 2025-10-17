@@ -17,9 +17,7 @@ export default async function SembleContainer(props: Props) {
             <Suspense fallback={<Loader />}>
               <SembleHeader url={props.url} />
             </Suspense>
-            <Suspense fallback={<>LOADING</>}>
             <SembleTabs url={props.url} />
-            </Suspense>
           </Stack>
         </Container>
       </BackgroundImage>

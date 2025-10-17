@@ -13,6 +13,6 @@ export const Primary: Story = {
     note: `This is the note's content`,
     authorId: 'author id',
     id: 'note id',
-    updatedAt: '2025'
+    createdAt: '2025',
   },
 };

@@ -51,9 +51,9 @@ export default function UrlCardActions(props: Props) {
             radius={'xl'}
             leftSection={
               props.urlIsInLibrary ? (
-                <IoMdCheckmark size={22} />
+                <IoMdCheckmark size={18} />
               ) : (
-                <BiPlus size={22} />
+                <BiPlus size={18} />
               )
             }
             onClick={() => setShowAddToModal(true)}
@@ -75,7 +75,7 @@ export default function UrlCardActions(props: Props) {
           <Menu shadow="sm">
             <Menu.Target>
               <ActionIcon variant="light" color={'gray'} radius={'xl'}>
-                <BsThreeDots size={22} />
+                <BsThreeDots size={18} />
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>

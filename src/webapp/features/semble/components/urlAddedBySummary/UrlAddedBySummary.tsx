@@ -3,5 +3,5 @@ interface Props {
 }
 
 export default function UrlAddedBySummary(props: Props) {
-  return <>{props.url} Added by summary</>;
+  return <>Added by summary</>;
 }

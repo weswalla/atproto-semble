@@ -7,6 +7,7 @@ import {
   Grid,
   GridCol,
   Tooltip,
+  Spoiler,
 } from '@mantine/core';
 import Link from 'next/link';
 import { getUrlMetadata } from '@/features/cards/lib/dal';
@@ -53,7 +54,9 @@ export default async function SembleHeader(props: Props) {
               )}
             </Stack>
             {metadata.description && (
-              <Text c="gray">{metadata.description}</Text>
+              <Spoiler showLabel={'Read more'} hideLabel={'See less'}>
+                <Text c="gray">{metadata.description}</Text>
+              </Spoiler>
             )}
           </Stack>
         </GridCol>

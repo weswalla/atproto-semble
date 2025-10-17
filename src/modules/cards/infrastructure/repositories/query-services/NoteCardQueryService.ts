@@ -3,7 +3,7 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   CardQueryOptions,
   PaginatedQueryResult,
-  NoteCardForUrlDTO,
+  NoteCardForUrlRawDTO,
   CardSortField,
   SortOrder,
 } from '../../../domain/ICardQueryRepository';
@@ -17,7 +17,7 @@ export class NoteCardQueryService {
   async getNoteCardsForUrl(
     url: string,
     options: CardQueryOptions,
-  ): Promise<PaginatedQueryResult<NoteCardForUrlDTO>> {
+  ): Promise<PaginatedQueryResult<NoteCardForUrlRawDTO>> {
     try {
       const { page, limit, sortBy, sortOrder } = options;
       const offset = (page - 1) * limit;
@@ -52,7 +52,7 @@ export class NoteCardQueryService {
       const hasMore = offset + noteCardsResult.length < totalCount;
 
       // Map to DTOs
-      const items: NoteCardForUrlDTO[] = noteCardsResult.map((card) => {
+      const items: NoteCardForUrlRawDTO[] = noteCardsResult.map((card) => {
         const contentData = card.contentData as NoteContentData;
         const noteText = contentData.text;
 

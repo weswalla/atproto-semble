@@ -42,12 +42,27 @@ export interface CollectionContainingCardDTO {
   description?: string;
 }
 
-export interface CollectionForUrlDTO {
+// Raw repository DTO - what the repository returns (not enriched)
+export interface CollectionForUrlRawDTO {
   id: string;
   uri?: string;
   name: string;
   description?: string;
   authorId: string;
+}
+
+// Public DTO - what the use case returns (enriched with author profile)
+export interface CollectionForUrlDTO {
+  id: string;
+  uri?: string;
+  name: string;
+  description?: string;
+  author: {
+    id: string;
+    name: string;
+    handle: string;
+    avatarUrl?: string;
+  };
 }
 
 export interface CollectionForUrlQueryOptions {
@@ -71,5 +86,5 @@ export interface ICollectionQueryRepository {
   getCollectionsWithUrl(
     url: string,
     options: CollectionForUrlQueryOptions,
-  ): Promise<PaginatedQueryResult<CollectionForUrlDTO>>;
+  ): Promise<PaginatedQueryResult<CollectionForUrlRawDTO>>;
 }

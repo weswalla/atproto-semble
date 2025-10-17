@@ -66,10 +66,25 @@ export interface LibraryForUrlDTO {
   cardId: string;
 }
 
-export interface NoteCardForUrlDTO {
+// Raw repository DTO - what the repository returns (not enriched)
+export interface NoteCardForUrlRawDTO {
   id: string;
   note: string;
   authorId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Public DTO - what the use case returns (enriched with author profile)
+export interface NoteCardForUrlDTO {
+  id: string;
+  note: string;
+  author: {
+    id: string;
+    name: string;
+    handle: string;
+    avatarUrl?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -102,5 +117,5 @@ export interface ICardQueryRepository {
   getNoteCardsForUrl(
     url: string,
     options: CardQueryOptions,
-  ): Promise<PaginatedQueryResult<NoteCardForUrlDTO>>;
+  ): Promise<PaginatedQueryResult<NoteCardForUrlRawDTO>>;
 }

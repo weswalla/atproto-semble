@@ -3,7 +3,7 @@ import {
   CollectionQueryOptions,
   CollectionQueryResultDTO,
   CollectionContainingCardDTO,
-  CollectionForUrlDTO,
+  CollectionForUrlRawDTO,
   PaginatedQueryResult,
   CollectionSortField,
   SortOrder,
@@ -156,7 +156,7 @@ export class InMemoryCollectionQueryRepository
   async getCollectionsWithUrl(
     url: string,
     options: CollectionForUrlQueryOptions,
-  ): Promise<PaginatedQueryResult<CollectionForUrlDTO>> {
+  ): Promise<PaginatedQueryResult<CollectionForUrlRawDTO>> {
     try {
       if (!this.cardRepository) {
         throw new Error(
@@ -196,7 +196,7 @@ export class InMemoryCollectionQueryRepository
         endIndex,
       );
 
-      const items: CollectionForUrlDTO[] = paginatedCollections.map(
+      const items: CollectionForUrlRawDTO[] = paginatedCollections.map(
         (collection) => {
           const collectionPublishedRecordId = collection.publishedRecordId;
           return {

@@ -1,26 +1,45 @@
+import useProfile from '@/features/profile/lib/queries/useProfile';
 import { getRelativeTime } from '@/lib/utils/time';
-import { Card, Spoiler, Text } from '@mantine/core';
+import { Avatar, Card, Group, Spoiler, Stack, Text } from '@mantine/core';
+import { Suspense } from 'react';
 
 interface Props {
   id: string;
   note: string;
-  updatedAt: string;
+  createdAt: string;
   authorId: string;
 }
 
 export default function NoteCard(props: Props) {
-  const time = getRelativeTime(props.updatedAt);
-  const relativeUpdateDate =
-    time === 'just now' ? `Updated ${time}` : `Updated ${time} ago`;
+  const { data: author } = useProfile({ didOrHandle: props.authorId });
+  const time = getRelativeTime(props.createdAt);
+  const relativeCreateDate = time === 'just now' ? `${time}` : `${time} ago`;
 
   return (
-    <Card p={'sm'} withBorder>
-      <Spoiler showLabel={'Read more'} hideLabel={'See less'} maxHeight={200}>
-        <Text fz={'sm'}>{props.note}</Text>
-        <Text fz={'sm'} c={'gray'}>
-          {relativeUpdateDate}
-        </Text>
-      </Spoiler>
+    <Card p={'sm'} radius={'lg'} withBorder>
+      <Stack>
+        <Spoiler showLabel={'Read more'} hideLabel={'See less'} maxHeight={200}>
+          <Text>{props.note}</Text>
+        </Spoiler>
+
+        <Suspense fallback={<Text>LOADINGLOADINGLOADING</Text>}>
+          <Group gap={'xs'}>
+            <Avatar
+              src={author.avatarUrl}
+              alt={`${author.handle}'s avatar`}
+              size={'sm'}
+            />
+
+            <Text c={'gray'}>
+              <Text c={'dark'} fw={500} span>
+                {author.name}
+              </Text>
+              <Text span>{' · '}</Text>
+              <Text span>{relativeCreateDate} </Text>
+            </Text>
+          </Group>
+        </Suspense>
+      </Stack>
     </Card>
   );
 }

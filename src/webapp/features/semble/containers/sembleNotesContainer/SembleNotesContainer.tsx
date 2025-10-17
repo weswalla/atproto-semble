@@ -58,7 +58,7 @@ export default function SembleNotesContainer(props: Props) {
             <NoteCard
               id={note.id}
               authorId={note.authorId}
-              updatedAt={note.createdAt}
+              createdAt={note.createdAt}
               note={note.note}
             />
           </Grid.Col>

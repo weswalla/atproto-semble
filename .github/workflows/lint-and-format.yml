@@ -21,6 +21,22 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
+      - name: Cache node_modules (root)
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-root-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-root-
+
+      - name: Cache node_modules (webapp)
+        uses: actions/cache@v4
+        with:
+          path: src/webapp/node_modules
+          key: ${{ runner.os }}-node-webapp-${{ hashFiles('src/webapp/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-webapp-
+
       - name: Install root dependencies
         run: npm ci
 

@@ -21,7 +21,7 @@ interface Props {
   authorHandle?: string;
   note?: UrlCardView['note'];
   currentCollection?: UrlCardView['collections'][0];
-  libraryCount: number;
+  urlLibraryCount: number;
 }
 
 export default function UrlCardActions(props: Props) {
@@ -50,7 +50,7 @@ export default function UrlCardActions(props: Props) {
             leftSection={<BiPlus size={22} />}
             onClick={() => setShowAddToModal(true)}
           >
-            {props.libraryCount}
+            {props.urlLibraryCount}
           </Button>
           {props.note && (
             <ActionIcon

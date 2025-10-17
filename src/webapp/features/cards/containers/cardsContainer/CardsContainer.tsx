@@ -78,7 +78,7 @@ export default function CardsContainer(props: Props) {
                 note={card.note}
                 collections={card.collections}
                 authorHandle={props.handle}
-                libraryCount={card.libraryCount}
+                urlLibraryCount={card.urlLibraryCount}
               />
             </Grid.Col>
           ))}

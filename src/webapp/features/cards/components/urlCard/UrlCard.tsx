@@ -23,7 +23,7 @@ interface Props {
   note?: UrlCardView['note'];
   collections?: UrlCardView['collections'];
   currentCollection?: UrlCardView['collections'][0];
-  libraryCount: number;
+  urlLibraryCount: number;
   authorHandle?: string;
 }
 
@@ -88,7 +88,7 @@ export default function UrlCard(props: Props) {
               authorHandle={props.authorHandle}
               note={props.note}
               currentCollection={props.currentCollection}
-              libraryCount={props.libraryCount}
+              urlLibraryCount={props.urlLibraryCount}
             />
           </Suspense>
         </Stack>

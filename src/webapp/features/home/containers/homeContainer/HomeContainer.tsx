@@ -120,7 +120,7 @@ export default function HomeContainer() {
                       cardContent={card.cardContent}
                       note={card.note}
                       collections={card.collections}
-                      libraryCount={card.libraryCount}
+                      urlLibraryCount={card.urlLibraryCount}
                     />
                   </Grid.Col>
                 ))}

@@ -23,9 +23,11 @@ export class ClientCookieAuthService {
         method: 'POST',
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
-        console.warn('Logout API call failed, but continuing with client-side logout');
+        console.warn(
+          'Logout API call failed, but continuing with client-side logout',
+        );
       }
     } catch (error) {
       console.error('Logout API call failed:', error);

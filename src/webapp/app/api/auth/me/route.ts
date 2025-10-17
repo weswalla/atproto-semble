@@ -52,8 +52,8 @@ export async function GET(request: NextRequest) {
         if (!refreshResponse.ok) {
           // Refresh failed - clear invalid tokens
           const response = new NextResponse(
-            JSON.stringify({ error: 'Authentication failed' }), 
-            { status: 401 }
+            JSON.stringify({ error: 'Authentication failed' }),
+            { status: 401 },
           );
           response.cookies.delete('accessToken');
           response.cookies.delete('refreshToken');

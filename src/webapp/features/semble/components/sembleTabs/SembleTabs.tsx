@@ -5,6 +5,8 @@ import TabItem from './TabItem';
 import { Suspense, useState } from 'react';
 import SembleNotesContainer from '../../containers/sembleNotesContainer/SembleNotesContainer';
 import SembleNotesContainerSkeleton from '../../containers/sembleNotesContainer/Skeleton.SembleNotesContainer';
+import SembleCollectionsContainerSkeleton from '../../containers/sembleCollectionsContainer/Skeleton.SembleCollectionsContainer';
+import SembleCollectionsContainer from '../../containers/sembleCollectionsContainer/SembleCollectionsContainer';
 
 interface Props {
   url: string;
@@ -27,7 +29,11 @@ export default function SembleTabs(props: Props) {
             <SembleNotesContainer url={props.url} />
           </Suspense>
         </Tabs.Panel>
-        <Tabs.Panel value="collections">Collections</Tabs.Panel>
+        <Tabs.Panel value="collections">
+          <Suspense fallback={<SembleCollectionsContainerSkeleton />}>
+            <SembleCollectionsContainer url={props.url} />
+          </Suspense>
+        </Tabs.Panel>
         <Tabs.Panel value="Added by">Added by</Tabs.Panel>
       </Box>
     </Tabs>

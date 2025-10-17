@@ -24,6 +24,7 @@ interface Props {
   collections?: UrlCardView['collections'];
   currentCollection?: UrlCardView['collections'][0];
   urlLibraryCount: number;
+  urlIsInLibrary?: boolean;
   authorHandle?: string;
 }
 
@@ -89,6 +90,7 @@ export default function UrlCard(props: Props) {
               note={props.note}
               currentCollection={props.currentCollection}
               urlLibraryCount={props.urlLibraryCount}
+              urlIsInLibrary={props.urlIsInLibrary!!}
             />
           </Suspense>
         </Stack>

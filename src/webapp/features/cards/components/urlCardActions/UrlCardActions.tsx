@@ -14,6 +14,7 @@ import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardTo
 import { MdOutlineStickyNote2 } from 'react-icons/md';
 import NoteCardModal from '@/features/notes/components/noteCardModal/NoteCardModal';
 import { useAuth } from '@/hooks/useAuth';
+import { IoMdCheckmark } from 'react-icons/io';
 
 interface Props {
   id: string;
@@ -22,6 +23,7 @@ interface Props {
   note?: UrlCardView['note'];
   currentCollection?: UrlCardView['collections'][0];
   urlLibraryCount: number;
+  urlIsInLibrary: boolean;
 }
 
 export default function UrlCardActions(props: Props) {
@@ -47,7 +49,13 @@ export default function UrlCardActions(props: Props) {
             color={'gray'}
             size="xs"
             radius={'xl'}
-            leftSection={<BiPlus size={22} />}
+            leftSection={
+              props.urlIsInLibrary ? (
+                <IoMdCheckmark size={22} />
+              ) : (
+                <BiPlus size={22} />
+              )
+            }
             onClick={() => setShowAddToModal(true)}
           >
             {props.urlLibraryCount}

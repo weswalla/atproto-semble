@@ -118,6 +118,7 @@ export default function CollectionContainer(props: Props) {
                     authorHandle={firstPage.author.handle}
                     note={card.note}
                     urlLibraryCount={card.urlLibraryCount}
+                    urlIsInLibrary={card.urlInLibrary}
                     currentCollection={{
                       id: firstPage.id,
                       name: firstPage.name,

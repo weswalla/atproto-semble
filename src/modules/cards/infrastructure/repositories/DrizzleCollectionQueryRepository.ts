@@ -18,7 +18,7 @@ import {
   CollectionSortField,
   SortOrder,
   CollectionContainingCardDTO,
-  CollectionForUrlDTO,
+  CollectionForUrlRawDTO,
   CollectionForUrlQueryOptions,
 } from '../../domain/ICollectionQueryRepository';
 import { collections, collectionCards } from './schema/collection.sql';
@@ -168,7 +168,7 @@ export class DrizzleCollectionQueryRepository
   async getCollectionsWithUrl(
     url: string,
     options: CollectionForUrlQueryOptions,
-  ): Promise<PaginatedQueryResult<CollectionForUrlDTO>> {
+  ): Promise<PaginatedQueryResult<CollectionForUrlRawDTO>> {
     try {
       const { page, limit, sortBy, sortOrder } = options;
       const offset = (page - 1) * limit;

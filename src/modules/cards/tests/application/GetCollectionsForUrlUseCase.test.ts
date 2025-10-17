@@ -12,12 +12,14 @@ import {
   CollectionSortField,
   SortOrder,
 } from '../../domain/ICollectionQueryRepository';
+import { FakeProfileService } from '../utils/FakeProfileService';
 
 describe('GetCollectionsForUrlUseCase', () => {
   let useCase: GetCollectionsForUrlUseCase;
   let cardRepository: InMemoryCardRepository;
   let collectionRepository: InMemoryCollectionRepository;
   let collectionQueryRepository: InMemoryCollectionQueryRepository;
+  let profileService: FakeProfileService;
   let curator1: CuratorId;
   let curator2: CuratorId;
   let curator3: CuratorId;
@@ -29,18 +31,45 @@ describe('GetCollectionsForUrlUseCase', () => {
       collectionRepository,
       cardRepository,
     );
+    profileService = new FakeProfileService();
 
-    useCase = new GetCollectionsForUrlUseCase(collectionQueryRepository);
+    useCase = new GetCollectionsForUrlUseCase(
+      collectionQueryRepository,
+      profileService,
+    );
 
     curator1 = CuratorId.create('did:plc:curator1').unwrap();
     curator2 = CuratorId.create('did:plc:curator2').unwrap();
     curator3 = CuratorId.create('did:plc:curator3').unwrap();
+
+    // Add profiles for test curators
+    profileService.addProfile({
+      id: curator1.value,
+      name: 'Curator One',
+      handle: 'curator1',
+      avatarUrl: 'https://example.com/avatar1.jpg',
+    });
+
+    profileService.addProfile({
+      id: curator2.value,
+      name: 'Curator Two',
+      handle: 'curator2',
+      avatarUrl: 'https://example.com/avatar2.jpg',
+    });
+
+    profileService.addProfile({
+      id: curator3.value,
+      name: 'Curator Three',
+      handle: 'curator3',
+      avatarUrl: 'https://example.com/avatar3.jpg',
+    });
   });
 
   afterEach(() => {
     cardRepository.clear();
     collectionRepository.clear();
     collectionQueryRepository.clear();
+    profileService.clear();
   });
 
   describe('Collections with URL cards', () => {
@@ -169,7 +198,7 @@ describe('GetCollectionsForUrlUseCase', () => {
       );
       expect(techArticles).toBeDefined();
       expect(techArticles?.description).toBe('My tech articles');
-      expect(techArticles?.authorId).toBe(curator1.value);
+      expect(techArticles?.author.id).toBe(curator1.value);
       expect(techArticles?.uri).toBe(
         'at://did:plc:curator1/network.cosmik.collection/collection1',
       );
@@ -179,14 +208,14 @@ describe('GetCollectionsForUrlUseCase', () => {
       );
       expect(readingList).toBeDefined();
       expect(readingList?.description).toBe('Articles to read');
-      expect(readingList?.authorId).toBe(curator2.value);
+      expect(readingList?.author.id).toBe(curator2.value);
 
       const favorites = response.collections.find(
         (c) => c.name === 'Favorites',
       );
       expect(favorites).toBeDefined();
       expect(favorites?.description).toBeUndefined();
-      expect(favorites?.authorId).toBe(curator3.value);
+      expect(favorites?.author.id).toBe(curator3.value);
     });
 
     it('should return empty array when no collections contain cards with the specified URL', async () => {
@@ -267,7 +296,7 @@ describe('GetCollectionsForUrlUseCase', () => {
 
       expect(response.collections).toHaveLength(1);
       expect(response.collections[0]!.name).toBe('Collection 1');
-      expect(response.collections[0]!.authorId).toBe(curator1.value);
+      expect(response.collections[0]!.author.id).toBe(curator1.value);
     });
 
     it('should return multiple collections from the same user if they contain the URL', async () => {
@@ -340,7 +369,7 @@ describe('GetCollectionsForUrlUseCase', () => {
 
       // All should have the same author
       response.collections.forEach((collection) => {
-        expect(collection.authorId).toBe(curator1.value);
+        expect(collection.author.id).toBe(curator1.value);
       });
     });
 
@@ -404,6 +433,14 @@ describe('GetCollectionsForUrlUseCase', () => {
       for (let i = 1; i <= 5; i++) {
         const curator = CuratorId.create(`did:plc:curator${i}`).unwrap();
         curators.push(curator);
+
+        // Add profile for this curator
+        profileService.addProfile({
+          id: curator.value,
+          name: `Curator ${i}`,
+          handle: `curator${i}`,
+          avatarUrl: `https://example.com/avatar${i}.jpg`,
+        });
 
         const card = new CardBuilder()
           .withCuratorId(curator.value)
@@ -745,6 +782,7 @@ describe('GetCollectionsForUrlUseCase', () => {
 
       const errorUseCase = new GetCollectionsForUrlUseCase(
         errorCollectionQueryRepository,
+        profileService,
       );
 
       const query = {

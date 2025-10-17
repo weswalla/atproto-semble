@@ -6,12 +6,14 @@ import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { CardBuilder } from '../utils/builders/CardBuilder';
 import { URL } from '../../domain/value-objects/URL';
 import { CardSortField, SortOrder } from '../../domain/ICardQueryRepository';
+import { FakeProfileService } from '../utils/FakeProfileService';
 
 describe('GetNoteCardsForUrlUseCase', () => {
   let useCase: GetNoteCardsForUrlUseCase;
   let cardRepository: InMemoryCardRepository;
   let cardQueryRepository: InMemoryCardQueryRepository;
   let collectionRepository: InMemoryCollectionRepository;
+  let profileService: FakeProfileService;
   let curator1: CuratorId;
   let curator2: CuratorId;
   let curator3: CuratorId;
@@ -23,18 +25,45 @@ describe('GetNoteCardsForUrlUseCase', () => {
       cardRepository,
       collectionRepository,
     );
+    profileService = new FakeProfileService();
 
-    useCase = new GetNoteCardsForUrlUseCase(cardQueryRepository);
+    useCase = new GetNoteCardsForUrlUseCase(
+      cardQueryRepository,
+      profileService,
+    );
 
     curator1 = CuratorId.create('did:plc:curator1').unwrap();
     curator2 = CuratorId.create('did:plc:curator2').unwrap();
     curator3 = CuratorId.create('did:plc:curator3').unwrap();
+
+    // Add profiles for test curators
+    profileService.addProfile({
+      id: curator1.value,
+      name: 'Curator One',
+      handle: 'curator1',
+      avatarUrl: 'https://example.com/avatar1.jpg',
+    });
+
+    profileService.addProfile({
+      id: curator2.value,
+      name: 'Curator Two',
+      handle: 'curator2',
+      avatarUrl: 'https://example.com/avatar2.jpg',
+    });
+
+    profileService.addProfile({
+      id: curator3.value,
+      name: 'Curator Three',
+      handle: 'curator3',
+      avatarUrl: 'https://example.com/avatar3.jpg',
+    });
   });
 
   afterEach(() => {
     cardRepository.clear();
     collectionRepository.clear();
     cardQueryRepository.clear();
+    profileService.clear();
   });
 
   describe('Multiple users with notes for same URL', () => {
@@ -81,7 +110,7 @@ describe('GetNoteCardsForUrlUseCase', () => {
       expect(response.pagination.totalCount).toBe(3);
 
       // Check that all three users' notes are included
-      const authorIds = response.notes.map((note) => note.authorId);
+      const authorIds = response.notes.map((note) => note.author.id);
       expect(authorIds).toContain(curator1.value);
       expect(authorIds).toContain(curator2.value);
       expect(authorIds).toContain(curator3.value);
@@ -143,7 +172,7 @@ describe('GetNoteCardsForUrlUseCase', () => {
 
       expect(response.notes).toHaveLength(1);
       expect(response.notes[0]!.note).toBe('Note for article 1');
-      expect(response.notes[0]!.authorId).toBe(curator1.value);
+      expect(response.notes[0]!.author.id).toBe(curator1.value);
     });
   });
 
@@ -155,6 +184,14 @@ describe('GetNoteCardsForUrlUseCase', () => {
       // Create 5 note cards with the same URL from different users
       for (let i = 1; i <= 5; i++) {
         const curator = CuratorId.create(`did:plc:curator${i}`).unwrap();
+
+        // Add profile for this curator
+        profileService.addProfile({
+          id: curator.value,
+          name: `Curator ${i}`,
+          handle: `curator${i}`,
+          avatarUrl: `https://example.com/avatar${i}.jpg`,
+        });
 
         const noteCard = new CardBuilder()
           .withCuratorId(curator.value)

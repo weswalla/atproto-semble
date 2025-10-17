@@ -6,9 +6,11 @@ import {
   SortOrder,
 } from '../../../domain/ICardQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
+import { IProfileService } from '../../../domain/services/IProfileService';
 
 export interface GetNoteCardsForUrlQuery {
   url: string;
+  callingUserId?: string;
   page?: number;
   limit?: number;
   sortBy?: CardSortField;
@@ -18,7 +20,12 @@ export interface GetNoteCardsForUrlQuery {
 export interface NoteCardForUrlDTO {
   id: string;
   note: string;
-  authorId: string;
+  author: {
+    id: string;
+    name: string;
+    handle: string;
+    avatarUrl?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,7 +55,10 @@ export class ValidationError extends Error {
 export class GetNoteCardsForUrlUseCase
   implements UseCase<GetNoteCardsForUrlQuery, Result<GetNoteCardsForUrlResult>>
 {
-  constructor(private cardQueryRepo: ICardQueryRepository) {}
+  constructor(
+    private cardQueryRepo: ICardQueryRepository,
+    private profileService: IProfileService,
+  ) {}
 
   async execute(
     query: GetNoteCardsForUrlQuery,
@@ -68,7 +78,7 @@ export class GetNoteCardsForUrlUseCase
     const sortOrder = query.sortOrder || SortOrder.DESC;
 
     try {
-      // Execute query to get note cards for the URL
+      // Execute query to get note cards for the URL (raw data with authorId)
       const result = await this.cardQueryRepo.getNoteCardsForUrl(query.url, {
         page,
         limit,
@@ -76,8 +86,58 @@ export class GetNoteCardsForUrlUseCase
         sortOrder,
       });
 
+      // Enrich with author profiles
+      const uniqueAuthorIds = Array.from(
+        new Set(result.items.map((item) => item.authorId)),
+      );
+
+      const profilePromises = uniqueAuthorIds.map((authorId) =>
+        this.profileService.getProfile(authorId, query.callingUserId),
+      );
+
+      const profileResults = await Promise.all(profilePromises);
+
+      // Create a map of profiles
+      const profileMap = new Map<
+        string,
+        { id: string; name: string; handle: string; avatarUrl?: string }
+      >();
+
+      for (let i = 0; i < uniqueAuthorIds.length; i++) {
+        const profileResult = profileResults[i];
+        if (profileResult.isErr()) {
+          return err(
+            new Error(
+              `Failed to fetch author profile: ${profileResult.error instanceof Error ? profileResult.error.message : 'Unknown error'}`,
+            ),
+          );
+        }
+        const profile = profileResult.value;
+        profileMap.set(uniqueAuthorIds[i], {
+          id: profile.id,
+          name: profile.name,
+          handle: profile.handle,
+          avatarUrl: profile.avatarUrl,
+        });
+      }
+
+      // Map items with enriched author data
+      const enrichedNotes: NoteCardForUrlDTO[] = result.items.map((item) => {
+        const author = profileMap.get(item.authorId);
+        if (!author) {
+          throw new Error(`Profile not found for author ${item.authorId}`);
+        }
+        return {
+          id: item.id,
+          note: item.note,
+          author,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+        };
+      });
+
       return ok({
-        notes: result.items,
+        notes: enrichedNotes,
         pagination: {
           currentPage: page,
           totalPages: Math.ceil(result.totalCount / limit),

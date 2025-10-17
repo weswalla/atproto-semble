@@ -343,7 +343,12 @@ export interface GetNoteCardsForUrlResponse {
   notes: {
     id: string;
     note: string;
-    authorId: string;
+    author: {
+      id: string;
+      name: string;
+      handle: string;
+      avatarUrl?: string;
+    };
     createdAt: string;
     updatedAt: string;
   }[];
@@ -357,7 +362,12 @@ export interface GetCollectionsForUrlResponse {
     uri?: string;
     name: string;
     description?: string;
-    authorId: string;
+    author: {
+      id: string;
+      name: string;
+      handle: string;
+      avatarUrl?: string;
+    };
   }[];
   pagination: Pagination;
   sorting: CollectionSorting;

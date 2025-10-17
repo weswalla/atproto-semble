@@ -31,8 +31,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    // Check if accessToken is expired or expiring soon (< 5 min)
-    if (isTokenExpiringSoon(accessToken, 5) && refreshToken) {
+    // Check if accessToken is expired/missing or expiring soon (< 5 min)
+    if ((!accessToken || isTokenExpiringSoon(accessToken, 5)) && refreshToken) {
       try {
         // Call backend to refresh tokens
         const backendUrl =

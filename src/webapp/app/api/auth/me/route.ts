@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     // Check if accessToken is expired/missing or expiring soon (< 5 min)
     if ((!accessToken || isTokenExpiringSoon(accessToken, 5)) && refreshToken) {
       try {
-        // Call backend to refresh tokens
+        // Proxy the refresh request completely to backend
         const backendUrl =
           process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
         const refreshResponse = await fetch(
@@ -43,23 +43,21 @@ export async function GET(request: NextRequest) {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Cookie: `refreshToken=${refreshToken}`,
+              Cookie: request.headers.get('cookie') || '', // Forward all cookies
             },
             body: JSON.stringify({ refreshToken }),
           },
         );
 
         if (!refreshResponse.ok) {
-          // Refresh failed - clear cookies and return 401
-          const response = NextResponse.json(
-            { error: 'Token refresh failed' },
-            { status: 401 },
-          );
-          response.cookies.delete('accessToken');
-          response.cookies.delete('refreshToken');
-          return response;
+          // Refresh failed - return backend response directly
+          return new Response(refreshResponse.body, {
+            status: refreshResponse.status,
+            headers: refreshResponse.headers,
+          });
         }
 
+        // Get new tokens from response
         const newTokens = await refreshResponse.json();
         accessToken = newTokens.accessToken;
 
@@ -81,26 +79,14 @@ export async function GET(request: NextRequest) {
 
         const user = await profileResponse.json();
 
-        // Create response with user profile and set new cookies
-        const response = NextResponse.json({ user });
-
-        response.cookies.set('accessToken', newTokens.accessToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
-          maxAge: parseInt(process.env.ACCESS_TOKEN_EXPIRES_IN || '3600'), // Default 1 hour
-          path: '/',
+        // Return user profile with backend's Set-Cookie headers
+        return new Response(JSON.stringify({ user }), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Set-Cookie': refreshResponse.headers.get('set-cookie') || '',
+          },
         });
-
-        response.cookies.set('refreshToken', newTokens.refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
-          maxAge: parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN || '2592000'), // Default 30 days
-          path: '/',
-        });
-
-        return response;
       } catch (error) {
         console.error('Token refresh error:', error);
         return NextResponse.json(

@@ -110,7 +110,7 @@ export default function LoginForm() {
         appPassword: form.values.appPassword,
       });
 
-      // Refresh auth state to fetch user profile with new tokens
+      // Refresh auth state to fetch user profile with new tokens (cookies are set automatically)
       await refreshAuth();
 
       if (isExtensionLogin) {

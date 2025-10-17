@@ -75,6 +75,7 @@ export class ControllerFactory {
       // User controllers
       loginWithAppPasswordController: new LoginWithAppPasswordController(
         useCases.loginWithAppPasswordUseCase,
+        cookieService,
       ),
       logoutController: new LogoutController(
         useCases.logoutUseCase,

@@ -111,7 +111,8 @@ export async function GET(request: NextRequest) {
 
     // AccessToken is valid - fetch profile
     try {
-      const backendUrl = process.env.API_BASE_URL || 'http://127.0.0.1:3000';
+      const backendUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
       const profileResponse = await fetch(`${backendUrl}/api/users/me`, {
         method: 'GET',
         headers: {

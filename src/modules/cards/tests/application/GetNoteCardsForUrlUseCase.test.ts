@@ -27,7 +27,10 @@ describe('GetNoteCardsForUrlUseCase', () => {
     );
     profileService = new FakeProfileService();
 
-    useCase = new GetNoteCardsForUrlUseCase(cardQueryRepository, profileService);
+    useCase = new GetNoteCardsForUrlUseCase(
+      cardQueryRepository,
+      profileService,
+    );
 
     curator1 = CuratorId.create('did:plc:curator1').unwrap();
     curator2 = CuratorId.create('did:plc:curator2').unwrap();

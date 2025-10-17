@@ -62,9 +62,6 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Build webapp
-        run: npm run webapp:build
-
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest

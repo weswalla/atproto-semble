@@ -105,6 +105,10 @@ export class GetNoteCardsForUrlUseCase
 
       for (let i = 0; i < uniqueAuthorIds.length; i++) {
         const profileResult = profileResults[i];
+        const authorId = uniqueAuthorIds[i];
+        if (!profileResult || !authorId) {
+          return err(new Error('Missing profile result or author ID'));
+        }
         if (profileResult.isErr()) {
           return err(
             new Error(
@@ -113,7 +117,7 @@ export class GetNoteCardsForUrlUseCase
           );
         }
         const profile = profileResult.value;
-        profileMap.set(uniqueAuthorIds[i], {
+        profileMap.set(authorId, {
           id: profile.id,
           name: profile.name,
           handle: profile.handle,

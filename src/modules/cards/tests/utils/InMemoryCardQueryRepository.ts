@@ -8,7 +8,7 @@ import {
   CardSortField,
   SortOrder,
   LibraryForUrlDTO,
-  NoteCardForUrlDTO,
+  NoteCardForUrlRawDTO,
 } from '../../domain/ICardQueryRepository';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { InMemoryCardRepository } from './InMemoryCardRepository';
@@ -434,7 +434,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   async getNoteCardsForUrl(
     url: string,
     options: CardQueryOptions,
-  ): Promise<PaginatedQueryResult<NoteCardForUrlDTO>> {
+  ): Promise<PaginatedQueryResult<NoteCardForUrlRawDTO>> {
     try {
       // Get all note cards with the specified URL
       const allCards = this.cardRepository.getAllCards();
@@ -473,10 +473,10 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   }
 
   private sortNoteCards(
-    notes: NoteCardForUrlDTO[],
+    notes: NoteCardForUrlRawDTO[],
     sortBy: CardSortField,
     sortOrder: SortOrder,
-  ): NoteCardForUrlDTO[] {
+  ): NoteCardForUrlRawDTO[] {
     const sorted = [...notes].sort((a, b) => {
       let comparison = 0;
 

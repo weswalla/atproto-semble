@@ -7,7 +7,7 @@ import {
   CollectionCardQueryResultDTO,
   UrlCardViewDTO,
   LibraryForUrlDTO,
-  NoteCardForUrlDTO,
+  NoteCardForUrlRawDTO,
 } from '../../domain/ICardQueryRepository';
 import { UrlCardQueryService } from './query-services/UrlCardQueryService';
 import { CollectionCardQueryService } from './query-services/CollectionCardQueryService';
@@ -72,7 +72,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
   async getNoteCardsForUrl(
     url: string,
     options: CardQueryOptions,
-  ): Promise<PaginatedQueryResult<NoteCardForUrlDTO>> {
+  ): Promise<PaginatedQueryResult<NoteCardForUrlRawDTO>> {
     return this.noteCardQueryService.getNoteCardsForUrl(url, options);
   }
 }

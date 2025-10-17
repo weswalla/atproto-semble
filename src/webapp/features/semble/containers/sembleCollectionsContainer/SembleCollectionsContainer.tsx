@@ -1,3 +1,5 @@
+'use client';
+
 import useSembleCollections from '@/features/collections/lib/queries/useSembleCollectionts';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Center, Grid, Loader } from '@mantine/core';

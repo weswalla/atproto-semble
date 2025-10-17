@@ -1,4 +1,4 @@
-import { Tabs } from '@mantine/core';
+import { TabsTab } from '@mantine/core';
 import classes from './TabItem.module.css';
 
 interface Props {
@@ -8,8 +8,8 @@ interface Props {
 
 export default function TabItem(props: Props) {
   return (
-    <Tabs.Tab c={'dark'} value={props.value} className={classes.tab} fw={600}>
+    <TabsTab c={'dark'} value={props.value} className={classes.tab} fw={600}>
       {props.children}
-    </Tabs.Tab>
+    </TabsTab>
   );
 }

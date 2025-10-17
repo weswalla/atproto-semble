@@ -24,7 +24,7 @@ export default async function SembleHeader(props: Props) {
   return (
     <Stack gap={'xl'}>
       <Grid gutter={'lg'} justify="space-between">
-        <GridCol span={{ base: 12, lg: 'auto' }}>
+        <GridCol span={{ base: 'auto' }}>
           <Stack>
             <Stack gap={0}>
               <Text>
@@ -61,17 +61,19 @@ export default async function SembleHeader(props: Props) {
           </Stack>
         </GridCol>
         <GridCol span={{ base: 12, sm: 'content' }}>
-          {metadata.imageUrl && (
-            <Image
-              src={metadata.imageUrl}
-              alt={`${props.url} social preview image`}
-              radius={'md'}
-              mah={200}
-              w={'auto'}
-              maw={'100%'}
-              fit="contain"
-            />
-          )}
+          <Stack gap={'sm'} align="start">
+            {metadata.imageUrl && (
+              <Image
+                src={metadata.imageUrl}
+                alt={`${props.url} social preview image`}
+                radius={'md'}
+                mah={150}
+                w={'auto'}
+                maw={'100%'}
+                fit="contain"
+              />
+            )}
+          </Stack>
         </GridCol>
       </Grid>
       <UrlAddedBySummary url={props.url} />

@@ -88,7 +88,7 @@ export class EnvironmentConfigService {
         host: process.env.HOST || '127.0.0.1',
       },
       app: {
-        appUrl: process.env.APP_URL || 'http://localhost:4000',
+        appUrl: process.env.APP_URL || 'http://127.0.0.1:4000',
       },
       iframely: {
         apiKey: process.env.IFRAMELY_API_KEY || '',

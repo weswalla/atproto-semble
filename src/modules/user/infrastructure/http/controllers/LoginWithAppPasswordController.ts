@@ -1,10 +1,12 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Request, Response } from 'express';
 import { LoginWithAppPasswordUseCase } from '../../../application/use-cases/LoginWithAppPasswordUseCase';
+import { CookieService } from '../../../../../shared/infrastructure/http/services/CookieService';
 
 export class LoginWithAppPasswordController extends Controller {
   constructor(
     private loginWithAppPasswordUseCase: LoginWithAppPasswordUseCase,
+    private cookieService: CookieService,
   ) {
     super();
   }
@@ -26,9 +28,15 @@ export class LoginWithAppPasswordController extends Controller {
         return this.badRequest(res, result.error.message);
       }
 
-      return this.ok(res, {
+      // Set tokens in httpOnly cookies
+      this.cookieService.setTokens(res, {
         accessToken: result.value.accessToken,
         refreshToken: result.value.refreshToken,
+      });
+
+      return this.ok(res, {
+        success: true,
+        message: 'Logged in successfully',
       });
     } catch (error: any) {
       return this.fail(res, error.message || 'Unknown error');

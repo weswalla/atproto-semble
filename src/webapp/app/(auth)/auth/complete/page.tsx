@@ -2,34 +2,25 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
 import { ExtensionService } from '@/services/extensionService';
 import { ApiClient } from '@/api-client/ApiClient';
-import { createClientTokenManager } from '@/services/auth';
 import { Card, Center, Loader, Stack, Title, Text } from '@mantine/core';
 
 function AuthCompleteContent() {
   const [message, setMessage] = useState('Processing your login...');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setTokens } = useAuth();
 
   useEffect(() => {
     const handleAuth = async () => {
       // Create API client instance
       const apiClient = new ApiClient(
-        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-        createClientTokenManager(),
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
       );
 
-      const accessToken = searchParams.get('accessToken');
-      const refreshToken = searchParams.get('refreshToken');
       const error = searchParams.get('error');
 
-      // Clear the URL parameters for security
-      const cleanUrl = '/';
-      window.history.replaceState({}, document.title, cleanUrl);
-
+      // Check for error parameter
       if (error) {
         console.error('Authentication error:', error);
         router.push(`/login?error=${encodeURIComponent(error)}`);
@@ -57,24 +48,21 @@ function AuthCompleteContent() {
         }
       };
 
-      if (accessToken && refreshToken) {
-        // Store tokens using the auth context function
-        await setTokens(accessToken, refreshToken);
+      // With cookie-based auth, tokens are automatically set in cookies by the backend
+      // No need to handle tokens from URL parameters anymore
+      setMessage('Authentication successful!');
 
-        // Check if extension tokens were requested
-        if (ExtensionService.isExtensionTokensRequested()) {
-          handleExtensionTokenGeneration();
-        } else {
-          // Redirect to home
-          router.push('/home');
-        }
+      // Check if extension tokens were requested
+      if (ExtensionService.isExtensionTokensRequested()) {
+        handleExtensionTokenGeneration();
       } else {
-        router.push('/login?error=Authentication failed');
+        // Redirect to home after a brief moment
+        setTimeout(() => router.push('/home'), 500);
       }
     };
 
     handleAuth();
-  }, [router, searchParams, setTokens]);
+  }, [router, searchParams]);
 
   return (
     <Stack align="center">

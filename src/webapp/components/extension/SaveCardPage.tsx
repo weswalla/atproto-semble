@@ -13,7 +13,6 @@ import {
   Title,
 } from '@mantine/core';
 import { UrlCardForm } from '../UrlCardForm';
-import { createExtensionTokenManager } from '@/services/auth';
 
 export function SaveCardPage() {
   const { logout, user } = useExtensionAuth();
@@ -24,8 +23,7 @@ export function SaveCardPage() {
   const apiClient = useMemo(
     () =>
       new ApiClient(
-        process.env.PLASMO_PUBLIC_API_URL || 'http://localhost:3000',
-        createExtensionTokenManager(),
+        process.env.PLASMO_PUBLIC_API_URL || 'http://127.0.0.1:3000',
       ),
     [],
   );

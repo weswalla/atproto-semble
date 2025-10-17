@@ -50,6 +50,7 @@ import { FeedService } from '../../../../modules/feeds/domain/services/FeedServi
 import { CardCollectionSaga } from '../../../../modules/feeds/application/sagas/CardCollectionSaga';
 import { ATProtoIdentityResolutionService } from '../../../../modules/atproto/infrastructure/services/ATProtoIdentityResolutionService';
 import { IIdentityResolutionService } from '../../../../modules/atproto/domain/services/IIdentityResolutionService';
+import { CookieService } from '../services/CookieService';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -62,6 +63,7 @@ export interface SharedServices {
   nodeOauthClient: NodeOAuthClient;
   identityResolutionService: IIdentityResolutionService;
   configService: EnvironmentConfigService;
+  cookieService: CookieService;
 }
 
 // Web app specific services (includes publishers, auth middleware)
@@ -74,6 +76,7 @@ export interface WebAppServices extends SharedServices {
   cardCollectionService: CardCollectionService;
   authMiddleware: AuthMiddleware;
   eventPublisher: IEventPublisher;
+  cookieService: CookieService;
 }
 
 // Worker specific services (includes subscribers)
@@ -152,7 +155,10 @@ export class ServiceFactory {
       cardCollectionService,
     );
 
-    const authMiddleware = new AuthMiddleware(sharedServices.tokenService);
+    const authMiddleware = new AuthMiddleware(
+      sharedServices.tokenService,
+      sharedServices.cookieService,
+    );
 
     const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
 
@@ -287,6 +293,9 @@ export class ServiceFactory {
       atProtoAgentService,
     );
 
+    // Cookie Service
+    const cookieService = new CookieService(configService);
+
     return {
       tokenService,
       userAuthService,
@@ -297,6 +306,7 @@ export class ServiceFactory {
       nodeOauthClient,
       identityResolutionService,
       configService,
+      cookieService,
     };
   }
 }

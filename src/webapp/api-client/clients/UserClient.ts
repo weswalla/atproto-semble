@@ -71,14 +71,10 @@ export class UserClient extends BaseClient {
   }
 
   async logout(): Promise<{ success: boolean; message: string }> {
-    if (!this.tokenManager) {
-      throw new Error('TokenManager is required for logout');
-    }
-    const refreshToken = await this.tokenManager.getRefreshToken();
+    // With cookie-based auth, refreshToken is sent automatically via cookies
     return this.request<{ success: boolean; message: string }>(
       'POST',
       '/api/users/logout',
-      { refreshToken },
     );
   }
 }

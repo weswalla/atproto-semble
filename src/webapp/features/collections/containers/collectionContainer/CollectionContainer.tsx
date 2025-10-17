@@ -17,7 +17,7 @@ import useCollection from '../../lib/queries/useCollection';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import Link from 'next/link';
 import { useState } from 'react';
-import { BiPlus } from 'react-icons/bi';
+import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import CollectionActions from '../../components/collectionActions/CollectionActions';
 import CollectionContainerError from './Error.CollectionContainer';
@@ -151,7 +151,7 @@ export default function CollectionContainer(props: Props) {
               variant="light"
               color="gray"
               size="md"
-              rightSection={<BiPlus size={22} />}
+              rightSection={<FiPlus size={22} />}
               onClick={() => setShowAddDrawer(true)}
             >
               Add your first card

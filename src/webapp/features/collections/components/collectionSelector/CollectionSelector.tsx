@@ -21,7 +21,7 @@ import useCollectionSearch from '../../lib/queries/useCollectionSearch';
 import CollectionSelectorItemList from '../collectionSelectorItemList/CollectionSelectorItemList';
 import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
 import CollectionSelectorError from './Error.CollectionSelector';
-import { BiPlus } from 'react-icons/bi';
+import { FiPlus } from 'react-icons/fi';
 import { IoSearch } from 'react-icons/io5';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 
@@ -118,7 +118,7 @@ export default function CollectionSelector(props: Props) {
                           size="md"
                           color="grape"
                           radius="lg"
-                          leftSection={<BiPlus size={22} />}
+                          leftSection={<FiPlus size={22} />}
                           onClick={() => setIsDrawerOpen(true)}
                         >
                           Create new collection "{search}"
@@ -154,7 +154,7 @@ export default function CollectionSelector(props: Props) {
                           size="md"
                           color="grape"
                           radius="lg"
-                          leftSection={<BiPlus size={22} />}
+                          leftSection={<FiPlus size={22} />}
                           onClick={() => setIsDrawerOpen(true)}
                         >
                           Create new collection
@@ -174,7 +174,7 @@ export default function CollectionSelector(props: Props) {
                           onClick={() => setIsDrawerOpen(true)}
                           variant="light"
                           color="gray"
-                          rightSection={<BiPlus size={22} />}
+                          rightSection={<FiPlus size={22} />}
                         >
                           Create a collection
                         </Button>

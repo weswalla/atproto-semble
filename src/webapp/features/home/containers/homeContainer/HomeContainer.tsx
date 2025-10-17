@@ -18,7 +18,8 @@ import {
 } from '@mantine/core';
 import Link from 'next/link';
 import { useState } from 'react';
-import { BiCollection, BiPlus } from 'react-icons/bi';
+import { BiCollection } from 'react-icons/bi';
+import { FiPlus } from 'react-icons/fi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
@@ -76,7 +77,7 @@ export default function HomeContainer() {
                   variant="light"
                   color="gray"
                   size="md"
-                  rightSection={<BiPlus size={22} />}
+                  rightSection={<FiPlus size={22} />}
                 >
                   Create your first collection
                 </Button>
@@ -134,7 +135,7 @@ export default function HomeContainer() {
                   variant="light"
                   color="gray"
                   size="md"
-                  rightSection={<BiPlus size={22} />}
+                  rightSection={<FiPlus size={22} />}
                   onClick={() => setShowAddDrawer(true)}
                 >
                   Add your first card

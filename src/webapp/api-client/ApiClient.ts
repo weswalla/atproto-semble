@@ -190,7 +190,6 @@ export class ApiClient {
   async updateUrlCardAssociations(
     request: UpdateUrlCardAssociationsRequest,
   ): Promise<UpdateUrlCardAssociationsResponse> {
-    this.requireAuthentication('updateUrlCardAssociations');
     return this.cardClient.updateUrlCardAssociations(request);
   }
 

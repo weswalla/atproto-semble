@@ -19,7 +19,8 @@ export default function FeedItem(props: Props) {
         id={props.item.card.id}
         url={props.item.card.url}
         cardContent={props.item.card.cardContent}
-        libraryCount={props.item.card.libraryCount}
+        urlLibraryCount={props.item.card.urlLibraryCount}
+        urlIsInLibrary={props.item.card.urlInLibrary}
         authorHandle={props.item.user.handle}
       />
     </Stack>

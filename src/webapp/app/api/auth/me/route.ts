@@ -28,18 +28,14 @@ export async function GET(request: NextRequest) {
 
     // No tokens at all - not authenticated
     if (!accessToken && !refreshToken) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
     // Check if accessToken is expired or expiring soon (< 5 min)
     if (isTokenExpiringSoon(accessToken, 5) && refreshToken) {
       try {
         // Call backend to refresh tokens
-        const backendUrl =
-          process.env.API_BASE_URL || 'http://127.0.0.1:3000';
+        const backendUrl = process.env.API_BASE_URL || 'http://127.0.0.1:3000';
         const refreshResponse = await fetch(
           `${backendUrl}/api/users/oauth/refresh`,
           {

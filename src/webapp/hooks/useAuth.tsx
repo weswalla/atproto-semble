@@ -1,6 +1,13 @@
 'use client';
 
-import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from 'react';
+import {
+  useState,
+  useEffect,
+  createContext,
+  useContext,
+  ReactNode,
+  useCallback,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import { ClientCookieAuthService } from '@/services/auth';
 import { ApiClient } from '@/api-client/ApiClient';
@@ -79,16 +86,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!authState.isAuthenticated) return;
 
-    const interval = setInterval(async () => {
-      await refreshAuth();
-    }, 5 * 60 * 1000); // Check every 5 minutes
+    const interval = setInterval(
+      async () => {
+        await refreshAuth();
+      },
+      5 * 60 * 1000,
+    ); // Check every 5 minutes
 
     return () => clearInterval(interval);
   }, [authState.isAuthenticated, refreshAuth]);
 
   const login = useCallback(async (handle: string) => {
     const apiClient = new ApiClient(
-      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000'
+      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
     );
     return await apiClient.initiateOAuthSignIn({ handle });
   }, []);

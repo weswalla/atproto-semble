@@ -265,14 +265,12 @@ export * from './types';
 // Factory functions for different client types
 export const createApiClient = () => {
   return new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000'
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
   );
 };
 
 export const createServerApiClient = () => {
-  return new ApiClient(
-    process.env.API_BASE_URL || 'http://127.0.0.1:3000'
-  );
+  return new ApiClient(process.env.API_BASE_URL || 'http://127.0.0.1:3000');
 };
 
 // Default client instance for backward compatibility

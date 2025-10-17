@@ -20,10 +20,7 @@ export abstract class BaseClient {
       credentials: 'include', // Include cookies automatically (works for both client and server)
     };
 
-    if (
-      data &&
-      (method === 'POST' || method === 'PUT' || method === 'PATCH')
-    ) {
+    if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
       config.body = JSON.stringify(data);
     }
 

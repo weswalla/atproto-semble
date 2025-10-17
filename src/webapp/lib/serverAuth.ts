@@ -25,7 +25,7 @@ export async function getServerAuthStatus(): Promise<{
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Cookie': `accessToken=${accessToken}`,
+        Cookie: `accessToken=${accessToken}`,
       },
       cache: 'no-store',
     });

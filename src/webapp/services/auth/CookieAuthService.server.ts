@@ -16,7 +16,10 @@ export class ServerCookieAuthService {
   }
 
   // Check if token is expired (same logic as client)
-  static isTokenExpired(token: string | null, bufferMinutes: number = 5): boolean {
+  static isTokenExpired(
+    token: string | null,
+    bufferMinutes: number = 5,
+  ): boolean {
     if (!token) return true;
 
     try {

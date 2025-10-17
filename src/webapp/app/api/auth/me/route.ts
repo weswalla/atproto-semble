@@ -35,7 +35,8 @@ export async function GET(request: NextRequest) {
     if (isTokenExpiringSoon(accessToken, 5) && refreshToken) {
       try {
         // Call backend to refresh tokens
-        const backendUrl = process.env.API_BASE_URL || 'http://127.0.0.1:3000';
+        const backendUrl =
+          process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
         const refreshResponse = await fetch(
           `${backendUrl}/api/users/oauth/refresh`,
           {

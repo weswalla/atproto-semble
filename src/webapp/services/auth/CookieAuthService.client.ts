@@ -18,9 +18,18 @@ export class ClientCookieAuthService {
 
   // Clear cookies via API (logout)
   static async clearTokens(): Promise<void> {
-    await fetch('/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include',
-    });
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        console.warn('Logout API call failed, but continuing with client-side logout');
+      }
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+      // Don't throw - we still want to clear the UI state
+    }
   }
 }

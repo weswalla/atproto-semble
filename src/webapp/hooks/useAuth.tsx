@@ -49,6 +49,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (!response.ok) {
+        // Clear tokens when auth fails
+        await ClientCookieAuthService.clearTokens();
         setAuthState({
           isAuthenticated: false,
           user: null,
@@ -68,6 +70,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return true;
     } catch (error) {
       console.error('Auth refresh failed:', error);
+      // Clear tokens on error too
+      await ClientCookieAuthService.clearTokens();
       setAuthState({
         isAuthenticated: false,
         user: null,

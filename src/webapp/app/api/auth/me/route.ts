@@ -50,11 +50,14 @@ export async function GET(request: NextRequest) {
         );
 
         if (!refreshResponse.ok) {
-          // Refresh failed - return backend response directly
-          return new Response(refreshResponse.body, {
-            status: refreshResponse.status,
-            headers: refreshResponse.headers,
-          });
+          // Refresh failed - clear invalid tokens
+          const response = new NextResponse(
+            JSON.stringify({ error: 'Authentication failed' }), 
+            { status: 401 }
+          );
+          response.cookies.delete('accessToken');
+          response.cookies.delete('refreshToken');
+          return response;
         }
 
         // Get new tokens from response

@@ -5,12 +5,15 @@ import SembleNotesContainerError from './Error.SembleNotesContainer';
 import NoteCard from '@/features/notes/components/noteCard/NoteCard';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
 import { FaRegNoteSticky } from 'react-icons/fa6';
+import { useNavbarContext } from '@/providers/navbar';
 
 interface Props {
   url: string;
 }
 
 export default function SembleNotesContainer(props: Props) {
+  const { desktopOpened } = useNavbarContext();
+
   const {
     data,
     error,
@@ -50,7 +53,8 @@ export default function SembleNotesContainer(props: Props) {
             key={note.id}
             span={{
               base: 12,
-              xs: 6,
+              xs: desktopOpened ? 12 : 6,
+              sm: desktopOpened ? 6 : 4,
               md: 4,
               lg: 3,
             }}

@@ -73,6 +73,7 @@ export default async function SembleHeader(props: Props) {
                 fit="contain"
               />
             )}
+            {/*<SembleActions />*/}
           </Stack>
         </GridCol>
       </Grid>

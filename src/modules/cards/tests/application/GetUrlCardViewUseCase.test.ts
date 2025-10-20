@@ -155,8 +155,8 @@ describe('GetUrlCardViewUseCase', () => {
 
       // Verify collections
       expect(response.collections).toHaveLength(1);
-      expect(response.collections[0]?.name).toBe('Reading List');
-      expect(response.collections[0]?.authorId).toBe(curatorId.value);
+      expect(response.collections?.[0]?.name).toBe('Reading List');
+      expect(response.collections?.[0]?.authorId).toBe(curatorId.value);
 
       // Verify note
       expect(response.note).toBeDefined();
@@ -165,7 +165,7 @@ describe('GetUrlCardViewUseCase', () => {
       // Verify enriched library data
       expect(response.libraries).toHaveLength(1);
 
-      const testCuratorLib = response.libraries.find(
+      const testCuratorLib = response.libraries?.find(
         (lib) => lib.id === curatorId.value,
       );
       expect(testCuratorLib).toBeDefined();
@@ -325,9 +325,9 @@ describe('GetUrlCardViewUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.libraries).toHaveLength(1);
-      expect(response.libraries[0]?.name).toBe('Minimal User');
-      expect(response.libraries[0]?.handle).toBe('minimal');
-      expect(response.libraries[0]?.avatarUrl).toBeUndefined();
+      expect(response.libraries?.[0]?.name).toBe('Minimal User');
+      expect(response.libraries?.[0]?.handle).toBe('minimal');
+      expect(response.libraries?.[0]?.avatarUrl).toBeUndefined();
     });
   });
 
@@ -567,7 +567,7 @@ describe('GetUrlCardViewUseCase', () => {
       expect(response.libraries).toHaveLength(1);
 
       // Verify the creator is included with correct profile data
-      const creatorLib = response.libraries.find(
+      const creatorLib = response.libraries?.find(
         (lib) => lib.id === userIds[0],
       );
       expect(creatorLib).toBeDefined();
@@ -645,8 +645,7 @@ describe('GetUrlCardViewUseCase', () => {
       const response = result.unwrap();
       expect(response.collections).toHaveLength(3);
 
-      const collectionNamesInResponse = response.collections
-        .map((c) => c.name)
+      const collectionNamesInResponse = response.collections?.map((c) => c.name)
         .sort();
       expect(collectionNamesInResponse).toEqual([
         'Favorites',
@@ -655,7 +654,7 @@ describe('GetUrlCardViewUseCase', () => {
       ]);
 
       // Verify all collections have the correct author
-      response.collections.forEach((collection) => {
+      response.collections?.forEach((collection) => {
         expect(collection.authorId).toBe(curatorId.value);
       });
     });

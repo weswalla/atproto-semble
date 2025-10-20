@@ -154,7 +154,9 @@ export class GetGlobalFeedUseCase
       const allLibraryUserIds = new Set<string>();
       cardViews.forEach((cardView) => {
         if (cardView) {
-          cardView.libraries.forEach((lib) => allLibraryUserIds.add(lib.userId));
+          cardView.libraries.forEach((lib) =>
+            allLibraryUserIds.add(lib.userId),
+          );
         }
       });
 

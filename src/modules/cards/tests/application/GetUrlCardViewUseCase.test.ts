@@ -645,7 +645,8 @@ describe('GetUrlCardViewUseCase', () => {
       const response = result.unwrap();
       expect(response.collections).toHaveLength(3);
 
-      const collectionNamesInResponse = response.collections?.map((c) => c.name)
+      const collectionNamesInResponse = response.collections
+        ?.map((c) => c.name)
         .sort();
       expect(collectionNamesInResponse).toEqual([
         'Favorites',

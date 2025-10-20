@@ -166,7 +166,7 @@ describe('GetUrlCardViewUseCase', () => {
       expect(response.libraries).toHaveLength(1);
 
       const testCuratorLib = response.libraries.find(
-        (lib) => lib.userId === curatorId.value,
+        (lib) => lib.id === curatorId.value,
       );
       expect(testCuratorLib).toBeDefined();
       expect(testCuratorLib?.name).toBe('Test Curator');
@@ -568,7 +568,7 @@ describe('GetUrlCardViewUseCase', () => {
 
       // Verify the creator is included with correct profile data
       const creatorLib = response.libraries.find(
-        (lib) => lib.userId === userIds[0],
+        (lib) => lib.id === userIds[0],
       );
       expect(creatorLib).toBeDefined();
       expect(creatorLib?.name).toBe('User 1');

@@ -82,6 +82,28 @@ Currently, we have several user type definitions scattered across response types
 - Sometimes `author`, sometimes `createdBy`, sometimes `authorId`, sometimes `authorHandle`
 - Inconsistent inclusion of `cardCount`, `createdAt`, `updatedAt`
 
+### GetLibrariesForUrlResponse - Missing Card Data
+
+**Current Structure** (responses.ts:331-340):
+```tsx
+{
+  libraries: {
+    userId: string;
+    name: string;
+    handle: string;
+    avatarUrl?: string;
+  }[];
+  // ...
+}
+```
+
+**Issue**: When showing "who has this URL in their library", we only show user info but not their specific card. This means we can't display:
+- The user's note on the URL
+- When they saved it
+- Their specific card metadata
+
+**Proposed Enhancement**: Return both user and card data to enable richer UI display.
+
 ---
 
 ## Proposed Changes to Response Types
@@ -249,7 +271,10 @@ export interface GetLibrariesForCardResponse {
 #### GetLibrariesForUrlResponse
 ```tsx
 export interface GetLibrariesForUrlResponse {
-  libraries: User[];  // Changed from inline type, enriched with full user data
+  libraries: {
+    user: User;    // The user who has this URL in their library
+    card: UrlCard; // Their specific card (may include a note)
+  }[];
   pagination: Pagination;
   sorting: CardSorting;
 }
@@ -330,19 +355,36 @@ export interface UrlCardView {
 
 #### Update LibraryForUrlDTO
 ```tsx
-// Keep minimal - will be enriched in use case
+// Repository returns card data - will be enriched with user profile in use case
 export interface LibraryForUrlDTO {
   userId: string;
   cardId: string;
-  name: string;      // NEW - include from repository
-  handle: string;    // NEW - include from repository
-  avatarUrl?: string; // NEW - include from repository
+  // Card data
+  url: string;
+  cardContent: {
+    url: string;
+    title?: string;
+    description?: string;
+    author?: string;
+    thumbnailUrl?: string;
+  };
+  libraryCount: number;
+  urlLibraryCount: number;
+  urlInLibrary?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  note?: {
+    id: string;
+    text: string;
+  };
+  // Note: userId is the card author in this context (it's their card in their library)
 }
 ```
 
 **Implementation Impact**:
-- Update SQL queries in `DrizzleCardQueryRepository` to include `cards.curatorId as authorId`
-- Update SQL queries for `getLibrariesForUrl` to join with profiles table
+- Update SQL queries in `DrizzleCardQueryRepository` to include `cards.curatorId as authorId` in all `UrlCardView` queries
+- Update `getLibrariesForUrl` query to return full card data (similar to how `getUrlCardsOfUser` works)
+  - No need to join with profiles table - enrichment happens in use case (following the pattern from `GetCollectionsForUrlUseCase`)
 
 ### 2. ICollectionQueryRepository
 
@@ -571,40 +613,131 @@ const enrichedCollections: CollectionForUrlDTO[] = await Promise.all(
 **File**: `src/modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase.ts`
 
 **Changes**:
-- Enrich library data with full user profiles (name, handle, avatarUrl)
-- OR: Update repository to join with profiles table and return full data
+- Repository now returns full card data in `LibraryForUrlDTO`
+- Enrich with user profiles for each library owner
+- Transform to return both `user` and `card` objects
 
-**Option 1: Enrich in Use Case**
+**Updated Code** (following pattern from `GetCollectionsForUrlUseCase`):
 ```tsx
-// After fetching from repository
-const uniqueUserIds = Array.from(
-  new Set(result.items.map(lib => lib.userId))
-);
+async execute(
+  query: GetLibrariesForUrlQuery,
+): Promise<Result<GetLibrariesForUrlResult>> {
+  // Validate URL
+  const urlResult = URL.create(query.url);
+  if (urlResult.isErr()) {
+    return err(
+      new ValidationError(`Invalid URL: ${urlResult.error.message}`),
+    );
+  }
 
-const userProfiles = new Map<string, User>();
-const profileResults = await Promise.all(
-  uniqueUserIds.map(id => this.profileService.getProfile(id))
-);
+  // Set defaults
+  const page = query.page || 1;
+  const limit = Math.min(query.limit || 20, 100);
+  const sortBy = query.sortBy || CardSortField.UPDATED_AT;
+  const sortOrder = query.sortOrder || SortOrder.DESC;
 
-// Build user map and transform to User[]
-const enrichedLibraries = result.items.map(lib => {
-  const profile = userProfiles.get(lib.userId);
-  return {
-    id: profile.id,
-    name: profile.name,
-    handle: profile.handle,
-    avatarUrl: profile.avatarUrl,
-  };
-});
+  try {
+    // Execute query to get libraries with full card data
+    const result = await this.cardQueryRepo.getLibrariesForUrl(query.url, {
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+    });
+
+    // Enrich with user profiles
+    const uniqueUserIds = Array.from(
+      new Set(result.items.map((item) => item.userId)),
+    );
+
+    const profilePromises = uniqueUserIds.map((userId) =>
+      this.profileService.getProfile(userId, query.callingUserId),
+    );
+
+    const profileResults = await Promise.all(profilePromises);
+
+    // Create a map of profiles
+    const profileMap = new Map<string, User>();
+
+    for (let i = 0; i < uniqueUserIds.length; i++) {
+      const profileResult = profileResults[i];
+      const userId = uniqueUserIds[i];
+      if (!profileResult || !userId) {
+        return err(new Error('Missing profile result or user ID'));
+      }
+      if (profileResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to fetch user profile: ${profileResult.error instanceof Error ? profileResult.error.message : 'Unknown error'}`,
+          ),
+        );
+      }
+      const profile = profileResult.value;
+      profileMap.set(userId, {
+        id: profile.id,
+        name: profile.name,
+        handle: profile.handle,
+        avatarUrl: profile.avatarUrl,
+        description: profile.bio,
+      });
+    }
+
+    // Map items with enriched user data and card data
+    const enrichedLibraries = result.items.map((item) => {
+      const user = profileMap.get(item.userId);
+      if (!user) {
+        throw new Error(`Profile not found for user ${item.userId}`);
+      }
+
+      // Build card object
+      // Note: userId is the card author (it's their card in their library)
+      const card: UrlCard = {
+        id: item.cardId,
+        type: 'URL',
+        url: item.url,
+        cardContent: item.cardContent,
+        libraryCount: item.libraryCount,
+        urlLibraryCount: item.urlLibraryCount,
+        urlInLibrary: item.urlInLibrary,
+        createdAt: item.createdAt.toISOString(),
+        updatedAt: item.updatedAt.toISOString(),
+        author: user, // Card author is same as library user
+        note: item.note,
+      };
+
+      return {
+        user,
+        card,
+      };
+    });
+
+    return ok({
+      libraries: enrichedLibraries,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(result.totalCount / limit),
+        totalCount: result.totalCount,
+        hasMore: page * limit < result.totalCount,
+        limit,
+      },
+      sorting: {
+        sortBy,
+        sortOrder,
+      },
+    });
+  } catch (error) {
+    return err(
+      new Error(
+        `Failed to retrieve libraries for URL: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      ),
+    );
+  }
+}
 ```
 
-**Option 2: Update Repository** (Preferred - less overhead)
-- Update `getLibrariesForUrl` query to join with profiles
-- Return full user data in `LibraryForUrlDTO`
-
 **Dependencies**:
-- Option 1: Needs `IProfileService` injected
-- Option 2: Update repository implementation
+- Needs `IProfileService` injected (add if not already present)
+- Repository must return full card data in `LibraryForUrlDTO`
 
 ### 7. GetNoteCardsForUrlUseCase
 
@@ -758,8 +891,10 @@ feedItems.push({
 
 ### Phase 1: Repository Updates
 1. Update `UrlCardView` in `ICardQueryRepository.ts` to include `authorId`
-2. Update `DrizzleCardQueryRepository` to include `cards.curatorId as authorId` in all queries returning `UrlCardView`
-3. (Optional) Update `getLibrariesForUrl` to join with profiles and return enriched data
+2. Update `LibraryForUrlDTO` in `ICardQueryRepository.ts` to include full card data (url, cardContent, libraryCount, etc.)
+3. Update `DrizzleCardQueryRepository` to:
+   - Include `cards.curatorId as authorId` in all queries returning `UrlCardView`
+   - Update `getLibrariesForUrl` query to return full card data (similar to `getUrlCardsOfUser`)
 
 ### Phase 2: Response Type Updates
 1. Add unified `User` interface in `responses.ts`
@@ -773,7 +908,7 @@ feedItems.push({
 1. **GetProfileUseCase** - Add `description` field (minimal change)
 2. **GetLibrariesForCardUseCase** - Add `description` to user DTOs
 3. **GetNoteCardsForUrlUseCase** - Add `description` to author
-4. **GetLibrariesForUrlUseCase** - Enrich with full user data OR wait for repository update
+4. **GetLibrariesForUrlUseCase** - Enrich with user profiles, return `{ user, card }[]` instead of just users
 5. **GetCollectionsUseCase** - Change `createdBy` to `author`, add `description`
 6. **GetCollectionsForUrlUseCase** - Add collection dates/cardCount, author description
 7. **GetUrlStatusForMyLibraryUseCase** - Enrich collections with full data
@@ -836,8 +971,9 @@ feedItems.push({
 2. **Performance**: Enriching authors for all cards in list views will add N+1 queries.
    - **Mitigation**: Batch profile fetches with `Promise.all`, cache frequently accessed profiles, or update repository to join with profiles table.
 
-3. **LibrariesForUrl**: Should we enrich in use case or update repository?
-   - **Recommendation**: Update repository to join with profiles - more efficient, cleaner code.
+3. **LibrariesForUrl**: Return both user and card data in response
+   - **Decision**: Response now returns `{ user: User, card: UrlCard }[]` to show both who saved the URL and their specific card (with potential note)
+   - **Implementation**: Repository returns full card data, use case enriches with user profiles (following pattern from `GetCollectionsForUrlUseCase`)
 
 4. **Collection enrichment**: When displaying collections in UrlCard, do we need full Collection objects?
    - **Current approach**: Keep minimal `{id, name, authorId}[]` to avoid over-fetching
@@ -852,5 +988,6 @@ This plan unifies 3 core types (`User`, `UrlCard`, `Collection`) across all API 
 1. **User**: Single interface with optional `description`
 2. **UrlCard**: Add `author` field (currently missing!)
 3. **Collection**: Standardize to `author` (not `createdBy`), ensure complete data
+4. **GetLibrariesForUrl**: Enhanced to return both `user` and `card` objects, enabling display of who saved a URL and their specific card (with potential note)
 
-Most changes are in the API client response types and use cases. Repository changes are minimal (add `authorId` to card queries). Use cases will enrich data by fetching author profiles using the existing `IProfileService`.
+Most changes are in the API client response types and use cases. Repository changes are minimal (add `authorId` to card queries, expand `getLibrariesForUrl` to return full card data). Use cases will enrich data by fetching author profiles using the existing `IProfileService`.

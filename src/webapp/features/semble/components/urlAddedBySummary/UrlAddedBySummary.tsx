@@ -1,6 +1,6 @@
 import { Avatar, AvatarGroup, Group, Text } from '@mantine/core';
-import { getLibrariesForUrl } from '../../lib/dal';
 import Link from 'next/link';
+import { getLibrariesForUrl } from '../../lib/dal';
 
 interface Props {
   url: string;
@@ -23,19 +23,18 @@ export default async function UrlAddedBySummary(props: Props) {
 
   return (
     <Group gap={'xs'}>
-      {/*<AvatarGroup spacing={'xs'}>
-          {avatars.slice(0, MAX_PROFILES_TO_SHOW).map((p, i) => (
-            <Avatar
-              key={i}
-              component={Link}
-              href={`/dashboard/profile/${p.handle}`}
-              src={p.avatarUrl}
-              alt={`${p.handle}`}
-              name={p.handle}
-              size={30}
-            />
-          ))}
-        </AvatarGroup>*/}
+      <AvatarGroup spacing={'xs'}>
+        {data.libraries.slice(0, MAX_PROFILES_TO_SHOW).map((p, i) => (
+          <Avatar
+            key={i}
+            component={Link}
+            href={`/dashboard/profile/${p.handle}`}
+            src={p.avatarUrl}
+            alt={`${p.handle}`}
+            name={p.handle}
+          />
+        ))}
+      </AvatarGroup>
       <Text fz={'sm'} fw={500} c={'gray'}>
         {followersSummaryText}
       </Text>

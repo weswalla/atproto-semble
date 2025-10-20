@@ -5,7 +5,7 @@ import EditNoteDrawer from '@/features/notes/components/editNoteDrawer/EditNoteD
 import { ActionIcon, Button, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { AiOutlineSignature } from 'react-icons/ai';
-import { FiPlus } from 'react-icons/fi';
+import { BiPlus } from 'react-icons/bi';
 import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import { LuUnplug } from 'react-icons/lu';
 import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
@@ -14,6 +14,7 @@ import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardTo
 import { MdOutlineStickyNote2 } from 'react-icons/md';
 import NoteCardModal from '@/features/notes/components/noteCardModal/NoteCardModal';
 import { useAuth } from '@/hooks/useAuth';
+import { IoMdCheckmark } from 'react-icons/io';
 
 interface Props {
   id: string;
@@ -21,7 +22,8 @@ interface Props {
   authorHandle?: string;
   note?: UrlCardView['note'];
   currentCollection?: UrlCardView['collections'][0];
-  libraryCount: number;
+  urlLibraryCount: number;
+  urlIsInLibrary: boolean;
 }
 
 export default function UrlCardActions(props: Props) {
@@ -47,10 +49,16 @@ export default function UrlCardActions(props: Props) {
             color={'gray'}
             size="xs"
             radius={'xl'}
-            leftSection={<FiPlus size={22} />}
+            leftSection={
+              props.urlIsInLibrary ? (
+                <IoMdCheckmark size={18} />
+              ) : (
+                <BiPlus size={18} />
+              )
+            }
             onClick={() => setShowAddToModal(true)}
           >
-            {props.libraryCount}
+            {props.urlLibraryCount}
           </Button>
           {props.note && (
             <ActionIcon
@@ -67,7 +75,7 @@ export default function UrlCardActions(props: Props) {
           <Menu shadow="sm">
             <Menu.Target>
               <ActionIcon variant="light" color={'gray'} radius={'xl'}>
-                <BsThreeDots size={22} />
+                <BsThreeDots size={18} />
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>

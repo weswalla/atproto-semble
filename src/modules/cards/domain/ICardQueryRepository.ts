@@ -37,6 +37,8 @@ export interface UrlCardView {
     thumbnailUrl?: string;
   };
   libraryCount: number;
+  urlLibraryCount: number;
+  urlInLibrary?: boolean;
   createdAt: Date;
   updatedAt: Date;
   note?: {
@@ -64,10 +66,25 @@ export interface LibraryForUrlDTO {
   cardId: string;
 }
 
-export interface NoteCardForUrlDTO {
+// Raw repository DTO - what the repository returns (not enriched)
+export interface NoteCardForUrlRawDTO {
   id: string;
   note: string;
   authorId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Public DTO - what the use case returns (enriched with author profile)
+export interface NoteCardForUrlDTO {
+  id: string;
+  note: string;
+  author: {
+    id: string;
+    name: string;
+    handle: string;
+    avatarUrl?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -76,14 +93,19 @@ export interface ICardQueryRepository {
   getUrlCardsOfUser(
     userId: string,
     options: CardQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<UrlCardQueryResultDTO>>;
 
   getCardsInCollection(
     collectionId: string,
     options: CardQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<CollectionCardQueryResultDTO>>;
 
-  getUrlCardView(cardId: string): Promise<UrlCardViewDTO | null>;
+  getUrlCardView(
+    cardId: string,
+    callingUserId?: string,
+  ): Promise<UrlCardViewDTO | null>;
 
   getLibrariesForCard(cardId: string): Promise<string[]>;
 
@@ -95,5 +117,5 @@ export interface ICardQueryRepository {
   getNoteCardsForUrl(
     url: string,
     options: CardQueryOptions,
-  ): Promise<PaginatedQueryResult<NoteCardForUrlDTO>>;
+  ): Promise<PaginatedQueryResult<NoteCardForUrlRawDTO>>;
 }

@@ -14,7 +14,6 @@ import { truncateText } from '@/lib/utils/text';
 import MinimalProfileHeaderContainer from '../../containers/minimalProfileHeaderContainer/MinimalProfileHeaderContainer';
 import { FaBluesky } from 'react-icons/fa6';
 import { ApiClient } from '@/api-client/ApiClient';
-import { createClientTokenManager } from '@/services/auth';
 
 interface Props {
   handle: string;
@@ -22,8 +21,7 @@ interface Props {
 
 export default async function ProfileHeader(props: Props) {
   const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    createClientTokenManager(),
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
   );
 
   const profile = await apiClient.getProfile({

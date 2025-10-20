@@ -16,6 +16,7 @@ import { DID } from '../../../../atproto/domain/DID';
 import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
 
 export interface GetGlobalFeedQuery {
+  callingUserId?: string;
   page?: number;
   limit?: number;
   beforeActivityId?: string; // For cursor-based pagination
@@ -158,7 +159,7 @@ export class GetGlobalFeedUseCase
       const cardDataMap = new Map<string, UrlCardView>();
       const cardViews = await Promise.all(
         cardIds.map((cardId) =>
-          this.cardQueryRepository.getUrlCardView(cardId),
+          this.cardQueryRepository.getUrlCardView(cardId, query.callingUserId),
         ),
       );
       cardIds.forEach((cardId, idx) => {

@@ -12,6 +12,7 @@ import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
 import { URL } from '../../domain/value-objects/URL';
 import { err } from 'src/shared/core/Result';
+import { ICardRepository } from '../../domain/ICardRepository';
 
 describe('GetUrlStatusForMyLibraryUseCase', () => {
   let useCase: GetUrlStatusForMyLibraryUseCase;
@@ -491,16 +492,14 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
   describe('Error handling', () => {
     it('should handle repository errors gracefully', async () => {
       // Create a mock repository that returns an error Result
-      const errorCardRepository = {
+      const errorCardRepository: ICardRepository = {
         findUsersUrlCardByUrl: jest
           .fn()
           .mockResolvedValue(err(new Error('Database error'))),
         save: jest.fn(),
         findById: jest.fn(),
         delete: jest.fn(),
-        findByUrl: jest.fn(),
-        findByCuratorId: jest.fn(),
-        findByParentCardId: jest.fn(),
+        findUsersNoteCardByUrl: jest.fn(),
       };
 
       const errorUseCase = new GetUrlStatusForMyLibraryUseCase(

@@ -31,6 +31,7 @@ import { GetUrlStatusForMyLibraryController } from '../../../../modules/cards/in
 import { GetLibrariesForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetLibrariesForUrlController';
 import { GetCollectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionsForUrlController';
 import { GetNoteCardsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetNoteCardsForUrlController';
+import { CookieService } from '../services/CookieService';
 
 export interface Controllers {
   // User controllers
@@ -71,18 +72,23 @@ export interface Controllers {
 }
 
 export class ControllerFactory {
-  static create(useCases: UseCases): Controllers {
+  static create(useCases: UseCases, cookieService: CookieService): Controllers {
     return {
       // User controllers
       loginWithAppPasswordController: new LoginWithAppPasswordController(
         useCases.loginWithAppPasswordUseCase,
+        cookieService,
       ),
-      logoutController: new LogoutController(useCases.logoutUseCase),
+      logoutController: new LogoutController(
+        useCases.logoutUseCase,
+        cookieService,
+      ),
       initiateOAuthSignInController: new InitiateOAuthSignInController(
         useCases.initiateOAuthSignInUseCase,
       ),
       completeOAuthSignInController: new CompleteOAuthSignInController(
         useCases.completeOAuthSignInUseCase,
+        cookieService,
       ),
       getMyProfileController: new GetMyProfileController(
         useCases.getMyProfileUseCase,
@@ -92,6 +98,7 @@ export class ControllerFactory {
       ),
       refreshAccessTokenController: new RefreshAccessTokenController(
         useCases.refreshAccessTokenUseCase,
+        cookieService,
       ),
       generateExtensionTokensController: new GenerateExtensionTokensController(
         useCases.generateExtensionTokensUseCase,

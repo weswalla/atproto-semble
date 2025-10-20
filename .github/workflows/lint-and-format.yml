@@ -7,10 +7,11 @@ on:
     branches: [main, development]
 
 jobs:
-  lint-and-format:
-    name: Lint and Format Check
+  dependencies:
+    name: Install Dependencies
     runs-on: ubuntu-latest
-
+    outputs:
+      cache-hit: ${{ steps.cache-deps.outputs.cache-hit }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,18 +20,70 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
 
-      - name: Install root dependencies
-        run: npm ci
+      - name: Cache dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            src/webapp/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json', 'src/webapp/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
 
-      - name: Install webapp dependencies
-        run: cd src/webapp && npm ci
+      - name: Install dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          npm ci
+          cd src/webapp && npm ci
 
-      - name: Check formatting (root)
+  format-check:
+    name: Format Check
+    runs-on: ubuntu-latest
+    needs: dependencies
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            src/webapp/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json', 'src/webapp/package-lock.json') }}
+
+      - name: Check formatting
         run: npm run format:check
 
-      - name: Lint (root)
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: dependencies
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            src/webapp/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json', 'src/webapp/package-lock.json') }}
+
+      - name: Lint root
         run: npm run lint
 
       - name: Lint webapp

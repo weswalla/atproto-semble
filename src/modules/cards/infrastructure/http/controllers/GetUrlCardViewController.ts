@@ -19,7 +19,7 @@ export class GetUrlCardViewController extends Controller {
 
       const result = await this.getUrlCardViewUseCase.execute({
         cardId,
-        callerDid,
+        callingUserId: callerDid,
       });
 
       if (result.isErr()) {

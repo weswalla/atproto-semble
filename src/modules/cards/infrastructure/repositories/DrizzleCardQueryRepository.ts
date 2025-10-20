@@ -7,7 +7,7 @@ import {
   CollectionCardQueryResultDTO,
   UrlCardViewDTO,
   LibraryForUrlDTO,
-  NoteCardForUrlDTO,
+  NoteCardForUrlRawDTO,
 } from '../../domain/ICardQueryRepository';
 import { UrlCardQueryService } from './query-services/UrlCardQueryService';
 import { CollectionCardQueryService } from './query-services/CollectionCardQueryService';
@@ -30,22 +30,32 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
   async getUrlCardsOfUser(
     userId: string,
     options: CardQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<UrlCardQueryResultDTO>> {
-    return this.urlCardQueryService.getUrlCardsOfUser(userId, options);
+    return this.urlCardQueryService.getUrlCardsOfUser(
+      userId,
+      options,
+      callingUserId,
+    );
   }
 
   async getCardsInCollection(
     collectionId: string,
     options: CardQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<CollectionCardQueryResultDTO>> {
     return this.collectionCardQueryService.getCardsInCollection(
       collectionId,
       options,
+      callingUserId,
     );
   }
 
-  async getUrlCardView(cardId: string): Promise<UrlCardViewDTO | null> {
-    return this.urlCardQueryService.getUrlCardView(cardId);
+  async getUrlCardView(
+    cardId: string,
+    callingUserId?: string,
+  ): Promise<UrlCardViewDTO | null> {
+    return this.urlCardQueryService.getUrlCardView(cardId, callingUserId);
   }
 
   async getLibrariesForCard(cardId: string): Promise<string[]> {
@@ -62,7 +72,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
   async getNoteCardsForUrl(
     url: string,
     options: CardQueryOptions,
-  ): Promise<PaginatedQueryResult<NoteCardForUrlDTO>> {
+  ): Promise<PaginatedQueryResult<NoteCardForUrlRawDTO>> {
     return this.noteCardQueryService.getNoteCardsForUrl(url, options);
   }
 }

@@ -8,7 +8,7 @@ import {
   CardSortField,
   SortOrder,
   LibraryForUrlDTO,
-  NoteCardForUrlDTO,
+  NoteCardForUrlRawDTO,
 } from '../../domain/ICardQueryRepository';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { InMemoryCardRepository } from './InMemoryCardRepository';
@@ -26,6 +26,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   async getUrlCardsOfUser(
     userId: string,
     options: CardQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<UrlCardQueryResultDTO>> {
     try {
       // Get all cards and filter by user's library membership
@@ -36,7 +37,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
             card.isUrlCard &&
             card.isInLibrary(CuratorId.create(userId).unwrap()),
         )
-        .map((card) => this.cardToUrlCardQueryResult(card));
+        .map((card) => this.cardToUrlCardQueryResult(card, callingUserId));
 
       // Sort cards
       const sortedCards = this.sortCards(
@@ -90,7 +91,10 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return sorted;
   }
 
-  private cardToUrlCardQueryResult(card: Card): UrlCardQueryResultDTO {
+  private cardToUrlCardQueryResult(
+    card: Card,
+    callingUserId?: string,
+  ): UrlCardQueryResultDTO {
     if (!card.isUrlCard || !card.content.urlContent) {
       throw new Error('Card is not a URL card');
     }
@@ -126,6 +130,14 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         }
       : undefined;
 
+    // Compute urlInLibrary if callingUserId is provided
+    const urlInLibrary = callingUserId
+      ? this.isUrlInUserLibrary(
+          card.content.urlContent.url.value,
+          callingUserId,
+        )
+      : undefined;
+
     return {
       id: card.cardId.getStringValue(),
       type: CardTypeEnum.URL,
@@ -138,6 +150,10 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         thumbnailUrl: card.content.urlContent.metadata?.imageUrl,
       },
       libraryCount: this.getLibraryCountForCard(card.cardId.getStringValue()),
+      urlLibraryCount: this.getUrlLibraryCount(
+        card.content.urlContent.url.value,
+      ),
+      urlInLibrary,
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,
       collections,
@@ -152,9 +168,39 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return card ? card.libraryMembershipCount : 0;
   }
 
+  private getUrlLibraryCount(url: string): number {
+    // Get all URL cards with this URL and count unique library memberships
+    const allCards = this.cardRepository.getAllCards();
+    const urlCards = allCards.filter(
+      (card) => card.isUrlCard && card.url?.value === url,
+    );
+
+    // Get all unique user IDs who have any card with this URL
+    const uniqueUserIds = new Set<string>();
+    for (const card of urlCards) {
+      for (const membership of card.libraryMemberships) {
+        uniqueUserIds.add(membership.curatorId.value);
+      }
+    }
+
+    return uniqueUserIds.size;
+  }
+
+  private isUrlInUserLibrary(url: string, userId: string): boolean {
+    // Check if the user has any URL card with this URL (by checking authorId)
+    const allCards = this.cardRepository.getAllCards();
+    return allCards.some(
+      (card) =>
+        card.isUrlCard &&
+        card.url?.value === url &&
+        card.curatorId.value === userId,
+    );
+  }
+
   async getCardsInCollection(
     collectionId: string,
     options: CardQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<CollectionCardQueryResultDTO>> {
     try {
       // Get the collection from the repository
@@ -191,7 +237,9 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
             card.isUrlCard,
         )
         .map((card) =>
-          this.toCollectionCardQueryResult(this.cardToUrlCardQueryResult(card)),
+          this.toCollectionCardQueryResult(
+            this.cardToUrlCardQueryResult(card, callingUserId),
+          ),
         );
 
       // Sort cards
@@ -255,20 +303,25 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       url: card.url,
       cardContent: card.cardContent,
       libraryCount: card.libraryCount,
+      urlLibraryCount: card.urlLibraryCount,
+      urlInLibrary: card.urlInLibrary,
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,
       note: card.note,
     };
   }
 
-  async getUrlCardView(cardId: string): Promise<UrlCardViewDTO | null> {
+  async getUrlCardView(
+    cardId: string,
+    callingUserId?: string,
+  ): Promise<UrlCardViewDTO | null> {
     const allCards = this.cardRepository.getAllCards();
     const card = allCards.find((c) => c.cardId.getStringValue() === cardId);
     if (!card || !card.isUrlCard) {
       return null;
     }
 
-    const urlCardResult = this.cardToUrlCardQueryResult(card);
+    const urlCardResult = this.cardToUrlCardQueryResult(card, callingUserId);
 
     // Get library memberships from the card itself
     const libraries = card.libraryMemberships.map((membership) => ({
@@ -381,7 +434,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   async getNoteCardsForUrl(
     url: string,
     options: CardQueryOptions,
-  ): Promise<PaginatedQueryResult<NoteCardForUrlDTO>> {
+  ): Promise<PaginatedQueryResult<NoteCardForUrlRawDTO>> {
     try {
       // Get all note cards with the specified URL
       const allCards = this.cardRepository.getAllCards();
@@ -420,10 +473,10 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   }
 
   private sortNoteCards(
-    notes: NoteCardForUrlDTO[],
+    notes: NoteCardForUrlRawDTO[],
     sortBy: CardSortField,
     sortOrder: SortOrder,
-  ): NoteCardForUrlDTO[] {
+  ): NoteCardForUrlRawDTO[] {
     const sorted = [...notes].sort((a, b) => {
       let comparison = 0;
 

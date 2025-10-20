@@ -197,9 +197,11 @@ export class UseCaseFactory {
       ),
       getCollectionsForUrlUseCase: new GetCollectionsForUrlUseCase(
         repositories.collectionQueryRepository,
+        services.profileService,
       ),
       getNoteCardsForUrlUseCase: new GetNoteCardsForUrlUseCase(
         repositories.cardQueryRepository,
+        services.profileService,
       ),
 
       // Feed use cases

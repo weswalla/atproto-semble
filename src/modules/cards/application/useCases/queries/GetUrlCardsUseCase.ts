@@ -12,6 +12,7 @@ import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/
 
 export interface GetUrlCardsQuery {
   userId: string;
+  callingUserId?: string;
   page?: number;
   limit?: number;
   sortBy?: CardSortField;
@@ -85,6 +86,7 @@ export class GetUrlCardsUseCase
           sortBy,
           sortOrder,
         },
+        query.callingUserId,
       );
 
       // Transform raw data to enriched DTOs

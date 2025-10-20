@@ -77,7 +77,8 @@ export default function ProfileContainer(props: Props) {
                       note={card.note}
                       collections={card.collections}
                       authorHandle={props.handle}
-                      libraryCount={card.libraryCount}
+                      urlLibraryCount={card.urlLibraryCount}
+                      urlIsInLibrary={card.urlInLibrary}
                     />
                   </Grid.Col>
                 ))}

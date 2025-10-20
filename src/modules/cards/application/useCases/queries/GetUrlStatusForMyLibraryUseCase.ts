@@ -135,7 +135,7 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
 
               // Fetch author profile
               const authorProfileResult = await this.profileService.getProfile(
-                fullCollection.curatorId.value,
+                fullCollection.authorId.value,
               );
               if (authorProfileResult.isErr()) {
                 throw new Error(

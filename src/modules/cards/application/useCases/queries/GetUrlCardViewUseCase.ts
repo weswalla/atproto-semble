@@ -164,7 +164,7 @@ export class GetUrlCardViewUseCase
 
           // Fetch collection author profile
           const collectionAuthorResult = await this.profileService.getProfile(
-            fullCollection.curatorId.value,
+            fullCollection.authorId.value,
             query.callingUserId,
           );
           if (collectionAuthorResult.isErr()) {

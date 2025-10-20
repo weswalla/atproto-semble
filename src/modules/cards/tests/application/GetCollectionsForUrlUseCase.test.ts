@@ -36,6 +36,7 @@ describe('GetCollectionsForUrlUseCase', () => {
     useCase = new GetCollectionsForUrlUseCase(
       collectionQueryRepository,
       profileService,
+      collectionRepository,
     );
 
     curator1 = CuratorId.create('did:plc:curator1').unwrap();

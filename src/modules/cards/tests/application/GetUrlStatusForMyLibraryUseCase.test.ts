@@ -5,6 +5,7 @@ import { InMemoryCollectionQueryRepository } from '../utils/InMemoryCollectionQu
 import { FakeCardPublisher } from '../utils/FakeCardPublisher';
 import { FakeCollectionPublisher } from '../utils/FakeCollectionPublisher';
 import { FakeEventPublisher } from '../utils/FakeEventPublisher';
+import { FakeProfileService } from '../utils/FakeProfileService';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { CardBuilder } from '../utils/builders/CardBuilder';
 import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
@@ -22,6 +23,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
   let cardPublisher: FakeCardPublisher;
   let collectionPublisher: FakeCollectionPublisher;
   let eventPublisher: FakeEventPublisher;
+  let profileService: FakeProfileService;
   let curatorId: CuratorId;
   let otherCuratorId: CuratorId;
 
@@ -34,15 +36,35 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
     cardPublisher = new FakeCardPublisher();
     collectionPublisher = new FakeCollectionPublisher();
     eventPublisher = new FakeEventPublisher();
+    profileService = new FakeProfileService();
 
     useCase = new GetUrlStatusForMyLibraryUseCase(
       cardRepository,
       collectionQueryRepository,
+      collectionRepository,
+      profileService,
       eventPublisher,
     );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
     otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
+
+    // Set up profiles
+    profileService.addProfile({
+      id: curatorId.value,
+      name: 'Test Curator',
+      handle: 'testcurator',
+      avatarUrl: 'https://example.com/avatar1.jpg',
+      bio: 'Test curator bio',
+    });
+
+    profileService.addProfile({
+      id: otherCuratorId.value,
+      name: 'Other Curator',
+      handle: 'othercurator',
+      avatarUrl: 'https://example.com/avatar2.jpg',
+      bio: 'Other curator bio',
+    });
   });
 
   afterEach(() => {
@@ -52,6 +74,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
     cardPublisher.clear();
     collectionPublisher.clear();
     eventPublisher.clear();
+    profileService.clear();
   });
 
   describe('URL card in collections', () => {

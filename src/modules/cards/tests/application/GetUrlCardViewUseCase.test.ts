@@ -27,7 +27,7 @@ describe('GetUrlCardViewUseCase', () => {
     collectionRepo = new InMemoryCollectionRepository();
     cardQueryRepo = new InMemoryCardQueryRepository(cardRepo, collectionRepo);
     profileService = new FakeProfileService();
-    useCase = new GetUrlCardViewUseCase(cardQueryRepo, profileService);
+    useCase = new GetUrlCardViewUseCase(cardQueryRepo, profileService, collectionRepo);
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
     otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
@@ -408,7 +408,7 @@ describe('GetUrlCardViewUseCase', () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain('Failed to fetch user profiles');
+        expect(result.error.message).toContain('Failed to fetch card author');
       }
     });
 
@@ -462,7 +462,7 @@ describe('GetUrlCardViewUseCase', () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain('Failed to fetch user profiles');
+        expect(result.error.message).toContain('Failed to fetch card author');
       }
     });
 

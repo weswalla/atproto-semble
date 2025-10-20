@@ -149,12 +149,10 @@ export class GetGlobalFeedUseCase
         ),
       );
 
-
       // Convert UrlCardViewDTO to UrlCardDTO by enriching libraries
       cardIds.forEach((cardId, idx) => {
         const cardView = cardViews[idx];
         if (cardView) {
-
           const cardDTO: UrlCardDTO = {
             ...cardView,
             libraries: undefined,

@@ -149,10 +149,49 @@ export class GetGlobalFeedUseCase
           this.cardQueryRepository.getUrlCardView(cardId, query.callingUserId),
         ),
       );
+
+      // Fetch profiles for all library users in all cards
+      const allLibraryUserIds = new Set<string>();
+      cardViews.forEach((cardView) => {
+        if (cardView) {
+          cardView.libraries.forEach((lib) => allLibraryUserIds.add(lib.userId));
+        }
+      });
+
+      const libraryUserProfiles = new Map<string, UserDTO>();
+      const libraryProfileResults = await Promise.all(
+        Array.from(allLibraryUserIds).map((userId) =>
+          this.profileService.getProfile(userId),
+        ),
+      );
+
+      Array.from(allLibraryUserIds).forEach((userId, idx) => {
+        const profileResult = libraryProfileResults[idx];
+        if (profileResult && profileResult.isOk()) {
+          const profile = profileResult.value;
+          libraryUserProfiles.set(userId, {
+            id: profile.id,
+            name: profile.name,
+            handle: profile.handle,
+            avatarUrl: profile.avatarUrl,
+            description: profile.bio,
+          });
+        }
+      });
+
+      // Convert UrlCardViewDTO to UrlCardDTO by enriching libraries
       cardIds.forEach((cardId, idx) => {
         const cardView = cardViews[idx];
         if (cardView) {
-          cardDataMap.set(cardId, cardView);
+          const enrichedLibraries = cardView.libraries
+            .map((lib) => libraryUserProfiles.get(lib.userId))
+            .filter((user): user is UserDTO => !!user);
+
+          const cardDTO: UrlCardDTO = {
+            ...cardView,
+            libraries: enrichedLibraries,
+          };
+          cardDataMap.set(cardId, cardDTO);
         }
       });
 
@@ -259,6 +298,7 @@ export class GetGlobalFeedUseCase
         activities: feedItems,
         pagination: {
           currentPage: page,
+          totalPages: Math.ceil(feed.totalCount / limit),
           totalCount: feed.totalCount,
           hasMore: feed.hasMore,
           limit,

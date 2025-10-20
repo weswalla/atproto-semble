@@ -84,10 +84,10 @@ describe('GetCollectionPageUseCase', () => {
       expect(response.id).toBe(collectionId.getStringValue());
       expect(response.name).toBe('Empty Collection');
       expect(response.description).toBe('A collection with no cards');
-      expect(response.author.id).toBe(curatorId.value);
-      expect(response.author.name).toBe('Test Curator');
-      expect(response.author.handle).toBe('testcurator');
-      expect(response.author.avatarUrl).toBe('https://example.com/avatar.jpg');
+      expect(response.author?.id).toBe(curatorId.value);
+      expect(response.author?.name).toBe('Test Curator');
+      expect(response.author?.handle).toBe('testcurator');
+      expect(response.author?.avatarUrl).toBe('https://example.com/avatar.jpg');
       expect(response.urlCards).toHaveLength(0);
       expect(response.pagination.totalCount).toBe(0);
       expect(response.pagination.currentPage).toBe(1);
@@ -875,9 +875,9 @@ describe('GetCollectionPageUseCase', () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.author.name).toBe('Minimal Curator');
-      expect(response.author.handle).toBe('minimal');
-      expect(response.author.avatarUrl).toBeUndefined();
+      expect(response.author?.name).toBe('Minimal Curator');
+      expect(response.author?.handle).toBe('minimal');
+      expect(response.author?.avatarUrl).toBeUndefined();
     });
   });
 });

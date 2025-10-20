@@ -4,8 +4,8 @@ import {
   ICardQueryRepository,
   CardSortField,
   SortOrder,
-  LibraryForUrlDTO,
 } from '../../../domain/ICardQueryRepository';
+import { IProfileService } from '../../../domain/services/IProfileService';
 import { URL } from '../../../domain/value-objects/URL';
 
 export interface GetLibrariesForUrlQuery {
@@ -16,8 +16,15 @@ export interface GetLibrariesForUrlQuery {
   sortOrder?: SortOrder;
 }
 
+export interface LibraryUserDTO {
+  id: string;
+  name: string;
+  handle: string;
+  avatarUrl?: string;
+}
+
 export interface GetLibrariesForUrlResult {
-  libraries: LibraryForUrlDTO[];
+  libraries: LibraryUserDTO[];
   pagination: {
     currentPage: number;
     totalPages: number;
@@ -41,7 +48,10 @@ export class ValidationError extends Error {
 export class GetLibrariesForUrlUseCase
   implements UseCase<GetLibrariesForUrlQuery, Result<GetLibrariesForUrlResult>>
 {
-  constructor(private cardQueryRepo: ICardQueryRepository) {}
+  constructor(
+    private cardQueryRepo: ICardQueryRepository,
+    private profileService: IProfileService,
+  ) {}
 
   async execute(
     query: GetLibrariesForUrlQuery,
@@ -69,8 +79,46 @@ export class GetLibrariesForUrlUseCase
         sortOrder,
       });
 
+      // Fetch profiles for all users
+      const userIds = result.items.map((item) => item.userId);
+      const profilePromises = userIds.map((userId) =>
+        this.profileService.getProfile(userId),
+      );
+
+      const profileResults = await Promise.all(profilePromises);
+
+      // Filter out failed profile fetches and transform to DTOs
+      const enrichedLibraries: LibraryUserDTO[] = [];
+      const errors: string[] = [];
+
+      for (let i = 0; i < profileResults.length; i++) {
+        const profileResult = profileResults[i];
+        if (!profileResult) {
+          errors.push(`No profile found for user ${userIds[i]}`);
+          continue;
+        }
+        if (profileResult.isOk()) {
+          const profile = profileResult.value;
+          enrichedLibraries.push({
+            id: profile.id,
+            name: profile.name,
+            handle: profile.handle,
+            avatarUrl: profile.avatarUrl,
+          });
+        } else {
+          errors.push(
+            `Failed to fetch profile for user ${userIds[i]}: ${profileResult.error.message}`,
+          );
+        }
+      }
+
+      // Log errors but don't fail the entire operation
+      if (errors.length > 0) {
+        console.warn('Some profile fetches failed:', errors);
+      }
+
       return ok({
-        libraries: result.items,
+        libraries: enrichedLibraries,
         pagination: {
           currentPage: page,
           totalPages: Math.ceil(result.totalCount / limit),

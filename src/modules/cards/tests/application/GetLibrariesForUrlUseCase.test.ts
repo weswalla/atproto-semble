@@ -7,12 +7,15 @@ import { CardBuilder } from '../utils/builders/CardBuilder';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { URL } from '../../domain/value-objects/URL';
 import { CardSortField, SortOrder } from '../../domain/ICardQueryRepository';
+import { IProfileService } from '../../domain/services/IProfileService';
+import { ok } from 'src/shared/core/Result';
 
 describe('GetLibrariesForUrlUseCase', () => {
   let useCase: GetLibrariesForUrlUseCase;
   let cardRepository: InMemoryCardRepository;
   let cardQueryRepository: InMemoryCardQueryRepository;
   let collectionRepository: InMemoryCollectionRepository;
+  let mockProfileService: IProfileService;
   let curator1: CuratorId;
   let curator2: CuratorId;
   let curator3: CuratorId;
@@ -25,7 +28,26 @@ describe('GetLibrariesForUrlUseCase', () => {
       collectionRepository,
     );
 
-    useCase = new GetLibrariesForUrlUseCase(cardQueryRepository);
+    // Create mock profile service
+    mockProfileService = {
+      getProfile: jest.fn((userId: string) => {
+        return Promise.resolve(
+          ok({
+            id: userId,
+            name: `User ${userId.slice(-8)}`,
+            handle: `handle.${userId.slice(-8)}`,
+            avatarUrl: `https://avatar.example.com/${userId}`,
+            bio: `Bio for ${userId}`,
+          }),
+        );
+      }),
+      enrichProfile: jest.fn(),
+    };
+
+    useCase = new GetLibrariesForUrlUseCase(
+      cardQueryRepository,
+      mockProfileService,
+    );
 
     curator1 = CuratorId.create('did:plc:curator1').unwrap();
     curator2 = CuratorId.create('did:plc:curator2').unwrap();
@@ -94,17 +116,18 @@ describe('GetLibrariesForUrlUseCase', () => {
       expect(response.libraries).toHaveLength(3);
       expect(response.pagination.totalCount).toBe(3);
 
-      // Check that all three users are included
-      const userIds = response.libraries.map((lib) => lib.userId);
+      // Check that all three users are included (now with enriched profile data)
+      const userIds = response.libraries.map((lib) => lib.id);
       expect(userIds).toContain(curator1.value);
       expect(userIds).toContain(curator2.value);
       expect(userIds).toContain(curator3.value);
 
-      // Check that card IDs are correct
-      const cardIds = response.libraries.map((lib) => lib.cardId);
-      expect(cardIds).toContain(card1.cardId.getStringValue());
-      expect(cardIds).toContain(card2.cardId.getStringValue());
-      expect(cardIds).toContain(card3.cardId.getStringValue());
+      // Verify enriched profile data is present
+      response.libraries.forEach((lib) => {
+        expect(lib.id).toBeDefined();
+        expect(lib.name).toBeDefined();
+        expect(lib.handle).toBeDefined();
+      });
     });
 
     it('should return empty result when no users have cards with the specified URL', async () => {
@@ -163,8 +186,7 @@ describe('GetLibrariesForUrlUseCase', () => {
       const response = result.unwrap();
 
       expect(response.libraries).toHaveLength(1);
-      expect(response.libraries[0]!.userId).toBe(curator1.value);
-      expect(response.libraries[0]!.cardId).toBe(card1.cardId.getStringValue());
+      expect(response.libraries[0]!.id).toBe(curator1.value);
     });
   });
 
@@ -322,6 +344,7 @@ describe('GetLibrariesForUrlUseCase', () => {
 
       const errorUseCase = new GetLibrariesForUrlUseCase(
         errorCardQueryRepository,
+        mockProfileService,
       );
 
       const query = {

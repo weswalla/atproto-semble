@@ -17,7 +17,7 @@ export interface GetUrlCardViewQuery {
 export type UrlCardViewResult = UrlCardView &
   WithCollections & {
     libraries: {
-      userId: string;
+      id: string;
       name: string;
       handle: string;
       avatarUrl?: string;
@@ -96,7 +96,7 @@ export class GetUrlCardViewUseCase
         const profile = profileResult.value;
 
         return {
-          userId: lib.userId,
+          id: lib.userId,
           name: profile.name,
           handle: profile.handle,
           avatarUrl: profile.avatarUrl,

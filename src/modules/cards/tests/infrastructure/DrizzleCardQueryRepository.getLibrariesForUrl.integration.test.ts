@@ -118,7 +118,7 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
       expect(userIds).toContain(curator3.value);
 
       // Check that card IDs are correct
-      const cardIds = result.items.map((lib) => lib.cardId);
+      const cardIds = result.items.map((lib) => lib.card.id);
       expect(cardIds).toContain(card1.cardId.getStringValue());
       expect(cardIds).toContain(card2.cardId.getStringValue());
       expect(cardIds).toContain(card3.cardId.getStringValue());
@@ -174,7 +174,7 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0]!.userId).toBe(curator1.value);
-      expect(result.items[0]!.cardId).toBe(card1.cardId.getStringValue());
+      expect(result.items[0]!.card.id).toBe(card1.cardId.getStringValue());
     });
 
     it('should not return NOTE cards even if they have the same URL', async () => {
@@ -211,7 +211,7 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
       // Should only return the URL card, not the NOTE card
       expect(result.items).toHaveLength(1);
       expect(result.items[0]!.userId).toBe(curator1.value);
-      expect(result.items[0]!.cardId).toBe(urlCard.cardId.getStringValue());
+      expect(result.items[0]!.card.id).toBe(urlCard.cardId.getStringValue());
     });
 
     it('should handle multiple cards from same user with same URL', async () => {
@@ -253,7 +253,7 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
       expect(result.items[1]!.userId).toBe(curator1.value);
 
       // But different card IDs
-      const cardIds = result.items.map((lib) => lib.cardId);
+      const cardIds = result.items.map((lib) => lib.card.id);
       expect(cardIds).toContain(card1.cardId.getStringValue());
       expect(cardIds).toContain(card2.cardId.getStringValue());
     });

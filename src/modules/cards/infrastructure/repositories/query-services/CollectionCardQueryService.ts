@@ -52,6 +52,7 @@ export class CollectionCardQueryService {
       const cardsQuery = this.db
         .select({
           id: cards.id,
+          authorId: cards.authorId,
           url: cards.url,
           contentData: cards.contentData,
           libraryCount: cards.libraryCount,
@@ -179,6 +180,7 @@ export class CollectionCardQueryService {
 
         return {
           id: card.id,
+          authorId: card.authorId,
           url: card.url || '',
           contentData: card.contentData,
           libraryCount: card.libraryCount,

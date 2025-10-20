@@ -41,6 +41,7 @@ export interface UrlCardView {
   urlInLibrary?: boolean;
   createdAt: Date;
   updatedAt: Date;
+  authorId: string; // NEW - needed to enrich with author profile
   note?: {
     id: string;
     text: string;
@@ -61,9 +62,30 @@ export type UrlCardQueryResultDTO = UrlCardView & WithCollections;
 // DTO for single URL card view with library and collection info
 export type UrlCardViewDTO = UrlCardView & WithCollections & WithLibraries;
 
+// Repository returns card data - will be enriched with user profile in use case
 export interface LibraryForUrlDTO {
   userId: string;
-  cardId: string;
+  card: {
+    id: string;
+    url: string;
+    cardContent: {
+      url: string;
+      title?: string;
+      description?: string;
+      author?: string;
+      thumbnailUrl?: string;
+    };
+    libraryCount: number;
+    urlLibraryCount: number;
+    urlInLibrary?: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    note?: {
+      id: string;
+      text: string;
+    };
+  };
+  // Note: userId is the card author in this context (it's their card in their library)
 }
 
 // Raw repository DTO - what the repository returns (not enriched)

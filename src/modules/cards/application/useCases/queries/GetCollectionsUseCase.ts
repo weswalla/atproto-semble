@@ -27,11 +27,12 @@ export interface CollectionListItemDTO {
   updatedAt: Date;
   createdAt: Date;
   cardCount: number;
-  createdBy: {
+  author: {
     id: string;
     name: string;
     handle: string;
     avatarUrl?: string;
+    description?: string;
   };
 }
 export interface GetCollectionsResult {
@@ -127,11 +128,12 @@ export class GetCollectionsUseCase
             updatedAt: item.updatedAt,
             createdAt: item.createdAt,
             cardCount: item.cardCount,
-            createdBy: {
+            author: {
               id: profile.id,
               name: profile.name,
               handle: profile.handle,
               avatarUrl: profile.avatarUrl,
+              description: profile.bio,
             },
           };
         },

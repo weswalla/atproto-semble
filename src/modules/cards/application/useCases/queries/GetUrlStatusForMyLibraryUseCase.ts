@@ -5,8 +5,11 @@ import { AppError } from '../../../../../shared/core/AppError';
 import { IEventPublisher } from '../../../../../shared/application/events/IEventPublisher';
 import { ICardRepository } from '../../../domain/ICardRepository';
 import { ICollectionQueryRepository } from '../../../domain/ICollectionQueryRepository';
+import { ICollectionRepository } from '../../../domain/ICollectionRepository';
+import { IProfileService } from '../../../domain/services/IProfileService';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { URL } from '../../../domain/value-objects/URL';
+import { CollectionId } from '../../../domain/value-objects/CollectionId';
 
 export interface GetUrlStatusForMyLibraryQuery {
   url: string;
@@ -18,6 +21,16 @@ export interface CollectionInfo {
   uri?: string;
   name: string;
   description?: string;
+  author: {
+    id: string;
+    name: string;
+    handle: string;
+    avatarUrl?: string;
+    description?: string;
+  };
+  cardCount: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface GetUrlStatusForMyLibraryResult {
@@ -41,6 +54,8 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
   constructor(
     private cardRepository: ICardRepository,
     private collectionQueryRepository: ICollectionQueryRepository,
+    private collectionRepo: ICollectionRepository,
+    private profileService: IProfileService,
     eventPublisher: IEventPublisher,
   ) {
     super(eventPublisher);
@@ -96,12 +111,57 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
               curatorId.value,
             );
 
-          result.collections = collections.map((collection) => ({
-            id: collection.id,
-            uri: collection.uri,
-            name: collection.name,
-            description: collection.description,
-          }));
+          // Enrich collections with full data
+          result.collections = await Promise.all(
+            collections.map(async (collection) => {
+              // Fetch full collection to get dates and cardCount
+              const collectionIdResult = CollectionId.createFromString(
+                collection.id,
+              );
+              if (collectionIdResult.isErr()) {
+                throw new Error(
+                  `Invalid collection ID: ${collection.id}`,
+                );
+              }
+              const collectionResult = await this.collectionRepo.findById(
+                collectionIdResult.value,
+              );
+              if (collectionResult.isErr()) {
+                throw new Error(
+                  `Collection not found: ${collection.id}`,
+                );
+              }
+              const fullCollection = collectionResult.value;
+
+              // Fetch author profile
+              const authorProfileResult = await this.profileService.getProfile(
+                fullCollection.curatorId.value,
+              );
+              if (authorProfileResult.isErr()) {
+                throw new Error(
+                  `Failed to fetch author profile: ${authorProfileResult.error.message}`,
+                );
+              }
+              const authorProfile = authorProfileResult.value;
+
+              return {
+                id: collection.id,
+                uri: collection.uri,
+                name: collection.name,
+                description: collection.description,
+                author: {
+                  id: authorProfile.id,
+                  name: authorProfile.name,
+                  handle: authorProfile.handle,
+                  avatarUrl: authorProfile.avatarUrl,
+                  description: authorProfile.bio,
+                },
+                cardCount: fullCollection.cardCount,
+                createdAt: fullCollection.createdAt.toISOString(),
+                updatedAt: fullCollection.updatedAt.toISOString(),
+              };
+            }),
+          );
         } catch (error) {
           return err(AppError.UnexpectedError.create(error));
         }

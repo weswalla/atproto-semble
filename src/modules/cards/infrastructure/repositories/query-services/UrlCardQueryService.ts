@@ -34,6 +34,7 @@ export class UrlCardQueryService {
       const urlCardsQuery = this.db
         .select({
           id: cards.id,
+          authorId: cards.authorId,
           url: cards.url,
           contentData: cards.contentData,
           libraryCount: cards.libraryCount,
@@ -179,6 +180,7 @@ export class UrlCardQueryService {
 
         return {
           id: card.id,
+          authorId: card.authorId,
           url: card.url || '',
           contentData: card.contentData,
           libraryCount: card.libraryCount,
@@ -222,6 +224,7 @@ export class UrlCardQueryService {
         .select({
           id: cards.id,
           type: cards.type,
+          authorId: cards.authorId,
           url: cards.url,
           contentData: cards.contentData,
           libraryCount: cards.libraryCount,
@@ -321,6 +324,7 @@ export class UrlCardQueryService {
       const urlCardView = CardMapper.toUrlCardViewDTO({
         id: card.id,
         type: card.type,
+        authorId: card.authorId,
         url: card.url || '',
         contentData: card.contentData,
         libraryCount: card.libraryCount,
@@ -361,7 +365,12 @@ export class UrlCardQueryService {
       const librariesQuery = this.db
         .select({
           userId: libraryMemberships.userId,
-          cardId: libraryMemberships.cardId,
+          cardId: cards.id,
+          url: cards.url,
+          contentData: cards.contentData,
+          libraryCount: cards.libraryCount,
+          createdAt: cards.createdAt,
+          updatedAt: cards.updatedAt,
         })
         .from(libraryMemberships)
         .innerJoin(cards, eq(libraryMemberships.cardId, cards.id))
@@ -371,7 +380,7 @@ export class UrlCardQueryService {
 
       const librariesResult = await librariesQuery;
 
-      // Get total count
+      // Get total count (needed even if current page is empty)
       const totalCountResult = await this.db
         .select({ count: count() })
         .from(libraryMemberships)
@@ -379,12 +388,77 @@ export class UrlCardQueryService {
         .where(and(eq(cards.url, url), eq(cards.type, CardTypeEnum.URL)));
 
       const totalCount = totalCountResult[0]?.count || 0;
+
+      if (librariesResult.length === 0) {
+        return {
+          items: [],
+          totalCount,
+          hasMore: false,
+        };
+      }
+
+      const cardIds = librariesResult.map((lib) => lib.cardId);
+
+      // Get notes for these cards
+      const notesQuery = this.db
+        .select({
+          id: cards.id,
+          parentCardId: cards.parentCardId,
+          contentData: cards.contentData,
+        })
+        .from(cards)
+        .where(
+          and(
+            eq(cards.type, CardTypeEnum.NOTE),
+            inArray(cards.parentCardId, cardIds),
+          ),
+        );
+
+      const notesResult = await notesQuery;
+
+      // Get urlLibraryCount for this URL
+      const urlLibraryCountQuery = this.db
+        .select({
+          count: countDistinct(libraryMemberships.userId),
+        })
+        .from(cards)
+        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
+        .where(and(eq(cards.type, CardTypeEnum.URL), eq(cards.url, url)));
+
+      const urlLibraryCountResult = await urlLibraryCountQuery;
+      const urlLibraryCount = urlLibraryCountResult[0]?.count || 0;
+
       const hasMore = offset + librariesResult.length < totalCount;
 
-      const items = librariesResult.map((lib) => ({
-        userId: lib.userId,
-        cardId: lib.cardId,
-      }));
+      const items: LibraryForUrlDTO[] = librariesResult.map((lib) => {
+        const note = notesResult.find((n) => n.parentCardId === lib.cardId);
+
+        return {
+          userId: lib.userId,
+          card: {
+            id: lib.cardId,
+            url: lib.url || '',
+            cardContent: {
+              url: lib.contentData?.url,
+              title: lib.contentData?.metadata?.title,
+              description: lib.contentData?.metadata?.description,
+              author: lib.contentData?.metadata?.author,
+              thumbnailUrl: lib.contentData?.metadata?.imageUrl,
+            },
+            libraryCount: lib.libraryCount,
+            urlLibraryCount,
+            urlInLibrary: true, // By definition, if it's in this result, it's in a library
+            createdAt: lib.createdAt,
+            updatedAt: lib.updatedAt,
+            note: note
+              ? {
+                  id: note.id,
+                  text: note.contentData?.text || '',
+                }
+              : undefined,
+          },
+        };
+      });
 
       return {
         items,

@@ -58,7 +58,8 @@ export interface GetUrlMetadataResponse {
   metadata: UrlMetadata;
 }
 
-export interface UrlCardView {
+// Unified UrlCard interface - base for all card responses
+export interface UrlCard {
   id: string;
   type: 'URL';
   url: string;
@@ -74,74 +75,58 @@ export interface UrlCardView {
   urlInLibrary?: boolean;
   createdAt: string;
   updatedAt: string;
+  author: User;
   note?: {
     id: string;
     text: string;
   };
-  collections: {
-    id: string;
-    name: string;
-    authorId: string;
-  }[];
-  libraries: {
-    userId: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
-  }[];
 }
 
-export interface GetUrlCardViewResponse extends UrlCardView {}
+// Unified Collection interface - used across all endpoints
+export interface Collection {
+  id: string;
+  uri?: string;
+  name: string;
+  author: User;
+  description?: string;
+  cardCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
-export interface LibraryUser {
+// Context-specific variations
+export interface UrlCardWithCollections extends UrlCard {
+  collections: Collection[];
+}
+
+export interface UrlCardWithLibraries extends UrlCard {
+  libraries: User[];
+}
+
+export interface UrlCardWithCollectionsAndLibraries extends UrlCard {
+  collections: Collection[];
+  libraries: User[];
+}
+
+export interface GetUrlCardViewResponse extends UrlCardWithCollectionsAndLibraries {}
+
+// Unified User interface - used across all endpoints
+export interface User {
   id: string;
   name: string;
   handle: string;
   avatarUrl?: string;
+  description?: string;
 }
 
 export interface GetLibrariesForCardResponse {
   cardId: string;
-  users: LibraryUser[];
+  users: User[];
   totalCount: number;
 }
 
-export interface UserProfile {
-  id: string;
-  name: string;
-  handle: string;
-  description?: string;
-  avatarUrl?: string;
-}
+export interface GetProfileResponse extends User {}
 
-export interface GetProfileResponse extends UserProfile {}
-
-export interface UrlCardListItem {
-  id: string;
-  type: 'URL';
-  url: string;
-  cardContent: {
-    url: string;
-    title?: string;
-    description?: string;
-    author?: string;
-    thumbnailUrl?: string;
-  };
-  libraryCount: number;
-  urlLibraryCount: number;
-  urlInLibrary?: boolean;
-  createdAt: string;
-  updatedAt: string;
-  note?: {
-    id: string;
-    text: string;
-  };
-  collections: {
-    id: string;
-    name: string;
-    authorId: string;
-  }[];
-}
 
 // Base pagination interface
 export interface Pagination {
@@ -167,31 +152,9 @@ export interface CollectionSorting extends BaseSorting {
 }
 
 export interface GetUrlCardsResponse {
-  cards: UrlCardListItem[];
+  cards: UrlCardWithCollections[];
   pagination: Pagination;
   sorting: CardSorting;
-}
-
-export interface CollectionPageUrlCard {
-  id: string;
-  type: 'URL';
-  url: string;
-  cardContent: {
-    url: string;
-    title?: string;
-    description?: string;
-    author?: string;
-    thumbnailUrl?: string;
-  };
-  libraryCount: number;
-  urlLibraryCount: number;
-  urlInLibrary?: boolean;
-  createdAt: string;
-  updatedAt: string;
-  note?: {
-    id: string;
-    text: string;
-  };
 }
 
 export interface GetCollectionPageResponse {
@@ -199,33 +162,17 @@ export interface GetCollectionPageResponse {
   uri?: string;
   name: string;
   description?: string;
-  author: {
-    id: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
-  };
-  urlCards: CollectionPageUrlCard[];
+  author: User;
+  urlCards: UrlCard[];
+  cardCount: number;
+  createdAt: string;
+  updatedAt: string;
   pagination: Pagination;
   sorting: CardSorting;
 }
 
 export interface GetCollectionsResponse {
-  collections: {
-    id: string;
-    uri?: string;
-    name: string;
-    description?: string;
-    cardCount: number;
-    createdAt: string;
-    updatedAt: string;
-    createdBy: {
-      id: string;
-      name: string;
-      handle: string;
-      avatarUrl?: string;
-    };
-  }[];
+  collections: Collection[];
   pagination: Pagination;
   sorting: CollectionSorting;
 }
@@ -256,57 +203,12 @@ export interface GenerateExtensionTokensResponse {
 }
 
 // Feed response types
-export interface FeedActivityActor {
-  id: string;
-  name: string;
-  handle: string;
-  avatarUrl?: string;
-}
-
-export interface FeedActivityCard {
-  id: string;
-  type: 'URL';
-  url: string;
-  cardContent: {
-    url: string;
-    title?: string;
-    description?: string;
-    author?: string;
-    thumbnailUrl?: string;
-  };
-  libraryCount: number;
-  urlLibraryCount: number;
-  urlInLibrary?: boolean;
-  createdAt: string;
-  updatedAt: string;
-  note?: {
-    id: string;
-    text: string;
-  };
-  collections: {
-    id: string;
-    name: string;
-    authorId: string;
-  }[];
-  libraries: {
-    userId: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
-  }[];
-}
-
 export interface FeedItem {
   id: string;
-  user: FeedActivityActor;
-  card: FeedActivityCard;
+  user: User;
+  card: UrlCard;
   createdAt: Date;
-  collections: {
-    id: string;
-    name: string;
-    authorHandle: string;
-    uri?: string;
-  }[];
+  collections: Collection[];
 }
 
 export interface FeedPagination extends Pagination {
@@ -320,20 +222,13 @@ export interface GetGlobalFeedResponse {
 
 export interface GetUrlStatusForMyLibraryResponse {
   cardId?: string;
-  collections?: {
-    id: string;
-    uri?: string;
-    name: string;
-    description?: string;
-  }[];
+  collections?: Collection[];
 }
 
 export interface GetLibrariesForUrlResponse {
   libraries: {
-    userId: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
+    user: User;
+    card: UrlCard;
   }[];
   pagination: Pagination;
   sorting: CardSorting;
@@ -343,12 +238,7 @@ export interface GetNoteCardsForUrlResponse {
   notes: {
     id: string;
     note: string;
-    author: {
-      id: string;
-      name: string;
-      handle: string;
-      avatarUrl?: string;
-    };
+    author: User;
     createdAt: string;
     updatedAt: string;
   }[];
@@ -357,18 +247,7 @@ export interface GetNoteCardsForUrlResponse {
 }
 
 export interface GetCollectionsForUrlResponse {
-  collections: {
-    id: string;
-    uri?: string;
-    name: string;
-    description?: string;
-    author: {
-      id: string;
-      name: string;
-      handle: string;
-      avatarUrl?: string;
-    };
-  }[];
+  collections: Collection[];
   pagination: Pagination;
   sorting: CollectionSorting;
 }

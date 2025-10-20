@@ -73,6 +73,7 @@ export interface CardPersistenceData {
 // Raw data for URL card queries
 export interface RawUrlCardData {
   id: string;
+  authorId: string;
   url: string;
   contentData: any;
   libraryCount: number;
@@ -375,6 +376,7 @@ export class CardMapper {
       urlInLibrary: raw.urlInLibrary,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
+      authorId: raw.authorId,
       collections: raw.collections,
       note,
     };
@@ -382,6 +384,7 @@ export class CardMapper {
 
   public static toCollectionCardQueryResult(raw: {
     id: string;
+    authorId: string;
     url: string;
     contentData: any;
     libraryCount: number;
@@ -421,6 +424,7 @@ export class CardMapper {
       urlInLibrary: raw.urlInLibrary,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
+      authorId: raw.authorId,
       note,
     };
   }
@@ -428,6 +432,7 @@ export class CardMapper {
   public static toUrlCardViewDTO(raw: {
     id: string;
     type: string;
+    authorId: string;
     url: string;
     contentData: UrlContentData;
     libraryCount: number;
@@ -475,6 +480,7 @@ export class CardMapper {
       urlInLibrary: raw.urlInLibrary,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
+      authorId: raw.authorId,
       collections: raw.inCollections,
       libraries: raw.inLibraries,
       note,

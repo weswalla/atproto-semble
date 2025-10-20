@@ -448,7 +448,7 @@ export class UrlCardQueryService {
             : undefined,
         };
 
-        const cardView = CardMapper.toUrlCardView(rawCardData);
+        const cardView = CardMapper.toUrlCardQueryResult(rawCardData);
 
         return {
           userId: lib.userId,

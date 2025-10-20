@@ -156,6 +156,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       urlInLibrary,
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,
+      authorId: card.curatorId.value,
       collections,
       note,
     };
@@ -307,6 +308,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       urlInLibrary: card.urlInLibrary,
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,
+      authorId: card.authorId,
       note: card.note,
     };
   }
@@ -374,10 +376,44 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       // Create library entries for each card
       const libraries: LibraryForUrlDTO[] = [];
       for (const card of urlCards) {
+        // Skip cards without urlContent (should not happen since we filtered for URL cards)
+        if (!card.content.urlContent) {
+          continue;
+        }
+
         for (const membership of card.libraryMemberships) {
+          const noteCard = allCards.find(
+            (c) => c.isNoteCard && c.parentCardId?.equals(card.cardId),
+          );
+
+          const urlLibraryCount = this.getUrlLibraryCount(url);
+
           libraries.push({
             userId: membership.curatorId.value,
-            cardId: card.cardId.getStringValue(),
+            card: {
+              id: card.cardId.getStringValue(),
+              url: card.content.urlContent.url.value,
+              cardContent: {
+                url: card.content.urlContent.url.value,
+                title: card.content.urlContent.metadata?.title,
+                description: card.content.urlContent.metadata?.description,
+                author: card.content.urlContent.metadata?.author,
+                thumbnailUrl: card.content.urlContent.metadata?.imageUrl,
+              },
+              libraryCount: this.getLibraryCountForCard(
+                card.cardId.getStringValue(),
+              ),
+              urlLibraryCount,
+              urlInLibrary: true,
+              createdAt: card.createdAt,
+              updatedAt: card.updatedAt,
+              note: noteCard
+                ? {
+                    id: noteCard.cardId.getStringValue(),
+                    text: noteCard.content.noteContent?.text || '',
+                  }
+                : undefined,
+            },
           });
         }
       }

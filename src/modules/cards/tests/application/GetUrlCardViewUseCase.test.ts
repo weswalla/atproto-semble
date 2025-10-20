@@ -156,7 +156,7 @@ describe('GetUrlCardViewUseCase', () => {
       // Verify collections
       expect(response.collections).toHaveLength(1);
       expect(response.collections[0]?.name).toBe('Reading List');
-      expect(response.collections[0]?.authorId).toBe(curatorId.value);
+      expect(response.collections[0]?.author.id).toBe(curatorId.value);
 
       // Verify note
       expect(response.note).toBeDefined();
@@ -166,7 +166,7 @@ describe('GetUrlCardViewUseCase', () => {
       expect(response.libraries).toHaveLength(1);
 
       const testCuratorLib = response.libraries.find(
-        (lib) => lib.userId === curatorId.value,
+        (lib) => lib.id === curatorId.value,
       );
       expect(testCuratorLib).toBeDefined();
       expect(testCuratorLib?.name).toBe('Test Curator');
@@ -479,7 +479,7 @@ describe('GetUrlCardViewUseCase', () => {
         getNoteCardsForUrl: jest.fn(),
       };
 
-      const errorUseCase = new GetUrlCardViewUseCase(errorRepo, profileService);
+      const errorUseCase = new GetUrlCardViewUseCase(errorRepo, profileService, collectionRepo);
 
       const query = {
         cardId: cardId,
@@ -568,7 +568,7 @@ describe('GetUrlCardViewUseCase', () => {
 
       // Verify the creator is included with correct profile data
       const creatorLib = response.libraries.find(
-        (lib) => lib.userId === userIds[0],
+        (lib) => lib.id === userIds[0],
       );
       expect(creatorLib).toBeDefined();
       expect(creatorLib?.name).toBe('User 1');
@@ -656,7 +656,7 @@ describe('GetUrlCardViewUseCase', () => {
 
       // Verify all collections have the correct author
       response.collections.forEach((collection) => {
-        expect(collection.authorId).toBe(curatorId.value);
+        expect(collection.author.id).toBe(curatorId.value);
       });
     });
 

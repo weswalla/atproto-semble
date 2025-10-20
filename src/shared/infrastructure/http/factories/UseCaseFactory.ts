@@ -154,6 +154,7 @@ export class UseCaseFactory {
       getUrlCardViewUseCase: new GetUrlCardViewUseCase(
         repositories.cardQueryRepository,
         services.profileService,
+        repositories.collectionRepository,
       ),
       getLibrariesForCardUseCase: new GetLibrariesForCardUseCase(
         repositories.cardQueryRepository,
@@ -190,14 +191,18 @@ export class UseCaseFactory {
       getUrlStatusForMyLibraryUseCase: new GetUrlStatusForMyLibraryUseCase(
         repositories.cardRepository,
         repositories.collectionQueryRepository,
+        repositories.collectionRepository,
+        services.profileService,
         services.eventPublisher,
       ),
       getLibrariesForUrlUseCase: new GetLibrariesForUrlUseCase(
         repositories.cardQueryRepository,
+        services.profileService,
       ),
       getCollectionsForUrlUseCase: new GetCollectionsForUrlUseCase(
         repositories.collectionQueryRepository,
         services.profileService,
+        repositories.collectionRepository,
       ),
       getNoteCardsForUrlUseCase: new GetNoteCardsForUrlUseCase(
         repositories.cardQueryRepository,

@@ -784,6 +784,7 @@ describe('GetCollectionsForUrlUseCase', () => {
       const errorUseCase = new GetCollectionsForUrlUseCase(
         errorCollectionQueryRepository,
         profileService,
+        collectionRepository,
       );
 
       const query = {

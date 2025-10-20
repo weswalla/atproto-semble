@@ -117,10 +117,6 @@ describe('GetLibrariesForUrlUseCase', () => {
       const result = await useCase.execute(query);
 
       // Verify the result
-      if (result.isErr()) {
-        console.error('Error message:', result.error.message || result.error);
-        fail(`Use case failed: ${result.error.message || result.error}`);
-      }
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
 
@@ -196,8 +192,8 @@ describe('GetLibrariesForUrlUseCase', () => {
       const response = result.unwrap();
 
       expect(response.libraries).toHaveLength(1);
-      expect(response.libraries[0]!.userId).toBe(curator1.value);
-      expect(response.libraries[0]!.cardId).toBe(card1.cardId.getStringValue());
+      expect(response.libraries[0]!.user.id).toBe(curator1.value);
+      expect(response.libraries[0]!.card.id).toBe(card1.cardId.getStringValue());
     });
   });
 
@@ -212,6 +208,17 @@ describe('GetLibrariesForUrlUseCase', () => {
       for (let i = 1; i <= 5; i++) {
         const curator = CuratorId.create(`did:plc:curator${i}`).unwrap();
         curators.push(curator);
+
+        // Add profiles for curator4 and curator5 (curator1-3 already set up in beforeEach)
+        if (i > 3) {
+          profileService.addProfile({
+            id: curator.value,
+            name: `Curator ${i}`,
+            handle: `curator${i}`,
+            avatarUrl: `https://example.com/avatar${i}.jpg`,
+            bio: `Curator ${i} bio`,
+          });
+        }
 
         const card = new CardBuilder()
           .withCuratorId(curator.value)
@@ -236,6 +243,9 @@ describe('GetLibrariesForUrlUseCase', () => {
       };
 
       const result1 = await useCase.execute(query1);
+      if (result1.isErr()) {
+        throw new Error(`Use case failed: ${result1.error.message || result1.error}`);
+      }
       expect(result1.isOk()).toBe(true);
       const response1 = result1.unwrap();
 
@@ -355,6 +365,7 @@ describe('GetLibrariesForUrlUseCase', () => {
 
       const errorUseCase = new GetLibrariesForUrlUseCase(
         errorCardQueryRepository,
+        profileService,
       );
 
       const query = {

@@ -528,6 +528,8 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       const errorUseCase = new GetUrlStatusForMyLibraryUseCase(
         errorCardRepository,
         collectionQueryRepository,
+        collectionRepository,
+        profileService,
         eventPublisher,
       );
 
@@ -580,6 +582,8 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       const errorUseCase = new GetUrlStatusForMyLibraryUseCase(
         cardRepository,
         errorCollectionQueryRepository,
+        collectionRepository,
+        profileService,
         eventPublisher,
       );
 

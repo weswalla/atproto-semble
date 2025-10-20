@@ -157,7 +157,7 @@ export class GetUrlCardViewUseCase
           const collectionResult = await this.collectionRepo.findById(
             collectionIdResult.value,
           );
-          if (collectionResult.isErr()) {
+          if (collectionResult.isErr() || !collectionResult.value) {
             throw new Error(`Collection not found: ${collection.id}`);
           }
           const fullCollection = collectionResult.value;
@@ -176,7 +176,7 @@ export class GetUrlCardViewUseCase
 
           return {
             id: collection.id,
-            uri: fullCollection.uri,
+            uri: fullCollection.publishedRecordId?.uri,
             name: collection.name,
             description: fullCollection.description?.value,
             author: {

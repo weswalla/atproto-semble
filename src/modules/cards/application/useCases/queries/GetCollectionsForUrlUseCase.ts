@@ -153,7 +153,7 @@ export class GetCollectionsForUrlUseCase
           const collectionResult = await this.collectionRepo.findById(
             collectionIdResult.value,
           );
-          if (collectionResult.isErr()) {
+          if (collectionResult.isErr() || !collectionResult.value) {
             throw new Error(`Collection not found: ${item.id}`);
           }
           const collection = collectionResult.value;

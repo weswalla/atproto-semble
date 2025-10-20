@@ -1,31 +1,17 @@
-import { ApiClient } from '@/api-client/ApiClient';
-import {
-  createClientTokenManager,
-  createServerTokenManager,
-} from '@/services/auth';
+import { createApiClient, createServerApiClient } from '@/api-client/ApiClient';
 
-export const createServerSideApiClient = async () => {
-  const tokenManager = await createServerTokenManager();
-
-  return new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    tokenManager,
-  );
+export const createServerSideSembleClient = () => {
+  return createServerApiClient();
 };
 
-export const createClientSideApiClient = () => {
-  const tokenManager = createClientTokenManager();
-
-  return new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    tokenManager,
-  );
+export const createClientSideSembleClient = () => {
+  return createApiClient();
 };
 
-export const createApiClient = async () => {
+export const createSembleClient = () => {
   if (typeof window === 'undefined') {
-    return await createServerSideApiClient();
+    return createServerSideSembleClient();
   } else {
-    return createClientSideApiClient();
+    return createClientSideSembleClient();
   }
 };

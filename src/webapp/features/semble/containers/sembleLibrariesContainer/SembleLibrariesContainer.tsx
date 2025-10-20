@@ -62,8 +62,7 @@ export default function SembleLibrariesContainer(props: Props) {
               lg: 3,
             }}
           >
-            <>{u.userId}</>
-            {/*<CollectionCard key={col.id} collection={col} />*/}
+            {/*<CollectionCard key={u.userId} collection={u} />*/}
           </Grid.Col>
         ))}
       </Grid>

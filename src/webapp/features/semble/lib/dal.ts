@@ -1,4 +1,4 @@
-import { createApiClient } from '@/services/apiClient';
+import { createSembleClient } from '@/services/apiClient';
 import { cache } from 'react';
 
 interface PageParams {
@@ -8,7 +8,7 @@ interface PageParams {
 
 export const getLibrariesForUrl = cache(
   async (url: string, params?: PageParams) => {
-    const client = await createApiClient();
+    const client = createSembleClient();
     const response = await client.getLibrariesForUrl({
       url,
       page: params?.page,

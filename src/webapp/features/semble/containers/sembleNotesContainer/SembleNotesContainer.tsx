@@ -63,7 +63,7 @@ export default function SembleNotesContainer(props: Props) {
           >
             <NoteCard
               id={note.id}
-              authorId={note.authorId}
+              authorId={note.author.id}
               createdAt={note.createdAt}
               note={note.note}
             />

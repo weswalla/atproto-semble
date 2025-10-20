@@ -362,6 +362,11 @@ export class UrlCardQueryService {
         .select({
           userId: libraryMemberships.userId,
           cardId: libraryMemberships.cardId,
+          url: cards.url,
+          contentData: cards.contentData,
+          libraryCount: cards.libraryCount,
+          createdAt: cards.createdAt,
+          updatedAt: cards.updatedAt,
         })
         .from(libraryMemberships)
         .innerJoin(cards, eq(libraryMemberships.cardId, cards.id))
@@ -371,7 +376,7 @@ export class UrlCardQueryService {
 
       const librariesResult = await librariesQuery;
 
-      // Get total count
+      // Get total count first (before checking if results are empty)
       const totalCountResult = await this.db
         .select({ count: count() })
         .from(libraryMemberships)
@@ -381,10 +386,76 @@ export class UrlCardQueryService {
       const totalCount = totalCountResult[0]?.count || 0;
       const hasMore = offset + librariesResult.length < totalCount;
 
-      const items = librariesResult.map((lib) => ({
-        userId: lib.userId,
-        cardId: lib.cardId,
-      }));
+      if (librariesResult.length === 0) {
+        return {
+          items: [],
+          totalCount,
+          hasMore,
+        };
+      }
+
+      const cardIds = librariesResult.map((lib) => lib.cardId);
+
+      // Get notes for these cards
+      const notesQuery = this.db
+        .select({
+          id: cards.id,
+          parentCardId: cards.parentCardId,
+          contentData: cards.contentData,
+        })
+        .from(cards)
+        .where(
+          and(
+            eq(cards.type, CardTypeEnum.NOTE),
+            inArray(cards.parentCardId, cardIds),
+          ),
+        );
+
+      const notesResult = await notesQuery;
+
+      // Get urlLibraryCount for this URL (total unique users who have cards with this URL)
+      const urlLibraryCountQuery = this.db
+        .select({
+          count: countDistinct(libraryMemberships.userId),
+        })
+        .from(cards)
+        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
+        .where(and(eq(cards.type, CardTypeEnum.URL), eq(cards.url, url)));
+
+      const urlLibraryCountResult = await urlLibraryCountQuery;
+      const urlLibraryCount = urlLibraryCountResult[0]?.count || 0;
+
+      // Map the results to include card data
+      const items: LibraryForUrlDTO[] = librariesResult.map((lib) => {
+        // Find note for this card
+        const note = notesResult.find((n) => n.parentCardId === lib.cardId);
+
+        const rawCardData = {
+          id: lib.cardId,
+          url: lib.url || '',
+          contentData: lib.contentData,
+          libraryCount: lib.libraryCount,
+          urlLibraryCount,
+          urlInLibrary: undefined,
+          createdAt: lib.createdAt,
+          updatedAt: lib.updatedAt,
+          collections: [],
+          note: note
+            ? {
+                id: note.id,
+                contentData: note.contentData,
+              }
+            : undefined,
+        };
+
+        const cardView = CardMapper.toUrlCardQueryResult(rawCardData);
+
+        return {
+          userId: lib.userId,
+          cardId: lib.cardId,
+          card: cardView,
+        };
+      });
 
       return {
         items,

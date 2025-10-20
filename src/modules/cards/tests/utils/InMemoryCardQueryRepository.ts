@@ -371,13 +371,17 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         (card) => card.isUrlCard && card.url?.value === url,
       );
 
-      // Create library entries for each card
+      // Create library entries for each card with full card data
       const libraries: LibraryForUrlDTO[] = [];
       for (const card of urlCards) {
         for (const membership of card.libraryMemberships) {
+          // Convert card to UrlCardQueryResultDTO to get full card data
+          const cardData = this.cardToUrlCardQueryResult(card);
+
           libraries.push({
             userId: membership.curatorId.value,
             cardId: card.cardId.getStringValue(),
+            card: cardData,
           });
         }
       }

@@ -194,6 +194,7 @@ export class UseCaseFactory {
       ),
       getLibrariesForUrlUseCase: new GetLibrariesForUrlUseCase(
         repositories.cardQueryRepository,
+        services.profileService,
       ),
       getCollectionsForUrlUseCase: new GetCollectionsForUrlUseCase(
         repositories.collectionQueryRepository,

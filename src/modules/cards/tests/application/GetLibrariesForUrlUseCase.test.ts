@@ -2,6 +2,7 @@ import { GetLibrariesForUrlUseCase } from '../../application/useCases/queries/Ge
 import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
 import { InMemoryCardQueryRepository } from '../utils/InMemoryCardQueryRepository';
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
+import { FakeProfileService } from '../utils/FakeProfileService';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { CardBuilder } from '../utils/builders/CardBuilder';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
@@ -13,6 +14,7 @@ describe('GetLibrariesForUrlUseCase', () => {
   let cardRepository: InMemoryCardRepository;
   let cardQueryRepository: InMemoryCardQueryRepository;
   let collectionRepository: InMemoryCollectionRepository;
+  let profileService: FakeProfileService;
   let curator1: CuratorId;
   let curator2: CuratorId;
   let curator3: CuratorId;
@@ -24,18 +26,46 @@ describe('GetLibrariesForUrlUseCase', () => {
       cardRepository,
       collectionRepository,
     );
+    profileService = new FakeProfileService();
 
-    useCase = new GetLibrariesForUrlUseCase(cardQueryRepository);
+    useCase = new GetLibrariesForUrlUseCase(
+      cardQueryRepository,
+      profileService,
+    );
 
     curator1 = CuratorId.create('did:plc:curator1').unwrap();
     curator2 = CuratorId.create('did:plc:curator2').unwrap();
     curator3 = CuratorId.create('did:plc:curator3').unwrap();
+
+    // Add profiles for the test curators
+    profileService.addProfile({
+      id: curator1.value,
+      name: 'Curator 1',
+      handle: 'curator1.bsky.social',
+      avatarUrl: 'https://example.com/avatar1.jpg',
+      bio: 'Bio for curator 1',
+    });
+    profileService.addProfile({
+      id: curator2.value,
+      name: 'Curator 2',
+      handle: 'curator2.bsky.social',
+      avatarUrl: 'https://example.com/avatar2.jpg',
+      bio: 'Bio for curator 2',
+    });
+    profileService.addProfile({
+      id: curator3.value,
+      name: 'Curator 3',
+      handle: 'curator3.bsky.social',
+      avatarUrl: 'https://example.com/avatar3.jpg',
+      bio: 'Bio for curator 3',
+    });
   });
 
   afterEach(() => {
     cardRepository.clear();
     collectionRepository.clear();
     cardQueryRepository.clear();
+    profileService.clear();
   });
 
   describe('Multiple users with same URL', () => {
@@ -95,16 +125,22 @@ describe('GetLibrariesForUrlUseCase', () => {
       expect(response.pagination.totalCount).toBe(3);
 
       // Check that all three users are included
-      const userIds = response.libraries.map((lib) => lib.userId);
+      const userIds = response.libraries.map((lib) => lib.user.id);
       expect(userIds).toContain(curator1.value);
       expect(userIds).toContain(curator2.value);
       expect(userIds).toContain(curator3.value);
 
       // Check that card IDs are correct
-      const cardIds = response.libraries.map((lib) => lib.cardId);
+      const cardIds = response.libraries.map((lib) => lib.card.id);
       expect(cardIds).toContain(card1.cardId.getStringValue());
       expect(cardIds).toContain(card2.cardId.getStringValue());
       expect(cardIds).toContain(card3.cardId.getStringValue());
+
+      // Verify user profiles are enriched
+      response.libraries.forEach((lib) => {
+        expect(lib.user.name).toBeDefined();
+        expect(lib.user.handle).toBeDefined();
+      });
     });
 
     it('should return empty result when no users have cards with the specified URL', async () => {
@@ -163,8 +199,10 @@ describe('GetLibrariesForUrlUseCase', () => {
       const response = result.unwrap();
 
       expect(response.libraries).toHaveLength(1);
-      expect(response.libraries[0]!.userId).toBe(curator1.value);
-      expect(response.libraries[0]!.cardId).toBe(card1.cardId.getStringValue());
+      expect(response.libraries[0]!.user.id).toBe(curator1.value);
+      expect(response.libraries[0]!.card.id).toBe(
+        card1.cardId.getStringValue(),
+      );
     });
   });
 
@@ -179,6 +217,15 @@ describe('GetLibrariesForUrlUseCase', () => {
       for (let i = 1; i <= 5; i++) {
         const curator = CuratorId.create(`did:plc:curator${i}`).unwrap();
         curators.push(curator);
+
+        // Add profile for this curator
+        profileService.addProfile({
+          id: curator.value,
+          name: `User ${i}`,
+          handle: `user${i}.bsky.social`,
+          avatarUrl: `https://example.com/avatar${i}.jpg`,
+          bio: `Bio for user ${i}`,
+        });
 
         const card = new CardBuilder()
           .withCuratorId(curator.value)
@@ -322,6 +369,7 @@ describe('GetLibrariesForUrlUseCase', () => {
 
       const errorUseCase = new GetLibrariesForUrlUseCase(
         errorCardQueryRepository,
+        profileService,
       );
 
       const query = {

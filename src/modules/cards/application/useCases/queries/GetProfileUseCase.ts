@@ -3,18 +3,14 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 import { err, ok, Result } from 'src/shared/core/Result';
 import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
+import { UserDTO } from 'src/shared/application/dtos/base';
 
 export interface GetMyProfileQuery {
   userId: string;
 }
 
-export interface GetMyProfileResult {
-  id: string;
-  name: string;
-  handle: string;
-  description?: string;
-  avatarUrl?: string;
-}
+// Use the unified UserDTO for the result
+export type GetMyProfileResult = UserDTO;
 
 export class ValidationError extends Error {
   constructor(message: string) {

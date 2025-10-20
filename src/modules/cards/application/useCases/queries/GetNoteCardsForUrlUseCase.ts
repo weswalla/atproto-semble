@@ -7,6 +7,11 @@ import {
 } from '../../../domain/ICardQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
 import { IProfileService } from '../../../domain/services/IProfileService';
+import {
+  UserDTO,
+  PaginationMetaDTO,
+  CardSortingMetaDTO,
+} from 'src/shared/application/dtos/base';
 
 export interface GetNoteCardsForUrlQuery {
   url: string;
@@ -17,32 +22,19 @@ export interface GetNoteCardsForUrlQuery {
   sortOrder?: SortOrder;
 }
 
+// Use unified base types
 export interface NoteCardForUrlDTO {
   id: string;
   note: string;
-  author: {
-    id: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
-  };
+  author: UserDTO;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface GetNoteCardsForUrlResult {
   notes: NoteCardForUrlDTO[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-  };
-  sorting: {
-    sortBy: CardSortField;
-    sortOrder: SortOrder;
-  };
+  pagination: PaginationMetaDTO;
+  sorting: CardSortingMetaDTO;
 }
 
 export class ValidationError extends Error {
@@ -97,11 +89,8 @@ export class GetNoteCardsForUrlUseCase
 
       const profileResults = await Promise.all(profilePromises);
 
-      // Create a map of profiles
-      const profileMap = new Map<
-        string,
-        { id: string; name: string; handle: string; avatarUrl?: string }
-      >();
+      // Create a map of profiles using UserDTO
+      const profileMap = new Map<string, UserDTO>();
 
       for (let i = 0; i < uniqueAuthorIds.length; i++) {
         const profileResult = profileResults[i];
@@ -122,6 +111,7 @@ export class GetNoteCardsForUrlUseCase
           name: profile.name,
           handle: profile.handle,
           avatarUrl: profile.avatarUrl,
+          description: profile.bio,
         });
       }
 

@@ -198,7 +198,7 @@ describe('GetCollectionsForUrlUseCase', () => {
       );
       expect(techArticles).toBeDefined();
       expect(techArticles?.description).toBe('My tech articles');
-      expect(techArticles?.author.id).toBe(curator1.value);
+      expect(techArticles?.author?.id).toBe(curator1.value);
       expect(techArticles?.uri).toBe(
         'at://did:plc:curator1/network.cosmik.collection/collection1',
       );
@@ -208,14 +208,14 @@ describe('GetCollectionsForUrlUseCase', () => {
       );
       expect(readingList).toBeDefined();
       expect(readingList?.description).toBe('Articles to read');
-      expect(readingList?.author.id).toBe(curator2.value);
+      expect(readingList?.author?.id).toBe(curator2.value);
 
       const favorites = response.collections.find(
         (c) => c.name === 'Favorites',
       );
       expect(favorites).toBeDefined();
       expect(favorites?.description).toBeUndefined();
-      expect(favorites?.author.id).toBe(curator3.value);
+      expect(favorites?.author?.id).toBe(curator3.value);
     });
 
     it('should return empty array when no collections contain cards with the specified URL', async () => {
@@ -296,7 +296,7 @@ describe('GetCollectionsForUrlUseCase', () => {
 
       expect(response.collections).toHaveLength(1);
       expect(response.collections[0]!.name).toBe('Collection 1');
-      expect(response.collections[0]!.author.id).toBe(curator1.value);
+      expect(response.collections[0]!.author?.id).toBe(curator1.value);
     });
 
     it('should return multiple collections from the same user if they contain the URL', async () => {
@@ -369,7 +369,7 @@ describe('GetCollectionsForUrlUseCase', () => {
 
       // All should have the same author
       response.collections.forEach((collection) => {
-        expect(collection.author.id).toBe(curator1.value);
+        expect(collection.author?.id).toBe(curator1.value);
       });
     });
 

@@ -8,6 +8,11 @@ import {
 import { IProfileService } from 'src/modules/cards/domain/services/IProfileService';
 import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
+import {
+  CollectionDTO,
+  PaginationMetaDTO,
+  CollectionSortingMetaDTO,
+} from 'src/shared/application/dtos/base';
 
 export interface GetCollectionsQuery {
   curatorId: string;
@@ -18,35 +23,11 @@ export interface GetCollectionsQuery {
   searchText?: string;
 }
 
-// Enriched data for the final use case result
-export interface CollectionListItemDTO {
-  id: string;
-  uri?: string;
-  name: string;
-  description?: string;
-  updatedAt: Date;
-  createdAt: Date;
-  cardCount: number;
-  createdBy: {
-    id: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
-  };
-}
+// Use the unified base types
 export interface GetCollectionsResult {
-  collections: CollectionListItemDTO[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-  };
-  sorting: {
-    sortBy: CollectionSortField;
-    sortOrder: SortOrder;
-  };
+  collections: CollectionDTO[];
+  pagination: PaginationMetaDTO;
+  sorting: CollectionSortingMetaDTO;
 }
 
 export class ValidationError extends Error {
@@ -116,26 +97,25 @@ export class GetCollectionsUseCase
       }
       const profile = profileResult.value;
 
-      // Transform raw data to enriched DTOs
-      const enrichedCollections: CollectionListItemDTO[] = result.items.map(
-        (item) => {
-          return {
-            id: item.id,
-            uri: item.uri,
-            name: item.name,
-            description: item.description,
-            updatedAt: item.updatedAt,
-            createdAt: item.createdAt,
-            cardCount: item.cardCount,
-            createdBy: {
-              id: profile.id,
-              name: profile.name,
-              handle: profile.handle,
-              avatarUrl: profile.avatarUrl,
-            },
-          };
-        },
-      );
+      // Transform raw data to match CollectionDTO structure
+      const enrichedCollections: CollectionDTO[] = result.items.map((item) => {
+        return {
+          id: item.id,
+          uri: item.uri,
+          name: item.name,
+          description: item.description,
+          updatedAt: item.updatedAt,
+          createdAt: item.createdAt,
+          cardCount: item.cardCount,
+          author: {
+            id: profile.id,
+            name: profile.name,
+            handle: profile.handle,
+            avatarUrl: profile.avatarUrl,
+            description: profile.bio,
+          },
+        };
+      });
 
       return ok({
         collections: enrichedCollections,

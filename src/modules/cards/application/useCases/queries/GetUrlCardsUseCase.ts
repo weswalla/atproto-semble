@@ -4,11 +4,14 @@ import {
   ICardQueryRepository,
   CardSortField,
   SortOrder,
-  WithCollections,
-  UrlCardView,
 } from '../../../domain/ICardQueryRepository';
 import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
+import {
+  UrlCardDTO,
+  PaginationMetaDTO,
+  CardSortingMetaDTO,
+} from 'src/shared/application/dtos/base';
 
 export interface GetUrlCardsQuery {
   userId: string;
@@ -19,21 +22,11 @@ export interface GetUrlCardsQuery {
   sortOrder?: SortOrder;
 }
 
-// Enriched data for the final use case result
-export type UrlCardListItemDTO = UrlCardView & WithCollections;
+// Use the unified base types for the result
 export interface GetUrlCardsResult {
-  cards: UrlCardListItemDTO[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-  };
-  sorting: {
-    sortBy: CardSortField;
-    sortOrder: SortOrder;
-  };
+  cards: UrlCardDTO[];
+  pagination: PaginationMetaDTO;
+  sorting: CardSortingMetaDTO;
 }
 
 export class ValidationError extends Error {
@@ -89,8 +82,12 @@ export class GetUrlCardsUseCase
         query.callingUserId,
       );
 
-      // Transform raw data to enriched DTOs
-      const enrichedCards: UrlCardListItemDTO[] = result.items;
+      // Transform raw data to match UrlCardDTO structure
+      const enrichedCards: UrlCardDTO[] = result.items.map((item) => ({
+        ...item,
+        collections: item.collections,
+        // libraries field is not populated in this query (only collections)
+      }));
 
       return ok({
         cards: enrichedCards,

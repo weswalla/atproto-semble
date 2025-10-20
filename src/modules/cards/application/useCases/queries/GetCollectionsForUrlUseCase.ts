@@ -7,6 +7,11 @@ import {
 } from '../../../domain/ICollectionQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
 import { IProfileService } from '../../../domain/services/IProfileService';
+import {
+  CollectionDTO,
+  PaginationMetaDTO,
+  CollectionSortingMetaDTO,
+} from 'src/shared/application/dtos/base';
 
 export interface GetCollectionsForUrlQuery {
   url: string;
@@ -17,32 +22,11 @@ export interface GetCollectionsForUrlQuery {
   sortOrder?: SortOrder;
 }
 
-export interface CollectionForUrlDTO {
-  id: string;
-  uri?: string;
-  name: string;
-  description?: string;
-  author: {
-    id: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
-  };
-}
-
+// Use unified base types
 export interface GetCollectionsForUrlResult {
-  collections: CollectionForUrlDTO[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-  };
-  sorting: {
-    sortBy: CollectionSortField;
-    sortOrder: SortOrder;
-  };
+  collections: CollectionDTO[];
+  pagination: PaginationMetaDTO;
+  sorting: CollectionSortingMetaDTO;
 }
 
 export class ValidationError extends Error {
@@ -101,11 +85,8 @@ export class GetCollectionsForUrlUseCase
 
       const profileResults = await Promise.all(profilePromises);
 
-      // Create a map of profiles
-      const profileMap = new Map<
-        string,
-        { id: string; name: string; handle: string; avatarUrl?: string }
-      >();
+      // Create a map of profiles using UserDTO
+      const profileMap = new Map();
 
       for (let i = 0; i < uniqueAuthorIds.length; i++) {
         const profileResult = profileResults[i];
@@ -126,25 +107,24 @@ export class GetCollectionsForUrlUseCase
           name: profile.name,
           handle: profile.handle,
           avatarUrl: profile.avatarUrl,
+          description: profile.bio,
         });
       }
 
-      // Map items with enriched author data
-      const enrichedCollections: CollectionForUrlDTO[] = result.items.map(
-        (item) => {
-          const author = profileMap.get(item.authorId);
-          if (!author) {
-            throw new Error(`Profile not found for author ${item.authorId}`);
-          }
-          return {
-            id: item.id,
-            uri: item.uri,
-            name: item.name,
-            description: item.description,
-            author,
-          };
-        },
-      );
+      // Map items with enriched author data to match CollectionDTO
+      const enrichedCollections: CollectionDTO[] = result.items.map((item) => {
+        const author = profileMap.get(item.authorId);
+        if (!author) {
+          throw new Error(`Profile not found for author ${item.authorId}`);
+        }
+        return {
+          id: item.id,
+          uri: item.uri,
+          name: item.name,
+          description: item.description,
+          author,
+        };
+      });
 
       return ok({
         collections: enrichedCollections,

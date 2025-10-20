@@ -9,7 +9,6 @@ import { ICardQueryRepository } from '../../../../cards/domain/ICardQueryReposit
 import { ICollectionRepository } from 'src/modules/cards/domain/ICollectionRepository';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
 import { IIdentityResolutionService } from '../../../../atproto/domain/services/IIdentityResolutionService';
-import { DID } from '../../../../atproto/domain/DID';
 import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
 import {
   UserDTO,
@@ -150,48 +149,15 @@ export class GetGlobalFeedUseCase
         ),
       );
 
-      // Fetch profiles for all library users in all cards
-      const allLibraryUserIds = new Set<string>();
-      cardViews.forEach((cardView) => {
-        if (cardView) {
-          cardView.libraries.forEach((lib) =>
-            allLibraryUserIds.add(lib.userId),
-          );
-        }
-      });
-
-      const libraryUserProfiles = new Map<string, UserDTO>();
-      const libraryProfileResults = await Promise.all(
-        Array.from(allLibraryUserIds).map((userId) =>
-          this.profileService.getProfile(userId),
-        ),
-      );
-
-      Array.from(allLibraryUserIds).forEach((userId, idx) => {
-        const profileResult = libraryProfileResults[idx];
-        if (profileResult && profileResult.isOk()) {
-          const profile = profileResult.value;
-          libraryUserProfiles.set(userId, {
-            id: profile.id,
-            name: profile.name,
-            handle: profile.handle,
-            avatarUrl: profile.avatarUrl,
-            description: profile.bio,
-          });
-        }
-      });
 
       // Convert UrlCardViewDTO to UrlCardDTO by enriching libraries
       cardIds.forEach((cardId, idx) => {
         const cardView = cardViews[idx];
         if (cardView) {
-          const enrichedLibraries = cardView.libraries
-            .map((lib) => libraryUserProfiles.get(lib.userId))
-            .filter((user): user is UserDTO => !!user);
 
           const cardDTO: UrlCardDTO = {
             ...cardView,
-            libraries: enrichedLibraries,
+            libraries: undefined,
           };
           cardDataMap.set(cardId, cardDTO);
         }

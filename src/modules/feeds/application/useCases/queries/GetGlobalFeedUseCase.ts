@@ -7,13 +7,13 @@ import { ActivityId } from '../../../domain/value-objects/ActivityId';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
 import {
   ICardQueryRepository,
-  UrlCardView,
 } from '../../../../cards/domain/ICardQueryRepository';
 import { ICollectionRepository } from 'src/modules/cards/domain/ICollectionRepository';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
 import { IIdentityResolutionService } from '../../../../atproto/domain/services/IIdentityResolutionService';
 import { DID } from '../../../../atproto/domain/DID';
 import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
+import { UserDTO, UrlCardDTO, CollectionDTO, PaginationMetaDTO } from 'src/shared/application/dtos/base';
 
 export interface GetGlobalFeedQuery {
   callingUserId?: string;
@@ -22,35 +22,18 @@ export interface GetGlobalFeedQuery {
   beforeActivityId?: string; // For cursor-based pagination
 }
 
-export interface ActivityActorDTO {
-  id: string;
-  name: string;
-  handle: string;
-  avatarUrl?: string;
-}
-// DTOs for the response
+// Use unified base types for feed items
 export interface FeedItemView {
   id: string;
-  user: ActivityActorDTO;
-  card: UrlCardView;
+  user: UserDTO;
+  card: UrlCardDTO;
   createdAt: Date;
-  collections: {
-    id: string;
-    name: string;
-    authorHandle: string;
-    uri?: string;
-  }[];
+  collections: CollectionDTO[];
 }
 
 export interface GetGlobalFeedResult {
   activities: FeedItemView[];
-  pagination: {
-    currentPage: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-    nextCursor?: string;
-  };
+  pagination: PaginationMetaDTO;
 }
 
 export class ValidationError extends UseCaseError {
@@ -118,7 +101,7 @@ export class GetGlobalFeedUseCase
       ];
 
       // Fetch profiles for all actors
-      const actorProfiles = new Map<string, ActivityActorDTO>();
+      const actorProfiles = new Map<string, UserDTO>();
       const profileResults = await Promise.all(
         actorIds.map((actorId) => this.profileService.getProfile(actorId)),
       );
@@ -135,6 +118,7 @@ export class GetGlobalFeedUseCase
             name: profile.name,
             handle: profile.handle,
             avatarUrl: profile.avatarUrl,
+            description: profile.bio,
           });
         } else {
           // If profile fetch fails, create a fallback
@@ -156,7 +140,7 @@ export class GetGlobalFeedUseCase
       ];
 
       // Hydrate card data using Promise.all
-      const cardDataMap = new Map<string, UrlCardView>();
+      const cardDataMap = new Map<string, UrlCardDTO>();
       const cardViews = await Promise.all(
         cardIds.map((cardId) =>
           this.cardQueryRepository.getUrlCardView(cardId, query.callingUserId),

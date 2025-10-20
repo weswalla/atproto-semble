@@ -5,10 +5,10 @@ import {
   ICardQueryRepository,
   CardSortField,
   SortOrder,
-  UrlCardView,
 } from '../../../domain/ICardQueryRepository';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { IProfileService } from '../../../domain/services/IProfileService';
+import { CollectionDTO, UrlCardDTO, PaginationMetaDTO, CardSortingMetaDTO } from 'src/shared/application/dtos/base';
 
 export interface GetCollectionPageQuery {
   collectionId: string;
@@ -19,30 +19,11 @@ export interface GetCollectionPageQuery {
   sortOrder?: SortOrder;
 }
 
-export type CollectionPageUrlCardDTO = UrlCardView;
-export interface GetCollectionPageResult {
-  id: string;
-  uri?: string;
-  name: string;
-  description?: string;
-  author: {
-    id: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
-  };
-  urlCards: CollectionPageUrlCardDTO[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-  };
-  sorting: {
-    sortBy: CardSortField;
-    sortOrder: SortOrder;
-  };
+// Use the unified base types - extends CollectionDTO with additional fields
+export interface GetCollectionPageResult extends CollectionDTO {
+  urlCards: UrlCardDTO[];
+  pagination: PaginationMetaDTO;
+  sorting: CardSortingMetaDTO;
 }
 
 export class ValidationError extends Error {
@@ -136,19 +117,25 @@ export class GetCollectionPageUseCase
         query.callingUserId,
       );
 
-      // Transform raw card data to enriched DTOs
-      const enrichedCards: CollectionPageUrlCardDTO[] = cardsResult.items;
+      // Transform raw card data to match UrlCardDTO structure
+      const enrichedCards: UrlCardDTO[] = cardsResult.items.map((item) => ({
+        ...item,
+        // collections field is not populated for cards in collection view
+      }));
 
       return ok({
         id: collection.collectionId.getStringValue(),
         uri: collectionUri,
         name: collection.name.value,
         description: collection.description?.value,
+        createdAt: collection.createdAt,
+        updatedAt: collection.updatedAt,
         author: {
           id: authorProfile.id,
           name: authorProfile.name,
           handle: authorProfile.handle,
           avatarUrl: authorProfile.avatarUrl,
+          description: authorProfile.bio,
         },
         urlCards: enrichedCards,
         pagination: {

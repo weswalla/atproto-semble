@@ -7,6 +7,7 @@ import {
   LibraryForUrlDTO,
 } from '../../../domain/ICardQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
+import { PaginationMetaDTO, CardSortingMetaDTO } from 'src/shared/application/dtos/base';
 
 export interface GetLibrariesForUrlQuery {
   url: string;
@@ -16,19 +17,11 @@ export interface GetLibrariesForUrlQuery {
   sortOrder?: SortOrder;
 }
 
+// Use unified pagination and sorting types
 export interface GetLibrariesForUrlResult {
   libraries: LibraryForUrlDTO[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-  };
-  sorting: {
-    sortBy: CardSortField;
-    sortOrder: SortOrder;
-  };
+  pagination: PaginationMetaDTO;
+  sorting: CardSortingMetaDTO;
 }
 
 export class ValidationError extends Error {

@@ -3,26 +3,17 @@ import { err, ok, Result } from 'src/shared/core/Result';
 import { UseCase } from 'src/shared/core/UseCase';
 import {
   ICardQueryRepository,
-  UrlCardView,
-  WithCollections,
 } from '../../../domain/ICardQueryRepository';
 import { IProfileService } from '../../../domain/services/IProfileService';
+import { UrlCardDTO } from 'src/shared/application/dtos/base';
 
 export interface GetUrlCardViewQuery {
   cardId: string;
   callingUserId?: string;
 }
 
-// Enriched data for the final use case result
-export type UrlCardViewResult = UrlCardView &
-  WithCollections & {
-    libraries: {
-      userId: string;
-      name: string;
-      handle: string;
-      avatarUrl?: string;
-    }[];
-  };
+// Use the unified UrlCardDTO for the result
+export type UrlCardViewResult = UrlCardDTO;
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -85,7 +76,7 @@ export class GetUrlCardViewUseCase
         );
       }
 
-      // Transform to result format with enriched profile data
+      // Transform to UrlCardDTO format with enriched profile data
       const enrichedLibraries = cardView.libraries.map((lib, index) => {
         const profileResult = profileResults[index]!;
         if (profileResult.isErr()) {
@@ -96,10 +87,11 @@ export class GetUrlCardViewUseCase
         const profile = profileResult.value;
 
         return {
-          userId: lib.userId,
+          id: lib.userId,
           name: profile.name,
           handle: profile.handle,
           avatarUrl: profile.avatarUrl,
+          description: profile.bio,
         };
       });
 

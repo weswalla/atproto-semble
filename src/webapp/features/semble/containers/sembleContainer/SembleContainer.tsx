@@ -1,8 +1,9 @@
 import SembleHeader from '../../components/SembleHeader/SembleHeader';
-import { BackgroundImage, Container, Loader, Stack } from '@mantine/core';
+import { BackgroundImage, Container, Stack } from '@mantine/core';
 import BG from '@/assets/semble-bg.webp';
 import { Suspense } from 'react';
 import SembleTabs from '../../components/sembleTabs/SembleTabs';
+import SembleHeaderSkeleton from '../../components/SembleHeader/Skeleton.SembleHeader';
 
 interface Props {
   url: string;
@@ -14,7 +15,7 @@ export default async function SembleContainer(props: Props) {
       <BackgroundImage src={BG.src} h={350}>
         <Container p={'xs'} size={'xl'}>
           <Stack gap={'xl'}>
-            <Suspense fallback={<Loader />}>
+            <Suspense fallback={<SembleHeaderSkeleton />}>
               <SembleHeader url={props.url} />
             </Suspense>
             <SembleTabs url={props.url} />

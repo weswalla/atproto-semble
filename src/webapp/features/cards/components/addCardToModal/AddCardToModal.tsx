@@ -117,6 +117,7 @@ export default function AddCardToModal(props: Props) {
       title="Add Card"
       overlayProps={DEFAULT_OVERLAY_PROPS}
       centered
+      onClick={(e) => e.stopPropagation()}
     >
       <Stack gap={'xl'}>
         <CardToBeAddedPreview

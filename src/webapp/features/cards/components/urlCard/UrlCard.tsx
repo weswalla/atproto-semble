@@ -47,15 +47,16 @@ export default function UrlCard(props: Props) {
       p={'sm'}
       flex={1}
       h={'100%'}
+      withBorder
       className={styles.root}
       onClick={handleNavigateToSemblePage}
-      withBorder
     >
       <Stack justify="space-between" gap={'sm'} flex={1}>
         <Group justify="space-between" align="start" gap={'lg'}>
           <Stack gap={0} flex={1}>
             <Tooltip label={props.url}>
               <Anchor
+                onClick={(e) => e.stopPropagation()}
                 component={Link}
                 href={props.url}
                 target="_blank"

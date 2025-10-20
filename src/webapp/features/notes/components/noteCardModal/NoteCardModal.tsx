@@ -31,6 +31,7 @@ export default function NoteCardModal(props: Props) {
       title="Note"
       overlayProps={UPDATE_OVERLAY_PROPS}
       centered
+      onClick={(e) => e.stopPropagation()}
     >
       <Stack gap={'xl'}>
         {props.note && <Text>{props.note.text}</Text>}

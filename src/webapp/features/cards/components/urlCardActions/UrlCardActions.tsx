@@ -42,7 +42,12 @@ export default function UrlCardActions(props: Props) {
 
   return (
     <Fragment>
-      <Group justify="space-between">
+      <Group
+        justify="space-between"
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+      >
         <Group gap={'xs'}>
           <Button
             variant="light"
@@ -56,7 +61,9 @@ export default function UrlCardActions(props: Props) {
                 <BiPlus size={18} />
               )
             }
-            onClick={() => setShowAddToModal(true)}
+            onClick={() => {
+              setShowAddToModal(true);
+            }}
           >
             {props.urlLibraryCount}
           </Button>
@@ -65,7 +72,9 @@ export default function UrlCardActions(props: Props) {
               variant="light"
               color="gray"
               radius={'xl'}
-              onClick={() => setShowNoteModal(true)}
+              onClick={() => {
+                setShowNoteModal(true);
+              }}
             >
               <MdOutlineStickyNote2 />
             </ActionIcon>
@@ -82,7 +91,9 @@ export default function UrlCardActions(props: Props) {
               {props.note && (
                 <Menu.Item
                   leftSection={<AiOutlineSignature />}
-                  onClick={() => setShowEditNoteModal(true)}
+                  onClick={() => {
+                    setShowEditNoteModal(true);
+                  }}
                 >
                   Edit note
                 </Menu.Item>
@@ -90,7 +101,9 @@ export default function UrlCardActions(props: Props) {
               {props.currentCollection && (
                 <Menu.Item
                   leftSection={<LuUnplug />}
-                  onClick={() => setShowRemoveFromCollectionModal(true)}
+                  onClick={() => {
+                    setShowRemoveFromCollectionModal(true);
+                  }}
                 >
                   Remove from this collection
                 </Menu.Item>
@@ -98,7 +111,9 @@ export default function UrlCardActions(props: Props) {
               <Menu.Item
                 color="red"
                 leftSection={<BsTrash2Fill />}
-                onClick={() => setShowRemoveFromLibraryModal(true)}
+                onClick={() => {
+                  setShowRemoveFromLibraryModal(true);
+                }}
               >
                 Remove from library
               </Menu.Item>

@@ -288,7 +288,7 @@ export interface GetUrlStatusForMyLibraryResponse {
 export interface FeedItem {
   id: string;
   user: User;  // Changed from FeedActivityActor
-  card: UrlCardWithCollectionsAndLibraries;  // Changed from FeedActivityCard, now includes author
+  card: UrlCard;  // Changed from FeedActivityCard, now includes author
   createdAt: Date;
   collections: Collection[];  // Changed to use unified Collection
 }
@@ -742,7 +742,6 @@ feedItems.push({
   card: {
     ...cardData,
     author: cardAuthorProfiles.get(cardData.authorId),
-    collections: collectionsForCard,
   },
   createdAt: activity.createdAt,
   collections: collectionsForCard,

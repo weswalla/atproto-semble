@@ -36,12 +36,36 @@ describe('GetLibrariesForUrlUseCase', () => {
     curator1 = CuratorId.create('did:plc:curator1').unwrap();
     curator2 = CuratorId.create('did:plc:curator2').unwrap();
     curator3 = CuratorId.create('did:plc:curator3').unwrap();
+
+    // Add profiles for the test curators
+    profileService.addProfile({
+      id: curator1.value,
+      name: 'Curator 1',
+      handle: 'curator1.bsky.social',
+      avatarUrl: 'https://example.com/avatar1.jpg',
+      bio: 'Bio for curator 1',
+    });
+    profileService.addProfile({
+      id: curator2.value,
+      name: 'Curator 2',
+      handle: 'curator2.bsky.social',
+      avatarUrl: 'https://example.com/avatar2.jpg',
+      bio: 'Bio for curator 2',
+    });
+    profileService.addProfile({
+      id: curator3.value,
+      name: 'Curator 3',
+      handle: 'curator3.bsky.social',
+      avatarUrl: 'https://example.com/avatar3.jpg',
+      bio: 'Bio for curator 3',
+    });
   });
 
   afterEach(() => {
     cardRepository.clear();
     collectionRepository.clear();
     cardQueryRepository.clear();
+    profileService.clear();
   });
 
   describe('Multiple users with same URL', () => {
@@ -193,6 +217,15 @@ describe('GetLibrariesForUrlUseCase', () => {
       for (let i = 1; i <= 5; i++) {
         const curator = CuratorId.create(`did:plc:curator${i}`).unwrap();
         curators.push(curator);
+
+        // Add profile for this curator
+        profileService.addProfile({
+          id: curator.value,
+          name: `User ${i}`,
+          handle: `user${i}.bsky.social`,
+          avatarUrl: `https://example.com/avatar${i}.jpg`,
+          bio: `Bio for user ${i}`,
+        });
 
         const card = new CardBuilder()
           .withCuratorId(curator.value)

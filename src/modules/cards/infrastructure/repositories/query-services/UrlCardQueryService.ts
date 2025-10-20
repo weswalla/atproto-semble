@@ -376,11 +376,21 @@ export class UrlCardQueryService {
 
       const librariesResult = await librariesQuery;
 
+      // Get total count first (before checking if results are empty)
+      const totalCountResult = await this.db
+        .select({ count: count() })
+        .from(libraryMemberships)
+        .innerJoin(cards, eq(libraryMemberships.cardId, cards.id))
+        .where(and(eq(cards.url, url), eq(cards.type, CardTypeEnum.URL)));
+
+      const totalCount = totalCountResult[0]?.count || 0;
+      const hasMore = offset + librariesResult.length < totalCount;
+
       if (librariesResult.length === 0) {
         return {
           items: [],
-          totalCount: 0,
-          hasMore: false,
+          totalCount,
+          hasMore,
         };
       }
 
@@ -414,16 +424,6 @@ export class UrlCardQueryService {
 
       const urlLibraryCountResult = await urlLibraryCountQuery;
       const urlLibraryCount = urlLibraryCountResult[0]?.count || 0;
-
-      // Get total count
-      const totalCountResult = await this.db
-        .select({ count: count() })
-        .from(libraryMemberships)
-        .innerJoin(cards, eq(libraryMemberships.cardId, cards.id))
-        .where(and(eq(cards.url, url), eq(cards.type, CardTypeEnum.URL)));
-
-      const totalCount = totalCountResult[0]?.count || 0;
-      const hasMore = offset + librariesResult.length < totalCount;
 
       // Map the results to include card data
       const items: LibraryForUrlDTO[] = librariesResult.map((lib) => {

@@ -61,9 +61,11 @@ export type UrlCardQueryResultDTO = UrlCardView & WithCollections;
 // DTO for single URL card view with library and collection info
 export type UrlCardViewDTO = UrlCardView & WithCollections & WithLibraries;
 
+// Raw repository DTO - minimal card and user data
 export interface LibraryForUrlDTO {
   userId: string;
   cardId: string;
+  card: UrlCardView; // Include full card data
 }
 
 // Raw repository DTO - what the repository returns (not enriched)

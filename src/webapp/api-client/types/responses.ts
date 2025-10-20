@@ -145,8 +145,13 @@ export interface GetUrlStatusForMyLibraryResponse {
   collections?: Collection[];
 }
 
+export interface LibraryEntry {
+  user: User;
+  card: UrlCard;
+}
+
 export interface GetLibrariesForUrlResponse {
-  libraries: User[];
+  libraries: LibraryEntry[];
   pagination: PaginationMeta;
   sorting: CardSortingMeta;
 }

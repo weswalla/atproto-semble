@@ -358,24 +358,25 @@ export interface UrlCardView {
 // Repository returns card data - will be enriched with user profile in use case
 export interface LibraryForUrlDTO {
   userId: string;
-  cardId: string;
-  // Card data
-  url: string;
-  cardContent: {
-    url: string;
-    title?: string;
-    description?: string;
-    author?: string;
-    thumbnailUrl?: string;
-  };
-  libraryCount: number;
-  urlLibraryCount: number;
-  urlInLibrary?: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  note?: {
+  card: {
     id: string;
-    text: string;
+    url: string;
+    cardContent: {
+      url: string;
+      title?: string;
+      description?: string;
+      author?: string;
+      thumbnailUrl?: string;
+    };
+    libraryCount: number;
+    urlLibraryCount: number;
+    urlInLibrary?: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    note?: {
+      id: string;
+      text: string;
+    };
   };
   // Note: userId is the card author in this context (it's their card in their library)
 }
@@ -692,17 +693,17 @@ async execute(
       // Build card object
       // Note: userId is the card author (it's their card in their library)
       const card: UrlCard = {
-        id: item.cardId,
+        id: item.card.id,
         type: 'URL',
-        url: item.url,
-        cardContent: item.cardContent,
-        libraryCount: item.libraryCount,
-        urlLibraryCount: item.urlLibraryCount,
-        urlInLibrary: item.urlInLibrary,
-        createdAt: item.createdAt.toISOString(),
-        updatedAt: item.updatedAt.toISOString(),
+        url: item.card.url,
+        cardContent: item.card.cardContent,
+        libraryCount: item.card.libraryCount,
+        urlLibraryCount: item.card.urlLibraryCount,
+        urlInLibrary: item.card.urlInLibrary,
+        createdAt: item.card.createdAt.toISOString(),
+        updatedAt: item.card.updatedAt.toISOString(),
         author: user, // Card author is same as library user
-        note: item.note,
+        note: item.card.note,
       };
 
       return {

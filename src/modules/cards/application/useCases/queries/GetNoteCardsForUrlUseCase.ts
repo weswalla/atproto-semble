@@ -7,7 +7,11 @@ import {
 } from '../../../domain/ICardQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
 import { IProfileService } from '../../../domain/services/IProfileService';
-import { UserDTO, PaginationMetaDTO, CardSortingMetaDTO } from 'src/shared/application/dtos/base';
+import {
+  UserDTO,
+  PaginationMetaDTO,
+  CardSortingMetaDTO,
+} from 'src/shared/application/dtos/base';
 
 export interface GetNoteCardsForUrlQuery {
   url: string;

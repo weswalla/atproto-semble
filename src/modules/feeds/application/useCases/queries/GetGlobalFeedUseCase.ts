@@ -5,15 +5,18 @@ import { AppError } from '../../../../../shared/core/AppError';
 import { IFeedRepository } from '../../../domain/IFeedRepository';
 import { ActivityId } from '../../../domain/value-objects/ActivityId';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
-import {
-  ICardQueryRepository,
-} from '../../../../cards/domain/ICardQueryRepository';
+import { ICardQueryRepository } from '../../../../cards/domain/ICardQueryRepository';
 import { ICollectionRepository } from 'src/modules/cards/domain/ICollectionRepository';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
 import { IIdentityResolutionService } from '../../../../atproto/domain/services/IIdentityResolutionService';
 import { DID } from '../../../../atproto/domain/DID';
 import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
-import { UserDTO, UrlCardDTO, CollectionDTO, PaginationMetaDTO } from 'src/shared/application/dtos/base';
+import {
+  UserDTO,
+  UrlCardDTO,
+  CollectionDTO,
+  PaginationMetaDTO,
+} from 'src/shared/application/dtos/base';
 
 export interface GetGlobalFeedQuery {
   callingUserId?: string;

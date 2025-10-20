@@ -7,7 +7,11 @@ import {
 } from '../../../domain/ICollectionQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
 import { IProfileService } from '../../../domain/services/IProfileService';
-import { CollectionDTO, PaginationMetaDTO, CollectionSortingMetaDTO } from 'src/shared/application/dtos/base';
+import {
+  CollectionDTO,
+  PaginationMetaDTO,
+  CollectionSortingMetaDTO,
+} from 'src/shared/application/dtos/base';
 
 export interface GetCollectionsForUrlQuery {
   url: string;
@@ -108,21 +112,19 @@ export class GetCollectionsForUrlUseCase
       }
 
       // Map items with enriched author data to match CollectionDTO
-      const enrichedCollections: CollectionDTO[] = result.items.map(
-        (item) => {
-          const author = profileMap.get(item.authorId);
-          if (!author) {
-            throw new Error(`Profile not found for author ${item.authorId}`);
-          }
-          return {
-            id: item.id,
-            uri: item.uri,
-            name: item.name,
-            description: item.description,
-            author,
-          };
-        },
-      );
+      const enrichedCollections: CollectionDTO[] = result.items.map((item) => {
+        const author = profileMap.get(item.authorId);
+        if (!author) {
+          throw new Error(`Profile not found for author ${item.authorId}`);
+        }
+        return {
+          id: item.id,
+          uri: item.uri,
+          name: item.name,
+          description: item.description,
+          author,
+        };
+      });
 
       return ok({
         collections: enrichedCollections,

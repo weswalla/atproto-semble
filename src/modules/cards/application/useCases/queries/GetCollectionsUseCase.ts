@@ -8,7 +8,11 @@ import {
 import { IProfileService } from 'src/modules/cards/domain/services/IProfileService';
 import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
-import { CollectionDTO, PaginationMetaDTO, CollectionSortingMetaDTO } from 'src/shared/application/dtos/base';
+import {
+  CollectionDTO,
+  PaginationMetaDTO,
+  CollectionSortingMetaDTO,
+} from 'src/shared/application/dtos/base';
 
 export interface GetCollectionsQuery {
   curatorId: string;
@@ -94,26 +98,24 @@ export class GetCollectionsUseCase
       const profile = profileResult.value;
 
       // Transform raw data to match CollectionDTO structure
-      const enrichedCollections: CollectionDTO[] = result.items.map(
-        (item) => {
-          return {
-            id: item.id,
-            uri: item.uri,
-            name: item.name,
-            description: item.description,
-            updatedAt: item.updatedAt,
-            createdAt: item.createdAt,
-            cardCount: item.cardCount,
-            author: {
-              id: profile.id,
-              name: profile.name,
-              handle: profile.handle,
-              avatarUrl: profile.avatarUrl,
-              description: profile.bio,
-            },
-          };
-        },
-      );
+      const enrichedCollections: CollectionDTO[] = result.items.map((item) => {
+        return {
+          id: item.id,
+          uri: item.uri,
+          name: item.name,
+          description: item.description,
+          updatedAt: item.updatedAt,
+          createdAt: item.createdAt,
+          cardCount: item.cardCount,
+          author: {
+            id: profile.id,
+            name: profile.name,
+            handle: profile.handle,
+            avatarUrl: profile.avatarUrl,
+            description: profile.bio,
+          },
+        };
+      });
 
       return ok({
         collections: enrichedCollections,

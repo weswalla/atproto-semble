@@ -1,9 +1,7 @@
 import { CardId } from 'src/modules/cards/domain/value-objects/CardId';
 import { err, ok, Result } from 'src/shared/core/Result';
 import { UseCase } from 'src/shared/core/UseCase';
-import {
-  ICardQueryRepository,
-} from '../../../domain/ICardQueryRepository';
+import { ICardQueryRepository } from '../../../domain/ICardQueryRepository';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { UrlCardDTO } from 'src/shared/application/dtos/base';
 

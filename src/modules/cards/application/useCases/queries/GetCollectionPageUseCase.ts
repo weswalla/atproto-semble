@@ -8,7 +8,12 @@ import {
 } from '../../../domain/ICardQueryRepository';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { IProfileService } from '../../../domain/services/IProfileService';
-import { CollectionDTO, UrlCardDTO, PaginationMetaDTO, CardSortingMetaDTO } from 'src/shared/application/dtos/base';
+import {
+  CollectionDTO,
+  UrlCardDTO,
+  PaginationMetaDTO,
+  CardSortingMetaDTO,
+} from 'src/shared/application/dtos/base';
 
 export interface GetCollectionPageQuery {
   collectionId: string;

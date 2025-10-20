@@ -94,7 +94,11 @@ export type CardSortField = 'createdAt' | 'updatedAt' | 'libraryCount';
 /**
  * Collection sorting field types
  */
-export type CollectionSortField = 'name' | 'createdAt' | 'updatedAt' | 'cardCount';
+export type CollectionSortField =
+  | 'name'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'cardCount';
 
 /**
  * Specific sorting type for cards

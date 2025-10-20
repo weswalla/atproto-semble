@@ -65,5 +65,9 @@ export interface PaginatedResponse<T, S extends string = string> {
 }
 
 // Specific sorting type aliases
-export type CardSortingMeta = SortingMeta<'createdAt' | 'updatedAt' | 'libraryCount'>;
-export type CollectionSortingMeta = SortingMeta<'name' | 'createdAt' | 'updatedAt' | 'cardCount'>;
+export type CardSortingMeta = SortingMeta<
+  'createdAt' | 'updatedAt' | 'libraryCount'
+>;
+export type CollectionSortingMeta = SortingMeta<
+  'name' | 'createdAt' | 'updatedAt' | 'cardCount'
+>;

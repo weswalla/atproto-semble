@@ -7,7 +7,11 @@ import {
 } from '../../../domain/ICardQueryRepository';
 import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
-import { UrlCardDTO, PaginationMetaDTO, CardSortingMetaDTO } from 'src/shared/application/dtos/base';
+import {
+  UrlCardDTO,
+  PaginationMetaDTO,
+  CardSortingMetaDTO,
+} from 'src/shared/application/dtos/base';
 
 export interface GetUrlCardsQuery {
   userId: string;

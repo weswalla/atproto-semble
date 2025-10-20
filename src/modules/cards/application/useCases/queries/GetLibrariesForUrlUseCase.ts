@@ -7,7 +7,10 @@ import {
   LibraryForUrlDTO,
 } from '../../../domain/ICardQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
-import { PaginationMetaDTO, CardSortingMetaDTO } from 'src/shared/application/dtos/base';
+import {
+  PaginationMetaDTO,
+  CardSortingMetaDTO,
+} from 'src/shared/application/dtos/base';
 
 export interface GetLibrariesForUrlQuery {
   url: string;

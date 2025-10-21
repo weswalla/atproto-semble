@@ -3,11 +3,12 @@
 import type { Collection } from '@/api-client';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { getRelativeTime } from '@/lib/utils/time';
-import { Card, Group, Stack, Text } from '@mantine/core';
+import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
 import { useRouter } from 'next/navigation';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
+  showAuthor?: boolean;
   collection: Collection;
 }
 
@@ -24,9 +25,7 @@ export default function CollectionCard(props: Props) {
     <Card
       withBorder
       onClick={() =>
-        router.push(
-          `/profile/${collection.author.handle}/collections/${rkey}`,
-        )
+        router.push(`/profile/${collection.author.handle}/collections/${rkey}`)
       }
       radius={'lg'}
       p={'sm'}
@@ -50,6 +49,19 @@ export default function CollectionCard(props: Props) {
             {relativeUpdateDate}
           </Text>
         </Group>
+        {props.showAuthor && (
+          <Group gap={'xs'}>
+            <Avatar
+              src={collection.author.avatarUrl}
+              alt={`${collection.author.handle}'s avatar`}
+              size={'sm'}
+            />
+
+            <Text c={'dark'} fw={500} span>
+              {collection.author.name}
+            </Text>
+          </Group>
+        )}
       </Stack>
     </Card>
   );

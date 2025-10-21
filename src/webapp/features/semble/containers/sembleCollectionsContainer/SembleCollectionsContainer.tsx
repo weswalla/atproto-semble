@@ -54,10 +54,10 @@ export default function SembleCollectionsContainer(props: Props) {
             span={{
               base: 12,
               sm: 6,
-              lg: 3,
+              lg: 4,
             }}
           >
-            {/*<CollectionCard key={col.id} collection={col} />*/}
+            <CollectionCard collection={col} showAuthor />
           </Grid.Col>
         ))}
       </Grid>

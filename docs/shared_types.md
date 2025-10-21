@@ -24,8 +24,8 @@ We chose npm workspaces over simpler approaches because:
 annos/
 ├── package.json                    # Workspace root
 ├── src/
-│   ├── shared/
-│   │   ├── package.json           # @annos/shared-types package
+│   ├── types/                     # @annos/types package
+│   │   ├── package.json
 │   │   ├── tsconfig.json
 │   │   ├── src/
 │   │   │   ├── api/
@@ -35,6 +35,7 @@ annos/
 │   │   │   │   └── responses.ts   # Response types for all API endpoints
 │   │   │   └── index.ts           # Main entry point
 │   │   └── dist/                  # Compiled output
+│   ├── shared/                    # EXISTING: Backend shared utilities
 │   ├── modules/                   # Backend modules
 │   └── webapp/
 │       ├── package.json           # @annos/webapp package
@@ -54,27 +55,27 @@ Update root `package.json`:
   "name": "annos",
   "version": "1.0.0",
   "workspaces": [
-    "src/shared",
+    "src/types",
     "src/webapp",
     "."
   ],
   "scripts": {
-    "build:shared": "npm run build --workspace=@annos/shared-types",
-    "dev:shared": "npm run dev --workspace=@annos/shared-types",
+    "build:types": "npm run build --workspace=@annos/types",
+    "dev:types": "npm run dev --workspace=@annos/types",
     "build:webapp": "npm run build --workspace=@annos/webapp",
     "dev:webapp": "npm run dev --workspace=@annos/webapp",
-    "dev:all": "npm run dev:shared & npm run dev:webapp & npm run dev:app:inner"
+    "dev:all": "npm run dev:types & npm run dev:webapp & npm run dev:app:inner"
   }
 }
 ```
 
 #### Step 1.2: Create Shared Types Package
 
-Create `src/shared/package.json`:
+Create `src/types/package.json`:
 
 ```json
 {
-  "name": "@annos/shared-types",
+  "name": "@annos/types",
   "version": "1.0.0",
   "description": "Shared TypeScript types for Annos API",
   "main": "dist/index.js",
@@ -93,7 +94,7 @@ Create `src/shared/package.json`:
 }
 ```
 
-Create `src/shared/tsconfig.json`:
+Create `src/types/tsconfig.json`:
 
 ```json
 {
@@ -124,7 +125,7 @@ Update `src/webapp/package.json`:
 {
   "name": "@annos/webapp",
   "dependencies": {
-    "@annos/shared-types": "workspace:*",
+    "@annos/types": "workspace:*",
     // ... existing dependencies
   }
 }
@@ -136,7 +137,7 @@ Update `src/webapp/package.json`:
 
 Move and organize existing webapp types into the shared package:
 
-**src/shared/src/api/common.ts:**
+**src/types/src/api/common.ts:**
 ```typescript
 export interface User {
   id: string;
@@ -171,7 +172,7 @@ export interface FeedPagination extends Pagination {
 }
 ```
 
-**src/shared/src/api/requests.ts:**
+**src/types/src/api/requests.ts:**
 ```typescript
 // Copy all request types from src/webapp/api-client/types/requests.ts
 export interface PaginationParams {
@@ -187,7 +188,7 @@ export interface SortingParams {
 // ... all other request types
 ```
 
-**src/shared/src/api/responses.ts:**
+**src/types/src/api/responses.ts:**
 ```typescript
 import { User, Pagination, CardSorting, CollectionSorting, FeedPagination } from './common';
 
@@ -202,14 +203,14 @@ export interface UrlCard {
 // ... all other response types
 ```
 
-**src/shared/src/api/index.ts:**
+**src/types/src/api/index.ts:**
 ```typescript
 export * from './common';
 export * from './requests';
 export * from './responses';
 ```
 
-**src/shared/src/index.ts:**
+**src/types/src/index.ts:**
 ```typescript
 export * from './api';
 ```
@@ -217,7 +218,7 @@ export * from './api';
 #### Step 2.2: Build Shared Types
 
 ```bash
-cd src/shared
+cd src/types
 npm run build
 ```
 
@@ -244,7 +245,7 @@ import type {
 import type {
   GetUrlCardsResponse,
   AddUrlToLibraryRequest,
-} from '@annos/shared-types';
+} from '@annos/types';
 ```
 
 #### Step 3.3: Remove Old Type Files
@@ -262,7 +263,7 @@ Add to root `package.json` dependencies:
 ```json
 {
   "dependencies": {
-    "@annos/shared-types": "workspace:*"
+    "@annos/types": "workspace:*"
   }
 }
 ```
@@ -271,7 +272,7 @@ Add to root `package.json` dependencies:
 
 ```typescript
 // src/modules/cards/application/useCases/queries/GetUrlCardsUseCase.ts
-import { GetUrlCardsResponse } from '@annos/shared-types';
+import { GetUrlCardsResponse } from '@annos/types';
 
 export class GetUrlCardsUseCase {
   async execute(
@@ -300,7 +301,7 @@ export class GetUrlCardsUseCase {
 
 ```typescript
 // src/modules/cards/infrastructure/http/controllers/GetMyUrlCardsController.ts
-import { GetUrlCardsResponse } from '@annos/shared-types';
+import { GetUrlCardsResponse } from '@annos/types';
 
 export class GetMyUrlCardsController extends Controller {
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
@@ -325,17 +326,17 @@ Add to root `package.json`:
 ```json
 {
   "scripts": {
-    "dev": "concurrently \"npm run dev:shared\" \"npm run dev:webapp\" \"npm run dev:app:inner\"",
-    "dev:shared": "npm run dev --workspace=@annos/shared-types",
-    "build:all": "npm run build:shared && npm run build:webapp && npm run build"
+    "dev": "concurrently \"npm run dev:types\" \"npm run dev:webapp\" \"npm run dev:app:inner\"",
+    "dev:types": "npm run dev --workspace=@annos/types",
+    "build:all": "npm run build:types && npm run build:webapp && npm run build"
   }
 }
 ```
 
 #### Step 5.2: Type Development Workflow
 
-1. **Make type changes** in `src/shared/src/api/`
-2. **Shared types auto-rebuild** (if using `npm run dev:shared`)
+1. **Make type changes** in `src/types/src/api/`
+2. **Shared types auto-rebuild** (if using `npm run dev:types`)
 3. **Both frontend and backend** get updated types automatically
 4. **TypeScript compiler** catches any mismatches immediately
 
@@ -347,14 +348,14 @@ Add to root `package.json`:
 # Check all TypeScript compilation
 npm run type-check
 npm run type-check --workspace=@annos/webapp
-npm run build:shared
+npm run build:types
 ```
 
 #### Step 6.2: Runtime Validation (Optional)
 
 Add Zod schemas for runtime validation:
 
-**src/shared/src/validation/index.ts:**
+**src/types/src/validation/index.ts:**
 ```typescript
 import { z } from 'zod';
 
@@ -385,21 +386,21 @@ export const GetUrlCardsResponseSchema = z.object({
 
 ### Phase 1: Infrastructure ✅
 - [ ] Update root `package.json` with workspaces
-- [ ] Create `src/shared/package.json`
-- [ ] Create `src/shared/tsconfig.json`
+- [ ] Create `src/types/package.json`
+- [ ] Create `src/types/tsconfig.json`
 - [ ] Update `src/webapp/package.json` dependencies
 - [ ] Run `npm install` to setup workspace
 
 ### Phase 2: Type Migration ✅
-- [ ] Create `src/shared/src/api/common.ts`
-- [ ] Create `src/shared/src/api/requests.ts`
-- [ ] Create `src/shared/src/api/responses.ts`
-- [ ] Create `src/shared/src/api/index.ts`
-- [ ] Create `src/shared/src/index.ts`
-- [ ] Build shared types: `npm run build:shared`
+- [ ] Create `src/types/src/api/common.ts`
+- [ ] Create `src/types/src/api/requests.ts`
+- [ ] Create `src/types/src/api/responses.ts`
+- [ ] Create `src/types/src/api/index.ts`
+- [ ] Create `src/types/src/index.ts`
+- [ ] Build shared types: `npm run build:types`
 
 ### Phase 3: Frontend Migration ✅
-- [ ] Update all imports in webapp to use `@annos/shared-types`
+- [ ] Update all imports in webapp to use `@annos/types`
 - [ ] Remove old type files: `rm -rf src/webapp/api-client/types/`
 - [ ] Test webapp compilation: `npm run type-check --workspace=@annos/webapp`
 
@@ -442,22 +443,22 @@ export const GetUrlCardsResponseSchema = z.object({
 
 ### Common Issues
 
-1. **"Cannot find module '@annos/shared-types'"**
+1. **"Cannot find module '@annos/types'"**
    - Run `npm install` in root to setup workspace links
-   - Ensure shared types are built: `npm run build:shared`
+   - Ensure shared types are built: `npm run build:types`
 
 2. **Type mismatches between frontend and backend**
    - Check that both are using the same version of shared types
-   - Rebuild shared types: `npm run build:shared`
+   - Rebuild shared types: `npm run build:types`
 
 3. **Hot reload not working for type changes**
-   - Ensure `npm run dev:shared` is running in watch mode
+   - Ensure `npm run dev:types` is running in watch mode
    - Restart development servers if needed
 
 ### Debugging Tips
 
-1. Use `npm ls @annos/shared-types` to check workspace linking
-2. Check `src/shared/dist/` for compiled output
+1. Use `npm ls @annos/types` to check workspace linking
+2. Check `src/types/dist/` for compiled output
 3. Use IDE "Go to Definition" to verify imports are resolving correctly
 
 ## Future Enhancements

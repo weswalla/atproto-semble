@@ -108,7 +108,8 @@ export interface UrlCardWithCollectionsAndLibraries extends UrlCard {
   libraries: User[];
 }
 
-export interface GetUrlCardViewResponse extends UrlCardWithCollectionsAndLibraries {}
+export interface GetUrlCardViewResponse
+  extends UrlCardWithCollectionsAndLibraries {}
 
 // Unified User interface - used across all endpoints
 export interface User {
@@ -126,7 +127,6 @@ export interface GetLibrariesForCardResponse {
 }
 
 export interface GetProfileResponse extends User {}
-
 
 // Base pagination interface
 export interface Pagination {

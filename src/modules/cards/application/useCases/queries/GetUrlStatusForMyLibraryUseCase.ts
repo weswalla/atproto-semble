@@ -119,17 +119,13 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
                 collection.id,
               );
               if (collectionIdResult.isErr()) {
-                throw new Error(
-                  `Invalid collection ID: ${collection.id}`,
-                );
+                throw new Error(`Invalid collection ID: ${collection.id}`);
               }
               const collectionResult = await this.collectionRepo.findById(
                 collectionIdResult.value,
               );
               if (collectionResult.isErr() || !collectionResult.value) {
-                throw new Error(
-                  `Collection not found: ${collection.id}`,
-                );
+                throw new Error(`Collection not found: ${collection.id}`);
               }
               const fullCollection = collectionResult.value;
 

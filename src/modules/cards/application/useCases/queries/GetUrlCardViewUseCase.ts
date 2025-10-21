@@ -149,8 +149,9 @@ export class GetUrlCardViewUseCase
       // Enrich collections with full Collection data
       const enrichedCollections = await Promise.all(
         cardView.collections.map(async (collection) => {
-          const collectionIdResult =
-            CollectionId.createFromString(collection.id);
+          const collectionIdResult = CollectionId.createFromString(
+            collection.id,
+          );
           if (collectionIdResult.isErr()) {
             throw new Error(`Invalid collection ID: ${collection.id}`);
           }

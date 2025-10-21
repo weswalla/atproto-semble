@@ -101,7 +101,13 @@ export class GetNoteCardsForUrlUseCase
       // Create a map of profiles
       const profileMap = new Map<
         string,
-        { id: string; name: string; handle: string; avatarUrl?: string; description?: string }
+        {
+          id: string;
+          name: string;
+          handle: string;
+          avatarUrl?: string;
+          description?: string;
+        }
       >();
 
       for (let i = 0; i < uniqueAuthorIds.length; i++) {

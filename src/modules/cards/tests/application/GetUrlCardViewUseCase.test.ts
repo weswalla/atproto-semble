@@ -27,7 +27,11 @@ describe('GetUrlCardViewUseCase', () => {
     collectionRepo = new InMemoryCollectionRepository();
     cardQueryRepo = new InMemoryCardQueryRepository(cardRepo, collectionRepo);
     profileService = new FakeProfileService();
-    useCase = new GetUrlCardViewUseCase(cardQueryRepo, profileService, collectionRepo);
+    useCase = new GetUrlCardViewUseCase(
+      cardQueryRepo,
+      profileService,
+      collectionRepo,
+    );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
     otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
@@ -479,7 +483,11 @@ describe('GetUrlCardViewUseCase', () => {
         getNoteCardsForUrl: jest.fn(),
       };
 
-      const errorUseCase = new GetUrlCardViewUseCase(errorRepo, profileService, collectionRepo);
+      const errorUseCase = new GetUrlCardViewUseCase(
+        errorRepo,
+        profileService,
+        collectionRepo,
+      );
 
       const query = {
         cardId: cardId,

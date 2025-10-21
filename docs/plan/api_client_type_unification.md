@@ -5,6 +5,7 @@
 This document outlines the plan to unify API client response types for `User`, `UrlCard`, and `Collection` to enable shared UI components across different API endpoints.
 
 ### Goals
+
 - Unify duplicate type definitions into single, consistent interfaces
 - Enable UI component reuse across different endpoints
 - Minimize changes to backend (repositories and use cases)
@@ -19,18 +20,27 @@ This document outlines the plan to unify API client response types for `User`, `
 Currently, we have several user type definitions scattered across response types:
 
 1. **`LibraryUser`** (responses.ts:96-101)
+
    ```tsx
-   { id, name, handle, avatarUrl }
+   {
+     (id, name, handle, avatarUrl);
+   }
    ```
 
 2. **`UserProfile`** (responses.ts:109-115)
+
    ```tsx
-   { id, name, handle, description, avatarUrl }
+   {
+     (id, name, handle, description, avatarUrl);
+   }
    ```
 
 3. **`FeedActivityActor`** (responses.ts:259-264)
+
    ```tsx
-   { id, name, handle, avatarUrl }
+   {
+     (id, name, handle, avatarUrl);
+   }
    ```
 
 4. **Inline author objects** in various responses with similar fields
@@ -79,12 +89,14 @@ Currently, we have several user type definitions scattered across response types
    - Missing `cardCount`, `createdAt`, `updatedAt`
 
 **Inconsistencies**:
+
 - Sometimes `author`, sometimes `createdBy`, sometimes `authorId`, sometimes `authorHandle`
 - Inconsistent inclusion of `cardCount`, `createdAt`, `updatedAt`
 
 ### GetLibrariesForUrlResponse - Missing Card Data
 
 **Current Structure** (responses.ts:331-340):
+
 ```tsx
 {
   libraries: {
@@ -98,6 +110,7 @@ Currently, we have several user type definitions scattered across response types
 ```
 
 **Issue**: When showing "who has this URL in their library", we only show user info but not their specific card. This means we can't display:
+
 - The user's note on the URL
 - When they saved it
 - Their specific card metadata
@@ -124,6 +137,7 @@ export interface User {
 ```
 
 **Changes Required**:
+
 - Remove `LibraryUser` interface (lines 96-101)
 - Remove `UserProfile` interface (lines 109-115)
 - Remove `FeedActivityActor` interface (lines 259-264)
@@ -151,7 +165,7 @@ export interface UrlCard {
   urlInLibrary?: boolean;
   createdAt: string;
   updatedAt: string;
-  author: User;  // NEW - currently missing!
+  author: User; // NEW - currently missing!
   note?: {
     id: string;
     text: string;
@@ -160,6 +174,7 @@ export interface UrlCard {
 ```
 
 **Changes Required**:
+
 - Remove `UrlCardView` interface (lines 61-92)
 - Remove `UrlCardListItem` interface (lines 119-144)
 - Remove `CollectionPageUrlCard` interface (lines 175-195)
@@ -195,7 +210,7 @@ export interface Collection {
   id: string;
   uri?: string;
   name: string;
-  author: User;  // Standardize to 'author', not 'createdBy'
+  author: User; // Standardize to 'author', not 'createdBy'
   description?: string;
   cardCount: number;
   createdAt: string;
@@ -204,6 +219,7 @@ export interface Collection {
 ```
 
 **Changes Required**:
+
 - Standardize all collection representations to use this interface
 - Change `createdBy` to `author` in `GetCollectionsResponse`
 - Add missing fields (`cardCount`, `createdAt`, `updatedAt`) where needed
@@ -211,20 +227,24 @@ export interface Collection {
 ### 4. Updated Response Types
 
 #### GetUrlCardViewResponse
+
 ```tsx
-export interface GetUrlCardViewResponse extends UrlCardWithCollectionsAndLibraries {}
+export interface GetUrlCardViewResponse
+  extends UrlCardWithCollectionsAndLibraries {}
 ```
 
 #### GetUrlCardsResponse
+
 ```tsx
 export interface GetUrlCardsResponse {
-  cards: UrlCardWithCollections[];  // Changed from UrlCardListItem[]
+  cards: UrlCardWithCollections[]; // Changed from UrlCardListItem[]
   pagination: Pagination;
   sorting: CardSorting;
 }
 ```
 
 #### GetCollectionPageResponse
+
 ```tsx
 export interface GetCollectionPageResponse {
   id: string;
@@ -232,47 +252,51 @@ export interface GetCollectionPageResponse {
   name: string;
   description?: string;
   author: User;
-  urlCards: UrlCard[];  // Changed from CollectionPageUrlCard[], now includes author
-  cardCount: number;  // NEW
-  createdAt: string;  // NEW
-  updatedAt: string;  // NEW
+  urlCards: UrlCard[]; // Changed from CollectionPageUrlCard[], now includes author
+  cardCount: number; // NEW
+  createdAt: string; // NEW
+  updatedAt: string; // NEW
   pagination: Pagination;
   sorting: CardSorting;
 }
 ```
 
 #### GetCollectionsResponse
+
 ```tsx
 export interface GetCollectionsResponse {
-  collections: Collection[];  // Uses unified Collection interface
+  collections: Collection[]; // Uses unified Collection interface
   pagination: Pagination;
   sorting: CollectionSorting;
 }
 ```
 
 #### GetCollectionsForUrlResponse
+
 ```tsx
 export interface GetCollectionsForUrlResponse {
-  collections: Collection[];  // Uses unified Collection interface
+  collections: Collection[]; // Uses unified Collection interface
   pagination: Pagination;
   sorting: CollectionSorting;
 }
 ```
 
 #### GetLibrariesForCardResponse
+
 ```tsx
 export interface GetLibrariesForCardResponse {
   cardId: string;
-  users: User[];  // Changed from LibraryUser[]
+  users: User[]; // Changed from LibraryUser[]
   totalCount: number;
 }
 ```
 
 #### GetLibrariesForUrlResponse
+
 ```tsx
 export interface GetLibrariesForUrlResponse {
   libraries: {
-    user: User;    // The user who has this URL in their library
+    user: User; // The user who has this URL in their library
     card: UrlCard; // Their specific card (may include a note)
   }[];
   pagination: Pagination;
@@ -281,12 +305,13 @@ export interface GetLibrariesForUrlResponse {
 ```
 
 #### GetNoteCardsForUrlResponse
+
 ```tsx
 export interface GetNoteCardsForUrlResponse {
   notes: {
     id: string;
     note: string;
-    author: User;  // Changed to use unified User interface
+    author: User; // Changed to use unified User interface
     createdAt: string;
     updatedAt: string;
   }[];
@@ -296,26 +321,29 @@ export interface GetNoteCardsForUrlResponse {
 ```
 
 #### GetProfileResponse
+
 ```tsx
 export interface GetProfileResponse extends User {}
 ```
 
 #### GetUrlStatusForMyLibraryResponse
+
 ```tsx
 export interface GetUrlStatusForMyLibraryResponse {
   cardId?: string;
-  collections?: Collection[];  // Uses unified Collection interface
+  collections?: Collection[]; // Uses unified Collection interface
 }
 ```
 
 #### FeedItem
+
 ```tsx
 export interface FeedItem {
   id: string;
-  user: User;  // Changed from FeedActivityActor
-  card: UrlCard;  // Changed from FeedActivityCard, now includes author
+  user: User; // Changed from FeedActivityActor
+  card: UrlCard; // Changed from FeedActivityCard, now includes author
   createdAt: Date;
-  collections: Collection[];  // Changed to use unified Collection
+  collections: Collection[]; // Changed to use unified Collection
 }
 ```
 
@@ -328,6 +356,7 @@ export interface FeedItem {
 **File**: `src/modules/cards/domain/ICardQueryRepository.ts`
 
 #### Add authorId to UrlCardView
+
 ```tsx
 export interface UrlCardView {
   id: string;
@@ -345,7 +374,7 @@ export interface UrlCardView {
   urlInLibrary?: boolean;
   createdAt: Date;
   updatedAt: Date;
-  authorId: string;  // NEW - needed to enrich with author profile
+  authorId: string; // NEW - needed to enrich with author profile
   note?: {
     id: string;
     text: string;
@@ -354,6 +383,7 @@ export interface UrlCardView {
 ```
 
 #### Update LibraryForUrlDTO
+
 ```tsx
 // Repository returns card data - will be enriched with user profile in use case
 export interface LibraryForUrlDTO {
@@ -383,6 +413,7 @@ export interface LibraryForUrlDTO {
 ```
 
 **Implementation Impact**:
+
 - Update SQL queries in `DrizzleCardQueryRepository` to include `cards.curatorId as authorId` in all `UrlCardView` queries
 - Update `getLibrariesForUrl` query to return full card data (similar to how `getUrlCardsOfUser` works)
   - No need to join with profiles table - enrichment happens in use case (following the pattern from `GetCollectionsForUrlUseCase`)
@@ -402,33 +433,37 @@ No changes needed - already returns `authorId` which is enriched in use cases.
 **File**: `src/modules/cards/application/useCases/queries/GetUrlCardViewUseCase.ts`
 
 **Changes**:
+
 - Fetch author profile for the card using `cardView.authorId`
 - Transform `libraries` to include full user profiles (already done)
 - Transform `collections` to include full Collection objects (new)
 
 **New Code**:
+
 ```tsx
 // After fetching cardView, fetch the card author
 const cardAuthorResult = await this.profileService.getProfile(
   cardView.authorId,
-  query.callingUserId
+  query.callingUserId,
 );
 
 if (cardAuthorResult.isErr()) {
-  return err(new Error(`Failed to fetch card author: ${cardAuthorResult.error.message}`));
+  return err(
+    new Error(`Failed to fetch card author: ${cardAuthorResult.error.message}`),
+  );
 }
 
 const cardAuthor = cardAuthorResult.value;
 
 // Enrich collections with full Collection data
-const collectionIds = cardView.collections.map(c => c.id);
+const collectionIds = cardView.collections.map((c) => c.id);
 const enrichedCollections: Collection[] = await Promise.all(
   collectionIds.map(async (id) => {
     const collectionResult = await this.collectionRepo.findById(
-      CollectionId.createFromString(id).value
+      CollectionId.createFromString(id).value,
     );
     // ... fetch collection and author, build Collection object
-  })
+  }),
 );
 
 const result: UrlCardViewResult = {
@@ -446,6 +481,7 @@ const result: UrlCardViewResult = {
 ```
 
 **Dependencies**:
+
 - Needs `ICollectionRepository` injected
 - Repository must return `authorId` on `UrlCardView`
 
@@ -454,25 +490,29 @@ const result: UrlCardViewResult = {
 **File**: `src/modules/cards/application/useCases/queries/GetUrlCardsUseCase.ts`
 
 **Changes**:
+
 - Fetch author profiles for all cards
 - Transform `collections` for each card to full Collection objects
 
 **New Code**:
+
 ```tsx
 // After fetching cards from repository
 const uniqueAuthorIds = Array.from(
-  new Set(result.items.map(card => card.authorId))
+  new Set(result.items.map((card) => card.authorId)),
 );
 
 const authorProfiles = new Map<string, User>();
 const profileResults = await Promise.all(
-  uniqueAuthorIds.map(id => this.profileService.getProfile(id, query.callingUserId))
+  uniqueAuthorIds.map((id) =>
+    this.profileService.getProfile(id, query.callingUserId),
+  ),
 );
 
 // Build author map...
 
 // Enrich cards with author data
-const enrichedCards = result.items.map(card => {
+const enrichedCards = result.items.map((card) => {
   const author = authorProfiles.get(card.authorId);
   // ... also enrich collections
   return {
@@ -484,6 +524,7 @@ const enrichedCards = result.items.map(card => {
 ```
 
 **Dependencies**:
+
 - Needs `IProfileService` injected
 - Needs `ICollectionRepository` injected for collection enrichment
 - Repository must return `authorId` on cards
@@ -493,10 +534,12 @@ const enrichedCards = result.items.map(card => {
 **File**: `src/modules/cards/application/useCases/queries/GetCollectionPageUseCase.ts`
 
 **Changes**:
+
 - Enrich URL cards with author profiles
 - Add `cardCount`, `createdAt`, `updatedAt` to response
 
 **New Code**:
+
 ```tsx
 // After fetching cards in collection
 const uniqueAuthorIds = Array.from(
@@ -527,6 +570,7 @@ return ok({
 ```
 
 **Dependencies**:
+
 - Already has `IProfileService`
 - Repository must return `authorId` on cards
 
@@ -535,11 +579,13 @@ return ok({
 **File**: `src/modules/cards/application/useCases/queries/GetCollectionsUseCase.ts`
 
 **Changes**:
+
 - Change `createdBy` to `author` in DTO mapping
 - Ensure `cardCount`, `createdAt`, `updatedAt` are included (already present)
 - Add `description` field to author
 
 **Updated Code**:
+
 ```tsx
 const enrichedCollections: CollectionListItemDTO[] = result.items.map(
   (item) => {
@@ -551,12 +597,13 @@ const enrichedCollections: CollectionListItemDTO[] = result.items.map(
       updatedAt: item.updatedAt,
       createdAt: item.createdAt,
       cardCount: item.cardCount,
-      author: {  // Changed from 'createdBy'
+      author: {
+        // Changed from 'createdBy'
         id: profile.id,
         name: profile.name,
         handle: profile.handle,
         avatarUrl: profile.avatarUrl,
-        description: profile.bio,  // NEW
+        description: profile.bio, // NEW
       },
     };
   },
@@ -570,10 +617,12 @@ const enrichedCollections: CollectionListItemDTO[] = result.items.map(
 **File**: `src/modules/cards/application/useCases/queries/GetCollectionsForUrlUseCase.ts`
 
 **Changes**:
+
 - Add `cardCount`, `createdAt`, `updatedAt` to collection DTOs
 - Add `description` to author
 
 **Updated Code**:
+
 ```tsx
 // Need to fetch full collection objects to get cardCount, dates
 const enrichedCollections: CollectionForUrlDTO[] = await Promise.all(
@@ -585,7 +634,7 @@ const enrichedCollections: CollectionForUrlDTO[] = await Promise.all(
 
     // Fetch full collection to get cardCount, dates
     const collectionResult = await this.collectionRepo.findById(
-      CollectionId.createFromString(item.id).value
+      CollectionId.createFromString(item.id).value,
     );
     const collection = collectionResult.value;
 
@@ -598,15 +647,16 @@ const enrichedCollections: CollectionForUrlDTO[] = await Promise.all(
         ...author,
         description: profileMap.get(item.authorId)?.description,
       },
-      cardCount: collection.cardCount,  // NEW
-      createdAt: collection.createdAt.toISOString(),  // NEW
-      updatedAt: collection.updatedAt.toISOString(),  // NEW
+      cardCount: collection.cardCount, // NEW
+      createdAt: collection.createdAt.toISOString(), // NEW
+      updatedAt: collection.updatedAt.toISOString(), // NEW
     };
-  })
+  }),
 );
 ```
 
 **Dependencies**:
+
 - Needs `ICollectionRepository` injected
 
 ### 6. GetLibrariesForUrlUseCase
@@ -614,11 +664,13 @@ const enrichedCollections: CollectionForUrlDTO[] = await Promise.all(
 **File**: `src/modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase.ts`
 
 **Changes**:
+
 - Repository now returns full card data in `LibraryForUrlDTO`
 - Enrich with user profiles for each library owner
 - Transform to return both `user` and `card` objects
 
 **Updated Code** (following pattern from `GetCollectionsForUrlUseCase`):
+
 ```tsx
 async execute(
   query: GetLibrariesForUrlQuery,
@@ -737,6 +789,7 @@ async execute(
 ```
 
 **Dependencies**:
+
 - Needs `IProfileService` injected (add if not already present)
 - Repository must return full card data in `LibraryForUrlDTO`
 
@@ -745,16 +798,18 @@ async execute(
 **File**: `src/modules/cards/application/useCases/queries/GetNoteCardsForUrlUseCase.ts`
 
 **Changes**:
+
 - Add `description` field to enriched author objects
 
 **Updated Code**:
+
 ```tsx
 profileMap.set(authorId, {
   id: profile.id,
   name: profile.name,
   handle: profile.handle,
   avatarUrl: profile.avatarUrl,
-  description: profile.bio,  // NEW
+  description: profile.bio, // NEW
 });
 ```
 
@@ -765,16 +820,18 @@ profileMap.set(authorId, {
 **File**: `src/modules/cards/application/useCases/queries/GetLibrariesForCardUseCase.ts`
 
 **Changes**:
+
 - Add `description` field to user DTOs
 
 **Updated Code**:
+
 ```tsx
 users.push({
   id: profile.id,
   name: profile.name,
   handle: profile.handle,
   avatarUrl: profile.avatarUrl,
-  description: profile.bio,  // NEW
+  description: profile.bio, // NEW
 });
 ```
 
@@ -791,22 +848,24 @@ users.push({
 **File**: `src/modules/cards/application/useCases/queries/GetUrlStatusForMyLibraryUseCase.ts`
 
 **Changes**:
+
 - Enrich collections with full Collection objects (add `author`, `cardCount`, `createdAt`, `updatedAt`)
 
 **New Code**:
+
 ```tsx
 // Instead of just mapping simple collection info
 result.collections = await Promise.all(
   collections.map(async (collection) => {
     // Fetch full collection to get dates and cardCount
     const collectionResult = await this.collectionRepo.findById(
-      CollectionId.createFromString(collection.id).value
+      CollectionId.createFromString(collection.id).value,
     );
     const fullCollection = collectionResult.value;
 
     // Fetch author profile
     const authorProfile = await this.profileService.getProfile(
-      fullCollection.authorId.value
+      fullCollection.authorId.value,
     );
 
     return {
@@ -825,11 +884,12 @@ result.collections = await Promise.all(
       createdAt: fullCollection.createdAt.toISOString(),
       updatedAt: fullCollection.updatedAt.toISOString(),
     };
-  })
+  }),
 );
 ```
 
 **Dependencies**:
+
 - Needs `ICollectionRepository` injected
 - Needs `IProfileService` injected
 
@@ -838,17 +898,17 @@ result.collections = await Promise.all(
 **File**: `src/modules/feeds/application/useCases/queries/GetGlobalFeedUseCase.ts`
 
 **Changes**:
+
 - Add author to card data
 - Enrich collections with full Collection objects
 - Use unified `User` type for actors
 
 **New Code**:
+
 ```tsx
 // After hydrating card data, also fetch card authors
 const uniqueCardAuthorIds = Array.from(
-  new Set(
-    Array.from(cardDataMap.values()).map(card => card.authorId)
-  )
+  new Set(Array.from(cardDataMap.values()).map((card) => card.authorId)),
 );
 
 const cardAuthorProfiles = new Map<string, User>();
@@ -861,8 +921,8 @@ const cardsWithAuthors = new Map(
     {
       ...card,
       author: cardAuthorProfiles.get(card.authorId),
-    }
-  ])
+    },
+  ]),
 );
 
 // When enriching collections, build full Collection objects
@@ -872,7 +932,7 @@ const enrichedCollections = new Map<string, Collection>();
 // Use enriched data in feed items
 feedItems.push({
   id: activity.activityId.getStringValue(),
-  user: actor,  // Already using unified User type
+  user: actor, // Already using unified User type
   card: {
     ...cardData,
     author: cardAuthorProfiles.get(cardData.authorId),
@@ -883,6 +943,7 @@ feedItems.push({
 ```
 
 **Dependencies**:
+
 - Repository must return `authorId` on cards
 - Already has access to profile and collection services
 
@@ -891,6 +952,7 @@ feedItems.push({
 ## Implementation Steps
 
 ### Phase 1: Repository Updates
+
 1. Update `UrlCardView` in `ICardQueryRepository.ts` to include `authorId`
 2. Update `LibraryForUrlDTO` in `ICardQueryRepository.ts` to include full card data (url, cardContent, libraryCount, etc.)
 3. Update `DrizzleCardQueryRepository` to:
@@ -898,6 +960,7 @@ feedItems.push({
    - Update `getLibrariesForUrl` query to return full card data (similar to `getUrlCardsOfUser`)
 
 ### Phase 2: Response Type Updates
+
 1. Add unified `User` interface in `responses.ts`
 2. Add unified `UrlCard` interface with `author: User` field
 3. Add context-specific variations (`UrlCardWithCollections`, etc.)
@@ -906,6 +969,7 @@ feedItems.push({
 6. Remove deprecated types (`LibraryUser`, `UserProfile`, `FeedActivityActor`, etc.)
 
 ### Phase 3: Use Case Updates (in order of dependency)
+
 1. **GetProfileUseCase** - Add `description` field (minimal change)
 2. **GetLibrariesForCardUseCase** - Add `description` to user DTOs
 3. **GetNoteCardsForUrlUseCase** - Add `description` to author
@@ -919,11 +983,13 @@ feedItems.push({
 11. **GetGlobalFeedUseCase** - Add card authors, enrich collections
 
 ### Phase 4: API Client Updates
+
 1. Update type imports in `ApiClient.ts`
 2. Update client method signatures to use new response types
 3. Verify all endpoints return the expected unified types
 
 ### Phase 5: Frontend Updates (Out of Scope)
+
 - Update UI components to consume unified types
 - Remove any frontend-specific type transformations
 - Ensure components work with all endpoints
@@ -933,17 +999,20 @@ feedItems.push({
 ## Testing Strategy
 
 ### Unit Tests
+
 - Test each use case with new response structure
 - Verify author enrichment for cards
 - Verify collection enrichment with full data
 - Test error handling when profile/collection fetches fail
 
 ### Integration Tests
+
 - Test API endpoints return correctly shaped data
 - Verify all fields are present in responses
 - Test that shared UI components work with data from different endpoints
 
 ### Manual Testing
+
 - Test each page/view that displays users, cards, and collections
 - Verify no regressions in existing functionality
 - Verify new author field displays correctly on cards
@@ -953,11 +1022,13 @@ feedItems.push({
 ## Migration Notes
 
 ### Breaking Changes
+
 - All response types have changed
 - Frontend code consuming these types will need updates
 - Any DTOs imported from responses.ts will need to be updated
 
 ### Backwards Compatibility
+
 - No backwards compatibility at API client level
 - This is a one-time migration
 - Coordinate with frontend team for deployment

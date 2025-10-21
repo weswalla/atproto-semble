@@ -28,7 +28,10 @@ describe('GetLibrariesForUrlUseCase', () => {
     );
     profileService = new FakeProfileService();
 
-    useCase = new GetLibrariesForUrlUseCase(cardQueryRepository, profileService);
+    useCase = new GetLibrariesForUrlUseCase(
+      cardQueryRepository,
+      profileService,
+    );
 
     curator1 = CuratorId.create('did:plc:curator1').unwrap();
     curator2 = CuratorId.create('did:plc:curator2').unwrap();
@@ -193,7 +196,9 @@ describe('GetLibrariesForUrlUseCase', () => {
 
       expect(response.libraries).toHaveLength(1);
       expect(response.libraries[0]!.user.id).toBe(curator1.value);
-      expect(response.libraries[0]!.card.id).toBe(card1.cardId.getStringValue());
+      expect(response.libraries[0]!.card.id).toBe(
+        card1.cardId.getStringValue(),
+      );
     });
   });
 
@@ -244,7 +249,9 @@ describe('GetLibrariesForUrlUseCase', () => {
 
       const result1 = await useCase.execute(query1);
       if (result1.isErr()) {
-        throw new Error(`Use case failed: ${result1.error.message || result1.error}`);
+        throw new Error(
+          `Use case failed: ${result1.error.message || result1.error}`,
+        );
       }
       expect(result1.isOk()).toBe(true);
       const response1 = result1.unwrap();

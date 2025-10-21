@@ -1,6 +1,6 @@
 'use client';
 
-import type { UrlCard, Collection } from '@/api-client/types';
+import type { UrlCard, Collection } from '@/api-client';
 import EditNoteDrawer from '@/features/notes/components/editNoteDrawer/EditNoteDrawer';
 import { ActionIcon, Button, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';

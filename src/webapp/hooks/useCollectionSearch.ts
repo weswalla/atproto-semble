@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ApiClient } from '@/api-client/ApiClient';
-import type { GetCollectionsResponse } from '@/api-client/types';
+import type { GetCollectionsResponse } from '@/api-client';
 
 interface UseCollectionSearchProps {
   apiClient: ApiClient;

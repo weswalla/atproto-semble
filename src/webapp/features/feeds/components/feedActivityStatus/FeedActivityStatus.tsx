@@ -1,5 +1,5 @@
 import { Anchor, Avatar, Group, Paper, Stack, Text } from '@mantine/core';
-import { FeedItem } from '@/api-client/types';
+import { FeedItem, Collection } from '@/api-client';
 import { Fragment } from 'react';
 import Link from 'next/link';
 import { getRelativeTime } from '@/lib/utils/time';
@@ -35,7 +35,7 @@ export default function FeedActivityStatus(props: Props) {
         ) : (
           <Fragment>
             added to{' '}
-            {displayedCollections.map((collection, index) => (
+            {displayedCollections.map((collection: Collection, index: number) => (
               <span key={collection.id}>
                 {/* TODO: use collection creator's handle to direct to profile/creatorHandle/collections/id */}
                 <Anchor

@@ -1,4 +1,4 @@
-import type { UrlCard, Collection } from '@/api-client/types';
+import type { UrlCard, Collection } from '@/api-client';
 import { getDomain } from '@/lib/utils/link';
 import {
   Card,

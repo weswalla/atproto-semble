@@ -1,4 +1,4 @@
-import type { UrlCard } from '@/api-client/types';
+import type { UrlCard } from '@/api-client';
 import { getDomain } from '@/lib/utils/link';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 import {

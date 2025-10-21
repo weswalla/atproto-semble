@@ -1,7 +1,7 @@
 import { Stack } from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import FeedActivityStatus from '../feedActivityStatus/FeedActivityStatus';
-import type { FeedItem as FeedItemType } from '@/api-client/types';
+import type { FeedItem as FeedItemType } from '@/api-client';
 
 interface Props {
   item: FeedItemType;

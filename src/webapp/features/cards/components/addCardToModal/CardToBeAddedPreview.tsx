@@ -12,7 +12,7 @@ import {
   Tooltip,
 } from '@mantine/core';
 import Link from 'next/link';
-import { GetUrlStatusForMyLibraryResponse, UrlCard } from '@/api-client/types';
+import { GetUrlStatusForMyLibraryResponse, UrlCard, Collection } from '@/api-client';
 import { BiCollection } from 'react-icons/bi';
 import { LuLibrary } from 'react-icons/lu';
 import { getDomain } from '@/lib/utils/link';
@@ -96,7 +96,7 @@ export default function CardToBeAddedPreview(props: Props) {
             </Menu.Target>
             <Menu.Dropdown maw={380}>
               <ScrollArea.Autosize mah={150} type="auto">
-                {props.collectionsWithCard.map((c) => (
+                {props.collectionsWithCard.map((c: Collection) => (
                   <Fragment key={c.id}>
                     {c.uri && (
                       <Menu.Item

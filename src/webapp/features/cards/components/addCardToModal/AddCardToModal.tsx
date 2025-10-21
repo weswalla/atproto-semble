@@ -1,4 +1,4 @@
-import type { UrlCard } from '@/api-client/types';
+import type { UrlCard } from '@/api-client';
 import useCollectionSearch from '@/features/collections/lib/queries/useCollectionSearch';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import {

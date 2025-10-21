@@ -1,4 +1,4 @@
-import { ApiError, ApiErrorResponse } from '../types/errors';
+import { ApiError, ApiErrorResponse } from '../errors';
 
 export abstract class BaseClient {
   constructor(protected baseUrl: string) {}

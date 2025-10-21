@@ -1,4 +1,4 @@
-import { Avatar, AvatarGroup, Group, Text } from '@mantine/core';
+import { Avatar, AvatarGroup, Group, Text, Anchor } from '@mantine/core';
 import Link from 'next/link';
 import { getLibrariesForUrl } from '../../lib/dal';
 
@@ -10,12 +10,8 @@ export default async function UrlAddedBySummary(props: Props) {
   const data = await getLibrariesForUrl(props.url);
 
   const MAX_PROFILES_TO_SHOW = 3;
-  const names = data.libraries
-    .slice(0, MAX_PROFILES_TO_SHOW)
-    .map((p) => p.user.id);
+  const shownUsers = data.libraries.slice(0, MAX_PROFILES_TO_SHOW);
   const hasMore = data.libraries.length > MAX_PROFILES_TO_SHOW;
-  const followersSummaryText =
-    'Added by ' + names.join(', ') + (hasMore ? ', and others' : '');
 
   if (data.libraries.length === 0) {
     return null;
@@ -23,20 +19,35 @@ export default async function UrlAddedBySummary(props: Props) {
 
   return (
     <Group gap={'xs'}>
-      <AvatarGroup spacing={'xs'}>
-        {data.libraries.slice(0, MAX_PROFILES_TO_SHOW).map((p, i) => (
+      <AvatarGroup>
+        {shownUsers.map((p, i) => (
           <Avatar
             key={i}
             component={Link}
-            href={`/dashboard/profile/${p.user.handle}`}
+            href={`/profile/${p.user.handle}`}
             src={p.user.avatarUrl}
-            alt={`${p.user.handle}`}
+            alt={p.user.handle}
             name={p.user.handle}
           />
         ))}
       </AvatarGroup>
-      <Text fz={'sm'} fw={500} c={'gray'}>
-        {followersSummaryText}
+
+      <Text fz="sm" fw={500}>
+        {'Added by '}
+        {shownUsers.map((p, i) => (
+          <Anchor
+            key={p.user.handle}
+            component={Link}
+            href={`/profile/${p.user.handle}`}
+            fz={'sm'}
+            fw={600}
+            c={'blue'}
+          >
+            {p.user.name}
+            {i < shownUsers.length - 1 ? ', ' : ''}
+          </Anchor>
+        ))}
+        {hasMore && ', and others'}
       </Text>
     </Group>
   );

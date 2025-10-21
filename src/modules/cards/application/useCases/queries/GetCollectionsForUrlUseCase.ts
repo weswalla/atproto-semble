@@ -9,7 +9,7 @@ import { URL } from '../../../domain/value-objects/URL';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
-import { CollectionDTO, PaginationDTO, CollectionSortingDTO } from '../../dtos';
+import { GetCollectionsForUrlResponse, Collection } from '@semble/types';
 
 export interface GetCollectionsForUrlQuery {
   url: string;
@@ -20,11 +20,8 @@ export interface GetCollectionsForUrlQuery {
   sortOrder?: SortOrder;
 }
 
-export interface GetCollectionsForUrlResult {
-  collections: CollectionDTO[];
-  pagination: PaginationDTO;
-  sorting: CollectionSortingDTO;
-}
+// Use the shared API type directly
+export type GetCollectionsForUrlResult = GetCollectionsForUrlResponse;
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -119,7 +116,7 @@ export class GetCollectionsForUrlUseCase
       }
 
       // Map items with enriched author data and full collection data
-      const enrichedCollections: CollectionDTO[] = await Promise.all(
+      const enrichedCollections: Collection[] = await Promise.all(
         result.items.map(async (item) => {
           const author = profileMap.get(item.authorId);
           if (!author) {

@@ -14,10 +14,7 @@ import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionI
 import { IIdentityResolutionService } from '../../../../atproto/domain/services/IIdentityResolutionService';
 import { DID } from '../../../../atproto/domain/DID';
 import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
-import {
-  FeedItemDTO,
-  FeedPaginationDTO,
-} from '../../../../cards/application/dtos';
+import { GetGlobalFeedResponse, FeedItem } from '@semble/types';
 
 export interface GetGlobalFeedQuery {
   callingUserId?: string;
@@ -26,10 +23,8 @@ export interface GetGlobalFeedQuery {
   beforeActivityId?: string; // For cursor-based pagination
 }
 
-export interface GetGlobalFeedResult {
-  activities: FeedItemDTO[];
-  pagination: FeedPaginationDTO;
-}
+// Use the shared API type directly
+export type GetGlobalFeedResult = GetGlobalFeedResponse;
 
 export class ValidationError extends UseCaseError {
   constructor(message: string) {
@@ -293,8 +288,8 @@ export class GetGlobalFeedUseCase
         }
       });
 
-      // Transform activities to FeedItemDTO
-      const feedItems: FeedItemDTO[] = [];
+      // Transform activities to FeedItem
+      const feedItems: FeedItem[] = [];
       for (const activity of feed.activities) {
         if (!activity.cardCollected) {
           continue; // Skip non-card-collected activities

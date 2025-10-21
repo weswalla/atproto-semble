@@ -1,3 +1,5 @@
+import { User, Pagination, CardSorting, CollectionSorting, FeedPagination } from './common';
+
 // Command response types
 export interface AddUrlToLibraryResponse {
   urlCardId: string;
@@ -111,15 +113,6 @@ export interface UrlCardWithCollectionsAndLibraries extends UrlCard {
 export interface GetUrlCardViewResponse
   extends UrlCardWithCollectionsAndLibraries {}
 
-// Unified User interface - used across all endpoints
-export interface User {
-  id: string;
-  name: string;
-  handle: string;
-  avatarUrl?: string;
-  description?: string;
-}
-
 export interface GetLibrariesForCardResponse {
   cardId: string;
   users: User[];
@@ -127,29 +120,6 @@ export interface GetLibrariesForCardResponse {
 }
 
 export interface GetProfileResponse extends User {}
-
-// Base pagination interface
-export interface Pagination {
-  currentPage: number;
-  totalPages: number;
-  totalCount: number;
-  hasMore: boolean;
-  limit: number;
-}
-
-// Base sorting interface
-export interface BaseSorting {
-  sortOrder: 'asc' | 'desc';
-}
-
-// Specific sorting interfaces
-export interface CardSorting extends BaseSorting {
-  sortBy: 'createdAt' | 'updatedAt' | 'libraryCount';
-}
-
-export interface CollectionSorting extends BaseSorting {
-  sortBy: 'name' | 'createdAt' | 'updatedAt' | 'cardCount';
-}
 
 export interface GetUrlCardsResponse {
   cards: UrlCardWithCollections[];
@@ -177,7 +147,6 @@ export interface GetCollectionsResponse {
   sorting: CollectionSorting;
 }
 
-// User authentication response types
 export interface LoginWithAppPasswordResponse {
   accessToken: string;
   refreshToken: string;
@@ -209,10 +178,6 @@ export interface FeedItem {
   card: UrlCard;
   createdAt: Date;
   collections: Collection[];
-}
-
-export interface FeedPagination extends Pagination {
-  nextCursor?: string;
 }
 
 export interface GetGlobalFeedResponse {

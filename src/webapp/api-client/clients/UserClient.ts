@@ -10,7 +10,7 @@ import {
   CompleteOAuthSignInResponse,
   RefreshAccessTokenResponse,
   GenerateExtensionTokensResponse,
-} from '../types';
+} from '@semble/types';
 
 export class UserClient extends BaseClient {
   async loginWithAppPassword(

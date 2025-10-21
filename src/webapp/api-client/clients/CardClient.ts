@@ -14,7 +14,7 @@ import {
   RemoveCardFromLibraryResponse,
   RemoveCardFromCollectionRequest,
   RemoveCardFromCollectionResponse,
-} from '../types';
+} from '@semble/types';
 
 export class CardClient extends BaseClient {
   async addUrlToLibrary(

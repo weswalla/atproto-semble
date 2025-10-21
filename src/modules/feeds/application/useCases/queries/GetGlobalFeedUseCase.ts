@@ -36,9 +36,19 @@ export interface FeedItemView {
   createdAt: Date;
   collections: {
     id: string;
-    name: string;
-    authorHandle: string;
     uri?: string;
+    name: string;
+    description?: string;
+    author: {
+      id: string;
+      name: string;
+      handle: string;
+      avatarUrl?: string;
+      description?: string;
+    };
+    cardCount: number;
+    createdAt: string;
+    updatedAt: string;
   }[];
 }
 
@@ -183,7 +193,22 @@ export class GetGlobalFeedUseCase
 
       const collectionDataMap = new Map<
         string,
-        { id: string; name: string; authorHandle: string; uri?: string }
+        {
+          id: string;
+          uri?: string;
+          name: string;
+          description?: string;
+          author: {
+            id: string;
+            name: string;
+            handle: string;
+            avatarUrl?: string;
+            description?: string;
+          };
+          cardCount: number;
+          createdAt: string;
+          updatedAt: string;
+        }
       >();
       // Fetch all collections in parallel using Promise.all
       const collectionResults = await Promise.all(
@@ -202,29 +227,33 @@ export class GetGlobalFeedUseCase
 
           const collection = collectionResult.value;
 
-          const didOrHandleResult = DIDOrHandle.create(
+          // Get author profile
+          const authorProfileResult = await this.profileService.getProfile(
             collection.authorId.value,
+            query.callingUserId,
           );
-          if (didOrHandleResult.isErr()) {
+          if (authorProfileResult.isErr()) {
             return null;
           }
 
-          const resolvedHandleResult =
-            await this.identityResolutionService.resolveToHandle(
-              didOrHandleResult.value,
-            );
-          if (resolvedHandleResult.isErr()) {
-            return null;
-          }
-
-          const handle = resolvedHandleResult.value;
+          const authorProfile = authorProfileResult.value;
           const uri = collection.publishedRecordId?.uri;
 
           return {
             id: collection.collectionId.getStringValue(),
-            name: collection.name.toString(),
-            authorHandle: handle.value,
             uri,
+            name: collection.name.toString(),
+            description: collection.description?.toString(),
+            author: {
+              id: authorProfile.id,
+              name: authorProfile.name,
+              handle: authorProfile.handle,
+              avatarUrl: authorProfile.avatarUrl,
+              description: authorProfile.bio,
+            },
+            cardCount: collection.cardCount,
+            createdAt: collection.createdAt.toISOString(),
+            updatedAt: collection.updatedAt.toISOString(),
             collectionId,
           };
         }),
@@ -234,9 +263,13 @@ export class GetGlobalFeedUseCase
         if (result) {
           collectionDataMap.set(result.collectionId, {
             id: result.id,
-            name: result.name,
-            authorHandle: result.authorHandle,
             uri: result.uri,
+            name: result.name,
+            description: result.description,
+            author: result.author,
+            cardCount: result.cardCount,
+            createdAt: result.createdAt,
+            updatedAt: result.updatedAt,
           });
         }
       });

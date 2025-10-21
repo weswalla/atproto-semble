@@ -150,8 +150,10 @@ import { GetUrlCardsResponse } from '../../../../shared/api';
 
 export class GetUrlCardsUseCase {
   async execute(
-    query: GetUrlCardsQuery
-  ): Promise<Result<GetUrlCardsResponse, ValidationError | AppError.UnexpectedError>> {
+    query: GetUrlCardsQuery,
+  ): Promise<
+    Result<GetUrlCardsResponse, ValidationError | AppError.UnexpectedError>
+  > {
     // Implementation returns GetUrlCardsResponse type
     return ok({
       cards: enrichedCards,
@@ -204,11 +206,15 @@ import type {
 } from '../../shared/api';
 
 export class ApiClient {
-  async getMyUrlCards(params?: GetMyUrlCardsRequest): Promise<GetUrlCardsResponse> {
+  async getMyUrlCards(
+    params?: GetMyUrlCardsRequest,
+  ): Promise<GetUrlCardsResponse> {
     return this.queryClient.getMyUrlCards(params);
   }
 
-  async addUrlToLibrary(request: AddUrlToLibraryRequest): Promise<AddUrlToLibraryResponse> {
+  async addUrlToLibrary(
+    request: AddUrlToLibraryRequest,
+  ): Promise<AddUrlToLibraryResponse> {
     return this.cardClient.addUrlToLibrary(request);
   }
 }
@@ -217,18 +223,22 @@ export class ApiClient {
 ## Migration Strategy
 
 ### Phase 1: Setup Infrastructure
+
 1. Create `src/shared/api/` directory structure
 2. Move existing webapp types to shared location
 3. Update webapp imports to use shared types
 
 ### Phase 2: Backend Integration (Per Endpoint)
+
 For each API endpoint:
+
 1. **Identify the endpoint** (e.g., `GET /api/cards/my`)
 2. **Update use case** to return shared response type
 3. **Update controller** to use shared types
 4. **Test the endpoint** to ensure types match
 
 ### Phase 3: Validation (Optional)
+
 Add runtime validation using libraries like Zod:
 
 ```typescript
@@ -254,16 +264,18 @@ export const GetUrlCardsResponseSchema = z.object({
 Here's how a complete request/response flow works:
 
 1. **Frontend makes request:**
+
 ```typescript
 const response: GetUrlCardsResponse = await apiClient.getMyUrlCards({
   page: 1,
   limit: 20,
   sortBy: 'updatedAt',
-  sortOrder: 'desc'
+  sortOrder: 'desc',
 });
 ```
 
 2. **Controller receives request:**
+
 ```typescript
 // TypeScript ensures the response matches GetUrlCardsResponse
 const result = await this.useCase.execute(query);
@@ -271,6 +283,7 @@ return this.ok(res, result.value); // result.value is GetUrlCardsResponse
 ```
 
 3. **Use case returns typed response:**
+
 ```typescript
 // Return type is enforced by TypeScript
 return ok({
@@ -283,21 +296,25 @@ return ok({
 ## Best Practices
 
 ### Type Naming Conventions
+
 - **Requests**: `{Action}{Resource}Request` (e.g., `GetUrlCardsRequest`)
 - **Responses**: `{Action}{Resource}Response` (e.g., `GetUrlCardsResponse`)
 - **Common types**: Descriptive names (e.g., `User`, `Pagination`)
 
 ### File Organization
+
 - Keep related types together in the same file
 - Use barrel exports (`index.ts`) for clean imports
 - Separate common types from endpoint-specific types
 
 ### Error Handling
+
 - Define error response types consistently
 - Use discriminated unions for different error types
 - Include error codes and messages in shared types
 
 ### Versioning
+
 - Consider API versioning in type names if needed
 - Use semantic versioning for breaking changes
 - Document breaking changes in migration guides

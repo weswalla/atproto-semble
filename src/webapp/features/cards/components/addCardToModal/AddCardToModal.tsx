@@ -30,7 +30,7 @@ import useMyCollections from '../../../collections/lib/queries/useMyCollections'
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  cardContent: UrlCard["cardContent"];
+  cardContent: UrlCard['cardContent'];
   cardId: string;
 }
 

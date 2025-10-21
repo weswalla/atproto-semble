@@ -9,11 +9,7 @@ import { URL } from '../../../domain/value-objects/URL';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
-import {
-  CollectionDTO,
-  PaginationDTO,
-  CollectionSortingDTO,
-} from '../../dtos';
+import { CollectionDTO, PaginationDTO, CollectionSortingDTO } from '../../dtos';
 
 export interface GetCollectionsForUrlQuery {
   url: string;

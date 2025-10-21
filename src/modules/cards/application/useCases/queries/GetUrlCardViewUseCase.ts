@@ -9,10 +9,7 @@ import {
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
-import {
-  UserProfileDTO,
-  CollectionDTO,
-} from '../../dtos';
+import { UserProfileDTO, CollectionDTO } from '../../dtos';
 
 export interface GetUrlCardViewQuery {
   cardId: string;

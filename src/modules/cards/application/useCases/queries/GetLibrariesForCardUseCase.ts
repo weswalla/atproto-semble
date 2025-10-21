@@ -12,6 +12,7 @@ export interface LibraryUserDTO {
   name: string;
   handle: string;
   avatarUrl?: string;
+  description?: string;
 }
 
 export interface GetLibrariesForCardResult {
@@ -74,6 +75,7 @@ export class GetLibrariesForCardUseCase
             name: profile.name,
             handle: profile.handle,
             avatarUrl: profile.avatarUrl,
+            description: profile.bio,
           });
         } else {
           errors.push(

@@ -101,10 +101,10 @@ describe('GetMyCollectionsUseCase', () => {
 
       // Verify profile data is included
       const firstCollection = response.collections[0]!;
-      expect(firstCollection.createdBy.id).toBe(userProfile.id);
-      expect(firstCollection.createdBy.name).toBe(userProfile.name);
-      expect(firstCollection.createdBy.handle).toBe(userProfile.handle);
-      expect(firstCollection.createdBy.avatarUrl).toBe(userProfile.avatarUrl);
+      expect(firstCollection.author.id).toBe(userProfile.id);
+      expect(firstCollection.author.name).toBe(userProfile.name);
+      expect(firstCollection.author.handle).toBe(userProfile.handle);
+      expect(firstCollection.author.avatarUrl).toBe(userProfile.avatarUrl);
 
       // Verify URI is included
       expect(firstCollection.uri).toBeDefined();

@@ -25,6 +25,7 @@ export interface NoteCardForUrlDTO {
     name: string;
     handle: string;
     avatarUrl?: string;
+    description?: string;
   };
   createdAt: Date;
   updatedAt: Date;
@@ -100,7 +101,13 @@ export class GetNoteCardsForUrlUseCase
       // Create a map of profiles
       const profileMap = new Map<
         string,
-        { id: string; name: string; handle: string; avatarUrl?: string }
+        {
+          id: string;
+          name: string;
+          handle: string;
+          avatarUrl?: string;
+          description?: string;
+        }
       >();
 
       for (let i = 0; i < uniqueAuthorIds.length; i++) {
@@ -122,6 +129,7 @@ export class GetNoteCardsForUrlUseCase
           name: profile.name,
           handle: profile.handle,
           avatarUrl: profile.avatarUrl,
+          description: profile.bio,
         });
       }
 

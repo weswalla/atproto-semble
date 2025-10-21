@@ -1,46 +1,143 @@
-# Shared Types Architecture
+# Shared Types Architecture - npm Workspaces Implementation
 
-This document outlines the recommended approach for sharing types between the backend (`src/`) and webapp (`src/webapp/`) in our monorepo structure.
+This document outlines the implementation plan for sharing types between the backend (`src/`) and webapp (`src/webapp/`) using npm workspaces in our monorepo structure.
 
 ## Overview
 
-We use a shared API types directory that both backend and frontend import from, ensuring type safety and consistency across the entire application.
+We use npm workspaces to create a shared types package that both backend and frontend import from as a proper npm dependency, ensuring type safety and consistency across the entire application.
 
-## Directory Structure
+## Architecture Decision: npm Workspaces
+
+We chose npm workspaces over simpler approaches because:
+
+- ✅ **Industry standard** - Professional monorepo structure
+- ✅ **Proper dependency management** - npm handles versioning and dependencies
+- ✅ **Scalability** - Easy to add more packages (mobile app, CLI tools, etc.)
+- ✅ **Build isolation** - Each package has its own build process
+- ✅ **Publishing ready** - Can publish shared types as separate npm package
+- ✅ **IDE support** - Better IntelliSense and go-to-definition
+- ✅ **Version management** - Can version shared types independently
+
+## Final Directory Structure
 
 ```
-src/
-├── shared/
-│   └── api/
-│       ├── requests.ts      # Request types for all API endpoints
-│       ├── responses.ts     # Response types for all API endpoints
-│       ├── common.ts        # Common types (User, Pagination, etc.)
-│       └── index.ts         # Re-exports all types
-├── modules/                 # Backend modules
-└── webapp/                  # Frontend application
+annos/
+├── package.json                    # Workspace root
+├── src/
+│   ├── shared/
+│   │   ├── package.json           # @annos/shared-types package
+│   │   ├── tsconfig.json
+│   │   ├── src/
+│   │   │   ├── api/
+│   │   │   │   ├── index.ts       # Re-exports all types
+│   │   │   │   ├── common.ts      # Common types (User, Pagination, etc.)
+│   │   │   │   ├── requests.ts    # Request types for all API endpoints
+│   │   │   │   └── responses.ts   # Response types for all API endpoints
+│   │   │   └── index.ts           # Main entry point
+│   │   └── dist/                  # Compiled output
+│   ├── modules/                   # Backend modules
+│   └── webapp/
+│       ├── package.json           # @annos/webapp package
+│       └── ...
 ```
 
-## Benefits
+## Implementation Plan
 
-- ✅ **Zero additional tooling** - just TypeScript imports
-- ✅ **Compile-time safety** - type mismatches caught immediately
-- ✅ **Single source of truth** - one place to update API contracts
-- ✅ **Easy refactoring** - TypeScript will catch all references
-- ✅ **No build complexity** - works with existing setup
-- ✅ **Monorepo friendly** - leverages existing structure
+### Phase 1: Setup Workspace Infrastructure
 
-## Implementation Guide
+#### Step 1.1: Configure Root Workspace
 
-### 1. Create Shared Types Directory
+Update root `package.json`:
 
-```bash
-mkdir -p src/shared/api
+```json
+{
+  "name": "annos",
+  "version": "1.0.0",
+  "workspaces": [
+    "src/shared",
+    "src/webapp",
+    "."
+  ],
+  "scripts": {
+    "build:shared": "npm run build --workspace=@annos/shared-types",
+    "dev:shared": "npm run dev --workspace=@annos/shared-types",
+    "build:webapp": "npm run build --workspace=@annos/webapp",
+    "dev:webapp": "npm run dev --workspace=@annos/webapp",
+    "dev:all": "npm run dev:shared & npm run dev:webapp & npm run dev:app:inner"
+  }
+}
 ```
 
-### 2. Define Common Types
+#### Step 1.2: Create Shared Types Package
 
+Create `src/shared/package.json`:
+
+```json
+{
+  "name": "@annos/shared-types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types for Annos API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
+```
+
+Create `src/shared/tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+#### Step 1.3: Update Webapp Package
+
+Update `src/webapp/package.json`:
+
+```json
+{
+  "name": "@annos/webapp",
+  "dependencies": {
+    "@annos/shared-types": "workspace:*",
+    // ... existing dependencies
+  }
+}
+```
+
+### Phase 2: Migrate Types to Shared Package
+
+#### Step 2.1: Create Shared Type Files
+
+Move and organize existing webapp types into the shared package:
+
+**src/shared/src/api/common.ts:**
 ```typescript
-// src/shared/api/common.ts
 export interface User {
   id: string;
   name: string;
@@ -68,12 +165,15 @@ export interface CardSorting extends BaseSorting {
 export interface CollectionSorting extends BaseSorting {
   sortBy: 'name' | 'createdAt' | 'updatedAt' | 'cardCount';
 }
+
+export interface FeedPagination extends Pagination {
+  nextCursor?: string;
+}
 ```
 
-### 3. Define Request Types
-
+**src/shared/src/api/requests.ts:**
 ```typescript
-// src/shared/api/requests.ts
+// Copy all request types from src/webapp/api-client/types/requests.ts
 export interface PaginationParams {
   page?: number;
   limit?: number;
@@ -84,77 +184,100 @@ export interface SortingParams {
   sortOrder?: 'asc' | 'desc';
 }
 
-export interface GetMyUrlCardsRequest extends PaginationParams, SortingParams {}
-
-export interface AddUrlToLibraryRequest {
-  url: string;
-  note?: string;
-  collectionIds?: string[];
-}
-
-// ... other request types
+// ... all other request types
 ```
 
-### 4. Define Response Types
-
+**src/shared/src/api/responses.ts:**
 ```typescript
-// src/shared/api/responses.ts
-import { User, Pagination, CardSorting } from './common';
+import { User, Pagination, CardSorting, CollectionSorting, FeedPagination } from './common';
 
+// Copy all response types from src/webapp/api-client/types/responses.ts
 export interface UrlCard {
   id: string;
   type: 'URL';
   url: string;
-  cardContent: {
-    url: string;
-    title?: string;
-    description?: string;
-    author?: string;
-    thumbnailUrl?: string;
-  };
-  libraryCount: number;
-  urlLibraryCount: number;
-  urlInLibrary?: boolean;
-  createdAt: string;
-  updatedAt: string;
-  author: User;
-  note?: {
-    id: string;
-    text: string;
-  };
+  // ... rest of UrlCard interface
 }
 
-export interface GetUrlCardsResponse {
-  cards: UrlCard[];
-  pagination: Pagination;
-  sorting: CardSorting;
-}
-
-// ... other response types
+// ... all other response types
 ```
 
-### 5. Create Index File
-
+**src/shared/src/api/index.ts:**
 ```typescript
-// src/shared/api/index.ts
 export * from './common';
 export * from './requests';
 export * from './responses';
 ```
 
-### 6. Update Backend Use Cases
+**src/shared/src/index.ts:**
+```typescript
+export * from './api';
+```
+
+#### Step 2.2: Build Shared Types
+
+```bash
+cd src/shared
+npm run build
+```
+
+### Phase 3: Update Frontend to Use Shared Types
+
+#### Step 3.1: Install Shared Types Dependency
+
+```bash
+npm install --workspace=@annos/webapp
+```
+
+#### Step 3.2: Update Frontend Imports
+
+Replace all imports in webapp files:
+
+```typescript
+// OLD: src/webapp/api-client/ApiClient.ts
+import type {
+  GetUrlCardsResponse,
+  AddUrlToLibraryRequest,
+} from './types/responses';
+
+// NEW:
+import type {
+  GetUrlCardsResponse,
+  AddUrlToLibraryRequest,
+} from '@annos/shared-types';
+```
+
+#### Step 3.3: Remove Old Type Files
+
+```bash
+rm -rf src/webapp/api-client/types/
+```
+
+### Phase 4: Update Backend to Use Shared Types
+
+#### Step 4.1: Install Shared Types in Backend
+
+Add to root `package.json` dependencies:
+
+```json
+{
+  "dependencies": {
+    "@annos/shared-types": "workspace:*"
+  }
+}
+```
+
+#### Step 4.2: Update Use Cases
 
 ```typescript
 // src/modules/cards/application/useCases/queries/GetUrlCardsUseCase.ts
-import { GetUrlCardsResponse } from '../../../../shared/api';
+import { GetUrlCardsResponse } from '@annos/shared-types';
 
 export class GetUrlCardsUseCase {
   async execute(
-    query: GetUrlCardsQuery,
-  ): Promise<
-    Result<GetUrlCardsResponse, ValidationError | AppError.UnexpectedError>
-  > {
-    // Implementation returns GetUrlCardsResponse type
+    query: GetUrlCardsQuery
+  ): Promise<Result<GetUrlCardsResponse, ValidationError | AppError.UnexpectedError>> {
+    // Implementation must return GetUrlCardsResponse type
     return ok({
       cards: enrichedCards,
       pagination: {
@@ -173,11 +296,11 @@ export class GetUrlCardsUseCase {
 }
 ```
 
-### 7. Update Controllers
+#### Step 4.3: Update Controllers
 
 ```typescript
 // src/modules/cards/infrastructure/http/controllers/GetMyUrlCardsController.ts
-import { GetUrlCardsResponse } from '../../../../shared/api';
+import { GetUrlCardsResponse } from '@annos/shared-types';
 
 export class GetMyUrlCardsController extends Controller {
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
@@ -193,56 +316,46 @@ export class GetMyUrlCardsController extends Controller {
 }
 ```
 
-### 8. Update Frontend API Client
+### Phase 5: Development Workflow
 
-```typescript
-// src/webapp/api-client/ApiClient.ts
-import type {
-  GetUrlCardsResponse,
-  GetMyUrlCardsRequest,
-  AddUrlToLibraryRequest,
-  AddUrlToLibraryResponse,
-  // ... other types
-} from '../../shared/api';
+#### Step 5.1: Development Scripts
 
-export class ApiClient {
-  async getMyUrlCards(
-    params?: GetMyUrlCardsRequest,
-  ): Promise<GetUrlCardsResponse> {
-    return this.queryClient.getMyUrlCards(params);
-  }
+Add to root `package.json`:
 
-  async addUrlToLibrary(
-    request: AddUrlToLibraryRequest,
-  ): Promise<AddUrlToLibraryResponse> {
-    return this.cardClient.addUrlToLibrary(request);
+```json
+{
+  "scripts": {
+    "dev": "concurrently \"npm run dev:shared\" \"npm run dev:webapp\" \"npm run dev:app:inner\"",
+    "dev:shared": "npm run dev --workspace=@annos/shared-types",
+    "build:all": "npm run build:shared && npm run build:webapp && npm run build"
   }
 }
 ```
 
-## Migration Strategy
+#### Step 5.2: Type Development Workflow
 
-### Phase 1: Setup Infrastructure
+1. **Make type changes** in `src/shared/src/api/`
+2. **Shared types auto-rebuild** (if using `npm run dev:shared`)
+3. **Both frontend and backend** get updated types automatically
+4. **TypeScript compiler** catches any mismatches immediately
 
-1. Create `src/shared/api/` directory structure
-2. Move existing webapp types to shared location
-3. Update webapp imports to use shared types
+### Phase 6: Testing and Validation
 
-### Phase 2: Backend Integration (Per Endpoint)
+#### Step 6.1: Type Safety Validation
 
-For each API endpoint:
+```bash
+# Check all TypeScript compilation
+npm run type-check
+npm run type-check --workspace=@annos/webapp
+npm run build:shared
+```
 
-1. **Identify the endpoint** (e.g., `GET /api/cards/my`)
-2. **Update use case** to return shared response type
-3. **Update controller** to use shared types
-4. **Test the endpoint** to ensure types match
+#### Step 6.2: Runtime Validation (Optional)
 
-### Phase 3: Validation (Optional)
+Add Zod schemas for runtime validation:
 
-Add runtime validation using libraries like Zod:
-
+**src/shared/src/validation/index.ts:**
 ```typescript
-// src/shared/api/validation.ts
 import { z } from 'zod';
 
 export const UrlCardSchema = z.object({
@@ -254,84 +367,98 @@ export const UrlCardSchema = z.object({
 
 export const GetUrlCardsResponseSchema = z.object({
   cards: z.array(UrlCardSchema),
-  pagination: PaginationSchema,
-  sorting: CardSortingSchema,
+  pagination: z.object({
+    currentPage: z.number(),
+    totalPages: z.number(),
+    totalCount: z.number(),
+    hasMore: z.boolean(),
+    limit: z.number(),
+  }),
+  sorting: z.object({
+    sortBy: z.enum(['createdAt', 'updatedAt', 'libraryCount']),
+    sortOrder: z.enum(['asc', 'desc']),
+  }),
 });
 ```
 
-## Example: Complete Flow
+## Migration Checklist
 
-Here's how a complete request/response flow works:
+### Phase 1: Infrastructure ✅
+- [ ] Update root `package.json` with workspaces
+- [ ] Create `src/shared/package.json`
+- [ ] Create `src/shared/tsconfig.json`
+- [ ] Update `src/webapp/package.json` dependencies
+- [ ] Run `npm install` to setup workspace
 
-1. **Frontend makes request:**
+### Phase 2: Type Migration ✅
+- [ ] Create `src/shared/src/api/common.ts`
+- [ ] Create `src/shared/src/api/requests.ts`
+- [ ] Create `src/shared/src/api/responses.ts`
+- [ ] Create `src/shared/src/api/index.ts`
+- [ ] Create `src/shared/src/index.ts`
+- [ ] Build shared types: `npm run build:shared`
 
-```typescript
-const response: GetUrlCardsResponse = await apiClient.getMyUrlCards({
-  page: 1,
-  limit: 20,
-  sortBy: 'updatedAt',
-  sortOrder: 'desc',
-});
-```
+### Phase 3: Frontend Migration ✅
+- [ ] Update all imports in webapp to use `@annos/shared-types`
+- [ ] Remove old type files: `rm -rf src/webapp/api-client/types/`
+- [ ] Test webapp compilation: `npm run type-check --workspace=@annos/webapp`
 
-2. **Controller receives request:**
+### Phase 4: Backend Migration ✅
+- [ ] Add shared types dependency to root package
+- [ ] Update use cases to import and return shared types
+- [ ] Update controllers to use shared types
+- [ ] Test backend compilation: `npm run type-check`
 
-```typescript
-// TypeScript ensures the response matches GetUrlCardsResponse
-const result = await this.useCase.execute(query);
-return this.ok(res, result.value); // result.value is GetUrlCardsResponse
-```
+### Phase 5: Development Setup ✅
+- [ ] Add development scripts to root package.json
+- [ ] Test concurrent development: `npm run dev`
+- [ ] Verify hot reload works for type changes
 
-3. **Use case returns typed response:**
-
-```typescript
-// Return type is enforced by TypeScript
-return ok({
-  cards: [...],
-  pagination: {...},
-  sorting: {...}
-}); // Must match GetUrlCardsResponse exactly
-```
+### Phase 6: Validation ✅
+- [ ] Run full type check across all packages
+- [ ] Test API endpoints return correct types
+- [ ] Add runtime validation (optional)
+- [ ] Update documentation
 
 ## Best Practices
 
 ### Type Naming Conventions
-
 - **Requests**: `{Action}{Resource}Request` (e.g., `GetUrlCardsRequest`)
 - **Responses**: `{Action}{Resource}Response` (e.g., `GetUrlCardsResponse`)
 - **Common types**: Descriptive names (e.g., `User`, `Pagination`)
 
-### File Organization
-
-- Keep related types together in the same file
-- Use barrel exports (`index.ts`) for clean imports
-- Separate common types from endpoint-specific types
+### Development Workflow
+1. **Always run shared types in watch mode** during development
+2. **Make type changes first** before implementing features
+3. **Use TypeScript strict mode** to catch issues early
+4. **Version shared types** when making breaking changes
 
 ### Error Handling
-
-- Define error response types consistently
+- Define consistent error response types
 - Use discriminated unions for different error types
 - Include error codes and messages in shared types
-
-### Versioning
-
-- Consider API versioning in type names if needed
-- Use semantic versioning for breaking changes
-- Document breaking changes in migration guides
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Import path errors**: Ensure relative paths are correct
-2. **Circular dependencies**: Keep shared types pure (no business logic)
-3. **Type mismatches**: Use TypeScript strict mode to catch issues early
+1. **"Cannot find module '@annos/shared-types'"**
+   - Run `npm install` in root to setup workspace links
+   - Ensure shared types are built: `npm run build:shared`
+
+2. **Type mismatches between frontend and backend**
+   - Check that both are using the same version of shared types
+   - Rebuild shared types: `npm run build:shared`
+
+3. **Hot reload not working for type changes**
+   - Ensure `npm run dev:shared` is running in watch mode
+   - Restart development servers if needed
 
 ### Debugging Tips
 
-1. Use `tsc --noEmit` to check types without building
-2. Enable strict TypeScript settings in `tsconfig.json`
-3. Use IDE features to trace type definitions
+1. Use `npm ls @annos/shared-types` to check workspace linking
+2. Check `src/shared/dist/` for compiled output
+3. Use IDE "Go to Definition" to verify imports are resolving correctly
 
 ## Future Enhancements
 
@@ -339,3 +466,5 @@ return ok({
 - **Runtime validation**: Add Zod schemas for all shared types
 - **Documentation**: Auto-generate API docs from types
 - **Testing**: Create type-safe test utilities
+- **Publishing**: Publish shared types to private npm registry
+- **Versioning**: Implement semantic versioning for breaking changes

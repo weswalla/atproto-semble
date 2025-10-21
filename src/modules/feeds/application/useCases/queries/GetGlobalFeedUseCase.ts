@@ -14,6 +14,10 @@ import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionI
 import { IIdentityResolutionService } from '../../../../atproto/domain/services/IIdentityResolutionService';
 import { DID } from '../../../../atproto/domain/DID';
 import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
+import {
+  FeedItemDTO,
+  FeedPaginationDTO,
+} from '../../../../cards/application/dtos';
 
 export interface GetGlobalFeedQuery {
   callingUserId?: string;
@@ -22,45 +26,9 @@ export interface GetGlobalFeedQuery {
   beforeActivityId?: string; // For cursor-based pagination
 }
 
-export interface ActivityActorDTO {
-  id: string;
-  name: string;
-  handle: string;
-  avatarUrl?: string;
-}
-// DTOs for the response
-export interface FeedItemView {
-  id: string;
-  user: ActivityActorDTO;
-  card: UrlCardView;
-  createdAt: Date;
-  collections: {
-    id: string;
-    uri?: string;
-    name: string;
-    description?: string;
-    author: {
-      id: string;
-      name: string;
-      handle: string;
-      avatarUrl?: string;
-      description?: string;
-    };
-    cardCount: number;
-    createdAt: string;
-    updatedAt: string;
-  }[];
-}
-
 export interface GetGlobalFeedResult {
-  activities: FeedItemView[];
-  pagination: {
-    currentPage: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-    nextCursor?: string;
-  };
+  activities: FeedItemDTO[];
+  pagination: FeedPaginationDTO;
 }
 
 export class ValidationError extends UseCaseError {
@@ -128,7 +96,16 @@ export class GetGlobalFeedUseCase
       ];
 
       // Fetch profiles for all actors
-      const actorProfiles = new Map<string, ActivityActorDTO>();
+      const actorProfiles = new Map<
+        string,
+        {
+          id: string;
+          name: string;
+          handle: string;
+          avatarUrl?: string;
+          description?: string;
+        }
+      >();
       const profileResults = await Promise.all(
         actorIds.map((actorId) => this.profileService.getProfile(actorId)),
       );
@@ -145,6 +122,7 @@ export class GetGlobalFeedUseCase
             name: profile.name,
             handle: profile.handle,
             avatarUrl: profile.avatarUrl,
+            description: profile.bio,
           });
         } else {
           // If profile fetch fails, create a fallback
@@ -165,7 +143,7 @@ export class GetGlobalFeedUseCase
         ),
       ];
 
-      // Hydrate card data using Promise.all
+      // Hydrate card data and fetch card authors
       const cardDataMap = new Map<string, UrlCardView>();
       const cardViews = await Promise.all(
         cardIds.map((cardId) =>
@@ -176,6 +154,47 @@ export class GetGlobalFeedUseCase
         const cardView = cardViews[idx];
         if (cardView) {
           cardDataMap.set(cardId, cardView);
+        }
+      });
+
+      // Get unique card author IDs
+      const cardAuthorIds = [
+        ...new Set(
+          Array.from(cardDataMap.values()).map((card) => card.authorId),
+        ),
+      ];
+
+      // Fetch card author profiles
+      const cardAuthorProfiles = new Map<
+        string,
+        {
+          id: string;
+          name: string;
+          handle: string;
+          avatarUrl?: string;
+          description?: string;
+        }
+      >();
+      const cardAuthorResults = await Promise.all(
+        cardAuthorIds.map((authorId) =>
+          this.profileService.getProfile(authorId, query.callingUserId),
+        ),
+      );
+
+      cardAuthorResults.forEach((profileResult, idx) => {
+        const authorId = cardAuthorIds[idx];
+        if (!authorId) {
+          return;
+        }
+        if (profileResult.isOk()) {
+          const profile = profileResult.value;
+          cardAuthorProfiles.set(authorId, {
+            id: profile.id,
+            name: profile.name,
+            handle: profile.handle,
+            avatarUrl: profile.avatarUrl,
+            description: profile.bio,
+          });
         }
       });
 
@@ -274,19 +293,40 @@ export class GetGlobalFeedUseCase
         }
       });
 
-      // Transform activities to FeedItemView
-      const feedItems: FeedItemView[] = [];
+      // Transform activities to FeedItemDTO
+      const feedItems: FeedItemDTO[] = [];
       for (const activity of feed.activities) {
         if (!activity.cardCollected) {
           continue; // Skip non-card-collected activities
         }
 
         const actor = actorProfiles.get(activity.actorId.value);
-        const cardData = cardDataMap.get(activity.metadata.cardId);
+        const cardView = cardDataMap.get(activity.metadata.cardId);
 
-        if (!actor || !cardData) {
+        if (!actor || !cardView) {
           continue; // Skip if we can't hydrate required data
         }
+
+        // Get card author
+        const cardAuthor = cardAuthorProfiles.get(cardView.authorId);
+        if (!cardAuthor) {
+          continue; // Skip if we can't get card author
+        }
+
+        // Transform UrlCardView to UrlCardDTO
+        const cardDTO = {
+          id: cardView.id,
+          type: 'URL' as const,
+          url: cardView.url,
+          cardContent: cardView.cardContent,
+          libraryCount: cardView.libraryCount,
+          urlLibraryCount: cardView.urlLibraryCount,
+          urlInLibrary: cardView.urlInLibrary,
+          createdAt: cardView.createdAt.toISOString(),
+          updatedAt: cardView.updatedAt.toISOString(),
+          author: cardAuthor,
+          note: cardView.note,
+        };
 
         const collections = (activity.metadata.collectionIds || [])
           .map((collectionId) => collectionDataMap.get(collectionId))
@@ -295,7 +335,7 @@ export class GetGlobalFeedUseCase
         feedItems.push({
           id: activity.activityId.getStringValue(),
           user: actor,
-          card: cardData,
+          card: cardDTO,
           createdAt: activity.createdAt,
           collections,
         });
@@ -305,6 +345,7 @@ export class GetGlobalFeedUseCase
         activities: feedItems,
         pagination: {
           currentPage: page,
+          totalPages: Math.ceil(feed.totalCount / limit),
           totalCount: feed.totalCount,
           hasMore: feed.hasMore,
           limit,

@@ -10,32 +10,16 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { URL } from '../../../domain/value-objects/URL';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
+import { CollectionDTO } from '../../dtos';
 
 export interface GetUrlStatusForMyLibraryQuery {
   url: string;
   curatorId: string;
 }
 
-export interface CollectionInfo {
-  id: string;
-  uri?: string;
-  name: string;
-  description?: string;
-  author: {
-    id: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
-    description?: string;
-  };
-  cardCount: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface GetUrlStatusForMyLibraryResult {
   cardId?: string;
-  collections?: CollectionInfo[];
+  collections?: CollectionDTO[];
 }
 
 export class ValidationError extends UseCaseError {
@@ -113,7 +97,7 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
 
           // Enrich collections with full data
           result.collections = await Promise.all(
-            collections.map(async (collection) => {
+            collections.map(async (collection): Promise<CollectionDTO> => {
               // Fetch full collection to get dates and cardCount
               const collectionIdResult = CollectionId.createFromString(
                 collection.id,

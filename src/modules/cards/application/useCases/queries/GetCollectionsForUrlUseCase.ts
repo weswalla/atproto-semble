@@ -9,6 +9,11 @@ import { URL } from '../../../domain/value-objects/URL';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
+import {
+  CollectionDTO,
+  PaginationDTO,
+  CollectionSortingDTO,
+} from '../../dtos';
 
 export interface GetCollectionsForUrlQuery {
   url: string;
@@ -19,36 +24,10 @@ export interface GetCollectionsForUrlQuery {
   sortOrder?: SortOrder;
 }
 
-export interface CollectionForUrlDTO {
-  id: string;
-  uri?: string;
-  name: string;
-  description?: string;
-  author: {
-    id: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
-    description?: string;
-  };
-  cardCount: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface GetCollectionsForUrlResult {
-  collections: CollectionForUrlDTO[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-  };
-  sorting: {
-    sortBy: CollectionSortField;
-    sortOrder: SortOrder;
-  };
+  collections: CollectionDTO[];
+  pagination: PaginationDTO;
+  sorting: CollectionSortingDTO;
 }
 
 export class ValidationError extends Error {
@@ -144,7 +123,7 @@ export class GetCollectionsForUrlUseCase
       }
 
       // Map items with enriched author data and full collection data
-      const enrichedCollections: CollectionForUrlDTO[] = await Promise.all(
+      const enrichedCollections: CollectionDTO[] = await Promise.all(
         result.items.map(async (item) => {
           const author = profileMap.get(item.authorId);
           if (!author) {

@@ -9,6 +9,10 @@ import {
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
+import {
+  UserProfileDTO,
+  CollectionDTO,
+} from '../../dtos';
 
 export interface GetUrlCardViewQuery {
   cardId: string;
@@ -17,36 +21,9 @@ export interface GetUrlCardViewQuery {
 
 // Enriched data for the final use case result
 export type UrlCardViewResult = UrlCardView & {
-  author: {
-    id: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
-    description?: string;
-  };
-  collections: {
-    id: string;
-    uri?: string;
-    name: string;
-    description?: string;
-    author: {
-      id: string;
-      name: string;
-      handle: string;
-      avatarUrl?: string;
-      description?: string;
-    };
-    cardCount: number;
-    createdAt: string;
-    updatedAt: string;
-  }[];
-  libraries: {
-    id: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
-    description?: string;
-  }[];
+  author: UserProfileDTO;
+  collections: CollectionDTO[];
+  libraries: UserProfileDTO[];
 };
 
 export class ValidationError extends Error {
@@ -147,7 +124,7 @@ export class GetUrlCardViewUseCase
       });
 
       // Enrich collections with full Collection data
-      const enrichedCollections = await Promise.all(
+      const enrichedCollections: CollectionDTO[] = await Promise.all(
         cardView.collections.map(async (collection) => {
           const collectionIdResult = CollectionId.createFromString(
             collection.id,

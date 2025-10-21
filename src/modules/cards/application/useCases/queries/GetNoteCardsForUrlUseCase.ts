@@ -7,6 +7,11 @@ import {
 } from '../../../domain/ICardQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
 import { IProfileService } from '../../../domain/services/IProfileService';
+import {
+  NoteCardDTO,
+  PaginationDTO,
+  CardSortingDTO,
+} from '../../dtos';
 
 export interface GetNoteCardsForUrlQuery {
   url: string;
@@ -17,33 +22,10 @@ export interface GetNoteCardsForUrlQuery {
   sortOrder?: SortOrder;
 }
 
-export interface NoteCardForUrlDTO {
-  id: string;
-  note: string;
-  author: {
-    id: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
-    description?: string;
-  };
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 export interface GetNoteCardsForUrlResult {
-  notes: NoteCardForUrlDTO[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-  };
-  sorting: {
-    sortBy: CardSortField;
-    sortOrder: SortOrder;
-  };
+  notes: NoteCardDTO[];
+  pagination: PaginationDTO;
+  sorting: CardSortingDTO;
 }
 
 export class ValidationError extends Error {
@@ -134,7 +116,7 @@ export class GetNoteCardsForUrlUseCase
       }
 
       // Map items with enriched author data
-      const enrichedNotes: NoteCardForUrlDTO[] = result.items.map((item) => {
+      const enrichedNotes: NoteCardDTO[] = result.items.map((item) => {
         const author = profileMap.get(item.authorId);
         if (!author) {
           throw new Error(`Profile not found for author ${item.authorId}`);
@@ -143,8 +125,8 @@ export class GetNoteCardsForUrlUseCase
           id: item.id,
           note: item.note,
           author,
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt,
+          createdAt: item.createdAt.toISOString(),
+          updatedAt: item.updatedAt.toISOString(),
         };
       });
 

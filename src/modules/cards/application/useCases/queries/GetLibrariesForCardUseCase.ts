@@ -2,22 +2,15 @@ import { UseCase } from 'src/shared/core/UseCase';
 import { ICardQueryRepository } from '../../../domain/ICardQueryRepository';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { err, ok, Result } from 'src/shared/core/Result';
+import { UserProfileDTO } from '../../dtos';
 
 export interface GetLibrariesForCardQuery {
   cardId: string;
 }
 
-export interface LibraryUserDTO {
-  id: string;
-  name: string;
-  handle: string;
-  avatarUrl?: string;
-  description?: string;
-}
-
 export interface GetLibrariesForCardResult {
   cardId: string;
-  users: LibraryUserDTO[];
+  users: UserProfileDTO[];
   totalCount: number;
 }
 
@@ -59,7 +52,7 @@ export class GetLibrariesForCardUseCase
       const profileResults = await Promise.all(profilePromises);
 
       // Filter out failed profile fetches and transform to DTOs
-      const users: LibraryUserDTO[] = [];
+      const users: UserProfileDTO[] = [];
       const errors: string[] = [];
 
       for (let i = 0; i < profileResults.length; i++) {

@@ -7,6 +7,12 @@ import {
 } from '../../../domain/ICardQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
 import { IProfileService } from '../../../domain/services/IProfileService';
+import {
+  UserProfileDTO,
+  UrlCardDTO,
+  PaginationDTO,
+  CardSortingDTO,
+} from '../../dtos';
 
 export interface GetLibrariesForUrlQuery {
   url: string;
@@ -17,55 +23,15 @@ export interface GetLibrariesForUrlQuery {
   sortOrder?: SortOrder;
 }
 
-export interface UserDTO {
-  id: string;
-  name: string;
-  handle: string;
-  avatarUrl?: string;
-  description?: string;
-}
-
-export interface UrlCardDTO {
-  id: string;
-  type: 'URL';
-  url: string;
-  cardContent: {
-    url: string;
-    title?: string;
-    description?: string;
-    author?: string;
-    thumbnailUrl?: string;
-  };
-  libraryCount: number;
-  urlLibraryCount: number;
-  urlInLibrary?: boolean;
-  createdAt: string;
-  updatedAt: string;
-  author: UserDTO;
-  note?: {
-    id: string;
-    text: string;
-  };
-}
-
 export interface LibraryForUrlDTO {
-  user: UserDTO;
+  user: UserProfileDTO;
   card: UrlCardDTO;
 }
 
 export interface GetLibrariesForUrlResult {
   libraries: LibraryForUrlDTO[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-  };
-  sorting: {
-    sortBy: CardSortField;
-    sortOrder: SortOrder;
-  };
+  pagination: PaginationDTO;
+  sorting: CardSortingDTO;
 }
 
 export class ValidationError extends Error {
@@ -121,7 +87,7 @@ export class GetLibrariesForUrlUseCase
       const profileResults = await Promise.all(profilePromises);
 
       // Create a map of profiles
-      const profileMap = new Map<string, UserDTO>();
+      const profileMap = new Map<string, UserProfileDTO>();
 
       for (let i = 0; i < uniqueUserIds.length; i++) {
         const profileResult = profileResults[i];

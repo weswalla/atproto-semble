@@ -1,5 +1,6 @@
 'use client';
 
+import type { Collection } from '@/api-client';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { getRelativeTime } from '@/lib/utils/time';
 import { Card, Group, Stack, Text } from '@mantine/core';
@@ -7,21 +8,7 @@ import { useRouter } from 'next/navigation';
 
 interface Props {
   size?: 'large' | 'compact' | 'list' | 'basic';
-  collection: {
-    id: string;
-    uri?: string;
-    name: string;
-    description?: string;
-    cardCount: number;
-    createdAt: string;
-    updatedAt: string;
-    createdBy: {
-      id: string;
-      name: string;
-      handle: string;
-      avatarUrl?: string;
-    };
-  };
+  collection: Collection;
 }
 
 export default function CollectionCard(props: Props) {
@@ -38,7 +25,7 @@ export default function CollectionCard(props: Props) {
       withBorder
       onClick={() =>
         router.push(
-          `/profile/${collection.createdBy.handle}/collections/${rkey}`,
+          `/profile/${collection.author.handle}/collections/${rkey}`,
         )
       }
       radius={'lg'}

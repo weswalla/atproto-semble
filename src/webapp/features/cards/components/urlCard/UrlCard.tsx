@@ -1,4 +1,4 @@
-import { UrlCardView } from '@/api-client/types';
+import type { UrlCard, Collection } from '@/api-client/types';
 import { getDomain } from '@/lib/utils/link';
 import {
   Card,
@@ -21,10 +21,10 @@ interface Props {
   size?: 'large' | 'compact' | 'small';
   id: string;
   url: string;
-  cardContent: UrlCardView['cardContent'];
-  note?: UrlCardView['note'];
-  collections?: UrlCardView['collections'];
-  currentCollection?: UrlCardView['collections'][0];
+  cardContent: UrlCard['cardContent'];
+  note?: UrlCard['note'];
+  collections?: Collection[];
+  currentCollection?: Collection;
   urlLibraryCount: number;
   urlIsInLibrary?: boolean;
   authorHandle?: string;

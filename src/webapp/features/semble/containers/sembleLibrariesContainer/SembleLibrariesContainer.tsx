@@ -55,7 +55,7 @@ export default function SembleLibrariesContainer(props: Props) {
       <Grid gutter="md">
         {allLibraries.map((u) => (
           <Grid.Col
-            key={u.userId}
+            key={u.user.name}
             span={{
               base: 12,
               sm: 6,

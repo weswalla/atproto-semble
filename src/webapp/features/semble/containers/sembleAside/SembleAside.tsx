@@ -25,7 +25,7 @@ export default async function SembleAside(props: Props) {
           ) : (
             <Fragment>
               {libraries.map((lib) => (
-                <div key={lib.userId}>{lib.userId}</div>
+                <div key={lib.user.id}>{lib.user.name}</div>
               ))}
             </Fragment>
           )}

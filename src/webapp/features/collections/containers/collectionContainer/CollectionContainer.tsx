@@ -119,11 +119,7 @@ export default function CollectionContainer(props: Props) {
                     note={card.note}
                     urlLibraryCount={card.urlLibraryCount}
                     urlIsInLibrary={card.urlInLibrary}
-                    currentCollection={{
-                      id: firstPage.id,
-                      name: firstPage.name,
-                      authorId: firstPage.author.id,
-                    }}
+                    currentCollection={firstPage}
                   />
                 </Grid.Col>
               ))}

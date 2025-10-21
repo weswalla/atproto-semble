@@ -1,4 +1,4 @@
-import { UrlCardView } from '@/api-client/types';
+import type { UrlCard } from '@/api-client/types';
 import useCollectionSearch from '@/features/collections/lib/queries/useCollectionSearch';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import {
@@ -30,7 +30,7 @@ import useMyCollections from '../../../collections/lib/queries/useMyCollections'
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  cardContent: UrlCardView['cardContent'];
+  cardContent: UrlCard["cardContent"];
   cardId: string;
 }
 

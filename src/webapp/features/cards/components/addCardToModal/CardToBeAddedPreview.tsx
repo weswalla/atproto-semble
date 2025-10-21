@@ -14,7 +14,7 @@ import {
 import Link from 'next/link';
 import {
   GetUrlStatusForMyLibraryResponse,
-  UrlCardView,
+  UrlCard,
 } from '@/api-client/types';
 import { BiCollection } from 'react-icons/bi';
 import { LuLibrary } from 'react-icons/lu';
@@ -25,7 +25,7 @@ import { Fragment } from 'react';
 
 interface Props {
   cardId: string;
-  cardContent: UrlCardView['cardContent'];
+  cardContent: UrlCard['cardContent'];
   collectionsWithCard: GetUrlStatusForMyLibraryResponse['collections'];
   isInLibrary: boolean;
 }

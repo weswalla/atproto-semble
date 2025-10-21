@@ -12,7 +12,7 @@ export default async function UrlAddedBySummary(props: Props) {
   const MAX_PROFILES_TO_SHOW = 3;
   const names = data.libraries
     .slice(0, MAX_PROFILES_TO_SHOW)
-    .map((p) => p.userId);
+    .map((p) => p.user.id);
   const hasMore = data.libraries.length > MAX_PROFILES_TO_SHOW;
   const followersSummaryText =
     'Added by ' + names.join(', ') + (hasMore ? ', and others' : '');
@@ -28,10 +28,10 @@ export default async function UrlAddedBySummary(props: Props) {
           <Avatar
             key={i}
             component={Link}
-            href={`/dashboard/profile/${p.handle}`}
-            src={p.avatarUrl}
-            alt={`${p.handle}`}
-            name={p.handle}
+            href={`/dashboard/profile/${p.user.handle}`}
+            src={p.user.avatarUrl}
+            alt={`${p.user.handle}`}
+            name={p.user.handle}
           />
         ))}
       </AvatarGroup>

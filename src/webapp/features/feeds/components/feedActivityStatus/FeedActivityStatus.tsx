@@ -40,7 +40,7 @@ export default function FeedActivityStatus(props: Props) {
                 {/* TODO: use collection creator's handle to direct to profile/creatorHandle/collections/id */}
                 <Anchor
                   component={Link}
-                  href={`/profile/${collection.authorHandle}/collections/${getRecordKey(collection.uri!!)}`}
+                  href={`/profile/${collection.author.handle}/collections/${getRecordKey(collection.uri!!)}`}
                   c="grape"
                   fw={500}
                 >

@@ -1,6 +1,6 @@
 'use client';
 
-import { UrlCardView } from '@/api-client/types';
+import type { UrlCard, Collection } from '@/api-client/types';
 import EditNoteDrawer from '@/features/notes/components/editNoteDrawer/EditNoteDrawer';
 import { ActionIcon, Button, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
@@ -18,10 +18,10 @@ import { IoMdCheckmark } from 'react-icons/io';
 
 interface Props {
   id: string;
-  cardContent: UrlCardView['cardContent'];
+  cardContent: UrlCard['cardContent'];
   authorHandle?: string;
-  note?: UrlCardView['note'];
-  currentCollection?: UrlCardView['collections'][0];
+  note?: UrlCard['note'];
+  currentCollection?: Collection;
   urlLibraryCount: number;
   urlIsInLibrary: boolean;
 }

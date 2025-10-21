@@ -10,7 +10,7 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { URL } from '../../../domain/value-objects/URL';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
-import { CollectionDTO } from '../../dtos';
+import { CollectionDTO } from '@semble/types';
 
 export interface GetUrlStatusForMyLibraryQuery {
   url: string;

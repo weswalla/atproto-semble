@@ -12,7 +12,7 @@ import {
   UrlCardDTO,
   PaginationDTO,
   CardSortingDTO,
-} from '../../dtos';
+} from '@semble/types';
 
 export interface GetLibrariesForUrlQuery {
   url: string;

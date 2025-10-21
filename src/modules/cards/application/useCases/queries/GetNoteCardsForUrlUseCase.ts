@@ -7,7 +7,7 @@ import {
 } from '../../../domain/ICardQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
 import { IProfileService } from '../../../domain/services/IProfileService';
-import { NoteCardDTO, PaginationDTO, CardSortingDTO } from '../../dtos';
+import { NoteCardDTO, PaginationDTO, CardSortingDTO } from '@semble/types';
 
 export interface GetNoteCardsForUrlQuery {
   url: string;

@@ -2,7 +2,7 @@ import { UseCase } from 'src/shared/core/UseCase';
 import { ICardQueryRepository } from '../../../domain/ICardQueryRepository';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { err, ok, Result } from 'src/shared/core/Result';
-import { UserProfileDTO } from '../../dtos';
+import { UserProfileDTO } from '@semble/types';
 
 export interface GetLibrariesForCardQuery {
   cardId: string;

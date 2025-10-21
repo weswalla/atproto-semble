@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Result, ok, err } from 'src/shared/core/Result';
 import { ITokenService } from '../../application/services/ITokenService';
 import { ITokenRepository } from '../../domain/repositories/ITokenRepository';
-import { TokenPair } from '../../application/dtos/TokenDTO';
+import { TokenPair } from '@semble/types';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 
 export class FakeJwtTokenService implements ITokenService {

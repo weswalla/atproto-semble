@@ -2,7 +2,7 @@ import { UseCase } from 'src/shared/core/UseCase';
 import { Result, err, ok } from 'src/shared/core/Result';
 import { AppError } from 'src/shared/core/AppError';
 import { IUserRepository } from '../../domain/repositories/IUserRepository';
-import { UserDTO } from '../dtos/UserDTO';
+import { UserDTO } from '@semble/types';
 import { DID } from '../../domain/value-objects/DID';
 import { GetCurrentUserErrors } from './errors/GetCurrentUserErrors';
 import { UserMap } from '../mappers/UserMap';

@@ -3,7 +3,7 @@ import {
   IOAuthProcessor,
   AuthResult,
 } from '../../../user/application/services/IOAuthProcessor';
-import { OAuthCallbackDTO } from '../../../user/application/dtos/OAuthCallbackDTO';
+import { OAuthCallbackDTO } from '@semble/types';
 import { ITokenService } from '../../../user/application/services/ITokenService';
 
 export class FakeAtProtoOAuthProcessor implements IOAuthProcessor {

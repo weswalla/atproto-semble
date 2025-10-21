@@ -1,7 +1,8 @@
-import { AppShellAside, Stack, Text } from '@mantine/core';
+import { AppShellAside, Avatar, Card, Group, Stack, Text } from '@mantine/core';
 import { getLibrariesForUrl } from '../../lib/dal';
 import { getCollectionsForUrl } from '@/features/collections/lib/dal';
-import { Fragment } from 'react';
+import Link from 'next/link';
+import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 
 interface Props {
   url: string;
@@ -9,10 +10,10 @@ interface Props {
 
 export default async function SembleAside(props: Props) {
   const { libraries } = await getLibrariesForUrl(props.url);
-  const { collections } = await getCollectionsForUrl(props.url);
+  const collectionsData = await getCollectionsForUrl(props.url);
 
   return (
-    <AppShellAside p={'xs'}>
+    <AppShellAside p={'sm'}>
       <Stack gap={'xl'}>
         <Stack gap={'xs'}>
           <Text fz={'xl'} fw={600}>
@@ -23,11 +24,34 @@ export default async function SembleAside(props: Props) {
               No one has added this to their library... yet
             </Text>
           ) : (
-            <Fragment>
-              {libraries.map((lib) => (
-                <div key={lib.user.id}>{lib.user.name}</div>
+            <Stack gap={'xs'}>
+              {libraries.slice(0, 3).map((lib) => (
+                <Card
+                  key={lib.card.id}
+                  withBorder
+                  component={Link}
+                  href={`/profile/${lib.user.handle}`}
+                  radius={'lg'}
+                  p={'sm'}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <Group gap={'xs'}>
+                    <Avatar
+                      src={lib.user.avatarUrl}
+                      alt={`${lib.user.name}'s avatar`}
+                    />
+                    <Stack gap={0}>
+                      <Text fw={600} lineClamp={1}>
+                        {lib.user.name}
+                      </Text>
+                      <Text fw={600} c={'blue'} lineClamp={1}>
+                        {lib.user.handle}
+                      </Text>
+                    </Stack>
+                  </Group>
+                </Card>
               ))}
-            </Fragment>
+            </Stack>
           )}
         </Stack>
 
@@ -35,16 +59,16 @@ export default async function SembleAside(props: Props) {
           <Text fz={'xl'} fw={600}>
             Recent collections
           </Text>
-          {collections.length === 0 ? (
+          {collectionsData.collections.length === 0 ? (
             <Text c={'gray'} fw={600}>
               No one has added this to their collections... yet
             </Text>
           ) : (
-            <Fragment>
-              {collections.map((col) => (
-                <div key={col.uri}>{col.name}</div>
+            <Stack gap={'xs'}>
+              {collectionsData.collections.map((col) => (
+                <CollectionCard key={col.uri} collection={col} />
               ))}
-            </Fragment>
+            </Stack>
           )}
         </Stack>
       </Stack>

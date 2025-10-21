@@ -2,7 +2,30 @@
 
 ## Executive Summary
 
-This document provides a comprehensive implementation plan for sharing types between the backend and frontend using npm workspaces. The approach balances DDD/layered architecture principles with pragmatic simplicity for a startup codebase.
+This document provides a comprehensive implementation plan for sharing types between the backend and frontend using npm workspaces. **This approach follows proper DDD/layered architecture principles** - it's not a compromise or shortcut.
+
+### Quick Answer: Why Not Add Mappers?
+
+**TL;DR**: You already have the important mapper (Domain → Application), and adding another layer (Application → Infrastructure) would just be ceremony when the types are identical.
+
+**You're already doing this (correct DDD):**
+```
+Domain Entity → Use Case (maps to DTO) → Controller (passes through) → Frontend
+     ↓                                          ↓                          ↓
+Rich domain model           Application Layer DTO              Same DTO
+```
+
+**The shared types represent the Application Layer**, not Infrastructure. Both backend controllers and frontend clients consume the same Application Layer contract - this is **textbook Ports & Adapters pattern**.
+
+**When you WOULD need mappers:**
+- API versioning (supporting v1 and v2)
+- Multiple protocols (REST + GraphQL + gRPC)
+- Public API (hiding internal structures)
+- Different client needs (mobile vs web)
+
+See "When Would You Need Mappers?" section for details.
+
+**Bottom line**: Your architecture is already sound. The `@semble/types` package represents Application Layer contracts that both backend and frontend depend on (correct dependency direction).
 
 ## Current State Analysis
 
@@ -40,30 +63,308 @@ Domain Model → Use Case (returns DTO) → Controller (returns DTO as-is) → F
 3. **Infrastructure Layer**: Controllers, Repositories, External Services
 4. **Presentation Layer**: UI Components, API Clients
 
-### Where Types Belong
+### Understanding the Mapping Question
 
-**Traditional DDD Approach:**
-- DTOs live in **Application Layer** (Use Case outputs)
-- DTOs define contract between Use Case and Controller
-- DTOs should NOT be directly exposed to external consumers
-- Controllers map DTOs to HTTP response formats
+**Your codebase ALREADY does Domain → Application mapping:**
 
-**Pragmatic Reality for Startups:**
-- Maintaining separate DTO and HTTP response types is overhead
-- For simple CRUD APIs, DTOs ≈ HTTP responses is acceptable
-- The key is being **intentional** about this choice
+```typescript
+// Domain Entity (lives in domain layer)
+class Collection {
+  collectionId: CollectionId;
+  name: CollectionName;
+  authorId: UserId;
+  description?: CollectionDescription;
+  // ... rich domain behavior
+}
 
-### Our Approach: Pragmatic DDD
+// Use Case maps Domain → DTO (Application Layer)
+async execute(): Promise<Result<CollectionDTO>> {
+  const collection = await this.repo.findById(id);
 
-We'll create **shared API contract types** that serve dual purposes:
-1. Use Case output types (replacing current DTOs)
-2. HTTP API contract types (replacing frontend response types)
+  return {
+    id: collection.collectionId.value,
+    name: collection.name.toString(),
+    author: { ... },  // fetched and mapped
+    description: collection.description?.value,
+    cardCount: collection.cardCount,
+    createdAt: collection.createdAt.toISOString(),
+    updatedAt: collection.updatedAt.toISOString(),
+  };
+}
+```
 
-This is a pragmatic simplification that:
-- ✅ Eliminates duplication
-- ✅ Maintains type safety
-- ✅ Keeps code simple
-- ⚠️ Slightly blurs application/infrastructure boundary (acceptable tradeoff)
+**The question is: Do you need Controller → HTTP Response mapping?**
+
+### Three Approaches Compared
+
+#### Option 1: Pure DDD with Mappers (Maximum Separation)
+
+```typescript
+// Domain Layer
+class Collection { /* rich domain model */ }
+
+// Application Layer
+interface CollectionDTO {
+  id: string;
+  name: string;
+  // ... internal representation
+}
+
+// Infrastructure Layer
+interface CollectionHttpResponse {
+  id: string;
+  name: string;
+  // ... HTTP API representation
+}
+
+// Controller has mapper
+async executeImpl(req, res) {
+  const result = await this.useCase.execute(query);
+  const httpResponse = this.mapDtoToHttpResponse(result.value);
+  return this.ok(res, httpResponse);
+}
+```
+
+**When you need this:**
+- ✅ Public API that needs versioning independent of domain
+- ✅ Domain model significantly different from API representation
+- ✅ Multiple API formats (REST, GraphQL, gRPC) from same domain
+- ✅ Need to hide internal domain details from external consumers
+- ✅ Large team with separate domain/API teams
+
+**Drawbacks:**
+- ❌ High ceremony when DTO ≈ HTTP Response
+- ❌ Boilerplate mapper code
+- ❌ Slower iteration velocity
+
+#### Option 2: Shared Application Layer Types (Recommended)
+
+```typescript
+// Shared Types Package (@semble/types)
+// Conceptually lives in Application Layer
+interface Collection {
+  id: string;
+  name: string;
+  author: User;
+  // ...
+}
+
+// Use Case returns Application Layer type
+async execute(): Promise<Result<Collection>> {
+  // Maps Domain → Application DTO
+  return this.mapDomainToDTO(domainCollection);
+}
+
+// Controller passes through (no mapping needed)
+async executeImpl(req, res) {
+  const result = await this.useCase.execute(query);
+  return this.ok<Collection>(res, result.value);
+}
+
+// Frontend uses same Application Layer type
+async getCollection(): Promise<Collection> {
+  return this.http.get('/collections/123');
+}
+```
+
+**When this is appropriate:**
+- ✅ Monorepo with tight frontend/backend coupling
+- ✅ DTO and HTTP Response are identical (or nearly so)
+- ✅ Private/internal API (not public third-party API)
+- ✅ Small team that values velocity
+- ✅ You're already mapping Domain → DTO properly
+
+**Key insight:** The shared types represent the **Application Layer contract**, not Infrastructure. Both the backend Use Case and frontend are clients of this application layer contract.
+
+**Drawbacks:**
+- ⚠️ Harder to version API independently
+- ⚠️ Frontend sees application layer types (but this may be fine)
+
+#### Option 3: Infrastructure-Owned Types with Reverse Mapping (Anti-Pattern)
+
+```typescript
+// Infrastructure defines types
+interface CollectionHttpResponse { /* ... */ }
+
+// Use Case returns infrastructure type (WRONG!)
+async execute(): Promise<Result<CollectionHttpResponse>> {
+  // Use case now depends on infrastructure layer
+}
+```
+
+**This is an anti-pattern** because:
+- ❌ Use Cases depend on Infrastructure (breaks DDD layering)
+- ❌ Application layer coupled to HTTP representation
+- ❌ Can't reuse Use Cases for non-HTTP interfaces
+
+### Our Recommendation: Option 2 (Shared Application Types)
+
+**Why this is the right choice for your codebase:**
+
+1. **You're already mapping Domain → Application:**
+   ```typescript
+   // GetCollectionsForUrlUseCase.ts - lines 122-151
+   const enrichedCollections: CollectionDTO[] = await Promise.all(
+     result.items.map(async (item) => {
+       // Fetching related data
+       const author = profileMap.get(item.authorId);
+       const collection = await this.collectionRepo.findById(...);
+
+       // Mapping domain to DTO
+       return {
+         id: item.id,
+         uri: item.uri,
+         name: item.name,
+         description: item.description,
+         author,  // enriched
+         cardCount: collection.cardCount,
+         createdAt: collection.createdAt.toISOString(),
+         updatedAt: collection.updatedAt.toISOString(),
+       };
+     })
+   );
+   ```
+   This is **proper DDD** - the Use Case orchestrates domain objects and produces DTOs.
+
+2. **Your DTOs ARE your HTTP responses:**
+   - Backend `CollectionDTO` is identical to frontend `Collection`
+   - No transformation happens in controllers
+   - Controllers just pass through the DTO
+
+3. **The shared types represent Application Layer, not Infrastructure:**
+   - Think of it as: "The Application Layer contract that both backend and frontend implement"
+   - Backend: Use Cases produce this contract
+   - Frontend: API Client consumes this contract
+   - Infrastructure (controllers): Just pipes the data through
+
+4. **You maintain proper boundaries:**
+   ```
+   Domain Layer (Rich Models)
+        ↓
+   Application Layer (DTOs - Shared Types)
+        ↓
+   Infrastructure (HTTP) ← → Frontend (HTTP Client)
+   ```
+
+### When Would You Need Mappers?
+
+Add a separate HTTP Response layer if:
+
+1. **API Versioning:**
+   ```typescript
+   // v1: { id, name }
+   // v2: { id, title } // renamed field
+
+   // Use mapper to support both versions
+   function mapToV1(dto: CollectionDTO): CollectionV1Response {
+     return { id: dto.id, name: dto.name };
+   }
+   ```
+
+2. **Different Representations:**
+   ```typescript
+   // REST API: flat structure
+   { collectionId: '123', authorId: '456' }
+
+   // GraphQL: nested structure
+   { id: '123', author: { id: '456', name: '...' } }
+   ```
+
+3. **Hide Internal Details:**
+   ```typescript
+   // DTO has internal fields
+   interface CollectionDTO {
+     id: string;
+     name: string;
+     internalAuditLog: AuditEntry[];  // don't expose
+   }
+
+   // HTTP response filters
+   interface CollectionResponse {
+     id: string;
+     name: string;
+     // no audit log
+   }
+   ```
+
+4. **Multiple Clients with Different Needs:**
+   - Mobile app needs smaller payloads
+   - Admin dashboard needs more details
+   - Public API needs sanitized data
+
+### Implementation Strategy
+
+**Organize shared types by architectural layer:**
+
+```typescript
+// src/types/src/api/
+// These are Application Layer DTOs, not Infrastructure types
+
+// common.ts - Core domain concepts
+export interface User { /* ... */ }
+export interface Collection { /* ... */ }
+
+// requests.ts - Use Case inputs
+export interface GetCollectionsParams { /* ... */ }
+
+// responses.ts - Use Case outputs
+export interface GetCollectionsResponse { /* ... */ }
+```
+
+**Use Cases depend on these types:**
+```typescript
+import { GetCollectionsResponse } from '@semble/types';
+
+class GetCollectionsUseCase {
+  async execute(params): Promise<Result<GetCollectionsResponse>> {
+    // Maps Domain → Application DTO
+  }
+}
+```
+
+**Controllers are thin pipes:**
+```typescript
+import { GetCollectionsResponse } from '@semble/types';
+
+class GetCollectionsController {
+  async executeImpl(req, res) {
+    const result = await this.useCase.execute(params);
+    return this.ok<GetCollectionsResponse>(res, result.value);
+  }
+}
+```
+
+**Frontend consumes Application Layer contract:**
+```typescript
+import { GetCollectionsResponse } from '@semble/types';
+
+class ApiClient {
+  async getCollections(): Promise<GetCollectionsResponse> {
+    return this.http.get('/collections');
+  }
+}
+```
+
+### Summary
+
+**What we're doing:**
+- ✅ Sharing **Application Layer** types between backend and frontend
+- ✅ Use Cases map Domain → Application DTO (proper DDD)
+- ✅ Controllers validate HTTP and pass through DTOs
+- ✅ Single source of truth for application contracts
+
+**What we're NOT doing:**
+- ❌ Skipping Domain → Application mapping (we do this!)
+- ❌ Letting infrastructure dictate application types
+- ❌ Breaking DDD layer dependencies
+
+**This is pragmatic DDD because:**
+- Domain layer remains pure ✅
+- Application layer defines contracts ✅
+- Infrastructure depends on Application (correct direction) ✅
+- Frontend and Backend share Application contracts (pragmatic) ✅
+
+The key realization: In a monorepo where frontend and backend deploy together, **sharing Application Layer types is not a DDD violation** - it's recognizing that both are clients of the same application layer.
 
 ## Validation Strategy in DDD
 
@@ -702,29 +1003,55 @@ if (urlResult.isErr()) {
 
 ### What We're NOT Doing (And Why That's OK)
 
-❌ **Separate DTOs and API types**:
-- Reason: For this codebase, they're effectively the same
-- Tradeoff: Slightly impure DDD, but significantly simpler
+❌ **Separate DTO and HTTP Response mapping layer**:
+- Reason: Application DTOs and HTTP responses are identical
+- Reality: Controllers would just be identity mappers (pointless ceremony)
+- When to add: If you need API versioning, different client representations, or hide internal fields
+- See "When Would You Need Mappers?" section above for specific scenarios
 
-❌ **Runtime validation of responses**:
-- Reason: TypeScript compilation guarantees response shape
-- Tradeoff: Could add Zod validation of Use Case outputs, but not needed initially
+❌ **Runtime validation of Use Case outputs**:
+- Reason: TypeScript compilation guarantees response shape from Use Cases
+- Alternative: Could add Zod validation of DTO construction, but not needed initially
+- When to add: If you have bugs where Use Cases return malformed DTOs
 
 ❌ **OpenAPI schema generation**:
-- Reason: Can add later if needed
-- Benefit: Shared types make this easier in the future
+- Reason: Can add later if needed (Zod schemas make this easy)
+- Benefit: Shared types + Zod schemas = future OpenAPI generation is trivial
+- When to add: When you want API documentation, client SDK generation, or contract testing
 
 ❌ **Separate versioning of types package**:
-- Reason: Monorepo with synchronized deploys
-- Note: Could add semantic versioning later if needed
+- Reason: Monorepo with synchronized deploys (frontend/backend always in sync)
+- When to add: If you publish a public API or have multiple clients on different versions
+- Note: For now, Git commits provide version history
+
+❌ **Multiple API representations (REST, GraphQL, gRPC)**:
+- Reason: Only building REST API currently
+- When to add: When you need GraphQL, gRPC, or other protocols (then add mappers)
 
 ### What Makes This "Barebones But Reliable"
 
-✅ **Single source of truth**: Types defined once, used everywhere
-✅ **Compile-time safety**: TypeScript catches mismatches immediately
-✅ **Runtime validation**: Zod at boundaries catches bad requests
-✅ **Simple workflow**: Edit types, both sides update automatically
-✅ **Standard tooling**: npm workspaces (not custom build scripts)
+✅ **Proper DDD boundaries**: Domain → Application mapping happens in Use Cases
+✅ **Single source of truth**: Application Layer types defined once in `@semble/types`
+✅ **Compile-time safety**: TypeScript catches type mismatches immediately
+✅ **Runtime validation**: Zod at controller boundaries validates incoming requests
+✅ **Three-tier validation**: Infrastructure (HTTP) → Application (business rules) → Domain (invariants)
+✅ **Simple workflow**: Edit shared types, both backend and frontend update automatically
+✅ **Standard tooling**: npm workspaces, TypeScript, Zod (no custom tooling)
+✅ **Refactor-friendly**: Easy to add mapping layer later if needed
+
+### What Makes This "Good DDD"
+
+✅ **Domain layer remains pure**: No external dependencies, rich behavior
+✅ **Application layer orchestrates**: Use Cases compose domain objects, return DTOs
+✅ **Infrastructure depends on Application**: Controllers use Application types (correct direction)
+✅ **Separation of concerns**: Domain logic, application logic, HTTP transport all separated
+✅ **Validation hierarchy**: Each layer validates at its level of abstraction
+✅ **Type safety across boundaries**: Shared Application contracts prevent drift
+
+The key insight: **Sharing Application Layer types between backend and frontend is not a DDD violation** when:
+1. Both are clients of the same Application Layer
+2. They deploy together (monorepo)
+3. The Application DTOs appropriately abstract the Domain Model
 
 ## Troubleshooting
 
@@ -772,24 +1099,153 @@ npm run dev:types
 
 ## DDD Architecture Notes
 
-### What We Preserved
-- ✅ Domain layer remains pure (no external dependencies)
-- ✅ Use cases validate using domain value objects
-- ✅ Domain-driven validation hierarchy (domain → application → infrastructure)
-- ✅ Clear boundaries between layers
+### What We Preserved (Proper DDD)
 
-### Pragmatic Compromises
-- ⚠️ Shared types blur application/infrastructure boundary
-- ⚠️ Use cases return types designed for HTTP responses
-- ✅ But: This is **intentional** and **documented**
+✅ **Domain Layer Purity**:
+- Domain entities, value objects, and domain services have no external dependencies
+- Domain models encapsulate business logic and invariants
+- Domain layer doesn't know about HTTP, DTOs, or frontend
 
-### Why This Is OK for a Startup
-1. **Velocity**: Eliminates significant boilerplate
-2. **Type Safety**: Maintains compile-time guarantees
-3. **Maintainability**: Single source of truth reduces bugs
-4. **Scalability**: Can refactor later if needed (types are internal contract)
+✅ **Application Layer Orchestration**:
+- Use Cases orchestrate domain objects to fulfill application requirements
+- Use Cases map rich domain models → simple DTOs (proper anti-corruption layer)
+- DTOs hide domain complexity from external consumers
+- Application layer defines the contract for consumers (backend and frontend)
 
-The key is being **intentional** about the tradeoff rather than accidentally coupling layers.
+✅ **Infrastructure Layer Dependency Direction**:
+- Controllers depend on Application types (correct: Infrastructure → Application)
+- Controllers do NOT define types that Application depends on (would be wrong)
+- Infrastructure implements Application contracts, not the other way around
+
+✅ **Three-Tier Validation Hierarchy**:
+- **Domain**: Invariants enforced in value objects and entities
+- **Application**: Business rules validated in use cases
+- **Infrastructure**: HTTP request structure validated in controllers
+
+✅ **Separation of Concerns**:
+- Domain logic in entities/value objects
+- Application logic in use cases
+- HTTP transport details in controllers
+- Each layer has clear responsibilities
+
+### What's Actually Happening (Not a Compromise)
+
+✅ **Shared Application Layer Types**:
+- `@semble/types` represents the **Application Layer contract**
+- Backend Use Cases produce these contracts
+- Frontend API Client consumes these contracts
+- Both are clients of the Application Layer (this is correct DDD!)
+
+✅ **Controllers as Thin Adapters**:
+- Controllers adapt HTTP → Application Layer (parse request, call use case)
+- Controllers adapt Application Layer → HTTP (serialize DTO to JSON)
+- No additional mapping needed when DTO shape = HTTP response shape
+- This is a **valid DDD pattern** (Hexagonal Architecture adapter)
+
+### Why This Is Good DDD (Not Just "OK for Startups")
+
+**From Eric Evans / Martin Fowler:**
+- DTOs exist to cross architectural boundaries ✅ (we do this)
+- Application Layer should be independent of delivery mechanism ✅ (it is)
+- Infrastructure should depend on Application, not vice versa ✅ (correct)
+- Shared kernel is acceptable when bounded contexts align ✅ (monorepo, single app)
+
+**From Hexagonal Architecture (Ports & Adapters):**
+- Application Layer defines "ports" (interfaces/contracts) ✅ (`@semble/types`)
+- Infrastructure provides "adapters" (controllers, API clients) ✅ (thin HTTP adapters)
+- Multiple adapters can implement same port ✅ (backend controller, frontend client)
+- This is the **textbook pattern**!
+
+**When you'd need an additional mapping layer:**
+1. **API Versioning**: Supporting v1 and v2 simultaneously
+2. **Different Protocols**: REST + GraphQL + gRPC from same Application Layer
+3. **Public API**: Need to hide internal structures
+4. **Legacy Migration**: Gradual transition between representations
+
+For a monorepo with single API version and private API, shared Application types are **architecturally sound**.
+
+### Dependency Flow (Correct DDD)
+
+```
+┌─────────────────────────────────────────────────────┐
+│ Domain Layer                                        │
+│ - Entities (Collection, Card)                       │
+│ - Value Objects (CollectionId, URL)                 │
+│ - Domain Services                                   │
+│ No dependencies ↓                                   │
+└─────────────────────────────────────────────────────┘
+                     ↓
+┌─────────────────────────────────────────────────────┐
+│ Application Layer (@semble/types)                   │
+│ - Use Cases                                         │
+│ - DTOs (Collection, GetCollectionsResponse)         │
+│ - Defines contracts for external consumers          │
+│ Depends on: Domain ↑                                │
+└─────────────────────────────────────────────────────┘
+           ↓                              ↓
+┌──────────────────────┐      ┌──────────────────────┐
+│ Infrastructure Layer │      │ Presentation Layer   │
+│ - Controllers        │      │ - API Client         │
+│ - HTTP Adapters      │      │ - Frontend           │
+│ Depends on: App ↑    │      │ Depends on: App ↑    │
+└──────────────────────┘      └──────────────────────┘
+```
+
+**Key point**: Frontend is a **client of the Application Layer**, not the Infrastructure Layer. It happens to communicate via HTTP, but it depends on the same Application contracts as the backend controllers.
+
+### The Real Question: Are Your DTOs Well-Designed?
+
+The quality of this architecture depends on whether your DTOs properly abstract the domain:
+
+✅ **Good DTO Design** (what you have):
+```typescript
+// Domain: Rich model with behavior
+class Collection {
+  collectionId: CollectionId;           // Value object
+  name: CollectionName;                 // Value object with validation
+  authorId: UserId;                     // Value object
+  description?: CollectionDescription;  // Value object
+  cardIds: CardId[];                    // List of value objects
+  addCard(cardId: CardId) { /* logic */ }
+  removeCard(cardId: CardId) { /* logic */ }
+}
+
+// DTO: Simple data structure for transfer
+interface Collection {
+  id: string;                // Unwrapped value
+  name: string;              // Unwrapped value
+  author: User;              // Enriched relationship
+  description?: string;      // Unwrapped value
+  cardCount: number;         // Computed property
+  createdAt: string;         // ISO string
+  updatedAt: string;         // ISO string
+}
+```
+
+This is **good separation**:
+- Domain has rich behavior, validation, invariants
+- DTO is simple, serializable, consumer-friendly
+- Use Case does the mapping (proper layer responsibility)
+
+❌ **Bad DTO Design** (anti-pattern):
+```typescript
+// Exposing domain internals
+interface CollectionDTO {
+  collectionId: CollectionId;  // WRONG: exposing domain value object
+  _aggregateVersion: number;   // WRONG: exposing internal details
+  domainEvents: DomainEvent[]; // WRONG: leaking domain events
+}
+```
+
+### Summary: This IS Good DDD
+
+- ✅ Domain → Application → Infrastructure (correct dependency flow)
+- ✅ Use Cases map Domain → DTO (proper anti-corruption layer)
+- ✅ DTOs abstract domain complexity (proper encapsulation)
+- ✅ Multiple adapters consume same Application contract (Ports & Adapters)
+- ✅ Shared Application types in monorepo (Shared Kernel pattern)
+
+**This is not a compromise or shortcut** - it's a well-architected system following established DDD patterns. The key is that you're sharing **Application Layer types**, not Infrastructure types, and the dependency arrows point in the correct direction.
 
 ---
 

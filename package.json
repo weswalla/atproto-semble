@@ -11,6 +11,7 @@
     "doc": "docs"
   },
   "scripts": {
+    "build:webapp": "npm run build:types && npm run build --workspace=semble-webapp",
     "build:types": "npm run build --workspace=@semble/types",
     "dev:types": "npm run dev --workspace=@semble/types",
     "type-check": "tsc --noEmit",

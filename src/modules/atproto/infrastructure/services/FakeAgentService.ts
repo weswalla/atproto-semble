@@ -15,9 +15,18 @@ export class FakeAgentService implements IAgentService {
             data: {
               did: actor,
               handle: mockHandle,
-              displayName: `Mock User (${mockHandle})`,
+              displayName: `Mock User`,
               description: 'This is a mock profile for testing purposes',
               avatar: 'https://via.placeholder.com/150',
+            },
+          };
+        },
+        resolveHandle: async ({ handle }: { handle: string }) => {
+          const did = process.env.BSKY_DID || 'did:example:123456789abcdefghi';
+          return {
+            success: true,
+            data: {
+              did: did,
             },
           };
         },

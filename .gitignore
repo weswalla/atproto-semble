@@ -7,3 +7,5 @@ dist/
 .next
 .plasmo
 build
+*storybook.log
+storybook-static

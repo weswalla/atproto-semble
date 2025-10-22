@@ -9,7 +9,7 @@ export function createFeedRoutes(
   const router = Router();
 
   // Apply authentication middleware to all feed routes
-  router.use(authMiddleware.ensureAuthenticated());
+  router.use(authMiddleware.optionalAuth());
 
   // GET /api/feeds/global - Get global feed
   router.get('/global', (req, res) =>

@@ -4,7 +4,6 @@ import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
 import { FakeProfileService } from '../utils/FakeProfileService';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
-import { CardId } from '../../domain/value-objects/CardId';
 import { Card } from '../../domain/Card';
 import { CardType, CardTypeEnum } from '../../domain/value-objects/CardType';
 import { CardContent } from '../../domain/value-objects/CardContent';
@@ -28,7 +27,11 @@ describe('GetUrlCardViewUseCase', () => {
     collectionRepo = new InMemoryCollectionRepository();
     cardQueryRepo = new InMemoryCardQueryRepository(cardRepo, collectionRepo);
     profileService = new FakeProfileService();
-    useCase = new GetUrlCardViewUseCase(cardQueryRepo, profileService);
+    useCase = new GetUrlCardViewUseCase(
+      cardQueryRepo,
+      profileService,
+      collectionRepo,
+    );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
     otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
@@ -81,14 +84,14 @@ describe('GetUrlCardViewUseCase', () => {
       // Create card with library memberships
       const cardResult = Card.create(
         {
+          curatorId: curatorId,
           type: cardType,
           content: cardContent,
           url: url,
           libraryMemberships: [
             { curatorId: curatorId, addedAt: new Date('2023-01-01') },
-            { curatorId: otherCuratorId, addedAt: new Date('2023-01-01') },
           ],
-          libraryCount: 2,
+          libraryCount: 1,
           createdAt: new Date('2023-01-01'),
           updatedAt: new Date('2023-01-01'),
         },
@@ -104,6 +107,7 @@ describe('GetUrlCardViewUseCase', () => {
 
       // now create a note card that references this URL card
       const noteCardResult = Card.create({
+        curatorId: curatorId,
         type: CardType.create(CardTypeEnum.NOTE).unwrap(),
         content: CardContent.createNoteContent(
           'This is my note about the article',
@@ -151,37 +155,27 @@ describe('GetUrlCardViewUseCase', () => {
       expect(response.cardContent.thumbnailUrl).toBe(
         'https://example.com/thumb1.jpg',
       );
-      expect(response.libraryCount).toBe(2);
+      expect(response.libraryCount).toBe(1);
 
       // Verify collections
       expect(response.collections).toHaveLength(1);
       expect(response.collections[0]?.name).toBe('Reading List');
-      expect(response.collections[0]?.authorId).toBe(curatorId.value);
+      expect(response.collections[0]?.author.id).toBe(curatorId.value);
 
       // Verify note
       expect(response.note).toBeDefined();
       expect(response.note?.text).toBe('This is my note about the article');
 
       // Verify enriched library data
-      expect(response.libraries).toHaveLength(2);
+      expect(response.libraries).toHaveLength(1);
 
       const testCuratorLib = response.libraries.find(
-        (lib) => lib.userId === curatorId.value,
+        (lib) => lib.id === curatorId.value,
       );
       expect(testCuratorLib).toBeDefined();
       expect(testCuratorLib?.name).toBe('Test Curator');
       expect(testCuratorLib?.handle).toBe('testcurator');
       expect(testCuratorLib?.avatarUrl).toBe('https://example.com/avatar1.jpg');
-
-      const otherCuratorLib = response.libraries.find(
-        (lib) => lib.userId === otherCuratorId.value,
-      );
-      expect(otherCuratorLib).toBeDefined();
-      expect(otherCuratorLib?.name).toBe('Other Curator');
-      expect(otherCuratorLib?.handle).toBe('othercurator');
-      expect(otherCuratorLib?.avatarUrl).toBe(
-        'https://example.com/avatar2.jpg',
-      );
     });
 
     it('should return URL card view with no libraries', async () => {
@@ -203,6 +197,7 @@ describe('GetUrlCardViewUseCase', () => {
       // Create card with no library memberships
       const cardResult = Card.create(
         {
+          curatorId: curatorId,
           type: cardType,
           content: cardContent,
           url: url,
@@ -243,6 +238,7 @@ describe('GetUrlCardViewUseCase', () => {
       // Create card with minimal data
       const cardResult = Card.create(
         {
+          curatorId: curatorId,
           type: cardType,
           content: cardContent,
           url: url,
@@ -303,6 +299,7 @@ describe('GetUrlCardViewUseCase', () => {
       // Create card
       const cardResult = Card.create(
         {
+          curatorId: minimalCuratorId,
           type: cardType,
           content: cardContent,
           url: url,
@@ -385,6 +382,7 @@ describe('GetUrlCardViewUseCase', () => {
       // Create card
       const cardResult = Card.create(
         {
+          curatorId: curatorId,
           type: cardType,
           content: cardContent,
           url: url,
@@ -414,7 +412,7 @@ describe('GetUrlCardViewUseCase', () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain('Failed to fetch user profiles');
+        expect(result.error.message).toContain('Failed to fetch card author');
       }
     });
 
@@ -439,6 +437,7 @@ describe('GetUrlCardViewUseCase', () => {
       // Create card with unknown user in library
       const cardResult = Card.create(
         {
+          curatorId: unknownCuratorId,
           type: cardType,
           content: cardContent,
           url: url,
@@ -467,7 +466,7 @@ describe('GetUrlCardViewUseCase', () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain('Failed to fetch user profiles');
+        expect(result.error.message).toContain('Failed to fetch card author');
       }
     });
 
@@ -480,9 +479,15 @@ describe('GetUrlCardViewUseCase', () => {
           .fn()
           .mockRejectedValue(new Error('Database connection failed')),
         getLibrariesForCard: jest.fn(),
+        getLibrariesForUrl: jest.fn(),
+        getNoteCardsForUrl: jest.fn(),
       };
 
-      const errorUseCase = new GetUrlCardViewUseCase(errorRepo, profileService);
+      const errorUseCase = new GetUrlCardViewUseCase(
+        errorRepo,
+        profileService,
+        collectionRepo,
+      );
 
       const query = {
         cardId: cardId,
@@ -532,17 +537,20 @@ describe('GetUrlCardViewUseCase', () => {
         urlMetadata,
       ).unwrap();
 
-      // Create card with multiple library memberships
+      // Create card with single library membership (URL cards can only be in creator's library)
       const cardResult = Card.create(
         {
+          curatorId: curatorIds[0]!,
           type: cardType,
           content: cardContent,
           url: url,
-          libraryMemberships: curatorIds.map((curatorId) => ({
-            curatorId: curatorId,
-            addedAt: new Date(),
-          })),
-          libraryCount: 5,
+          libraryMemberships: [
+            {
+              curatorId: curatorIds[0]!,
+              addedAt: new Date(),
+            },
+          ],
+          libraryCount: 1,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -564,18 +572,16 @@ describe('GetUrlCardViewUseCase', () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.libraries).toHaveLength(5);
+      expect(response.libraries).toHaveLength(1);
 
-      // Verify all users are included with correct profile data
-      userIds.forEach((userId, index) => {
-        const userLib = response.libraries.find((lib) => lib.userId === userId);
-        expect(userLib).toBeDefined();
-        expect(userLib?.name).toBe(`User ${index + 1}`);
-        expect(userLib?.handle).toBe(`user${index + 1}`);
-        expect(userLib?.avatarUrl).toBe(
-          `https://example.com/avatar${index + 1}.jpg`,
-        );
-      });
+      // Verify the creator is included with correct profile data
+      const creatorLib = response.libraries.find(
+        (lib) => lib.id === userIds[0],
+      );
+      expect(creatorLib).toBeDefined();
+      expect(creatorLib?.name).toBe('User 1');
+      expect(creatorLib?.handle).toBe('user1');
+      expect(creatorLib?.avatarUrl).toBe('https://example.com/avatar1.jpg');
     });
 
     it('should handle card with many collections', async () => {
@@ -596,6 +602,7 @@ describe('GetUrlCardViewUseCase', () => {
       // Create card
       const cardResult = Card.create(
         {
+          curatorId: curatorId,
           type: cardType,
           content: cardContent,
           url: url,
@@ -657,7 +664,7 @@ describe('GetUrlCardViewUseCase', () => {
 
       // Verify all collections have the correct author
       response.collections.forEach((collection) => {
-        expect(collection.authorId).toBe(curatorId.value);
+        expect(collection.author.id).toBe(curatorId.value);
       });
     });
 

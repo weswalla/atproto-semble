@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { getAccessToken } from '@/services/auth';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { ApiClient } from '@/api-client/ApiClient';
 import { Button, Group, Modal, Stack, Text } from '@mantine/core';
 import { CollectionSelector } from './CollectionSelector';
@@ -37,8 +36,7 @@ export function AddToCollectionModal({
 
   // Create API client instance
   const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
-    () => getAccessToken(),
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
   );
 
   // Get existing collections for this card
@@ -47,13 +45,12 @@ export function AddToCollectionModal({
     return card.collections || [];
   }, [card]);
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchCard();
-    }
-  }, [isOpen, cardId]);
+  const fetchCard = useCallback(async () => {
+    // Create API client instance
+    const apiClient = new ApiClient(
+      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
+    );
 
-  const fetchCard = async () => {
     try {
       setLoading(true);
       setError('');
@@ -65,7 +62,13 @@ export function AddToCollectionModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [cardId]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchCard();
+    }
+  }, [isOpen, cardId, fetchCard]);
 
   const handleSubmit = async () => {
     if (selectedCollectionIds.length === 0) {
@@ -77,6 +80,11 @@ export function AddToCollectionModal({
     setError('');
 
     try {
+      // Create API client instance
+      const apiClient = new ApiClient(
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
+      );
+
       // Add card to all selected collections in a single request
       await apiClient.addCardToCollection({
         cardId,
@@ -143,7 +151,7 @@ export function AddToCollectionModal({
               </Text>
             )}
 
-            <Group grow>
+            <Group gap={'xs'} grow>
               <Button
                 onClick={handleSubmit}
                 disabled={submitting || selectedCollectionIds.length === 0}
@@ -151,7 +159,7 @@ export function AddToCollectionModal({
               >
                 {submitting
                   ? 'Adding...'
-                  : `Add to ${selectedCollectionIds.length} Collection${selectedCollectionIds.length !== 1 ? 's' : ''}`}
+                  : `Add to ${selectedCollectionIds.length} Collection${selectedCollectionIds.length !== 1 && 's'}`}
               </Button>
               <Button
                 variant="outline"

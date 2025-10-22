@@ -95,7 +95,7 @@ export class UpdateNoteCardUseCase
         );
       }
 
-      if (!noteContent.authorId.equals(curatorId)) {
+      if (!card.curatorId.equals(curatorId)) {
         return err(
           new ValidationError('Only the author can update this note card'),
         );
@@ -110,8 +110,6 @@ export class UpdateNoteCardUseCase
       // Create new card content with updated note
       const updatedCardContentResult = CardContent.createNoteContent(
         request.note,
-        undefined,
-        curatorId,
       );
       if (updatedCardContentResult.isErr()) {
         return err(new ValidationError(updatedCardContentResult.error.message));
@@ -127,6 +125,7 @@ export class UpdateNoteCardUseCase
       const publishResult = await this.cardPublisher.publishCardToLibrary(
         card,
         curatorId,
+        card.publishedRecordId,
       );
       if (publishResult.isErr()) {
         return err(AppError.UnexpectedError.create(publishResult.error));

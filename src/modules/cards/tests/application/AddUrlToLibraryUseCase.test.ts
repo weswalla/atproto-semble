@@ -34,7 +34,12 @@ describe('AddUrlToLibraryUseCase', () => {
     metadataService = new FakeMetadataService();
     eventPublisher = new FakeEventPublisher();
 
-    cardLibraryService = new CardLibraryService(cardRepository, cardPublisher);
+    cardLibraryService = new CardLibraryService(
+      cardRepository,
+      cardPublisher,
+      collectionRepository,
+      cardCollectionService,
+    );
     cardCollectionService = new CardCollectionService(
       collectionRepository,
       collectionPublisher,
@@ -182,6 +187,132 @@ describe('AddUrlToLibraryUseCase', () => {
         (card) => card.content.type === CardTypeEnum.URL,
       );
       expect(urlCards).toHaveLength(1); // Only one URL card
+    });
+
+    it('should create new URL card when another user has URL card with same URL', async () => {
+      const url = 'https://example.com/shared';
+      const otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
+
+      // First user creates URL card
+      const firstRequest = {
+        url,
+        curatorId: otherCuratorId.value,
+      };
+
+      const firstResult = await useCase.execute(firstRequest);
+      expect(firstResult.isOk()).toBe(true);
+      const firstResponse = firstResult.unwrap();
+
+      // Second user (different curator) should create their own URL card
+      const secondRequest = {
+        url,
+        curatorId: curatorId.value,
+      };
+
+      const secondResult = await useCase.execute(secondRequest);
+      expect(secondResult.isOk()).toBe(true);
+      const secondResponse = secondResult.unwrap();
+
+      // Should have different URL card IDs
+      expect(secondResponse.urlCardId).not.toBe(firstResponse.urlCardId);
+
+      // Should have two separate URL cards
+      const savedCards = cardRepository.getAllCards();
+      expect(savedCards).toHaveLength(2);
+
+      const urlCards = savedCards.filter(
+        (card) => card.content.type === CardTypeEnum.URL,
+      );
+      expect(urlCards).toHaveLength(2); // Two separate URL cards
+
+      // Verify each card belongs to the correct curator
+      const firstUserCard = urlCards.find((card) =>
+        card.props.curatorId.equals(otherCuratorId),
+      );
+      const secondUserCard = urlCards.find((card) =>
+        card.props.curatorId.equals(curatorId),
+      );
+
+      expect(firstUserCard).toBeDefined();
+      expect(secondUserCard).toBeDefined();
+    });
+
+    it('should create new URL card when no one has URL card with that URL yet', async () => {
+      const url = 'https://example.com/brand-new';
+
+      // Verify no cards exist initially
+      expect(cardRepository.getAllCards()).toHaveLength(0);
+
+      const request = {
+        url,
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.urlCardId).toBeDefined();
+
+      // Verify new URL card was created
+      const savedCards = cardRepository.getAllCards();
+      expect(savedCards).toHaveLength(1);
+
+      const urlCard = savedCards[0];
+      expect(urlCard?.content.type).toBe(CardTypeEnum.URL);
+      expect(urlCard?.props.curatorId.equals(curatorId)).toBe(true);
+    });
+
+    it('should update existing note card when URL already exists with a note', async () => {
+      const url = 'https://example.com/existing';
+
+      // First request creates URL card with note
+      const firstRequest = {
+        url,
+        note: 'Original note',
+        curatorId: curatorId.value,
+      };
+
+      const firstResult = await useCase.execute(firstRequest);
+      expect(firstResult.isOk()).toBe(true);
+      const firstResponse = firstResult.unwrap();
+      expect(firstResponse.noteCardId).toBeDefined();
+
+      // Get the original note card
+      const cardsAfterFirst = cardRepository.getAllCards();
+      const originalNoteCard = cardsAfterFirst.find(
+        (card) => card.content.type === CardTypeEnum.NOTE,
+      );
+      expect(originalNoteCard).toBeDefined();
+      expect(originalNoteCard?.content.noteContent?.text).toBe('Original note');
+
+      // Second request updates the note
+      const secondRequest = {
+        url,
+        note: 'Updated note',
+        curatorId: curatorId.value,
+      };
+
+      const secondResult = await useCase.execute(secondRequest);
+      expect(secondResult.isOk()).toBe(true);
+      const secondResponse = secondResult.unwrap();
+
+      // Should still have the same note card ID
+      expect(secondResponse.noteCardId).toBe(firstResponse.noteCardId);
+
+      // Should still have 2 cards (URL + Note)
+      const savedCards = cardRepository.getAllCards();
+      expect(savedCards).toHaveLength(2);
+
+      // Verify note was updated
+      const updatedNoteCard = savedCards.find(
+        (card) => card.content.type === CardTypeEnum.NOTE,
+      );
+      expect(updatedNoteCard).toBeDefined();
+      expect(updatedNoteCard?.content.noteContent?.text).toBe('Updated note');
+      expect(updatedNoteCard?.cardId.getStringValue()).toBe(
+        firstResponse.noteCardId,
+      );
     });
   });
 

@@ -1,10 +1,14 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Request, Response } from 'express';
 import { CompleteOAuthSignInUseCase } from '../../../application/use-cases/CompleteOAuthSignInUseCase';
+import { CookieService } from '../../../../../shared/infrastructure/http/services/CookieService';
 import { configService } from 'src/shared/infrastructure/config';
 
 export class CompleteOAuthSignInController extends Controller {
-  constructor(private completeOAuthSignInUseCase: CompleteOAuthSignInUseCase) {
+  constructor(
+    private completeOAuthSignInUseCase: CompleteOAuthSignInUseCase,
+    private cookieService: CookieService,
+  ) {
     super();
   }
 
@@ -26,14 +30,18 @@ export class CompleteOAuthSignInController extends Controller {
       if (result.isErr()) {
         // Instead of returning JSON, redirect with error
         return res.redirect(
-          `${process.env.FRONTEND_URL}/login?error=${encodeURIComponent(result.error.message)}`,
+          `${appUrl}/login?error=${encodeURIComponent(result.error.message)}`,
         );
       }
 
-      // Redirect back to frontend with tokens in URL parameters
-      return res.redirect(
-        `${appUrl}/auth/complete?accessToken=${encodeURIComponent(result.value.accessToken)}&refreshToken=${encodeURIComponent(result.value.refreshToken)}`,
-      );
+      // Set tokens in httpOnly cookies
+      this.cookieService.setTokens(res, {
+        accessToken: result.value.accessToken,
+        refreshToken: result.value.refreshToken,
+      });
+
+      // Redirect back to frontend without tokens in URL (more secure)
+      return res.redirect(`${appUrl}/auth/complete`);
     } catch (error: any) {
       return res.redirect(
         `${appUrl}/login?error=${encodeURIComponent(error.message || 'Unknown error')}`,

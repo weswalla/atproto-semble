@@ -9,13 +9,22 @@ import {
 } from '../lexicon/types/network/cosmik/card';
 import { StrongRef } from '../../domain';
 import { UrlMetadata as UrlMetadataVO } from 'src/modules/cards/domain/value-objects/UrlMetadata';
+import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
+import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
+import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
 
 type CardRecordDTO = Record;
 
 export class CardMapper {
-  static toCreateRecordDTO(card: Card): CardRecordDTO {
+  static cardCollection = new EnvironmentConfigService().getAtProtoCollections()
+    .card;
+  static toCreateRecordDTO(
+    card: Card,
+    curatorId: CuratorId,
+    parentCardPublishedRecordId?: PublishedRecordId,
+  ): CardRecordDTO {
     const record: CardRecordDTO = {
-      $type: 'network.cosmik.card',
+      $type: this.cardCollection as any,
       type: card.type.value,
       content: this.mapCardContent(card),
       createdAt: card.createdAt.toISOString(),
@@ -26,12 +35,17 @@ export class CardMapper {
       record.url = card.url.value;
     }
 
-    // Add optional original card reference
-    if (card.originalPublishedRecordId) {
-      const strongRef = new StrongRef(
-        card.originalPublishedRecordId.getValue(),
-      );
+    if (card.publishedRecordId && !curatorId.equals(card.curatorId)) {
+      const strongRef = new StrongRef(card.publishedRecordId.getValue());
       record.originalCard = {
+        uri: strongRef.getValue().uri,
+        cid: strongRef.getValue().cid,
+      };
+    }
+
+    if (card.parentCardId && parentCardPublishedRecordId) {
+      const strongRef = new StrongRef(parentCardPublishedRecordId.getValue());
+      record.parentCard = {
         uri: strongRef.getValue().uri,
         cid: strongRef.getValue().cid,
       };
@@ -45,7 +59,7 @@ export class CardMapper {
       case CardTypeEnum.URL: {
         const urlContent = card.content.urlContent!;
         const urlContentDTO: $Typed<UrlContent> = {
-          $type: 'network.cosmik.card#urlContent',
+          $type: `${this.cardCollection}#urlContent` as any,
           url: urlContent.url.value,
         };
 
@@ -59,7 +73,7 @@ export class CardMapper {
       case CardTypeEnum.NOTE: {
         const noteContent = card.content.noteContent!;
         const noteContentDTO: $Typed<NoteContent> = {
-          $type: 'network.cosmik.card#noteContent',
+          $type: `${this.cardCollection}#noteContent` as any,
           text: noteContent.text,
         };
 
@@ -73,8 +87,7 @@ export class CardMapper {
 
   private static mapUrlMetadata(metadata: UrlMetadataVO): $Typed<UrlMetadata> {
     return {
-      $type: 'network.cosmik.card#urlMetadata',
-      url: metadata.url,
+      $type: `${this.cardCollection}#urlMetadata` as any,
       title: metadata.title,
       description: metadata.description,
       author: metadata.author,

@@ -9,22 +9,45 @@ import { DID } from '../../domain/DID';
 export class BlueskyProfileService implements IProfileService {
   constructor(private readonly agentService: IAgentService) {}
 
-  async getProfile(userId: string): Promise<Result<UserProfile>> {
+  async getProfile(
+    userId: string,
+    callerDid?: string,
+  ): Promise<Result<UserProfile>> {
     try {
-      // Get an authenticated agent - we can use any available agent for public profile data
-      const agentResult = await this.agentService.getAuthenticatedAgent(
-        new DID(userId),
-      );
+      let agent;
 
-      if (agentResult.isErr()) {
-        return err(
-          new Error(
-            `Failed to get authenticated agent: ${agentResult.error.message}`,
-          ),
+      if (callerDid) {
+        // Use caller's authenticated agent
+        const didResult = DID.create(callerDid);
+        if (didResult.isErr()) {
+          return err(
+            new Error(`Invalid caller DID: ${didResult.error.message}`),
+          );
+        }
+
+        const agentResult = await this.agentService.getAuthenticatedAgent(
+          didResult.value,
         );
+        if (agentResult.isErr()) {
+          return err(
+            new Error(
+              `Failed to get authenticated agent: ${agentResult.error.message}`,
+            ),
+          );
+        }
+        agent = agentResult.value;
+      } else {
+        // Fall back to unauthenticated agent for public profiles
+        const agentResult = this.agentService.getUnauthenticatedAgent();
+        if (agentResult.isErr()) {
+          return err(
+            new Error(
+              `Failed to get unauthenticated agent: ${agentResult.error.message}`,
+            ),
+          );
+        }
+        agent = agentResult.value;
       }
-
-      const agent = agentResult.value;
 
       if (!agent) {
         return err(new Error('No authenticated agent available'));

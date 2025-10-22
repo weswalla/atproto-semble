@@ -10,11 +10,17 @@ import {
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { CardLibraryService } from '../../domain/services/CardLibraryService';
 import { UrlMetadata } from '../../domain/value-objects/UrlMetadata';
+import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
+import { CardCollectionService } from '../../domain/services/CardCollectionService';
+import { FakeCollectionPublisher } from '../utils/FakeCollectionPublisher';
 
 describe('UpdateNoteCardUseCase', () => {
   let useCase: UpdateNoteCardUseCase;
   let cardRepository: InMemoryCardRepository;
+  let collectionRepository: InMemoryCollectionRepository;
   let cardPublisher: FakeCardPublisher;
+  let collectionPublisher: FakeCollectionPublisher;
+  let cardCollectionService: CardCollectionService;
   let cardLibraryService: CardLibraryService;
   let curatorId: CuratorId;
   let otherCuratorId: CuratorId;
@@ -22,7 +28,19 @@ describe('UpdateNoteCardUseCase', () => {
   beforeEach(() => {
     cardRepository = new InMemoryCardRepository();
     cardPublisher = new FakeCardPublisher();
-    cardLibraryService = new CardLibraryService(cardRepository, cardPublisher);
+    collectionRepository = new InMemoryCollectionRepository();
+    collectionPublisher = new FakeCollectionPublisher();
+    cardCollectionService = new CardCollectionService(
+      collectionRepository,
+      collectionPublisher,
+    );
+
+    cardLibraryService = new CardLibraryService(
+      cardRepository,
+      cardPublisher,
+      collectionRepository,
+      cardCollectionService,
+    );
 
     useCase = new UpdateNoteCardUseCase(cardRepository, cardPublisher);
 
@@ -123,9 +141,7 @@ describe('UpdateNoteCardUseCase', () => {
         originalCreatedAt.getTime(),
       );
       expect(updatedCard.type.value).toBe(CardTypeEnum.NOTE);
-      expect(updatedCard.content.noteContent!.authorId.equals(curatorId)).toBe(
-        true,
-      );
+      expect(updatedCard.curatorId.equals(curatorId)).toBe(true);
     });
   });
 

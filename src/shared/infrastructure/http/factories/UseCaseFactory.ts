@@ -5,31 +5,39 @@ import { AddUrlToLibraryUseCase } from '../../../../modules/cards/application/us
 import { AddCardToLibraryUseCase } from '../../../../modules/cards/application/useCases/commands/AddCardToLibraryUseCase';
 import { AddCardToCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/AddCardToCollectionUseCase';
 import { UpdateNoteCardUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateNoteCardUseCase';
+import { UpdateUrlCardAssociationsUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
 import { RemoveCardFromLibraryUseCase } from '../../../../modules/cards/application/useCases/commands/RemoveCardFromLibraryUseCase';
 import { RemoveCardFromCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/RemoveCardFromCollectionUseCase';
 import { GetUrlMetadataUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlMetadataUseCase';
 import { GetUrlCardViewUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlCardViewUseCase';
 import { GetLibrariesForCardUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForCardUseCase';
-import { GetMyUrlCardsUseCase } from '../../../../modules/cards/application/useCases/queries/GetMyUrlCardsUseCase';
+import { GetUrlCardsUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlCardsUseCase';
 import { CreateCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/CreateCollectionUseCase';
 import { UpdateCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateCollectionUseCase';
 import { DeleteCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/DeleteCollectionUseCase';
 import { GetCollectionPageUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionPageUseCase';
-import { GetMyCollectionsUseCase } from '../../../../modules/cards/application/useCases/queries/GetMyCollectionsUseCase';
 import { Repositories } from './RepositoryFactory';
 import { Services, SharedServices } from './ServiceFactory';
-import { GetMyProfileUseCase } from 'src/modules/cards/application/useCases/queries/GetMyProfileUseCase';
+import { GetProfileUseCase } from 'src/modules/cards/application/useCases/queries/GetProfileUseCase';
 import { LoginWithAppPasswordUseCase } from 'src/modules/user/application/use-cases/LoginWithAppPasswordUseCase';
+import { LogoutUseCase } from 'src/modules/user/application/use-cases/LogoutUseCase';
 import { GenerateExtensionTokensUseCase } from 'src/modules/user/application/use-cases/GenerateExtensionTokensUseCase';
 import { GetGlobalFeedUseCase } from '../../../../modules/feeds/application/useCases/queries/GetGlobalFeedUseCase';
 import { AddActivityToFeedUseCase } from '../../../../modules/feeds/application/useCases/commands/AddActivityToFeedUseCase';
+import { GetCollectionsUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionsUseCase';
+import { GetCollectionPageByAtUriUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionPageByAtUriUseCase';
+import { GetUrlStatusForMyLibraryUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlStatusForMyLibraryUseCase';
+import { GetLibrariesForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase';
+import { GetCollectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionsForUrlUseCase';
+import { GetNoteCardsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetNoteCardsForUrlUseCase';
 
 export interface UseCases {
   // User use cases
   loginWithAppPasswordUseCase: LoginWithAppPasswordUseCase;
+  logoutUseCase: LogoutUseCase;
   initiateOAuthSignInUseCase: InitiateOAuthSignInUseCase;
   completeOAuthSignInUseCase: CompleteOAuthSignInUseCase;
-  getMyProfileUseCase: GetMyProfileUseCase;
+  getMyProfileUseCase: GetProfileUseCase;
   refreshAccessTokenUseCase: RefreshAccessTokenUseCase;
   generateExtensionTokensUseCase: GenerateExtensionTokensUseCase;
   // Card use cases
@@ -37,17 +45,23 @@ export interface UseCases {
   addCardToLibraryUseCase: AddCardToLibraryUseCase;
   addCardToCollectionUseCase: AddCardToCollectionUseCase;
   updateNoteCardUseCase: UpdateNoteCardUseCase;
+  updateUrlCardAssociationsUseCase: UpdateUrlCardAssociationsUseCase;
   removeCardFromLibraryUseCase: RemoveCardFromLibraryUseCase;
   removeCardFromCollectionUseCase: RemoveCardFromCollectionUseCase;
   getUrlMetadataUseCase: GetUrlMetadataUseCase;
   getUrlCardViewUseCase: GetUrlCardViewUseCase;
   getLibrariesForCardUseCase: GetLibrariesForCardUseCase;
-  getMyUrlCardsUseCase: GetMyUrlCardsUseCase;
+  getMyUrlCardsUseCase: GetUrlCardsUseCase;
   createCollectionUseCase: CreateCollectionUseCase;
   updateCollectionUseCase: UpdateCollectionUseCase;
   deleteCollectionUseCase: DeleteCollectionUseCase;
   getCollectionPageUseCase: GetCollectionPageUseCase;
-  getMyCollectionsUseCase: GetMyCollectionsUseCase;
+  getCollectionPageByAtUriUseCase: GetCollectionPageByAtUriUseCase;
+  getCollectionsUseCase: GetCollectionsUseCase;
+  getUrlStatusForMyLibraryUseCase: GetUrlStatusForMyLibraryUseCase;
+  getLibrariesForUrlUseCase: GetLibrariesForUrlUseCase;
+  getCollectionsForUrlUseCase: GetCollectionsForUrlUseCase;
+  getNoteCardsForUrlUseCase: GetNoteCardsForUrlUseCase;
   // Feed use cases
   getGlobalFeedUseCase: GetGlobalFeedUseCase;
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
@@ -62,6 +76,12 @@ export class UseCaseFactory {
     repositories: Repositories,
     services: Services,
   ): UseCases {
+    const getCollectionPageUseCase = new GetCollectionPageUseCase(
+      repositories.collectionRepository,
+      repositories.cardQueryRepository,
+      services.profileService,
+    );
+
     return {
       // User use cases
       loginWithAppPasswordUseCase: new LoginWithAppPasswordUseCase(
@@ -70,6 +90,7 @@ export class UseCaseFactory {
         repositories.userRepository,
         services.userAuthService,
       ),
+      logoutUseCase: new LogoutUseCase(services.tokenService),
       initiateOAuthSignInUseCase: new InitiateOAuthSignInUseCase(
         services.oauthProcessor,
       ),
@@ -79,7 +100,10 @@ export class UseCaseFactory {
         repositories.userRepository,
         services.userAuthService,
       ),
-      getMyProfileUseCase: new GetMyProfileUseCase(services.profileService),
+      getMyProfileUseCase: new GetProfileUseCase(
+        services.profileService,
+        services.identityResolutionService,
+      ),
       refreshAccessTokenUseCase: new RefreshAccessTokenUseCase(
         services.tokenService,
       ),
@@ -109,6 +133,12 @@ export class UseCaseFactory {
         repositories.cardRepository,
         services.cardPublisher,
       ),
+      updateUrlCardAssociationsUseCase: new UpdateUrlCardAssociationsUseCase(
+        repositories.cardRepository,
+        services.cardLibraryService,
+        services.cardCollectionService,
+        services.eventPublisher,
+      ),
       removeCardFromLibraryUseCase: new RemoveCardFromLibraryUseCase(
         repositories.cardRepository,
         services.cardLibraryService,
@@ -124,13 +154,15 @@ export class UseCaseFactory {
       getUrlCardViewUseCase: new GetUrlCardViewUseCase(
         repositories.cardQueryRepository,
         services.profileService,
+        repositories.collectionRepository,
       ),
       getLibrariesForCardUseCase: new GetLibrariesForCardUseCase(
         repositories.cardQueryRepository,
         services.profileService,
       ),
-      getMyUrlCardsUseCase: new GetMyUrlCardsUseCase(
+      getMyUrlCardsUseCase: new GetUrlCardsUseCase(
         repositories.cardQueryRepository,
+        services.identityResolutionService,
       ),
       createCollectionUseCase: new CreateCollectionUseCase(
         repositories.collectionRepository,
@@ -144,13 +176,36 @@ export class UseCaseFactory {
         repositories.collectionRepository,
         services.collectionPublisher,
       ),
-      getCollectionPageUseCase: new GetCollectionPageUseCase(
+      getCollectionPageUseCase,
+      getCollectionPageByAtUriUseCase: new GetCollectionPageByAtUriUseCase(
+        services.identityResolutionService,
+        repositories.atUriResolutionService,
+        getCollectionPageUseCase,
+        services.configService.getAtProtoCollections().collection,
+      ),
+      getCollectionsUseCase: new GetCollectionsUseCase(
+        repositories.collectionQueryRepository,
+        services.profileService,
+        services.identityResolutionService,
+      ),
+      getUrlStatusForMyLibraryUseCase: new GetUrlStatusForMyLibraryUseCase(
+        repositories.cardRepository,
+        repositories.collectionQueryRepository,
         repositories.collectionRepository,
+        services.profileService,
+        services.eventPublisher,
+      ),
+      getLibrariesForUrlUseCase: new GetLibrariesForUrlUseCase(
         repositories.cardQueryRepository,
         services.profileService,
       ),
-      getMyCollectionsUseCase: new GetMyCollectionsUseCase(
+      getCollectionsForUrlUseCase: new GetCollectionsForUrlUseCase(
         repositories.collectionQueryRepository,
+        services.profileService,
+        repositories.collectionRepository,
+      ),
+      getNoteCardsForUrlUseCase: new GetNoteCardsForUrlUseCase(
+        repositories.cardQueryRepository,
         services.profileService,
       ),
 
@@ -160,6 +215,7 @@ export class UseCaseFactory {
         services.profileService,
         repositories.cardQueryRepository,
         repositories.collectionRepository,
+        services.identityResolutionService,
       ),
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,

@@ -13,7 +13,6 @@ export class NoteCardContentValidationError extends Error {
 interface NoteCardContentProps {
   type: CardTypeEnum.NOTE;
   text: string;
-  authorId: CuratorId;
 }
 
 export class NoteCardContent extends ValueObject<NoteCardContentProps> {
@@ -27,21 +26,11 @@ export class NoteCardContent extends ValueObject<NoteCardContentProps> {
     return this.props.text;
   }
 
-  get title(): string | undefined {
-    // For backward compatibility, we don't store title separately in the new model
-    return undefined;
-  }
-
-  get authorId(): CuratorId {
-    return this.props.authorId;
-  }
-
   private constructor(props: NoteCardContentProps) {
     super(props);
   }
 
   public static create(
-    authorId: CuratorId,
     text: string,
   ): Result<NoteCardContent, NoteCardContentValidationError> {
     if (!text || text.trim().length === 0) {
@@ -62,7 +51,6 @@ export class NoteCardContent extends ValueObject<NoteCardContentProps> {
       new NoteCardContent({
         type: CardTypeEnum.NOTE,
         text: text.trim(),
-        authorId,
       }),
     );
   }

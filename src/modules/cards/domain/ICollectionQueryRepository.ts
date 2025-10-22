@@ -24,15 +24,52 @@ export enum SortOrder {
   DESC = 'desc',
 }
 
-// Raw data from repository - minimal, just what's stored
 export interface CollectionQueryResultDTO {
   id: string;
+  uri?: string;
   name: string;
   description?: string;
   updatedAt: Date;
   createdAt: Date;
   cardCount: number;
-  authorId: string; // Just the curator ID, not enriched data
+  authorId: string;
+}
+
+export interface CollectionContainingCardDTO {
+  id: string;
+  uri?: string;
+  name: string;
+  description?: string;
+}
+
+// Raw repository DTO - what the repository returns (not enriched)
+export interface CollectionForUrlRawDTO {
+  id: string;
+  uri?: string;
+  name: string;
+  description?: string;
+  authorId: string;
+}
+
+// Public DTO - what the use case returns (enriched with author profile)
+export interface CollectionForUrlDTO {
+  id: string;
+  uri?: string;
+  name: string;
+  description?: string;
+  author: {
+    id: string;
+    name: string;
+    handle: string;
+    avatarUrl?: string;
+  };
+}
+
+export interface CollectionForUrlQueryOptions {
+  page: number;
+  limit: number;
+  sortBy: CollectionSortField;
+  sortOrder: SortOrder;
 }
 
 export interface ICollectionQueryRepository {
@@ -40,4 +77,14 @@ export interface ICollectionQueryRepository {
     curatorId: string,
     options: CollectionQueryOptions,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>>;
+
+  getCollectionsContainingCardForUser(
+    cardId: string,
+    curatorId: string,
+  ): Promise<CollectionContainingCardDTO[]>;
+
+  getCollectionsWithUrl(
+    url: string,
+    options: CollectionForUrlQueryOptions,
+  ): Promise<PaginatedQueryResult<CollectionForUrlRawDTO>>;
 }

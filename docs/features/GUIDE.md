@@ -346,4 +346,5 @@ src/shared/infrastructure/http/factories/ServiceFactory.ts
 src/shared/infrastructure/http/factories/UseCaseFactory.ts
 src/modules/cards/domain/Card.ts
 src/modules/cards/domain/events/CardAddedToLibraryEvent.ts
+src/modules/cards/infrastructure/http/routes/index.ts
 ```

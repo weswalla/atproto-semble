@@ -57,7 +57,7 @@ export class CollectionBuilder {
   withPublished(published: boolean): CollectionBuilder {
     if (published) {
       // Create a fake published record ID when marking as published
-      const fakeUri = `at://fake-did/network.cosmik.collection/${this._id?.toString() || 'fake-id'}`;
+      const fakeUri = `at://fake-did/network.cosmik.dev.collection/${this._id?.toString() || 'fake-id'}`;
       const fakeCid = `fake-collection-cid-${this._id?.toString() || 'fake-id'}`;
       this._publishedRecordId = PublishedRecordId.create({
         uri: fakeUri,

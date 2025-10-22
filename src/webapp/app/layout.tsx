@@ -1,14 +1,9 @@
 import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
-import {
-  ColorSchemeScript,
-  mantineHtmlProps,
-  MantineProvider,
-} from '@mantine/core';
-import '@mantine/core/styles.css';
-import { AuthProvider } from '@/hooks/useAuth';
-import { theme } from '@/styles/theme';
+import GlobalStyles from '@/styles/global.module.css';
+import { ColorSchemeScript, mantineHtmlProps } from '@mantine/core';
 import { Hanken_Grotesk } from 'next/font/google';
+import Providers from '@/providers';
 
 export const metadata: Metadata = {
   title: 'Semble | A social knowledge network for researchers',
@@ -33,10 +28,8 @@ export default function RootLayout({
       <head>
         <ColorSchemeScript />
       </head>
-      <body>
-        <MantineProvider theme={theme}>
-          <AuthProvider>{children}</AuthProvider>
-        </MantineProvider>
+      <body className={GlobalStyles.main}>
+        <Providers>{children}</Providers>
         <Analytics />
       </body>
     </html>

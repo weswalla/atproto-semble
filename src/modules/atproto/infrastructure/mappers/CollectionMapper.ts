@@ -1,12 +1,15 @@
 import { Collection } from 'src/modules/cards/domain/Collection';
 import { Record } from '../lexicon/types/network/cosmik/collection';
+import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 
 type CollectionRecordDTO = Record;
 
 export class CollectionMapper {
+  static readonly collectionType =
+    new EnvironmentConfigService().getAtProtoCollections().collection;
   static toCreateRecordDTO(collection: Collection): CollectionRecordDTO {
     return {
-      $type: 'network.cosmik.collection',
+      $type: this.collectionType as any,
       name: collection.name.value,
       description: collection.description?.value,
       accessType: collection.accessType,

@@ -5,18 +5,26 @@ import { AddUrlToLibraryController } from '../controllers/AddUrlToLibraryControl
 import { AddCardToLibraryController } from '../controllers/AddCardToLibraryController';
 import { AddCardToCollectionController } from '../controllers/AddCardToCollectionController';
 import { UpdateNoteCardController } from '../controllers/UpdateNoteCardController';
+import { UpdateUrlCardAssociationsController } from '../controllers/UpdateUrlCardAssociationsController';
 import { RemoveCardFromLibraryController } from '../controllers/RemoveCardFromLibraryController';
 import { RemoveCardFromCollectionController } from '../controllers/RemoveCardFromCollectionController';
 import { GetUrlMetadataController } from '../controllers/GetUrlMetadataController';
 import { GetUrlCardViewController } from '../controllers/GetUrlCardViewController';
 import { GetLibrariesForCardController } from '../controllers/GetLibrariesForCardController';
 import { GetMyUrlCardsController } from '../controllers/GetMyUrlCardsController';
+import { GetUserUrlCardsController } from '../controllers/GetUserUrlCardsController';
+import { GetUrlStatusForMyLibraryController } from '../controllers/GetUrlStatusForMyLibraryController';
+import { GetLibrariesForUrlController } from '../controllers/GetLibrariesForUrlController';
+import { GetNoteCardsForUrlController } from '../controllers/GetNoteCardsForUrlController';
 import { CreateCollectionController } from '../controllers/CreateCollectionController';
 import { UpdateCollectionController } from '../controllers/UpdateCollectionController';
 import { DeleteCollectionController } from '../controllers/DeleteCollectionController';
 import { GetCollectionPageController } from '../controllers/GetCollectionPageController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { GetMyCollectionsController } from '../controllers/GetMyCollectionsController';
+import { GetUserCollectionsController } from '../controllers/GetUserCollectionsController';
+import { GetCollectionPageByAtUriController } from '../controllers/GetCollectionPageByAtUriController';
+import { GetCollectionsForUrlController } from '../controllers/GetCollectionsForUrlController';
 
 export function createCardsModuleRoutes(
   authMiddleware: AuthMiddleware,
@@ -25,18 +33,26 @@ export function createCardsModuleRoutes(
   addCardToLibraryController: AddCardToLibraryController,
   addCardToCollectionController: AddCardToCollectionController,
   updateNoteCardController: UpdateNoteCardController,
+  updateUrlCardAssociationsController: UpdateUrlCardAssociationsController,
   removeCardFromLibraryController: RemoveCardFromLibraryController,
   removeCardFromCollectionController: RemoveCardFromCollectionController,
   getUrlMetadataController: GetUrlMetadataController,
   getUrlCardViewController: GetUrlCardViewController,
   getLibrariesForCardController: GetLibrariesForCardController,
   getMyUrlCardsController: GetMyUrlCardsController,
+  getUserUrlCardsController: GetUserUrlCardsController,
+  getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController,
+  getLibrariesForUrlController: GetLibrariesForUrlController,
+  getNoteCardsForUrlController: GetNoteCardsForUrlController,
   // Collection controllers
   createCollectionController: CreateCollectionController,
   updateCollectionController: UpdateCollectionController,
   deleteCollectionController: DeleteCollectionController,
   getCollectionPageController: GetCollectionPageController,
+  getCollectionPageByAtUriController: GetCollectionPageByAtUriController,
   getMyCollectionsController: GetMyCollectionsController,
+  getCollectionsController: GetUserCollectionsController,
+  getCollectionsForUrlController: GetCollectionsForUrlController,
 ): Router {
   const router = Router();
 
@@ -49,12 +65,17 @@ export function createCardsModuleRoutes(
       addCardToLibraryController,
       addCardToCollectionController,
       updateNoteCardController,
+      updateUrlCardAssociationsController,
       removeCardFromLibraryController,
       removeCardFromCollectionController,
       getUrlMetadataController,
       getUrlCardViewController,
       getLibrariesForCardController,
       getMyUrlCardsController,
+      getUserUrlCardsController,
+      getUrlStatusForMyLibraryController,
+      getLibrariesForUrlController,
+      getNoteCardsForUrlController,
     ),
   );
 
@@ -68,6 +89,9 @@ export function createCardsModuleRoutes(
       deleteCollectionController,
       getCollectionPageController,
       getMyCollectionsController,
+      getCollectionsController,
+      getCollectionPageByAtUriController,
+      getCollectionsForUrlController,
     ),
   );
 

@@ -10,7 +10,7 @@ export function SignInPage() {
   const [loginError, setLoginError] = useState('');
 
   const handleSignIn = () => {
-    const appUrl = process.env.PLASMO_PUBLIC_APP_URL || 'http://localhost:3000';
+    const appUrl = process.env.PLASMO_PUBLIC_APP_URL || 'http://127.0.0.1:3000';
     const loginUrl = `${appUrl}/login?extension-login=true`;
     chrome.tabs.create({ url: loginUrl });
     window.close();

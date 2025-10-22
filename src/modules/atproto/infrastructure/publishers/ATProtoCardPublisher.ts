@@ -9,9 +9,10 @@ import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
 import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
 export class ATProtoCardPublisher implements ICardPublisher {
-  private readonly COLLECTION = 'network.cosmik.card';
-
-  constructor(private readonly agentService: IAgentService) {}
+  constructor(
+    private readonly agentService: IAgentService,
+    private readonly cardCollection: string,
+  ) {}
 
   /**
    * Publishes a Card to the curator's library in the AT Protocol
@@ -19,10 +20,25 @@ export class ATProtoCardPublisher implements ICardPublisher {
   async publishCardToLibrary(
     card: Card,
     curatorId: CuratorId,
+    parentCardPublishedRecordId?: PublishedRecordId,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
-      const record = CardMapper.toCreateRecordDTO(card);
-      const curatorDid = new DID(curatorId.value);
+      let record = CardMapper.toCreateRecordDTO(
+        card,
+        curatorId,
+        parentCardPublishedRecordId,
+      );
+      record.$type = this.cardCollection as any;
+
+      const curatorDidResult = DID.create(curatorId.value);
+
+      if (curatorDidResult.isErr()) {
+        return err(
+          new Error(`Invalid curator DID: ${curatorDidResult.error.message}`),
+        );
+      }
+
+      const curatorDid = curatorDidResult.value;
 
       // Get an authenticated agent for this curator
       const agentResult =
@@ -57,7 +73,7 @@ export class ATProtoCardPublisher implements ICardPublisher {
 
         await agent.com.atproto.repo.putRecord({
           repo: curatorDid.value,
-          collection: this.COLLECTION,
+          collection: this.cardCollection,
           rkey: rkey,
           record,
         });
@@ -67,7 +83,7 @@ export class ATProtoCardPublisher implements ICardPublisher {
         // Create new record
         const createResult = await agent.com.atproto.repo.createRecord({
           repo: curatorDid.value,
-          collection: this.COLLECTION,
+          collection: this.cardCollection,
           record,
         });
 
@@ -96,7 +112,15 @@ export class ATProtoCardPublisher implements ICardPublisher {
       const publishedRecordId = recordId.getValue();
       const strongRef = new StrongRef(publishedRecordId);
       const atUri = strongRef.atUri;
-      const curatorDid = new DID(curatorId.value);
+      const curatorDidResult = DID.create(curatorId.value);
+
+      if (curatorDidResult.isErr()) {
+        return err(
+          new Error(`Invalid curator DID: ${curatorDidResult.error.message}`),
+        );
+      }
+
+      const curatorDid = curatorDidResult.value;
       const repo = curatorDid.value;
       const rkey = atUri.rkey;
 
@@ -118,7 +142,7 @@ export class ATProtoCardPublisher implements ICardPublisher {
 
       await agent.com.atproto.repo.deleteRecord({
         repo,
-        collection: this.COLLECTION,
+        collection: this.cardCollection,
         rkey,
       });
 

@@ -1,7 +1,8 @@
-import { GetMyUrlCardsUseCase } from '../../application/useCases/queries/GetMyUrlCardsUseCase';
+import { GetUrlCardsUseCase } from '../../application/useCases/queries/GetUrlCardsUseCase';
 import { InMemoryCardQueryRepository } from '../utils/InMemoryCardQueryRepository';
 import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
+import { FakeIdentityResolutionService } from '../utils/FakeIdentityResolutionService';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { Card } from '../../domain/Card';
 import { CardType, CardTypeEnum } from '../../domain/value-objects/CardType';
@@ -11,18 +12,20 @@ import { URL } from '../../domain/value-objects/URL';
 import { CardSortField, SortOrder } from '../../domain/ICardQueryRepository';
 import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
 
-describe('GetMyUrlCardsUseCase', () => {
-  let useCase: GetMyUrlCardsUseCase;
+describe('GetUrlCardsUseCase', () => {
+  let useCase: GetUrlCardsUseCase;
   let cardQueryRepo: InMemoryCardQueryRepository;
   let cardRepo: InMemoryCardRepository;
   let collectionRepo: InMemoryCollectionRepository;
+  let identityResolutionService: FakeIdentityResolutionService;
   let curatorId: CuratorId;
 
   beforeEach(() => {
     cardRepo = new InMemoryCardRepository();
     collectionRepo = new InMemoryCollectionRepository();
     cardQueryRepo = new InMemoryCardQueryRepository(cardRepo, collectionRepo);
-    useCase = new GetMyUrlCardsUseCase(cardQueryRepo);
+    identityResolutionService = new FakeIdentityResolutionService();
+    useCase = new GetUrlCardsUseCase(cardQueryRepo, identityResolutionService);
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
   });
@@ -31,6 +34,7 @@ describe('GetMyUrlCardsUseCase', () => {
     cardRepo.clear();
     collectionRepo.clear();
     cardQueryRepo.clear();
+    identityResolutionService.clear();
   });
 
   describe('Basic functionality', () => {
@@ -68,6 +72,7 @@ describe('GetMyUrlCardsUseCase', () => {
 
       const cardResult1 = Card.create(
         {
+          curatorId: curatorId,
           type: cardType1,
           content: cardContent1,
           url: url1,
@@ -102,16 +107,14 @@ describe('GetMyUrlCardsUseCase', () => {
 
       const cardResult2 = Card.create(
         {
+          curatorId: curatorId,
           type: cardType2,
           content: cardContent2,
           url: url2,
           libraryMemberships: [
             { curatorId: curatorId, addedAt: new Date('2023-01-02') },
-            {
-              curatorId: CuratorId.create('did:plc:othercurator').unwrap(),
-              addedAt: new Date('2023-01-03'),
-            },
           ],
+          libraryCount: 1,
           createdAt: new Date('2023-01-02'),
           updatedAt: new Date('2023-01-02'),
         },
@@ -138,10 +141,10 @@ describe('GetMyUrlCardsUseCase', () => {
 
       // Verify card data
       const firstCard = response.cards.find(
-        (card) => card.url === 'https://example.com/article1',
+        (card: any) => card.url === 'https://example.com/article1',
       );
       const secondCard = response.cards.find(
-        (card) => card.url === 'https://example.com/article2',
+        (card: any) => card.url === 'https://example.com/article2',
       );
 
       expect(firstCard).toBeDefined();
@@ -151,7 +154,7 @@ describe('GetMyUrlCardsUseCase', () => {
 
       expect(secondCard).toBeDefined();
       expect(secondCard?.cardContent.title).toBe('Second Article');
-      expect(secondCard?.libraryCount).toBe(2);
+      expect(secondCard?.libraryCount).toBe(1);
     });
 
     it('should include collections and notes in URL cards', async () => {
@@ -175,6 +178,7 @@ describe('GetMyUrlCardsUseCase', () => {
       // Create card
       const cardResult = Card.create(
         {
+          curatorId: curatorId,
           type: cardType,
           content: cardContent,
           url: url,
@@ -230,6 +234,7 @@ describe('GetMyUrlCardsUseCase', () => {
 
       const myCardResult = Card.create(
         {
+          curatorId: curatorId,
           type: myCardType,
           content: myCardContent,
           url: myUrl,
@@ -260,6 +265,7 @@ describe('GetMyUrlCardsUseCase', () => {
 
       const otherCardResult = Card.create(
         {
+          curatorId: otherCuratorId,
           type: otherCardType,
           content: otherCardContent,
           url: otherUrl,
@@ -312,6 +318,7 @@ describe('GetMyUrlCardsUseCase', () => {
 
         const cardResult = Card.create(
           {
+            curatorId: curatorId,
             type: cardType,
             content: cardContent,
             url: url,
@@ -421,6 +428,7 @@ describe('GetMyUrlCardsUseCase', () => {
 
       const alphaCardResult = Card.create(
         {
+          curatorId: curatorId,
           type: alphaCardType,
           content: alphaCardContent,
           url: alphaUrl,
@@ -453,21 +461,14 @@ describe('GetMyUrlCardsUseCase', () => {
 
       const betaCardResult = Card.create(
         {
+          curatorId: curatorId,
           type: betaCardType,
           content: betaCardContent,
           url: betaUrl,
           libraryMemberships: [
             { curatorId: curatorId, addedAt: new Date(now.getTime() - 1000) },
-            {
-              curatorId: CuratorId.create('did:plc:othercurator').unwrap(),
-              addedAt: new Date(now.getTime() - 500),
-            },
-            {
-              curatorId: CuratorId.create('did:plc:thirdcurator').unwrap(),
-              addedAt: new Date(now.getTime() - 300),
-            },
           ],
-          libraryCount: 3,
+          libraryCount: 1,
           createdAt: new Date(now.getTime() - 1000),
           updatedAt: new Date(now.getTime() - 2000),
         },
@@ -493,17 +494,14 @@ describe('GetMyUrlCardsUseCase', () => {
 
       const gammaCardResult = Card.create(
         {
+          curatorId: curatorId,
           type: gammaCardType,
           content: gammaCardContent,
           url: gammaUrl,
           libraryMemberships: [
             { curatorId: curatorId, addedAt: new Date(now.getTime()) },
-            {
-              curatorId: CuratorId.create('did:plc:anothercurator').unwrap(),
-              addedAt: new Date(now.getTime() - 100),
-            },
           ],
-          libraryCount: 2,
+          libraryCount: 1,
           createdAt: new Date(now.getTime()),
           updatedAt: new Date(now.getTime()),
         },
@@ -531,9 +529,10 @@ describe('GetMyUrlCardsUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.cards).toHaveLength(3);
-      expect(response.cards[0]?.libraryCount).toBe(3); // beta
-      expect(response.cards[1]?.libraryCount).toBe(2); // gamma
-      expect(response.cards[2]?.libraryCount).toBe(1); // alpha
+      // All URL cards now have libraryCount of 1, so order will be by secondary sort (likely creation time)
+      expect(response.cards[0]?.libraryCount).toBe(1); // gamma (newest)
+      expect(response.cards[1]?.libraryCount).toBe(1); // beta
+      expect(response.cards[2]?.libraryCount).toBe(1); // alpha (oldest)
       expect(response.sorting.sortBy).toBe(CardSortField.LIBRARY_COUNT);
       expect(response.sorting.sortOrder).toBe(SortOrder.DESC);
     });
@@ -549,9 +548,10 @@ describe('GetMyUrlCardsUseCase', () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.cards[0]?.libraryCount).toBe(1); // alpha
-      expect(response.cards[1]?.libraryCount).toBe(2); // gamma
-      expect(response.cards[2]?.libraryCount).toBe(3); // beta
+      // All URL cards now have libraryCount of 1, so order will be by secondary sort (likely creation time)
+      expect(response.cards[0]?.libraryCount).toBe(1); // alpha (oldest)
+      expect(response.cards[1]?.libraryCount).toBe(1); // beta
+      expect(response.cards[2]?.libraryCount).toBe(1); // gamma (newest)
     });
 
     it('should sort by updated date descending', async () => {
@@ -610,7 +610,7 @@ describe('GetMyUrlCardsUseCase', () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toContain('Invalid user ID');
+        expect(result.error.message).toContain('Invalid user identifier');
       }
     });
 
@@ -627,9 +627,14 @@ describe('GetMyUrlCardsUseCase', () => {
           .fn()
           .mockRejectedValue(new Error('Database connection failed')),
         getLibrariesForCard: jest.fn(),
+        getLibrariesForUrl: jest.fn(),
+        getNoteCardsForUrl: jest.fn(),
       };
 
-      const errorUseCase = new GetMyUrlCardsUseCase(errorRepo);
+      const errorUseCase = new GetUrlCardsUseCase(
+        errorRepo,
+        identityResolutionService,
+      );
 
       const query = {
         userId: curatorId.value,
@@ -654,6 +659,7 @@ describe('GetMyUrlCardsUseCase', () => {
 
       const cardResult = Card.create(
         {
+          curatorId: curatorId,
           type: cardType,
           content: cardContent,
           url: url,
@@ -702,6 +708,7 @@ describe('GetMyUrlCardsUseCase', () => {
 
       const cardResult = Card.create(
         {
+          curatorId: curatorId,
           type: cardType,
           content: cardContent,
           url: url,

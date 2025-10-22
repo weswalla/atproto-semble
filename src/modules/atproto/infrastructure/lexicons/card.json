@@ -76,13 +76,7 @@
     "urlMetadata": {
       "type": "object",
       "description": "Metadata about a URL.",
-      "required": ["url"],
       "properties": {
-        "url": {
-          "type": "string",
-          "format": "uri",
-          "description": "The URL"
-        },
         "title": {
           "type": "string",
           "description": "Title of the page"

@@ -10,7 +10,7 @@ import {
   CompleteOAuthSignInResponse,
   RefreshAccessTokenResponse,
   GenerateExtensionTokensResponse,
-} from '../types';
+} from '@semble/types';
 
 export class UserClient extends BaseClient {
   async loginWithAppPassword(
@@ -67,6 +67,14 @@ export class UserClient extends BaseClient {
     return this.request<GenerateExtensionTokensResponse>(
       'GET',
       '/api/users/extension/tokens',
+    );
+  }
+
+  async logout(): Promise<{ success: boolean; message: string }> {
+    // With cookie-based auth, refreshToken is sent automatically via cookies
+    return this.request<{ success: boolean; message: string }>(
+      'POST',
+      '/api/users/logout',
     );
   }
 }

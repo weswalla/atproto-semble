@@ -1,10 +1,7 @@
-import { ApiError, ApiErrorResponse } from '../types/errors';
+import { ApiError, ApiErrorResponse } from '../errors';
 
 export abstract class BaseClient {
-  constructor(
-    protected baseUrl: string,
-    protected getAuthToken: () => string | null,
-  ) {}
+  constructor(protected baseUrl: string) {}
 
   protected async request<T>(
     method: string,
@@ -12,19 +9,15 @@ export abstract class BaseClient {
     data?: any,
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    const token = this.getAuthToken();
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
 
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
     const config: RequestInit = {
       method,
       headers,
+      credentials: 'include', // Include cookies automatically (works for both client and server)
     };
 
     if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {

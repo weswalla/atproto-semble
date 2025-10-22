@@ -16,6 +16,7 @@ import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 import { URL } from '../../../domain/value-objects/URL';
 import { CardLibraryService } from '../../../domain/services/CardLibraryService';
 import { CardCollectionService } from '../../../domain/services/CardCollectionService';
+import { CardContent } from '../../../domain/value-objects/CardContent';
 
 export interface AddUrlToLibraryDTO {
   url: string;
@@ -80,7 +81,7 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
 
       // Check if URL card already exists
       const existingUrlCardResult =
-        await this.cardRepository.findUrlCardByUrl(url);
+        await this.cardRepository.findUsersUrlCardByUrl(url, curatorId);
       if (existingUrlCardResult.isErr()) {
         return err(
           AppError.UnexpectedError.create(existingUrlCardResult.error),
@@ -143,48 +144,86 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
 
       let noteCard;
 
-      // Create note card if note is provided
+      // Handle note card creation or update if note is provided
       if (request.note) {
-        const noteCardInput: INoteCardInput = {
-          type: CardTypeEnum.NOTE,
-          text: request.note,
-          parentCardId: urlCard.cardId.getStringValue(),
-          url: request.url,
-        };
-
-        const noteCardResult = CardFactory.create({
-          curatorId: request.curatorId,
-          cardInput: noteCardInput,
-        });
-
-        if (noteCardResult.isErr()) {
-          return err(new ValidationError(noteCardResult.error.message));
-        }
-
-        noteCard = noteCardResult.value;
-
-        // Save note card
-        const saveNoteCardResult = await this.cardRepository.save(noteCard);
-        if (saveNoteCardResult.isErr()) {
-          return err(AppError.UnexpectedError.create(saveNoteCardResult.error));
-        }
-
-        // Add note card to library using domain service
-        const addNoteCardToLibraryResult =
-          await this.cardLibraryService.addCardToLibrary(noteCard, curatorId);
-        if (addNoteCardToLibraryResult.isErr()) {
-          if (
-            addNoteCardToLibraryResult.error instanceof AppError.UnexpectedError
-          ) {
-            return err(addNoteCardToLibraryResult.error);
-          }
+        // Check if note card already exists for this URL and curator
+        const existingNoteCardResult =
+          await this.cardRepository.findUsersNoteCardByUrl(url, curatorId);
+        if (existingNoteCardResult.isErr()) {
           return err(
-            new ValidationError(addNoteCardToLibraryResult.error.message),
+            AppError.UnexpectedError.create(existingNoteCardResult.error),
           );
         }
 
-        // Update noteCard reference to the one returned by the service
-        noteCard = addNoteCardToLibraryResult.value;
+        noteCard = existingNoteCardResult.value;
+
+        if (noteCard) {
+          // Update existing note card
+          const newContentResult = CardContent.createNoteContent(request.note);
+          if (newContentResult.isErr()) {
+            return err(new ValidationError(newContentResult.error.message));
+          }
+
+          const updateContentResult = noteCard.updateContent(
+            newContentResult.value,
+          );
+          if (updateContentResult.isErr()) {
+            return err(new ValidationError(updateContentResult.error.message));
+          }
+
+          // Save updated note card
+          const saveNoteCardResult = await this.cardRepository.save(noteCard);
+          if (saveNoteCardResult.isErr()) {
+            return err(
+              AppError.UnexpectedError.create(saveNoteCardResult.error),
+            );
+          }
+        } else {
+          // Create new note card
+          const noteCardInput: INoteCardInput = {
+            type: CardTypeEnum.NOTE,
+            text: request.note,
+            parentCardId: urlCard.cardId.getStringValue(),
+            url: request.url,
+          };
+
+          const noteCardResult = CardFactory.create({
+            curatorId: request.curatorId,
+            cardInput: noteCardInput,
+          });
+
+          if (noteCardResult.isErr()) {
+            return err(new ValidationError(noteCardResult.error.message));
+          }
+
+          noteCard = noteCardResult.value;
+
+          // Save note card
+          const saveNoteCardResult = await this.cardRepository.save(noteCard);
+          if (saveNoteCardResult.isErr()) {
+            return err(
+              AppError.UnexpectedError.create(saveNoteCardResult.error),
+            );
+          }
+
+          // Add note card to library using domain service
+          const addNoteCardToLibraryResult =
+            await this.cardLibraryService.addCardToLibrary(noteCard, curatorId);
+          if (addNoteCardToLibraryResult.isErr()) {
+            if (
+              addNoteCardToLibraryResult.error instanceof
+              AppError.UnexpectedError
+            ) {
+              return err(addNoteCardToLibraryResult.error);
+            }
+            return err(
+              new ValidationError(addNoteCardToLibraryResult.error.message),
+            );
+          }
+
+          // Update noteCard reference to the one returned by the service
+          noteCard = addNoteCardToLibraryResult.value;
+        }
       }
 
       // Handle collection additions if specified

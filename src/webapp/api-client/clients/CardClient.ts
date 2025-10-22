@@ -8,11 +8,13 @@ import {
   AddCardToCollectionResponse,
   UpdateNoteCardRequest,
   UpdateNoteCardResponse,
+  UpdateUrlCardAssociationsRequest,
+  UpdateUrlCardAssociationsResponse,
   RemoveCardFromLibraryRequest,
   RemoveCardFromLibraryResponse,
   RemoveCardFromCollectionRequest,
   RemoveCardFromCollectionResponse,
-} from '../types';
+} from '@semble/types';
 
 export class CardClient extends BaseClient {
   async addUrlToLibrary(
@@ -57,6 +59,16 @@ export class CardClient extends BaseClient {
     );
   }
 
+  async updateUrlCardAssociations(
+    request: UpdateUrlCardAssociationsRequest,
+  ): Promise<UpdateUrlCardAssociationsResponse> {
+    return this.request<UpdateUrlCardAssociationsResponse>(
+      'PUT',
+      '/api/cards/url/associations',
+      request,
+    );
+  }
+
   async removeCardFromLibrary(
     request: RemoveCardFromLibraryRequest,
   ): Promise<RemoveCardFromLibraryResponse> {
@@ -69,12 +81,10 @@ export class CardClient extends BaseClient {
   async removeCardFromCollection(
     request: RemoveCardFromCollectionRequest,
   ): Promise<RemoveCardFromCollectionResponse> {
+    const collectionIdsParam = request.collectionIds.join(',');
     return this.request<RemoveCardFromCollectionResponse>(
       'DELETE',
-      `/api/cards/${request.cardId}/collections`,
-      {
-        collectionIds: request.collectionIds,
-      },
+      `/api/cards/${request.cardId}/collections?collectionIds=${encodeURIComponent(collectionIdsParam)}`,
     );
   }
 }

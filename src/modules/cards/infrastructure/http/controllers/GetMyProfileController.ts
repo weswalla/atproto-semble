@@ -1,10 +1,10 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Response } from 'express';
-import { GetMyProfileUseCase } from '../../../application/useCases/queries/GetMyProfileUseCase';
+import { GetProfileUseCase } from '../../../application/useCases/queries/GetProfileUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class GetMyProfileController extends Controller {
-  constructor(private getMyProfileUseCase: GetMyProfileUseCase) {
+  constructor(private getProfileUseCase: GetProfileUseCase) {
     super();
   }
 
@@ -16,10 +16,10 @@ export class GetMyProfileController extends Controller {
         return this.unauthorized(res);
       }
 
-      const result = await this.getMyProfileUseCase.execute({ userId });
+      const result = await this.getProfileUseCase.execute({ userId });
 
       if (result.isErr()) {
-        return this.fail(res, result.error as any);
+        return this.fail(res, result.error);
       }
 
       return this.ok(res, result.value);

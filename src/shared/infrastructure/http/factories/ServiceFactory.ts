@@ -25,6 +25,8 @@ import { ICardPublisher } from 'src/modules/cards/application/ports/ICardPublish
 import { IMetadataService } from 'src/modules/cards/domain/services/IMetadataService';
 import { BullMQEventSubscriber } from '../../events/BullMQEventSubscriber';
 import { BullMQEventPublisher } from '../../events/BullMQEventPublisher';
+import { InMemoryEventPublisher } from '../../events/InMemoryEventPublisher';
+import { InMemoryEventSubscriber } from '../../events/InMemoryEventSubscriber';
 import Redis from 'ioredis';
 // Mock/Fake service imports
 import { FakeJwtTokenService } from '../../../../modules/user/infrastructure/services/FakeJwtTokenService';
@@ -46,6 +48,9 @@ import { RedisFactory } from '../../redis/RedisFactory';
 import { IEventSubscriber } from 'src/shared/application/events/IEventSubscriber';
 import { FeedService } from '../../../../modules/feeds/domain/services/FeedService';
 import { CardCollectionSaga } from '../../../../modules/feeds/application/sagas/CardCollectionSaga';
+import { ATProtoIdentityResolutionService } from '../../../../modules/atproto/infrastructure/services/ATProtoIdentityResolutionService';
+import { IIdentityResolutionService } from '../../../../modules/atproto/domain/services/IIdentityResolutionService';
+import { CookieService } from '../services/CookieService';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -55,11 +60,14 @@ export interface SharedServices {
   metadataService: IMetadataService;
   profileService: IProfileService;
   feedService: FeedService;
+  nodeOauthClient: NodeOAuthClient;
+  identityResolutionService: IIdentityResolutionService;
+  configService: EnvironmentConfigService;
+  cookieService: CookieService;
 }
 
 // Web app specific services (includes publishers, auth middleware)
 export interface WebAppServices extends SharedServices {
-  nodeOauthClient: NodeOAuthClient;
   oauthProcessor: IOAuthProcessor;
   appPasswordProcessor: IAppPasswordProcessor;
   collectionPublisher: ICollectionPublisher;
@@ -68,11 +76,12 @@ export interface WebAppServices extends SharedServices {
   cardCollectionService: CardCollectionService;
   authMiddleware: AuthMiddleware;
   eventPublisher: IEventPublisher;
+  cookieService: CookieService;
 }
 
 // Worker specific services (includes subscribers)
 export interface WorkerServices extends SharedServices {
-  redisConnection: Redis;
+  redisConnection: Redis | null;
   eventPublisher: IEventPublisher;
   createEventSubscriber: (queueName: QueueName) => IEventSubscriber;
   cardCollectionSaga: CardCollectionSaga;
@@ -100,13 +109,6 @@ export class ServiceFactory {
 
     const useMockAuth = process.env.USE_MOCK_AUTH === 'true';
 
-    // OAuth Client (always create for real, but may not be used if mocking)
-    const nodeOauthClient = OAuthClientFactory.createClient(
-      repositories.oauthStateStore,
-      repositories.oauthSessionStore,
-      oauthConfig.baseUrl,
-    );
-
     // App Password Session Service
     const appPasswordSessionService = useMockAuth
       ? new FakeAppPasswordSessionService()
@@ -122,37 +124,56 @@ export class ServiceFactory {
     // OAuth Processor
     const oauthProcessor = useMockAuth
       ? new FakeAtProtoOAuthProcessor(sharedServices.tokenService)
-      : new AtProtoOAuthProcessor(nodeOauthClient);
+      : new AtProtoOAuthProcessor(sharedServices.nodeOauthClient);
 
     const useFakePublishers = process.env.USE_FAKE_PUBLISHERS === 'true';
+    const collections = configService.getAtProtoCollections();
 
     const collectionPublisher = useFakePublishers
       ? new FakeCollectionPublisher()
-      : new ATProtoCollectionPublisher(sharedServices.atProtoAgentService);
+      : new ATProtoCollectionPublisher(
+          sharedServices.atProtoAgentService,
+          collections.collection,
+          collections.collectionLink,
+        );
 
     const cardPublisher = useFakePublishers
       ? new FakeCardPublisher()
-      : new ATProtoCardPublisher(sharedServices.atProtoAgentService);
+      : new ATProtoCardPublisher(
+          sharedServices.atProtoAgentService,
+          collections.card,
+        );
 
-    const cardLibraryService = new CardLibraryService(
-      repositories.cardRepository,
-      cardPublisher,
-    );
     const cardCollectionService = new CardCollectionService(
       repositories.collectionRepository,
       collectionPublisher,
     );
-
-    const authMiddleware = new AuthMiddleware(sharedServices.tokenService);
-
-    const redisConnection = RedisFactory.createConnection(
-      configService.getWorkersConfig().redisConfig,
+    const cardLibraryService = new CardLibraryService(
+      repositories.cardRepository,
+      cardPublisher,
+      repositories.collectionRepository,
+      cardCollectionService,
     );
-    const eventPublisher = new BullMQEventPublisher(redisConnection);
+
+    const authMiddleware = new AuthMiddleware(
+      sharedServices.tokenService,
+      sharedServices.cookieService,
+    );
+
+    const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
+
+    let eventPublisher: IEventPublisher;
+    if (useInMemoryEvents) {
+      eventPublisher = new InMemoryEventPublisher();
+    } else {
+      const redisConnection = RedisFactory.createConnection(
+        configService.getWorkersConfig().redisConfig,
+      );
+      eventPublisher = new BullMQEventPublisher(redisConnection);
+    }
 
     return {
       ...sharedServices,
-      nodeOauthClient,
       oauthProcessor,
       appPasswordProcessor,
       collectionPublisher,
@@ -173,21 +194,33 @@ export class ServiceFactory {
       repositories,
     );
 
-    // Redis connection is required for workers
-    if (!process.env.REDIS_URL) {
-      throw new Error(
-        'REDIS_URL environment variable is required for worker services',
-      );
+    const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
+
+    let eventPublisher: IEventPublisher;
+    let redisConnection: Redis | null = null;
+    let createEventSubscriber: (queueName: QueueName) => IEventSubscriber;
+
+    if (useInMemoryEvents) {
+      eventPublisher = new InMemoryEventPublisher();
+      createEventSubscriber = (queueName: QueueName) => {
+        return new InMemoryEventSubscriber();
+      };
+    } else {
+      // Redis connection is required for BullMQ workers
+      if (!process.env.REDIS_URL) {
+        throw new Error(
+          'REDIS_URL environment variable is required for BullMQ worker services',
+        );
+      }
+
+      const redisConfig = configService.getWorkersConfig().redisConfig;
+      redisConnection = RedisFactory.createConnection(redisConfig);
+      eventPublisher = new BullMQEventPublisher(redisConnection);
+
+      createEventSubscriber = (queueName: QueueName) => {
+        return new BullMQEventSubscriber(redisConnection!, { queueName });
+      };
     }
-
-    const redisConfig = configService.getWorkersConfig().redisConfig;
-    const redisConnection = RedisFactory.createConnection(redisConfig);
-
-    const eventPublisher = new BullMQEventPublisher(redisConnection);
-
-    const createEventSubscriber = (queueName: QueueName) => {
-      return new BullMQEventSubscriber(redisConnection, { queueName });
-    };
 
     // Create saga for worker
     const cardCollectionSaga = new CardCollectionSaga(
@@ -197,7 +230,7 @@ export class ServiceFactory {
 
     return {
       ...sharedServices,
-      redisConnection,
+      redisConnection: redisConnection,
       eventPublisher,
       createEventSubscriber,
       cardCollectionSaga,
@@ -209,6 +242,12 @@ export class ServiceFactory {
     repositories: Repositories,
   ): SharedServices {
     const useMockAuth = process.env.USE_MOCK_AUTH === 'true';
+
+    const nodeOauthClient = OAuthClientFactory.createClient(
+      repositories.oauthStateStore,
+      repositories.oauthSessionStore,
+      oauthConfig.baseUrl,
+    );
 
     // Token Service
     const tokenService = useMockAuth
@@ -235,11 +274,7 @@ export class ServiceFactory {
     // ATProto Agent Service
     const atProtoAgentService = useMockAuth
       ? new FakeAgentService()
-      : new ATProtoAgentService(
-          // For workers, we don't need OAuth client, just pass null
-          null as any,
-          appPasswordSessionService,
-        );
+      : new ATProtoAgentService(nodeOauthClient, appPasswordSessionService);
 
     const metadataService = new IFramelyMetadataService(
       configService.getIFramelyApiKey(),
@@ -253,6 +288,14 @@ export class ServiceFactory {
     // Feed Service
     const feedService = new FeedService(repositories.feedRepository);
 
+    // Identity Resolution Service
+    const identityResolutionService = new ATProtoIdentityResolutionService(
+      atProtoAgentService,
+    );
+
+    // Cookie Service
+    const cookieService = new CookieService(configService);
+
     return {
       tokenService,
       userAuthService,
@@ -260,6 +303,10 @@ export class ServiceFactory {
       metadataService,
       profileService,
       feedService,
+      nodeOauthClient,
+      identityResolutionService,
+      configService,
+      cookieService,
     };
   }
 }

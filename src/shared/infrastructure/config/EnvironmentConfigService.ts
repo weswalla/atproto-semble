@@ -1,5 +1,11 @@
+export enum Environment {
+  LOCAL = 'local',
+  DEV = 'dev',
+  PROD = 'prod',
+}
+
 export interface EnvironmentConfig {
-  environment: 'local' | 'dev' | 'prod';
+  environment: Environment;
   database: {
     url: string;
   };
@@ -11,6 +17,11 @@ export interface EnvironmentConfig {
   atproto: {
     serviceEndpoint: string;
     baseUrl: string;
+    collections: {
+      card: string;
+      collection: string;
+      collectionLink: string;
+    };
   };
   server: {
     port: number;
@@ -37,10 +48,8 @@ export class EnvironmentConfigService {
   private config: EnvironmentConfig;
 
   constructor() {
-    const environment = (process.env.NODE_ENV || 'local') as
-      | 'local'
-      | 'dev'
-      | 'prod';
+    const environment = (process.env.NODE_ENV ||
+      Environment.LOCAL) as Environment;
 
     this.config = {
       environment,
@@ -63,13 +72,27 @@ export class EnvironmentConfigService {
         serviceEndpoint:
           process.env.ATPROTO_SERVICE_ENDPOINT || 'https://bsky.social',
         baseUrl: process.env.BASE_URL || 'http://127.0.0.1:3000',
+        collections: {
+          card:
+            environment === Environment.PROD
+              ? 'network.cosmik.card'
+              : `network.cosmik.${environment}.card`,
+          collection:
+            environment === Environment.PROD
+              ? 'network.cosmik.collection'
+              : `network.cosmik.${environment}.collection`,
+          collectionLink:
+            environment === Environment.PROD
+              ? 'network.cosmik.collectionLink'
+              : `network.cosmik.${environment}.collectionLink`,
+        },
       },
       server: {
         port: parseInt(process.env.PORT || '3000'),
         host: process.env.HOST || '127.0.0.1',
       },
       app: {
-        appUrl: process.env.APP_URL || 'http://localhost:4000',
+        appUrl: process.env.APP_URL || 'http://127.0.0.1:4000',
       },
       iframely: {
         apiKey: process.env.IFRAMELY_API_KEY || '',
@@ -90,10 +113,10 @@ export class EnvironmentConfigService {
 
   private applyEnvironmentSpecificConfig(): void {
     switch (this.config.environment) {
-      case 'dev':
+      case Environment.DEV:
         // Override defaults with dev-specific values
         break;
-      case 'prod':
+      case Environment.PROD:
         // Override defaults with production-specific values
         if (
           this.config.auth.jwtSecret === 'default-secret-change-in-production'
@@ -101,7 +124,7 @@ export class EnvironmentConfigService {
           throw new Error('JWT secret must be set in production environment');
         }
         break;
-      case 'local':
+      case Environment.LOCAL:
       default:
         // Local development defaults are already set
         break;
@@ -122,6 +145,10 @@ export class EnvironmentConfigService {
 
   public getAtProtoConfig() {
     return this.config.atproto;
+  }
+
+  public getAtProtoCollections() {
+    return this.config.atproto.collections;
   }
 
   public getServerConfig() {

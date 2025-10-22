@@ -77,8 +77,6 @@ export function validateNoteContent<V>(v: V) {
 /** Metadata about a URL. */
 export interface UrlMetadata {
   $type?: 'network.cosmik.card#urlMetadata';
-  /** The URL */
-  url: string;
   /** Title of the page */
   title?: string;
   /** Description of the page */

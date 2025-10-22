@@ -82,7 +82,7 @@ export function CreateCollectionModal({
     if (isOpen && initialName !== form.getValues().name) {
       form.setFieldValue('name', initialName);
     }
-  }, [isOpen, initialName]);
+  }, [isOpen, initialName, form]);
 
   return (
     <Modal

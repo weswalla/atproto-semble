@@ -9,7 +9,7 @@ export class CollectionLinkMapper {
     link: CardLink,
     collectionRecord: PublishedRecordIdProps,
     cardRecord: PublishedRecordIdProps,
-    originalCardRecord: PublishedRecordIdProps,
+    originalCardRecord?: PublishedRecordIdProps,
   ): CollectionLinkRecordDTO {
     return {
       $type: 'network.cosmik.collectionLink',
@@ -21,10 +21,12 @@ export class CollectionLinkMapper {
         uri: cardRecord.uri,
         cid: cardRecord.cid,
       },
-      originalCard: {
-        uri: originalCardRecord.uri,
-        cid: originalCardRecord.cid,
-      },
+      originalCard: originalCardRecord
+        ? {
+            uri: originalCardRecord.uri,
+            cid: originalCardRecord.cid,
+          }
+        : undefined,
       addedBy: link.addedBy.value,
       addedAt: link.addedAt.toISOString(),
       createdAt: new Date().toISOString(),

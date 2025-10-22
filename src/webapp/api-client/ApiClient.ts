@@ -11,6 +11,7 @@ import type {
   AddCardToLibraryRequest,
   AddCardToCollectionRequest,
   UpdateNoteCardRequest,
+  UpdateUrlCardAssociationsRequest,
   RemoveCardFromLibraryRequest,
   RemoveCardFromCollectionRequest,
   CreateCollectionRequest,
@@ -23,6 +24,7 @@ import type {
   GenerateExtensionTokensRequest,
   GetMyUrlCardsParams,
   GetCollectionPageParams,
+  GetCollectionPageByAtUriParams,
   GetMyCollectionsParams,
   GetGlobalFeedParams,
   // Response types
@@ -30,6 +32,7 @@ import type {
   AddCardToLibraryResponse,
   AddCardToCollectionResponse,
   UpdateNoteCardResponse,
+  UpdateUrlCardAssociationsResponse,
   RemoveCardFromLibraryResponse,
   RemoveCardFromCollectionResponse,
   CreateCollectionResponse,
@@ -41,14 +44,25 @@ import type {
   RefreshAccessTokenResponse,
   GenerateExtensionTokensResponse,
   GetUrlMetadataResponse,
-  GetMyUrlCardsResponse,
   GetUrlCardViewResponse,
   GetLibrariesForCardResponse,
-  GetMyProfileResponse,
   GetCollectionPageResponse,
-  GetMyCollectionsResponse,
   GetGlobalFeedResponse,
-} from './types';
+  GetCollectionsResponse,
+  GetCollectionsParams,
+  GetUrlCardsParams,
+  GetUrlCardsResponse,
+  GetProfileResponse,
+  GetProfileParams,
+  GetUrlStatusForMyLibraryParams,
+  GetUrlStatusForMyLibraryResponse,
+  GetLibrariesForUrlParams,
+  GetLibrariesForUrlResponse,
+  GetNoteCardsForUrlParams,
+  GetNoteCardsForUrlResponse,
+  GetCollectionsForUrlParams,
+  GetCollectionsForUrlResponse,
+} from '@semble/types';
 
 // Main API Client class using composition
 export class ApiClient {
@@ -58,15 +72,12 @@ export class ApiClient {
   private userClient: UserClient;
   private feedClient: FeedClient;
 
-  constructor(
-    private baseUrl: string,
-    private getAuthToken: () => string | null,
-  ) {
-    this.queryClient = new QueryClient(baseUrl, getAuthToken);
-    this.cardClient = new CardClient(baseUrl, getAuthToken);
-    this.collectionClient = new CollectionClient(baseUrl, getAuthToken);
-    this.userClient = new UserClient(baseUrl, getAuthToken);
-    this.feedClient = new FeedClient(baseUrl, getAuthToken);
+  constructor(private baseUrl: string) {
+    this.queryClient = new QueryClient(baseUrl);
+    this.cardClient = new CardClient(baseUrl);
+    this.collectionClient = new CollectionClient(baseUrl);
+    this.userClient = new UserClient(baseUrl);
+    this.feedClient = new FeedClient(baseUrl);
   }
 
   // Query operations - delegate to QueryClient
@@ -76,8 +87,12 @@ export class ApiClient {
 
   async getMyUrlCards(
     params?: GetMyUrlCardsParams,
-  ): Promise<GetMyUrlCardsResponse> {
+  ): Promise<GetUrlCardsResponse> {
     return this.queryClient.getMyUrlCards(params);
+  }
+
+  async getUrlCards(params: GetUrlCardsParams): Promise<GetUrlCardsResponse> {
+    return this.queryClient.getUserUrlCards(params);
   }
 
   async getUrlCardView(cardId: string): Promise<GetUrlCardViewResponse> {
@@ -90,8 +105,12 @@ export class ApiClient {
     return this.queryClient.getLibrariesForCard(cardId);
   }
 
-  async getMyProfile(): Promise<GetMyProfileResponse> {
+  async getMyProfile(): Promise<GetProfileResponse> {
     return this.queryClient.getMyProfile();
+  }
+
+  async getProfile(params: GetProfileParams): Promise<GetProfileResponse> {
+    return this.queryClient.getUserProfile(params);
   }
 
   async getCollectionPage(
@@ -101,10 +120,46 @@ export class ApiClient {
     return this.queryClient.getCollectionPage(collectionId, params);
   }
 
+  async getCollectionPageByAtUri(
+    params: GetCollectionPageByAtUriParams,
+  ): Promise<GetCollectionPageResponse> {
+    return this.queryClient.getCollectionPageByAtUri(params);
+  }
+
   async getMyCollections(
     params?: GetMyCollectionsParams,
-  ): Promise<GetMyCollectionsResponse> {
+  ): Promise<GetCollectionsResponse> {
     return this.queryClient.getMyCollections(params);
+  }
+
+  async getCollections(
+    params: GetCollectionsParams,
+  ): Promise<GetCollectionsResponse> {
+    return this.queryClient.getUserCollections(params);
+  }
+
+  async getUrlStatusForMyLibrary(
+    params: GetUrlStatusForMyLibraryParams,
+  ): Promise<GetUrlStatusForMyLibraryResponse> {
+    return this.queryClient.getUrlStatusForMyLibrary(params);
+  }
+
+  async getLibrariesForUrl(
+    params: GetLibrariesForUrlParams,
+  ): Promise<GetLibrariesForUrlResponse> {
+    return this.queryClient.getLibrariesForUrl(params);
+  }
+
+  async getNoteCardsForUrl(
+    params: GetNoteCardsForUrlParams,
+  ): Promise<GetNoteCardsForUrlResponse> {
+    return this.queryClient.getNoteCardsForUrl(params);
+  }
+
+  async getCollectionsForUrl(
+    params: GetCollectionsForUrlParams,
+  ): Promise<GetCollectionsForUrlResponse> {
+    return this.queryClient.getCollectionsForUrl(params);
   }
 
   // Card operations - delegate to CardClient
@@ -130,6 +185,12 @@ export class ApiClient {
     request: UpdateNoteCardRequest,
   ): Promise<UpdateNoteCardResponse> {
     return this.cardClient.updateNoteCard(request);
+  }
+
+  async updateUrlCardAssociations(
+    request: UpdateUrlCardAssociationsRequest,
+  ): Promise<UpdateUrlCardAssociationsResponse> {
+    return this.cardClient.updateUrlCardAssociations(request);
   }
 
   async removeCardFromLibrary(
@@ -194,6 +255,10 @@ export class ApiClient {
     return this.userClient.generateExtensionTokens(request);
   }
 
+  async logout(): Promise<{ success: boolean; message: string }> {
+    return this.userClient.logout();
+  }
+
   // Feed operations - delegate to FeedClient
   async getGlobalFeed(
     params?: GetGlobalFeedParams,
@@ -203,4 +268,20 @@ export class ApiClient {
 }
 
 // Re-export types for convenience
-export * from './types';
+export * from '@semble/types';
+
+// Factory functions for different client types
+export const createApiClient = () => {
+  return new ApiClient(
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
+  );
+};
+
+export const createServerApiClient = () => {
+  return new ApiClient(
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
+  );
+};
+
+// Default client instance for backward compatibility
+export const apiClient = createApiClient();

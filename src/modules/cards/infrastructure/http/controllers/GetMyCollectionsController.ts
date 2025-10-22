@@ -1,6 +1,6 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Response } from 'express';
-import { GetMyCollectionsUseCase } from '../../../application/useCases/queries/GetMyCollectionsUseCase';
+import { GetCollectionsUseCase } from '../../../application/useCases/queries/GetCollectionsUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import {
   CollectionSortField,
@@ -8,7 +8,7 @@ import {
 } from '../../../domain/ICollectionQueryRepository';
 
 export class GetMyCollectionsController extends Controller {
-  constructor(private getMyCollectionsUseCase: GetMyCollectionsUseCase) {
+  constructor(private getCollectionsUseCase: GetCollectionsUseCase) {
     super();
   }
 
@@ -21,7 +21,7 @@ export class GetMyCollectionsController extends Controller {
         return this.unauthorized(res);
       }
 
-      const result = await this.getMyCollectionsUseCase.execute({
+      const result = await this.getCollectionsUseCase.execute({
         curatorId,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,
@@ -31,7 +31,7 @@ export class GetMyCollectionsController extends Controller {
       });
 
       if (result.isErr()) {
-        return this.fail(res, result.error as any);
+        return this.fail(res, result.error);
       }
 
       return this.ok(res, result.value);

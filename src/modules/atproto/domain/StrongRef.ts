@@ -24,7 +24,12 @@ export class StrongRef extends ValueObject<StrongRefProps> {
 
   constructor(props: StrongRefProps) {
     super(props);
-    this._atUri = new ATUri(props.uri);
+    const atUriResult = ATUri.create(props.uri);
+    if (atUriResult.isErr()) {
+      throw new Error(`Invalid AT URI: ${atUriResult.error.message}`);
+    }
+    const atUri = atUriResult.value;
+    this._atUri = atUri;
   }
 
   equals(other: StrongRef): boolean {

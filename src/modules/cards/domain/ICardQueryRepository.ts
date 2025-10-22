@@ -37,8 +37,11 @@ export interface UrlCardView {
     thumbnailUrl?: string;
   };
   libraryCount: number;
+  urlLibraryCount: number;
+  urlInLibrary?: boolean;
   createdAt: Date;
   updatedAt: Date;
+  authorId: string; // NEW - needed to enrich with author profile
   note?: {
     id: string;
     text: string;
@@ -59,18 +62,82 @@ export type UrlCardQueryResultDTO = UrlCardView & WithCollections;
 // DTO for single URL card view with library and collection info
 export type UrlCardViewDTO = UrlCardView & WithCollections & WithLibraries;
 
+// Repository returns card data - will be enriched with user profile in use case
+export interface LibraryForUrlDTO {
+  userId: string;
+  card: {
+    id: string;
+    url: string;
+    cardContent: {
+      url: string;
+      title?: string;
+      description?: string;
+      author?: string;
+      thumbnailUrl?: string;
+    };
+    libraryCount: number;
+    urlLibraryCount: number;
+    urlInLibrary?: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    note?: {
+      id: string;
+      text: string;
+    };
+  };
+  // Note: userId is the card author in this context (it's their card in their library)
+}
+
+// Raw repository DTO - what the repository returns (not enriched)
+export interface NoteCardForUrlRawDTO {
+  id: string;
+  note: string;
+  authorId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Public DTO - what the use case returns (enriched with author profile)
+export interface NoteCardForUrlDTO {
+  id: string;
+  note: string;
+  author: {
+    id: string;
+    name: string;
+    handle: string;
+    avatarUrl?: string;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface ICardQueryRepository {
   getUrlCardsOfUser(
     userId: string,
     options: CardQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<UrlCardQueryResultDTO>>;
 
   getCardsInCollection(
     collectionId: string,
     options: CardQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<CollectionCardQueryResultDTO>>;
 
-  getUrlCardView(cardId: string): Promise<UrlCardViewDTO | null>;
+  getUrlCardView(
+    cardId: string,
+    callingUserId?: string,
+  ): Promise<UrlCardViewDTO | null>;
 
   getLibrariesForCard(cardId: string): Promise<string[]>;
+
+  getLibrariesForUrl(
+    url: string,
+    options: CardQueryOptions,
+  ): Promise<PaginatedQueryResult<LibraryForUrlDTO>>;
+
+  getNoteCardsForUrl(
+    url: string,
+    options: CardQueryOptions,
+  ): Promise<PaginatedQueryResult<NoteCardForUrlRawDTO>>;
 }

@@ -9,6 +9,20 @@ import { PublishedRecordId } from './value-objects/PublishedRecordId';
 import { URL } from './value-objects/URL';
 import { CardAddedToLibraryEvent } from './events/CardAddedToLibraryEvent';
 
+export const CARD_ERROR_MESSAGES = {
+  CARD_TYPE_CONTENT_MISMATCH: 'Card type must match content type',
+  URL_CARD_CANNOT_HAVE_PARENT: 'URL cards cannot have parent cards',
+  URL_CARD_MUST_HAVE_URL: 'URL cards must have a url property',
+  URL_CARD_SINGLE_LIBRARY_ONLY: 'URL cards can only be in one library',
+  URL_CARD_CREATOR_LIBRARY_ONLY:
+    'URL cards can only be in the library of the creator',
+  LIBRARY_COUNT_MISMATCH:
+    'Library count does not match library memberships length',
+  CANNOT_CHANGE_CONTENT_TYPE: 'Cannot change card content to different type',
+  ALREADY_IN_LIBRARY: "Card is already in user's library",
+  NOT_IN_LIBRARY: "Card is not in user's library",
+} as const;
+
 export class CardValidationError extends Error {
   constructor(message: string) {
     super(message);
@@ -23,13 +37,14 @@ export interface CardInLibraryLink {
 }
 
 interface CardProps {
+  curatorId: CuratorId;
   type: CardType;
   content: CardContent;
   url?: URL;
   parentCardId?: CardId; // For NOTE and HIGHLIGHT cards that reference other cards
   libraryMemberships: CardInLibraryLink[]; // Set of users who have this card in their library
   libraryCount: number; // Cached count of library memberships
-  originalPublishedRecordId?: PublishedRecordId; // The first published record ID for this card
+  publishedRecordId?: PublishedRecordId; // The first published record ID for this card
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +52,10 @@ interface CardProps {
 export class Card extends AggregateRoot<CardProps> {
   get cardId(): CardId {
     return CardId.create(this._id).unwrap();
+  }
+
+  get curatorId(): CuratorId {
+    return this.props.curatorId;
   }
 
   get type(): CardType {
@@ -75,8 +94,8 @@ export class Card extends AggregateRoot<CardProps> {
     return this.props.libraryCount;
   }
 
-  get originalPublishedRecordId(): PublishedRecordId | undefined {
-    return this.props.originalPublishedRecordId;
+  get publishedRecordId(): PublishedRecordId | undefined {
+    return this.props.publishedRecordId;
   }
 
   // Type-specific convenience getters
@@ -106,7 +125,9 @@ export class Card extends AggregateRoot<CardProps> {
   ): Result<Card, CardValidationError> {
     // Validate content type matches card type
     if (props.type.value !== props.content.type) {
-      return err(new CardValidationError('Card type must match content type'));
+      return err(
+        new CardValidationError(CARD_ERROR_MESSAGES.CARD_TYPE_CONTENT_MISMATCH),
+      );
     }
 
     // Validate parent/source card relationships
@@ -125,7 +146,8 @@ export class Card extends AggregateRoot<CardProps> {
       updatedAt: props.updatedAt || now,
     };
 
-    return ok(new Card(cardProps, id));
+    const card = new Card(cardProps, id);
+    return ok(card);
   }
 
   private static validateCardRelationships(
@@ -139,23 +161,58 @@ export class Card extends AggregateRoot<CardProps> {
   ): Result<void, CardValidationError> {
     // URL cards should not have parent cards
     if (props.type.value === CardTypeEnum.URL && props.parentCardId) {
-      return err(new CardValidationError('URL cards cannot have parent cards'));
+      return err(
+        new CardValidationError(
+          CARD_ERROR_MESSAGES.URL_CARD_CANNOT_HAVE_PARENT,
+        ),
+      );
     }
 
     // URL cards must have a URL property
     if (props.type.value === CardTypeEnum.URL && !props.url) {
-      return err(new CardValidationError('URL cards must have a url property'));
+      return err(
+        new CardValidationError(CARD_ERROR_MESSAGES.URL_CARD_MUST_HAVE_URL),
+      );
+    }
+
+    // URL cards can only be in one library
+    const libraryMemberships = props.libraryMemberships || [];
+    if (
+      props.type.value === CardTypeEnum.URL &&
+      libraryMemberships.length > 1
+    ) {
+      return err(
+        new CardValidationError(
+          CARD_ERROR_MESSAGES.URL_CARD_SINGLE_LIBRARY_ONLY,
+        ),
+      );
+    }
+
+    // URL cards can only have library memberships for the creator
+    if (
+      props.type.value === CardTypeEnum.URL &&
+      libraryMemberships.length > 0
+    ) {
+      const hasNonCreatorMembership = libraryMemberships.some(
+        (membership) => !membership.curatorId.equals(props.curatorId),
+      );
+      if (hasNonCreatorMembership) {
+        return err(
+          new CardValidationError(
+            CARD_ERROR_MESSAGES.URL_CARD_CREATOR_LIBRARY_ONLY,
+          ),
+        );
+      }
     }
 
     // Validate libraryCount matches libraryMemberships length when both are provided
-    const libraryMemberships = props.libraryMemberships || [];
     if (
       props.libraryCount !== undefined &&
       props.libraryCount !== libraryMemberships.length
     ) {
       return err(
         new CardValidationError(
-          `Library count (${props.libraryCount}) does not match library memberships length (${libraryMemberships.length})`,
+          `${CARD_ERROR_MESSAGES.LIBRARY_COUNT_MISMATCH} (${props.libraryCount} vs ${libraryMemberships.length})`,
         ),
       );
     }
@@ -168,7 +225,7 @@ export class Card extends AggregateRoot<CardProps> {
   ): Result<void, CardValidationError> {
     if (this.props.type.value !== newContent.type) {
       return err(
-        new CardValidationError('Cannot change card content to different type'),
+        new CardValidationError(CARD_ERROR_MESSAGES.CANNOT_CHANGE_CONTENT_TYPE),
       );
     }
 
@@ -184,7 +241,18 @@ export class Card extends AggregateRoot<CardProps> {
         link.curatorId.equals(userId),
       )
     ) {
-      return err(new CardValidationError("Card is already in user's library"));
+      return err(
+        new CardValidationError(CARD_ERROR_MESSAGES.ALREADY_IN_LIBRARY),
+      );
+    }
+
+    // URL cards can only be in one library
+    if (this.isUrlCard && this.props.libraryMemberships.length > 0) {
+      return err(
+        new CardValidationError(
+          CARD_ERROR_MESSAGES.URL_CARD_SINGLE_LIBRARY_ONLY,
+        ),
+      );
     }
 
     this.props.libraryMemberships.push({
@@ -212,7 +280,7 @@ export class Card extends AggregateRoot<CardProps> {
         link.curatorId.equals(userId),
       )
     ) {
-      return err(new CardValidationError("Card is not in user's library"));
+      return err(new CardValidationError(CARD_ERROR_MESSAGES.NOT_IN_LIBRARY));
     }
 
     this.props.libraryMemberships = this.props.libraryMemberships.filter(
@@ -232,6 +300,12 @@ export class Card extends AggregateRoot<CardProps> {
     );
   }
 
+  public markAsPublished(publishedRecordId: PublishedRecordId): void {
+    this.props.publishedRecordId = publishedRecordId;
+    this.props.updatedAt = new Date();
+    this.markCardInLibraryAsPublished(this.props.curatorId, publishedRecordId);
+  }
+
   public markCardInLibraryAsPublished(
     userId: CuratorId,
     publishedRecordId: PublishedRecordId,
@@ -240,14 +314,13 @@ export class Card extends AggregateRoot<CardProps> {
       link.curatorId.equals(userId),
     );
     if (!membership) {
-      return err(new CardValidationError("Card is not in user's library"));
+      return err(new CardValidationError(CARD_ERROR_MESSAGES.NOT_IN_LIBRARY));
     }
 
     membership.publishedRecordId = publishedRecordId;
 
-    // Set the original published record ID if it hasn't been set yet
-    if (!this.props.originalPublishedRecordId) {
-      this.props.originalPublishedRecordId = publishedRecordId;
+    if (!this.props.publishedRecordId) {
+      this.props.publishedRecordId = publishedRecordId;
     }
 
     this.props.updatedAt = new Date();
@@ -259,20 +332,5 @@ export class Card extends AggregateRoot<CardProps> {
     return this.props.libraryMemberships.find((link) =>
       link.curatorId.equals(userId),
     );
-  }
-
-  private getCardTitle(): string | undefined {
-    if (this.isUrlCard) {
-      const urlContent = this.props.content.content;
-      if ('metadata' in urlContent) {
-        return urlContent.metadata?.title;
-      }
-    } else if (this.isNoteCard) {
-      const noteContent = this.props.content.content;
-      if ('title' in noteContent) {
-        return noteContent.title;
-      }
-    }
-    return undefined;
   }
 }

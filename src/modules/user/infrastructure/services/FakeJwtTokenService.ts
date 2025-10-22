@@ -3,12 +3,16 @@ import { v4 as uuidv4 } from 'uuid';
 import { Result, ok, err } from 'src/shared/core/Result';
 import { ITokenService } from '../../application/services/ITokenService';
 import { ITokenRepository } from '../../domain/repositories/ITokenRepository';
-import { TokenPair } from '../../application/dtos/TokenDTO';
+import { TokenPair } from '@semble/types';
+import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 
 export class FakeJwtTokenService implements ITokenService {
   private jwtSecret: string;
-  private accessTokenExpiresIn: number = 3600; // 1 hour
-  private refreshTokenExpiresIn: number = 2592000; // 30 days
+  private accessTokenExpiresIn: number =
+    new EnvironmentConfigService().getAuthConfig().accessTokenExpiresIn || 3600; // 1 hour
+  private refreshTokenExpiresIn: number =
+    new EnvironmentConfigService().getAuthConfig().refreshTokenExpiresIn ||
+    2592000; // 30 days
 
   constructor(private tokenRepository: ITokenRepository) {
     this.jwtSecret = process.env.MOCK_ACCESS_TOKEN || 'mock-access-token-123';

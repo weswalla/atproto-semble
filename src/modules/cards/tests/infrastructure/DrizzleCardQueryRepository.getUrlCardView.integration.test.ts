@@ -88,7 +88,7 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
       // Create a note card
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard('This is a note', 'Note Title')
+        .withNoteCard('This is a note')
         .buildOrThrow();
 
       await cardRepository.save(noteCard);
@@ -162,9 +162,9 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
       expect(result?.cardContent.thumbnailUrl).toBeUndefined();
     });
 
-    it('should include users who have the card in their libraries', async () => {
+    it('should include creator in library when URL card is in their library', async () => {
       // Create URL card
-      const url = URL.create('https://example.com/shared-article').unwrap();
+      const url = URL.create('https://example.com/creator-library').unwrap();
       const urlCard = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withUrlCard(url)
@@ -172,14 +172,8 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
 
       await cardRepository.save(urlCard);
 
-      // Add card to multiple users' libraries
+      // Add card to creator's library (URL cards can only be in creator's library)
       urlCard.addToLibrary(curatorId);
-      await cardRepository.save(urlCard);
-
-      urlCard.addToLibrary(otherCuratorId);
-      await cardRepository.save(urlCard);
-
-      urlCard.addToLibrary(thirdCuratorId);
       await cardRepository.save(urlCard);
 
       const result = await queryRepository.getUrlCardView(
@@ -187,12 +181,8 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
       );
 
       expect(result).toBeDefined();
-      expect(result?.libraries).toHaveLength(3);
-
-      const userIds = result?.libraries.map((lib) => lib.userId).sort();
-      expect(userIds).toEqual(
-        [curatorId.value, otherCuratorId.value, thirdCuratorId.value].sort(),
-      );
+      expect(result?.libraries).toHaveLength(1);
+      expect(result?.libraries[0]?.userId).toBe(curatorId.value);
     });
 
     it('should include collections that contain the card', async () => {
@@ -266,7 +256,7 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
       expect(favoritesCollection?.authorId).toBe(otherCuratorId.value);
     });
 
-    it('should handle card with both libraries and collections', async () => {
+    it('should handle card with both library and collections', async () => {
       // Create URL card with full metadata
       const url = URL.create('https://example.com/comprehensive').unwrap();
       const urlMetadata = UrlMetadata.create({
@@ -285,11 +275,8 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
 
       await cardRepository.save(urlCard);
 
-      // Add to multiple libraries
+      // Add to creator's library (URL cards can only be in creator's library)
       urlCard.addToLibrary(curatorId);
-      await cardRepository.save(urlCard);
-
-      urlCard.addToLibrary(otherCuratorId);
       await cardRepository.save(urlCard);
 
       // Create multiple collections
@@ -354,12 +341,9 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
         'https://example.com/comprehensive.jpg',
       );
 
-      // Check libraries
-      expect(result?.libraries).toHaveLength(2);
-      const libraryUserIds = result?.libraries.map((lib) => lib.userId).sort();
-      expect(libraryUserIds).toEqual(
-        [curatorId.value, otherCuratorId.value].sort(),
-      );
+      // Check libraries - URL cards can only be in creator's library
+      expect(result?.libraries).toHaveLength(1);
+      expect(result?.libraries[0]?.userId).toBe(curatorId.value);
 
       // Check collections
       expect(result?.collections).toHaveLength(3);
@@ -492,7 +476,7 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
       expect(result?.libraries[0]?.userId).toBe(curatorId.value);
     });
 
-    it('should handle large numbers of libraries and collections', async () => {
+    it('should handle multiple collections from different users', async () => {
       // Create URL card
       const url = URL.create('https://example.com/popular-article').unwrap();
       const urlCard = new CardBuilder()
@@ -502,13 +486,11 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
 
       await cardRepository.save(urlCard);
 
-      // Add to multiple libraries
+      // Add to creator's library
       urlCard.addToLibrary(curatorId);
-      urlCard.addToLibrary(otherCuratorId);
-      urlCard.addToLibrary(thirdCuratorId);
       await cardRepository.save(urlCard);
 
-      // Create multiple collections
+      // Create multiple collections from different users
       const collections = [];
       for (let i = 1; i <= 5; i++) {
         const collection = Collection.create(
@@ -533,7 +515,8 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
       );
 
       expect(result).toBeDefined();
-      expect(result?.libraries).toHaveLength(3);
+      // URL cards can only be in creator's library
+      expect(result?.libraries).toHaveLength(1);
       expect(result?.collections).toHaveLength(5);
 
       // Verify all collections are present
@@ -570,7 +553,6 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
         .withCuratorId(curatorId.value)
         .withNoteCard(
           'This is my detailed analysis of the article. It covers several key points and provides additional insights.',
-          'My Analysis',
         )
         .withParentCard(urlCard.cardId)
         .buildOrThrow();
@@ -637,7 +619,7 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
       // Create note card connected to the SECOND URL card
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard('This note is for article 2', 'Article 2 Notes')
+        .withNoteCard('This note is for article 2')
         .withParentCard(urlCard2.cardId)
         .buildOrThrow();
 
@@ -706,9 +688,9 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
       expect(result).toContain(curatorId.value);
     });
 
-    it('should return multiple user IDs when card is in multiple libraries', async () => {
+    it('should return creator ID for URL card in creator library', async () => {
       // Create URL card
-      const url = URL.create('https://example.com/multiple-libraries').unwrap();
+      const url = URL.create('https://example.com/creator-library').unwrap();
       const urlCard = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withUrlCard(url)
@@ -716,24 +698,16 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
 
       await cardRepository.save(urlCard);
 
-      // Add to multiple users' libraries
+      // Add to creator's library (URL cards can only be in creator's library)
       urlCard.addToLibrary(curatorId);
-      await cardRepository.save(urlCard);
-
-      urlCard.addToLibrary(otherCuratorId);
-      await cardRepository.save(urlCard);
-
-      urlCard.addToLibrary(thirdCuratorId);
       await cardRepository.save(urlCard);
 
       const result = await queryRepository.getLibrariesForCard(
         urlCard.cardId.getStringValue(),
       );
 
-      expect(result).toHaveLength(3);
-      expect(result.sort()).toEqual(
-        [curatorId.value, otherCuratorId.value, thirdCuratorId.value].sort(),
-      );
+      expect(result).toHaveLength(1);
+      expect(result).toContain(curatorId.value);
     });
 
     it('should return empty array for non-existent card', async () => {
@@ -783,7 +757,7 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
       // Create note card
       const noteCard = new CardBuilder()
         .withCuratorId(curatorId.value)
-        .withNoteCard('Test note', 'Note Title')
+        .withNoteCard('Test note')
         .buildOrThrow();
 
       await cardRepository.save(noteCard);
@@ -812,30 +786,21 @@ describe('DrizzleCardQueryRepository - getUrlCardView', () => {
       // Create URL card
       const url = URL.create('https://example.com/order-test').unwrap();
       const urlCard = new CardBuilder()
-        .withCuratorId(curatorId.value)
+        .withCuratorId(thirdCuratorId.value)
         .withUrlCard(url)
         .buildOrThrow();
 
       await cardRepository.save(urlCard);
 
-      // Add to libraries in specific order
+      // Add to creator's library (URL cards can only be in creator's library)
       urlCard.addToLibrary(thirdCuratorId);
-      await cardRepository.save(urlCard);
-
-      urlCard.addToLibrary(curatorId);
-      await cardRepository.save(urlCard);
-
-      urlCard.addToLibrary(otherCuratorId);
       await cardRepository.save(urlCard);
 
       const result = await queryRepository.getLibrariesForCard(
         urlCard.cardId.getStringValue(),
       );
 
-      expect(result).toHaveLength(3);
-      // Should contain all three users regardless of order
-      expect(result).toContain(curatorId.value);
-      expect(result).toContain(otherCuratorId.value);
+      expect(result).toHaveLength(1);
       expect(result).toContain(thirdCuratorId.value);
     });
   });

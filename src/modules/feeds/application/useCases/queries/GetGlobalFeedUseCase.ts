@@ -11,40 +11,20 @@ import {
 } from '../../../../cards/domain/ICardQueryRepository';
 import { ICollectionRepository } from 'src/modules/cards/domain/ICollectionRepository';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
+import { IIdentityResolutionService } from '../../../../atproto/domain/services/IIdentityResolutionService';
+import { DID } from '../../../../atproto/domain/DID';
+import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
+import { GetGlobalFeedResponse, FeedItem } from '@semble/types';
 
 export interface GetGlobalFeedQuery {
+  callingUserId?: string;
   page?: number;
   limit?: number;
   beforeActivityId?: string; // For cursor-based pagination
 }
 
-export interface ActivityActorDTO {
-  id: string;
-  name: string;
-  handle: string;
-  avatarUrl?: string;
-}
-// DTOs for the response
-export interface FeedItemView {
-  id: string;
-  user: ActivityActorDTO;
-  card: UrlCardView;
-  collections: {
-    id: string;
-    name: string;
-  }[];
-}
-
-export interface GetGlobalFeedResult {
-  activities: FeedItemView[];
-  pagination: {
-    currentPage: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-    nextCursor?: string;
-  };
-}
+// Use the shared API type directly
+export type GetGlobalFeedResult = GetGlobalFeedResponse;
 
 export class ValidationError extends UseCaseError {
   constructor(message: string) {
@@ -64,6 +44,7 @@ export class GetGlobalFeedUseCase
     private profileService: IProfileService,
     private cardQueryRepository: ICardQueryRepository,
     private collectionRepository: ICollectionRepository,
+    private identityResolutionService: IIdentityResolutionService,
   ) {}
 
   async execute(
@@ -110,7 +91,16 @@ export class GetGlobalFeedUseCase
       ];
 
       // Fetch profiles for all actors
-      const actorProfiles = new Map<string, ActivityActorDTO>();
+      const actorProfiles = new Map<
+        string,
+        {
+          id: string;
+          name: string;
+          handle: string;
+          avatarUrl?: string;
+          description?: string;
+        }
+      >();
       const profileResults = await Promise.all(
         actorIds.map((actorId) => this.profileService.getProfile(actorId)),
       );
@@ -127,6 +117,7 @@ export class GetGlobalFeedUseCase
             name: profile.name,
             handle: profile.handle,
             avatarUrl: profile.avatarUrl,
+            description: profile.bio,
           });
         } else {
           // If profile fetch fails, create a fallback
@@ -147,17 +138,58 @@ export class GetGlobalFeedUseCase
         ),
       ];
 
-      // Hydrate card data using Promise.all
+      // Hydrate card data and fetch card authors
       const cardDataMap = new Map<string, UrlCardView>();
       const cardViews = await Promise.all(
         cardIds.map((cardId) =>
-          this.cardQueryRepository.getUrlCardView(cardId),
+          this.cardQueryRepository.getUrlCardView(cardId, query.callingUserId),
         ),
       );
       cardIds.forEach((cardId, idx) => {
         const cardView = cardViews[idx];
         if (cardView) {
           cardDataMap.set(cardId, cardView);
+        }
+      });
+
+      // Get unique card author IDs
+      const cardAuthorIds = [
+        ...new Set(
+          Array.from(cardDataMap.values()).map((card) => card.authorId),
+        ),
+      ];
+
+      // Fetch card author profiles
+      const cardAuthorProfiles = new Map<
+        string,
+        {
+          id: string;
+          name: string;
+          handle: string;
+          avatarUrl?: string;
+          description?: string;
+        }
+      >();
+      const cardAuthorResults = await Promise.all(
+        cardAuthorIds.map((authorId) =>
+          this.profileService.getProfile(authorId, query.callingUserId),
+        ),
+      );
+
+      cardAuthorResults.forEach((profileResult, idx) => {
+        const authorId = cardAuthorIds[idx];
+        if (!authorId) {
+          return;
+        }
+        if (profileResult.isOk()) {
+          const profile = profileResult.value;
+          cardAuthorProfiles.set(authorId, {
+            id: profile.id,
+            name: profile.name,
+            handle: profile.handle,
+            avatarUrl: profile.avatarUrl,
+            description: profile.bio,
+          });
         }
       });
 
@@ -173,7 +205,25 @@ export class GetGlobalFeedUseCase
         ),
       ];
 
-      const collectionDataMap = new Map<string, { id: string; name: string }>();
+      const collectionDataMap = new Map<
+        string,
+        {
+          id: string;
+          uri?: string;
+          name: string;
+          description?: string;
+          author: {
+            id: string;
+            name: string;
+            handle: string;
+            avatarUrl?: string;
+            description?: string;
+          };
+          cardCount: number;
+          createdAt: string;
+          updatedAt: string;
+        }
+      >();
       // Fetch all collections in parallel using Promise.all
       const collectionResults = await Promise.all(
         collectionIds.map(async (collectionId) => {
@@ -185,15 +235,41 @@ export class GetGlobalFeedUseCase
           const collectionResult = await this.collectionRepository.findById(
             collectionIdResult.value,
           );
-          if (collectionResult.isOk() && collectionResult.value) {
-            const collection = collectionResult.value;
-            return {
-              id: collection.collectionId.getStringValue(),
-              name: collection.name.toString(),
-              collectionId,
-            };
+          if (collectionResult.isErr() || !collectionResult.value) {
+            return null;
           }
-          return null;
+
+          const collection = collectionResult.value;
+
+          // Get author profile
+          const authorProfileResult = await this.profileService.getProfile(
+            collection.authorId.value,
+            query.callingUserId,
+          );
+          if (authorProfileResult.isErr()) {
+            return null;
+          }
+
+          const authorProfile = authorProfileResult.value;
+          const uri = collection.publishedRecordId?.uri;
+
+          return {
+            id: collection.collectionId.getStringValue(),
+            uri,
+            name: collection.name.toString(),
+            description: collection.description?.toString(),
+            author: {
+              id: authorProfile.id,
+              name: authorProfile.name,
+              handle: authorProfile.handle,
+              avatarUrl: authorProfile.avatarUrl,
+              description: authorProfile.bio,
+            },
+            cardCount: collection.cardCount,
+            createdAt: collection.createdAt.toISOString(),
+            updatedAt: collection.updatedAt.toISOString(),
+            collectionId,
+          };
         }),
       );
 
@@ -201,41 +277,61 @@ export class GetGlobalFeedUseCase
         if (result) {
           collectionDataMap.set(result.collectionId, {
             id: result.id,
+            uri: result.uri,
             name: result.name,
+            description: result.description,
+            author: result.author,
+            cardCount: result.cardCount,
+            createdAt: result.createdAt,
+            updatedAt: result.updatedAt,
           });
         }
       });
 
-      // Transform activities to FeedItemView
-      const feedItems: FeedItemView[] = [];
+      // Transform activities to FeedItem
+      const feedItems: FeedItem[] = [];
       for (const activity of feed.activities) {
         if (!activity.cardCollected) {
           continue; // Skip non-card-collected activities
         }
 
         const actor = actorProfiles.get(activity.actorId.value);
-        const cardData = cardDataMap.get(activity.metadata.cardId);
+        const cardView = cardDataMap.get(activity.metadata.cardId);
 
-        if (!actor || !cardData) {
+        if (!actor || !cardView) {
           continue; // Skip if we can't hydrate required data
         }
 
+        // Get card author
+        const cardAuthor = cardAuthorProfiles.get(cardView.authorId);
+        if (!cardAuthor) {
+          continue; // Skip if we can't get card author
+        }
+
+        // Transform UrlCardView to UrlCardDTO
+        const cardDTO = {
+          id: cardView.id,
+          type: 'URL' as const,
+          url: cardView.url,
+          cardContent: cardView.cardContent,
+          libraryCount: cardView.libraryCount,
+          urlLibraryCount: cardView.urlLibraryCount,
+          urlInLibrary: cardView.urlInLibrary,
+          createdAt: cardView.createdAt.toISOString(),
+          updatedAt: cardView.updatedAt.toISOString(),
+          author: cardAuthor,
+          note: cardView.note,
+        };
+
         const collections = (activity.metadata.collectionIds || [])
           .map((collectionId) => collectionDataMap.get(collectionId))
-          .filter(
-            (collection): collection is { id: string; name: string } =>
-              !!collection,
-          );
+          .filter((collection) => !!collection);
 
         feedItems.push({
           id: activity.activityId.getStringValue(),
-          user: {
-            id: actor.id,
-            handle: actor.handle,
-            name: actor.name,
-            avatarUrl: actor.avatarUrl,
-          },
-          card: cardData,
+          user: actor,
+          card: cardDTO,
+          createdAt: activity.createdAt,
           collections,
         });
       }
@@ -244,6 +340,7 @@ export class GetGlobalFeedUseCase
         activities: feedItems,
         pagination: {
           currentPage: page,
+          totalPages: Math.ceil(feed.totalCount / limit),
           totalCount: feed.totalCount,
           hasMore: feed.hasMore,
           limit,

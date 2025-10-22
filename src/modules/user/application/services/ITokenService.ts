@@ -1,5 +1,5 @@
 import { Result } from 'src/shared/core/Result';
-import { TokenPair } from '../dtos/TokenDTO';
+import { TokenPair } from '@semble/types';
 
 export interface ITokenService {
   generateToken(did: string): Promise<Result<TokenPair>>;

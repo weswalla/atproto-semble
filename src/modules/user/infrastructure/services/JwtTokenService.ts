@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { Result, err, ok } from 'src/shared/core/Result';
 import { ITokenService } from '../../application/services/ITokenService';
-import { TokenPair } from '../../application/dtos/TokenDTO';
+import { TokenPair } from '@semble/types';
 import { ITokenRepository } from '../../domain/repositories/ITokenRepository';
 
 export class JwtTokenService implements ITokenService {

@@ -12,6 +12,7 @@ import { IProfileService } from '../../../domain/services/IProfileService';
 
 export interface GetCollectionPageQuery {
   collectionId: string;
+  callingUserId?: string;
   page?: number;
   limit?: number;
   sortBy?: CardSortField;
@@ -21,6 +22,7 @@ export interface GetCollectionPageQuery {
 export type CollectionPageUrlCardDTO = UrlCardView;
 export interface GetCollectionPageResult {
   id: string;
+  uri?: string;
   name: string;
   description?: string;
   author: {
@@ -102,9 +104,14 @@ export class GetCollectionPageUseCase
         return err(new CollectionNotFoundError('Collection not found'));
       }
 
+      const collectionPublishedRecordId = collection.publishedRecordId;
+
+      const collectionUri = collectionPublishedRecordId?.uri;
+
       // Get author profile
       const profileResult = await this.profileService.getProfile(
         collection.authorId.value,
+        query.callingUserId,
       );
 
       if (profileResult.isErr()) {
@@ -126,6 +133,7 @@ export class GetCollectionPageUseCase
           sortBy,
           sortOrder,
         },
+        query.callingUserId,
       );
 
       // Transform raw card data to enriched DTOs
@@ -133,6 +141,7 @@ export class GetCollectionPageUseCase
 
       return ok({
         id: collection.collectionId.getStringValue(),
+        uri: collectionUri,
         name: collection.name.value,
         description: collection.description?.value,
         author: {

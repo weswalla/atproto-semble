@@ -10,329 +10,6 @@ import {
 import { type $Typed, is$typed, maybe$typed } from './util.js';
 
 export const schemaDict = {
-  NetworkCosmikAnnotation: {
-    lexicon: 1,
-    id: 'network.cosmik.annotation',
-    description: 'A single record type for all annotations.',
-    defs: {
-      main: {
-        type: 'record',
-        description: 'A record representing an annotation on a resource.',
-        key: 'tid',
-        record: {
-          type: 'object',
-          required: ['url', 'field', 'value'],
-          properties: {
-            url: {
-              type: 'string',
-              format: 'uri',
-              description:
-                'The primary URL identifying the annotated resource.',
-            },
-            additionalIdentifiers: {
-              type: 'array',
-              items: {
-                type: 'ref',
-                ref: 'lex:network.cosmik.defs#identifier',
-              },
-              description: 'Optional additional identifiers for the resource.',
-            },
-            field: {
-              type: 'ref',
-              description:
-                'A strong reference to the specific annotation field record being used.',
-              ref: 'lex:com.atproto.repo.strongRef',
-            },
-            fromTemplates: {
-              type: 'array',
-              items: {
-                type: 'ref',
-                description:
-                  'Optional strong reference to the template record used.',
-                ref: 'lex:com.atproto.repo.strongRef',
-              },
-            },
-            note: {
-              type: 'string',
-              description:
-                'An optional user-provided note about the annotation.',
-            },
-            value: {
-              type: 'union',
-              description:
-                'The specific value of the annotation, determined by the field type.',
-              refs: [
-                'lex:network.cosmik.annotation#dyadValue',
-                'lex:network.cosmik.annotation#triadValue',
-                'lex:network.cosmik.annotation#ratingValue',
-                'lex:network.cosmik.annotation#singleSelectValue',
-                'lex:network.cosmik.annotation#multiSelectValue',
-              ],
-            },
-            createdAt: {
-              type: 'string',
-              format: 'datetime',
-              description:
-                'Timestamp when this annotation was created (usually set by PDS).',
-            },
-          },
-        },
-      },
-      dyadValue: {
-        type: 'object',
-        description: 'Value structure for a dyad annotation.',
-        required: ['value'],
-        properties: {
-          value: {
-            type: 'integer',
-            description: 'Value representing the relationship between sides',
-            minimum: 0,
-            maximum: 100,
-          },
-        },
-      },
-      triadValue: {
-        type: 'object',
-        description: 'Value structure for a triad annotation.',
-        required: ['vertexA', 'vertexB', 'vertexC'],
-        properties: {
-          vertexA: {
-            type: 'integer',
-            description: 'Value for vertex A',
-            minimum: 0,
-            maximum: 1000,
-          },
-          vertexB: {
-            type: 'integer',
-            description: 'Value for vertex B',
-            minimum: 0,
-            maximum: 1000,
-          },
-          vertexC: {
-            type: 'integer',
-            description: 'Value for vertex C',
-            minimum: 0,
-            maximum: 1000,
-          },
-          sum: {
-            type: 'integer',
-            description: 'Sum of the values for the vertices',
-            const: 1000,
-          },
-        },
-      },
-      ratingValue: {
-        type: 'object',
-        description: 'Value structure for a rating annotation.',
-        required: ['rating'],
-        properties: {
-          rating: {
-            type: 'integer',
-            description: 'The star rating value',
-            minimum: 1,
-            maximum: 10,
-          },
-        },
-      },
-      singleSelectValue: {
-        type: 'object',
-        description: 'Value structure for a single-select annotation.',
-        required: ['option'],
-        properties: {
-          option: {
-            type: 'string',
-            description: 'The selected option',
-          },
-        },
-      },
-      multiSelectValue: {
-        type: 'object',
-        description: 'Value structure for a multi-select annotation.',
-        required: ['options'],
-        properties: {
-          options: {
-            type: 'array',
-            description: 'The selected options',
-            items: {
-              type: 'string',
-            },
-          },
-        },
-      },
-    },
-  },
-  NetworkCosmikAnnotationField: {
-    lexicon: 1,
-    id: 'network.cosmik.annotationField',
-    description: 'A single record type for all annotation fields.',
-    defs: {
-      main: {
-        type: 'record',
-        description: 'A record defining an annotation field.',
-        key: 'tid',
-        record: {
-          type: 'object',
-          required: ['name', 'description', 'definition'],
-          properties: {
-            name: {
-              type: 'string',
-              description: 'Name of the annotation field',
-            },
-            description: {
-              type: 'string',
-              description: 'Description of the annotation field',
-            },
-            createdAt: {
-              type: 'string',
-              format: 'datetime',
-              description: 'Timestamp when this field was created',
-            },
-            definition: {
-              type: 'union',
-              description:
-                'The specific definition of the field, determining its type and constraints.',
-              refs: [
-                'lex:network.cosmik.annotationField#dyadFieldDef',
-                'lex:network.cosmik.annotationField#triadFieldDef',
-                'lex:network.cosmik.annotationField#ratingFieldDef',
-                'lex:network.cosmik.annotationField#singleSelectFieldDef',
-                'lex:network.cosmik.annotationField#multiSelectFieldDef',
-              ],
-            },
-          },
-        },
-      },
-      dyadFieldDef: {
-        type: 'object',
-        description: 'Definition structure for a dyad field.',
-        required: ['sideA', 'sideB'],
-        properties: {
-          sideA: {
-            type: 'string',
-            description: 'Label for side A of the dyad',
-          },
-          sideB: {
-            type: 'string',
-            description: 'Label for side B of the dyad',
-          },
-        },
-      },
-      triadFieldDef: {
-        type: 'object',
-        description: 'Definition structure for a triad field.',
-        required: ['vertexA', 'vertexB', 'vertexC'],
-        properties: {
-          vertexA: {
-            type: 'string',
-            description: 'Label for vertex A of the triad',
-          },
-          vertexB: {
-            type: 'string',
-            description: 'Label for vertex B of the triad',
-          },
-          vertexC: {
-            type: 'string',
-            description: 'Label for vertex C of the triad',
-          },
-        },
-      },
-      ratingFieldDef: {
-        type: 'object',
-        description: 'Definition structure for a rating field.',
-        required: ['numberOfStars'],
-        properties: {
-          numberOfStars: {
-            type: 'integer',
-            description: 'Maximum number of stars for the rating',
-            const: 5,
-          },
-        },
-      },
-      singleSelectFieldDef: {
-        type: 'object',
-        description: 'Definition structure for a single-select field.',
-        required: ['options'],
-        properties: {
-          options: {
-            type: 'array',
-            description: 'Available options for selection',
-            items: {
-              type: 'string',
-            },
-          },
-        },
-      },
-      multiSelectFieldDef: {
-        type: 'object',
-        description: 'Definition structure for a multi-select field.',
-        required: ['options'],
-        properties: {
-          options: {
-            type: 'array',
-            description: 'Available options for selection',
-            items: {
-              type: 'string',
-            },
-          },
-        },
-      },
-    },
-  },
-  NetworkCosmikAnnotationTemplate: {
-    lexicon: 1,
-    id: 'network.cosmik.annotationTemplate',
-    description: 'Annotation templates for grouping annotation fields',
-    defs: {
-      main: {
-        type: 'record',
-        description: 'A record of an annotation template',
-        key: 'tid',
-        record: {
-          type: 'object',
-          required: ['name', 'description', 'annotationFields'],
-          properties: {
-            name: {
-              type: 'string',
-              description: 'Name of the template',
-            },
-            description: {
-              type: 'string',
-              description: 'Description of the template',
-            },
-            annotationFields: {
-              type: 'array',
-              description:
-                'List of strong references to network.cosmik.annotationField records included in this template.',
-              items: {
-                type: 'ref',
-                ref: 'lex:network.cosmik.annotationTemplate#annotationFieldRef',
-              },
-            },
-            createdAt: {
-              type: 'string',
-              format: 'datetime',
-              description: 'Timestamp when this template was created',
-            },
-          },
-        },
-      },
-      annotationFieldRef: {
-        type: 'object',
-        description:
-          'A reference to an annotation field. Defines if the field is required in the template.',
-        required: ['subject'],
-        properties: {
-          subject: {
-            type: 'ref',
-            ref: 'lex:com.atproto.repo.strongRef',
-          },
-          required: {
-            type: 'boolean',
-          },
-        },
-      },
-    },
-  },
   NetworkCosmikCard: {
     lexicon: 1,
     id: 'network.cosmik.card',
@@ -419,13 +96,7 @@ export const schemaDict = {
       urlMetadata: {
         type: 'object',
         description: 'Metadata about a URL.',
-        required: ['url'],
         properties: {
-          url: {
-            type: 'string',
-            format: 'uri',
-            description: 'The URL',
-          },
           title: {
             type: 'string',
             description: 'Title of the page',
@@ -530,7 +201,7 @@ export const schemaDict = {
         key: 'tid',
         record: {
           type: 'object',
-          required: ['collection', 'card', 'addedBy'],
+          required: ['collection', 'card', 'addedBy', 'addedAt'],
           properties: {
             collection: {
               type: 'ref',
@@ -539,7 +210,14 @@ export const schemaDict = {
             },
             card: {
               type: 'ref',
-              description: 'Strong reference to the card record.',
+              description:
+                'Strong reference to the card record in the users library.',
+              ref: 'lex:com.atproto.repo.strongRef',
+            },
+            originalCard: {
+              type: 'ref',
+              description:
+                'Strong reference to the original card record (may be in another library).',
               ref: 'lex:com.atproto.repo.strongRef',
             },
             addedBy: {
@@ -641,9 +319,6 @@ export function validate(
 }
 
 export const ids = {
-  NetworkCosmikAnnotation: 'network.cosmik.annotation',
-  NetworkCosmikAnnotationField: 'network.cosmik.annotationField',
-  NetworkCosmikAnnotationTemplate: 'network.cosmik.annotationTemplate',
   NetworkCosmikCard: 'network.cosmik.card',
   NetworkCosmikCollection: 'network.cosmik.collection',
   NetworkCosmikCollectionLink: 'network.cosmik.collectionLink',

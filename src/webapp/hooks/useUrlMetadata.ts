@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ApiClient } from '@/api-client/ApiClient';
 import type { UrlMetadata } from '@/components/UrlMetadataDisplay';
-import type { UrlCardView } from '@/api-client/types';
+import type { GetUrlStatusForMyLibraryResponse } from '@/api-client';
 
 interface UseUrlMetadataProps {
   apiClient: ApiClient;
@@ -15,7 +15,9 @@ export function useUrlMetadata({
   autoFetch = true,
 }: UseUrlMetadataProps) {
   const [metadata, setMetadata] = useState<UrlMetadata | null>(null);
-  const [existingCard, setExistingCard] = useState<UrlCardView | null>(null);
+  const [existingCardCollections, setExistingCardCollections] = useState<
+    GetUrlStatusForMyLibraryResponse['collections'] | null
+  >(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,19 +35,20 @@ export function useUrlMetadata({
 
       setLoading(true);
       setError(null);
-      setExistingCard(null);
+      setExistingCardCollections(null);
 
       try {
         const response = await apiClient.getUrlMetadata(targetUrl);
         setMetadata(response.metadata);
 
-        // If there's an existing card, fetch its details including collections
-        if (response.existingCardId) {
+        const existingCard = await apiClient.getUrlStatusForMyLibrary({
+          url: targetUrl,
+        });
+
+        // If there's an existing card, fetch its collections
+        if (existingCard.cardId) {
           try {
-            const cardResponse = await apiClient.getUrlCardView(
-              response.existingCardId,
-            );
-            setExistingCard(cardResponse);
+            setExistingCardCollections(existingCard.collections);
           } catch (cardErr: any) {
             console.error('Failed to fetch existing card details:', cardErr);
             // Don't set error here as the metadata fetch was successful
@@ -55,7 +58,7 @@ export function useUrlMetadata({
         console.error('Failed to fetch URL metadata:', err);
         setError('Failed to load page information');
         setMetadata(null);
-        setExistingCard(null);
+        setExistingCardCollections(null);
       } finally {
         setLoading(false);
       }
@@ -78,7 +81,7 @@ export function useUrlMetadata({
 
   return {
     metadata,
-    existingCard,
+    existingCardCollections,
     loading,
     error,
     fetchMetadata,

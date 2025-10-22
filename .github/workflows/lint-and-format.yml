@@ -28,15 +28,14 @@ jobs:
           path: |
             node_modules
             src/webapp/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json', 'src/webapp/package-lock.json') }}
+            src/types/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-deps-
 
       - name: Install dependencies
         if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: |
-          npm ci
-          cd src/webapp && npm ci
+        run: npm ci
 
   format-check:
     name: Format Check
@@ -57,7 +56,14 @@ jobs:
           path: |
             node_modules
             src/webapp/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json', 'src/webapp/package-lock.json') }}
+            src/types/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies (if cache miss)
+        run: |
+          if [ ! -d "node_modules" ]; then
+            npm ci
+          fi
 
       - name: Check formatting
         run: npm run format:check
@@ -81,7 +87,14 @@ jobs:
           path: |
             node_modules
             src/webapp/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json', 'src/webapp/package-lock.json') }}
+            src/types/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies (if cache miss)
+        run: |
+          if [ ! -d "node_modules" ]; then
+            npm ci
+          fi
 
       - name: Lint root
         run: npm run lint

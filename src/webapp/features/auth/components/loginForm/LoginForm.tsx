@@ -147,7 +147,7 @@ export default function LoginForm() {
         <form onSubmit={handleAppPasswordSubmit}>
           <Stack align="center">
             <TextInput
-              type="email"
+              autoComplete="on"
               label="Handle"
               placeholder="you.bsky.social"
               key={form.key('handle')}
@@ -163,6 +163,7 @@ export default function LoginForm() {
               required
             />
             <PasswordInput
+              autoComplete="on"
               label="App password"
               placeholder="Your password"
               key={form.key('appPassword')}

@@ -1,5 +1,8 @@
 import { Response, Request } from 'express';
-import { EnvironmentConfigService, Environment } from '../../config/EnvironmentConfigService';
+import {
+  EnvironmentConfigService,
+  Environment,
+} from '../../config/EnvironmentConfigService';
 
 export interface CookieOptions {
   httpOnly: boolean;

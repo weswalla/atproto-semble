@@ -48,7 +48,8 @@ export class EnvironmentConfigService {
   private config: EnvironmentConfig;
 
   constructor() {
-    const environment = (process.env.NODE_ENV || Environment.LOCAL) as Environment;
+    const environment = (process.env.NODE_ENV ||
+      Environment.LOCAL) as Environment;
 
     this.config = {
       environment,

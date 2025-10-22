@@ -6,7 +6,10 @@ import { createUserRoutes } from '../../../modules/user/infrastructure/http/rout
 import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atprotoRoutes';
 import { createCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
 import { createFeedRoutes } from '../../../modules/feeds/infrastructure/http/routes/feedRoutes';
-import { EnvironmentConfigService, Environment } from '../config/EnvironmentConfigService';
+import {
+  EnvironmentConfigService,
+  Environment,
+} from '../config/EnvironmentConfigService';
 import { RepositoryFactory } from './factories/RepositoryFactory';
 import { ServiceFactory } from './factories/ServiceFactory';
 import { UseCaseFactory } from './factories/UseCaseFactory';

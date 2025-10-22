@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import OpenGraphCard from '@/features/openGraph/components/openGraphCard/OpenGraphCard';
 import { getUrlMetadata } from '@/features/cards/lib/dal';
 import { truncateText } from '@/lib/utils/text';
-import { getDomain } from '@/lib/utils/link';
+import { getDomain, getUrlFromSlug } from '@/lib/utils/link';
 
 export const runtime = 'edge';
 
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   let metadata: Metadata = {};
   if (url) {
     try {
-      const result = await getUrlMetadata(url);
+      const result = await getUrlMetadata(getUrlFromSlug([url]));
       metadata = {
         ...(result?.metadata || {}),
         domain: getDomain(url),

@@ -12,7 +12,7 @@ interface Props {
 export default async function SembleContainer(props: Props) {
   return (
     <Container p={0} fluid>
-      <BackgroundImage src={BG.src} h={350}>
+      <BackgroundImage src={BG.src} h={240}>
         <Container p={'xs'} size={'xl'}>
           <Stack gap={'xl'}>
             <Suspense fallback={<SembleHeaderSkeleton />}>

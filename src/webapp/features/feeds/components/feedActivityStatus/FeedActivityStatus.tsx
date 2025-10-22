@@ -4,6 +4,7 @@ import { Fragment } from 'react';
 import Link from 'next/link';
 import { getRelativeTime } from '@/lib/utils/time';
 import { getRecordKey } from '@/lib/utils/atproto';
+import { sanitizeText } from '@/lib/utils/text';
 
 interface Props {
   user: FeedItem['user'];
@@ -29,7 +30,7 @@ export default function FeedActivityStatus(props: Props) {
           c="blue"
           fw={600}
         >
-          {props.user.name}
+          {sanitizeText(props.user.name)}
         </Anchor>{' '}
         {collections.length === 0 ? (
           'added to library'

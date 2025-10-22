@@ -13,7 +13,13 @@ export default function AddedByCard(props: Props) {
     time === 'just now' ? `Added ${time}` : `Added ${time} ago`;
 
   return (
-    <Card p={0} component={Link} href={`/profile/${props.item.user.handle}`}>
+    <Card
+      withBorder
+      radius={'lg'}
+      p={'sm'}
+      component={Link}
+      href={`/profile/${props.item.user.handle}`}
+    >
       <Group gap={'xs'} justify="space-between">
         <Group gap={'xs'}>
           <Avatar

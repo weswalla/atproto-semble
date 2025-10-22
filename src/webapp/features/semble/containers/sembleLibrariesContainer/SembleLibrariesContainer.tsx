@@ -61,7 +61,6 @@ export default function SembleLibrariesContainer(props: Props) {
             }}
           >
             <AddedByCard item={item} />
-            {i < allLibraries.length - 1 && <Divider my={'sm'} />}
           </Grid.Col>
         ))}
       </Grid>

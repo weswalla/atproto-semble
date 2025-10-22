@@ -2,7 +2,7 @@ import { Card, Group, Avatar, Stack, Skeleton } from '@mantine/core';
 
 export default function AddedByCardSkeleton() {
   return (
-    <Card p={0}>
+    <Card withBorder radius={'lg'} p={'sm'}>
       <Group gap={'xs'} justify="space-between">
         <Group gap={'xs'} flex={1}>
           <Avatar src={null} />

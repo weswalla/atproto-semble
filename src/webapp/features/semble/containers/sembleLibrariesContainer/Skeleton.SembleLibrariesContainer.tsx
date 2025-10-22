@@ -10,11 +10,8 @@ export default function SembleLibrariesContainerSkeleton() {
         }}
       >
         <AddedByCardSkeleton />
-        <Divider my={'sm'} />
         <AddedByCardSkeleton />
-        <Divider my={'sm'} />
         <AddedByCardSkeleton />
-        <Divider my={'sm'} />
         <AddedByCardSkeleton />
       </GridCol>
     </Grid>

@@ -242,6 +242,7 @@ export default function CollectionSelector(props: Props) {
             ...props.selectedCollections,
             newCollection,
           ]);
+          setSearch('');
         }}
       />
     </Fragment>

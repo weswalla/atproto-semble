@@ -293,6 +293,7 @@ export default function AddCardToModal(props: Props) {
         initialName={search}
         onCreate={(newCollection) => {
           setSelectedCollections([...selectedCollections, newCollection]);
+          setSearch('');
         }}
       />
     </Modal>

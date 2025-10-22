@@ -1,5 +1,4 @@
-import { metadata } from '@/app/layout';
-import { Stack, Grid, GridCol, Spoiler, Text, Skeleton } from '@mantine/core';
+import { Stack, Grid, GridCol, Text, Skeleton } from '@mantine/core';
 import UrlAddedBySummarySkeleton from '../urlAddedBySummary/Skeleton.UrlAddedBySummary';
 
 export default function SembleHeaderSkeleton() {
@@ -27,7 +26,7 @@ export default function SembleHeaderSkeleton() {
         </GridCol>
         <GridCol span={{ base: 12, sm: 'content' }}>
           <Stack gap={'sm'} align="start" flex={1}>
-            <Skeleton radius={'md'} h={150} w={300} maw={'100%'} />
+            <Skeleton radius={'lg'} h={150} w={300} maw={'100%'} />
 
             {/*<SembleActions />*/}
           </Stack>

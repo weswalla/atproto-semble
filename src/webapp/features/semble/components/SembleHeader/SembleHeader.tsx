@@ -8,6 +8,7 @@ import {
   GridCol,
   Tooltip,
   Spoiler,
+  Card,
 } from '@mantine/core';
 import Link from 'next/link';
 import { getUrlMetadata } from '@/features/cards/lib/dal';
@@ -65,15 +66,16 @@ export default async function SembleHeader(props: Props) {
         <GridCol span={{ base: 12, sm: 'content' }}>
           <Stack gap={'sm'} align="start">
             {metadata.imageUrl && (
-              <Image
-                src={metadata.imageUrl}
-                alt={`${props.url} social preview image`}
-                radius={'md'}
-                mah={150}
-                w={'auto'}
-                maw={'100%'}
-                fit="contain"
-              />
+              <Card p={0} radius={'lg'} withBorder>
+                <Image
+                  src={metadata.imageUrl}
+                  alt={`${props.url} social preview image`}
+                  mah={150}
+                  w={'auto'}
+                  maw={'100%'}
+                  fit="contain"
+                />
+              </Card>
             )}
             {/*<SembleActions />*/}
           </Stack>

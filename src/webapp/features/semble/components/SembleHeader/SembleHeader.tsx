@@ -48,7 +48,7 @@ export default async function SembleHeader(props: Props) {
               </Text>
 
               {metadata.title && (
-                <Title order={1} lh={0.8}>
+                <Title order={1} style={{ wordBreak: 'break-all' }}>
                   {metadata.title}
                 </Title>
               )}

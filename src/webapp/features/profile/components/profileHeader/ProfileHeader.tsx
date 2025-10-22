@@ -57,7 +57,12 @@ export default async function ProfileHeader(props: Props) {
                   >
                     {profile.name}
                   </Title>
-                  <Text c="blue" fw={600} fz={{ base: 'lg', md: 'xl' }}>
+                  <Text
+                    c="blue"
+                    fw={600}
+                    fz={{ base: 'lg', md: 'xl' }}
+                    style={{ wordBreak: 'break-all' }}
+                  >
                     @{profile.handle}
                   </Text>
                 </Stack>

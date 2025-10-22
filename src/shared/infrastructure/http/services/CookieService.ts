@@ -1,5 +1,8 @@
 import { Response, Request } from 'express';
-import { EnvironmentConfigService } from '../../config/EnvironmentConfigService';
+import {
+  EnvironmentConfigService,
+  Environment,
+} from '../../config/EnvironmentConfigService';
 
 export interface CookieOptions {
   httpOnly: boolean;
@@ -26,11 +29,11 @@ export class CookieService {
     const environment = this.configService.get().environment;
 
     switch (environment) {
-      case 'prod':
+      case Environment.PROD:
         return '.semble.so';
-      case 'dev':
+      case Environment.DEV:
         return '.dev.semble.so';
-      case 'local':
+      case Environment.LOCAL:
       default:
         return undefined; // Don't set domain for localhost
     }
@@ -41,7 +44,7 @@ export class CookieService {
    */
   private getBaseCookieOptions(): Omit<CookieOptions, 'maxAge'> {
     const environment = this.configService.get().environment;
-    const isProduction = environment === 'prod';
+    const isProduction = environment === Environment.PROD;
 
     return {
       httpOnly: true,

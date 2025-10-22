@@ -1,0 +1,33 @@
+app = 'semble-production'
+primary_region = 'yyz'
+
+[build]
+
+[processes]
+  web = "npm start"
+  feed-worker = "npm run worker:feeds"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ['web']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[[vm]]
+  processes = ['feed-worker']
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[env]
+NODE_ENV="prod"
+BASE_URL="https://api.semble.so"
+HOST="0.0.0.0"
+APP_URL="https://semble.so"

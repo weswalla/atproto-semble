@@ -55,7 +55,7 @@ export default async function SembleHeader(props: Props) {
             </Stack>
             {metadata.description && (
               <Spoiler showLabel={'Read more'} hideLabel={'See less'}>
-                <Text c="gray">{metadata.description}</Text>
+                <Text c="gray" fw={500}>{metadata.description}</Text>
               </Spoiler>
             )}
           </Stack>

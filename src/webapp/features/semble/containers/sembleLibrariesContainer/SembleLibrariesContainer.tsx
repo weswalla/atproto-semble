@@ -2,11 +2,11 @@
 
 import useSembleLibraries from '../../lib/queries/useSembleLibraries';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Center, Grid, Loader } from '@mantine/core';
+import { Center, Divider, Grid, Loader } from '@mantine/core';
 import SembleLibrariesContainerError from './Error.SembleLibrariesContainer';
-// import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
 import { LuLibrary } from 'react-icons/lu';
+import AddedByCard from '../../components/addedByCard/AddedByCard';
 
 interface Props {
   url: string;
@@ -53,16 +53,15 @@ export default function SembleLibrariesContainer(props: Props) {
       }
     >
       <Grid gutter="md">
-        {allLibraries.map((u) => (
+        {allLibraries.map((item, i) => (
           <Grid.Col
-            key={u.user.name}
+            key={item.user.name}
             span={{
               base: 12,
-              sm: 6,
-              lg: 3,
             }}
           >
-            {/*<CollectionCard key={u.userId} collection={u} />*/}
+            <AddedByCard item={item} />
+            {i < allLibraries.length - 1 && <Divider my={'sm'} />}
           </Grid.Col>
         ))}
       </Grid>

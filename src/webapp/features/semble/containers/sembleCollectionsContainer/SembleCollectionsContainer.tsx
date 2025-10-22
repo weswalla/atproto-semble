@@ -2,7 +2,7 @@
 
 import useSembleCollections from '@/features/collections/lib/queries/useSembleCollectionts';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Center, Grid, Loader } from '@mantine/core';
+import { Center, Loader, SimpleGrid } from '@mantine/core';
 import SembleCollectionsError from './Error.SembleCollectionsContainer';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
@@ -47,20 +47,11 @@ export default function SembleCollectionsContainer(props: Props) {
         </Center>
       }
     >
-      <Grid gutter="md">
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
         {allCollections.map((col) => (
-          <Grid.Col
-            key={col.id}
-            span={{
-              base: 12,
-              sm: 6,
-              lg: 4,
-            }}
-          >
-            <CollectionCard collection={col} showAuthor />
-          </Grid.Col>
+          <CollectionCard collection={col} showAuthor />
         ))}
-      </Grid>
+      </SimpleGrid>
     </InfiniteScroll>
   );
 }

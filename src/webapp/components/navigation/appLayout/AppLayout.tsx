@@ -13,7 +13,7 @@ export default function AppLayout(props: Props) {
   const { mobileOpened, desktopOpened } = useNavbarContext();
   const pathname = usePathname();
 
-  const ROUTES_WITH_ASIDE = ['/url/'];
+  const ROUTES_WITH_ASIDE = ['/url'];
   const hasAside = ROUTES_WITH_ASIDE.some((prefix) =>
     pathname.startsWith(prefix),
   );

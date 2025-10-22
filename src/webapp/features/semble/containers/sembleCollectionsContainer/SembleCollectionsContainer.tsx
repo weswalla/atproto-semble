@@ -49,7 +49,7 @@ export default function SembleCollectionsContainer(props: Props) {
     >
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
         {allCollections.map((col) => (
-          <CollectionCard collection={col} showAuthor />
+          <CollectionCard key={col.uri} collection={col} showAuthor />
         ))}
       </SimpleGrid>
     </InfiniteScroll>

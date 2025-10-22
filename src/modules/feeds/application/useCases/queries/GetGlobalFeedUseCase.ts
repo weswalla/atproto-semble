@@ -14,6 +14,7 @@ import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionI
 import { IIdentityResolutionService } from '../../../../atproto/domain/services/IIdentityResolutionService';
 import { DID } from '../../../../atproto/domain/DID';
 import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
+import { GetGlobalFeedResponse, FeedItem } from '@semble/types';
 
 export interface GetGlobalFeedQuery {
   callingUserId?: string;
@@ -22,36 +23,8 @@ export interface GetGlobalFeedQuery {
   beforeActivityId?: string; // For cursor-based pagination
 }
 
-export interface ActivityActorDTO {
-  id: string;
-  name: string;
-  handle: string;
-  avatarUrl?: string;
-}
-// DTOs for the response
-export interface FeedItemView {
-  id: string;
-  user: ActivityActorDTO;
-  card: UrlCardView;
-  createdAt: Date;
-  collections: {
-    id: string;
-    name: string;
-    authorHandle: string;
-    uri?: string;
-  }[];
-}
-
-export interface GetGlobalFeedResult {
-  activities: FeedItemView[];
-  pagination: {
-    currentPage: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-    nextCursor?: string;
-  };
-}
+// Use the shared API type directly
+export type GetGlobalFeedResult = GetGlobalFeedResponse;
 
 export class ValidationError extends UseCaseError {
   constructor(message: string) {
@@ -118,7 +91,16 @@ export class GetGlobalFeedUseCase
       ];
 
       // Fetch profiles for all actors
-      const actorProfiles = new Map<string, ActivityActorDTO>();
+      const actorProfiles = new Map<
+        string,
+        {
+          id: string;
+          name: string;
+          handle: string;
+          avatarUrl?: string;
+          description?: string;
+        }
+      >();
       const profileResults = await Promise.all(
         actorIds.map((actorId) => this.profileService.getProfile(actorId)),
       );
@@ -135,6 +117,7 @@ export class GetGlobalFeedUseCase
             name: profile.name,
             handle: profile.handle,
             avatarUrl: profile.avatarUrl,
+            description: profile.bio,
           });
         } else {
           // If profile fetch fails, create a fallback
@@ -155,7 +138,7 @@ export class GetGlobalFeedUseCase
         ),
       ];
 
-      // Hydrate card data using Promise.all
+      // Hydrate card data and fetch card authors
       const cardDataMap = new Map<string, UrlCardView>();
       const cardViews = await Promise.all(
         cardIds.map((cardId) =>
@@ -166,6 +149,47 @@ export class GetGlobalFeedUseCase
         const cardView = cardViews[idx];
         if (cardView) {
           cardDataMap.set(cardId, cardView);
+        }
+      });
+
+      // Get unique card author IDs
+      const cardAuthorIds = [
+        ...new Set(
+          Array.from(cardDataMap.values()).map((card) => card.authorId),
+        ),
+      ];
+
+      // Fetch card author profiles
+      const cardAuthorProfiles = new Map<
+        string,
+        {
+          id: string;
+          name: string;
+          handle: string;
+          avatarUrl?: string;
+          description?: string;
+        }
+      >();
+      const cardAuthorResults = await Promise.all(
+        cardAuthorIds.map((authorId) =>
+          this.profileService.getProfile(authorId, query.callingUserId),
+        ),
+      );
+
+      cardAuthorResults.forEach((profileResult, idx) => {
+        const authorId = cardAuthorIds[idx];
+        if (!authorId) {
+          return;
+        }
+        if (profileResult.isOk()) {
+          const profile = profileResult.value;
+          cardAuthorProfiles.set(authorId, {
+            id: profile.id,
+            name: profile.name,
+            handle: profile.handle,
+            avatarUrl: profile.avatarUrl,
+            description: profile.bio,
+          });
         }
       });
 
@@ -183,7 +207,22 @@ export class GetGlobalFeedUseCase
 
       const collectionDataMap = new Map<
         string,
-        { id: string; name: string; authorHandle: string; uri?: string }
+        {
+          id: string;
+          uri?: string;
+          name: string;
+          description?: string;
+          author: {
+            id: string;
+            name: string;
+            handle: string;
+            avatarUrl?: string;
+            description?: string;
+          };
+          cardCount: number;
+          createdAt: string;
+          updatedAt: string;
+        }
       >();
       // Fetch all collections in parallel using Promise.all
       const collectionResults = await Promise.all(
@@ -202,29 +241,33 @@ export class GetGlobalFeedUseCase
 
           const collection = collectionResult.value;
 
-          const didOrHandleResult = DIDOrHandle.create(
+          // Get author profile
+          const authorProfileResult = await this.profileService.getProfile(
             collection.authorId.value,
+            query.callingUserId,
           );
-          if (didOrHandleResult.isErr()) {
+          if (authorProfileResult.isErr()) {
             return null;
           }
 
-          const resolvedHandleResult =
-            await this.identityResolutionService.resolveToHandle(
-              didOrHandleResult.value,
-            );
-          if (resolvedHandleResult.isErr()) {
-            return null;
-          }
-
-          const handle = resolvedHandleResult.value;
+          const authorProfile = authorProfileResult.value;
           const uri = collection.publishedRecordId?.uri;
 
           return {
             id: collection.collectionId.getStringValue(),
-            name: collection.name.toString(),
-            authorHandle: handle.value,
             uri,
+            name: collection.name.toString(),
+            description: collection.description?.toString(),
+            author: {
+              id: authorProfile.id,
+              name: authorProfile.name,
+              handle: authorProfile.handle,
+              avatarUrl: authorProfile.avatarUrl,
+              description: authorProfile.bio,
+            },
+            cardCount: collection.cardCount,
+            createdAt: collection.createdAt.toISOString(),
+            updatedAt: collection.updatedAt.toISOString(),
             collectionId,
           };
         }),
@@ -234,26 +277,51 @@ export class GetGlobalFeedUseCase
         if (result) {
           collectionDataMap.set(result.collectionId, {
             id: result.id,
-            name: result.name,
-            authorHandle: result.authorHandle,
             uri: result.uri,
+            name: result.name,
+            description: result.description,
+            author: result.author,
+            cardCount: result.cardCount,
+            createdAt: result.createdAt,
+            updatedAt: result.updatedAt,
           });
         }
       });
 
-      // Transform activities to FeedItemView
-      const feedItems: FeedItemView[] = [];
+      // Transform activities to FeedItem
+      const feedItems: FeedItem[] = [];
       for (const activity of feed.activities) {
         if (!activity.cardCollected) {
           continue; // Skip non-card-collected activities
         }
 
         const actor = actorProfiles.get(activity.actorId.value);
-        const cardData = cardDataMap.get(activity.metadata.cardId);
+        const cardView = cardDataMap.get(activity.metadata.cardId);
 
-        if (!actor || !cardData) {
+        if (!actor || !cardView) {
           continue; // Skip if we can't hydrate required data
         }
+
+        // Get card author
+        const cardAuthor = cardAuthorProfiles.get(cardView.authorId);
+        if (!cardAuthor) {
+          continue; // Skip if we can't get card author
+        }
+
+        // Transform UrlCardView to UrlCardDTO
+        const cardDTO = {
+          id: cardView.id,
+          type: 'URL' as const,
+          url: cardView.url,
+          cardContent: cardView.cardContent,
+          libraryCount: cardView.libraryCount,
+          urlLibraryCount: cardView.urlLibraryCount,
+          urlInLibrary: cardView.urlInLibrary,
+          createdAt: cardView.createdAt.toISOString(),
+          updatedAt: cardView.updatedAt.toISOString(),
+          author: cardAuthor,
+          note: cardView.note,
+        };
 
         const collections = (activity.metadata.collectionIds || [])
           .map((collectionId) => collectionDataMap.get(collectionId))
@@ -262,7 +330,7 @@ export class GetGlobalFeedUseCase
         feedItems.push({
           id: activity.activityId.getStringValue(),
           user: actor,
-          card: cardData,
+          card: cardDTO,
           createdAt: activity.createdAt,
           collections,
         });
@@ -272,6 +340,7 @@ export class GetGlobalFeedUseCase
         activities: feedItems,
         pagination: {
           currentPage: page,
+          totalPages: Math.ceil(feed.totalCount / limit),
           totalCount: feed.totalCount,
           hasMore: feed.hasMore,
           limit,

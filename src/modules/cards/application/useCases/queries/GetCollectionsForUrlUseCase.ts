@@ -7,6 +7,9 @@ import {
 } from '../../../domain/ICollectionQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
 import { IProfileService } from '../../../domain/services/IProfileService';
+import { ICollectionRepository } from '../../../domain/ICollectionRepository';
+import { CollectionId } from '../../../domain/value-objects/CollectionId';
+import { GetCollectionsForUrlResponse, Collection } from '@semble/types';
 
 export interface GetCollectionsForUrlQuery {
   url: string;
@@ -17,33 +20,8 @@ export interface GetCollectionsForUrlQuery {
   sortOrder?: SortOrder;
 }
 
-export interface CollectionForUrlDTO {
-  id: string;
-  uri?: string;
-  name: string;
-  description?: string;
-  author: {
-    id: string;
-    name: string;
-    handle: string;
-    avatarUrl?: string;
-  };
-}
-
-export interface GetCollectionsForUrlResult {
-  collections: CollectionForUrlDTO[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-  };
-  sorting: {
-    sortBy: CollectionSortField;
-    sortOrder: SortOrder;
-  };
-}
+// Use the shared API type directly
+export type GetCollectionsForUrlResult = GetCollectionsForUrlResponse;
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -59,6 +37,7 @@ export class GetCollectionsForUrlUseCase
   constructor(
     private collectionQueryRepo: ICollectionQueryRepository,
     private profileService: IProfileService,
+    private collectionRepo: ICollectionRepository,
   ) {}
 
   async execute(
@@ -104,7 +83,13 @@ export class GetCollectionsForUrlUseCase
       // Create a map of profiles
       const profileMap = new Map<
         string,
-        { id: string; name: string; handle: string; avatarUrl?: string }
+        {
+          id: string;
+          name: string;
+          handle: string;
+          avatarUrl?: string;
+          description?: string;
+        }
       >();
 
       for (let i = 0; i < uniqueAuthorIds.length; i++) {
@@ -126,24 +111,42 @@ export class GetCollectionsForUrlUseCase
           name: profile.name,
           handle: profile.handle,
           avatarUrl: profile.avatarUrl,
+          description: profile.bio,
         });
       }
 
-      // Map items with enriched author data
-      const enrichedCollections: CollectionForUrlDTO[] = result.items.map(
-        (item) => {
+      // Map items with enriched author data and full collection data
+      const enrichedCollections: Collection[] = await Promise.all(
+        result.items.map(async (item) => {
           const author = profileMap.get(item.authorId);
           if (!author) {
             throw new Error(`Profile not found for author ${item.authorId}`);
           }
+
+          // Fetch full collection to get cardCount, dates
+          const collectionIdResult = CollectionId.createFromString(item.id);
+          if (collectionIdResult.isErr()) {
+            throw new Error(`Invalid collection ID: ${item.id}`);
+          }
+          const collectionResult = await this.collectionRepo.findById(
+            collectionIdResult.value,
+          );
+          if (collectionResult.isErr() || !collectionResult.value) {
+            throw new Error(`Collection not found: ${item.id}`);
+          }
+          const collection = collectionResult.value;
+
           return {
             id: item.id,
             uri: item.uri,
             name: item.name,
             description: item.description,
             author,
+            cardCount: collection.cardCount,
+            createdAt: collection.createdAt.toISOString(),
+            updatedAt: collection.updatedAt.toISOString(),
           };
-        },
+        }),
       );
 
       return ok({

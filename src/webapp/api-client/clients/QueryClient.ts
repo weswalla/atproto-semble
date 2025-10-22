@@ -22,7 +22,7 @@ import {
   GetNoteCardsForUrlResponse,
   GetCollectionsForUrlParams,
   GetCollectionsForUrlResponse,
-} from '../types';
+} from '@semble/types';
 
 export class QueryClient extends BaseClient {
   async getUrlMetadata(url: string): Promise<GetUrlMetadataResponse> {

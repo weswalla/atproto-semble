@@ -10,16 +10,12 @@ import {
   Badge,
   Group,
 } from '@mantine/core';
-import { ApiClient } from '@/api-client/ApiClient';
+import { ApiClient, Collection } from '@/api-client';
 import { useCollectionSearch } from '@/hooks/useCollectionSearch';
 import { CreateCollectionModal } from './CreateCollectionModal';
 
-interface Collection {
-  id: string;
-  name: string;
-  description?: string;
-  cardCount?: number;
-  authorId: string;
+interface LocalCollection extends Collection {
+  authorId: string; // Extended for local component use
 }
 
 interface CollectionSelectorProps {
@@ -27,7 +23,7 @@ interface CollectionSelectorProps {
   userId?: string;
   selectedCollectionIds: string[];
   onSelectionChange: (collectionIds: string[]) => void;
-  existingCollections?: Collection[];
+  existingCollections?: LocalCollection[];
   disabled?: boolean;
   showCreateOption?: boolean;
   placeholder?: string;

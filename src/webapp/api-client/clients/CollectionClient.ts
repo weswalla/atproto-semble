@@ -6,7 +6,7 @@ import {
   UpdateCollectionResponse,
   DeleteCollectionRequest,
   DeleteCollectionResponse,
-} from '../types';
+} from '@semble/types';
 
 export class CollectionClient extends BaseClient {
   async createCollection(

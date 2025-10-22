@@ -1,4 +1,4 @@
-import { createApiClient } from '@/api-client/ApiClient';
+import { createSembleClient } from '@/services/apiClient';
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function useCollection(props: Props) {
-  const apiClient = createApiClient();
+  const apiClient = createSembleClient();
 
   const limit = props.limit ?? 20;
 

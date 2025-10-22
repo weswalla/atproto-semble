@@ -2,6 +2,8 @@ import { AppShell } from '@mantine/core';
 import Navbar from '@/components/navigation/navbar/Navbar';
 import ComposerDrawer from '@/features/composer/components/composerDrawer/ComposerDrawer';
 import { useNavbarContext } from '@/providers/navbar';
+import { useMediaQuery } from '@mantine/hooks';
+import { usePathname } from 'next/navigation';
 
 interface Props {
   children: React.ReactNode;
@@ -9,6 +11,13 @@ interface Props {
 
 export default function AppLayout(props: Props) {
   const { mobileOpened, desktopOpened } = useNavbarContext();
+  const pathname = usePathname();
+
+  const ROUTES_WITH_ASIDE = ['/url/'];
+  const hasAside = ROUTES_WITH_ASIDE.some((prefix) =>
+    pathname.startsWith(prefix),
+  );
+  const asideWidth = hasAside ? 300 : 0;
 
   return (
     <AppShell
@@ -17,6 +26,11 @@ export default function AppLayout(props: Props) {
         width: 300,
         breakpoint: 'xs',
         collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
+      }}
+      aside={{
+        width: asideWidth,
+        breakpoint: 'xl',
+        collapsed: { mobile: true },
       }}
     >
       {/*<Header />*/}

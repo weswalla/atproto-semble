@@ -27,7 +27,10 @@
     /* Module Resolution Options */
     "moduleResolution": "node", // Or "NodeNext" if using newer Node.js features/ESM imports extensively
     "baseUrl": ".", // Base directory for path aliases (if any)
-    // "paths": {}, // Path mapping configuration (if needed)
+    "paths": {
+      "@semble/types": ["./src/types/src/index.ts"],
+      "@semble/types/*": ["./src/types/src/*"]
+    },
 
     /* Emit Options */
     "declaration": false, // Don't emit .d.ts files for an application

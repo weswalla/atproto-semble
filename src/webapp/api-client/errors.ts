@@ -1,4 +1,5 @@
-// Error types
+// API error types for frontend client
+
 export interface ApiErrorResponse {
   message: string;
   code?: string;
@@ -8,7 +9,7 @@ export interface ApiErrorResponse {
 export class ApiError extends Error {
   constructor(
     message: string,
-    public status: number,
+    public statusCode: number,
     public code?: string,
     public details?: any,
   ) {

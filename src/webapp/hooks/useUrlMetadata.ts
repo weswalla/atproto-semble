@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ApiClient } from '@/api-client/ApiClient';
 import type { UrlMetadata } from '@/components/UrlMetadataDisplay';
-import type {
-  GetUrlStatusForMyLibraryResponse,
-  UrlCardView,
-} from '@/api-client/types';
+import type { GetUrlStatusForMyLibraryResponse } from '@/api-client';
 
 interface UseUrlMetadataProps {
   apiClient: ApiClient;

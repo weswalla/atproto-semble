@@ -2,7 +2,7 @@ import { UseCase } from 'src/shared/core/UseCase';
 import { Result, err, ok } from 'src/shared/core/Result';
 import { AppError } from 'src/shared/core/AppError';
 import { ITokenService } from '../services/ITokenService';
-import { TokenPair } from '../dtos/TokenDTO';
+import { TokenPair } from '@semble/types';
 import { GenerateExtensionTokensErrors } from './errors/GenerateExtensionTokensErrors';
 
 export interface GenerateExtensionTokensRequest {

@@ -1,4 +1,4 @@
-import { UrlCardView } from '@/api-client/types';
+import type { UrlCard } from '@/api-client';
 import useCollectionSearch from '@/features/collections/lib/queries/useCollectionSearch';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import {
@@ -18,7 +18,7 @@ import { useDebouncedValue } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { Fragment, useState } from 'react';
 import { IoSearch } from 'react-icons/io5';
-import { BiPlus } from 'react-icons/bi';
+import { FiPlus } from 'react-icons/fi';
 import CollectionSelectorError from '../../../collections/components/collectionSelector/Error.CollectionSelector';
 import CollectionSelectorItemList from '../../../collections/components/collectionSelectorItemList/CollectionSelectorItemList';
 import CreateCollectionDrawer from '../../../collections/components/createCollectionDrawer/CreateCollectionDrawer';
@@ -30,7 +30,7 @@ import useMyCollections from '../../../collections/lib/queries/useMyCollections'
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  cardContent: UrlCardView['cardContent'];
+  cardContent: UrlCard['cardContent'];
   cardId: string;
 }
 
@@ -117,6 +117,7 @@ export default function AddCardToModal(props: Props) {
       title="Add Card"
       overlayProps={DEFAULT_OVERLAY_PROPS}
       centered
+      onClick={(e) => e.stopPropagation()}
     >
       <Stack gap={'xl'}>
         <CardToBeAddedPreview
@@ -164,7 +165,7 @@ export default function AddCardToModal(props: Props) {
                           size="md"
                           color="grape"
                           radius="lg"
-                          leftSection={<BiPlus size={22} />}
+                          leftSection={<FiPlus size={22} />}
                           onClick={() => setIsDrawerOpen(true)}
                         >
                           Create new collection "{search}"
@@ -201,7 +202,7 @@ export default function AddCardToModal(props: Props) {
                           size="md"
                           color="grape"
                           radius="lg"
-                          leftSection={<BiPlus size={22} />}
+                          leftSection={<FiPlus size={22} />}
                           onClick={() => setIsDrawerOpen(true)}
                         >
                           Create new collection
@@ -221,7 +222,7 @@ export default function AddCardToModal(props: Props) {
                           onClick={() => setIsDrawerOpen(true)}
                           variant="light"
                           color="gray"
-                          rightSection={<BiPlus size={22} />}
+                          rightSection={<FiPlus size={22} />}
                         >
                           Create a collection
                         </Button>

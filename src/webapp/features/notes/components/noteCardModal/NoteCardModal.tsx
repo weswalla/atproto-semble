@@ -1,4 +1,4 @@
-import type { UrlCardView } from '@/api-client/types';
+import type { UrlCard } from '@/api-client';
 import { getDomain } from '@/lib/utils/link';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 import {
@@ -17,8 +17,8 @@ import Link from 'next/link';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  note: UrlCardView['note'];
-  urlCardContent: UrlCardView['cardContent'];
+  note: UrlCard['note'];
+  urlCardContent: UrlCard['cardContent'];
 }
 
 export default function NoteCardModal(props: Props) {
@@ -31,6 +31,7 @@ export default function NoteCardModal(props: Props) {
       title="Note"
       overlayProps={UPDATE_OVERLAY_PROPS}
       centered
+      onClick={(e) => e.stopPropagation()}
     >
       <Stack gap={'xl'}>
         {props.note && <Text>{props.note.text}</Text>}

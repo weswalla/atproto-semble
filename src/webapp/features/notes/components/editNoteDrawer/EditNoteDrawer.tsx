@@ -60,6 +60,7 @@ export default function EditNoteDrawer(props: Props) {
       position="bottom"
       size={'xs'}
       overlayProps={UPDATE_OVERLAY_PROPS}
+      onClick={(e) => e.stopPropagation()}
     >
       <Drawer.Header>
         <Drawer.Title fz="xl" fw={600} mx="auto">

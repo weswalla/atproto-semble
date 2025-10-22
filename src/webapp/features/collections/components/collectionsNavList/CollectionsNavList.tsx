@@ -49,7 +49,7 @@ export default function CollectionsNavList() {
           <CollectionNavItem
             key={collection.id}
             name={collection.name}
-            url={`/profile/${collection.createdBy.handle}/collections/${getRecordKey(collection.uri!!)}`}
+            url={`/profile/${collection.author.handle}/collections/${getRecordKey(collection.uri!!)}`}
             cardCount={collection.cardCount}
           />
         ))}

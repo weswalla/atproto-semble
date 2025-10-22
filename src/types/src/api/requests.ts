@@ -13,7 +13,7 @@ export interface PaginatedSortedParams
   extends PaginationParams,
     SortingParams {}
 
-// Request types - cleaned up from backend DTOs
+// Command request types
 export interface AddUrlToLibraryRequest {
   url: string;
   note?: string;
@@ -89,12 +89,10 @@ export interface GetCollectionPageByAtUriParams extends PaginatedSortedParams {
   recordKey: string;
 }
 
-// Feed request types
 export interface GetGlobalFeedParams extends PaginationParams {
   beforeActivityId?: string; // For cursor-based pagination
 }
 
-// User authentication request types
 export interface LoginWithAppPasswordRequest {
   identifier: string;
   appPassword: string;

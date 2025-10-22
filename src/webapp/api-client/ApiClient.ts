@@ -62,7 +62,7 @@ import type {
   GetNoteCardsForUrlResponse,
   GetCollectionsForUrlParams,
   GetCollectionsForUrlResponse,
-} from './types';
+} from '@semble/types';
 
 // Main API Client class using composition
 export class ApiClient {
@@ -268,7 +268,7 @@ export class ApiClient {
 }
 
 // Re-export types for convenience
-export * from './types';
+export * from '@semble/types';
 
 // Factory functions for different client types
 export const createApiClient = () => {

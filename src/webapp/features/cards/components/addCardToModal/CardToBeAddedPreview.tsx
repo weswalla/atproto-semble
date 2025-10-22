@@ -14,8 +14,9 @@ import {
 import Link from 'next/link';
 import {
   GetUrlStatusForMyLibraryResponse,
-  UrlCardView,
-} from '@/api-client/types';
+  UrlCard,
+  Collection,
+} from '@/api-client';
 import { BiCollection } from 'react-icons/bi';
 import { LuLibrary } from 'react-icons/lu';
 import { getDomain } from '@/lib/utils/link';
@@ -25,7 +26,7 @@ import { Fragment } from 'react';
 
 interface Props {
   cardId: string;
-  cardContent: UrlCardView['cardContent'];
+  cardContent: UrlCard['cardContent'];
   collectionsWithCard: GetUrlStatusForMyLibraryResponse['collections'];
   isInLibrary: boolean;
 }
@@ -99,7 +100,7 @@ export default function CardToBeAddedPreview(props: Props) {
             </Menu.Target>
             <Menu.Dropdown maw={380}>
               <ScrollArea.Autosize mah={150} type="auto">
-                {props.collectionsWithCard.map((c) => (
+                {props.collectionsWithCard.map((c: Collection) => (
                   <Fragment key={c.id}>
                     {c.uri && (
                       <Menu.Item

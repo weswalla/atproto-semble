@@ -40,6 +40,7 @@ export default function RemoveCardFromCollectionModal(props: Props) {
       size={'xs'}
       overlayProps={DANGER_OVERLAY_PROPS}
       centered
+      onClick={(e) => e.stopPropagation()}
     >
       <Stack>
         <Button variant="subtle" size="md" color="gray" onClick={props.onClose}>

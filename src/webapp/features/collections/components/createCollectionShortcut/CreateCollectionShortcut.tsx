@@ -1,6 +1,6 @@
 import { NavLink } from '@mantine/core';
 import { Fragment, useState } from 'react';
-import { BiPlus } from 'react-icons/bi';
+import { FiPlus } from 'react-icons/fi';
 import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
 
 export default function CreateCollectionShortcut() {
@@ -13,7 +13,7 @@ export default function CreateCollectionShortcut() {
         label={'Create'}
         variant="subtle"
         c="blue"
-        leftSection={<BiPlus size={25} />}
+        leftSection={<FiPlus size={25} />}
         onClick={() => setIsDrawerOpen(true)}
       />
       <CreateCollectionDrawer

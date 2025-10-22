@@ -59,7 +59,10 @@ export function UrlCardForm({
   // Get existing collections for this card (filtered by current user)
   const existingCollections = useMemo(() => {
     if (!existingCardCollections || !userId) return [];
-    return existingCardCollections.map((c) => ({ ...c, authorId: userId }));
+    return existingCardCollections.map((c: any) => ({
+      ...c,
+      authorId: userId,
+    }));
   }, [existingCardCollections, userId]);
 
   const handleSubmit = async (e: React.FormEvent) => {

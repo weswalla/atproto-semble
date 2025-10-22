@@ -1,6 +1,6 @@
 import SembleHeader from '../../components/SembleHeader/SembleHeader';
 import { BackgroundImage, Container, Stack } from '@mantine/core';
-import BG from '@/assets/semble-bg.webp';
+import BG from '@/assets/semble-header-bg.webp';
 import { Suspense } from 'react';
 import SembleTabs from '../../components/sembleTabs/SembleTabs';
 import SembleHeaderSkeleton from '../../components/SembleHeader/Skeleton.SembleHeader';

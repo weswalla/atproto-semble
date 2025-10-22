@@ -129,7 +129,7 @@ export default function AddCardDrawer(props: Props) {
                     <Button
                       onClick={toggleCollectionSelector}
                       variant="light"
-                      color="gray"
+                      color={hasNoCollections ? 'gray' : 'grape'}
                       leftSection={<BiCollection size={22} />}
                     >
                       {!hasNoCollections

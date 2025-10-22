@@ -36,7 +36,7 @@ export default function UrlCard(props: Props) {
 
   const handleNavigateToSemblePage = (e: MouseEvent<HTMLElement>) => {
     e.stopPropagation();
-    router.push(`/url/${props.cardContent.url}`);
+    router.push(`/url?id=${props.cardContent.url}`);
   };
   // TODO: add more sizes
 

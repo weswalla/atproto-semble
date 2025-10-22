@@ -12,7 +12,11 @@ import {
   Tooltip,
 } from '@mantine/core';
 import Link from 'next/link';
-import { GetUrlStatusForMyLibraryResponse, UrlCard, Collection } from '@/api-client';
+import {
+  GetUrlStatusForMyLibraryResponse,
+  UrlCard,
+  Collection,
+} from '@/api-client';
 import { BiCollection } from 'react-icons/bi';
 import { LuLibrary } from 'react-icons/lu';
 import { getDomain } from '@/lib/utils/link';

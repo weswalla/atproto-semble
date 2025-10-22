@@ -54,11 +54,7 @@ Update root `package.json`:
 {
   "name": "annos",
   "version": "1.0.0",
-  "workspaces": [
-    "src/types",
-    "src/webapp",
-    "."
-  ],
+  "workspaces": ["src/types", "src/webapp", "."],
   "scripts": {
     "build:types": "npm run build --workspace=@annos/types",
     "dev:types": "npm run dev --workspace=@annos/types",
@@ -80,9 +76,7 @@ Create `src/types/package.json`:
   "description": "Shared TypeScript types for Annos API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist/**/*"
-  ],
+  "files": ["dist/**/*"],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -125,7 +119,7 @@ Update `src/webapp/package.json`:
 {
   "name": "@annos/webapp",
   "dependencies": {
-    "@annos/types": "workspace:*",
+    "@annos/types": "workspace:*"
     // ... existing dependencies
   }
 }
@@ -138,6 +132,7 @@ Update `src/webapp/package.json`:
 Move and organize existing webapp types into the shared package:
 
 **src/types/src/api/common.ts:**
+
 ```typescript
 export interface User {
   id: string;
@@ -173,6 +168,7 @@ export interface FeedPagination extends Pagination {
 ```
 
 **src/types/src/api/requests.ts:**
+
 ```typescript
 // Copy all request types from src/webapp/api-client/types/requests.ts
 export interface PaginationParams {
@@ -189,8 +185,15 @@ export interface SortingParams {
 ```
 
 **src/types/src/api/responses.ts:**
+
 ```typescript
-import { User, Pagination, CardSorting, CollectionSorting, FeedPagination } from './common';
+import {
+  User,
+  Pagination,
+  CardSorting,
+  CollectionSorting,
+  FeedPagination,
+} from './common';
 
 // Copy all response types from src/webapp/api-client/types/responses.ts
 export interface UrlCard {
@@ -204,6 +207,7 @@ export interface UrlCard {
 ```
 
 **src/types/src/api/index.ts:**
+
 ```typescript
 export * from './common';
 export * from './requests';
@@ -211,6 +215,7 @@ export * from './responses';
 ```
 
 **src/types/src/index.ts:**
+
 ```typescript
 export * from './api';
 ```
@@ -242,10 +247,7 @@ import type {
 } from './types/responses';
 
 // NEW:
-import type {
-  GetUrlCardsResponse,
-  AddUrlToLibraryRequest,
-} from '@annos/types';
+import type { GetUrlCardsResponse, AddUrlToLibraryRequest } from '@annos/types';
 ```
 
 #### Step 3.3: Remove Old Type Files
@@ -276,8 +278,10 @@ import { GetUrlCardsResponse } from '@annos/types';
 
 export class GetUrlCardsUseCase {
   async execute(
-    query: GetUrlCardsQuery
-  ): Promise<Result<GetUrlCardsResponse, ValidationError | AppError.UnexpectedError>> {
+    query: GetUrlCardsQuery,
+  ): Promise<
+    Result<GetUrlCardsResponse, ValidationError | AppError.UnexpectedError>
+  > {
     // Implementation must return GetUrlCardsResponse type
     return ok({
       cards: enrichedCards,
@@ -356,6 +360,7 @@ npm run build:types
 Add Zod schemas for runtime validation:
 
 **src/types/src/validation/index.ts:**
+
 ```typescript
 import { z } from 'zod';
 
@@ -385,6 +390,7 @@ export const GetUrlCardsResponseSchema = z.object({
 ## Migration Checklist
 
 ### Phase 1: Infrastructure ✅
+
 - [ ] Update root `package.json` with workspaces
 - [ ] Create `src/types/package.json`
 - [ ] Create `src/types/tsconfig.json`
@@ -392,6 +398,7 @@ export const GetUrlCardsResponseSchema = z.object({
 - [ ] Run `npm install` to setup workspace
 
 ### Phase 2: Type Migration ✅
+
 - [ ] Create `src/types/src/api/common.ts`
 - [ ] Create `src/types/src/api/requests.ts`
 - [ ] Create `src/types/src/api/responses.ts`
@@ -400,22 +407,26 @@ export const GetUrlCardsResponseSchema = z.object({
 - [ ] Build shared types: `npm run build:types`
 
 ### Phase 3: Frontend Migration ✅
+
 - [ ] Update all imports in webapp to use `@annos/types`
 - [ ] Remove old type files: `rm -rf src/webapp/api-client/types/`
 - [ ] Test webapp compilation: `npm run type-check --workspace=@annos/webapp`
 
 ### Phase 4: Backend Migration ✅
+
 - [ ] Add shared types dependency to root package
 - [ ] Update use cases to import and return shared types
 - [ ] Update controllers to use shared types
 - [ ] Test backend compilation: `npm run type-check`
 
 ### Phase 5: Development Setup ✅
+
 - [ ] Add development scripts to root package.json
 - [ ] Test concurrent development: `npm run dev`
 - [ ] Verify hot reload works for type changes
 
 ### Phase 6: Validation ✅
+
 - [ ] Run full type check across all packages
 - [ ] Test API endpoints return correct types
 - [ ] Add runtime validation (optional)
@@ -424,17 +435,20 @@ export const GetUrlCardsResponseSchema = z.object({
 ## Best Practices
 
 ### Type Naming Conventions
+
 - **Requests**: `{Action}{Resource}Request` (e.g., `GetUrlCardsRequest`)
 - **Responses**: `{Action}{Resource}Response` (e.g., `GetUrlCardsResponse`)
 - **Common types**: Descriptive names (e.g., `User`, `Pagination`)
 
 ### Development Workflow
+
 1. **Always run shared types in watch mode** during development
 2. **Make type changes first** before implementing features
 3. **Use TypeScript strict mode** to catch issues early
 4. **Version shared types** when making breaking changes
 
 ### Error Handling
+
 - Define consistent error response types
 - Use discriminated unions for different error types
 - Include error codes and messages in shared types

@@ -36,19 +36,21 @@ export default function FeedActivityStatus(props: Props) {
         ) : (
           <Fragment>
             added to{' '}
-            {displayedCollections.map((collection: Collection, index: number) => (
-              <span key={collection.id}>
-                <Anchor
-                  component={Link}
-                  href={`/profile/${collection.author.handle}/collections/${getRecordKey(collection.uri!)}`}
-                  c="grape"
-                  fw={500}
-                >
-                  {collection.name}
-                </Anchor>
-                {index < displayedCollections.length - 1 ? ', ' : ''}
-              </span>
-            ))}
+            {displayedCollections.map(
+              (collection: Collection, index: number) => (
+                <span key={collection.id}>
+                  <Anchor
+                    component={Link}
+                    href={`/profile/${collection.author.handle}/collections/${getRecordKey(collection.uri!)}`}
+                    c="grape"
+                    fw={500}
+                  >
+                    {collection.name}
+                  </Anchor>
+                  {index < displayedCollections.length - 1 ? ', ' : ''}
+                </span>
+              ),
+            )}
             {remainingCount > 0 &&
               ` and ${remainingCount} other collection${remainingCount > 1 ? 's' : ''}`}
           </Fragment>

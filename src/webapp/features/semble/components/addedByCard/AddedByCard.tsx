@@ -1,4 +1,4 @@
-import type { GetLibrariesForUrlResponse } from '@/api-client/types';
+import { GetLibrariesForUrlResponse } from '@/api-client';
 import { getRelativeTime } from '@/lib/utils/time';
 import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
 import Link from 'next/link';

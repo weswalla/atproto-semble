@@ -9,6 +9,7 @@ This document provides a comprehensive implementation plan for sharing types bet
 **TL;DR**: You already have the important mapper (Domain → Application), and adding another layer (Application → Infrastructure) would just be ceremony when the types are identical.
 
 **You're already doing this (correct DDD):**
+
 ```
 Domain Entity → Use Case (maps to DTO) → Controller (passes through) → Frontend
      ↓                                          ↓                          ↓
@@ -18,6 +19,7 @@ Rich domain model           Application Layer DTO              Same DTO
 **The shared types represent the Application Layer**, not Infrastructure. Both backend controllers and frontend clients consume the same Application Layer contract - this is **textbook Ports & Adapters pattern**.
 
 **When you WOULD need mappers:**
+
 - API versioning (supporting v1 and v2)
 - Multiple protocols (REST + GraphQL + gRPC)
 - Public API (hiding internal structures)
@@ -32,17 +34,20 @@ See "When Would You Need Mappers?" section for details.
 ### What Exists Today
 
 **Backend DTOs** (`src/modules/cards/application/dtos/`):
+
 - `UserProfileDTO`, `UrlCardDTO`, `NoteCardDTO`, `CollectionDTO`
 - `PaginationDTO`, `CardSortingDTO`, `CollectionSortingDTO`
 - `FeedItemDTO`
 - These are used as return types from Use Cases
 
 **Frontend Types** (`src/webapp/api-client/types/`):
+
 - `requests.ts` - Request parameter interfaces
 - `responses.ts` - Response type interfaces (User, UrlCard, Collection, etc.)
 - Nearly identical to backend DTOs (already unified in recent work)
 
 **Current Flow**:
+
 ```
 Domain Model → Use Case (returns DTO) → Controller (returns DTO as-is) → Frontend (expects matching type)
 ```
@@ -58,6 +63,7 @@ Domain Model → Use Case (returns DTO) → Controller (returns DTO as-is) → F
 ### DDD Layered Architecture Review
 
 **Classic DDD Layers:**
+
 1. **Domain Layer**: Entities, Value Objects, Domain Services, Domain Events
 2. **Application Layer**: Use Cases, DTOs, Application Services
 3. **Infrastructure Layer**: Controllers, Repositories, External Services
@@ -126,6 +132,7 @@ async executeImpl(req, res) {
 ```
 
 **When you need this:**
+
 - ✅ Public API that needs versioning independent of domain
 - ✅ Domain model significantly different from API representation
 - ✅ Multiple API formats (REST, GraphQL, gRPC) from same domain
@@ -133,6 +140,7 @@ async executeImpl(req, res) {
 - ✅ Large team with separate domain/API teams
 
 **Drawbacks:**
+
 - ❌ High ceremony when DTO ≈ HTTP Response
 - ❌ Boilerplate mapper code
 - ❌ Slower iteration velocity
@@ -168,6 +176,7 @@ async getCollection(): Promise<Collection> {
 ```
 
 **When this is appropriate:**
+
 - ✅ Monorepo with tight frontend/backend coupling
 - ✅ DTO and HTTP Response are identical (or nearly so)
 - ✅ Private/internal API (not public third-party API)
@@ -177,6 +186,7 @@ async getCollection(): Promise<Collection> {
 **Key insight:** The shared types represent the **Application Layer contract**, not Infrastructure. Both the backend Use Case and frontend are clients of this application layer contract.
 
 **Drawbacks:**
+
 - ⚠️ Harder to version API independently
 - ⚠️ Frontend sees application layer types (but this may be fine)
 
@@ -193,6 +203,7 @@ async execute(): Promise<Result<CollectionHttpResponse>> {
 ```
 
 **This is an anti-pattern** because:
+
 - ❌ Use Cases depend on Infrastructure (breaks DDD layering)
 - ❌ Application layer coupled to HTTP representation
 - ❌ Can't reuse Use Cases for non-HTTP interfaces
@@ -202,6 +213,7 @@ async execute(): Promise<Result<CollectionHttpResponse>> {
 **Why this is the right choice for your codebase:**
 
 1. **You're already mapping Domain → Application:**
+
    ```typescript
    // GetCollectionsForUrlUseCase.ts - lines 122-151
    const enrichedCollections: CollectionDTO[] = await Promise.all(
@@ -224,6 +236,7 @@ async execute(): Promise<Result<CollectionHttpResponse>> {
      })
    );
    ```
+
    This is **proper DDD** - the Use Case orchestrates domain objects and produces DTOs.
 
 2. **Your DTOs ARE your HTTP responses:**
@@ -251,6 +264,7 @@ async execute(): Promise<Result<CollectionHttpResponse>> {
 Add a separate HTTP Response layer if:
 
 1. **API Versioning:**
+
    ```typescript
    // v1: { id, name }
    // v2: { id, title } // renamed field
@@ -262,6 +276,7 @@ Add a separate HTTP Response layer if:
    ```
 
 2. **Different Representations:**
+
    ```typescript
    // REST API: flat structure
    { collectionId: '123', authorId: '456' }
@@ -271,12 +286,13 @@ Add a separate HTTP Response layer if:
    ```
 
 3. **Hide Internal Details:**
+
    ```typescript
    // DTO has internal fields
    interface CollectionDTO {
      id: string;
      name: string;
-     internalAuditLog: AuditEntry[];  // don't expose
+     internalAuditLog: AuditEntry[]; // don't expose
    }
 
    // HTTP response filters
@@ -301,17 +317,26 @@ Add a separate HTTP Response layer if:
 // These are Application Layer DTOs, not Infrastructure types
 
 // common.ts - Core domain concepts
-export interface User { /* ... */ }
-export interface Collection { /* ... */ }
+export interface User {
+  /* ... */
+}
+export interface Collection {
+  /* ... */
+}
 
 // requests.ts - Use Case inputs
-export interface GetCollectionsParams { /* ... */ }
+export interface GetCollectionsParams {
+  /* ... */
+}
 
 // responses.ts - Use Case outputs
-export interface GetCollectionsResponse { /* ... */ }
+export interface GetCollectionsResponse {
+  /* ... */
+}
 ```
 
 **Use Cases depend on these types:**
+
 ```typescript
 import { GetCollectionsResponse } from '@semble/types';
 
@@ -323,6 +348,7 @@ class GetCollectionsUseCase {
 ```
 
 **Controllers are thin pipes:**
+
 ```typescript
 import { GetCollectionsResponse } from '@semble/types';
 
@@ -335,6 +361,7 @@ class GetCollectionsController {
 ```
 
 **Frontend consumes Application Layer contract:**
+
 ```typescript
 import { GetCollectionsResponse } from '@semble/types';
 
@@ -348,17 +375,20 @@ class ApiClient {
 ### Summary
 
 **What we're doing:**
+
 - ✅ Sharing **Application Layer** types between backend and frontend
 - ✅ Use Cases map Domain → Application DTO (proper DDD)
 - ✅ Controllers validate HTTP and pass through DTOs
 - ✅ Single source of truth for application contracts
 
 **What we're NOT doing:**
+
 - ❌ Skipping Domain → Application mapping (we do this!)
 - ❌ Letting infrastructure dictate application types
 - ❌ Breaking DDD layer dependencies
 
 **This is pragmatic DDD because:**
+
 - Domain layer remains pure ✅
 - Application layer defines contracts ✅
 - Infrastructure depends on Application (correct direction) ✅
@@ -371,9 +401,11 @@ The key realization: In a monorepo where frontend and backend deploy together, *
 ### Three Levels of Validation
 
 #### 1. Controller-Level Validation (Infrastructure Layer)
+
 **Purpose**: Validate HTTP request structure and types
 **Implementation**: Use Zod schemas at controller entry points
 **Examples**:
+
 - Is `url` parameter present and a string?
 - Is `page` a positive integer?
 - Are required fields in request body present?
@@ -404,9 +436,11 @@ async executeImpl(req: Request, res: Response) {
 ```
 
 #### 2. Use Case-Level Validation (Application Layer)
+
 **Purpose**: Validate business rules and create domain objects
 **Implementation**: Use domain value objects (already doing this!)
 **Examples**:
+
 - `URL.create(query.url)` - validates URL format using domain rules
 - `CardId.createFromString(id)` - validates ID format
 - Business logic validation (e.g., "user can only have 50 collections")
@@ -416,9 +450,11 @@ async executeImpl(req: Request, res: Response) {
 This layer is **already correct** in the codebase!
 
 #### 3. Domain-Level Validation (Domain Layer)
+
 **Purpose**: Enforce invariants and domain rules
 **Implementation**: Value Objects and Entity constructors
 **Examples**:
+
 - `URL` value object validates URL format
 - `CollectionName` might enforce length limits
 - `Email` value object validates email format
@@ -480,6 +516,7 @@ semble/
 ### Type Organization
 
 **`src/types/src/api/common.ts`** - Shared domain concepts:
+
 ```typescript
 export interface User {
   id: string;
@@ -515,6 +552,7 @@ export interface CollectionSorting extends BaseSorting {
 ```
 
 **`src/types/src/api/requests.ts`** - API request types:
+
 ```typescript
 // Base interfaces
 export interface PaginationParams {
@@ -528,7 +566,9 @@ export interface SortingParams {
 }
 
 // Query parameter interfaces
-export interface GetCollectionsForUrlParams extends PaginationParams, SortingParams {
+export interface GetCollectionsForUrlParams
+  extends PaginationParams,
+    SortingParams {
   url: string;
 }
 
@@ -543,6 +583,7 @@ export interface AddUrlToLibraryRequest {
 ```
 
 **`src/types/src/api/responses.ts`** - API response types:
+
 ```typescript
 import { User, Pagination, CardSorting, CollectionSorting } from './common';
 
@@ -594,6 +635,7 @@ export interface GetCollectionsForUrlResponse {
 ### Phase 0: Prerequisites
 
 **Install Zod for validation:**
+
 ```bash
 npm install zod
 ```
@@ -603,13 +645,11 @@ npm install zod
 #### 1.1 Configure Workspace Root
 
 Update `package.json`:
+
 ```json
 {
   "name": "semble",
-  "workspaces": [
-    "src/types",
-    "src/webapp"
-  ],
+  "workspaces": ["src/types", "src/webapp"],
   "scripts": {
     "build:types": "npm run build --workspace=@semble/types",
     "dev:types": "npm run dev --workspace=@semble/types",
@@ -621,6 +661,7 @@ Update `package.json`:
 #### 1.2 Create Types Package
 
 Create `src/types/package.json`:
+
 ```json
 {
   "name": "@semble/types",
@@ -641,6 +682,7 @@ Create `src/types/package.json`:
 ```
 
 Create `src/types/tsconfig.json`:
+
 ```json
 {
   "compilerOptions": {
@@ -674,6 +716,7 @@ Create `src/types/tsconfig.json`:
 #### 2.1 Add Dependency
 
 Update root `package.json`:
+
 ```json
 {
   "dependencies": {
@@ -690,6 +733,7 @@ Run `npm install`
 **Example: `GetCollectionsForUrlUseCase.ts`**
 
 Before:
+
 ```typescript
 import { CollectionDTO, PaginationDTO, CollectionSortingDTO } from '../../dtos';
 
@@ -701,6 +745,7 @@ export interface GetCollectionsForUrlResult {
 ```
 
 After:
+
 ```typescript
 import { GetCollectionsForUrlResponse } from '@semble/types';
 
@@ -718,6 +763,7 @@ async execute(query: GetCollectionsForUrlQuery): Promise<Result<GetCollectionsFo
 **Example: `GetCollectionsForUrlController.ts`**
 
 Before:
+
 ```typescript
 async executeImpl(req: Request, res: Response): Promise<any> {
   const { url } = req.query;
@@ -729,6 +775,7 @@ async executeImpl(req: Request, res: Response): Promise<any> {
 ```
 
 After:
+
 ```typescript
 import { z } from 'zod';
 import { GetCollectionsForUrlParams, GetCollectionsForUrlResponse } from '@semble/types';
@@ -771,6 +818,7 @@ async executeImpl(req: Request, res: Response): Promise<any> {
 #### 2.4 Remove Old DTOs
 
 Once all use cases and controllers are updated:
+
 ```bash
 rm -rf src/modules/cards/application/dtos/
 rm -rf src/modules/user/application/dtos/
@@ -781,6 +829,7 @@ rm -rf src/modules/user/application/dtos/
 #### 3.1 Add Dependency
 
 Update `src/webapp/package.json`:
+
 ```json
 {
   "dependencies": {
@@ -796,6 +845,7 @@ Run `npm install`
 **`src/webapp/api-client/ApiClient.ts`**
 
 Before:
+
 ```typescript
 import type {
   GetCollectionsForUrlParams,
@@ -804,6 +854,7 @@ import type {
 ```
 
 After:
+
 ```typescript
 import type {
   GetCollectionsForUrlParams,
@@ -822,6 +873,7 @@ rm -rf src/webapp/api-client/types/
 #### 4.1 Add Development Scripts
 
 Update root `package.json`:
+
 ```json
 {
   "scripts": {
@@ -838,6 +890,7 @@ Update root `package.json`:
 #### 4.2 Update Backend tsconfig.json
 
 Ensure backend can resolve workspace packages:
+
 ```json
 {
   "compilerOptions": {
@@ -851,17 +904,20 @@ Ensure backend can resolve workspace packages:
 ### Phase 5: Testing & Validation
 
 #### 5.1 Type Checking
+
 ```bash
 npm run type-check        # Check backend
 npm run type-check --workspace=@semble/webapp  # Check frontend
 ```
 
 #### 5.2 Build Everything
+
 ```bash
 npm run build:all
 ```
 
 #### 5.3 Runtime Testing
+
 - Start dev servers: `npm run dev`
 - Test each modified endpoint
 - Verify request validation works (try invalid requests)
@@ -870,6 +926,7 @@ npm run build:all
 ## Migration Checklist
 
 ### Phase 1: Shared Types Package ✅
+
 - [ ] Update root `package.json` with workspaces configuration
 - [ ] Create `src/types/package.json`
 - [ ] Create `src/types/tsconfig.json`
@@ -882,6 +939,7 @@ npm run build:all
 - [ ] Verify build output in `src/types/dist/`
 
 ### Phase 2: Backend Migration ✅
+
 - [ ] Install zod: `npm install zod`
 - [ ] Add `@semble/types` to root dependencies
 - [ ] Run `npm install` to link workspace
@@ -898,6 +956,7 @@ npm run build:all
 - [ ] Fix any type errors
 
 ### Phase 3: Frontend Migration ✅
+
 - [ ] Add `@semble/types` to `src/webapp/package.json`
 - [ ] Run `npm install` in webapp
 - [ ] Update `src/webapp/api-client/ApiClient.ts` imports
@@ -908,6 +967,7 @@ npm run build:all
 - [ ] Fix any type errors
 
 ### Phase 4: Development Workflow ✅
+
 - [ ] Add dev scripts to root package.json
 - [ ] Test concurrent development: `npm run dev`
 - [ ] Make a test change to shared types
@@ -915,6 +975,7 @@ npm run build:all
 - [ ] Test build pipeline: `npm run build:all`
 
 ### Phase 5: Testing ✅
+
 - [ ] Backend tests pass
 - [ ] Frontend tests pass
 - [ ] Manual testing of key endpoints:
@@ -931,6 +992,7 @@ npm run build:all
 ### High Priority (Core Queries)
 
 **Use Cases:**
+
 - `src/modules/cards/application/useCases/queries/GetCollectionsForUrlUseCase.ts`
 - `src/modules/cards/application/useCases/queries/GetCollectionsUseCase.ts`
 - `src/modules/cards/application/useCases/queries/GetLibrariesForCardUseCase.ts`
@@ -941,16 +1003,19 @@ npm run build:all
 - `src/modules/feeds/application/useCases/queries/GetGlobalFeedUseCase.ts`
 
 **Controllers:**
+
 - All controllers in `src/modules/cards/infrastructure/http/controllers/`
 - `src/modules/feeds/infrastructure/http/controllers/GetGlobalFeedController.ts`
 
 **Frontend:**
+
 - `src/webapp/api-client/ApiClient.ts`
 - All files in `src/webapp/api-client/clients/`
 
 ### Medium Priority (Commands)
 
 **Use Cases:**
+
 - `src/modules/cards/application/useCases/commands/AddUrlToLibraryUseCase.ts`
 - `src/modules/cards/application/useCases/commands/CreateCollectionUseCase.ts`
 - ... (other command use cases)
@@ -964,6 +1029,7 @@ npm run build:all
 ## Best Practices
 
 ### Type Naming Conventions
+
 - **Requests**: `{Verb}{Resource}Request` (e.g., `AddUrlToLibraryRequest`)
 - **Params**: `Get{Resource}Params` (e.g., `GetCollectionsForUrlParams`)
 - **Responses**: `{Verb}{Resource}Response` (e.g., `GetCollectionsForUrlResponse`)
@@ -972,6 +1038,7 @@ npm run build:all
 ### Validation Patterns
 
 **Controller validation (structure & types):**
+
 ```typescript
 const schema = z.object({
   requiredString: z.string().min(1),
@@ -986,6 +1053,7 @@ if (!result.success) {
 ```
 
 **Use case validation (business rules):**
+
 ```typescript
 const urlResult = URL.create(params.url);
 if (urlResult.isErr()) {
@@ -994,6 +1062,7 @@ if (urlResult.isErr()) {
 ```
 
 ### Development Workflow
+
 1. **Always run types in watch mode** during development: `npm run dev:types`
 2. **Make type changes first** before implementing features
 3. **Type-check frequently**: `npm run type-check`
@@ -1004,27 +1073,32 @@ if (urlResult.isErr()) {
 ### What We're NOT Doing (And Why That's OK)
 
 ❌ **Separate DTO and HTTP Response mapping layer**:
+
 - Reason: Application DTOs and HTTP responses are identical
 - Reality: Controllers would just be identity mappers (pointless ceremony)
 - When to add: If you need API versioning, different client representations, or hide internal fields
 - See "When Would You Need Mappers?" section above for specific scenarios
 
 ❌ **Runtime validation of Use Case outputs**:
+
 - Reason: TypeScript compilation guarantees response shape from Use Cases
 - Alternative: Could add Zod validation of DTO construction, but not needed initially
 - When to add: If you have bugs where Use Cases return malformed DTOs
 
 ❌ **OpenAPI schema generation**:
+
 - Reason: Can add later if needed (Zod schemas make this easy)
 - Benefit: Shared types + Zod schemas = future OpenAPI generation is trivial
 - When to add: When you want API documentation, client SDK generation, or contract testing
 
 ❌ **Separate versioning of types package**:
+
 - Reason: Monorepo with synchronized deploys (frontend/backend always in sync)
 - When to add: If you publish a public API or have multiple clients on different versions
 - Note: For now, Git commits provide version history
 
 ❌ **Multiple API representations (REST, GraphQL, gRPC)**:
+
 - Reason: Only building REST API currently
 - When to add: When you need GraphQL, gRPC, or other protocols (then add mappers)
 
@@ -1049,6 +1123,7 @@ if (urlResult.isErr()) {
 ✅ **Type safety across boundaries**: Shared Application contracts prevent drift
 
 The key insight: **Sharing Application Layer types between backend and frontend is not a DDD violation** when:
+
 1. Both are clients of the same Application Layer
 2. They deploy together (monorepo)
 3. The Application DTOs appropriately abstract the Domain Model
@@ -1056,6 +1131,7 @@ The key insight: **Sharing Application Layer types between backend and frontend 
 ## Troubleshooting
 
 ### "Cannot find module '@semble/types'"
+
 ```bash
 # From root
 npm install
@@ -1063,17 +1139,20 @@ cd src/types && npm run build
 ```
 
 ### Types package not updating
+
 ```bash
 # Restart types watch mode
 npm run dev:types
 ```
 
 ### Import path errors in IDE
+
 - Restart TypeScript server in your IDE
 - Check `tsconfig.json` paths configuration
 - Verify `node_modules/@semble/types` symlink exists
 
 ### Validation errors not showing
+
 - Check Zod schema matches the expected request shape
 - Use `.safeParse()` not `.parse()` to get detailed errors
 - Log `validation.error.format()` for debugging
@@ -1081,17 +1160,20 @@ npm run dev:types
 ## Future Enhancements
 
 ### Short Term
+
 - [ ] Add Zod schemas for all controllers
 - [ ] Create shared Zod utilities for common patterns (pagination, sorting)
 - [ ] Add request/response logging middleware
 
 ### Medium Term
+
 - [ ] Generate OpenAPI spec from shared types
 - [ ] Create API documentation from types
 - [ ] Add integration tests using shared types
 - [ ] Create type-safe test factories
 
 ### Long Term
+
 - [ ] Publish types package to private npm registry
 - [ ] Implement breaking change detection (type diff checks)
 - [ ] Add runtime response validation in development mode
@@ -1102,27 +1184,32 @@ npm run dev:types
 ### What We Preserved (Proper DDD)
 
 ✅ **Domain Layer Purity**:
+
 - Domain entities, value objects, and domain services have no external dependencies
 - Domain models encapsulate business logic and invariants
 - Domain layer doesn't know about HTTP, DTOs, or frontend
 
 ✅ **Application Layer Orchestration**:
+
 - Use Cases orchestrate domain objects to fulfill application requirements
 - Use Cases map rich domain models → simple DTOs (proper anti-corruption layer)
 - DTOs hide domain complexity from external consumers
 - Application layer defines the contract for consumers (backend and frontend)
 
 ✅ **Infrastructure Layer Dependency Direction**:
+
 - Controllers depend on Application types (correct: Infrastructure → Application)
 - Controllers do NOT define types that Application depends on (would be wrong)
 - Infrastructure implements Application contracts, not the other way around
 
 ✅ **Three-Tier Validation Hierarchy**:
+
 - **Domain**: Invariants enforced in value objects and entities
 - **Application**: Business rules validated in use cases
 - **Infrastructure**: HTTP request structure validated in controllers
 
 ✅ **Separation of Concerns**:
+
 - Domain logic in entities/value objects
 - Application logic in use cases
 - HTTP transport details in controllers
@@ -1131,12 +1218,14 @@ npm run dev:types
 ### What's Actually Happening (Not a Compromise)
 
 ✅ **Shared Application Layer Types**:
+
 - `@semble/types` represents the **Application Layer contract**
 - Backend Use Cases produce these contracts
 - Frontend API Client consumes these contracts
 - Both are clients of the Application Layer (this is correct DDD!)
 
 ✅ **Controllers as Thin Adapters**:
+
 - Controllers adapt HTTP → Application Layer (parse request, call use case)
 - Controllers adapt Application Layer → HTTP (serialize DTO to JSON)
 - No additional mapping needed when DTO shape = HTTP response shape
@@ -1145,18 +1234,21 @@ npm run dev:types
 ### Why This Is Good DDD (Not Just "OK for Startups")
 
 **From Eric Evans / Martin Fowler:**
+
 - DTOs exist to cross architectural boundaries ✅ (we do this)
 - Application Layer should be independent of delivery mechanism ✅ (it is)
 - Infrastructure should depend on Application, not vice versa ✅ (correct)
 - Shared kernel is acceptable when bounded contexts align ✅ (monorepo, single app)
 
 **From Hexagonal Architecture (Ports & Adapters):**
+
 - Application Layer defines "ports" (interfaces/contracts) ✅ (`@semble/types`)
 - Infrastructure provides "adapters" (controllers, API clients) ✅ (thin HTTP adapters)
 - Multiple adapters can implement same port ✅ (backend controller, frontend client)
 - This is the **textbook pattern**!
 
 **When you'd need an additional mapping layer:**
+
 1. **API Versioning**: Supporting v1 and v2 simultaneously
 2. **Different Protocols**: REST + GraphQL + gRPC from same Application Layer
 3. **Public API**: Need to hide internal structures
@@ -1198,41 +1290,48 @@ For a monorepo with single API version and private API, shared Application types
 The quality of this architecture depends on whether your DTOs properly abstract the domain:
 
 ✅ **Good DTO Design** (what you have):
+
 ```typescript
 // Domain: Rich model with behavior
 class Collection {
-  collectionId: CollectionId;           // Value object
-  name: CollectionName;                 // Value object with validation
-  authorId: UserId;                     // Value object
-  description?: CollectionDescription;  // Value object
-  cardIds: CardId[];                    // List of value objects
-  addCard(cardId: CardId) { /* logic */ }
-  removeCard(cardId: CardId) { /* logic */ }
+  collectionId: CollectionId; // Value object
+  name: CollectionName; // Value object with validation
+  authorId: UserId; // Value object
+  description?: CollectionDescription; // Value object
+  cardIds: CardId[]; // List of value objects
+  addCard(cardId: CardId) {
+    /* logic */
+  }
+  removeCard(cardId: CardId) {
+    /* logic */
+  }
 }
 
 // DTO: Simple data structure for transfer
 interface Collection {
-  id: string;                // Unwrapped value
-  name: string;              // Unwrapped value
-  author: User;              // Enriched relationship
-  description?: string;      // Unwrapped value
-  cardCount: number;         // Computed property
-  createdAt: string;         // ISO string
-  updatedAt: string;         // ISO string
+  id: string; // Unwrapped value
+  name: string; // Unwrapped value
+  author: User; // Enriched relationship
+  description?: string; // Unwrapped value
+  cardCount: number; // Computed property
+  createdAt: string; // ISO string
+  updatedAt: string; // ISO string
 }
 ```
 
 This is **good separation**:
+
 - Domain has rich behavior, validation, invariants
 - DTO is simple, serializable, consumer-friendly
 - Use Case does the mapping (proper layer responsibility)
 
 ❌ **Bad DTO Design** (anti-pattern):
+
 ```typescript
 // Exposing domain internals
 interface CollectionDTO {
-  collectionId: CollectionId;  // WRONG: exposing domain value object
-  _aggregateVersion: number;   // WRONG: exposing internal details
+  collectionId: CollectionId; // WRONG: exposing domain value object
+  _aggregateVersion: number; // WRONG: exposing internal details
   domainEvents: DomainEvent[]; // WRONG: leaking domain events
 }
 ```
@@ -1402,6 +1501,7 @@ async getCollectionsForUrl(params): Promise<GetCollectionsForUrlResponse> {
 ```
 
 ### Key Changes
+
 1. ✅ Single `Collection` type (not duplicated)
 2. ✅ Single `GetCollectionsForUrlResponse` type
 3. ✅ Controller validates with Zod schema
@@ -1422,6 +1522,7 @@ This plan provides a **pragmatic, DDD-aligned approach** to sharing types betwee
 - **Stays simple** and avoids overengineering
 
 The result is a **barebones but reliable** type system that:
+
 - Catches errors at compile time
 - Validates requests at runtime
 - Maintains a single source of truth

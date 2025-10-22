@@ -8,7 +8,11 @@ import {
 import { IProfileService } from 'src/modules/cards/domain/services/IProfileService';
 import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
-import { CollectionDTO, PaginationDTO, CollectionSortingDTO } from '@semble/types';
+import {
+  CollectionDTO,
+  PaginationDTO,
+  CollectionSortingDTO,
+} from '@semble/types';
 
 export interface GetCollectionsQuery {
   curatorId: string;

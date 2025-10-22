@@ -3,6 +3,7 @@
 ## ✅ Successfully Completed
 
 ### Infrastructure Setup
+
 - ✅ Created `@semble/types` package at `src/types/`
 - ✅ Configured npm workspaces in root `package.json`
 - ✅ Set up TypeScript compilation for types package
@@ -11,12 +12,14 @@
 - ✅ Installed zod for validation (version 3.22.4)
 
 ### Shared Types Package (`src/types/src/api/`)
+
 - ✅ `common.ts` - User, Pagination, Sorting interfaces
 - ✅ `requests.ts` - All request parameter types
 - ✅ `responses.ts` - All response types
 - ✅ Built successfully with TypeScript
 
 ### Backend Migration (Cards/Feeds Modules)
+
 - ✅ **GetCollectionsForUrlUseCase** - Uses `GetCollectionsForUrlResponse` from `@semble/types`
 - ✅ **GetGlobalFeedUseCase** - Uses `GetGlobalFeedResponse` from `@semble/types`
 - ✅ **GetCollectionsForUrlController** - Added Zod validation schema
@@ -24,6 +27,7 @@
 - ✅ Removed old `src/modules/cards/application/dtos/` directory
 
 ### Frontend Migration
+
 - ✅ **ApiClient.ts** - Imports all types from `@semble/types`
 - ✅ All client files (`QueryClient`, `CardClient`, etc.) - Updated to import from `@semble/types`
 - ✅ Removed old `src/webapp/api-client/types/` directory
@@ -31,9 +35,11 @@
 ## ⚠️ Remaining Work (Not Critical for Core Functionality)
 
 ### Use Cases to Migrate
+
 These use cases still import from old `../../dtos` and need migration:
 
 **Cards Module:**
+
 - `GetCollectionsUseCase.ts`
 - `GetLibrariesForCardUseCase.ts`
 - `GetLibrariesForUrlUseCase.ts`
@@ -42,6 +48,7 @@ These use cases still import from old `../../dtos` and need migration:
 - `GetUrlStatusForMyLibraryUseCase.ts`
 
 **Pattern to follow:**
+
 ```typescript
 // OLD
 import { CollectionDTO, PaginationDTO } from '../../dtos';
@@ -52,15 +59,18 @@ export type GetCollectionsResult = GetCollectionsResponse;
 ```
 
 ### User Module DTOs
+
 The following files reference deleted User DTOs and need new types added to `@semble/types`:
 
 **Missing types to add:**
+
 - `OAuthCallbackDTO` (used by OAuth flows)
 - `TokenDTO` (used by token services)
 - `UserDTO` (used by user mappers)
 - `LoginWithAppPasswordDTO` (used by login use case)
 
 **Affected files:**
+
 - `src/modules/atproto/infrastructure/services/AtProtoOAuthProcessor.ts`
 - `src/modules/atproto/infrastructure/services/FakeAtProtoOAuthProcessor.ts`
 - `src/modules/user/application/mappers/UserMap.ts`
@@ -73,6 +83,7 @@ The following files reference deleted User DTOs and need new types added to `@se
 Add these types to `src/types/src/api/responses.ts` or create a new `auth.ts` file.
 
 ### Controllers to Add Zod Validation
+
 All other controllers in `src/modules/cards/infrastructure/http/controllers/` should follow the same pattern:
 
 ```typescript
@@ -94,6 +105,7 @@ async executeImpl(req: Request, res: Response) {
 ## 🎯 What's Working Right Now
 
 ### End-to-End Type Safety
+
 1. **Frontend** → API request using types from `@semble/types`
 2. **Controller** → Validates request with Zod schema
 3. **Use Case** → Returns response typed as `@semble/types` interface
@@ -101,6 +113,7 @@ async executeImpl(req: Request, res: Response) {
 5. **Frontend** → Receives response with full type safety
 
 ### Example Flow (Working)
+
 ```
 Frontend: getCollectionsForUrl(params: GetCollectionsForUrlParams)
     ↓
@@ -112,6 +125,7 @@ Frontend: Receives GetCollectionsForUrlResponse
 ```
 
 ### Compile Status
+
 - **Frontend**: ✅ Should compile (needs verification with `npm run type-check --workspace=@semble/webapp`)
 - **Backend**: ⚠️ 20 type errors (all in non-migrated use cases and user module)
 - **Types Package**: ✅ Compiles successfully
@@ -121,6 +135,7 @@ Frontend: Receives GetCollectionsForUrlResponse
 ### For Each Remaining Use Case
 
 1. **Update imports:**
+
 ```typescript
 // Replace
 import { SomeDTO } from '../../dtos';
@@ -129,6 +144,7 @@ import { SomeResponse } from '@semble/types';
 ```
 
 2. **Update return type:**
+
 ```typescript
 // Replace
 export interface GetSomeResult {
@@ -144,6 +160,7 @@ export type GetSomeResult = GetSomeResponse;
 ### For User Module
 
 1. **Add missing types to `@semble/types`:**
+
 ```typescript
 // src/types/src/api/auth.ts
 export interface TokenResponse {
@@ -209,6 +226,7 @@ npm run dev        # Terminal 2
 ## 📚 Reference Implementation
 
 See these files for the pattern to follow:
+
 - **Use Case**: `src/modules/cards/application/useCases/queries/GetCollectionsForUrlUseCase.ts`
 - **Controller**: `src/modules/cards/infrastructure/http/controllers/GetCollectionsForUrlController.ts`
 - **Frontend**: `src/webapp/api-client/ApiClient.ts`

@@ -278,7 +278,9 @@ export const createApiClient = () => {
 };
 
 export const createServerApiClient = () => {
-  return new ApiClient(process.env.API_BASE_URL || 'http://127.0.0.1:3000');
+  return new ApiClient(
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
+  );
 };
 
 // Default client instance for backward compatibility

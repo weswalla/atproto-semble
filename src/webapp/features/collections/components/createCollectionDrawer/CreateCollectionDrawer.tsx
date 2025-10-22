@@ -34,6 +34,7 @@ export default function createCollectionDrawer(props: Props) {
 
   const handleCreateCollection = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
 
     createCollection.mutate(
       {
@@ -78,7 +79,7 @@ export default function createCollectionDrawer(props: Props) {
       </Drawer.Header>
 
       <Container size={'sm'}>
-        <form>
+        <form onSubmit={handleCreateCollection}>
           <Stack>
             <TextInput
               id="name"
@@ -114,7 +115,7 @@ export default function createCollectionDrawer(props: Props) {
                 Cancel
               </Button>
               <Button
-                onClick={handleCreateCollection}
+                type="submit"
                 size="md"
                 loading={createCollection.isPending}
               >

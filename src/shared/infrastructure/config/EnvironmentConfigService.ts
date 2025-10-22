@@ -1,5 +1,11 @@
+export enum Environment {
+  LOCAL = 'local',
+  DEV = 'dev',
+  PROD = 'prod',
+}
+
 export interface EnvironmentConfig {
-  environment: 'local' | 'dev' | 'prod';
+  environment: Environment;
   database: {
     url: string;
   };
@@ -42,10 +48,7 @@ export class EnvironmentConfigService {
   private config: EnvironmentConfig;
 
   constructor() {
-    const environment = (process.env.NODE_ENV || 'local') as
-      | 'local'
-      | 'dev'
-      | 'prod';
+    const environment = (process.env.NODE_ENV || Environment.LOCAL) as Environment;
 
     this.config = {
       environment,
@@ -70,15 +73,15 @@ export class EnvironmentConfigService {
         baseUrl: process.env.BASE_URL || 'http://127.0.0.1:3000',
         collections: {
           card:
-            environment === 'prod'
+            environment === Environment.PROD
               ? 'network.cosmik.card'
               : `network.cosmik.${environment}.card`,
           collection:
-            environment === 'prod'
+            environment === Environment.PROD
               ? 'network.cosmik.collection'
               : `network.cosmik.${environment}.collection`,
           collectionLink:
-            environment === 'prod'
+            environment === Environment.PROD
               ? 'network.cosmik.collectionLink'
               : `network.cosmik.${environment}.collectionLink`,
         },
@@ -109,10 +112,10 @@ export class EnvironmentConfigService {
 
   private applyEnvironmentSpecificConfig(): void {
     switch (this.config.environment) {
-      case 'dev':
+      case Environment.DEV:
         // Override defaults with dev-specific values
         break;
-      case 'prod':
+      case Environment.PROD:
         // Override defaults with production-specific values
         if (
           this.config.auth.jwtSecret === 'default-secret-change-in-production'
@@ -120,7 +123,7 @@ export class EnvironmentConfigService {
           throw new Error('JWT secret must be set in production environment');
         }
         break;
-      case 'local':
+      case Environment.LOCAL:
       default:
         // Local development defaults are already set
         break;

@@ -6,7 +6,7 @@ import { createUserRoutes } from '../../../modules/user/infrastructure/http/rout
 import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atprotoRoutes';
 import { createCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
 import { createFeedRoutes } from '../../../modules/feeds/infrastructure/http/routes/feedRoutes';
-import { EnvironmentConfigService } from '../config/EnvironmentConfigService';
+import { EnvironmentConfigService, Environment } from '../config/EnvironmentConfigService';
 import { RepositoryFactory } from './factories/RepositoryFactory';
 import { ServiceFactory } from './factories/ServiceFactory';
 import { UseCaseFactory } from './factories/UseCaseFactory';
@@ -23,11 +23,11 @@ export const createExpressApp = (
     const appUrl = configService.getAppConfig().appUrl;
 
     switch (environment) {
-      case 'prod':
+      case Environment.PROD:
         return ['https://semble.so', 'https://api.semble.so'];
-      case 'dev':
+      case Environment.DEV:
         return ['https://dev.semble.so', 'https://api.dev.semble.so'];
-      case 'local':
+      case Environment.LOCAL:
       default:
         // Allow both localhost:4000 and configured appUrl for flexibility
         return [

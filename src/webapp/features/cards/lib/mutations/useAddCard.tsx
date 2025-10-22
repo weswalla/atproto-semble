@@ -28,6 +28,7 @@ export default function useAddCard() {
       queryClient.invalidateQueries({ queryKey: ['my cards'] });
       queryClient.invalidateQueries({ queryKey: ['home'] });
       queryClient.invalidateQueries({ queryKey: ['collections'] });
+      queryClient.invalidateQueries({ queryKey: ['collection'] });
 
       // invalidate each collection query individually
       variables.collectionIds?.forEach((id) => {

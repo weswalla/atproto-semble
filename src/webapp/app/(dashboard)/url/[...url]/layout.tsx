@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       images: [
         {
-          url: `/api/opengraph/semble?url=${formattedUrl}`,
+          url: `${process.env.APP_URL}/api/opengraph/semble?url=${formattedUrl}`,
           width: 1200,
           height: 630,
           alt: `Semble page for ${domain}`,

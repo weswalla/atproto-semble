@@ -9,7 +9,6 @@ export class SearchService {
   constructor(
     private vectorDatabase: IVectorDatabase,
     private metadataService: IMetadataService,
-    private cardQueryRepository: ICardQueryRepository,
   ) {}
 
   async indexUrl(url: URL): Promise<Result<void>> {
@@ -17,7 +16,11 @@ export class SearchService {
       // 1. Get metadata for the URL
       const metadataResult = await this.metadataService.fetchMetadata(url);
       if (metadataResult.isErr()) {
-        return err(new Error(`Failed to fetch metadata: ${metadataResult.error.message}`));
+        return err(
+          new Error(
+            `Failed to fetch metadata: ${metadataResult.error.message}`,
+          ),
+        );
       }
 
       const metadata = metadataResult.value;
@@ -39,12 +42,18 @@ export class SearchService {
       });
 
       if (indexResult.isErr()) {
-        return err(new Error(`Failed to index URL: ${indexResult.error.message}`));
+        return err(
+          new Error(`Failed to index URL: ${indexResult.error.message}`),
+        );
       }
 
       return ok(undefined);
     } catch (error) {
-      return err(new Error(`Search service error: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      return err(
+        new Error(
+          `Search service error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
     }
   }
 
@@ -60,17 +69,26 @@ export class SearchService {
         threshold: options.threshold,
       };
 
-      const similarResult = await this.vectorDatabase.findSimilarUrls(findParams);
+      const similarResult =
+        await this.vectorDatabase.findSimilarUrls(findParams);
       if (similarResult.isErr()) {
-        return err(new Error(`Vector search failed: ${similarResult.error.message}`));
+        return err(
+          new Error(`Vector search failed: ${similarResult.error.message}`),
+        );
       }
 
       // 2. Enrich results with library counts and context
-      const enrichedUrls = await this.enrichUrlsWithContext(similarResult.value);
+      const enrichedUrls = await this.enrichUrlsWithContext(
+        similarResult.value,
+      );
 
       return ok(enrichedUrls);
     } catch (error) {
-      return err(new Error(`Search service error: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      return err(
+        new Error(
+          `Search service error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
     }
   }
 
@@ -80,11 +98,11 @@ export class SearchService {
     author?: string,
   ): string {
     const parts: string[] = [];
-    
+
     if (title) parts.push(title);
     if (description) parts.push(description);
     if (author) parts.push(`by ${author}`);
-    
+
     return parts.join(' ');
   }
 
@@ -101,7 +119,7 @@ export class SearchService {
   ): Promise<UrlView[]> {
     // For now, return basic enriched results
     // In a full implementation, you'd query the card repository for library counts
-    return searchResults.map(result => ({
+    return searchResults.map((result) => ({
       url: result.url,
       metadata: {
         url: result.url,

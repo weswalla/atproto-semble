@@ -30,6 +30,8 @@ import { GetUrlStatusForMyLibraryUseCase } from '../../../../modules/cards/appli
 import { GetLibrariesForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase';
 import { GetCollectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionsForUrlUseCase';
 import { GetNoteCardsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetNoteCardsForUrlUseCase';
+import { IndexUrlForSearchUseCase } from '../../../../modules/search/application/useCases/commands/IndexUrlForSearchUseCase';
+import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/application/useCases/queries/GetSimilarUrlsForUrlUseCase';
 
 export interface UseCases {
   // User use cases
@@ -65,6 +67,8 @@ export interface UseCases {
   // Feed use cases
   getGlobalFeedUseCase: GetGlobalFeedUseCase;
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
+  // Search use cases
+  getSimilarUrlsForUrlUseCase: GetSimilarUrlsForUrlUseCase;
 }
 
 export class UseCaseFactory {
@@ -220,17 +224,25 @@ export class UseCaseFactory {
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,
       ),
+      // Search use cases
+      getSimilarUrlsForUrlUseCase: new GetSimilarUrlsForUrlUseCase(
+        services.searchService,
+      ),
     };
   }
 
   static createForWorker(
     repositories: Repositories,
     services: SharedServices,
-  ): Pick<UseCases, 'addActivityToFeedUseCase'> {
+  ): Pick<UseCases, 'addActivityToFeedUseCase' | 'indexUrlForSearchUseCase'> {
     return {
       // Feed use cases (only ones needed by workers)
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,
+      ),
+      // Search use cases (only ones needed by workers)
+      indexUrlForSearchUseCase: new IndexUrlForSearchUseCase(
+        (services as any).searchService, // Cast needed because SharedServices doesn't include searchService
       ),
     };
   }

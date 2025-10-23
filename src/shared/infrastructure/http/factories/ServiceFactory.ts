@@ -54,6 +54,9 @@ import { CookieService } from '../services/CookieService';
 import { InMemorySagaStateStore } from '../../../../modules/feeds/infrastructure/InMemorySagaStateStore';
 import { RedisSagaStateStore } from '../../../../modules/feeds/infrastructure/RedisSagaStateStore';
 import { ISagaStateStore } from 'src/modules/feeds/application/sagas/ISagaStateStore';
+import { SearchService } from '../../../../modules/search/domain/services/SearchService';
+import { IVectorDatabase } from '../../../../modules/search/domain/IVectorDatabase';
+import { InMemoryVectorDatabase } from '../../../../modules/search/infrastructure/InMemoryVectorDatabase';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -88,6 +91,8 @@ export interface WorkerServices extends SharedServices {
   eventPublisher: IEventPublisher;
   createEventSubscriber: (queueName: QueueName) => IEventSubscriber;
   sagaStateStore: ISagaStateStore;
+  searchService: SearchService;
+  vectorDatabase: IVectorDatabase;
 }
 
 // Legacy interface for backward compatibility
@@ -230,12 +235,26 @@ export class ServiceFactory {
       ? new InMemorySagaStateStore()
       : new RedisSagaStateStore(redisConnection!);
 
+    // Create vector database and search service
+    const useMockVectorDb = process.env.USE_MOCK_VECTOR_DB === 'true' || useInMemoryEvents;
+    const vectorDatabase: IVectorDatabase = useMockVectorDb
+      ? new InMemoryVectorDatabase()
+      : new InMemoryVectorDatabase(); // TODO: Replace with real vector DB implementation
+
+    const searchService = new SearchService(
+      vectorDatabase,
+      sharedServices.metadataService,
+      repositories.cardQueryRepository,
+    );
+
     return {
       ...sharedServices,
       redisConnection: redisConnection,
       eventPublisher,
       createEventSubscriber,
       sagaStateStore,
+      searchService,
+      vectorDatabase,
     };
   }
 

@@ -222,18 +222,12 @@ export class ServiceFactory {
       };
     }
 
-    // Create saga for worker
-    const cardCollectionSaga = new CardCollectionSaga(
-      // We'll need to create this use case in the worker context
-      null as any, // Will be set properly in worker
-    );
-
     return {
       ...sharedServices,
       redisConnection: redisConnection,
       eventPublisher,
       createEventSubscriber,
-      cardCollectionSaga,
+      cardCollectionSaga: null as any, // Will be created in worker process
     };
   }
 

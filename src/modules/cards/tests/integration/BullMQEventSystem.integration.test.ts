@@ -3,13 +3,17 @@ import Redis from 'ioredis';
 import { BullMQEventPublisher } from '../../../../shared/infrastructure/events/BullMQEventPublisher';
 import { BullMQEventSubscriber } from '../../../../shared/infrastructure/events/BullMQEventSubscriber';
 import { CardAddedToLibraryEvent } from '../../domain/events/CardAddedToLibraryEvent';
+import { CardAddedToCollectionEvent } from '../../domain/events/CardAddedToCollectionEvent';
 import { CardId } from '../../domain/value-objects/CardId';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
+import { CollectionId } from '../../domain/value-objects/CollectionId';
 import { IEventHandler } from '../../../../shared/application/events/IEventSubscriber';
 import { ok, err } from '../../../../shared/core/Result';
 import { EventNames } from '../../../../shared/infrastructure/events/EventConfig';
 import { Queue } from 'bullmq';
 import { QueueNames } from 'src/shared/infrastructure/events/QueueConfig';
+import { CardCollectionSaga } from '../../../feeds/application/sagas/CardCollectionSaga';
+import { RedisSagaStateStore } from '../../../feeds/infrastructure/RedisSagaStateStore';
 
 describe('BullMQ Event System Integration', () => {
   let redisContainer: StartedRedisContainer;
@@ -281,5 +285,101 @@ describe('BullMQ Event System Integration', () => {
 
       await eventsQueue.close();
     }, 10000);
+  });
+
+  describe('Redis-Based Saga Integration', () => {
+    it('should handle distributed saga state across multiple workers', async () => {
+      // Arrange - Create two saga instances (simulating multiple workers)
+      const mockUseCase = {
+        execute: jest.fn().mockResolvedValue(ok({ activityId: 'test-activity' })),
+      } as any;
+
+      const stateStore = new RedisSagaStateStore(redis);
+      const saga1 = new CardCollectionSaga(mockUseCase, stateStore);
+      const saga2 = new CardCollectionSaga(mockUseCase, stateStore);
+
+      // Create test events for same card/user (should be aggregated)
+      const cardId = CardId.createFromString('saga-test-card').unwrap();
+      const curatorId = CuratorId.create('did:plc:sagatest').unwrap();
+
+      const libraryEvent = CardAddedToLibraryEvent.create(
+        cardId,
+        curatorId,
+      ).unwrap();
+      const collectionEvent = CardAddedToCollectionEvent.create(
+        cardId,
+        CollectionId.createFromString('test-collection').unwrap(),
+        curatorId,
+      ).unwrap();
+
+      // Act - Process events with different saga instances
+      const result1 = await saga1.handleCardEvent(libraryEvent);
+      const result2 = await saga2.handleCardEvent(collectionEvent);
+
+      // Assert - Both operations succeeded
+      expect(result1.isOk()).toBe(true);
+      expect(result2.isOk()).toBe(true);
+
+      // Wait for aggregation window
+      await new Promise((resolve) => setTimeout(resolve, 3500));
+
+      // Assert - Only one aggregated activity was created
+      expect(mockUseCase.execute).toHaveBeenCalledTimes(1);
+
+      const call = mockUseCase.execute.mock.calls[0][0];
+      expect(call.cardId).toBe(cardId.getStringValue());
+      expect(call.actorId).toBe(curatorId.value);
+      expect(call.collectionIds).toContain('test-collection');
+    }, 15000);
+  });
+
+  describe('Multi-Queue Event Routing', () => {
+    it('should route events to multiple queues', async () => {
+      // Arrange - Create subscribers for different queues
+      const feedsSubscriber = new BullMQEventSubscriber(redis, {
+        queueName: QueueNames.FEEDS,
+      });
+      const searchSubscriber = new BullMQEventSubscriber(redis, {
+        queueName: QueueNames.SEARCH,
+      });
+
+      const feedsHandler = {
+        handle: jest.fn().mockResolvedValue(ok(undefined)),
+      };
+      const searchHandler = {
+        handle: jest.fn().mockResolvedValue(ok(undefined)),
+      };
+
+      await feedsSubscriber.subscribe(
+        EventNames.CARD_ADDED_TO_LIBRARY,
+        feedsHandler,
+      );
+      await searchSubscriber.subscribe(
+        EventNames.CARD_ADDED_TO_LIBRARY,
+        searchHandler,
+      );
+
+      await feedsSubscriber.start();
+      await searchSubscriber.start();
+
+      // Act - Publish single event
+      const event = CardAddedToLibraryEvent.create(
+        CardId.createFromString('multi-queue-card').unwrap(),
+        CuratorId.create('did:plc:multiuser').unwrap(),
+      ).unwrap();
+
+      await publisher.publishEvents([event]);
+
+      // Wait for processing
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Assert - Event processed by both queues
+      expect(feedsHandler.handle).toHaveBeenCalledTimes(1);
+      expect(searchHandler.handle).toHaveBeenCalledTimes(1);
+
+      // Cleanup
+      await feedsSubscriber.stop();
+      await searchSubscriber.stop();
+    }, 15000);
   });
 });

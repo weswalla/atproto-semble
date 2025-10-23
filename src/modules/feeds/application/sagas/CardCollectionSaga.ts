@@ -6,6 +6,7 @@ import {
   AddCardCollectedActivityDTO,
 } from '../useCases/commands/AddActivityToFeedUseCase';
 import { ActivityTypeEnum } from '../../domain/value-objects/ActivityType';
+import { ISagaStateStore } from './ISagaStateStore';
 
 interface PendingCardActivity {
   cardId: string;
@@ -17,35 +18,82 @@ interface PendingCardActivity {
 }
 
 export class CardCollectionSaga {
-  private pendingActivities = new Map<string, PendingCardActivity>();
-  private flushTimers = new Map<string, NodeJS.Timeout>();
   private readonly AGGREGATION_WINDOW_MS = 3000;
+  private readonly REDIS_KEY_PREFIX = 'saga:feed';
 
-  constructor(private addActivityToFeedUseCase: AddActivityToFeedUseCase) {}
+  constructor(
+    private addActivityToFeedUseCase: AddActivityToFeedUseCase,
+    private stateStore: ISagaStateStore,
+  ) {}
 
   async handleCardEvent(
     event: CardAddedToLibraryEvent | CardAddedToCollectionEvent,
   ): Promise<Result<void>> {
+    const aggregationKey = this.createKey(event);
+
+    const lockAcquired = await this.acquireLock(aggregationKey);
+    if (!lockAcquired) {
+      return ok(undefined); // Another worker is processing
+    }
+
     try {
-      const aggregationKey = this.createKey(event);
-      const existing = this.pendingActivities.get(aggregationKey);
+      const existing = await this.getPendingActivity(aggregationKey);
 
       if (existing && this.isWithinWindow(existing)) {
-        // Merge with existing activity
         this.mergeActivity(existing, event);
-        // Reset the timer
-        this.rescheduleFlush(aggregationKey);
+        await this.setPendingActivity(aggregationKey, existing);
       } else {
-        // Create new pending activity
-        this.createPendingActivity(aggregationKey, event);
-        this.scheduleFlush(aggregationKey);
+        const newActivity = this.createNewPendingActivity(event);
+        await this.setPendingActivity(aggregationKey, newActivity);
+        await this.scheduleFlush(aggregationKey);
       }
 
       return ok(undefined);
-    } catch (error) {
-      console.error('[SAGA] Error handling card event:', error);
-      return err(error as Error);
+    } finally {
+      await this.releaseLock(aggregationKey);
     }
+  }
+
+  // Key helpers
+  private getPendingKey(aggregationKey: string): string {
+    return `${this.REDIS_KEY_PREFIX}:pending:${aggregationKey}`;
+  }
+
+  private getLockKey(aggregationKey: string): string {
+    return `${this.REDIS_KEY_PREFIX}:lock:${aggregationKey}`;
+  }
+
+  // State management
+  private async getPendingActivity(
+    aggregationKey: string,
+  ): Promise<PendingCardActivity | null> {
+    const data = await this.stateStore.get(this.getPendingKey(aggregationKey));
+    return data ? JSON.parse(data) : null;
+  }
+
+  private async setPendingActivity(
+    aggregationKey: string,
+    activity: PendingCardActivity,
+  ): Promise<void> {
+    const key = this.getPendingKey(aggregationKey);
+    const ttlSeconds = Math.ceil(this.AGGREGATION_WINDOW_MS / 1000) + 5;
+    await this.stateStore.setex(key, ttlSeconds, JSON.stringify(activity));
+  }
+
+  private async deletePendingActivity(aggregationKey: string): Promise<void> {
+    await this.stateStore.del(this.getPendingKey(aggregationKey));
+  }
+
+  // Distributed locking
+  private async acquireLock(aggregationKey: string): Promise<boolean> {
+    const lockKey = this.getLockKey(aggregationKey);
+    const lockTtl = Math.ceil(this.AGGREGATION_WINDOW_MS / 1000) + 10;
+    const result = await this.stateStore.set(lockKey, '1', 'EX', lockTtl, 'NX');
+    return result === 'OK';
+  }
+
+  private async releaseLock(aggregationKey: string): Promise<void> {
+    await this.stateStore.del(this.getLockKey(aggregationKey));
   }
 
   private createKey(
@@ -72,10 +120,9 @@ export class CardCollectionSaga {
     return timeDiff <= this.AGGREGATION_WINDOW_MS;
   }
 
-  private createPendingActivity(
-    key: string,
+  private createNewPendingActivity(
     event: CardAddedToLibraryEvent | CardAddedToCollectionEvent,
-  ): void {
+  ): PendingCardActivity {
     const cardId = event.cardId.getStringValue();
     const actorId = this.getActorId(event);
 
@@ -89,7 +136,7 @@ export class CardCollectionSaga {
     };
 
     this.mergeActivity(pending, event);
-    this.pendingActivities.set(key, pending);
+    return pending;
   }
 
   private mergeActivity(
@@ -109,31 +156,20 @@ export class CardCollectionSaga {
     }
   }
 
-  private scheduleFlush(key: string): void {
-    const timer = setTimeout(() => {
-      this.flushActivity(key);
+  private async scheduleFlush(aggregationKey: string): Promise<void> {
+    setTimeout(async () => {
+      await this.flushActivity(aggregationKey);
     }, this.AGGREGATION_WINDOW_MS);
-
-    this.flushTimers.set(key, timer);
   }
 
-  private rescheduleFlush(key: string): void {
-    // Clear existing timer
-    const existingTimer = this.flushTimers.get(key);
-    if (existingTimer) {
-      clearTimeout(existingTimer);
-    }
-
-    // Schedule new timer
-    this.scheduleFlush(key);
-  }
-
-  private async flushActivity(key: string): Promise<void> {
-    const pending = this.pendingActivities.get(key);
-    if (!pending) return;
+  private async flushActivity(aggregationKey: string): Promise<void> {
+    const lockAcquired = await this.acquireLock(aggregationKey);
+    if (!lockAcquired) return;
 
     try {
-      // Create the aggregated activity
+      const pending = await this.getPendingActivity(aggregationKey);
+      if (!pending) return;
+
       const request: AddCardCollectedActivityDTO = {
         type: ActivityTypeEnum.CARD_COLLECTED,
         actorId: pending.actorId,
@@ -142,30 +178,10 @@ export class CardCollectionSaga {
           pending.collectionIds.length > 0 ? pending.collectionIds : undefined,
       };
 
-      const result = await this.addActivityToFeedUseCase.execute(request);
-
-      if (result.isErr()) {
-        console.error(
-          '[SAGA] Failed to create aggregated activity:',
-          result.error,
-        );
-      } else {
-        console.log(
-          `[SAGA] Successfully created aggregated activity ${result.value.activityId} for card ${pending.cardId}`,
-        );
-      }
-    } catch (error) {
-      console.error('[SAGA] Error flushing activity:', error);
+      await this.addActivityToFeedUseCase.execute(request);
     } finally {
-      // Clean up
-      this.pendingActivities.delete(key);
-      this.flushTimers.delete(key);
+      await this.deletePendingActivity(aggregationKey);
+      await this.releaseLock(aggregationKey);
     }
-  }
-
-  // For testing or graceful shutdown
-  public async flushAll(): Promise<void> {
-    const keys = Array.from(this.pendingActivities.keys());
-    await Promise.all(keys.map((key) => this.flushActivity(key)));
   }
 }

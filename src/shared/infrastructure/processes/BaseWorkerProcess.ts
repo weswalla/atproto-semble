@@ -2,7 +2,10 @@ import { IProcess } from '../../domain/IProcess';
 import { EnvironmentConfigService } from '../config/EnvironmentConfigService';
 import { QueueName } from '../events/QueueConfig';
 import { IEventSubscriber } from '../../application/events/IEventSubscriber';
-import { RepositoryFactory, Repositories } from '../http/factories/RepositoryFactory';
+import {
+  RepositoryFactory,
+  Repositories,
+} from '../http/factories/RepositoryFactory';
 import { WorkerServices } from '../http/factories/ServiceFactory';
 
 export abstract class BaseWorkerProcess implements IProcess {
@@ -29,7 +32,9 @@ export abstract class BaseWorkerProcess implements IProcess {
   }
 
   protected abstract createServices(repositories: Repositories): WorkerServices;
-  protected abstract validateDependencies(services: WorkerServices): Promise<void>;
+  protected abstract validateDependencies(
+    services: WorkerServices,
+  ): Promise<void>;
   protected abstract registerHandlers(
     subscriber: IEventSubscriber,
     services: WorkerServices,

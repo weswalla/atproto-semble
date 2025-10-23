@@ -1,5 +1,8 @@
 import { EnvironmentConfigService } from '../config/EnvironmentConfigService';
-import { ServiceFactory, WorkerServices } from '../http/factories/ServiceFactory';
+import {
+  ServiceFactory,
+  WorkerServices,
+} from '../http/factories/ServiceFactory';
 import { UseCaseFactory } from '../http/factories/UseCaseFactory';
 import { CardAddedToLibraryEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToCollectionEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToCollectionEventHandler';
@@ -20,7 +23,9 @@ export class FeedWorkerProcess extends BaseWorkerProcess {
     return ServiceFactory.createForWorker(this.configService, repositories);
   }
 
-  protected async validateDependencies(services: WorkerServices): Promise<void> {
+  protected async validateDependencies(
+    services: WorkerServices,
+  ): Promise<void> {
     if (!services.redisConnection) {
       throw new Error('Redis connection required for feed worker');
     }

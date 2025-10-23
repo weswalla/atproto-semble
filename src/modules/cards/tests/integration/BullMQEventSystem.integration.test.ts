@@ -291,7 +291,9 @@ describe('BullMQ Event System Integration', () => {
     it('should handle distributed saga state across multiple workers', async () => {
       // Arrange - Create two saga instances (simulating multiple workers)
       const mockUseCase = {
-        execute: jest.fn().mockResolvedValue(ok({ activityId: 'test-activity' })),
+        execute: jest
+          .fn()
+          .mockResolvedValue(ok({ activityId: 'test-activity' })),
       } as any;
 
       const stateStore = new RedisSagaStateStore(redis);

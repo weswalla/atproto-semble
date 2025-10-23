@@ -109,7 +109,8 @@ export class CardCollectionSaga {
   // Distributed locking
   private async acquireLock(aggregationKey: string): Promise<boolean> {
     const lockKey = this.getLockKey(aggregationKey);
-    const lockTtl = Math.ceil(this.AGGREGATION_WINDOW_MS / 1000) + 10;
+    // Reduced lock TTL to allow faster recovery in high concurrency scenarios
+    const lockTtl = Math.ceil(this.AGGREGATION_WINDOW_MS / 1000) + 5; // Reduced from +10 to +5
     const result = await this.stateStore.set(lockKey, '1', 'EX', lockTtl, 'NX');
     return result === 'OK';
   }

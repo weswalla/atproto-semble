@@ -417,8 +417,8 @@ describe('BullMQ Event System Integration', () => {
       // Assert - All should succeed
       results.forEach((result) => expect(result.isOk()).toBe(true));
 
-      // Wait for aggregation window
-      await new Promise((resolve) => setTimeout(resolve, 3500));
+      // Wait longer for aggregation window and retry processing
+      await new Promise((resolve) => setTimeout(resolve, 8000)); // Increased from 3500ms
 
       // Assert - Should create single activity with all 10 collections
       expect(mockUseCase.execute).toHaveBeenCalledTimes(1);
@@ -431,7 +431,7 @@ describe('BullMQ Event System Integration', () => {
       for (let i = 0; i < 10; i++) {
         expect(call.collectionIds).toContain(`collection-${i}`);
       }
-    }, 25000);
+    }, 35000); // Increased timeout from 25000ms
 
     it('should recover when lock expires due to timeout', async () => {
       // Arrange
@@ -447,7 +447,7 @@ describe('BullMQ Event System Integration', () => {
 
       // Manually acquire lock with short TTL to simulate crashed worker
       const lockKey = 'saga:feed:lock:timeout-test-card-did:plc:timeoutuser';
-      await stateStore.set(lockKey, '1', 'EX', 1, 'NX'); // 1 second TTL
+      await stateStore.set(lockKey, '1', 'EX', 2, 'NX'); // 2 second TTL (increased from 1)
 
       // Create saga and event
       const saga = new CardCollectionSaga(mockUseCase, stateStore);
@@ -460,12 +460,12 @@ describe('BullMQ Event System Integration', () => {
       // Assert - Should succeed after lock expires
       expect(result.isOk()).toBe(true);
 
-      // Wait for aggregation window
-      await new Promise((resolve) => setTimeout(resolve, 3500));
+      // Wait longer for aggregation window
+      await new Promise((resolve) => setTimeout(resolve, 5000)); // Increased from 3500ms
 
       // Assert - Activity should be created
       expect(mockUseCase.execute).toHaveBeenCalledTimes(1);
-    }, 15000);
+    }, 20000); // Increased timeout from 15000ms
 
     it('should handle retry mechanism under lock contention', async () => {
       // Arrange

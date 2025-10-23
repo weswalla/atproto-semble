@@ -83,6 +83,7 @@ export interface WebAppServices extends SharedServices {
   authMiddleware: AuthMiddleware;
   eventPublisher: IEventPublisher;
   cookieService: CookieService;
+  searchService: SearchService;
 }
 
 // Worker specific services (includes subscribers)
@@ -180,6 +181,18 @@ export class ServiceFactory {
       eventPublisher = new BullMQEventPublisher(redisConnection);
     }
 
+    // Create vector database and search service for web app
+    const useMockVectorDb = process.env.USE_MOCK_VECTOR_DB === 'true' || useInMemoryEvents;
+    const vectorDatabase: IVectorDatabase = useMockVectorDb
+      ? new InMemoryVectorDatabase()
+      : new InMemoryVectorDatabase(); // TODO: Replace with real vector DB implementation
+
+    const searchService = new SearchService(
+      vectorDatabase,
+      sharedServices.metadataService,
+      repositories.cardQueryRepository,
+    );
+
     return {
       ...sharedServices,
       oauthProcessor,
@@ -190,6 +203,7 @@ export class ServiceFactory {
       cardCollectionService,
       authMiddleware,
       eventPublisher,
+      searchService,
     };
   }
 

@@ -339,15 +339,25 @@ USE_FAKE_PUBLISHERS=true|false
 USE_MOCK_AUTH=true|false
 ```
 
-## Local Development Setup Issues
+## Local Development Commands
 
-The current `scripts/dev-combined.sh` has a potential issue: it starts both the web app and feed worker, but the web app already starts the feed worker internally when `USE_IN_MEMORY_EVENTS=true`.
+The project provides different development commands for different contexts:
 
-### Current Behavior:
-- `npm run dev` → runs `scripts/dev-combined.sh`
-- Starts both web app AND separate feed worker
-- If `USE_IN_MEMORY_EVENTS=true`, web app starts internal feed worker
-- Result: Two feed workers running simultaneously
+### `npm run dev` (Redis + BullMQ)
+- Uses `scripts/dev-combined.sh`
+- Starts PostgreSQL and Redis containers
+- Runs web app and separate feed worker processes
+- Uses BullMQ for event processing
+- Best for testing production-like behavior locally
 
-### Recommended Fix:
-The dev script should conditionally start the feed worker only when using BullMQ events.
+### `npm run dev:mock` (In-Memory)
+- Sets `USE_IN_MEMORY_EVENTS=true` and other mock flags
+- Uses `dev:app:inner` directly (bypasses `dev-combined.sh`)
+- No external dependencies (no Redis/containers)
+- Single process with in-memory event processing
+- Best for rapid development and testing
+
+### `npm run dev:mock:pub:auth` (Hybrid)
+- Uses real repositories but fake publishers and auth
+- Still requires PostgreSQL and Redis
+- Good for testing repository layer with simplified external services

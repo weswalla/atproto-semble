@@ -1,0 +1,44 @@
+import { createSembleClient } from '@/services/apiClient';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+export default function useUpdateCardAssociations() {
+  const client = createSembleClient();
+
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: (updatedCard: {
+      cardId: string;
+      note?: string;
+      addToCollectionIds?: string[];
+      removeFromCollectionIds?: string[];
+    }) => {
+      return client.updateUrlCardAssociations({
+        cardId: updatedCard.cardId,
+        note: updatedCard.note,
+        addToCollections: updatedCard.addToCollectionIds,
+        removeFromCollections: updatedCard.removeFromCollectionIds,
+      });
+    },
+
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['my cards'] });
+      queryClient.invalidateQueries({ queryKey: ['home'] });
+      queryClient.invalidateQueries({ queryKey: ['collections'] });
+      queryClient.invalidateQueries({
+        queryKey: ['card from my library'],
+      });
+
+      // invalidate each collection query individually
+      variables.addToCollectionIds?.forEach((id) => {
+        queryClient.invalidateQueries({ queryKey: ['collection', id] });
+      });
+
+      variables.removeFromCollectionIds?.forEach((id) => {
+        queryClient.invalidateQueries({ queryKey: ['collection', id] });
+      });
+    },
+  });
+
+  return mutation;
+}

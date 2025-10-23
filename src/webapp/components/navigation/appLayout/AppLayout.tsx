@@ -2,7 +2,6 @@ import { AppShell } from '@mantine/core';
 import Navbar from '@/components/navigation/navbar/Navbar';
 import ComposerDrawer from '@/features/composer/components/composerDrawer/ComposerDrawer';
 import { useNavbarContext } from '@/providers/navbar';
-import { useMediaQuery } from '@mantine/hooks';
 import { usePathname } from 'next/navigation';
 
 interface Props {

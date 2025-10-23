@@ -1,5 +1,5 @@
 import { ActionIcon, Affix } from '@mantine/core';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import { useMediaQuery } from '@mantine/hooks';

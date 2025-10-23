@@ -46,7 +46,10 @@ export class GetSimilarUrlsForUrlUseCase
   implements
     UseCase<
       GetSimilarUrlsForUrlQuery,
-      Result<GetSimilarUrlsForUrlResult, ValidationError | AppError.UnexpectedError>
+      Result<
+        GetSimilarUrlsForUrlResult,
+        ValidationError | AppError.UnexpectedError
+      >
     >
 {
   constructor(private searchService: SearchService) {}
@@ -63,7 +66,7 @@ export class GetSimilarUrlsForUrlUseCase
       // Set defaults
       const page = query.page || 1;
       const limit = Math.min(query.limit || 20, 100); // Cap at 100
-      const threshold = query.threshold || 0.7;
+      const threshold = query.threshold || 0;
 
       // Validate URL
       const urlResult = URL.create(query.url);
@@ -74,6 +77,7 @@ export class GetSimilarUrlsForUrlUseCase
       }
 
       // Find similar URLs
+      console.log('Finding similar URLs for:', urlResult.value.value);
       const similarUrlsResult = await this.searchService.findSimilarUrls(
         urlResult.value,
         {
@@ -81,6 +85,7 @@ export class GetSimilarUrlsForUrlUseCase
           threshold,
         },
       );
+      console.log('Similar URLs result:', similarUrlsResult);
 
       if (similarUrlsResult.isErr()) {
         return err(

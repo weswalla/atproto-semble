@@ -8,6 +8,7 @@ import { CardAddedToLibraryEventHandler } from '../../../modules/feeds/applicati
 import { CardAddedToCollectionEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToCollectionEventHandler';
 import { CardCollectionSaga } from '../../../modules/feeds/application/sagas/CardCollectionSaga';
 import { RedisSagaStateStore } from '../../../modules/feeds/infrastructure/RedisSagaStateStore';
+import { InMemorySagaStateStore } from '../../../modules/feeds/infrastructure/InMemorySagaStateStore';
 import { QueueNames } from '../events/QueueConfig';
 import { EventNames } from '../events/EventConfig';
 import { BaseWorkerProcess } from './BaseWorkerProcess';
@@ -39,7 +40,12 @@ export class FeedWorkerProcess extends BaseWorkerProcess {
   ): Promise<void> {
     const useCases = UseCaseFactory.createForWorker(repositories, services);
 
-    const stateStore = new RedisSagaStateStore(services.redisConnection!);
+    // Create saga with appropriate state store based on event system type
+    const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
+    const stateStore = useInMemoryEvents
+      ? new InMemorySagaStateStore()
+      : new RedisSagaStateStore(services.redisConnection!);
+
     const cardCollectionSaga = new CardCollectionSaga(
       useCases.addActivityToFeedUseCase,
       stateStore,

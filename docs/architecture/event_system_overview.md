@@ -117,14 +117,20 @@ This document explains how our event-driven architecture works across different 
 │        │                  │         │
 │        └──────────────────┘         │
 │                                     │
-│     (No external dependencies)      │
+│ ┌─────────────────────────────────┐ │
+│ │    InMemorySagaStateStore       │ │
+│ │  - Map-based state storage      │ │
+│ │  - Timeout-based lock expiry    │ │
+│ │  - No external dependencies     │ │
+│ └─────────────────────────────────┘ │
 └─────────────────────────────────────┘
 ```
 
 **Configuration:**
 - `USE_IN_MEMORY_EVENTS=true`
 - No Redis required
-- All processing in-memory
+- All processing in-memory with `InMemorySagaStateStore`
+- Uses `InMemoryEventWorkerProcess` for event handling
 
 ## Event Flow Example: CardAddedToLibrary
 

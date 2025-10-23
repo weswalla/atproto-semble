@@ -51,6 +51,8 @@ import { CardCollectionSaga } from '../../../../modules/feeds/application/sagas/
 import { ATProtoIdentityResolutionService } from '../../../../modules/atproto/infrastructure/services/ATProtoIdentityResolutionService';
 import { IIdentityResolutionService } from '../../../../modules/atproto/domain/services/IIdentityResolutionService';
 import { CookieService } from '../services/CookieService';
+import { InMemorySagaStateStore } from '../../../../modules/feeds/infrastructure/InMemorySagaStateStore';
+import { RedisSagaStateStore } from '../../../../modules/feeds/infrastructure/RedisSagaStateStore';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -222,12 +224,28 @@ export class ServiceFactory {
       };
     }
 
+    // Create saga with appropriate state store
+    let cardCollectionSaga: CardCollectionSaga;
+    if (useInMemoryEvents) {
+      const stateStore = new InMemorySagaStateStore();
+      cardCollectionSaga = new CardCollectionSaga(
+        sharedServices.feedService as any, // Will be properly typed when used
+        stateStore,
+      );
+    } else {
+      const stateStore = new RedisSagaStateStore(redisConnection!);
+      cardCollectionSaga = new CardCollectionSaga(
+        sharedServices.feedService as any, // Will be properly typed when used
+        stateStore,
+      );
+    }
+
     return {
       ...sharedServices,
       redisConnection: redisConnection,
       eventPublisher,
       createEventSubscriber,
-      cardCollectionSaga: null as any, // Will be created in worker process
+      cardCollectionSaga,
     };
   }
 

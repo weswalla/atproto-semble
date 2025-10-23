@@ -17,7 +17,6 @@ primary_region = 'yyz'
   processes = ['web']
 
 [[vm]]
-  processes = ['web']
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1

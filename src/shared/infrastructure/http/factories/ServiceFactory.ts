@@ -53,6 +53,7 @@ import { IIdentityResolutionService } from '../../../../modules/atproto/domain/s
 import { CookieService } from '../services/CookieService';
 import { InMemorySagaStateStore } from '../../../../modules/feeds/infrastructure/InMemorySagaStateStore';
 import { RedisSagaStateStore } from '../../../../modules/feeds/infrastructure/RedisSagaStateStore';
+import { ISagaStateStore } from 'src/modules/feeds/application/sagas/ISagaStateStore';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -86,7 +87,7 @@ export interface WorkerServices extends SharedServices {
   redisConnection: Redis | null;
   eventPublisher: IEventPublisher;
   createEventSubscriber: (queueName: QueueName) => IEventSubscriber;
-  cardCollectionSaga: CardCollectionSaga;
+  sagaStateStore: ISagaStateStore;
 }
 
 // Legacy interface for backward compatibility

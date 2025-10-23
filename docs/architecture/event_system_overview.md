@@ -58,6 +58,7 @@ This document explains how our event-driven architecture works across different 
 ```
 
 **Configuration:**
+
 - `USE_IN_MEMORY_EVENTS=false` (default)
 - `REDIS_URL` configured
 - Multiple worker processes via `fly.toml`
@@ -94,6 +95,7 @@ This document explains how our event-driven architecture works across different 
 ```
 
 **Configuration:**
+
 - `USE_IN_MEMORY_EVENTS=false` (default)
 - Local Redis via Docker
 - Both web app and feed worker in same process
@@ -127,6 +129,7 @@ This document explains how our event-driven architecture works across different 
 ```
 
 **Configuration:**
+
 - `USE_IN_MEMORY_EVENTS=true`
 - No Redis required
 - All processing in-memory with `InMemorySagaStateStore`
@@ -140,7 +143,7 @@ Let's trace what happens when a user adds a URL to their library:
 
 ```typescript
 // In AddUrlToLibraryUseCase.ts
-const addUrlCardToLibraryResult = 
+const addUrlCardToLibraryResult =
   await this.cardLibraryService.addCardToLibrary(urlCard, curatorId);
 
 // In CardLibraryService -> Card.addToLibrary()
@@ -152,13 +155,13 @@ this.addDomainEvent(domainEvent.value);
 
 ```typescript
 // In AddUrlToLibraryUseCase.ts
-const publishUrlCardResult = 
-  await this.publishEventsForAggregate(urlCard);
+const publishUrlCardResult = await this.publishEventsForAggregate(urlCard);
 ```
 
 This calls the configured `IEventPublisher`:
 
 #### Production/Local Dev (BullMQ):
+
 ```typescript
 // BullMQEventPublisher.publishEvents()
 for (const event of events) {
@@ -171,6 +174,7 @@ for (const event of events) {
 ```
 
 #### Local Mock (InMemory):
+
 ```typescript
 // InMemoryEventPublisher.publishEvents()
 setImmediate(async () => {
@@ -209,9 +213,11 @@ Worker 2 (search queue):
 ```
 
 #### Local Dev (Single Process):
+
 Same as production but both web app and worker run in the same process.
 
 #### Local Mock (In-Memory):
+
 ```
 ┌─────────────────────────────────────┐
 │ InMemoryEventSubscriber             │
@@ -258,9 +264,8 @@ const request: AddCardCollectedActivityDTO = {
   type: ActivityTypeEnum.CARD_COLLECTED,
   actorId: pending.actorId,
   cardId: pending.cardId,
-  collectionIds: pending.collectionIds.length > 0 
-    ? pending.collectionIds 
-    : undefined,
+  collectionIds:
+    pending.collectionIds.length > 0 ? pending.collectionIds : undefined,
 };
 
 await this.addActivityToFeedUseCase.execute(request);
@@ -275,6 +280,7 @@ When you scale feed workers horizontally (multiple instances processing the feed
 #### Worker Scaling Scenarios
 
 **Single Feed Worker:**
+
 ```
 ┌─────────────────┐
 │  Feed Worker 1  │
@@ -293,6 +299,7 @@ When you scale feed workers horizontally (multiple instances processing the feed
 ```
 
 **Multiple Feed Workers (Production Scale):**
+
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │  Feed Worker 1  │    │  Feed Worker 2  │    │  Feed Worker 3  │
@@ -349,7 +356,7 @@ Time: T0 (Events arrive in queue)
 
 Time: T0+5ms (Workers pick up events)
 Worker 1: Gets CardAddedToLibraryEvent
-Worker 2: Gets CardAddedToCollectionEvent (coll-1)  
+Worker 2: Gets CardAddedToCollectionEvent (coll-1)
 Worker 3: Gets CardAddedToCollectionEvent (coll-2)
 
 Time: T0+10ms (Lock competition)
@@ -358,7 +365,7 @@ Worker 2: SET saga:feed:lock:card-123-user-abc 1 EX 13 NX → null ✗
 Worker 3: SET saga:feed:lock:card-123-user-abc 1 EX 13 NX → null ✗
 
 Time: T0+15ms (Lock holder processes)
-Worker 1: 
+Worker 1:
   - Creates new pending activity
   - Sets hasLibraryEvent = true
   - Schedules flush in 3000ms
@@ -380,17 +387,17 @@ Worker 2:
 Time: T0+30ms (Third worker gets chance)
 Worker 3: SET saga:feed:lock:card-123-user-abc 1 EX 13 NX → OK ✓
 Worker 3:
-  - Finds existing pending activity  
+  - Finds existing pending activity
   - Merges: adds coll-2 to collectionIds
   - Releases lock
 
 Time: T0+3000ms (Flush timer fires)
-Worker 1's timer: 
+Worker 1's timer:
   - Acquires lock again
   - Creates single aggregated activity:
     {
       cardId: "card-123",
-      actorId: "user-abc", 
+      actorId: "user-abc",
       collectionIds: ["coll-1", "coll-2"],
       hasLibraryEvent: true,
       hasCollectionEvents: true
@@ -403,15 +410,17 @@ Worker 1's timer:
 #### Race Condition Prevention
 
 **Problem Without Locking:**
+
 ```
 Worker 1: Reads pending state → null
-Worker 2: Reads pending state → null  
+Worker 2: Reads pending state → null
 Worker 1: Creates activity A
 Worker 2: Creates activity B
 Result: Duplicate activities! ❌
 ```
 
 **Solution With Distributed Locking:**
+
 ```
 Worker 1: Acquires lock → processes → releases
 Worker 2: Waits for lock → finds existing state → merges
@@ -424,7 +433,9 @@ Result: Single aggregated activity ✅
 // Lock TTL calculation
 const AGGREGATION_WINDOW_MS = 3000;
 const PROCESSING_BUFFER_MS = 10000;
-const lockTtl = Math.ceil((AGGREGATION_WINDOW_MS + PROCESSING_BUFFER_MS) / 1000);
+const lockTtl = Math.ceil(
+  (AGGREGATION_WINDOW_MS + PROCESSING_BUFFER_MS) / 1000,
+);
 
 // If a worker crashes while holding the lock:
 // 1. Redis automatically expires the lock after TTL
@@ -436,13 +447,13 @@ const lockTtl = Math.ceil((AGGREGATION_WINDOW_MS + PROCESSING_BUFFER_MS) / 1000)
 
 ```
 Lock Key: "saga:feed:lock:card-123-user-abc"
-Value: "1" 
+Value: "1"
 TTL: 13 seconds
 
-Pending Activity Key: "saga:feed:pending:card-123-user-abc"  
+Pending Activity Key: "saga:feed:pending:card-123-user-abc"
 Value: {
   "cardId": "card-123",
-  "actorId": "user-abc", 
+  "actorId": "user-abc",
   "collectionIds": ["coll-1", "coll-2"],
   "timestamp": "2024-01-15T10:30:00.000Z",
   "hasLibraryEvent": true,
@@ -460,7 +471,7 @@ Time: T0
 Worker 1: Acquires lock, starts processing
 Worker 1: CRASHES 💥 (before releasing lock)
 
-Time: T0+13s  
+Time: T0+13s
 Redis: Lock expires automatically
 Worker 2: Can now acquire lock and continue processing
 ```
@@ -528,11 +539,11 @@ switch (eventName) {
 
 ## Configuration Summary
 
-| Context | Events | Redis | Workers | Saga State |
-|---------|--------|-------|---------|------------|
-| Production | BullMQ | Required | Multiple processes | Redis |
-| Local Dev | BullMQ | Required | Single process | Redis |
-| Local Mock | InMemory | Not required | Single process | In-memory |
+| Context    | Events   | Redis        | Workers            | Saga State |
+| ---------- | -------- | ------------ | ------------------ | ---------- |
+| Production | BullMQ   | Required     | Multiple processes | Redis      |
+| Local Dev  | BullMQ   | Required     | Single process     | Redis      |
+| Local Mock | InMemory | Not required | Single process     | In-memory  |
 
 ## Environment Variables
 
@@ -557,6 +568,7 @@ USE_MOCK_AUTH=true|false
 The project provides different development commands for different contexts:
 
 ### `npm run dev` (Redis + BullMQ)
+
 - Uses `scripts/dev-combined.sh`
 - Starts PostgreSQL and Redis containers
 - Runs web app and separate feed worker processes
@@ -564,6 +576,7 @@ The project provides different development commands for different contexts:
 - Best for testing production-like behavior locally
 
 ### `npm run dev:mock` (In-Memory)
+
 - Sets `USE_IN_MEMORY_EVENTS=true` and other mock flags
 - Uses `dev:app:inner` directly (bypasses `dev-combined.sh`)
 - No external dependencies (no Redis/containers)
@@ -571,6 +584,7 @@ The project provides different development commands for different contexts:
 - Best for rapid development and testing
 
 ### `npm run dev:mock:pub:auth` (Hybrid)
+
 - Uses real repositories but fake publishers and auth
 - Still requires PostgreSQL and Redis
 - Good for testing repository layer with simplified external services

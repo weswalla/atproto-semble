@@ -48,7 +48,7 @@ export class InMemorySagaStateStore implements ISagaStateStore {
     }
 
     this.locks.add(key);
-    
+
     // Auto-expire the lock after TTL
     setTimeout(() => {
       this.locks.delete(key);

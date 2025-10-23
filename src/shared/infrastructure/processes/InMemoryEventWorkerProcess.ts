@@ -18,7 +18,10 @@ export class InMemoryEventWorkerProcess implements IProcess {
 
     // Create dependencies
     const repositories = RepositoryFactory.create(this.configService);
-    const services = ServiceFactory.createForWebApp(this.configService, repositories);
+    const services = ServiceFactory.createForWebApp(
+      this.configService,
+      repositories,
+    );
     const useCases = UseCaseFactory.createForWorker(repositories, services);
 
     // Create in-memory saga state store

@@ -29,11 +29,13 @@ export class CardCollectionSaga {
   async handleCardEvent(
     event: CardAddedToLibraryEvent | CardAddedToCollectionEvent,
   ): Promise<Result<void>> {
+    console.log('Handling card event:', event);
     const aggregationKey = this.createKey(event);
 
-    // Retry lock acquisition with exponential backoff
-    const maxRetries = 5;
-    const baseDelay = 50; // ms
+    // Retry lock acquisition with longer delays and more attempts for high concurrency
+    const maxRetries = 15; // Increased from 5
+    const baseDelay = 100; // Increased from 50ms
+    const maxDelay = 2000; // Cap the maximum delay
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       const lockAcquired = await this.acquireLock(aggregationKey);
@@ -43,9 +45,11 @@ export class CardCollectionSaga {
           const existing = await this.getPendingActivity(aggregationKey);
 
           if (existing && this.isWithinWindow(existing)) {
+            console.log(`Merging event into existing activity for ${aggregationKey}`);
             this.mergeActivity(existing, event);
             await this.setPendingActivity(aggregationKey, existing);
           } else {
+            console.log(`Creating new pending activity for ${aggregationKey}`);
             const newActivity = this.createNewPendingActivity(event);
             await this.setPendingActivity(aggregationKey, newActivity);
             await this.scheduleFlush(aggregationKey);
@@ -59,7 +63,12 @@ export class CardCollectionSaga {
 
       // Lock not acquired, wait and retry
       if (attempt < maxRetries - 1) {
-        const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff
+        // Use exponential backoff with jitter and cap at maxDelay
+        const exponentialDelay = baseDelay * Math.pow(1.5, attempt);
+        const jitter = Math.random() * 50; // Add randomness to prevent thundering herd
+        const delay = Math.min(exponentialDelay + jitter, maxDelay);
+        
+        console.log(`Lock acquisition failed for ${aggregationKey}, retrying in ${Math.round(delay)}ms (attempt ${attempt + 1}/${maxRetries})`);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }

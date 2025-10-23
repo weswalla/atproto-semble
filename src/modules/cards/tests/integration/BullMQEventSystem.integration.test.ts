@@ -350,20 +350,30 @@ describe('BullMQ Event System Integration', () => {
       // Create events for same card/user (will compete for same lock)
       const cardId = CardId.createFromString('concurrent-test-card').unwrap();
       const curatorId = CuratorId.create('did:plc:concurrentuser').unwrap();
-      const collectionId1 = CollectionId.createFromString('collection-1').unwrap();
-      const collectionId2 = CollectionId.createFromString('collection-2').unwrap();
+      const collectionId1 =
+        CollectionId.createFromString('collection-1').unwrap();
+      const collectionId2 =
+        CollectionId.createFromString('collection-2').unwrap();
 
       const events = [
         CardAddedToLibraryEvent.create(cardId, curatorId).unwrap(),
-        CardAddedToCollectionEvent.create(cardId, collectionId1, curatorId).unwrap(),
-        CardAddedToCollectionEvent.create(cardId, collectionId2, curatorId).unwrap(),
+        CardAddedToCollectionEvent.create(
+          cardId,
+          collectionId1,
+          curatorId,
+        ).unwrap(),
+        CardAddedToCollectionEvent.create(
+          cardId,
+          collectionId2,
+          curatorId,
+        ).unwrap(),
       ];
 
       // Act - Process all events concurrently (not sequentially)
       const results = await Promise.all([
-        saga1.handleCardEvent(events[0]),
-        saga2.handleCardEvent(events[1]),
-        saga3.handleCardEvent(events[2]),
+        saga1.handleCardEvent(events[0]!),
+        saga2.handleCardEvent(events[1]!),
+        saga3.handleCardEvent(events[2]!),
       ]);
 
       // Assert - All should succeed (no events dropped due to lock contention)
@@ -397,14 +407,23 @@ describe('BullMQ Event System Integration', () => {
       // Create 10 collection events that will all compete for the same lock
       const events = Array.from({ length: 10 }, (_, i) => {
         const saga = new CardCollectionSaga(mockUseCase, stateStore);
-        const collectionId = CollectionId.createFromString(`collection-${i}`).unwrap();
-        const event = CardAddedToCollectionEvent.create(cardId, collectionId, curatorId).unwrap();
+        const collectionId = CollectionId.createFromString(
+          `collection-${i}`,
+        ).unwrap();
+        const event = CardAddedToCollectionEvent.create(
+          cardId,
+          collectionId,
+          curatorId,
+        ).unwrap();
         return { saga, event };
       });
 
       // Add one library event
       const librarySaga = new CardCollectionSaga(mockUseCase, stateStore);
-      const libraryEvent = CardAddedToLibraryEvent.create(cardId, curatorId).unwrap();
+      const libraryEvent = CardAddedToLibraryEvent.create(
+        cardId,
+        curatorId,
+      ).unwrap();
 
       // Act - Process all events concurrently
       const allPromises = [
@@ -426,7 +445,7 @@ describe('BullMQ Event System Integration', () => {
       expect(call.cardId).toBe(cardId.getStringValue());
       expect(call.actorId).toBe(curatorId.value);
       expect(call.collectionIds).toHaveLength(10);
-      
+
       // Verify all collection IDs are present
       for (let i = 0; i < 10; i++) {
         expect(call.collectionIds).toContain(`collection-${i}`);
@@ -492,7 +511,7 @@ describe('BullMQ Event System Integration', () => {
 
       // Act - Start first saga (will acquire lock)
       const promise1 = lockHoldingSaga.handleCardEvent(event1);
-      
+
       // Immediately start second saga (will need to retry)
       const promise2 = retryingSaga.handleCardEvent(event2);
 

@@ -29,7 +29,6 @@ export class CardCollectionSaga {
   async handleCardEvent(
     event: CardAddedToLibraryEvent | CardAddedToCollectionEvent,
   ): Promise<Result<void>> {
-    console.log('Handling card event:', event);
     const aggregationKey = this.createKey(event);
 
     // Retry lock acquisition with longer delays and more attempts for high concurrency
@@ -45,11 +44,9 @@ export class CardCollectionSaga {
           const existing = await this.getPendingActivity(aggregationKey);
 
           if (existing && this.isWithinWindow(existing)) {
-            console.log(`Merging event into existing activity for ${aggregationKey}`);
             this.mergeActivity(existing, event);
             await this.setPendingActivity(aggregationKey, existing);
           } else {
-            console.log(`Creating new pending activity for ${aggregationKey}`);
             const newActivity = this.createNewPendingActivity(event);
             await this.setPendingActivity(aggregationKey, newActivity);
             await this.scheduleFlush(aggregationKey);
@@ -67,8 +64,10 @@ export class CardCollectionSaga {
         const exponentialDelay = baseDelay * Math.pow(1.5, attempt);
         const jitter = Math.random() * 50; // Add randomness to prevent thundering herd
         const delay = Math.min(exponentialDelay + jitter, maxDelay);
-        
-        console.log(`Lock acquisition failed for ${aggregationKey}, retrying in ${Math.round(delay)}ms (attempt ${attempt + 1}/${maxRetries})`);
+
+        console.log(
+          `Lock acquisition failed for ${aggregationKey}, retrying in ${Math.round(delay)}ms (attempt ${attempt + 1}/${maxRetries})`,
+        );
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }

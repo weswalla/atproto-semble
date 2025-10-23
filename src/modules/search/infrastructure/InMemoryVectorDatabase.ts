@@ -60,12 +60,14 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
   ): Promise<Result<UrlSearchResult[]>> {
     try {
       console.log('all urls to compare', this.urls);
-      const threshold = params.threshold || 0.3;
+      const threshold = params.threshold || 0.1; // Lower default threshold for more matches
       const results: UrlSearchResult[] = [];
 
       // Get the query URL's content for comparison
       const queryUrl = this.urls.get(params.url);
       const queryContent = queryUrl?.content || params.url;
+
+      console.log('Query content for similarity:', queryContent);
 
       for (const [url, indexed] of this.urls.entries()) {
         // Skip the query URL itself
@@ -75,6 +77,8 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
           queryContent,
           indexed.content,
         );
+
+        console.log(`Similarity between "${queryContent}" and "${indexed.content}": ${similarity}`);
 
         if (similarity >= threshold) {
           results.push({
@@ -88,6 +92,8 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
       // Sort by similarity (highest first) and limit results
       results.sort((a, b) => b.similarity - a.similarity);
       const limitedResults = results.slice(0, params.limit);
+
+      console.log(`Found ${limitedResults.length} similar URLs above threshold ${threshold}`);
 
       return ok(limitedResults);
     } catch (error) {
@@ -117,22 +123,48 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
   }
 
   /**
-   * Simple text similarity calculation using Jaccard similarity
-   * In a real implementation, this would use proper vector embeddings
+   * Simple text similarity calculation based on shared words
+   * Uses a more lenient scoring system to increase likelihood of matches
    */
   private calculateSimilarity(text1: string, text2: string): number {
     const words1 = this.tokenize(text1);
     const words2 = this.tokenize(text2);
 
-    const set1 = new Set(words1);
-    const set2 = new Set(words2);
+    if (words1.length === 0 && words2.length === 0) return 1;
+    if (words1.length === 0 || words2.length === 0) return 0;
 
-    const intersection = new Set([...set1].filter((word) => set2.has(word)));
-    const union = new Set([...set1, ...set2]);
+    // Count shared words (with frequency)
+    const freq1 = this.getWordFrequency(words1);
+    const freq2 = this.getWordFrequency(words2);
 
-    if (union.size === 0) return 0;
+    let sharedWords = 0;
+    let totalWords = 0;
 
-    return intersection.size / union.size;
+    // Count shared words based on minimum frequency
+    for (const word of new Set([...words1, ...words2])) {
+      const count1 = freq1.get(word) || 0;
+      const count2 = freq2.get(word) || 0;
+      
+      if (count1 > 0 && count2 > 0) {
+        sharedWords += Math.min(count1, count2);
+      }
+      totalWords += Math.max(count1, count2);
+    }
+
+    // Return ratio of shared words to total words
+    // This is more lenient than Jaccard similarity
+    return totalWords > 0 ? sharedWords / totalWords : 0;
+  }
+
+  /**
+   * Get word frequency map
+   */
+  private getWordFrequency(words: string[]): Map<string, number> {
+    const freq = new Map<string, number>();
+    for (const word of words) {
+      freq.set(word, (freq.get(word) || 0) + 1);
+    }
+    return freq;
   }
 
   private tokenize(text: string): string[] {
@@ -140,7 +172,7 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
       .toLowerCase()
       .replace(/[^\w\s]/g, ' ')
       .split(/\s+/)
-      .filter((word) => word.length > 2); // Filter out very short words
+      .filter((word) => word.length > 1); // Allow shorter words for more matches
   }
 
   /**

@@ -100,6 +100,7 @@ export default function AddCardToModal(props: Props) {
         setSelectedCollections(collectionsWithCard);
       }}
       title="Add or Update Card"
+      withCloseButton={false}
       overlayProps={DEFAULT_OVERLAY_PROPS}
       centered
       onClick={(e) => e.stopPropagation()}

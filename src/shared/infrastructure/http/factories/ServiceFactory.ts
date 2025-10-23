@@ -57,6 +57,7 @@ import { ISagaStateStore } from 'src/modules/feeds/application/sagas/ISagaStateS
 import { SearchService } from '../../../../modules/search/domain/services/SearchService';
 import { IVectorDatabase } from '../../../../modules/search/domain/IVectorDatabase';
 import { InMemoryVectorDatabase } from '../../../../modules/search/infrastructure/InMemoryVectorDatabase';
+import { UpstashVectorDatabase } from '../../../../modules/search/infrastructure/UpstashVectorDatabase';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -310,9 +311,13 @@ export class ServiceFactory {
     const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
     const useMockVectorDb =
       process.env.USE_MOCK_VECTOR_DB === 'true' || useInMemoryEvents;
+    
     const vectorDatabase: IVectorDatabase = useMockVectorDb
       ? InMemoryVectorDatabase.getInstance()
-      : InMemoryVectorDatabase.getInstance(); // TODO: Replace with real vector DB implementation
+      : new UpstashVectorDatabase(
+          configService.getUpstashConfig().vectorUrl,
+          configService.getUpstashConfig().vectorToken,
+        );
 
     const searchService = new SearchService(
       vectorDatabase,

@@ -68,7 +68,12 @@ export class CardCollectionSaga {
     aggregationKey: string,
   ): Promise<PendingCardActivity | null> {
     const data = await this.stateStore.get(this.getPendingKey(aggregationKey));
-    return data ? JSON.parse(data) : null;
+    if (!data) return null;
+
+    const parsed = JSON.parse(data);
+    // Convert timestamp string back to Date object
+    parsed.timestamp = new Date(parsed.timestamp);
+    return parsed;
   }
 
   private async setPendingActivity(

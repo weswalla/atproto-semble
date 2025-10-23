@@ -335,6 +335,12 @@ describe('BullMQ Event System Integration', () => {
 
   describe('Multi-Queue Event Routing', () => {
     it('should route events to multiple queues', async () => {
+      // Stop the shared subscriber to avoid interference
+      await subscriber.stop();
+
+      // Clear any pending jobs
+      await redis.flushall();
+
       // Arrange - Create subscribers for different queues
       const feedsSubscriber = new BullMQEventSubscriber(redis, {
         queueName: QueueNames.FEEDS,
@@ -362,6 +368,9 @@ describe('BullMQ Event System Integration', () => {
       await feedsSubscriber.start();
       await searchSubscriber.start();
 
+      // Give workers time to initialize
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       // Act - Publish single event
       const event = CardAddedToLibraryEvent.create(
         CardId.createFromString('multi-queue-card').unwrap(),
@@ -371,7 +380,7 @@ describe('BullMQ Event System Integration', () => {
       await publisher.publishEvents([event]);
 
       // Wait for processing
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
       // Assert - Event processed by both queues
       expect(feedsHandler.handle).toHaveBeenCalledTimes(1);

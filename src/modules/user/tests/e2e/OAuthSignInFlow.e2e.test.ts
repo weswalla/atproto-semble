@@ -54,8 +54,8 @@ describe('OAuth Sign-In Flow', () => {
     const oauthProcessor = new AtProtoOAuthProcessor(oauthClient);
 
     // Create in-memory services
-    const userRepository = new InMemoryUserRepository();
-    const tokenRepository = new InMemoryTokenRepository();
+    const userRepository = InMemoryUserRepository.getInstance();
+    const tokenRepository = InMemoryTokenRepository.getInstance();
     const tokenService = new JwtTokenService(tokenRepository, 'test-secret');
     const userAuthService = new UserAuthenticationService(userRepository);
 

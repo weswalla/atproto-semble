@@ -55,8 +55,8 @@ export class OAuthClientFactory {
     appName: string = 'Semble',
   ): NodeOAuthClient {
     const { clientMetadata } = this.getClientMetadata(baseUrl, appName);
-    const stateStore = new InMemoryStateStore();
-    const sessionStore = new InMemorySessionStore();
+    const stateStore = InMemoryStateStore.getInstance();
+    const sessionStore = InMemorySessionStore.getInstance();
 
     return new NodeOAuthClient({
       clientMetadata,

@@ -22,7 +22,7 @@ describe('GetMyCollectionsUseCase', () => {
   let userProfile: UserProfile;
 
   beforeEach(() => {
-    collectionRepo = new InMemoryCollectionRepository();
+    collectionRepo = InMemoryCollectionRepository.getInstance();
     collectionQueryRepo = new InMemoryCollectionQueryRepository(collectionRepo);
     profileService = new FakeProfileService();
     identityResolutionService = new FakeIdentityResolutionService();

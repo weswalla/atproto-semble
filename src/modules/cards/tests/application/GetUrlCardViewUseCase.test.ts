@@ -23,8 +23,8 @@ describe('GetUrlCardViewUseCase', () => {
   let cardId: string;
 
   beforeEach(() => {
-    cardRepo = new InMemoryCardRepository();
-    collectionRepo = new InMemoryCollectionRepository();
+    cardRepo = InMemoryCardRepository.getInstance();
+    collectionRepo = InMemoryCollectionRepository.getInstance();
     cardQueryRepo = new InMemoryCardQueryRepository(cardRepo, collectionRepo);
     profileService = new FakeProfileService();
     useCase = new GetUrlCardViewUseCase(

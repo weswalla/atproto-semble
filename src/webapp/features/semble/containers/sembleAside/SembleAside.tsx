@@ -13,7 +13,7 @@ export default async function SembleAside(props: Props) {
   const collectionsData = await getCollectionsForUrl(props.url);
 
   return (
-    <AppShellAside p={'sm'}>
+    <AppShellAside p={'sm'} style={{ overflow: 'scroll' }}>
       <Stack gap={'xl'}>
         <Stack gap={'xs'}>
           <Text fz={'xl'} fw={600}>
@@ -65,7 +65,7 @@ export default async function SembleAside(props: Props) {
             </Text>
           ) : (
             <Stack gap={'xs'}>
-              {collectionsData.collections.map((col) => (
+              {collectionsData.collections.slice(0, 3).map((col) => (
                 <CollectionCard key={col.uri} collection={col} />
               ))}
             </Stack>

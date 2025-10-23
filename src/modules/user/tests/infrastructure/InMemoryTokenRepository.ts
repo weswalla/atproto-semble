@@ -5,7 +5,17 @@ import {
 } from '../../domain/repositories/ITokenRepository';
 
 export class InMemoryTokenRepository implements ITokenRepository {
+  private static instance: InMemoryTokenRepository;
   private tokens: Map<string, RefreshToken> = new Map();
+
+  private constructor() {}
+
+  public static getInstance(): InMemoryTokenRepository {
+    if (!InMemoryTokenRepository.instance) {
+      InMemoryTokenRepository.instance = new InMemoryTokenRepository();
+    }
+    return InMemoryTokenRepository.instance;
+  }
 
   async saveRefreshToken(token: RefreshToken): Promise<Result<void>> {
     try {

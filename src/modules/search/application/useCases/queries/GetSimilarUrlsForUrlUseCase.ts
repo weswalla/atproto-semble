@@ -7,6 +7,7 @@ import { SearchService } from '../../../domain/services/SearchService';
 
 export interface GetSimilarUrlsForUrlQuery {
   url: string;
+  callingUserId?: string;
   page?: number;
   limit?: number;
   threshold?: number;
@@ -83,6 +84,7 @@ export class GetSimilarUrlsForUrlUseCase
         {
           limit: limit * page, // Get more results to handle pagination
           threshold,
+          callingUserId: query.callingUserId,
         },
       );
       console.log('Similar URLs result:', similarUrlsResult);

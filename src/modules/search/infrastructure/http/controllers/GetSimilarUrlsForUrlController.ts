@@ -18,6 +18,7 @@ export class GetSimilarUrlsForUrlController extends Controller {
 
       const result = await this.getSimilarUrlsForUrlUseCase.execute({
         url,
+        callingUserId: req.did, // Pass through the authenticated user's DID
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,
         threshold: threshold ? parseFloat(threshold as string) : undefined,

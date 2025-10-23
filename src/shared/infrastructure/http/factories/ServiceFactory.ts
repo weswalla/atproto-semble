@@ -51,6 +51,9 @@ import { CardCollectionSaga } from '../../../../modules/feeds/application/sagas/
 import { ATProtoIdentityResolutionService } from '../../../../modules/atproto/infrastructure/services/ATProtoIdentityResolutionService';
 import { IIdentityResolutionService } from '../../../../modules/atproto/domain/services/IIdentityResolutionService';
 import { CookieService } from '../services/CookieService';
+import { InMemorySagaStateStore } from '../../../../modules/feeds/infrastructure/InMemorySagaStateStore';
+import { RedisSagaStateStore } from '../../../../modules/feeds/infrastructure/RedisSagaStateStore';
+import { ISagaStateStore } from 'src/modules/feeds/application/sagas/ISagaStateStore';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -84,7 +87,7 @@ export interface WorkerServices extends SharedServices {
   redisConnection: Redis | null;
   eventPublisher: IEventPublisher;
   createEventSubscriber: (queueName: QueueName) => IEventSubscriber;
-  cardCollectionSaga: CardCollectionSaga;
+  sagaStateStore: ISagaStateStore;
 }
 
 // Legacy interface for backward compatibility
@@ -222,18 +225,17 @@ export class ServiceFactory {
       };
     }
 
-    // Create saga for worker
-    const cardCollectionSaga = new CardCollectionSaga(
-      // We'll need to create this use case in the worker context
-      null as any, // Will be set properly in worker
-    );
+    // Create appropriate saga state store
+    const sagaStateStore = useInMemoryEvents
+      ? new InMemorySagaStateStore()
+      : new RedisSagaStateStore(redisConnection!);
 
     return {
       ...sharedServices,
       redisConnection: redisConnection,
       eventPublisher,
       createEventSubscriber,
-      cardCollectionSaga,
+      sagaStateStore,
     };
   }
 

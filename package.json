@@ -44,7 +44,7 @@
     "redis:stop": "docker stop annos-redis",
     "redis:remove": "docker rm annos-redis",
     "db:generate": "drizzle-kit generate --schema=./src/modules/**/*.sql.ts --out=./src/shared/infrastructure/database/migrations --dialect=postgresql",
-    "webapp:dev": "cd src/webapp && npm run dev",
+    "webapp:dev": "npm run build:types && cd src/webapp && npm run dev",
     "webapp:extension:dev": "cd src/webapp && npm run dev:extension",
     "webapp:build": "cd src/webapp && npm run build",
     "webapp:start": "cd src/webapp && npm run start",

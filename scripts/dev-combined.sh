@@ -15,6 +15,8 @@ cleanup_and_exit() {
 # Trap SIGINT and SIGTERM to cleanup on exit
 trap cleanup_and_exit SIGINT SIGTERM
 
+echo "Starting development with separate processes (BullMQ + Redis)..."
+
 # Run both services with concurrently
 concurrently -k -n APP,WORKER -c blue,green \
   "dotenv -e .env.local -- concurrently -k -n TYPE,APP -c red,blue \"tsc --noEmit --watch\" \"tsup --watch --onSuccess='node dist/index.js'\"" \

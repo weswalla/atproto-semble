@@ -51,21 +51,13 @@ export class BullMQEventPublisher implements IEventPublisher {
   }
 
   private getTargetQueues(eventName: EventName): QueueName[] {
-    // Route events to appropriate queues
-    // For now, all events go to feeds queue
-    // Future: route different events to different queues
     switch (eventName) {
       case EventNames.CARD_ADDED_TO_LIBRARY:
-        return [QueueNames.FEEDS];
-      // Future: return [QueueNames.FEEDS, QueueNames.NOTIFICATIONS, QueueNames.ANALYTICS];
+        return [QueueNames.FEEDS, QueueNames.SEARCH, QueueNames.ANALYTICS];
       case EventNames.CARD_ADDED_TO_COLLECTION:
         return [QueueNames.FEEDS];
-      // Future: return [QueueNames.FEEDS, QueueNames.ANALYTICS];
-      case EventNames.COLLECTION_CREATED:
-        return [QueueNames.FEEDS];
-      // Future: return [QueueNames.FEEDS, QueueNames.ANALYTICS];
       default:
-        return []; // Default to feeds queue
+        return [QueueNames.FEEDS];
     }
   }
 

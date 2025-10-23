@@ -4,37 +4,17 @@ import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
 import { URL } from '../../../../cards/domain/value-objects/URL';
 import { SearchService } from '../../../domain/services/SearchService';
+import { GetSimilarUrlsForUrlParams } from '@semble/types/api/requests';
+import { GetSimilarUrlsForUrlResponse, UrlView } from '@semble/types/api/responses';
+import { Pagination } from '@semble/types/api/common';
 
-export interface GetSimilarUrlsForUrlQuery {
-  url: string;
+export interface GetSimilarUrlsForUrlQuery extends GetSimilarUrlsForUrlParams {
   callingUserId?: string;
-  page?: number;
-  limit?: number;
-  threshold?: number;
-}
-
-export interface UrlView {
-  url: string;
-  metadata: {
-    url: string;
-    title?: string;
-    description?: string;
-    author?: string;
-    thumbnailUrl?: string;
-  };
-  urlLibraryCount: number;
-  urlInLibrary: boolean;
 }
 
 export interface GetSimilarUrlsForUrlResult {
   urls: UrlView[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    hasMore: boolean;
-    limit: number;
-  };
+  pagination: Pagination;
 }
 
 export class ValidationError extends UseCaseError {

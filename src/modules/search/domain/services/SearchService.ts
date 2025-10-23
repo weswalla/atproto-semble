@@ -3,7 +3,7 @@ import { URL } from '../../../cards/domain/value-objects/URL';
 import { IMetadataService } from '../../../cards/domain/services/IMetadataService';
 import { ICardQueryRepository } from '../../../cards/domain/ICardQueryRepository';
 import { IVectorDatabase, FindSimilarUrlsParams } from '../IVectorDatabase';
-import { UrlView } from '../../application/useCases/queries/GetSimilarUrlsForUrlUseCase';
+import { UrlView } from '@semble/types/api/responses';
 
 export class SearchService {
   constructor(

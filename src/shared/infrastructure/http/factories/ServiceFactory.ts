@@ -311,8 +311,8 @@ export class ServiceFactory {
     const useMockVectorDb =
       process.env.USE_MOCK_VECTOR_DB === 'true' || useInMemoryEvents;
     const vectorDatabase: IVectorDatabase = useMockVectorDb
-      ? new InMemoryVectorDatabase()
-      : new InMemoryVectorDatabase(); // TODO: Replace with real vector DB implementation
+      ? InMemoryVectorDatabase.getInstance()
+      : InMemoryVectorDatabase.getInstance(); // TODO: Replace with real vector DB implementation
 
     const searchService = new SearchService(vectorDatabase, metadataService);
 

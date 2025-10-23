@@ -18,7 +18,17 @@ interface IndexedUrl {
 }
 
 export class InMemoryVectorDatabase implements IVectorDatabase {
+  private static instance: InMemoryVectorDatabase;
   private urls: Map<string, IndexedUrl> = new Map();
+
+  private constructor() {}
+
+  public static getInstance(): InMemoryVectorDatabase {
+    if (!InMemoryVectorDatabase.instance) {
+      InMemoryVectorDatabase.instance = new InMemoryVectorDatabase();
+    }
+    return InMemoryVectorDatabase.instance;
+  }
 
   async indexUrl(params: IndexUrlParams): Promise<Result<void>> {
     try {

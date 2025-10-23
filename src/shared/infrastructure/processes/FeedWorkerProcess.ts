@@ -40,15 +40,10 @@ export class FeedWorkerProcess extends BaseWorkerProcess {
   ): Promise<void> {
     const useCases = UseCaseFactory.createForWorker(repositories, services);
 
-    // Create saga with appropriate state store based on event system type
-    const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
-    const stateStore = useInMemoryEvents
-      ? new InMemorySagaStateStore()
-      : new RedisSagaStateStore(services.redisConnection!);
-
+    // Create saga with proper use case dependency and state store from services
     const cardCollectionSaga = new CardCollectionSaga(
       useCases.addActivityToFeedUseCase,
-      stateStore,
+      services.sagaStateStore,
     );
 
     const cardAddedToLibraryHandler = new CardAddedToLibraryEventHandler(

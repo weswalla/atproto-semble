@@ -224,28 +224,17 @@ export class ServiceFactory {
       };
     }
 
-    // Create saga with appropriate state store
-    let cardCollectionSaga: CardCollectionSaga;
-    if (useInMemoryEvents) {
-      const stateStore = new InMemorySagaStateStore();
-      cardCollectionSaga = new CardCollectionSaga(
-        sharedServices.feedService as any, // Will be properly typed when used
-        stateStore,
-      );
-    } else {
-      const stateStore = new RedisSagaStateStore(redisConnection!);
-      cardCollectionSaga = new CardCollectionSaga(
-        sharedServices.feedService as any, // Will be properly typed when used
-        stateStore,
-      );
-    }
+    // Create appropriate saga state store
+    const sagaStateStore = useInMemoryEvents
+      ? new InMemorySagaStateStore()
+      : new RedisSagaStateStore(redisConnection!);
 
     return {
       ...sharedServices,
       redisConnection: redisConnection,
       eventPublisher,
       createEventSubscriber,
-      cardCollectionSaga,
+      sagaStateStore,
     };
   }
 

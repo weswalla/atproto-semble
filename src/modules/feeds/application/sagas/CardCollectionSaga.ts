@@ -29,29 +29,48 @@ export class CardCollectionSaga {
   async handleCardEvent(
     event: CardAddedToLibraryEvent | CardAddedToCollectionEvent,
   ): Promise<Result<void>> {
+    console.log('Handling card event:', event);
     const aggregationKey = this.createKey(event);
 
-    const lockAcquired = await this.acquireLock(aggregationKey);
-    if (!lockAcquired) {
-      return ok(undefined); // Another worker is processing
-    }
+    // Retry lock acquisition with exponential backoff
+    const maxRetries = 5;
+    const baseDelay = 50; // ms
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      const lockAcquired = await this.acquireLock(aggregationKey);
+      
+      if (lockAcquired) {
+        try {
+          const existing = await this.getPendingActivity(aggregationKey);
 
-    try {
-      const existing = await this.getPendingActivity(aggregationKey);
+          if (existing && this.isWithinWindow(existing)) {
+            console.log(`Merging event into existing activity for ${aggregationKey}`);
+            this.mergeActivity(existing, event);
+            await this.setPendingActivity(aggregationKey, existing);
+          } else {
+            console.log(`Creating new pending activity for ${aggregationKey}`);
+            const newActivity = this.createNewPendingActivity(event);
+            await this.setPendingActivity(aggregationKey, newActivity);
+            await this.scheduleFlush(aggregationKey);
+          }
 
-      if (existing && this.isWithinWindow(existing)) {
-        this.mergeActivity(existing, event);
-        await this.setPendingActivity(aggregationKey, existing);
-      } else {
-        const newActivity = this.createNewPendingActivity(event);
-        await this.setPendingActivity(aggregationKey, newActivity);
-        await this.scheduleFlush(aggregationKey);
+          return ok(undefined);
+        } finally {
+          await this.releaseLock(aggregationKey);
+        }
       }
-
-      return ok(undefined);
-    } finally {
-      await this.releaseLock(aggregationKey);
+      
+      // Lock not acquired, wait and retry
+      if (attempt < maxRetries - 1) {
+        const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff
+        console.log(`Lock acquisition failed for ${aggregationKey}, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
+    
+    // All retries failed - this shouldn't happen often
+    console.warn(`Failed to acquire lock after ${maxRetries} attempts for ${aggregationKey}`);
+    return ok(undefined);
   }
 
   // Key helpers
@@ -182,6 +201,9 @@ export class CardCollectionSaga {
         collectionIds:
           pending.collectionIds.length > 0 ? pending.collectionIds : undefined,
       };
+
+      console.log('Flushing aggregated activity:', request);
+      console.log('collectionIds:', request.collectionIds);
 
       await this.addActivityToFeedUseCase.execute(request);
     } finally {

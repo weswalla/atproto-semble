@@ -1,5 +1,10 @@
 import { Result, ok, err } from '../../../shared/core/Result';
-import { IVectorDatabase, IndexUrlParams, FindSimilarUrlsParams, UrlSearchResult } from '../domain/IVectorDatabase';
+import {
+  IVectorDatabase,
+  IndexUrlParams,
+  FindSimilarUrlsParams,
+  UrlSearchResult,
+} from '../domain/IVectorDatabase';
 
 interface IndexedUrl {
   url: string;
@@ -17,6 +22,7 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
 
   async indexUrl(params: IndexUrlParams): Promise<Result<void>> {
     try {
+      console.log('Indexing URL in InMemoryVectorDatabase:', params.url);
       this.urls.set(params.url, {
         url: params.url,
         content: params.content,
@@ -27,15 +33,23 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
         },
         indexedAt: new Date(),
       });
+      console.log('Current indexed URLs:', Array.from(this.urls.keys()));
 
       return ok(undefined);
     } catch (error) {
-      return err(new Error(`Failed to index URL: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      return err(
+        new Error(
+          `Failed to index URL: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
     }
   }
 
-  async findSimilarUrls(params: FindSimilarUrlsParams): Promise<Result<UrlSearchResult[]>> {
+  async findSimilarUrls(
+    params: FindSimilarUrlsParams,
+  ): Promise<Result<UrlSearchResult[]>> {
     try {
+      console.log('all urls to compare', this.urls);
       const threshold = params.threshold || 0.3;
       const results: UrlSearchResult[] = [];
 
@@ -47,8 +61,11 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
         // Skip the query URL itself
         if (url === params.url) continue;
 
-        const similarity = this.calculateSimilarity(queryContent, indexed.content);
-        
+        const similarity = this.calculateSimilarity(
+          queryContent,
+          indexed.content,
+        );
+
         if (similarity >= threshold) {
           results.push({
             url: indexed.url,
@@ -64,7 +81,11 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
 
       return ok(limitedResults);
     } catch (error) {
-      return err(new Error(`Failed to find similar URLs: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      return err(
+        new Error(
+          `Failed to find similar URLs: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
     }
   }
 
@@ -73,7 +94,11 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
       this.urls.delete(url);
       return ok(undefined);
     } catch (error) {
-      return err(new Error(`Failed to delete URL: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      return err(
+        new Error(
+          `Failed to delete URL: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
     }
   }
 
@@ -92,11 +117,11 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
     const set1 = new Set(words1);
     const set2 = new Set(words2);
 
-    const intersection = new Set([...set1].filter(word => set2.has(word)));
+    const intersection = new Set([...set1].filter((word) => set2.has(word)));
     const union = new Set([...set1, ...set2]);
 
     if (union.size === 0) return 0;
-    
+
     return intersection.size / union.size;
   }
 
@@ -105,7 +130,7 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
       .toLowerCase()
       .replace(/[^\w\s]/g, ' ')
       .split(/\s+/)
-      .filter(word => word.length > 2); // Filter out very short words
+      .filter((word) => word.length > 2); // Filter out very short words
   }
 
   /**

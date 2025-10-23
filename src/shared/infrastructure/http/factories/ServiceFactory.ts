@@ -308,16 +308,13 @@ export class ServiceFactory {
 
     // Create vector database and search service (shared by both web app and workers)
     const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
-    const useMockVectorDb = process.env.USE_MOCK_VECTOR_DB === 'true' || useInMemoryEvents;
+    const useMockVectorDb =
+      process.env.USE_MOCK_VECTOR_DB === 'true' || useInMemoryEvents;
     const vectorDatabase: IVectorDatabase = useMockVectorDb
       ? new InMemoryVectorDatabase()
       : new InMemoryVectorDatabase(); // TODO: Replace with real vector DB implementation
 
-    const searchService = new SearchService(
-      vectorDatabase,
-      metadataService,
-      repositories.cardQueryRepository,
-    );
+    const searchService = new SearchService(vectorDatabase, metadataService);
 
     return {
       tokenService,

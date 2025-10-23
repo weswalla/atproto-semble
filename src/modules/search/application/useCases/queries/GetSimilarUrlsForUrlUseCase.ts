@@ -23,7 +23,7 @@ export interface UrlView {
     thumbnailUrl?: string;
   };
   urlLibraryCount: number;
-  urlInLibrary?: boolean;
+  urlInLibrary: boolean;
 }
 
 export interface GetSimilarUrlsForUrlResult {

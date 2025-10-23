@@ -137,12 +137,12 @@ export class SearchService {
         const urlLibraryCount = librariesResult.totalCount;
         
         // Check if calling user has this URL in their library
-        let urlInLibrary = false;
-        if (callingUserId) {
-          urlInLibrary = librariesResult.items.some(
-            (library) => library.userId === callingUserId,
-          );
-        }
+        // Default to false if no calling user (unauthenticated request)
+        const urlInLibrary = callingUserId
+          ? librariesResult.items.some(
+              (library) => library.userId === callingUserId,
+            )
+          : false;
 
         return {
           url: result.url,

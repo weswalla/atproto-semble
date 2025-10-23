@@ -9,16 +9,14 @@ async function main() {
   // Start the app process
   await appProcess.start();
 
-  // Start appropriate worker based on event system type
+  // Only start event worker in same process when using in-memory events
   const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
   if (useInMemoryEvents) {
     console.log('Starting in-memory event worker in the same process...');
     const inMemoryWorkerProcess = new InMemoryEventWorkerProcess(configService);
     await inMemoryWorkerProcess.start();
   } else {
-    console.log('Starting BullMQ feed worker in the same process...');
-    const feedWorkerProcess = new FeedWorkerProcess(configService);
-    await feedWorkerProcess.start();
+    console.log('Using external worker processes for event handling');
   }
 }
 

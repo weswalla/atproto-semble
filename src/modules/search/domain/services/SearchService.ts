@@ -9,6 +9,7 @@ export class SearchService {
   constructor(
     private vectorDatabase: IVectorDatabase,
     private metadataService: IMetadataService,
+    private cardQueryRepository: ICardQueryRepository,
   ) {}
 
   async indexUrl(url: URL): Promise<Result<void>> {
@@ -59,7 +60,7 @@ export class SearchService {
 
   async findSimilarUrls(
     url: URL,
-    options: { limit: number; threshold?: number },
+    options: { limit: number; threshold?: number; callingUserId?: string },
   ): Promise<Result<UrlView[]>> {
     try {
       // 1. Find similar URLs from vector database
@@ -80,6 +81,7 @@ export class SearchService {
       // 2. Enrich results with library counts and context
       const enrichedUrls = await this.enrichUrlsWithContext(
         similarResult.value,
+        options.callingUserId,
       );
 
       return ok(enrichedUrls);
@@ -116,20 +118,47 @@ export class SearchService {
         author?: string;
       };
     }>,
+    callingUserId?: string,
   ): Promise<UrlView[]> {
-    // For now, return basic enriched results
-    // In a full implementation, you'd query the card repository for library counts
-    return searchResults.map((result) => ({
-      url: result.url,
-      metadata: {
-        url: result.url,
-        title: result.metadata.title,
-        description: result.metadata.description,
-        author: result.metadata.author,
-        thumbnailUrl: undefined, // Would be enriched from metadata service
-      },
-      urlLibraryCount: 0, // Would be queried from card repository
-      urlInLibrary: false, // Would be determined based on calling user context
-    }));
+    // Enrich each URL with library context
+    const enrichedResults = await Promise.all(
+      searchResults.map(async (result) => {
+        // Get library information for this URL
+        const librariesResult = await this.cardQueryRepository.getLibrariesForUrl(
+          result.url,
+          {
+            page: 1,
+            limit: 1000, // Get all libraries to count them
+            sortBy: 'createdAt' as any, // Type assertion needed due to enum mismatch
+            sortOrder: 'desc' as any,
+          },
+        );
+
+        const urlLibraryCount = librariesResult.totalCount;
+        
+        // Check if calling user has this URL in their library
+        let urlInLibrary = false;
+        if (callingUserId) {
+          urlInLibrary = librariesResult.items.some(
+            (library) => library.userId === callingUserId,
+          );
+        }
+
+        return {
+          url: result.url,
+          metadata: {
+            url: result.url,
+            title: result.metadata.title,
+            description: result.metadata.description,
+            author: result.metadata.author,
+            thumbnailUrl: undefined, // Could be enriched from metadata service if needed
+          },
+          urlLibraryCount,
+          urlInLibrary,
+        };
+      }),
+    );
+
+    return enrichedResults;
   }
 }

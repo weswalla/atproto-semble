@@ -314,7 +314,11 @@ export class ServiceFactory {
       ? InMemoryVectorDatabase.getInstance()
       : InMemoryVectorDatabase.getInstance(); // TODO: Replace with real vector DB implementation
 
-    const searchService = new SearchService(vectorDatabase, metadataService);
+    const searchService = new SearchService(
+      vectorDatabase,
+      metadataService,
+      repositories.cardQueryRepository,
+    );
 
     return {
       tokenService,

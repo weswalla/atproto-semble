@@ -71,6 +71,7 @@ export interface SharedServices {
   configService: EnvironmentConfigService;
   cookieService: CookieService;
   searchService: SearchService;
+  vectorDatabase: IVectorDatabase;
 }
 
 // Web app specific services (includes publishers, auth middleware)
@@ -243,7 +244,6 @@ export class ServiceFactory {
       eventPublisher,
       createEventSubscriber,
       sagaStateStore,
-      vectorDatabase: sharedServices.searchService['vectorDatabase'] || new InMemoryVectorDatabase(),
     };
   }
 
@@ -331,6 +331,7 @@ export class ServiceFactory {
       configService,
       cookieService,
       searchService,
+      vectorDatabase,
     };
   }
 }

@@ -135,3 +135,8 @@ export interface GetNoteCardsForUrlParams extends PaginatedSortedParams {
 export interface GetCollectionsForUrlParams extends PaginatedSortedParams {
   url: string;
 }
+
+export interface GetSimilarUrlsForUrlParams extends PaginatedSortedParams {
+  url: string;
+  threshold?: number;
+}

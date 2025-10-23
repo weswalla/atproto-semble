@@ -19,6 +19,7 @@ import { DeleteCollectionController } from '../../../../modules/cards/infrastruc
 import { GetCollectionPageController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionPageController';
 import { GetMyCollectionsController } from '../../../../modules/cards/infrastructure/http/controllers/GetMyCollectionsController';
 import { GetGlobalFeedController } from '../../../../modules/feeds/infrastructure/http/controllers/GetGlobalFeedController';
+import { GetSimilarUrlsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/GetSimilarUrlsForUrlController';
 import { UseCases } from './UseCaseFactory';
 import { GetMyProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetMyProfileController';
 import { GetUserProfileController } from 'src/modules/cards/infrastructure/http/controllers/GetUserProfileController';
@@ -183,6 +184,11 @@ export class ControllerFactory {
       getGlobalFeedController: new GetGlobalFeedController(
         useCases.getGlobalFeedUseCase,
       ),
+      // Search controllers
+      getSimilarUrlsForUrlController: new GetSimilarUrlsForUrlController(
+        useCases.getSimilarUrlsForUrlUseCase,
+      ),
     };
   }
 }
+import { GetSimilarUrlsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/GetSimilarUrlsForUrlController';

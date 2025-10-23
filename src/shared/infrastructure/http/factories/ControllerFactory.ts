@@ -70,6 +70,8 @@ export interface Controllers {
   getNoteCardsForUrlController: GetNoteCardsForUrlController;
   // Feed controllers
   getGlobalFeedController: GetGlobalFeedController;
+  // Search controllers
+  getSimilarUrlsForUrlController: GetSimilarUrlsForUrlController;
 }
 
 export class ControllerFactory {

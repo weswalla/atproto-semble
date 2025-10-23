@@ -33,6 +33,11 @@ import { GetNoteCardsForUrlUseCase } from '../../../../modules/cards/application
 import { IndexUrlForSearchUseCase } from '../../../../modules/search/application/useCases/commands/IndexUrlForSearchUseCase';
 import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/application/useCases/queries/GetSimilarUrlsForUrlUseCase';
 
+export interface WorkerUseCases {
+  addActivityToFeedUseCase: AddActivityToFeedUseCase;
+  indexUrlForSearchUseCase: IndexUrlForSearchUseCase;
+}
+
 export interface UseCases {
   // User use cases
   loginWithAppPasswordUseCase: LoginWithAppPasswordUseCase;
@@ -234,7 +239,7 @@ export class UseCaseFactory {
   static createForWorker(
     repositories: Repositories,
     services: SharedServices,
-  ): Pick<UseCases, 'addActivityToFeedUseCase'> & { indexUrlForSearchUseCase: IndexUrlForSearchUseCase } {
+  ): WorkerUseCases {
     return {
       // Feed use cases (only ones needed by workers)
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
@@ -242,7 +247,7 @@ export class UseCaseFactory {
       ),
       // Search use cases (only ones needed by workers)
       indexUrlForSearchUseCase: new IndexUrlForSearchUseCase(
-        (services as any).searchService, // Cast needed because SharedServices doesn't include searchService
+        services.searchService,
       ),
     };
   }

@@ -70,6 +70,7 @@ export interface SharedServices {
   identityResolutionService: IIdentityResolutionService;
   configService: EnvironmentConfigService;
   cookieService: CookieService;
+  searchService: SearchService;
 }
 
 // Web app specific services (includes publishers, auth middleware)
@@ -181,18 +182,6 @@ export class ServiceFactory {
       eventPublisher = new BullMQEventPublisher(redisConnection);
     }
 
-    // Create vector database and search service for web app
-    const useMockVectorDb = process.env.USE_MOCK_VECTOR_DB === 'true' || useInMemoryEvents;
-    const vectorDatabase: IVectorDatabase = useMockVectorDb
-      ? new InMemoryVectorDatabase()
-      : new InMemoryVectorDatabase(); // TODO: Replace with real vector DB implementation
-
-    const searchService = new SearchService(
-      vectorDatabase,
-      sharedServices.metadataService,
-      repositories.cardQueryRepository,
-    );
-
     return {
       ...sharedServices,
       oauthProcessor,
@@ -203,7 +192,6 @@ export class ServiceFactory {
       cardCollectionService,
       authMiddleware,
       eventPublisher,
-      searchService,
     };
   }
 
@@ -249,26 +237,13 @@ export class ServiceFactory {
       ? new InMemorySagaStateStore()
       : new RedisSagaStateStore(redisConnection!);
 
-    // Create vector database and search service
-    const useMockVectorDb = process.env.USE_MOCK_VECTOR_DB === 'true' || useInMemoryEvents;
-    const vectorDatabase: IVectorDatabase = useMockVectorDb
-      ? new InMemoryVectorDatabase()
-      : new InMemoryVectorDatabase(); // TODO: Replace with real vector DB implementation
-
-    const searchService = new SearchService(
-      vectorDatabase,
-      sharedServices.metadataService,
-      repositories.cardQueryRepository,
-    );
-
     return {
       ...sharedServices,
       redisConnection: redisConnection,
       eventPublisher,
       createEventSubscriber,
       sagaStateStore,
-      searchService,
-      vectorDatabase,
+      vectorDatabase: sharedServices.searchService['vectorDatabase'] || new InMemoryVectorDatabase(),
     };
   }
 
@@ -331,6 +306,19 @@ export class ServiceFactory {
     // Cookie Service
     const cookieService = new CookieService(configService);
 
+    // Create vector database and search service (shared by both web app and workers)
+    const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
+    const useMockVectorDb = process.env.USE_MOCK_VECTOR_DB === 'true' || useInMemoryEvents;
+    const vectorDatabase: IVectorDatabase = useMockVectorDb
+      ? new InMemoryVectorDatabase()
+      : new InMemoryVectorDatabase(); // TODO: Replace with real vector DB implementation
+
+    const searchService = new SearchService(
+      vectorDatabase,
+      metadataService,
+      repositories.cardQueryRepository,
+    );
+
     return {
       tokenService,
       userAuthService,
@@ -342,6 +330,7 @@ export class ServiceFactory {
       identityResolutionService,
       configService,
       cookieService,
+      searchService,
     };
   }
 }

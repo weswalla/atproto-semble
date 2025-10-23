@@ -22,6 +22,8 @@ import {
   GetNoteCardsForUrlResponse,
   GetCollectionsForUrlParams,
   GetCollectionsForUrlResponse,
+  GetSimilarUrlsForUrlParams,
+  GetSimilarUrlsForUrlResponse,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -220,278 +222,20 @@ export class QueryClient extends BaseClient {
       `/api/collections/url?${searchParams}`,
     );
   }
-}
-import type {
-  GetUrlMetadataResponse,
-  GetMyUrlCardsParams,
-  GetUrlCardsParams,
-  GetUrlCardsResponse,
-  GetUrlCardViewResponse,
-  GetLibrariesForCardResponse,
-  GetProfileResponse,
-  GetProfileParams,
-  GetCollectionPageParams,
-  GetCollectionPageResponse,
-  GetCollectionPageByAtUriParams,
-  GetMyCollectionsParams,
-  GetCollectionsResponse,
-  GetCollectionsParams,
-  GetUrlStatusForMyLibraryParams,
-  GetUrlStatusForMyLibraryResponse,
-  GetLibrariesForUrlParams,
-  GetLibrariesForUrlResponse,
-  GetNoteCardsForUrlParams,
-  GetNoteCardsForUrlResponse,
-  GetCollectionsForUrlParams,
-  GetCollectionsForUrlResponse,
-  GetSimilarUrlsForUrlParams,
-  GetSimilarUrlsForUrlResponse,
-} from '@semble/types';
-
-export class QueryClient {
-  constructor(private baseUrl: string) {}
-
-  async getUrlMetadata(url: string): Promise<GetUrlMetadataResponse> {
-    const response = await fetch(
-      `${this.baseUrl}/api/cards/metadata?url=${encodeURIComponent(url)}`,
-      {
-        credentials: 'include',
-      },
-    );
-    return response.json();
-  }
-
-  async getMyUrlCards(
-    params?: GetMyUrlCardsParams,
-  ): Promise<GetUrlCardsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-
-    const response = await fetch(
-      `${this.baseUrl}/api/cards/my?${searchParams}`,
-      {
-        credentials: 'include',
-      },
-    );
-    return response.json();
-  }
-
-  async getUserUrlCards(params: GetUrlCardsParams): Promise<GetUrlCardsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-
-    const response = await fetch(
-      `${this.baseUrl}/api/cards/user/${params.identifier}?${searchParams}`,
-      {
-        credentials: 'include',
-      },
-    );
-    return response.json();
-  }
-
-  async getUrlCardView(cardId: string): Promise<GetUrlCardViewResponse> {
-    const response = await fetch(`${this.baseUrl}/api/cards/${cardId}`, {
-      credentials: 'include',
-    });
-    return response.json();
-  }
-
-  async getLibrariesForCard(
-    cardId: string,
-  ): Promise<GetLibrariesForCardResponse> {
-    const response = await fetch(
-      `${this.baseUrl}/api/cards/${cardId}/libraries`,
-      {
-        credentials: 'include',
-      },
-    );
-    return response.json();
-  }
-
-  async getMyProfile(): Promise<GetProfileResponse> {
-    const response = await fetch(`${this.baseUrl}/api/users/me`, {
-      credentials: 'include',
-    });
-    return response.json();
-  }
-
-  async getUserProfile(params: GetProfileParams): Promise<GetProfileResponse> {
-    const response = await fetch(
-      `${this.baseUrl}/api/users/${params.identifier}`,
-      {
-        credentials: 'include',
-      },
-    );
-    return response.json();
-  }
-
-  async getCollectionPage(
-    collectionId: string,
-    params?: GetCollectionPageParams,
-  ): Promise<GetCollectionPageResponse> {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-
-    const response = await fetch(
-      `${this.baseUrl}/api/collections/${collectionId}?${searchParams}`,
-      {
-        credentials: 'include',
-      },
-    );
-    return response.json();
-  }
-
-  async getCollectionPageByAtUri(
-    params: GetCollectionPageByAtUriParams,
-  ): Promise<GetCollectionPageResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-
-    const response = await fetch(
-      `${this.baseUrl}/api/collections/at-uri/${params.handle}/${params.recordKey}?${searchParams}`,
-      {
-        credentials: 'include',
-      },
-    );
-    return response.json();
-  }
-
-  async getMyCollections(
-    params?: GetMyCollectionsParams,
-  ): Promise<GetCollectionsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params?.searchText) searchParams.set('searchText', params.searchText);
-
-    const response = await fetch(
-      `${this.baseUrl}/api/collections/my?${searchParams}`,
-      {
-        credentials: 'include',
-      },
-    );
-    return response.json();
-  }
-
-  async getUserCollections(
-    params: GetCollectionsParams,
-  ): Promise<GetCollectionsResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-    if (params.searchText) searchParams.set('searchText', params.searchText);
-
-    const response = await fetch(
-      `${this.baseUrl}/api/collections/user/${params.identifier}?${searchParams}`,
-      {
-        credentials: 'include',
-      },
-    );
-    return response.json();
-  }
-
-  async getUrlStatusForMyLibrary(
-    params: GetUrlStatusForMyLibraryParams,
-  ): Promise<GetUrlStatusForMyLibraryResponse> {
-    const response = await fetch(
-      `${this.baseUrl}/api/cards/library/status?url=${encodeURIComponent(params.url)}`,
-      {
-        credentials: 'include',
-      },
-    );
-    return response.json();
-  }
-
-  async getLibrariesForUrl(
-    params: GetLibrariesForUrlParams,
-  ): Promise<GetLibrariesForUrlResponse> {
-    const searchParams = new URLSearchParams();
-    searchParams.set('url', params.url);
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-
-    const response = await fetch(
-      `${this.baseUrl}/api/cards/libraries/url?${searchParams}`,
-      {
-        credentials: 'include',
-      },
-    );
-    return response.json();
-  }
-
-  async getNoteCardsForUrl(
-    params: GetNoteCardsForUrlParams,
-  ): Promise<GetNoteCardsForUrlResponse> {
-    const searchParams = new URLSearchParams();
-    searchParams.set('url', params.url);
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-
-    const response = await fetch(
-      `${this.baseUrl}/api/cards/notes/url?${searchParams}`,
-      {
-        credentials: 'include',
-      },
-    );
-    return response.json();
-  }
-
-  async getCollectionsForUrl(
-    params: GetCollectionsForUrlParams,
-  ): Promise<GetCollectionsForUrlResponse> {
-    const searchParams = new URLSearchParams();
-    searchParams.set('url', params.url);
-    if (params.page) searchParams.set('page', params.page.toString());
-    if (params.limit) searchParams.set('limit', params.limit.toString());
-    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
-
-    const response = await fetch(
-      `${this.baseUrl}/api/cards/collections/url?${searchParams}`,
-      {
-        credentials: 'include',
-      },
-    );
-    return response.json();
-  }
 
   async getSimilarUrlsForUrl(
     params: GetSimilarUrlsForUrlParams,
   ): Promise<GetSimilarUrlsForUrlResponse> {
-    const searchParams = new URLSearchParams();
-    searchParams.set('url', params.url);
+    const searchParams = new URLSearchParams({ url: params.url });
     if (params.page) searchParams.set('page', params.page.toString());
     if (params.limit) searchParams.set('limit', params.limit.toString());
     if (params.sortBy) searchParams.set('sortBy', params.sortBy);
     if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
     if (params.threshold) searchParams.set('threshold', params.threshold.toString());
 
-    const response = await fetch(
-      `${this.baseUrl}/api/search/similar-urls?${searchParams}`,
-      {
-        credentials: 'include',
-      },
+    return this.request<GetSimilarUrlsForUrlResponse>(
+      'GET',
+      `/api/search/similar-urls?${searchParams}`,
     );
-    return response.json();
   }
 }

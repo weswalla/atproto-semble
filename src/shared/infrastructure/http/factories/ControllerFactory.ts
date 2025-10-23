@@ -193,4 +193,3 @@ export class ControllerFactory {
     };
   }
 }
-import { GetSimilarUrlsForUrlController } from '../../../../modules/search/infrastructure/http/controllers/GetSimilarUrlsForUrlController';

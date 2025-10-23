@@ -108,7 +108,9 @@ export interface GetSimilarUrlsForUrlResponse {
 ```typescript
 export interface IVectorDatabase {
   indexUrl(params: IndexUrlParams): Promise<Result<void>>;
-  findSimilarUrls(params: FindSimilarUrlsParams): Promise<Result<UrlSearchResult[]>>;
+  findSimilarUrls(
+    params: FindSimilarUrlsParams,
+  ): Promise<Result<UrlSearchResult[]>>;
   deleteUrl(url: string): Promise<Result<void>>;
 }
 
@@ -178,6 +180,7 @@ export interface UrlSearchResult {
 ```
 
 **Configuration:**
+
 - `USE_IN_MEMORY_EVENTS=false`
 - `VECTOR_DB_URL` configured (Pinecone, Weaviate, etc.)
 - Separate search worker process
@@ -217,6 +220,7 @@ export interface UrlSearchResult {
 ```
 
 **Configuration:**
+
 - `USE_IN_MEMORY_EVENTS=false`
 - Local vector DB via Docker (Weaviate/Qdrant)
 - Both web app and search worker in same process
@@ -250,6 +254,7 @@ export interface UrlSearchResult {
 ```
 
 **Configuration:**
+
 - `USE_IN_MEMORY_EVENTS=true`
 - `USE_MOCK_VECTOR_DB=true`
 - No external vector DB required
@@ -326,9 +331,7 @@ export class SearchService {
     }
 
     // 2. Enrich with library counts and user context
-    const enrichedUrls = await this.enrichUrlsWithContext(
-      similarResult.value,
-    );
+    const enrichedUrls = await this.enrichUrlsWithContext(similarResult.value);
 
     return ok(enrichedUrls);
   }
@@ -363,7 +366,9 @@ export class PineconeVectorDatabase implements IVectorDatabase {
     // Generate embeddings and upsert to Pinecone
   }
 
-  async findSimilarUrls(params: FindSimilarUrlsParams): Promise<Result<UrlSearchResult[]>> {
+  async findSimilarUrls(
+    params: FindSimilarUrlsParams,
+  ): Promise<Result<UrlSearchResult[]>> {
     // Query Pinecone for similar vectors
   }
 }
@@ -379,7 +384,9 @@ export class WeaviateVectorDatabase implements IVectorDatabase {
     // Index in local Weaviate instance
   }
 
-  async findSimilarUrls(params: FindSimilarUrlsParams): Promise<Result<UrlSearchResult[]>> {
+  async findSimilarUrls(
+    params: FindSimilarUrlsParams,
+  ): Promise<Result<UrlSearchResult[]>> {
     // Query local Weaviate instance
   }
 }
@@ -401,11 +408,16 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
     return ok(undefined);
   }
 
-  async findSimilarUrls(params: FindSimilarUrlsParams): Promise<Result<UrlSearchResult[]>> {
+  async findSimilarUrls(
+    params: FindSimilarUrlsParams,
+  ): Promise<Result<UrlSearchResult[]>> {
     // Simple text similarity using keyword matching
     const results = Array.from(this.urls.values())
-      .filter(indexed => this.calculateSimilarity(params.url, indexed.content) > 0.3)
-      .map(indexed => ({
+      .filter(
+        (indexed) =>
+          this.calculateSimilarity(params.url, indexed.content) > 0.3,
+      )
+      .map((indexed) => ({
         url: indexed.url,
         similarity: this.calculateSimilarity(params.url, indexed.content),
         metadata: indexed.metadata,
@@ -420,8 +432,12 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
     // Simple keyword-based similarity for mocking
     const queryWords = query.toLowerCase().split(/\W+/);
     const contentWords = content.toLowerCase().split(/\W+/);
-    const intersection = queryWords.filter(word => contentWords.includes(word));
-    return intersection.length / Math.max(queryWords.length, contentWords.length);
+    const intersection = queryWords.filter((word) =>
+      contentWords.includes(word),
+    );
+    return (
+      intersection.length / Math.max(queryWords.length, contentWords.length)
+    );
   }
 }
 ```
@@ -500,7 +516,7 @@ app.get('/api/search/similar-urls', async (req, res) => {
     limit: parseInt(req.query.limit) || 10,
     page: parseInt(req.query.page) || 1,
   });
-  
+
   res.json(result);
 });
 ```

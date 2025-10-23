@@ -16,13 +16,19 @@ export class CardAddedToLibraryEventHandler
     // Get card details to check if it's a URL card
     const cardResult = await this.cardRepository.findById(event.cardId);
     if (cardResult.isErr()) {
-      console.error('Failed to find card for search indexing:', cardResult.error);
+      console.error(
+        'Failed to find card for search indexing:',
+        cardResult.error,
+      );
       return ok(undefined); // Don't fail the event processing
     }
 
     const card = cardResult.value;
     if (!card) {
-      console.warn('Card not found for search indexing:', event.cardId.getStringValue());
+      console.warn(
+        'Card not found for search indexing:',
+        event.cardId.getStringValue(),
+      );
       return ok(undefined);
     }
 

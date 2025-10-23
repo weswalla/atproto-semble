@@ -33,7 +33,9 @@ export interface IVectorDatabase {
   /**
    * Find URLs similar to the given URL
    */
-  findSimilarUrls(params: FindSimilarUrlsParams): Promise<Result<UrlSearchResult[]>>;
+  findSimilarUrls(
+    params: FindSimilarUrlsParams,
+  ): Promise<Result<UrlSearchResult[]>>;
 
   /**
    * Remove a URL from the search index

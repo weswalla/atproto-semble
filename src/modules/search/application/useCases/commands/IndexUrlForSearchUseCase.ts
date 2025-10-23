@@ -24,7 +24,10 @@ export class IndexUrlForSearchUseCase
   implements
     UseCase<
       IndexUrlForSearchDTO,
-      Result<IndexUrlForSearchResponseDTO, ValidationError | AppError.UnexpectedError>
+      Result<
+        IndexUrlForSearchResponseDTO,
+        ValidationError | AppError.UnexpectedError
+      >
     >
 {
   constructor(private searchService: SearchService) {}

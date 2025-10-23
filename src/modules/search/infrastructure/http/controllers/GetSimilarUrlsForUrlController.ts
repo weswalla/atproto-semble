@@ -4,7 +4,9 @@ import { GetSimilarUrlsForUrlUseCase } from '../../../application/useCases/queri
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class GetSimilarUrlsForUrlController extends Controller {
-  constructor(private getSimilarUrlsForUrlUseCase: GetSimilarUrlsForUrlUseCase) {
+  constructor(
+    private getSimilarUrlsForUrlUseCase: GetSimilarUrlsForUrlUseCase,
+  ) {
     super();
   }
 

@@ -124,18 +124,16 @@ export class SearchService {
     const enrichedResults = await Promise.all(
       searchResults.map(async (result) => {
         // Get library information for this URL
-        const librariesResult = await this.cardQueryRepository.getLibrariesForUrl(
-          result.url,
-          {
+        const librariesResult =
+          await this.cardQueryRepository.getLibrariesForUrl(result.url, {
             page: 1,
             limit: 1000, // Get all libraries to count them
             sortBy: 'createdAt' as any, // Type assertion needed due to enum mismatch
             sortOrder: 'desc' as any,
-          },
-        );
+          });
 
         const urlLibraryCount = librariesResult.totalCount;
-        
+
         // Check if calling user has this URL in their library
         // Default to false if no calling user (unauthenticated request)
         const urlInLibrary = callingUserId

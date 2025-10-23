@@ -14,7 +14,8 @@ export class InMemoryAppPasswordSessionRepository
 
   public static getInstance(): InMemoryAppPasswordSessionRepository {
     if (!InMemoryAppPasswordSessionRepository.instance) {
-      InMemoryAppPasswordSessionRepository.instance = new InMemoryAppPasswordSessionRepository();
+      InMemoryAppPasswordSessionRepository.instance =
+        new InMemoryAppPasswordSessionRepository();
     }
     return InMemoryAppPasswordSessionRepository.instance;
   }

@@ -60,7 +60,7 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
   ): Promise<Result<UrlSearchResult[]>> {
     try {
       console.log('all urls to compare', this.urls);
-      const threshold = params.threshold || 0.1; // Lower default threshold for more matches
+      const threshold = params.threshold || 0; // Lower default threshold for more matches
       const results: UrlSearchResult[] = [];
 
       // Get the query URL's content for comparison
@@ -78,7 +78,9 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
           indexed.content,
         );
 
-        console.log(`Similarity between "${queryContent}" and "${indexed.content}": ${similarity}`);
+        console.log(
+          `Similarity between "${queryContent}" and "${indexed.content}": ${similarity}`,
+        );
 
         if (similarity >= threshold) {
           results.push({
@@ -93,7 +95,9 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
       results.sort((a, b) => b.similarity - a.similarity);
       const limitedResults = results.slice(0, params.limit);
 
-      console.log(`Found ${limitedResults.length} similar URLs above threshold ${threshold}`);
+      console.log(
+        `Found ${limitedResults.length} similar URLs above threshold ${threshold}`,
+      );
 
       return ok(limitedResults);
     } catch (error) {
@@ -144,7 +148,7 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
     for (const word of new Set([...words1, ...words2])) {
       const count1 = freq1.get(word) || 0;
       const count2 = freq2.get(word) || 0;
-      
+
       if (count1 > 0 && count2 > 0) {
         sharedWords += Math.min(count1, count2);
       }

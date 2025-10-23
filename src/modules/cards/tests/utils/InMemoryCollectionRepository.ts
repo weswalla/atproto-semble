@@ -13,7 +13,8 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
 
   public static getInstance(): InMemoryCollectionRepository {
     if (!InMemoryCollectionRepository.instance) {
-      InMemoryCollectionRepository.instance = new InMemoryCollectionRepository();
+      InMemoryCollectionRepository.instance =
+        new InMemoryCollectionRepository();
     }
     return InMemoryCollectionRepository.instance;
   }

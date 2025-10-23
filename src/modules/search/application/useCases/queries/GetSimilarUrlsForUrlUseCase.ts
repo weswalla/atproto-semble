@@ -5,7 +5,10 @@ import { AppError } from '../../../../../shared/core/AppError';
 import { URL } from '../../../../cards/domain/value-objects/URL';
 import { SearchService } from '../../../domain/services/SearchService';
 import { GetSimilarUrlsForUrlParams } from '@semble/types/api/requests';
-import { GetSimilarUrlsForUrlResponse, UrlView } from '@semble/types/api/responses';
+import {
+  GetSimilarUrlsForUrlResponse,
+  UrlView,
+} from '@semble/types/api/responses';
 import { Pagination } from '@semble/types/api/common';
 
 export interface GetSimilarUrlsForUrlQuery extends GetSimilarUrlsForUrlParams {

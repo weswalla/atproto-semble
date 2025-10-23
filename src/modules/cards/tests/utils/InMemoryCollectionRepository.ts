@@ -6,7 +6,17 @@ import { CardId } from '../../domain/value-objects/CardId';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 
 export class InMemoryCollectionRepository implements ICollectionRepository {
+  private static instance: InMemoryCollectionRepository;
   private collections: Map<string, Collection> = new Map();
+
+  private constructor() {}
+
+  public static getInstance(): InMemoryCollectionRepository {
+    if (!InMemoryCollectionRepository.instance) {
+      InMemoryCollectionRepository.instance = new InMemoryCollectionRepository();
+    }
+    return InMemoryCollectionRepository.instance;
+  }
 
   private clone(collection: Collection): Collection {
     // Simple clone - in a real implementation you'd want proper deep cloning

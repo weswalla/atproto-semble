@@ -6,9 +6,19 @@ import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { URL } from '../../domain/value-objects/URL';
 
 export class InMemoryCardRepository implements ICardRepository {
+  private static instance: InMemoryCardRepository;
   private cards: Map<string, Card> = new Map();
   private shouldFail: boolean = false;
   private shouldFailSave: boolean = false;
+
+  private constructor() {}
+
+  public static getInstance(): InMemoryCardRepository {
+    if (!InMemoryCardRepository.instance) {
+      InMemoryCardRepository.instance = new InMemoryCardRepository();
+    }
+    return InMemoryCardRepository.instance;
+  }
 
   private clone(card: Card): Card {
     // Simple clone - in a real implementation you'd want proper deep cloning

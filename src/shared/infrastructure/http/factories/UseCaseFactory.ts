@@ -234,7 +234,7 @@ export class UseCaseFactory {
   static createForWorker(
     repositories: Repositories,
     services: SharedServices,
-  ): Pick<UseCases, 'addActivityToFeedUseCase' | 'indexUrlForSearchUseCase'> {
+  ): Pick<UseCases, 'addActivityToFeedUseCase'> & { indexUrlForSearchUseCase: IndexUrlForSearchUseCase } {
     return {
       // Feed use cases (only ones needed by workers)
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(

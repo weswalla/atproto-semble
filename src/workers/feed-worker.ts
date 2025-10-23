@@ -13,4 +13,6 @@ if (process.env.USE_IN_MEMORY_EVENTS !== 'true') {
     console.error('Failed to start feed worker:', error);
     process.exit(1);
   });
+} else {
+  console.log('Skipping feed worker startup - using in-memory events (worker runs inside main process)');
 }

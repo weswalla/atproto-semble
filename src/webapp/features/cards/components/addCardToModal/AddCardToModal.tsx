@@ -57,12 +57,12 @@ export default function AddCardToModal(props: Props) {
     const hasAdded = addedCollections.length > 0;
     const hasRemoved = removedCollections.length > 0;
 
-    if (!hasNoteChanged && !hasAdded && !hasRemoved) {
+    if (cardStatus.data.cardId && !hasNoteChanged && !hasAdded && !hasRemoved) {
       props.onClose();
       return;
     }
 
-    // if the card does not have an id in the library, add it instead of updating
+    // if the card is not in library, add it instead of updating
     if (!cardStatus.data.cardId) {
       addCard.mutate(
         {

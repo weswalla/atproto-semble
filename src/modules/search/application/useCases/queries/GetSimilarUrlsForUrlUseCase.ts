@@ -61,7 +61,6 @@ export class GetSimilarUrlsForUrlUseCase
       }
 
       // Find similar URLs
-      console.log('Finding similar URLs for:', urlResult.value.value);
       const similarUrlsResult = await this.searchService.findSimilarUrls(
         urlResult.value,
         {
@@ -70,7 +69,6 @@ export class GetSimilarUrlsForUrlUseCase
           callingUserId: query.callingUserId,
         },
       );
-      console.log('Similar URLs result:', similarUrlsResult);
 
       if (similarUrlsResult.isErr()) {
         return err(

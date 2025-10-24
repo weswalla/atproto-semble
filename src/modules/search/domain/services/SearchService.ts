@@ -4,7 +4,6 @@ import { IMetadataService } from '../../../cards/domain/services/IMetadataServic
 import { ICardQueryRepository } from '../../../cards/domain/ICardQueryRepository';
 import { IVectorDatabase, FindSimilarUrlsParams } from '../IVectorDatabase';
 import { UrlView } from '@semble/types/api/responses';
-import { CardSorting } from '@semble/types/api/common';
 
 export class SearchService {
   constructor(

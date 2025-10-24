@@ -6,6 +6,10 @@ interface PageParams {
   limit?: number;
 }
 
+interface SimilarUrlsParams extends PageParams {
+  threshold?: number;
+}
+
 export const getLibrariesForUrl = cache(
   async (url: string, params?: PageParams) => {
     const client = createSembleClient();
@@ -13,6 +17,20 @@ export const getLibrariesForUrl = cache(
       url,
       page: params?.page,
       limit: params?.limit,
+    });
+
+    return response;
+  },
+);
+
+export const getSimilarUrlsForUrl = cache(
+  async (url: string, params?: SimilarUrlsParams) => {
+    const client = createSembleClient();
+    const response = await client.getSimilarUrlsForUrl({
+      url,
+      page: params?.page,
+      limit: params?.limit,
+      threshold: params?.threshold,
     });
 
     return response;

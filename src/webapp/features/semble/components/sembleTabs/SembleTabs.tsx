@@ -5,6 +5,8 @@ import SembleCollectionsContainerSkeleton from '../../containers/sembleCollectio
 import SembleCollectionsContainer from '../../containers/sembleCollectionsContainer/SembleCollectionsContainer';
 import SembleLibrariesContainerSkeleton from '../../containers/sembleLibrariesContainer/Skeleton.SembleLibrariesContainer';
 import SembleLibrariesContainer from '../../containers/sembleLibrariesContainer/SembleLibrariesContainer';
+import SembleSimilarCardsContainerSkeleton from '../../containers/sembleSimilarCardsContainer/Skeleton.SembleSimilarCardsContainer';
+import SembleSimilarCardsContainer from '../../containers/sembleSimilarCardsContainer/SembleSimilarCardsContainer';
 import TabItem from './TabItem';
 import { Suspense } from 'react';
 
@@ -14,14 +16,20 @@ interface Props {
 
 export default function SembleTabs(props: Props) {
   return (
-    <Tabs defaultValue={'notes'}>
+    <Tabs defaultValue={'similar'}>
       <TabsList>
+        <TabItem value="similar">Similar Cards</TabItem>
         <TabItem value="notes">Notes</TabItem>
         <TabItem value="collections">Collections</TabItem>
         <TabItem value="addedBy">Added by</TabItem>
       </TabsList>
 
       <Box mt={'md'}>
+        <TabsPanel value="similar">
+          <Suspense fallback={<SembleSimilarCardsContainerSkeleton />}>
+            <SembleSimilarCardsContainer url={props.url} />
+          </Suspense>
+        </TabsPanel>
         <TabsPanel value="notes">
           <Suspense fallback={<SembleNotesContainerSkeleton />}>
             <SembleNotesContainer url={props.url} />

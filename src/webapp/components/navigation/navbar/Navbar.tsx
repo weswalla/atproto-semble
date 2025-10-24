@@ -11,6 +11,7 @@ import {
   Image,
   Box,
   Button,
+  Badge,
 } from '@mantine/core';
 import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
@@ -31,9 +32,12 @@ export default function Navbar() {
 
   return (
     <AppShellNavbar p={'xs'} style={{ zIndex: 3 }}>
-      <Group justify="space-between" ml={'sm'}>
+      <Group justify="space-between">
         <Anchor component={Link} href={'/home'}>
-          <Image src={SembleLogo.src} alt="Semble logo" w={20.84} h={28} />
+          <Stack align="center" gap={'xs'}>
+            <Image src={SembleLogo.src} alt="Semble logo" w={20.84} h={28} />
+            <Badge size="xs">Alpha</Badge>
+          </Stack>
         </Anchor>
         <Box hiddenFrom="xs">
           <NavbarToggle />

@@ -1,7 +1,15 @@
 'use client';
 
 import SignUpForm from '@/features/auth/components/signUpForm/SignUpForm';
-import { Stack, Title, Text, Anchor, Image, Loader } from '@mantine/core';
+import {
+  Stack,
+  Title,
+  Text,
+  Anchor,
+  Image,
+  Loader,
+  Badge,
+} from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect, useState } from 'react';
@@ -55,13 +63,16 @@ export default function Page() {
     <Stack align="center" gap="xl" maw={450}>
       <Stack gap={0}>
         <Stack gap={'xs'}>
-          <Image
-            src={SembleLogo.src}
-            alt="Semble logo"
-            w={48}
-            h={64.5}
-            mx={'auto'}
-          />
+          <Stack align="center" gap={'xs'}>
+            <Image
+              src={SembleLogo.src}
+              alt="Semble logo"
+              w={48}
+              h={64.5}
+              mx={'auto'}
+            />
+            <Badge size="sm">Alpha</Badge>
+          </Stack>
           <Title order={1} ta="center">
             Welcome
           </Title>

@@ -4,6 +4,7 @@ import { IMetadataService } from '../../../cards/domain/services/IMetadataServic
 import { ICardQueryRepository } from '../../../cards/domain/ICardQueryRepository';
 import { IVectorDatabase, FindSimilarUrlsParams } from '../IVectorDatabase';
 import { UrlView } from '@semble/types/api/responses';
+import { CardSorting } from '@semble/types/api/common';
 
 export class SearchService {
   constructor(
@@ -107,8 +108,8 @@ export class SearchService {
           await this.cardQueryRepository.getLibrariesForUrl(result.url, {
             page: 1,
             limit: 1000, // Get all libraries to count them
-            sortBy: 'createdAt' as any, // Type assertion needed due to enum mismatch
-            sortOrder: 'desc' as any,
+            sortBy: 'createdAt',
+            sortOrder: 'desc',
           });
 
         const urlLibraryCount = librariesResult.totalCount;

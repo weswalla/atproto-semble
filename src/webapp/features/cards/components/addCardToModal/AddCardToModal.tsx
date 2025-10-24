@@ -24,6 +24,7 @@ interface Props {
 
 export default function AddCardToModal(props: Props) {
   const cardStatus = useGetCardFromMyLibrary({ url: props.cardContent.url });
+  const isMyCard = props.cardId === cardStatus.data.cardId;
   const [note, setNote] = useState(props.note);
   const { data, error } = useMyCollections();
 
@@ -144,7 +145,7 @@ export default function AddCardToModal(props: Props) {
       <Stack justify="space-between">
         <CardToBeAddedPreview
           cardContent={props.cardContent}
-          note={note}
+          note={isMyCard ? note : undefined}
           onUpdateNote={setNote}
         />
 

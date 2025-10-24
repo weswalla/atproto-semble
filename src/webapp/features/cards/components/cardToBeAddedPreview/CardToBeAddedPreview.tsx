@@ -115,7 +115,7 @@ export default function CardToBeAddedPreview(props: Props) {
               setNoteMode(true);
             }}
           >
-            {props.note ? 'Update note' : 'Add note'}
+            {note ? 'Update note' : 'Add note'}
           </Button>
         </Group>
       </Stack>

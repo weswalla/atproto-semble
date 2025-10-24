@@ -26,20 +26,13 @@ export class SearchService {
 
       const metadata = metadataResult.value;
 
-      // 2. Prepare content for embedding (combine title, description, author)
-      const content = this.prepareContentForEmbedding(
-        metadata.title,
-        metadata.description,
-        metadata.author,
-      );
-
-      // 3. Index in vector database
+      // 2. Index in vector database
       const indexResult = await this.vectorDatabase.indexUrl({
         url: url.value,
         title: metadata.title,
         description: metadata.description,
         author: metadata.author,
-        content,
+        content: '', // Let the vector database implementation handle content preparation
       });
 
       if (indexResult.isErr()) {
@@ -92,20 +85,6 @@ export class SearchService {
         ),
       );
     }
-  }
-
-  private prepareContentForEmbedding(
-    title?: string,
-    description?: string,
-    author?: string,
-  ): string {
-    const parts: string[] = [];
-
-    if (title) parts.push(title);
-    if (description) parts.push(description);
-    if (author) parts.push(`by ${author}`);
-
-    return parts.join(' ');
   }
 
   private async enrichUrlsWithContext(

@@ -33,9 +33,17 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
   async indexUrl(params: IndexUrlParams): Promise<Result<void>> {
     try {
       console.log('Indexing URL in InMemoryVectorDatabase:', params.url);
+      
+      // Prepare content for embedding (combine title, description, author)
+      const content = this.prepareContentForEmbedding(
+        params.title,
+        params.description,
+        params.author,
+      );
+      
       this.urls.set(params.url, {
         url: params.url,
-        content: params.content,
+        content: content,
         metadata: {
           title: params.title,
           description: params.description,
@@ -191,5 +199,22 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
    */
   getIndexedUrlCount(): number {
     return this.urls.size;
+  }
+
+  /**
+   * Prepare content for embedding (combine title, description, author)
+   */
+  private prepareContentForEmbedding(
+    title?: string,
+    description?: string,
+    author?: string,
+  ): string {
+    const parts: string[] = [];
+
+    if (title) parts.push(title);
+    if (description) parts.push(description);
+    if (author) parts.push(`by ${author}`);
+
+    return parts.join(' ');
   }
 }

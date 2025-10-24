@@ -22,6 +22,8 @@ import {
   GetNoteCardsForUrlResponse,
   GetCollectionsForUrlParams,
   GetCollectionsForUrlResponse,
+  GetSimilarUrlsForUrlParams,
+  GetSimilarUrlsForUrlResponse,
 } from '@semble/types';
 
 export class QueryClient extends BaseClient {
@@ -218,6 +220,23 @@ export class QueryClient extends BaseClient {
     return this.request<GetCollectionsForUrlResponse>(
       'GET',
       `/api/collections/url?${searchParams}`,
+    );
+  }
+
+  async getSimilarUrlsForUrl(
+    params: GetSimilarUrlsForUrlParams,
+  ): Promise<GetSimilarUrlsForUrlResponse> {
+    const searchParams = new URLSearchParams({ url: params.url });
+    if (params.page) searchParams.set('page', params.page.toString());
+    if (params.limit) searchParams.set('limit', params.limit.toString());
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    if (params.threshold)
+      searchParams.set('threshold', params.threshold.toString());
+
+    return this.request<GetSimilarUrlsForUrlResponse>(
+      'GET',
+      `/api/search/similar-urls?${searchParams}`,
     );
   }
 }

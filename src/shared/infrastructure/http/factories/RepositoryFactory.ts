@@ -55,11 +55,11 @@ export class RepositoryFactory {
     const useMockRepos = process.env.USE_MOCK_REPOS === 'true';
 
     if (useMockRepos) {
-      // Create in-memory repositories
-      const userRepository = new InMemoryUserRepository();
-      const tokenRepository = new InMemoryTokenRepository();
-      const cardRepository = new InMemoryCardRepository();
-      const collectionRepository = new InMemoryCollectionRepository();
+      // Use singleton instances to ensure same data across processes
+      const userRepository = InMemoryUserRepository.getInstance();
+      const tokenRepository = InMemoryTokenRepository.getInstance();
+      const cardRepository = InMemoryCardRepository.getInstance();
+      const collectionRepository = InMemoryCollectionRepository.getInstance();
       const cardQueryRepository = new InMemoryCardQueryRepository(
         cardRepository,
         collectionRepository,
@@ -69,13 +69,13 @@ export class RepositoryFactory {
         cardRepository,
       );
       const appPasswordSessionRepository =
-        new InMemoryAppPasswordSessionRepository();
+        InMemoryAppPasswordSessionRepository.getInstance();
       const feedRepository = InMemoryFeedRepository.getInstance();
       const atUriResolutionService = new InMemoryAtUriResolutionService(
         collectionRepository,
       );
-      const oauthStateStore = new InMemoryStateStore();
-      const oauthSessionStore = new InMemorySessionStore();
+      const oauthStateStore = InMemoryStateStore.getInstance();
+      const oauthSessionStore = InMemorySessionStore.getInstance();
 
       return {
         userRepository,

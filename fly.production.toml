@@ -6,6 +6,7 @@ primary_region = 'yyz'
 [processes]
   web = "npm start"
   feed-worker = "npm run worker:feeds"
+  search-worker = "npm run worker:search"
 
 [http_service]
   internal_port = 3000
@@ -27,8 +28,15 @@ primary_region = 'yyz'
   cpu_kind = 'shared'
   cpus = 1
 
+[[vm]]
+  processes = ['search-worker']
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
+
 [env]
 NODE_ENV="prod"
 BASE_URL="https://api.semble.so"
 HOST="0.0.0.0"
 APP_URL="https://semble.so"
+USE_IN_MEMORY_EVENTS="false"

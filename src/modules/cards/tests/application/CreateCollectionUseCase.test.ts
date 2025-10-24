@@ -15,7 +15,7 @@ describe('CreateCollectionUseCase', () => {
   let curatorId: CuratorId;
 
   beforeEach(() => {
-    collectionRepository = new InMemoryCollectionRepository();
+    collectionRepository = InMemoryCollectionRepository.getInstance();
     collectionPublisher = new FakeCollectionPublisher();
     eventPublisher = new FakeEventPublisher();
     useCase = new CreateCollectionUseCase(

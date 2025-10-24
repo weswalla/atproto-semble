@@ -1,13 +1,19 @@
 import { Box, Divider, Group } from '@mantine/core';
 import NavbarToggle from '../NavbarToggle';
-import BackButton from '../backButton/BackButton';
+import { ReactElement } from 'react';
 
-export default function Header() {
+interface Props {
+  children?: ReactElement;
+}
+
+export default function Header(props: Props) {
   return (
     <Box>
       <Group gap={'xs'} p={'xs'} justify="space-between">
-        <BackButton />
-        <NavbarToggle />
+        {props.children}
+        <Box ml={'auto'}>
+          <NavbarToggle />
+        </Box>
       </Group>
       <Divider />
     </Box>

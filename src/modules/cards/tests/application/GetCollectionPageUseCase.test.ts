@@ -25,8 +25,8 @@ describe('GetCollectionPageUseCase', () => {
   let collectionId: CollectionId;
 
   beforeEach(() => {
-    collectionRepo = new InMemoryCollectionRepository();
-    cardRepo = new InMemoryCardRepository();
+    collectionRepo = InMemoryCollectionRepository.getInstance();
+    cardRepo = InMemoryCardRepository.getInstance();
     cardQueryRepo = new InMemoryCardQueryRepository(cardRepo, collectionRepo);
     profileService = new FakeProfileService();
     useCase = new GetCollectionPageUseCase(

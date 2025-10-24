@@ -7,7 +7,18 @@ import {
 export class InMemoryAppPasswordSessionRepository
   implements IAppPasswordSessionRepository
 {
+  private static instance: InMemoryAppPasswordSessionRepository;
   private sessions: Map<string, SessionWithAppPassword> = new Map();
+
+  private constructor() {}
+
+  public static getInstance(): InMemoryAppPasswordSessionRepository {
+    if (!InMemoryAppPasswordSessionRepository.instance) {
+      InMemoryAppPasswordSessionRepository.instance =
+        new InMemoryAppPasswordSessionRepository();
+    }
+    return InMemoryAppPasswordSessionRepository.instance;
+  }
 
   async saveSession(
     did: string,

@@ -93,7 +93,12 @@ export default function EditNoteDrawer(props: Props) {
               >
                 Cancel
               </Button>
-              <Button type="submit" size="md" loading={updateNote.isPending}>
+              <Button
+                disabled={form.values.note.trimEnd() === ''}
+                type="submit"
+                size="md"
+                loading={updateNote.isPending}
+              >
                 Update
               </Button>
             </Group>

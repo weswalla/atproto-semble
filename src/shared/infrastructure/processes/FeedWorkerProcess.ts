@@ -1,50 +1,51 @@
-import { IProcess } from '../../domain/IProcess';
 import { EnvironmentConfigService } from '../config/EnvironmentConfigService';
-import { RepositoryFactory } from '../http/factories/RepositoryFactory';
-import { ServiceFactory } from '../http/factories/ServiceFactory';
+import {
+  ServiceFactory,
+  WorkerServices,
+} from '../http/factories/ServiceFactory';
 import { UseCaseFactory } from '../http/factories/UseCaseFactory';
 import { CardAddedToLibraryEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToCollectionEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToCollectionEventHandler';
 import { CardCollectionSaga } from '../../../modules/feeds/application/sagas/CardCollectionSaga';
+import { RedisSagaStateStore } from '../../../modules/feeds/infrastructure/RedisSagaStateStore';
+import { InMemorySagaStateStore } from '../../../modules/feeds/infrastructure/InMemorySagaStateStore';
 import { QueueNames } from '../events/QueueConfig';
 import { EventNames } from '../events/EventConfig';
+import { BaseWorkerProcess } from './BaseWorkerProcess';
+import { IEventSubscriber } from '../../application/events/IEventSubscriber';
+import { Repositories } from '../http/factories/RepositoryFactory';
 
-export class FeedWorkerProcess implements IProcess {
-  constructor(private configService: EnvironmentConfigService) {}
+export class FeedWorkerProcess extends BaseWorkerProcess {
+  constructor(configService: EnvironmentConfigService) {
+    super(configService, QueueNames.FEEDS);
+  }
 
-  async start(): Promise<void> {
-    console.log('Starting feed worker...');
+  protected createServices(repositories: Repositories): WorkerServices {
+    return ServiceFactory.createForWorker(this.configService, repositories);
+  }
 
-    // Create dependencies using factories
-    const repositories = RepositoryFactory.create(this.configService);
-    const services = ServiceFactory.createForWorker(
-      this.configService,
-      repositories,
-    );
+  protected async validateDependencies(
+    services: WorkerServices,
+  ): Promise<void> {
+    if (!services.redisConnection) {
+      throw new Error('Redis connection required for feed worker');
+    }
+    await services.redisConnection.ping();
+  }
+
+  protected async registerHandlers(
+    subscriber: IEventSubscriber,
+    services: WorkerServices,
+    repositories: Repositories,
+  ): Promise<void> {
     const useCases = UseCaseFactory.createForWorker(repositories, services);
 
-    // Test Redis connection (only if using Redis)
-    if (services.redisConnection) {
-      try {
-        await services.redisConnection.ping();
-        console.log('Connected to Redis successfully');
-      } catch (error) {
-        console.error('Failed to connect to Redis:', error);
-        process.exit(1);
-      }
-    } else {
-      console.log('Using in-memory event system');
-    }
-
-    // Create subscriber for feeds queue
-    const eventSubscriber = services.createEventSubscriber(QueueNames.FEEDS);
-
-    // Create the saga with proper dependencies
+    // Create saga with proper use case dependency and state store from services
     const cardCollectionSaga = new CardCollectionSaga(
       useCases.addActivityToFeedUseCase,
+      services.sagaStateStore,
     );
 
-    // Create event handlers with the saga
     const cardAddedToLibraryHandler = new CardAddedToLibraryEventHandler(
       cardCollectionSaga,
     );
@@ -52,33 +53,14 @@ export class FeedWorkerProcess implements IProcess {
       cardCollectionSaga,
     );
 
-    // Register handlers
-    await eventSubscriber.subscribe(
+    await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
       cardAddedToLibraryHandler,
     );
 
-    await eventSubscriber.subscribe(
+    await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_COLLECTION,
       cardAddedToCollectionHandler,
     );
-
-    // Start the worker
-    await eventSubscriber.start();
-
-    console.log('Feed worker started and listening for events...');
-
-    // Graceful shutdown
-    const shutdown = async () => {
-      console.log('Shutting down feed worker...');
-      await eventSubscriber.stop();
-      if (services.redisConnection) {
-        await services.redisConnection.quit();
-      }
-      process.exit(0);
-    };
-
-    process.on('SIGTERM', shutdown);
-    process.on('SIGINT', shutdown);
   }
 }

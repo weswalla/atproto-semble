@@ -13,7 +13,7 @@ describe('UpdateCollectionUseCase', () => {
   let otherCuratorId: CuratorId;
 
   beforeEach(() => {
-    collectionRepository = new InMemoryCollectionRepository();
+    collectionRepository = InMemoryCollectionRepository.getInstance();
     collectionPublisher = new FakeCollectionPublisher();
     useCase = new UpdateCollectionUseCase(
       collectionRepository,

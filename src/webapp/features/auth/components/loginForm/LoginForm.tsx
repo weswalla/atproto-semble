@@ -81,9 +81,9 @@ export default function LoginForm() {
       if (isExtensionLogin) {
         ExtensionService.setExtensionTokensRequested();
       }
-
+      console.log('HANDLE', form.values.handle.trimEnd());
       const { authUrl } = await apiClient.initiateOAuthSignIn({
-        handle: form.values.handle,
+        handle: form.values.handle.trimEnd(),
       });
 
       window.location.href = authUrl;
@@ -106,7 +106,7 @@ export default function LoginForm() {
       setError('');
 
       await apiClient.loginWithAppPassword({
-        identifier: form.values.handle,
+        identifier: form.values.handle.trimEnd(),
         appPassword: form.values.appPassword,
       });
 

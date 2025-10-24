@@ -7,7 +7,17 @@ import {
  * In-memory implementation of NodeSavedStateStore for testing
  */
 export class InMemoryStateStore implements NodeSavedStateStore {
+  private static instance: InMemoryStateStore;
   private states: Map<string, NodeSavedState> = new Map();
+
+  private constructor() {}
+
+  public static getInstance(): InMemoryStateStore {
+    if (!InMemoryStateStore.instance) {
+      InMemoryStateStore.instance = new InMemoryStateStore();
+    }
+    return InMemoryStateStore.instance;
+  }
 
   async get(key: string): Promise<NodeSavedState | undefined> {
     return this.states.get(key);

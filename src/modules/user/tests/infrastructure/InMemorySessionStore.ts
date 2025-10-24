@@ -7,7 +7,17 @@ import {
  * In-memory implementation of NodeSavedSessionStore for testing
  */
 export class InMemorySessionStore implements NodeSavedSessionStore {
+  private static instance: InMemorySessionStore;
   private sessions: Map<string, NodeSavedSession> = new Map();
+
+  private constructor() {}
+
+  public static getInstance(): InMemorySessionStore {
+    if (!InMemorySessionStore.instance) {
+      InMemorySessionStore.instance = new InMemorySessionStore();
+    }
+    return InMemorySessionStore.instance;
+  }
 
   async get(key: string): Promise<NodeSavedSession | undefined> {
     return this.sessions.get(key);

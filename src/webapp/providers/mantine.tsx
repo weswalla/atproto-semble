@@ -13,7 +13,7 @@ interface Props {
 export default function MantineProvider(props: Props) {
   return (
     <BaseProvider theme={theme}>
-      <Notifications position="bottom-left" />
+      <Notifications position="bottom-right" />
       {props.children}
     </BaseProvider>
   );

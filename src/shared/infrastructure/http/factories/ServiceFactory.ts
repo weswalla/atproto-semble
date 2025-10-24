@@ -51,6 +51,13 @@ import { CardCollectionSaga } from '../../../../modules/feeds/application/sagas/
 import { ATProtoIdentityResolutionService } from '../../../../modules/atproto/infrastructure/services/ATProtoIdentityResolutionService';
 import { IIdentityResolutionService } from '../../../../modules/atproto/domain/services/IIdentityResolutionService';
 import { CookieService } from '../services/CookieService';
+import { InMemorySagaStateStore } from '../../../../modules/feeds/infrastructure/InMemorySagaStateStore';
+import { RedisSagaStateStore } from '../../../../modules/feeds/infrastructure/RedisSagaStateStore';
+import { ISagaStateStore } from 'src/modules/feeds/application/sagas/ISagaStateStore';
+import { SearchService } from '../../../../modules/search/domain/services/SearchService';
+import { IVectorDatabase } from '../../../../modules/search/domain/IVectorDatabase';
+import { InMemoryVectorDatabase } from '../../../../modules/search/infrastructure/InMemoryVectorDatabase';
+import { UpstashVectorDatabase } from '../../../../modules/search/infrastructure/UpstashVectorDatabase';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -64,6 +71,7 @@ export interface SharedServices {
   identityResolutionService: IIdentityResolutionService;
   configService: EnvironmentConfigService;
   cookieService: CookieService;
+  searchService: SearchService;
 }
 
 // Web app specific services (includes publishers, auth middleware)
@@ -77,6 +85,7 @@ export interface WebAppServices extends SharedServices {
   authMiddleware: AuthMiddleware;
   eventPublisher: IEventPublisher;
   cookieService: CookieService;
+  searchService: SearchService;
 }
 
 // Worker specific services (includes subscribers)
@@ -84,7 +93,7 @@ export interface WorkerServices extends SharedServices {
   redisConnection: Redis | null;
   eventPublisher: IEventPublisher;
   createEventSubscriber: (queueName: QueueName) => IEventSubscriber;
-  cardCollectionSaga: CardCollectionSaga;
+  sagaStateStore: ISagaStateStore;
 }
 
 // Legacy interface for backward compatibility
@@ -222,18 +231,17 @@ export class ServiceFactory {
       };
     }
 
-    // Create saga for worker
-    const cardCollectionSaga = new CardCollectionSaga(
-      // We'll need to create this use case in the worker context
-      null as any, // Will be set properly in worker
-    );
+    // Create appropriate saga state store
+    const sagaStateStore = useInMemoryEvents
+      ? new InMemorySagaStateStore()
+      : new RedisSagaStateStore(redisConnection!);
 
     return {
       ...sharedServices,
       redisConnection: redisConnection,
       eventPublisher,
       createEventSubscriber,
-      cardCollectionSaga,
+      sagaStateStore,
     };
   }
 
@@ -296,6 +304,24 @@ export class ServiceFactory {
     // Cookie Service
     const cookieService = new CookieService(configService);
 
+    // Create vector database and search service (shared by both web app and workers)
+    const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
+    const useMockVectorDb =
+      process.env.USE_MOCK_VECTOR_DB === 'true' || useInMemoryEvents;
+
+    const vectorDatabase: IVectorDatabase = useMockVectorDb
+      ? InMemoryVectorDatabase.getInstance()
+      : new UpstashVectorDatabase(
+          configService.getUpstashConfig().vectorUrl,
+          configService.getUpstashConfig().vectorToken,
+        );
+
+    const searchService = new SearchService(
+      vectorDatabase,
+      metadataService,
+      repositories.cardQueryRepository,
+    );
+
     return {
       tokenService,
       userAuthService,
@@ -307,6 +333,7 @@ export class ServiceFactory {
       identityResolutionService,
       configService,
       cookieService,
+      searchService,
     };
   }
 }

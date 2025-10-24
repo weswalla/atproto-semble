@@ -308,7 +308,7 @@ export class ServiceFactory {
     const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
     const useMockVectorDb =
       process.env.USE_MOCK_VECTOR_DB === 'true' || useInMemoryEvents;
-    
+
     const vectorDatabase: IVectorDatabase = useMockVectorDb
       ? InMemoryVectorDatabase.getInstance()
       : new UpstashVectorDatabase(
@@ -334,7 +334,6 @@ export class ServiceFactory {
       configService,
       cookieService,
       searchService,
-      vectorDatabase,
     };
   }
 }

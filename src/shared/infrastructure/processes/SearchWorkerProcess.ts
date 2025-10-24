@@ -28,10 +28,10 @@ export class SearchWorkerProcess extends BaseWorkerProcess {
     }
     await services.redisConnection.ping();
 
-    // Validate vector database connection
-    const vectorDbHealthResult = await services.vectorDatabase.healthCheck();
-    if (vectorDbHealthResult.isErr() || !vectorDbHealthResult.value) {
-      throw new Error('Vector database connection required for search worker');
+    // Validate search service (which includes vector database health check)
+    const searchHealthResult = await services.searchService.healthCheck();
+    if (searchHealthResult.isErr() || !searchHealthResult.value) {
+      throw new Error('Search service connection required for search worker');
     }
   }
 

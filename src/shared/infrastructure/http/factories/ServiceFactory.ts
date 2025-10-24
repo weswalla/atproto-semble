@@ -72,7 +72,6 @@ export interface SharedServices {
   configService: EnvironmentConfigService;
   cookieService: CookieService;
   searchService: SearchService;
-  vectorDatabase: IVectorDatabase;
 }
 
 // Web app specific services (includes publishers, auth middleware)
@@ -95,8 +94,6 @@ export interface WorkerServices extends SharedServices {
   eventPublisher: IEventPublisher;
   createEventSubscriber: (queueName: QueueName) => IEventSubscriber;
   sagaStateStore: ISagaStateStore;
-  searchService: SearchService;
-  vectorDatabase: IVectorDatabase;
 }
 
 // Legacy interface for backward compatibility

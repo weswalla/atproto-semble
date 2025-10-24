@@ -88,6 +88,10 @@ export class SearchService {
     }
   }
 
+  async healthCheck(): Promise<Result<boolean>> {
+    return await this.vectorDatabase.healthCheck();
+  }
+
   private async enrichUrlsWithContext(
     searchResults: Array<{
       url: string;

@@ -1,7 +1,7 @@
 import { ValueObject } from '../../../../shared/domain/ValueObject';
 import { Result, ok, err } from '../../../../shared/core/Result';
 
-interface UrlMetadataProps {
+export interface UrlMetadataProps {
   url: string;
   title?: string;
   description?: string;

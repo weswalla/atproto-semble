@@ -6,12 +6,10 @@ import {
   FindSimilarUrlsParams,
   UrlSearchResult,
 } from '../domain/IVectorDatabase';
+import { UrlMetadataProps } from '../../cards/domain/value-objects/UrlMetadata';
 
-interface UpstashMetadata {
-  title?: string;
-  description?: string;
-  author?: string;
-  [key: string]: any; // Add this index signature
+interface UpstashMetadata extends UrlMetadataProps {
+  [key: string]: any; // Add this index signature for additional flexibility
 }
 
 export class UpstashVectorDatabase implements IVectorDatabase {
@@ -35,9 +33,14 @@ export class UpstashVectorDatabase implements IVectorDatabase {
         id: params.url,
         data: dataContent || params.url, // Fallback to URL if no content
         metadata: {
+          url: params.url,
           title: params.title,
           description: params.description,
           author: params.author,
+          publishedDate: params.publishedDate,
+          siteName: params.siteName,
+          imageUrl: params.imageUrl,
+          type: params.type,
         },
       });
       return ok(undefined);
@@ -84,9 +87,14 @@ export class UpstashVectorDatabase implements IVectorDatabase {
           url: result.id as string, // Cast to string since we use URLs as IDs
           similarity: result.score,
           metadata: {
+            url: result.metadata?.url || (result.id as string),
             title: result.metadata?.title,
             description: result.metadata?.description,
             author: result.metadata?.author,
+            publishedDate: result.metadata?.publishedDate,
+            siteName: result.metadata?.siteName,
+            imageUrl: result.metadata?.imageUrl,
+            type: result.metadata?.type,
           },
         });
       }

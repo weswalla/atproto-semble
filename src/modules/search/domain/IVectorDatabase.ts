@@ -1,12 +1,7 @@
 import { Result } from '../../../shared/core/Result';
+import { UrlMetadataProps } from '../../cards/domain/value-objects/UrlMetadata';
 
-export interface IndexUrlParams {
-  url: string;
-  title?: string;
-  description?: string;
-  author?: string;
-  content: string; // Combined text for embedding
-}
+export type IndexUrlParams = UrlMetadataProps;
 
 export interface FindSimilarUrlsParams {
   url: string;
@@ -17,11 +12,7 @@ export interface FindSimilarUrlsParams {
 export interface UrlSearchResult {
   url: string;
   similarity: number;
-  metadata: {
-    title?: string;
-    description?: string;
-    author?: string;
-  };
+  metadata: UrlMetadataProps;
 }
 
 export interface IVectorDatabase {

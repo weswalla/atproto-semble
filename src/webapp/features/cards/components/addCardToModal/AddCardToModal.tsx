@@ -113,7 +113,6 @@ export default function AddCardToModal(props: Props) {
           </Text>
         </Stack>
       }
-      withCloseButton={false}
       overlayProps={DEFAULT_OVERLAY_PROPS}
       centered
       onClick={(e) => e.stopPropagation()}

@@ -11,10 +11,9 @@ import {
   Button,
 } from '@mantine/core';
 import Link from 'next/link';
-import { Dispatch, MouseEvent, SetStateAction, useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { UrlCard } from '@/api-client';
 import { getDomain } from '@/lib/utils/link';
-import { useRouter } from 'next/navigation';
 
 interface Props {
   cardContent: UrlCard['cardContent'];
@@ -26,12 +25,6 @@ export default function CardToBeAddedPreview(props: Props) {
   const [noteMode, setNoteMode] = useState(false);
   const [note, setNote] = useState(props.note);
   const domain = getDomain(props.cardContent.url);
-  const router = useRouter();
-
-  const handleNavigateToSemblePage = (e: MouseEvent<HTMLElement>) => {
-    e.stopPropagation();
-    router.push(`/url?id=${props.cardContent.url}`);
-  };
 
   if (noteMode) {
     return (
@@ -80,14 +73,7 @@ export default function CardToBeAddedPreview(props: Props) {
   }
 
   return (
-    <Card
-      withBorder
-      component="article"
-      p={'xs'}
-      radius={'lg'}
-      style={{ cursor: 'pointer' }}
-      onClick={handleNavigateToSemblePage}
-    >
+    <Card withBorder component="article" p={'xs'} radius={'lg'}>
       <Stack>
         <Group gap={'sm'} justify="space-between">
           {props.cardContent.thumbnailUrl && (

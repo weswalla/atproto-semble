@@ -102,6 +102,7 @@ export default function UrlCard(props: Props) {
         >
           <UrlCardActions
             cardContent={props.cardContent}
+            cardCount={props.urlLibraryCount}
             id={props.id}
             authorHandle={props.authorHandle}
             note={props.note}

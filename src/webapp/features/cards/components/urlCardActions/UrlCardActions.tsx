@@ -19,6 +19,7 @@ import { IoMdCheckmark } from 'react-icons/io';
 interface Props {
   id: string;
   cardContent: UrlCard['cardContent'];
+  cardCount: number;
   authorHandle?: string;
   note?: UrlCard['note'];
   currentCollection?: Collection;
@@ -127,6 +128,9 @@ export default function UrlCardActions(props: Props) {
         onClose={() => setShowAddToModal(false)}
         cardContent={props.cardContent}
         cardId={props.id}
+        note={props.note?.text}
+        urlLibraryCount={props.urlLibraryCount}
+        isInYourLibrary={props.urlIsInLibrary}
       />
 
       <NoteCardModal

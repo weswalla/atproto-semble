@@ -10,6 +10,7 @@ import {
   NavLink,
   Spoiler,
   TabsTab,
+  Tooltip,
 } from '@mantine/core';
 
 export const theme = createTheme({
@@ -116,6 +117,11 @@ export const theme = createTheme({
       defaultProps: {
         fw: 500,
         fz: 'md',
+      },
+    }),
+    Tooltip: Tooltip.extend({
+      defaultProps: {
+        position: 'top-start',
       },
     }),
   },

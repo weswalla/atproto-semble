@@ -1,5 +1,6 @@
 import {
   Button,
+  Center,
   Container,
   Drawer,
   Group,
@@ -139,14 +140,35 @@ export default function AddCardDrawer(props: Props) {
                   </Tooltip>
                 </Stack>
               </Group>
-              <Suspense fallback={<CollectionSelectorSkeleton />}>
-                <CollectionSelector
-                  isOpen={collectionSelectorOpened}
-                  onClose={toggleCollectionSelector}
-                  selectedCollections={selectedCollections}
-                  onSelectedCollectionsChange={setSelectedCollections}
-                />
-              </Suspense>
+
+              <Drawer
+                opened={collectionSelectorOpened}
+                onClose={toggleCollectionSelector}
+                withCloseButton={false}
+                position="bottom"
+                overlayProps={DEFAULT_OVERLAY_PROPS}
+              >
+                <Drawer.Header>
+                  <Drawer.Title fz={'xl'} fw={600} mx={'auto'}>
+                    Add to collections
+                  </Drawer.Title>
+                </Drawer.Header>
+                <Container size={'xs'}>
+                  <Suspense fallback={<CollectionSelectorSkeleton />}>
+                    <CollectionSelector
+                      isOpen={collectionSelectorOpened}
+                      onCancel={() => {
+                        setSelectedCollections([]);
+                        toggleCollectionSelector();
+                      }}
+                      onClose={toggleCollectionSelector}
+                      onSave={toggleCollectionSelector}
+                      selectedCollections={selectedCollections}
+                      onSelectedCollectionsChange={setSelectedCollections}
+                    />
+                  </Suspense>
+                </Container>
+              </Drawer>
             </Stack>
             <Group justify="space-between" gap={'xs'} grow>
               <Button

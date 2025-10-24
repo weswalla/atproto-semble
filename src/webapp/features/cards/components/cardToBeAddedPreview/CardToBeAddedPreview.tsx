@@ -63,6 +63,7 @@ export default function CardToBeAddedPreview(props: Props) {
                 props.onUpdateNote(note);
                 setNoteMode(false);
               }}
+              disabled={note?.trimEnd() === ''}
             >
               Save
             </Button>

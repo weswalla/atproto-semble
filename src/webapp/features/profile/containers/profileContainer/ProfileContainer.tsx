@@ -73,6 +73,7 @@ export default function ProfileContainer(props: Props) {
                     <UrlCard
                       id={card.id}
                       url={card.url}
+                      cardAuthor={card.author}
                       cardContent={card.cardContent}
                       note={card.note}
                       collections={card.collections}

@@ -1,4 +1,4 @@
-import type { UrlCard } from '@/api-client';
+import type { UrlCard, User } from '@/api-client';
 import { getDomain } from '@/lib/utils/link';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 import {
@@ -11,6 +11,7 @@ import {
   Text,
   Image,
   Tooltip,
+  Avatar,
 } from '@mantine/core';
 import Link from 'next/link';
 
@@ -19,6 +20,7 @@ interface Props {
   onClose: () => void;
   note: UrlCard['note'];
   urlCardContent: UrlCard['cardContent'];
+  cardAuthor?: User;
 }
 
 export default function NoteCardModal(props: Props) {
@@ -28,13 +30,39 @@ export default function NoteCardModal(props: Props) {
     <Modal
       opened={props.isOpen}
       onClose={props.onClose}
-      title="Note"
+      title={
+        <Stack gap={5}>
+          <Text fw={600}>Note</Text>
+          {props.cardAuthor && (
+            <Group gap={5}>
+              <Avatar
+                size={'sm'}
+                component={Link}
+                href={`/profile/${props.cardAuthor.handle}`}
+                target="_blank"
+                src={props.cardAuthor.avatarUrl}
+                alt={`${props.cardAuthor.name}'s' avatar`}
+              />
+              <Anchor
+                component={Link}
+                href={`/profile/${props.cardAuthor.handle}`}
+                target="_blank"
+                fw={700}
+                c="blue"
+                lineClamp={1}
+              >
+                {props.cardAuthor.name}
+              </Anchor>
+            </Group>
+          )}
+        </Stack>
+      }
       overlayProps={UPDATE_OVERLAY_PROPS}
       centered
       onClick={(e) => e.stopPropagation()}
     >
-      <Stack gap={'xl'}>
-        {props.note && <Text>{props.note.text}</Text>}
+      <Stack gap={'xs'} mt={'xs'}>
+        {props.note && <Text fs={'italic'}>{props.note.text}</Text>}
         <Card withBorder p={'xs'} radius={'lg'}>
           <Stack>
             <Group gap={'sm'}>

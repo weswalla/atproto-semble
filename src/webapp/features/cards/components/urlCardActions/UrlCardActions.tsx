@@ -1,6 +1,6 @@
 'use client';
 
-import type { UrlCard, Collection } from '@/api-client';
+import type { UrlCard, Collection, User } from '@/api-client';
 import EditNoteDrawer from '@/features/notes/components/editNoteDrawer/EditNoteDrawer';
 import { ActionIcon, Button, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
@@ -20,6 +20,7 @@ interface Props {
   id: string;
   cardContent: UrlCard['cardContent'];
   cardCount: number;
+  cardAuthor?: User;
   authorHandle?: string;
   note?: UrlCard['note'];
   currentCollection?: Collection;
@@ -138,6 +139,7 @@ export default function UrlCardActions(props: Props) {
         onClose={() => setShowNoteModal(false)}
         note={props.note}
         urlCardContent={props.cardContent}
+        cardAuthor={props.cardAuthor}
       />
 
       {props.note && (

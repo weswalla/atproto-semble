@@ -1,4 +1,4 @@
-import type { UrlCard, Collection } from '@/api-client';
+import type { UrlCard, Collection, User } from '@/api-client';
 import { getDomain } from '@/lib/utils/link';
 import {
   Card,
@@ -28,6 +28,7 @@ interface Props {
   urlLibraryCount: number;
   urlIsInLibrary?: boolean;
   authorHandle?: string;
+  cardAuthor?: User;
 }
 
 export default function UrlCard(props: Props) {
@@ -101,6 +102,7 @@ export default function UrlCard(props: Props) {
           }
         >
           <UrlCardActions
+            cardAuthor={props.cardAuthor}
             cardContent={props.cardContent}
             cardCount={props.urlLibraryCount}
             id={props.id}

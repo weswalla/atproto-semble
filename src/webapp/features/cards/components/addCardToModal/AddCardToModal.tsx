@@ -10,15 +10,15 @@ import useMyCollections from '../../../collections/lib/queries/useMyCollections'
 import CollectionSelector from '@/features/collections/components/collectionSelector/CollectionSelector';
 import useUpdateCardAssociations from '../../lib/mutations/useUpdateCardAssociations';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
-import Link from 'next/link';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   cardContent: UrlCard['cardContent'];
-  cardCount: number;
+  urlLibraryCount: number;
   cardId: string;
   note?: string;
+  isInYourLibrary: boolean;
 }
 
 export default function AddCardToModal(props: Props) {
@@ -103,9 +103,13 @@ export default function AddCardToModal(props: Props) {
         <Stack gap={0}>
           <Text fw={600}>Add or update card</Text>
           <Text c={'gray'} fw={500}>
-            Saved by {props.cardCount}
-            {' other '}
-            {props.cardCount == 1 ? 'person' : 'people'}
+            {props.isInYourLibrary
+              ? props.urlLibraryCount === 1
+                ? 'Saved by you'
+                : `Saved by you and ${props.urlLibraryCount - 1} other${props.urlLibraryCount - 1 > 1 ? 's' : ''}`
+              : props.urlLibraryCount === 1
+                ? 'Saved by 1 person'
+                : `Saved by ${props.urlLibraryCount} people`}
           </Text>
         </Stack>
       }

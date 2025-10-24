@@ -127,9 +127,10 @@ export default function UrlCardActions(props: Props) {
         isOpen={showAddToModal}
         onClose={() => setShowAddToModal(false)}
         cardContent={props.cardContent}
-        cardCount={props.cardCount}
         cardId={props.id}
         note={props.note?.text}
+        urlLibraryCount={props.urlLibraryCount}
+        isInYourLibrary={props.urlIsInLibrary}
       />
 
       <NoteCardModal

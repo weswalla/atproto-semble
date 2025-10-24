@@ -154,7 +154,7 @@ export default function CollectionSelector(props: Props) {
                         selectedCollections={props.selectedCollections}
                         onChange={handleCollectionChange}
                       />
-                      <Divider my="xs" />
+                      {unselectedCollections.length > 0 && <Divider my="xs" />}
                     </Fragment>
                   )}
 

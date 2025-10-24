@@ -11,9 +11,6 @@ import {
 } from '../../../../cards/domain/ICardQueryRepository';
 import { ICollectionRepository } from 'src/modules/cards/domain/ICollectionRepository';
 import { CollectionId } from 'src/modules/cards/domain/value-objects/CollectionId';
-import { IIdentityResolutionService } from '../../../../atproto/domain/services/IIdentityResolutionService';
-import { DID } from '../../../../atproto/domain/DID';
-import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
 import { GetGlobalFeedResponse, FeedItem } from '@semble/types';
 
 export interface GetGlobalFeedQuery {
@@ -44,7 +41,6 @@ export class GetGlobalFeedUseCase
     private profileService: IProfileService,
     private cardQueryRepository: ICardQueryRepository,
     private collectionRepository: ICollectionRepository,
-    private identityResolutionService: IIdentityResolutionService,
   ) {}
 
   async execute(

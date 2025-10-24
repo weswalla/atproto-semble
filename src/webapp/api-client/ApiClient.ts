@@ -62,6 +62,8 @@ import type {
   GetNoteCardsForUrlResponse,
   GetCollectionsForUrlParams,
   GetCollectionsForUrlResponse,
+  GetSimilarUrlsForUrlParams,
+  GetSimilarUrlsForUrlResponse,
 } from '@semble/types';
 
 // Main API Client class using composition
@@ -160,6 +162,12 @@ export class ApiClient {
     params: GetCollectionsForUrlParams,
   ): Promise<GetCollectionsForUrlResponse> {
     return this.queryClient.getCollectionsForUrl(params);
+  }
+
+  async getSimilarUrlsForUrl(
+    params: GetSimilarUrlsForUrlParams,
+  ): Promise<GetSimilarUrlsForUrlResponse> {
+    return this.queryClient.getSimilarUrlsForUrl(params);
   }
 
   // Card operations - delegate to CardClient

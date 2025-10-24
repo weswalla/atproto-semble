@@ -20,8 +20,8 @@ describe('GetLibrariesForUrlUseCase', () => {
   let curator3: CuratorId;
 
   beforeEach(() => {
-    cardRepository = new InMemoryCardRepository();
-    collectionRepository = new InMemoryCollectionRepository();
+    cardRepository = InMemoryCardRepository.getInstance();
+    collectionRepository = InMemoryCollectionRepository.getInstance();
     cardQueryRepository = new InMemoryCardQueryRepository(
       cardRepository,
       collectionRepository,

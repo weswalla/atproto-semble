@@ -22,9 +22,9 @@ describe('RemoveCardFromLibraryUseCase', () => {
   let otherCuratorId: CuratorId;
 
   beforeEach(() => {
-    cardRepository = new InMemoryCardRepository();
+    cardRepository = InMemoryCardRepository.getInstance();
     cardPublisher = new FakeCardPublisher();
-    collectionRepository = new InMemoryCollectionRepository();
+    collectionRepository = InMemoryCollectionRepository.getInstance();
     collectionPublisher = new FakeCollectionPublisher();
     cardCollectionService = new CardCollectionService(
       collectionRepository,

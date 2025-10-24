@@ -33,6 +33,10 @@ export interface EnvironmentConfig {
   iframely: {
     apiKey: string;
   };
+  upstash: {
+    vectorUrl: string;
+    vectorToken: string;
+  };
   workers: {
     redisUrl: string;
     redisConfig: {
@@ -96,6 +100,10 @@ export class EnvironmentConfigService {
       },
       iframely: {
         apiKey: process.env.IFRAMELY_API_KEY || '',
+      },
+      upstash: {
+        vectorUrl: process.env.UPSTASH_VECTOR_REST_URL || '',
+        vectorToken: process.env.UPSTASH_VECTOR_REST_TOKEN || '',
       },
       workers: {
         redisConfig: {
@@ -161,6 +169,11 @@ export class EnvironmentConfigService {
   public getIFramelyApiKey(): string {
     return this.config.iframely.apiKey;
   }
+
+  public getUpstashConfig() {
+    return this.config.upstash;
+  }
+
   public getWorkersConfig() {
     return this.config.workers;
   }

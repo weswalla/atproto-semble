@@ -21,8 +21,8 @@ describe('GetUrlCardsUseCase', () => {
   let curatorId: CuratorId;
 
   beforeEach(() => {
-    cardRepo = new InMemoryCardRepository();
-    collectionRepo = new InMemoryCollectionRepository();
+    cardRepo = InMemoryCardRepository.getInstance();
+    collectionRepo = InMemoryCollectionRepository.getInstance();
     cardQueryRepo = new InMemoryCardQueryRepository(cardRepo, collectionRepo);
     identityResolutionService = new FakeIdentityResolutionService();
     useCase = new GetUrlCardsUseCase(cardQueryRepo, identityResolutionService);

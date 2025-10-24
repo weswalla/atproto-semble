@@ -4,7 +4,17 @@ import { IUserRepository } from '../../domain/repositories/IUserRepository';
 import { DID } from '../../domain/value-objects/DID';
 
 export class InMemoryUserRepository implements IUserRepository {
+  private static instance: InMemoryUserRepository;
   private users: Map<string, User> = new Map();
+
+  private constructor() {}
+
+  public static getInstance(): InMemoryUserRepository {
+    if (!InMemoryUserRepository.instance) {
+      InMemoryUserRepository.instance = new InMemoryUserRepository();
+    }
+    return InMemoryUserRepository.instance;
+  }
 
   async findByDID(did: DID): Promise<Result<User | null>> {
     try {

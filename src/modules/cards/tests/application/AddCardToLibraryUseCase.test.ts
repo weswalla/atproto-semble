@@ -23,8 +23,8 @@ describe('AddCardToLibraryUseCase', () => {
   let curatorId2: CuratorId;
 
   beforeEach(() => {
-    cardRepository = new InMemoryCardRepository();
-    collectionRepository = new InMemoryCollectionRepository();
+    cardRepository = InMemoryCardRepository.getInstance();
+    collectionRepository = InMemoryCollectionRepository.getInstance();
     cardPublisher = new FakeCardPublisher();
     collectionPublisher = new FakeCollectionPublisher();
 

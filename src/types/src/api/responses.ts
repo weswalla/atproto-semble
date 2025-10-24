@@ -222,3 +222,22 @@ export interface GetCollectionsForUrlResponse {
   pagination: Pagination;
   sorting: CollectionSorting;
 }
+
+// Search response types
+export interface UrlView {
+  url: string;
+  metadata: {
+    url: string;
+    title?: string;
+    description?: string;
+    author?: string;
+    thumbnailUrl?: string;
+  };
+  urlLibraryCount: number;
+  urlInLibrary?: boolean;
+}
+
+export interface GetSimilarUrlsForUrlResponse {
+  urls: UrlView[];
+  pagination: Pagination;
+}

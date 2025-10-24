@@ -6,6 +6,7 @@ primary_region = 'yyz'
 [processes]
   web = "npm start"
   feed-worker = "npm run worker:feeds"
+  search-worker = "npm run worker:search"
 
 [http_service]
   internal_port = 3000
@@ -23,6 +24,12 @@ primary_region = 'yyz'
 
 [[vm]]
   processes = ['feed-worker']
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[[vm]]
+  processes = ['search-worker']
   memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1

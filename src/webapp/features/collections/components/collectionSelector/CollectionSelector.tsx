@@ -91,7 +91,7 @@ export default function CollectionSelector(props: Props) {
             }
           />
 
-          <ScrollArea h={300} type="auto">
+          <ScrollArea.Autosize mah={340} type="auto">
             <Stack gap="xs">
               {search ? (
                 <>
@@ -187,7 +187,7 @@ export default function CollectionSelector(props: Props) {
                 </Stack>
               )}
             </Stack>
-          </ScrollArea>
+          </ScrollArea.Autosize>
         </Stack>
 
         {/* Action Buttons */}

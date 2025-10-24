@@ -61,7 +61,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
   async getUrlCardBasic(
     cardId: string,
     callingUserId?: string,
-  ): Promise<UrlCardView | null> {
+  ): Promise<UrlCardViewDTO | null> {
     return this.urlCardQueryService.getUrlCardBasic(cardId, callingUserId);
   }
 

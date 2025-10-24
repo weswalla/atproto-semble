@@ -755,6 +755,7 @@ describe('GetCollectionPageUseCase', () => {
           .fn()
           .mockRejectedValue(new Error('Query failed')),
         getUrlCardView: jest.fn(),
+        getUrlCardBasic: jest.fn(),
         getLibrariesForCard: jest.fn(),
         getLibrariesForUrl: jest.fn(),
         getNoteCardsForUrl: jest.fn(),

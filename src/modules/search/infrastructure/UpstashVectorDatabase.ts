@@ -54,8 +54,6 @@ export class UpstashVectorDatabase implements IVectorDatabase {
     params: FindSimilarUrlsParams,
   ): Promise<Result<UrlSearchResult[]>> {
     try {
-      console.log('Finding similar URLs for:', params.url);
-
       // Get the query URL's content for comparison
       // We'll use the URL itself as the query data for now
       // In a more sophisticated implementation, we could fetch the indexed data
@@ -96,10 +94,6 @@ export class UpstashVectorDatabase implements IVectorDatabase {
       // Sort by similarity (highest first) and limit results
       results.sort((a, b) => b.similarity - a.similarity);
       const limitedResults = results.slice(0, params.limit);
-
-      console.log(
-        `Found ${limitedResults.length} similar URLs above threshold ${threshold}`,
-      );
 
       return ok(limitedResults);
     } catch (error) {

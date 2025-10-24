@@ -1,5 +1,6 @@
 import { GetUrlStatusForMyLibraryUseCase } from '../../application/useCases/queries/GetUrlStatusForMyLibraryUseCase';
 import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
+import { InMemoryCardQueryRepository } from '../utils/InMemoryCardQueryRepository';
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
 import { InMemoryCollectionQueryRepository } from '../utils/InMemoryCollectionQueryRepository';
 import { FakeCardPublisher } from '../utils/FakeCardPublisher';
@@ -18,6 +19,7 @@ import { ICardRepository } from '../../domain/ICardRepository';
 describe('GetUrlStatusForMyLibraryUseCase', () => {
   let useCase: GetUrlStatusForMyLibraryUseCase;
   let cardRepository: InMemoryCardRepository;
+  let cardQueryRepository: InMemoryCardQueryRepository;
   let collectionRepository: InMemoryCollectionRepository;
   let collectionQueryRepository: InMemoryCollectionQueryRepository;
   let cardPublisher: FakeCardPublisher;
@@ -30,6 +32,10 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
   beforeEach(() => {
     cardRepository = InMemoryCardRepository.getInstance();
     collectionRepository = InMemoryCollectionRepository.getInstance();
+    cardQueryRepository = new InMemoryCardQueryRepository(
+      cardRepository,
+      collectionRepository,
+    );
     collectionQueryRepository = new InMemoryCollectionQueryRepository(
       collectionRepository,
     );
@@ -40,6 +46,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
 
     useCase = new GetUrlStatusForMyLibraryUseCase(
       cardRepository,
+      cardQueryRepository,
       collectionQueryRepository,
       collectionRepository,
       profileService,
@@ -69,6 +76,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
 
   afterEach(() => {
     cardRepository.clear();
+    cardQueryRepository.clear();
     collectionRepository.clear();
     collectionQueryRepository.clear();
     cardPublisher.clear();
@@ -527,6 +535,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
 
       const errorUseCase = new GetUrlStatusForMyLibraryUseCase(
         errorCardRepository,
+        cardQueryRepository,
         collectionQueryRepository,
         collectionRepository,
         profileService,
@@ -581,6 +590,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
 
       const errorUseCase = new GetUrlStatusForMyLibraryUseCase(
         cardRepository,
+        cardQueryRepository,
         errorCollectionQueryRepository,
         collectionRepository,
         profileService,

@@ -38,9 +38,6 @@ export class SearchService {
         siteName: metadata.siteName,
         imageUrl: metadata.imageUrl,
         type: metadata.type,
-        content: [metadata.title, metadata.description]
-          .filter(Boolean)
-          .join(' '),
       });
 
       if (indexResult.isErr()) {

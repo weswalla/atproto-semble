@@ -5,15 +5,14 @@ interface Props {
   urlView: UrlView;
 }
 
-export default function SimilarUrlCard({ urlView }: Props) {
+export default function SimilarUrlCard(props: Props) {
   return (
     <UrlCard
-      id={urlView.url} // use URL as ID
-      url={urlView.url}
-      cardContent={urlView.metadata} // metadata → cardContent
-      urlLibraryCount={urlView.urlLibraryCount}
-      urlIsInLibrary={urlView.urlInLibrary ?? false}
-      // omit optional props that UrlView doesn't have
+      id={props.urlView.url}
+      url={props.urlView.url}
+      cardContent={props.urlView.metadata}
+      urlLibraryCount={props.urlView.urlLibraryCount}
+      urlIsInLibrary={props.urlView.urlInLibrary ?? false}
     />
   );
 }

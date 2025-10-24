@@ -2,7 +2,7 @@
 
 import useSembleSimilarCards from '../../lib/queries/useSembleSimilarCards';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Center, Grid, Loader } from '@mantine/core';
+import { Grid } from '@mantine/core';
 import SembleSimilarCardsContainerError from './Error.SembleSimilarCardsContainer';
 import SimilarUrlCard from '../../components/similarUrlCard/SimilarUrlCard';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
@@ -42,12 +42,6 @@ export default function SembleSimilarCardsContainer(props: Props) {
       isInitialLoading={isPending}
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
-      manualLoadButton={false}
-      loader={
-        <Center>
-          <Loader />
-        </Center>
-      }
     >
       <Grid gutter="md">
         {allSimilarUrls.map((urlView) => (

@@ -5,6 +5,7 @@ import { ICardQueryRepository } from '../../../cards/domain/ICardQueryRepository
 import { IVectorDatabase, FindSimilarUrlsParams } from '../IVectorDatabase';
 import { UrlView } from '@semble/types/api/responses';
 import { CardSortField, SortOrder } from '@semble/types/api/common';
+import { UrlMetadataProps } from 'src/modules/cards/domain/value-objects/UrlMetadata';
 
 export class SearchService {
   constructor(
@@ -29,11 +30,17 @@ export class SearchService {
 
       // 2. Index in vector database
       const indexResult = await this.vectorDatabase.indexUrl({
-        url: url.value,
+        url: metadata.url,
         title: metadata.title,
         description: metadata.description,
         author: metadata.author,
-        content: '', // Let the vector database implementation handle content preparation
+        publishedDate: metadata.publishedDate,
+        siteName: metadata.siteName,
+        imageUrl: metadata.imageUrl,
+        type: metadata.type,
+        content: [metadata.title, metadata.description]
+          .filter(Boolean)
+          .join(' '),
       });
 
       if (indexResult.isErr()) {
@@ -96,11 +103,7 @@ export class SearchService {
     searchResults: Array<{
       url: string;
       similarity: number;
-      metadata: {
-        title?: string;
-        description?: string;
-        author?: string;
-      };
+      metadata: UrlMetadataProps;
     }>,
     callingUserId?: string,
   ): Promise<UrlView[]> {
@@ -133,7 +136,10 @@ export class SearchService {
             title: result.metadata.title,
             description: result.metadata.description,
             author: result.metadata.author,
-            thumbnailUrl: undefined, // Could be enriched from metadata service if needed
+            siteName: result.metadata.siteName,
+            imageUrl: result.metadata.imageUrl,
+            type: result.metadata.type,
+            thumbnailUrl: result.metadata.imageUrl, // Use imageUrl as thumbnailUrl
           },
           urlLibraryCount,
           urlInLibrary,

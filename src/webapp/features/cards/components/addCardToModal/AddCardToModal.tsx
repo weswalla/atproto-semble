@@ -1,6 +1,6 @@
 import type { UrlCard } from '@/api-client';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
-import { Modal, Stack } from '@mantine/core';
+import { Anchor, Modal, Stack, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { Suspense, useState } from 'react';
 import CollectionSelectorError from '../../../collections/components/collectionSelector/Error.CollectionSelector';
@@ -10,11 +10,13 @@ import useMyCollections from '../../../collections/lib/queries/useMyCollections'
 import CollectionSelector from '@/features/collections/components/collectionSelector/CollectionSelector';
 import useUpdateCardAssociations from '../../lib/mutations/useUpdateCardAssociations';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
+import Link from 'next/link';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   cardContent: UrlCard['cardContent'];
+  cardCount: number;
   cardId: string;
   note?: string;
 }
@@ -83,7 +85,16 @@ export default function AddCardToModal(props: Props) {
         props.onClose();
         setSelectedCollections(collectionsWithCard);
       }}
-      title="Add or Update Card"
+      title={
+        <Stack gap={0}>
+          <Text fw={600}>Add or update card</Text>
+          <Text c={'gray'} fw={500}>
+            Saved by {props.cardCount}
+            {' other '}
+            {props.cardCount == 1 ? 'person' : 'people'}
+          </Text>
+        </Stack>
+      }
       withCloseButton={false}
       overlayProps={DEFAULT_OVERLAY_PROPS}
       centered

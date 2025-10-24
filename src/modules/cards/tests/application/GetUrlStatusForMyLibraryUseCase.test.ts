@@ -221,7 +221,8 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
 
-      expect(response.cardId).toBe(card.cardId.getStringValue());
+      expect(response.card).toBeDefined();
+      expect(response.card?.id).toBe(card.cardId.getStringValue());
       expect(response.collections).toHaveLength(2);
 
       // Verify collection details
@@ -297,7 +298,8 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
 
-      expect(response.cardId).toBe(card.cardId.getStringValue());
+      expect(response.card).toBeDefined();
+      expect(response.card?.id).toBe(card.cardId.getStringValue());
       expect(response.collections).toHaveLength(0);
     });
 
@@ -316,7 +318,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
 
-      expect(response.cardId).toBeUndefined();
+      expect(response.card).toBeUndefined();
       expect(response.collections).toBeUndefined();
     });
 
@@ -400,7 +402,8 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
 
-      expect(response.cardId).toBe(card1.cardId.getStringValue());
+      expect(response.card).toBeDefined();
+      expect(response.card?.id).toBe(card1.cardId.getStringValue());
       expect(response.collections).toHaveLength(0); // No collections for first user
     });
 
@@ -481,7 +484,8 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
 
-      expect(response.cardId).toBe(card.cardId.getStringValue());
+      expect(response.card).toBeDefined();
+      expect(response.card?.id).toBe(card.cardId.getStringValue());
       expect(response.collections).toHaveLength(1);
       expect(response.collections?.[0]?.name).toBe('My Collection');
       expect(response.collections?.[0]?.id).toBe(

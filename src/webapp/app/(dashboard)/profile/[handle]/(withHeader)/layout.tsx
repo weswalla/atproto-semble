@@ -6,6 +6,7 @@ import { Box, Container } from '@mantine/core';
 import { Fragment, Suspense } from 'react';
 import { ApiClient } from '@/api-client/ApiClient';
 import ProfileHeaderSkeleton from '@/features/profile/components/profileHeader/Skeleton.ProfileHeader';
+import BackButton from '@/components/navigation/backButton/BackButton';
 
 interface Props {
   params: Promise<{ handle: string }>;
@@ -35,7 +36,9 @@ export default async function Layout(props: Props) {
 
   return (
     <Fragment>
-      <Header />
+      <Header>
+        <BackButton href="/home">Home</BackButton>
+      </Header>
       <Suspense fallback={<ProfileHeaderSkeleton />} key={handle}>
         <ProfileHeader handle={handle} />
       </Suspense>

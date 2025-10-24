@@ -14,6 +14,7 @@ export default function NavbarToggle() {
         variant="light"
         color="gray"
         size={'lg'}
+        radius={'xl'}
         onClick={toggleMobile}
         hiddenFrom="xs"
       >
@@ -23,6 +24,7 @@ export default function NavbarToggle() {
         variant="light"
         color="gray"
         size={'lg'}
+        radius={'xl'}
         onClick={toggleDesktop}
         visibleFrom="xs"
       >

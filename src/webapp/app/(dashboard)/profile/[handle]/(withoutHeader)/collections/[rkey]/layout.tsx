@@ -1,10 +1,13 @@
 import { ApiClient } from '@/api-client/ApiClient';
+import BackButton from '@/components/navigation/backButton/BackButton';
 import Header from '@/components/navigation/header/Header';
+import { truncateText } from '@/lib/utils/text';
 import type { Metadata } from 'next';
 import { Fragment } from 'react';
 
 interface Props {
   params: Promise<{ rkey: string; handle: string }>;
+  children: React.ReactNode;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -27,14 +30,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-interface Props {
-  children: React.ReactNode;
-}
+export default async function Layout(props: Props) {
+  const { handle } = await props.params;
 
-export default function Layout(props: Props) {
   return (
     <Fragment>
-      <Header />
+      <Header>
+        <BackButton
+          href={`/profile/${handle}`}
+        >{`@${truncateText(handle, 20)}`}</BackButton>
+      </Header>
       {props.children}
     </Fragment>
   );

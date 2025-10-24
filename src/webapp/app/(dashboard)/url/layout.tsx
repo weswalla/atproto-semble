@@ -1,3 +1,4 @@
+import BackButton from '@/components/navigation/backButton/BackButton';
 import Header from '@/components/navigation/header/Header';
 import { Fragment } from 'react';
 
@@ -8,7 +9,9 @@ interface Props {
 export default async function Layout(props: Props) {
   return (
     <Fragment>
-      <Header />
+      <Header>
+        <BackButton href={'/explore'}>Explore</BackButton>
+      </Header>
       {props.children}
     </Fragment>
   );

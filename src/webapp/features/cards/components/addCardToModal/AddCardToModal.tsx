@@ -41,6 +41,8 @@ export default function AddCardToModal(props: Props) {
   const handleUpdateCard = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const trimmedNote = note?.trimEnd() === '' ? undefined : note;
+
     const addedCollections = selectedCollections.filter(
       (c) => !collectionsWithCard.some((original) => original.id === c.id),
     );
@@ -49,24 +51,41 @@ export default function AddCardToModal(props: Props) {
       (c) => !selectedCollections.some((selected) => selected.id === c.id),
     );
 
-    updateCardAssociations.mutate(
-      {
-        cardId: props.cardId,
-        note: note?.trimEnd() === '' ? undefined : note,
-        addToCollectionIds: addedCollections.map((c) => c.id),
-        removeFromCollectionIds: removedCollections.map((c) => c.id),
+    const hasNoteChanged = trimmedNote !== props.note;
+    const hasAdded = addedCollections.length > 0;
+    const hasRemoved = removedCollections.length > 0;
+
+    // if nothing actually changed, return early
+    if (!hasNoteChanged && !hasAdded && !hasRemoved) {
+      props.onClose();
+      return;
+    }
+
+    const updatedCardPayload: {
+      cardId: string;
+      note?: string;
+      addToCollectionIds?: string[];
+      removeFromCollectionIds?: string[];
+    } = { cardId: props.cardId };
+
+    if (hasNoteChanged) updatedCardPayload.note = trimmedNote;
+    if (hasAdded)
+      updatedCardPayload.addToCollectionIds = addedCollections.map((c) => c.id);
+    if (hasRemoved)
+      updatedCardPayload.removeFromCollectionIds = removedCollections.map(
+        (c) => c.id,
+      );
+
+    updateCardAssociations.mutate(updatedCardPayload, {
+      onError: () => {
+        notifications.show({
+          message: 'Could not update card.',
+        });
       },
-      {
-        onError: () => {
-          notifications.show({
-            message: 'Could not update card.',
-          });
-        },
-        onSettled: () => {
-          props.onClose();
-        },
+      onSettled: () => {
+        props.onClose();
       },
-    );
+    });
   };
 
   if (error) {

@@ -33,14 +33,14 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
   async indexUrl(params: IndexUrlParams): Promise<Result<void>> {
     try {
       console.log('Indexing URL in InMemoryVectorDatabase:', params.url);
-      
+
       // Prepare content for embedding (combine title, description, author)
       const content = this.prepareContentForEmbedding(
         params.title,
         params.description,
         params.author,
       );
-      
+
       this.urls.set(params.url, {
         url: params.url,
         content: content,

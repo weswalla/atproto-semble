@@ -1,6 +1,6 @@
 import type { UrlCard } from '@/api-client';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
-import { Anchor, Modal, Stack, Text } from '@mantine/core';
+import { Modal, Stack, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { Suspense, useState } from 'react';
 import CollectionSelectorError from '../../../collections/components/collectionSelector/Error.CollectionSelector';
@@ -11,7 +11,6 @@ import CollectionSelector from '@/features/collections/components/collectionSele
 import useUpdateCardAssociations from '../../lib/mutations/useUpdateCardAssociations';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
 import useAddCard from '../../lib/mutations/useAddCard';
-import { SelectableCollectionItem } from '@/features/collections/types';
 
 interface Props {
   isOpen: boolean;

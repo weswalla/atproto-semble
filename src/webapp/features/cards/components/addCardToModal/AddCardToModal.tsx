@@ -1,6 +1,6 @@
 import type { UrlCard } from '@/api-client';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
-import { Anchor, Modal, Stack, Text } from '@mantine/core';
+import { Modal, Stack, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { Suspense, useState } from 'react';
 import CollectionSelectorError from '../../../collections/components/collectionSelector/Error.CollectionSelector';
@@ -24,7 +24,7 @@ interface Props {
 
 export default function AddCardToModal(props: Props) {
   const cardStatus = useGetCardFromMyLibrary({ url: props.cardContent.url });
-  const isMyCard = props.cardId === cardStatus.data.cardId;
+  const isMyCard = props.cardId === cardStatus.data.card?.id;
   const [note, setNote] = useState(props.note);
   const { data, error } = useMyCollections();
 
@@ -58,13 +58,13 @@ export default function AddCardToModal(props: Props) {
     const hasAdded = addedCollections.length > 0;
     const hasRemoved = removedCollections.length > 0;
 
-    if (cardStatus.data.cardId && !hasNoteChanged && !hasAdded && !hasRemoved) {
+    if (cardStatus.data.card && !hasNoteChanged && !hasAdded && !hasRemoved) {
       props.onClose();
       return;
     }
 
     // if the card is not in library, add it instead of updating
-    if (!cardStatus.data.cardId) {
+    if (!cardStatus.data.card) {
       addCard.mutate(
         {
           url: props.cardContent.url,
@@ -91,7 +91,7 @@ export default function AddCardToModal(props: Props) {
       note?: string;
       addToCollectionIds?: string[];
       removeFromCollectionIds?: string[];
-    } = { cardId: cardStatus.data.cardId };
+    } = { cardId: cardStatus.data.card!.id };
 
     if (hasNoteChanged) updatedCardPayload.note = trimmedNote;
     if (hasAdded)

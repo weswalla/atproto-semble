@@ -192,7 +192,7 @@ export interface GetGlobalFeedResponse {
 }
 
 export interface GetUrlStatusForMyLibraryResponse {
-  cardId?: string;
+  card?: UrlCard;
   collections?: Collection[];
 }
 

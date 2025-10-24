@@ -6,6 +6,10 @@ interface PageParams {
   limit?: number;
 }
 
+interface SimilarUrlsParams extends PageParams {
+  threshold?: number;
+}
+
 export const getLibrariesForUrl = cache(
   async (url: string, params?: PageParams) => {
     const client = createSembleClient();
@@ -18,22 +22,17 @@ export const getLibrariesForUrl = cache(
     return response;
   },
 );
-import { apiClient } from '@/api-client';
-import type { 
-  GetLibrariesForUrlParams,
-  GetSimilarUrlsForUrlParams 
-} from '@semble/types';
 
-export const getLibrariesForUrl = (
-  url: string,
-  params: Omit<GetLibrariesForUrlParams, 'url'>
-) => {
-  return apiClient.getLibrariesForUrl({ url, ...params });
-};
+export const getSimilarUrlsForUrl = cache(
+  async (url: string, params?: SimilarUrlsParams) => {
+    const client = createSembleClient();
+    const response = await client.getSimilarUrlsForUrl({
+      url,
+      page: params?.page,
+      limit: params?.limit,
+      threshold: params?.threshold,
+    });
 
-export const getSimilarUrlsForUrl = (
-  url: string,
-  params: Omit<GetSimilarUrlsForUrlParams, 'url'>
-) => {
-  return apiClient.getSimilarUrlsForUrl({ url, ...params });
-};
+    return response;
+  },
+);

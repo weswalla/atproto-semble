@@ -21,16 +21,36 @@ export interface FeedPagination extends Pagination {
   nextCursor?: string;
 }
 
+// Sort order enum
+export enum SortOrder {
+  ASC = 'asc',
+  DESC = 'desc',
+}
+
+// Sort field enums
+export enum CardSortField {
+  CREATED_AT = 'createdAt',
+  UPDATED_AT = 'updatedAt',
+  LIBRARY_COUNT = 'libraryCount',
+}
+
+export enum CollectionSortField {
+  NAME = 'name',
+  CREATED_AT = 'createdAt',
+  UPDATED_AT = 'updatedAt',
+  CARD_COUNT = 'cardCount',
+}
+
 // Base sorting interface
 export interface BaseSorting {
-  sortOrder: 'asc' | 'desc';
+  sortOrder: SortOrder;
 }
 
 // Specific sorting interfaces
 export interface CardSorting extends BaseSorting {
-  sortBy: 'createdAt' | 'updatedAt' | 'libraryCount';
+  sortBy: CardSortField;
 }
 
 export interface CollectionSorting extends BaseSorting {
-  sortBy: 'name' | 'createdAt' | 'updatedAt' | 'cardCount';
+  sortBy: CollectionSortField;
 }

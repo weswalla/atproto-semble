@@ -5,15 +5,12 @@ import {
   FindSimilarUrlsParams,
   UrlSearchResult,
 } from '../domain/IVectorDatabase';
+import { UrlMetadataProps } from '../../cards/domain/value-objects/UrlMetadata';
 
 interface IndexedUrl {
   url: string;
   content: string;
-  metadata: {
-    title?: string;
-    description?: string;
-    author?: string;
-  };
+  metadata: UrlMetadataProps;
   indexedAt: Date;
 }
 
@@ -34,20 +31,27 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
     try {
       console.log('Indexing URL in InMemoryVectorDatabase:', params.url);
 
-      // Prepare content for embedding (combine title, description, author)
+      // Prepare content for embedding (combine title, description, author, siteName)
       const content = this.prepareContentForEmbedding(
         params.title,
         params.description,
         params.author,
+        params.siteName,
       );
 
       this.urls.set(params.url, {
         url: params.url,
         content: content,
         metadata: {
+          url: params.url,
           title: params.title,
           description: params.description,
           author: params.author,
+          publishedDate: params.publishedDate,
+          siteName: params.siteName,
+          imageUrl: params.imageUrl,
+          type: params.type,
+          retrievedAt: params.retrievedAt,
         },
         indexedAt: new Date(),
       });
@@ -202,18 +206,20 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
   }
 
   /**
-   * Prepare content for embedding (combine title, description, author)
+   * Prepare content for embedding (combine title, description, author, siteName)
    */
   private prepareContentForEmbedding(
     title?: string,
     description?: string,
     author?: string,
+    siteName?: string,
   ): string {
     const parts: string[] = [];
 
     if (title) parts.push(title);
     if (description) parts.push(description);
     if (author) parts.push(`by ${author}`);
+    if (siteName) parts.push(`from ${siteName}`);
 
     return parts.join(' ');
   }

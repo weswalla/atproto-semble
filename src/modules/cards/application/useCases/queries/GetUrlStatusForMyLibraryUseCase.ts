@@ -101,7 +101,9 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
           );
 
           if (authorProfileResult.isErr()) {
-            return err(AppError.UnexpectedError.create(authorProfileResult.error));
+            return err(
+              AppError.UnexpectedError.create(authorProfileResult.error),
+            );
           }
 
           const authorProfile = authorProfileResult.value;
@@ -154,9 +156,10 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
                 const fullCollection = collectionResult.value;
 
                 // Fetch author profile
-                const authorProfileResult = await this.profileService.getProfile(
-                  fullCollection.authorId.value,
-                );
+                const authorProfileResult =
+                  await this.profileService.getProfile(
+                    fullCollection.authorId.value,
+                  );
                 if (authorProfileResult.isErr()) {
                   throw new Error(
                     `Failed to fetch author profile: ${authorProfileResult.error.message}`,

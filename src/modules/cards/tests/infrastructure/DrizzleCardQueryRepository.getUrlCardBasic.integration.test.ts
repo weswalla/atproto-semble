@@ -115,9 +115,13 @@ describe('DrizzleCardQueryRepository - getUrlCardBasic', () => {
       expect(result?.type).toBe(CardTypeEnum.URL);
       expect(result?.url).toBe(url.value);
       expect(result?.cardContent.title).toBe('Test Article');
-      expect(result?.cardContent.description).toBe('A test article description');
+      expect(result?.cardContent.description).toBe(
+        'A test article description',
+      );
       expect(result?.cardContent.author).toBe('John Doe');
-      expect(result?.cardContent.thumbnailUrl).toBe('https://example.com/image.jpg');
+      expect(result?.cardContent.thumbnailUrl).toBe(
+        'https://example.com/image.jpg',
+      );
       expect(result?.note).toBeUndefined();
     });
 
@@ -152,7 +156,9 @@ describe('DrizzleCardQueryRepository - getUrlCardBasic', () => {
 
     it('should NOT include note card by a different author', async () => {
       // Create URL card by first author
-      const url = URL.create('https://example.com/article-different-author').unwrap();
+      const url = URL.create(
+        'https://example.com/article-different-author',
+      ).unwrap();
       const urlCard = new CardBuilder()
         .withCuratorId(curatorId.value)
         .withUrlCard(url)

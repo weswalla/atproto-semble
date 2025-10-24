@@ -11,6 +11,7 @@ interface UpstashMetadata {
   title?: string;
   description?: string;
   author?: string;
+  [key: string]: any; // Add this index signature
 }
 
 export class UpstashVectorDatabase implements IVectorDatabase {
@@ -25,8 +26,6 @@ export class UpstashVectorDatabase implements IVectorDatabase {
 
   async indexUrl(params: IndexUrlParams): Promise<Result<void>> {
     try {
-      console.log('Indexing URL in UpstashVectorDatabase:', params.url);
-      
       // Combine title and description for the data field
       const dataContent = [params.title, params.description]
         .filter(Boolean)
@@ -41,8 +40,6 @@ export class UpstashVectorDatabase implements IVectorDatabase {
           author: params.author,
         },
       });
-
-      console.log('Successfully indexed URL:', params.url);
       return ok(undefined);
     } catch (error) {
       return err(
@@ -58,7 +55,7 @@ export class UpstashVectorDatabase implements IVectorDatabase {
   ): Promise<Result<UrlSearchResult[]>> {
     try {
       console.log('Finding similar URLs for:', params.url);
-      
+
       // Get the query URL's content for comparison
       // We'll use the URL itself as the query data for now
       // In a more sophisticated implementation, we could fetch the indexed data
@@ -66,15 +63,13 @@ export class UpstashVectorDatabase implements IVectorDatabase {
 
       // Fetch top 100 results (naive pagination approach)
       const topK = Math.min(params.limit * 10, 100); // Get more results for pagination
-      
+
       const queryResult = await this.index.query({
         data: queryData,
         topK,
         includeMetadata: true,
         includeVectors: false, // We don't need the vectors in the response
       });
-
-      console.log(`Upstash returned ${queryResult.length} results`);
 
       // Filter out the query URL itself and apply threshold
       const threshold = params.threshold || 0;
@@ -88,7 +83,7 @@ export class UpstashVectorDatabase implements IVectorDatabase {
         if (result.score < threshold) continue;
 
         results.push({
-          url: result.id,
+          url: result.id as string, // Cast to string since we use URLs as IDs
           similarity: result.score,
           metadata: {
             title: result.metadata?.title,

@@ -1,4 +1,11 @@
-import { Box, Tabs, TabsList, TabsPanel } from '@mantine/core';
+import {
+  Box,
+  Group,
+  ScrollAreaAutosize,
+  Tabs,
+  TabsList,
+  TabsPanel,
+} from '@mantine/core';
 import SembleNotesContainer from '../../containers/sembleNotesContainer/SembleNotesContainer';
 import SembleNotesContainerSkeleton from '../../containers/sembleNotesContainer/Skeleton.SembleNotesContainer';
 import SembleCollectionsContainerSkeleton from '../../containers/sembleCollectionsContainer/Skeleton.SembleCollectionsContainer';
@@ -17,12 +24,16 @@ interface Props {
 export default function SembleTabs(props: Props) {
   return (
     <Tabs defaultValue={'similar'}>
-      <TabsList>
-        <TabItem value="similar">Similar Cards</TabItem>
-        <TabItem value="notes">Notes</TabItem>
-        <TabItem value="collections">Collections</TabItem>
-        <TabItem value="addedBy">Added by</TabItem>
-      </TabsList>
+      <ScrollAreaAutosize type="scroll">
+        <TabsList>
+          <Group wrap="nowrap">
+            <TabItem value="similar">Similar Cards</TabItem>
+            <TabItem value="notes">Notes</TabItem>
+            <TabItem value="collections">Collections</TabItem>
+            <TabItem value="addedBy">Added by</TabItem>
+          </Group>
+        </TabsList>
+      </ScrollAreaAutosize>
 
       <Box mt={'md'}>
         <TabsPanel value="similar">

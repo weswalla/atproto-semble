@@ -10,6 +10,7 @@ import useMyCollections from '../../../collections/lib/queries/useMyCollections'
 import CollectionSelector from '@/features/collections/components/collectionSelector/CollectionSelector';
 import useUpdateCardAssociations from '../../lib/mutations/useUpdateCardAssociations';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
+import useAddCard from '../../lib/mutations/useAddCard';
 
 interface Props {
   isOpen: boolean;
@@ -36,6 +37,7 @@ export default function AddCardToModal(props: Props) {
   const [selectedCollections, setSelectedCollections] =
     useState<SelectableCollectionItem[]>(collectionsWithCard);
 
+  const addCard = useAddCard();
   const updateCardAssociations = useUpdateCardAssociations();
 
   const handleUpdateCard = (e: React.FormEvent) => {
@@ -55,18 +57,40 @@ export default function AddCardToModal(props: Props) {
     const hasAdded = addedCollections.length > 0;
     const hasRemoved = removedCollections.length > 0;
 
-    // if nothing actually changed, return early
     if (!hasNoteChanged && !hasAdded && !hasRemoved) {
       props.onClose();
       return;
     }
 
+    // if the card does not have an id in the library, add it instead of updating
+    if (!cardStatus.data.cardId) {
+      addCard.mutate(
+        {
+          url: props.cardContent.url,
+          note: trimmedNote,
+          collectionIds: selectedCollections.map((c) => c.id),
+        },
+        {
+          onError: () => {
+            notifications.show({
+              message: 'Could not add card.',
+            });
+          },
+          onSettled: () => {
+            props.onClose();
+          },
+        },
+      );
+      return;
+    }
+
+    // otherwise, update existing card associations
     const updatedCardPayload: {
       cardId: string;
       note?: string;
       addToCollectionIds?: string[];
       removeFromCollectionIds?: string[];
-    } = { cardId: props.cardId };
+    } = { cardId: cardStatus.data.cardId };
 
     if (hasNoteChanged) updatedCardPayload.note = trimmedNote;
     if (hasAdded)

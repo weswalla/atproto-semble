@@ -199,6 +199,7 @@ export class UseCaseFactory {
       ),
       getUrlStatusForMyLibraryUseCase: new GetUrlStatusForMyLibraryUseCase(
         repositories.cardRepository,
+        repositories.cardQueryRepository,
         repositories.collectionQueryRepository,
         repositories.collectionRepository,
         services.profileService,
@@ -224,7 +225,6 @@ export class UseCaseFactory {
         services.profileService,
         repositories.cardQueryRepository,
         repositories.collectionRepository,
-        services.identityResolutionService,
       ),
       addActivityToFeedUseCase: new AddActivityToFeedUseCase(
         services.feedService,

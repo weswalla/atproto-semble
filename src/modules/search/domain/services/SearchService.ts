@@ -30,7 +30,7 @@ export class SearchService {
 
       // 2. Index in vector database
       const indexResult = await this.vectorDatabase.indexUrl({
-        url: metadata.url,
+        url: url.value,
         title: metadata.title,
         description: metadata.description,
         author: metadata.author,

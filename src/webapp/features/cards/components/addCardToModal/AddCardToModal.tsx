@@ -16,10 +16,12 @@ interface Props {
   onClose: () => void;
   cardContent: UrlCard['cardContent'];
   cardId: string;
+  note?: string;
 }
 
 export default function AddCardToModal(props: Props) {
   const cardStatus = useGetCardFromMyLibrary({ url: props.cardContent.url });
+  const [note, setNote] = useState(props.note || '');
   const { data, error } = useMyCollections();
 
   const allCollections =
@@ -53,29 +55,11 @@ export default function AddCardToModal(props: Props) {
     updateCardAssociations.mutate(
       {
         cardId: props.cardId,
+        note: note,
         addToCollectionIds: addedCollections.map((c) => c.id),
         removeFromCollectionIds: removedCollections.map((c) => c.id),
       },
       {
-        onSuccess: () => {
-          const addedCount = addedCollections.length;
-          const removedCount = removedCollections.length;
-
-          let message = '';
-
-          if (addedCount > 0 && removedCount > 0) {
-            message = `Added to ${addedCount} collection${addedCount > 1 ? 's' : ''} and removed from ${removedCount} collection${removedCount > 1 ? 's' : ''}.`;
-          } else if (addedCount > 0) {
-            message = `Added to ${addedCount} collection${addedCount > 1 ? 's' : ''}.`;
-          } else if (removedCount > 0) {
-            message = `Removed from ${removedCount} collection${removedCount > 1 ? 's' : ''}.`;
-          }
-
-          notifications.show({
-            message,
-          });
-        },
-
         onError: () => {
           notifications.show({
             message: 'Could not update card.',
@@ -106,7 +90,11 @@ export default function AddCardToModal(props: Props) {
       onClick={(e) => e.stopPropagation()}
     >
       <Stack justify="space-between">
-        <CardToBeAddedPreview cardContent={props.cardContent} />
+        <CardToBeAddedPreview
+          cardContent={props.cardContent}
+          note={note}
+          onUpdateNote={setNote}
+        />
 
         <Suspense fallback={<CollectionSelectorSkeleton />}>
           <CollectionSelector

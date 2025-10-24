@@ -7,18 +7,24 @@ import {
   Card,
   Anchor,
   Tooltip,
+  Textarea,
+  Button,
 } from '@mantine/core';
 import Link from 'next/link';
-import { MouseEvent } from 'react';
+import { Dispatch, MouseEvent, SetStateAction, useState } from 'react';
 import { UrlCard } from '@/api-client';
 import { getDomain } from '@/lib/utils/link';
 import { useRouter } from 'next/navigation';
 
 interface Props {
   cardContent: UrlCard['cardContent'];
+  note: string;
+  onUpdateNote: Dispatch<SetStateAction<string>>;
 }
 
 export default function CardToBeAddedPreview(props: Props) {
+  const [noteMode, setNoteMode] = useState(false);
+  const [note, setNote] = useState(props.note);
   const domain = getDomain(props.cardContent.url);
   const router = useRouter();
 
@@ -26,6 +32,52 @@ export default function CardToBeAddedPreview(props: Props) {
     e.stopPropagation();
     router.push(`/url?id=${props.cardContent.url}`);
   };
+
+  if (noteMode) {
+    return (
+      <Card
+        withBorder
+        component="article"
+        p={'xs'}
+        radius={'lg'}
+        style={{ cursor: 'pointer' }}
+      >
+        <Stack gap={'xs'}>
+          <Textarea
+            id="note"
+            label="Note"
+            placeholder="Add a note about this card"
+            variant="filled"
+            size="md"
+            rows={3}
+            maxLength={500}
+            value={note}
+            onChange={(e) => setNote(e.currentTarget.value)}
+          />
+          <Group gap={'xs'} grow>
+            <Button
+              variant="light"
+              color="gray"
+              onClick={() => {
+                setNoteMode(false);
+                setNote(props.note);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                props.onUpdateNote(note);
+                setNoteMode(false);
+              }}
+            >
+              Save
+            </Button>
+          </Group>
+        </Stack>
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -37,7 +89,7 @@ export default function CardToBeAddedPreview(props: Props) {
       onClick={handleNavigateToSemblePage}
     >
       <Stack>
-        <Group gap={'sm'}>
+        <Group gap={'sm'} justify="space-between">
           {props.cardContent.thumbnailUrl && (
             <AspectRatio ratio={1 / 1} flex={0.1}>
               <Image
@@ -68,6 +120,16 @@ export default function CardToBeAddedPreview(props: Props) {
               </Text>
             )}
           </Stack>
+          <Button
+            variant="light"
+            color="gray"
+            onClick={(e) => {
+              e.stopPropagation();
+              setNoteMode(true);
+            }}
+          >
+            {props.note ? 'Update note' : 'Add note'}
+          </Button>
         </Group>
       </Stack>
     </Card>

@@ -127,6 +127,7 @@ export default function UrlCardActions(props: Props) {
         onClose={() => setShowAddToModal(false)}
         cardContent={props.cardContent}
         cardId={props.id}
+        note={props.note?.text}
       />
 
       <NoteCardModal

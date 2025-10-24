@@ -16,15 +16,20 @@ interface Props {
 
 export default function SembleTabs(props: Props) {
   return (
-    <Tabs defaultValue={'notes'}>
+    <Tabs defaultValue={'similar'}>
       <TabsList>
+        <TabItem value="similar">Similar Cards</TabItem>
         <TabItem value="notes">Notes</TabItem>
         <TabItem value="collections">Collections</TabItem>
         <TabItem value="addedBy">Added by</TabItem>
-        <TabItem value="similar">Similar Cards</TabItem>
       </TabsList>
 
       <Box mt={'md'}>
+        <TabsPanel value="similar">
+          <Suspense fallback={<SembleSimilarCardsContainerSkeleton />}>
+            <SembleSimilarCardsContainer url={props.url} />
+          </Suspense>
+        </TabsPanel>
         <TabsPanel value="notes">
           <Suspense fallback={<SembleNotesContainerSkeleton />}>
             <SembleNotesContainer url={props.url} />
@@ -38,11 +43,6 @@ export default function SembleTabs(props: Props) {
         <TabsPanel value="addedBy">
           <Suspense fallback={<SembleLibrariesContainerSkeleton />}>
             <SembleLibrariesContainer url={props.url} />
-          </Suspense>
-        </TabsPanel>
-        <TabsPanel value="similar">
-          <Suspense fallback={<SembleSimilarCardsContainerSkeleton />}>
-            <SembleSimilarCardsContainer url={props.url} />
           </Suspense>
         </TabsPanel>
       </Box>

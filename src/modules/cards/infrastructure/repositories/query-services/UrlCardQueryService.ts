@@ -1,4 +1,5 @@
 import { eq, desc, asc, count, countDistinct, inArray, and } from 'drizzle-orm';
+import { UrlCardView } from '../../../domain/ICardQueryRepository';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   CardQueryOptions,

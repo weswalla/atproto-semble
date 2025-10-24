@@ -11,4 +11,6 @@ export default defineConfig({
   format: ['cjs'],
   clean: true,
   sourcemap: true,
+  // Bundle workspace dependencies
+  noExternal: ['@semble/types'],
 });

@@ -17,8 +17,8 @@ import { getDomain } from '@/lib/utils/link';
 
 interface Props {
   cardContent: UrlCard['cardContent'];
-  note: string;
-  onUpdateNote: Dispatch<SetStateAction<string>>;
+  note?: string;
+  onUpdateNote: Dispatch<SetStateAction<string | undefined>>;
 }
 
 export default function CardToBeAddedPreview(props: Props) {

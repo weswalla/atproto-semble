@@ -23,7 +23,7 @@ interface Props {
 
 export default function AddCardToModal(props: Props) {
   const cardStatus = useGetCardFromMyLibrary({ url: props.cardContent.url });
-  const [note, setNote] = useState(props.note || '');
+  const [note, setNote] = useState(props.note);
   const { data, error } = useMyCollections();
 
   const allCollections =
@@ -57,7 +57,7 @@ export default function AddCardToModal(props: Props) {
     updateCardAssociations.mutate(
       {
         cardId: props.cardId,
-        note: note,
+        note: note?.trimEnd() === '' ? undefined : note,
         addToCollectionIds: addedCollections.map((c) => c.id),
         removeFromCollectionIds: removedCollections.map((c) => c.id),
       },

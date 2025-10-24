@@ -1,9 +1,7 @@
 import { Result } from '../../../shared/core/Result';
 import { UrlMetadataProps } from '../../cards/domain/value-objects/UrlMetadata';
 
-export interface IndexUrlParams extends UrlMetadataProps {
-  content: string; // Combined text for embedding
-}
+export type IndexUrlParams = UrlMetadataProps;
 
 export interface FindSimilarUrlsParams {
   url: string;

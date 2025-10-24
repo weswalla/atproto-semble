@@ -49,11 +49,6 @@ export default function AddCardToModal(props: Props) {
       (c) => !selectedCollections.some((selected) => selected.id === c.id),
     );
 
-    if (addedCollections.length === 0 && removedCollections.length === 0) {
-      props.onClose();
-      return;
-    }
-
     updateCardAssociations.mutate(
       {
         cardId: props.cardId,

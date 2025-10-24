@@ -471,6 +471,115 @@ export class UrlCardQueryService {
     }
   }
 
+  async getUrlCardBasic(
+    cardId: string,
+    callingUserId?: string,
+  ): Promise<UrlCardView | null> {
+    try {
+      // Get the URL card
+      const cardQuery = this.db
+        .select({
+          id: cards.id,
+          type: cards.type,
+          authorId: cards.authorId,
+          url: cards.url,
+          contentData: cards.contentData,
+          libraryCount: cards.libraryCount,
+          createdAt: cards.createdAt,
+          updatedAt: cards.updatedAt,
+        })
+        .from(cards)
+        .where(and(eq(cards.id, cardId), eq(cards.type, CardTypeEnum.URL)));
+
+      const cardResult = await cardQuery;
+
+      if (cardResult.length === 0) {
+        return null;
+      }
+
+      const card = cardResult[0]!;
+
+      // Get note card for this URL card (same user, parentCardId matches, type = NOTE)
+      const noteQuery = this.db
+        .select({
+          id: cards.id,
+          parentCardId: cards.parentCardId,
+          contentData: cards.contentData,
+        })
+        .from(cards)
+        .where(
+          and(
+            eq(cards.type, CardTypeEnum.NOTE),
+            eq(cards.parentCardId, cardId),
+            eq(cards.authorId, card.authorId), // Only notes by the same author
+          ),
+        )
+        .limit(1); // Only get the first note if multiple exist
+
+      const noteResult = await noteQuery;
+      const note = noteResult.length > 0 ? noteResult[0] : undefined;
+
+      // Get urlLibraryCount for this URL (count of unique users who have cards with this URL)
+      const urlLibraryCountQuery = this.db
+        .select({
+          count: countDistinct(libraryMemberships.userId),
+        })
+        .from(cards)
+        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
+        .where(and(eq(cards.type, CardTypeEnum.URL), eq(cards.url, card.url)));
+
+      const urlLibraryCountResult = await urlLibraryCountQuery;
+      const urlLibraryCount = urlLibraryCountResult[0]?.count || 0;
+
+      // Get urlInLibrary if callingUserId is provided
+      let urlInLibrary: boolean | undefined;
+      if (callingUserId) {
+        // Check if the calling user has any card with this URL
+        const urlInLibraryQuery = this.db
+          .select({
+            id: cards.id,
+          })
+          .from(cards)
+          .where(
+            and(
+              eq(cards.authorId, callingUserId),
+              eq(cards.type, CardTypeEnum.URL),
+              eq(cards.url, card.url),
+            ),
+          )
+          .limit(1);
+
+        const urlInLibraryResult = await urlInLibraryQuery;
+        urlInLibrary = urlInLibraryResult.length > 0;
+      }
+
+      // Create raw card data for mapping
+      const rawCardData = {
+        id: card.id,
+        authorId: card.authorId,
+        url: card.url || '',
+        contentData: card.contentData,
+        libraryCount: card.libraryCount,
+        urlLibraryCount,
+        urlInLibrary,
+        createdAt: card.createdAt,
+        updatedAt: card.updatedAt,
+        note: note
+          ? {
+              id: note.id,
+              contentData: note.contentData,
+            }
+          : undefined,
+      };
+
+      // Use CardMapper to transform to UrlCardView (without collections)
+      return CardMapper.toCollectionCardQueryResult(rawCardData);
+    } catch (error) {
+      console.error('Error in getUrlCardBasic:', error);
+      throw error;
+    }
+  }
+
   private getSortColumn(sortBy: CardSortField) {
     switch (sortBy) {
       case CardSortField.CREATED_AT:

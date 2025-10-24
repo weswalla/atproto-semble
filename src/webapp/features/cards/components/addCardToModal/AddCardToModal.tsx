@@ -4,7 +4,7 @@ import { Modal, Stack } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { Suspense, useState } from 'react';
 import CollectionSelectorError from '../../../collections/components/collectionSelector/Error.CollectionSelector';
-import CardToBeAddedPreview from './CardToBeAddedPreview';
+import CardToBeAddedPreview from '../cardToBeAddedPreview/CardToBeAddedPreview';
 import useGetCardFromMyLibrary from '../../lib/queries/useGetCardFromMyLibrary';
 import useMyCollections from '../../../collections/lib/queries/useMyCollections';
 import CollectionSelector from '@/features/collections/components/collectionSelector/CollectionSelector';

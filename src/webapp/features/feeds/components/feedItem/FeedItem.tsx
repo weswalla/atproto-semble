@@ -18,6 +18,8 @@ export default function FeedItem(props: Props) {
       <UrlCard
         id={props.item.card.id}
         url={props.item.card.url}
+        note={props.item.card.note}
+        cardAuthor={props.item.card.author}
         cardContent={props.item.card.cardContent}
         urlLibraryCount={props.item.card.urlLibraryCount}
         urlIsInLibrary={props.item.card.urlInLibrary}

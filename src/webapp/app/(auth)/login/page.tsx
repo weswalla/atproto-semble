@@ -12,6 +12,7 @@ import {
   PopoverTarget,
   PopoverDropdown,
   Loader,
+  Badge,
 } from '@mantine/core';
 import { Suspense, useEffect, useState } from 'react';
 import { IoMdHelpCircleOutline } from 'react-icons/io';
@@ -70,13 +71,16 @@ function InnerPage() {
     <Stack gap={'xl'} align="center">
       <Stack gap="xl" maw={300}>
         <Stack gap={'xs'}>
-          <Image
-            src={SembleLogo.src}
-            alt="Semble logo"
-            w={48}
-            h={64.5}
-            mx={'auto'}
-          />
+          <Stack align="center" gap={'xs'}>
+            <Image
+              src={SembleLogo.src}
+              alt="Semble logo"
+              w={48}
+              h={64.5}
+              mx={'auto'}
+            />
+            <Badge size="sm">Alpha</Badge>
+          </Stack>
           <Title order={1} ta="center">
             Welcome back
           </Title>

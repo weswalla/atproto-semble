@@ -1,6 +1,6 @@
 'use client';
 
-import { Center, Container, Grid, Loader, Stack } from '@mantine/core';
+import { Container, Grid } from '@mantine/core';
 import useCards from '../../lib/queries/useCards';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import CardsContainerError from './Error.CardsContainer';
@@ -52,12 +52,6 @@ export default function CardsContainer(props: Props) {
         isInitialLoading={isPending}
         isLoading={isFetchingNextPage}
         loadMore={fetchNextPage}
-        manualLoadButton={false}
-        loader={
-          <Center>
-            <Loader />
-          </Center>
-        }
       >
         <Grid gutter="md">
           {allCards.map((card) => (

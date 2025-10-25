@@ -12,6 +12,7 @@ import {
   Center,
   Group,
   Anchor,
+  Badge,
 } from '@mantine/core';
 import { FaBluesky, FaGithub, FaDiscord } from 'react-icons/fa6';
 import { BiRightArrowAlt } from 'react-icons/bi';
@@ -32,7 +33,15 @@ export default function Home() {
         <Container size={'xl'} p={'md'} my={'auto'}>
           <Stack align="center" gap={'5rem'}>
             <Stack gap={'xs'} align="center" maw={550} mx={'auto'}>
-              <Image src={SembleLogo.src} alt="Semble logo" w={'auto'} h={60} />
+              <Stack gap={'xs'}>
+                <Image
+                  src={SembleLogo.src}
+                  alt="Semble logo"
+                  w={'auto'}
+                  h={60}
+                />
+              </Stack>
+              <Badge size="sm">Alpha</Badge>
               <Title order={1} fw={600} fz={'3rem'} ta={'center'}>
                 A social knowledge network for researchers
               </Title>

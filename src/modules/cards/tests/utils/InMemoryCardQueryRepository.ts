@@ -4,6 +4,7 @@ import {
   UrlCardQueryResultDTO,
   CollectionCardQueryResultDTO,
   UrlCardViewDTO,
+  UrlCardView,
   PaginatedQueryResult,
   CardSortField,
   SortOrder,
@@ -345,6 +346,62 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return {
       ...urlCardResult,
       libraries,
+      note,
+    };
+  }
+
+  async getUrlCardBasic(
+    cardId: string,
+    callingUserId?: string,
+  ): Promise<UrlCardView | null> {
+    const allCards = this.cardRepository.getAllCards();
+    const card = allCards.find((c) => c.cardId.getStringValue() === cardId);
+    if (!card || !card.isUrlCard) {
+      return null;
+    }
+
+    // Find note card by the same author with matching parent card ID
+    const noteCard = allCards.find(
+      (c) =>
+        c.type.value === 'NOTE' &&
+        c.parentCardId?.equals(card.cardId) &&
+        c.curatorId.value === card.curatorId.value, // Only notes by the same author
+    );
+
+    const note = noteCard
+      ? {
+          id: noteCard.cardId.getStringValue(),
+          text: noteCard.content.noteContent?.text || '',
+        }
+      : undefined;
+
+    // Compute urlInLibrary if callingUserId is provided
+    const urlInLibrary = callingUserId
+      ? this.isUrlInUserLibrary(
+          card.content.urlContent!.url.value,
+          callingUserId,
+        )
+      : undefined;
+
+    return {
+      id: card.cardId.getStringValue(),
+      type: CardTypeEnum.URL,
+      url: card.content.urlContent!.url.value,
+      cardContent: {
+        url: card.content.urlContent!.url.value,
+        title: card.content.urlContent!.metadata?.title,
+        description: card.content.urlContent!.metadata?.description,
+        author: card.content.urlContent!.metadata?.author,
+        thumbnailUrl: card.content.urlContent!.metadata?.imageUrl,
+      },
+      libraryCount: this.getLibraryCountForCard(card.cardId.getStringValue()),
+      urlLibraryCount: this.getUrlLibraryCount(
+        card.content.urlContent!.url.value,
+      ),
+      urlInLibrary,
+      createdAt: card.createdAt,
+      updatedAt: card.updatedAt,
+      authorId: card.curatorId.value,
       note,
     };
   }

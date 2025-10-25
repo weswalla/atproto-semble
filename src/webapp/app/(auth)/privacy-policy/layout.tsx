@@ -2,19 +2,14 @@ import {
   Container,
   Stack,
   Image,
-  Text,
   Anchor,
-  ActionIcon,
   Box,
   Button,
-  Group,
+  Badge,
 } from '@mantine/core';
-import CosmikLogo from '@/assets/cosmik-logo-full.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { FaBluesky, FaGithub, FaDiscord } from 'react-icons/fa6';
-import { RiArrowRightUpLine } from 'react-icons/ri';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -30,8 +25,12 @@ export default function Layout(props: Props) {
     <Container p="md" size="sm">
       <Stack align="start">
         <Anchor component={Link} href={'/'}>
-          <Image src={SembleLogo.src} alt="Semble logo" w={'auto'} h={50} />
+          <Stack align="center" gap={'xs'}>
+            <Image src={SembleLogo.src} alt="Semble logo" w={'auto'} h={50} />
+            <Badge size="sm">Alpha</Badge>
+          </Stack>
         </Anchor>
+
         <Stack>{props.children}</Stack>
         <Box component="footer" px={'md'} py={'xs'} mt={'xl'} mx={'auto'}>
           <Button

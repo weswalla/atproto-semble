@@ -11,11 +11,13 @@ import {
 } from '@mantine/core';
 import useMyProfile from '../../lib/queries/useMyProfile';
 import CosmikLogo from '@/assets/cosmik-logo-full.svg';
+import { MdBugReport } from 'react-icons/md';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { MdLogout } from 'react-icons/md';
+import { IoMdLogOut } from 'react-icons/io';
 import { useNavbarContext } from '@/providers/navbar';
+import { BiSolidUserCircle } from 'react-icons/bi';
 
 export default function ProfileMenu() {
   const router = useRouter();
@@ -64,36 +66,38 @@ export default function ProfileMenu() {
             component={Link}
             href={`/profile/${data.handle}`}
             onClick={toggleMobile}
+            leftSection={<BiSolidUserCircle size={22} />}
+            color="gray"
           >
-            <Group gap={'xs'} wrap="nowrap">
-              <Avatar src={data.avatarUrl} size={'lg'} />
-              <Stack gap={0}>
-                <Text fw={500} lineClamp={1} style={{ wordBreak: 'break-all' }}>
-                  {data.name}
-                </Text>
-                <Text fw={500} lineClamp={1} flex={1} c={'gray'}>
-                  View profile
-                </Text>
-              </Stack>
-            </Group>
+            View profile
+          </Menu.Item>
+
+          <Menu.Item
+            component="a"
+            href="https://tangled.org/@cosmik.network/semble/issues"
+            target="_blank"
+            leftSection={<MdBugReport size={22} />}
+            color="gray"
+          >
+            Submit an issue
+          </Menu.Item>
+
+          <Menu.Item
+            color="gray"
+            leftSection={<IoMdLogOut size={22} />}
+            onClick={handleLogout}
+          >
+            Log out
           </Menu.Item>
 
           <Menu.Divider />
+
           <Menu.Item
             component="a"
             href="https://cosmik.network/"
             target="_blank"
           >
             <Image src={CosmikLogo.src} alt="Cosmik logo" w={'auto'} h={24} />
-          </Menu.Item>
-          <Menu.Divider />
-
-          <Menu.Item
-            c={'red'}
-            leftSection={<MdLogout />}
-            onClick={handleLogout}
-          >
-            Log out
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>

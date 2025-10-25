@@ -2,7 +2,7 @@
 
 import useSembleNotes from '@/features/notes/lib/queries/useSembleNotes';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Center, Grid, Loader } from '@mantine/core';
+import { Grid } from '@mantine/core';
 import SembleNotesContainerError from './Error.SembleNotesContainer';
 import NoteCard from '@/features/notes/components/noteCard/NoteCard';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
@@ -42,12 +42,6 @@ export default function SembleNotesContainer(props: Props) {
       isInitialLoading={isPending}
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
-      manualLoadButton={false}
-      loader={
-        <Center>
-          <Loader />
-        </Center>
-      }
     >
       <Grid gutter="md">
         {allNotes.map((note) => (

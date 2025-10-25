@@ -51,6 +51,7 @@ export default function DeleteCollectionModal(props: Props) {
           size="md"
           onClick={handleDeleteCollection}
           loading={deleteCollection.isPending}
+          data-autofocus
         >
           Delete
         </Button>

@@ -2,7 +2,7 @@
 
 import useMyFeed from '@/features/feeds/lib/queries/useMyFeed';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
-import { Stack, Title, Text, Center, Container, Loader } from '@mantine/core';
+import { Stack, Title, Text, Center, Container } from '@mantine/core';
 import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
 import MyFeedContainerError from './Error.MyFeedContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -46,12 +46,6 @@ export default function MyFeedContainer() {
             isInitialLoading={isPending}
             isLoading={isFetchingNextPage}
             loadMore={fetchNextPage}
-            manualLoadButton={false}
-            loader={
-              <Center>
-                <Loader />
-              </Center>
-            }
           >
             <Stack gap={'xl'} mx={'auto'} maw={600}>
               <Stack gap={60}>

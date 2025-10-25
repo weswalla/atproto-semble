@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect, startTransition, useRef } from 'react';
-import { Center, Button, Stack, Text } from '@mantine/core';
+import { Center, Button, Stack, Text, Loader } from '@mantine/core';
 import { useIntersection } from '@mantine/hooks';
 
 interface Props {
@@ -35,7 +35,12 @@ export default function InfiniteScroll(props: Props) {
   return (
     <Stack>
       {props.children}
-      {props.isLoading && props.loader}
+      {props.isLoading &&
+        (props.loader || (
+          <Center>
+            <Loader />
+          </Center>
+        ))}
 
       <Center ref={ref}>
         {!props.isLoading && props.hasMore && props.manualLoadButton && (

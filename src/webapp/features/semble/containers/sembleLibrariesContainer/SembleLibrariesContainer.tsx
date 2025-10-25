@@ -2,7 +2,7 @@
 
 import useSembleLibraries from '../../lib/queries/useSembleLibraries';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Center, Divider, Grid, Loader } from '@mantine/core';
+import { Grid } from '@mantine/core';
 import SembleLibrariesContainerError from './Error.SembleLibrariesContainer';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
 import { LuLibrary } from 'react-icons/lu';
@@ -45,12 +45,6 @@ export default function SembleLibrariesContainer(props: Props) {
       isInitialLoading={isPending}
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
-      manualLoadButton={false}
-      loader={
-        <Center>
-          <Loader />
-        </Center>
-      }
     >
       <Grid gutter="md">
         {allLibraries.map((item, i) => (

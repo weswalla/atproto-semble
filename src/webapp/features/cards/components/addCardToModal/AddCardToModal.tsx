@@ -25,7 +25,7 @@ interface Props {
 export default function AddCardToModal(props: Props) {
   const cardStatus = useGetCardFromMyLibrary({ url: props.cardContent.url });
   const isMyCard = props.cardId === cardStatus.data.card?.id;
-  const [note, setNote] = useState(props.note);
+  const [note, setNote] = useState(isMyCard ? props.note : '');
   const { data, error } = useMyCollections();
 
   const allCollections =

@@ -3,6 +3,7 @@ import { InMemoryCardQueryRepository } from '../utils/InMemoryCardQueryRepositor
 import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
 import { FakeIdentityResolutionService } from '../utils/FakeIdentityResolutionService';
+import { FakeProfileService } from '../utils/FakeProfileService';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { Card } from '../../domain/Card';
 import { CardType, CardTypeEnum } from '../../domain/value-objects/CardType';
@@ -18,6 +19,7 @@ describe('GetUrlCardsUseCase', () => {
   let cardRepo: InMemoryCardRepository;
   let collectionRepo: InMemoryCollectionRepository;
   let identityResolutionService: FakeIdentityResolutionService;
+  let profileService: FakeProfileService;
   let curatorId: CuratorId;
 
   beforeEach(() => {
@@ -25,7 +27,8 @@ describe('GetUrlCardsUseCase', () => {
     collectionRepo = InMemoryCollectionRepository.getInstance();
     cardQueryRepo = new InMemoryCardQueryRepository(cardRepo, collectionRepo);
     identityResolutionService = new FakeIdentityResolutionService();
-    useCase = new GetUrlCardsUseCase(cardQueryRepo, identityResolutionService);
+    profileService = new FakeProfileService();
+    useCase = new GetUrlCardsUseCase(cardQueryRepo, identityResolutionService, profileService);
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
   });
@@ -35,6 +38,7 @@ describe('GetUrlCardsUseCase', () => {
     collectionRepo.clear();
     cardQueryRepo.clear();
     identityResolutionService.clear();
+    profileService.clear();
   });
 
   describe('Basic functionality', () => {
@@ -634,6 +638,7 @@ describe('GetUrlCardsUseCase', () => {
       const errorUseCase = new GetUrlCardsUseCase(
         errorRepo,
         identityResolutionService,
+        profileService,
       );
 
       const query = {

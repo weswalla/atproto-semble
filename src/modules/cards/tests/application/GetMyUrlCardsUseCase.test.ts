@@ -28,7 +28,11 @@ describe('GetUrlCardsUseCase', () => {
     cardQueryRepo = new InMemoryCardQueryRepository(cardRepo, collectionRepo);
     identityResolutionService = new FakeIdentityResolutionService();
     profileService = new FakeProfileService();
-    useCase = new GetUrlCardsUseCase(cardQueryRepo, identityResolutionService, profileService);
+    useCase = new GetUrlCardsUseCase(
+      cardQueryRepo,
+      identityResolutionService,
+      profileService,
+    );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
 
@@ -599,7 +603,7 @@ describe('GetUrlCardsUseCase', () => {
       expect(response.cards[1]?.cardContent.title).toBe('Alpha Article');
       expect(response.cards[2]?.cardContent.title).toBe('Beta Article'); // oldest
       // Verify all cards have author info
-      response.cards.forEach(card => {
+      response.cards.forEach((card) => {
         expect(card.author.id).toBe(curatorId.value);
         expect(card.author.name).toBe('Test Curator');
       });
@@ -620,7 +624,7 @@ describe('GetUrlCardsUseCase', () => {
       expect(response.cards[1]?.cardContent.title).toBe('Beta Article');
       expect(response.cards[2]?.cardContent.title).toBe('Gamma Article'); // newest
       // Verify all cards have author info
-      response.cards.forEach(card => {
+      response.cards.forEach((card) => {
         expect(card.author.id).toBe(curatorId.value);
         expect(card.author.name).toBe('Test Curator');
       });

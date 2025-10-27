@@ -96,25 +96,35 @@ export class RemoveCardFromLibraryUseCase
       ) {
         if (updatedCard.isUrlCard && updatedCard.url) {
           // First, delete any associated note card that also has no library memberships
-          const noteCardResult = await this.cardRepository.findUsersNoteCardByUrl(
-            updatedCard.url,
-            curatorId,
-          );
+          const noteCardResult =
+            await this.cardRepository.findUsersNoteCardByUrl(
+              updatedCard.url,
+              curatorId,
+            );
 
           if (noteCardResult.isOk() && noteCardResult.value) {
             const noteCard = noteCardResult.value;
-            if (noteCard.libraryCount === 0 && noteCard.curatorId.equals(curatorId)) {
+            if (
+              noteCard.libraryCount === 0 &&
+              noteCard.curatorId.equals(curatorId)
+            ) {
               // Delete note card first (child before parent)
-              const deleteNoteResult = await this.cardRepository.delete(noteCard.cardId);
+              const deleteNoteResult = await this.cardRepository.delete(
+                noteCard.cardId,
+              );
               if (deleteNoteResult.isErr()) {
-                return err(AppError.UnexpectedError.create(deleteNoteResult.error));
+                return err(
+                  AppError.UnexpectedError.create(deleteNoteResult.error),
+                );
               }
             }
           }
         }
 
         // Then delete the main card (URL card or any other card type)
-        const deleteResult = await this.cardRepository.delete(updatedCard.cardId);
+        const deleteResult = await this.cardRepository.delete(
+          updatedCard.cardId,
+        );
         if (deleteResult.isErr()) {
           return err(AppError.UnexpectedError.create(deleteResult.error));
         }

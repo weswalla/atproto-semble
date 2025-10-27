@@ -166,7 +166,10 @@ export class CardLibraryService implements DomainService {
           const noteCard = noteCardResult.value;
 
           // Recursively remove note card from library (this will handle its unpublishing)
-          const removeNoteResult = await this.removeCardFromLibrary(noteCard, curatorId);
+          const removeNoteResult = await this.removeCardFromLibrary(
+            noteCard,
+            curatorId,
+          );
           if (removeNoteResult.isErr()) {
             return err(
               new CardLibraryValidationError(

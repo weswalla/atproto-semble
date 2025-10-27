@@ -12,6 +12,7 @@ interface AuthContextType {
   user: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  refreshAuth: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -20,6 +21,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  const refreshAuth = async () => {
+    await query.refetch();
+  };
 
   const logout = async () => {
     await ClientCookieAuthService.clearTokens();
@@ -56,6 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     user: query.data ?? null,
     isAuthenticated: !!query.data,
     isLoading: query.isLoading,
+    refreshAuth,
     logout,
   };
 

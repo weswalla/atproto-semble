@@ -216,7 +216,6 @@ describe('GetUrlCardsUseCase', () => {
       expect(response.cards).toHaveLength(1);
 
       const card = response.cards[0]!;
-      expect(card.collections).toHaveLength(0); // No collections created in this simplified test
       expect(card.note).toBeUndefined(); // No note created in this simplified test
     });
 
@@ -740,7 +739,7 @@ describe('GetUrlCardsUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.cards).toHaveLength(1);
-      expect(response.cards[0]?.collections).toEqual([]);
+      // Collections are no longer included in the URL cards response
     });
   });
 });

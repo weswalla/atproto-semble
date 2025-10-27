@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // unauthenticated
       if (!response.ok) {
-        await logout();
+        throw new Error('Not authenticated');
       }
 
       const data = await response.json();

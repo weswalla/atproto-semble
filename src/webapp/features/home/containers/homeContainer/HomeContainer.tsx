@@ -120,7 +120,6 @@ export default function HomeContainer() {
                       url={card.url}
                       cardContent={card.cardContent}
                       note={card.note}
-                      collections={card.collections}
                       urlLibraryCount={card.urlLibraryCount}
                       urlIsInLibrary={card.urlInLibrary}
                     />

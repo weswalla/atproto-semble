@@ -9,6 +9,7 @@ import {
 } from '../../../domain/ICardQueryRepository';
 import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
+import { User } from '@semble/types';
 
 export interface GetUrlCardsQuery {
   userId: string;
@@ -20,7 +21,9 @@ export interface GetUrlCardsQuery {
 }
 
 // Enriched data for the final use case result
-export type UrlCardListItemDTO = UrlCardView & WithCollections;
+export type UrlCardListItemDTO = Omit<UrlCardView, 'authorId'> & {
+  author: User;
+};
 export interface GetUrlCardsResult {
   cards: UrlCardListItemDTO[];
   pagination: {

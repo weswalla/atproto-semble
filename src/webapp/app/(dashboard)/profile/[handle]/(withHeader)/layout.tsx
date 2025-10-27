@@ -4,9 +4,9 @@ import ProfileHeader from '@/features/profile/components/profileHeader/ProfileHe
 import ProfileTabs from '@/features/profile/components/profileTabs/ProfileTabs';
 import { Box, Container } from '@mantine/core';
 import { Fragment, Suspense } from 'react';
-import { ApiClient } from '@/api-client/ApiClient';
 import ProfileHeaderSkeleton from '@/features/profile/components/profileHeader/Skeleton.ProfileHeader';
 import BackButton from '@/components/navigation/backButton/BackButton';
+import { getProfile } from '@/features/profile/lib/dal';
 
 interface Props {
   params: Promise<{ handle: string }>;
@@ -15,14 +15,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params;
-
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-  );
-
-  const profile = await apiClient.getProfile({
-    identifier: handle,
-  });
+  const profile = await getProfile(handle);
 
   return {
     title: profile.name,

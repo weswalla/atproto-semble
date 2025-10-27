@@ -1,4 +1,4 @@
-import { ApiClient } from '@/api-client/ApiClient';
+import { getProfile } from '@/features/profile/lib/dal';
 import type { Metadata } from 'next';
 import { Fragment } from 'react';
 
@@ -9,14 +9,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params;
-
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-  );
-
-  const profile = await apiClient.getProfile({
-    identifier: handle,
-  });
+  const profile = await getProfile(handle);
 
   return {
     title: `${profile.name}'s collections`,

@@ -1,5 +1,5 @@
-import { ApiClient } from '@/api-client';
 import OpenGraphCard from '@/features/openGraph/components/openGraphCard/OpenGraphCard';
+import { getProfile } from '@/features/profile/lib/dal';
 import { truncateText } from '@/lib/utils/text';
 
 interface Props {
@@ -14,12 +14,7 @@ export const size = {
 
 export default async function Image(props: Props) {
   const { handle } = await props.params;
-
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-  );
-
-  const profile = await apiClient.getProfile({ identifier: handle });
+  const profile = await getProfile(handle);
 
   return await OpenGraphCard({
     children: (

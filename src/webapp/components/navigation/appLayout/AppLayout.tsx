@@ -1,3 +1,5 @@
+'use client';
+
 import { AppShell } from '@mantine/core';
 import Navbar from '@/components/navigation/navbar/Navbar';
 import ComposerDrawer from '@/features/composer/components/composerDrawer/ComposerDrawer';
@@ -32,7 +34,6 @@ export default function AppLayout(props: Props) {
         collapsed: { mobile: true },
       }}
     >
-      {/*<Header />*/}
       <Navbar />
 
       <AppShell.Main>

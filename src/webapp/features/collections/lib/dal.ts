@@ -18,3 +18,13 @@ export const getCollectionsForUrl = cache(
     return response;
   },
 );
+
+export const getMyCollections = cache(async (params?: PageParams) => {
+  const client = createSembleClient();
+  const response = await client.getMyCollections({
+    page: params?.page,
+    limit: params?.limit,
+  });
+
+  return response;
+});

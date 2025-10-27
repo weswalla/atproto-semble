@@ -77,7 +77,7 @@ export class RemoveCardFromLibraryUseCase
         return err(new ValidationError(`Card not found: ${request.cardId}`));
       }
 
-      // Remove card from library using domain service
+      // Remove card from library using domain service (this handles cascading for URL cards)
       const removeFromLibraryResult =
         await this.cardLibraryService.removeCardFromLibrary(card, curatorId);
       if (removeFromLibraryResult.isErr()) {
@@ -88,12 +88,33 @@ export class RemoveCardFromLibraryUseCase
       }
 
       const updatedCard = removeFromLibraryResult.value;
+
+      // Handle deletion with proper ordering for URL cards
       if (
-        updatedCard.libraryCount == 0 &&
+        updatedCard.libraryCount === 0 &&
         updatedCard.curatorId.equals(curatorId)
       ) {
-        // If no curators have this card in their library and the curator is the owner, delete the card
-        const deleteResult = await this.cardRepository.delete(card.cardId);
+        if (updatedCard.isUrlCard && updatedCard.url) {
+          // First, delete any associated note card that also has no library memberships
+          const noteCardResult = await this.cardRepository.findUsersNoteCardByUrl(
+            updatedCard.url,
+            curatorId,
+          );
+
+          if (noteCardResult.isOk() && noteCardResult.value) {
+            const noteCard = noteCardResult.value;
+            if (noteCard.libraryCount === 0 && noteCard.curatorId.equals(curatorId)) {
+              // Delete note card first (child before parent)
+              const deleteNoteResult = await this.cardRepository.delete(noteCard.cardId);
+              if (deleteNoteResult.isErr()) {
+                return err(AppError.UnexpectedError.create(deleteNoteResult.error));
+              }
+            }
+          }
+        }
+
+        // Then delete the main card (URL card or any other card type)
+        const deleteResult = await this.cardRepository.delete(updatedCard.cardId);
         if (deleteResult.isErr()) {
           return err(AppError.UnexpectedError.create(deleteResult.error));
         }

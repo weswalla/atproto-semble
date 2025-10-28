@@ -7,6 +7,7 @@ import {
 import { InMemoryStateStore } from '../../tests/infrastructure/InMemoryStateStore';
 import { InMemorySessionStore } from '../../tests/infrastructure/InMemorySessionStore';
 import { configService } from 'src/shared/infrastructure/config';
+import { LockServiceFactory } from 'src/shared/infrastructure/locking';
 
 export class OAuthClientFactory {
   static getClientMetadata(
@@ -42,11 +43,13 @@ export class OAuthClientFactory {
     appName: string = 'Semble',
   ): NodeOAuthClient {
     const { clientMetadata } = this.getClientMetadata(baseUrl, appName);
+    const lockService = LockServiceFactory.create();
 
     return new NodeOAuthClient({
       clientMetadata,
       stateStore,
       sessionStore,
+      requestLock: lockService.createRequestLock(),
     });
   }
 
@@ -57,11 +60,13 @@ export class OAuthClientFactory {
     const { clientMetadata } = this.getClientMetadata(baseUrl, appName);
     const stateStore = InMemoryStateStore.getInstance();
     const sessionStore = InMemorySessionStore.getInstance();
+    const lockService = LockServiceFactory.create();
 
     return new NodeOAuthClient({
       clientMetadata,
       stateStore,
       sessionStore,
+      requestLock: lockService.createRequestLock(),
     });
   }
 }

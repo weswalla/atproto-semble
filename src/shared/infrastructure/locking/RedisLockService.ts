@@ -18,10 +18,10 @@ export class RedisLockService implements ILockService {
   createRequestLock(): RuntimeLock {
     return async (key: string, fn: () => any) => {
       const lockKey = `oauth:lock:${key}`;
-      
+
       // 45 seconds as recommended in the docs
-      const lock = await this.redlock.acquire(lockKey, 45000);
-      
+      const lock = await this.redlock.acquire([lockKey], 45000);
+
       try {
         return await fn();
       } finally {

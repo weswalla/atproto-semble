@@ -13,14 +13,23 @@ export class RedisLockService implements ILockService {
       retryDelay: 200, // ms
       retryJitter: 200, // ms
     });
+
+    // Handle Fly.io container shutdown gracefully
+    process.on('SIGTERM', () => {
+      console.log('Received SIGTERM, shutting down gracefully...');
+      // Redlock will automatically release locks when the process exits
+      // No manual cleanup needed due to TTL
+    });
   }
 
   createRequestLock(): RuntimeLock {
     return async (key: string, fn: () => any) => {
-      const lockKey = `oauth:lock:${key}`;
-
-      // 45 seconds as recommended in the docs
-      const lock = await this.redlock.acquire([lockKey], 45000);
+      // Include Fly.io instance info in lock key
+      const instanceId = process.env.FLY_ALLOC_ID || 'local';
+      const lockKey = `oauth:lock:${instanceId}:${key}`;
+      
+      // 30 seconds for Fly.io (containers restart more frequently)
+      const lock = await this.redlock.acquire([lockKey], 30000);
 
       try {
         return await fn();

@@ -289,9 +289,7 @@ export class ServiceFactory {
     );
 
     // Profile Service
-    const profileService = useMockAuth
-      ? new FakeBlueskyProfileService()
-      : new BlueskyProfileService(atProtoAgentService);
+    const profileService = new BlueskyProfileService(atProtoAgentService);
 
     // Feed Service
     const feedService = new FeedService(repositories.feedRepository);

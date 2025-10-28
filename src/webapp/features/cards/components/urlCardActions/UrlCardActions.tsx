@@ -29,7 +29,7 @@ interface Props {
 }
 
 export default function UrlCardActions(props: Props) {
-  const { user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   // assume the current user is the card owner if authorHandle isn't passed
   const isAuthor = props.authorHandle
     ? user?.handle === props.authorHandle
@@ -41,6 +41,10 @@ export default function UrlCardActions(props: Props) {
   const [showRemoveFromLibaryModal, setShowRemoveFromLibraryModal] =
     useState(false);
   const [showAddToModal, setShowAddToModal] = useState(false);
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <Fragment>

@@ -9,12 +9,14 @@ import {
   Image,
   Box,
   Badge,
+  Button,
+  Text,
 } from '@mantine/core';
-import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import Link from 'next/link';
 import SembleLogo from '@/assets/semble-logo.svg';
 import NavbarToggle from '../NavbarToggle';
+import { BiRightArrowAlt } from 'react-icons/bi';
 
 export default function GuestNavbar() {
   return (
@@ -33,8 +35,23 @@ export default function GuestNavbar() {
 
       <AppShellSection grow component={ScrollArea}>
         <Stack mt={'xl'}>
-          <Stack gap={5}>
-            <NavItem href="/home" label="Home" icon={<LuLibrary size={25} />} />
+          <Stack>
+            <Text fw={600} fz={'xl'}>
+              A social knowledge network for researchers
+            </Text>
+            <Group grow>
+              <Button component={Link} href="/signup">
+                Sign up
+              </Button>
+              <Button
+                component={Link}
+                href="/login"
+                color="dark"
+                rightSection={<BiRightArrowAlt size={22} />}
+              >
+                Log in
+              </Button>
+            </Group>
             <NavItem
               href="/explore"
               label="Explore"

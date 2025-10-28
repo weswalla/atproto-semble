@@ -25,6 +25,7 @@ import DBIcon from '@/assets/icons/db-icon.svg';
 import BigPictureIcon from '@/assets/icons/big-picture-icon.svg';
 import TangledIcon from '@/assets/icons/tangled-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -62,12 +63,12 @@ export default function Home() {
                 </Button>
               ) : (
                 <Group gap="md" mt={'lg'}>
-                  <Button component="a" href="/signup" size="lg">
+                  <Button component={Link} href="/signup" size="lg">
                     Sign up
                   </Button>
 
                   <Button
-                    component="a"
+                    component={Link}
                     href="/login"
                     size="lg"
                     color="dark"

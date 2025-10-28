@@ -8,12 +8,11 @@ import {
   Group,
   Anchor,
   AspectRatio,
-  Skeleton,
   Tooltip,
 } from '@mantine/core';
 import Link from 'next/link';
 import UrlCardActions from '../urlCardActions/UrlCardActions';
-import { MouseEvent, Suspense } from 'react';
+import { MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './UrlCard.module.css';
 
@@ -97,28 +96,17 @@ export default function UrlCard(props: Props) {
           )}
         </Group>
 
-        <Suspense
-          fallback={
-            <Group justify="space-between">
-              <Group gap={'xs'}>
-                <Skeleton w={22} h={22} />
-              </Group>
-              <Skeleton w={22} h={22} />
-            </Group>
-          }
-        >
-          <UrlCardActions
-            cardAuthor={props.cardAuthor}
-            cardContent={props.cardContent}
-            cardCount={props.urlLibraryCount}
-            id={props.id}
-            authorHandle={props.authorHandle}
-            note={props.note}
-            currentCollection={props.currentCollection}
-            urlLibraryCount={props.urlLibraryCount}
-            urlIsInLibrary={props.urlIsInLibrary!!}
-          />
-        </Suspense>
+        <UrlCardActions
+          cardAuthor={props.cardAuthor}
+          cardContent={props.cardContent}
+          cardCount={props.urlLibraryCount}
+          id={props.id}
+          authorHandle={props.authorHandle}
+          note={props.note}
+          currentCollection={props.currentCollection}
+          urlLibraryCount={props.urlLibraryCount}
+          urlIsInLibrary={props.urlIsInLibrary!!}
+        />
       </Stack>
     </Card>
   );

@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import AppLayout from '@/components/navigation/appLayout/AppLayout';
+import Dashboard from '@/components/navigation/dashboard/Dashboard';
 
 interface Props {
   children: React.ReactNode;
@@ -22,5 +22,5 @@ export default function Layout(props: Props) {
     return null; // Redirecting
   }
 
-  return <AppLayout>{props.children}</AppLayout>;
+  return <Dashboard>{props.children}</Dashboard>;
 }

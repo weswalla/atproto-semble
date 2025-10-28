@@ -172,6 +172,7 @@ export class UseCaseFactory {
       getMyUrlCardsUseCase: new GetUrlCardsUseCase(
         repositories.cardQueryRepository,
         services.identityResolutionService,
+        services.profileService,
       ),
       createCollectionUseCase: new CreateCollectionUseCase(
         repositories.collectionRepository,

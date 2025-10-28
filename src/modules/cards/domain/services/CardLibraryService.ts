@@ -155,6 +155,31 @@ export class CardLibraryService implements DomainService {
         }
       }
 
+      // Handle cascading removal for URL cards
+      if (card.isUrlCard && card.url) {
+        const noteCardResult = await this.cardRepository.findUsersNoteCardByUrl(
+          card.url,
+          curatorId,
+        );
+
+        if (noteCardResult.isOk() && noteCardResult.value) {
+          const noteCard = noteCardResult.value;
+
+          // Recursively remove note card from library (this will handle its unpublishing)
+          const removeNoteResult = await this.removeCardFromLibrary(
+            noteCard,
+            curatorId,
+          );
+          if (removeNoteResult.isErr()) {
+            return err(
+              new CardLibraryValidationError(
+                `Failed to remove associated note card: ${removeNoteResult.error.message}`,
+              ),
+            );
+          }
+        }
+      }
+
       // Get library info to check if it was published
       const libraryInfo = card.getLibraryInfo(curatorId);
       if (libraryInfo?.publishedRecordId) {

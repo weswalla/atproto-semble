@@ -3,6 +3,7 @@ import { InMemoryCardQueryRepository } from '../utils/InMemoryCardQueryRepositor
 import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
 import { FakeIdentityResolutionService } from '../utils/FakeIdentityResolutionService';
+import { FakeProfileService } from '../utils/FakeProfileService';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { Card } from '../../domain/Card';
 import { CardType, CardTypeEnum } from '../../domain/value-objects/CardType';
@@ -18,6 +19,7 @@ describe('GetUrlCardsUseCase', () => {
   let cardRepo: InMemoryCardRepository;
   let collectionRepo: InMemoryCollectionRepository;
   let identityResolutionService: FakeIdentityResolutionService;
+  let profileService: FakeProfileService;
   let curatorId: CuratorId;
 
   beforeEach(() => {
@@ -25,9 +27,23 @@ describe('GetUrlCardsUseCase', () => {
     collectionRepo = InMemoryCollectionRepository.getInstance();
     cardQueryRepo = new InMemoryCardQueryRepository(cardRepo, collectionRepo);
     identityResolutionService = new FakeIdentityResolutionService();
-    useCase = new GetUrlCardsUseCase(cardQueryRepo, identityResolutionService);
+    profileService = new FakeProfileService();
+    useCase = new GetUrlCardsUseCase(
+      cardQueryRepo,
+      identityResolutionService,
+      profileService,
+    );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
+
+    // Add the test curator profile to the profile service
+    profileService.addProfile({
+      id: curatorId.value,
+      name: 'Test Curator',
+      handle: 'testcurator.bsky.social',
+      avatarUrl: 'https://example.com/avatar.jpg',
+      bio: 'Test curator bio',
+    });
   });
 
   afterEach(() => {
@@ -35,6 +51,7 @@ describe('GetUrlCardsUseCase', () => {
     collectionRepo.clear();
     cardQueryRepo.clear();
     identityResolutionService.clear();
+    profileService.clear();
   });
 
   describe('Basic functionality', () => {
@@ -151,13 +168,18 @@ describe('GetUrlCardsUseCase', () => {
       expect(firstCard?.cardContent.title).toBe('First Article');
       expect(firstCard?.cardContent.author).toBe('John Doe');
       expect(firstCard?.libraryCount).toBe(1);
+      expect(firstCard?.author.id).toBe(curatorId.value);
+      expect(firstCard?.author.name).toBe('Test Curator');
+      expect(firstCard?.author.handle).toBe('testcurator.bsky.social');
 
       expect(secondCard).toBeDefined();
       expect(secondCard?.cardContent.title).toBe('Second Article');
       expect(secondCard?.libraryCount).toBe(1);
+      expect(secondCard?.author.id).toBe(curatorId.value);
+      expect(secondCard?.author.name).toBe('Test Curator');
     });
 
-    it('should include collections and notes in URL cards', async () => {
+    it('should include notes in URL cards (collections no longer included)', async () => {
       // Create URL metadata
       const urlMetadata = UrlMetadata.create({
         url: 'https://example.com/article-with-extras',
@@ -212,12 +234,22 @@ describe('GetUrlCardsUseCase', () => {
       expect(response.cards).toHaveLength(1);
 
       const card = response.cards[0]!;
-      expect(card.collections).toHaveLength(0); // No collections created in this simplified test
       expect(card.note).toBeUndefined(); // No note created in this simplified test
+      expect(card.author.id).toBe(curatorId.value);
+      expect(card.author.name).toBe('Test Curator');
     });
 
     it('should only return URL cards for the specified user', async () => {
       const otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
+
+      // Add the other curator profile to the profile service
+      profileService.addProfile({
+        id: otherCuratorId.value,
+        name: 'Other Curator',
+        handle: 'othercurator.bsky.social',
+        avatarUrl: 'https://example.com/other-avatar.jpg',
+        bio: 'Other curator bio',
+      });
 
       // Create my card
       const myUrlMetadata = UrlMetadata.create({
@@ -296,6 +328,8 @@ describe('GetUrlCardsUseCase', () => {
       const response = result.unwrap();
       expect(response.cards).toHaveLength(1);
       expect(response.cards[0]?.cardContent.title).toBe('My Article');
+      expect(response.cards[0]?.author.id).toBe(curatorId.value);
+      expect(response.cards[0]?.author.name).toBe('Test Curator');
     });
   });
 
@@ -568,6 +602,11 @@ describe('GetUrlCardsUseCase', () => {
       expect(response.cards[0]?.cardContent.title).toBe('Gamma Article'); // most recent
       expect(response.cards[1]?.cardContent.title).toBe('Alpha Article');
       expect(response.cards[2]?.cardContent.title).toBe('Beta Article'); // oldest
+      // Verify all cards have author info
+      response.cards.forEach((card) => {
+        expect(card.author.id).toBe(curatorId.value);
+        expect(card.author.name).toBe('Test Curator');
+      });
     });
 
     it('should sort by created date ascending', async () => {
@@ -584,6 +623,11 @@ describe('GetUrlCardsUseCase', () => {
       expect(response.cards[0]?.cardContent.title).toBe('Alpha Article'); // oldest
       expect(response.cards[1]?.cardContent.title).toBe('Beta Article');
       expect(response.cards[2]?.cardContent.title).toBe('Gamma Article'); // newest
+      // Verify all cards have author info
+      response.cards.forEach((card) => {
+        expect(card.author.id).toBe(curatorId.value);
+        expect(card.author.name).toBe('Test Curator');
+      });
     });
 
     it('should use default sorting when not specified', async () => {
@@ -635,6 +679,7 @@ describe('GetUrlCardsUseCase', () => {
       const errorUseCase = new GetUrlCardsUseCase(
         errorRepo,
         identityResolutionService,
+        profileService,
       );
 
       const query = {
@@ -691,9 +736,11 @@ describe('GetUrlCardsUseCase', () => {
       expect(response.cards[0]?.cardContent.description).toBeUndefined();
       expect(response.cards[0]?.cardContent.author).toBeUndefined();
       expect(response.cards[0]?.cardContent.thumbnailUrl).toBeUndefined();
+      expect(response.cards[0]?.author.id).toBe(curatorId.value);
+      expect(response.cards[0]?.author.name).toBe('Test Curator');
     });
 
-    it('should handle empty collections array', async () => {
+    it('should handle cards without notes', async () => {
       // Create URL metadata
       const urlMetadata = UrlMetadata.create({
         url: 'https://example.com/no-collections',
@@ -736,7 +783,9 @@ describe('GetUrlCardsUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.cards).toHaveLength(1);
-      expect(response.cards[0]?.collections).toEqual([]);
+      // Collections are no longer included in the URL cards response
+      expect(response.cards[0]?.author.id).toBe(curatorId.value);
+      expect(response.cards[0]?.author.name).toBe('Test Curator');
     });
   });
 });

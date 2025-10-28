@@ -30,38 +30,34 @@ export default function NoteCardModal(props: Props) {
     <Modal
       opened={props.isOpen}
       onClose={props.onClose}
-      title={
-        <Stack gap={5}>
-          <Text fw={600}>Note</Text>
-          {props.cardAuthor && (
-            <Group gap={5}>
-              <Avatar
-                size={'sm'}
-                component={Link}
-                href={`/profile/${props.cardAuthor.handle}`}
-                target="_blank"
-                src={props.cardAuthor.avatarUrl}
-                alt={`${props.cardAuthor.name}'s' avatar`}
-              />
-              <Anchor
-                component={Link}
-                href={`/profile/${props.cardAuthor.handle}`}
-                target="_blank"
-                fw={700}
-                c="blue"
-                lineClamp={1}
-              >
-                {props.cardAuthor.name}
-              </Anchor>
-            </Group>
-          )}
-        </Stack>
-      }
+      title="Note"
       overlayProps={UPDATE_OVERLAY_PROPS}
       centered
       onClick={(e) => e.stopPropagation()}
     >
-      <Stack gap={'xs'} mt={'xs'}>
+      <Stack gap={'xs'}>
+        {props.cardAuthor && (
+          <Group gap={5}>
+            <Avatar
+              size={'sm'}
+              component={Link}
+              href={`/profile/${props.cardAuthor.handle}`}
+              target="_blank"
+              src={props.cardAuthor.avatarUrl}
+              alt={`${props.cardAuthor.name}'s' avatar`}
+            />
+            <Anchor
+              component={Link}
+              href={`/profile/${props.cardAuthor.handle}`}
+              target="_blank"
+              fw={700}
+              c="blue"
+              lineClamp={1}
+            >
+              {props.cardAuthor.name}
+            </Anchor>
+          </Group>
+        )}
         {props.note && <Text fs={'italic'}>{props.note.text}</Text>}
         <Card withBorder p={'xs'} radius={'lg'}>
           <Stack>

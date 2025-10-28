@@ -7,3 +7,10 @@ export const getUrlMetadata = cache(async (url: string) => {
 
   return response;
 });
+
+export const getCardFromMyLibrary = cache(async (url: string) => {
+  const client = createSembleClient();
+  const response = await client.getUrlStatusForMyLibrary({ url: url });
+
+  return response;
+});

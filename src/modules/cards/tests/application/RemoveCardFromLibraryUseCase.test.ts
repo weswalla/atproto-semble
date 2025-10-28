@@ -646,5 +646,39 @@ describe('RemoveCardFromLibraryUseCase', () => {
       const updatedCard = updatedCardResult.unwrap();
       expect(updatedCard).toBeNull();
     });
+
+    it('should delete URL card and associated note card when both have no library memberships', async () => {
+      const urlCard = await createCard(CardTypeEnum.URL, curatorId);
+      await addCardToLibrary(urlCard, curatorId);
+
+      // Create associated note card
+      const noteCard = new CardBuilder()
+        .withType(CardTypeEnum.NOTE)
+        .withCuratorId(curatorId.value)
+        .withParentCard(urlCard.cardId)
+        .withUrl(urlCard.url!)
+        .build();
+
+      if (noteCard instanceof Error) throw noteCard;
+
+      await cardRepository.save(noteCard);
+      await addCardToLibrary(noteCard, curatorId);
+
+      // Remove URL card from library
+      const request = {
+        cardId: urlCard.cardId.getStringValue(),
+        curatorId: curatorId.value,
+      };
+
+      const result = await useCase.execute(request);
+      expect(result.isOk()).toBe(true);
+
+      // Verify both cards were deleted
+      const urlCardResult = await cardRepository.findById(urlCard.cardId);
+      const noteCardResult = await cardRepository.findById(noteCard.cardId);
+
+      expect(urlCardResult.unwrap()).toBeNull();
+      expect(noteCardResult.unwrap()).toBeNull();
+    });
   });
 });

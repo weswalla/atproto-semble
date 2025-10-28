@@ -122,6 +122,7 @@ export default function HomeContainer() {
                       note={card.note}
                       urlLibraryCount={card.urlLibraryCount}
                       urlIsInLibrary={card.urlInLibrary}
+                      cardAuthor={card.author}
                     />
                   </Grid.Col>
                 ))}

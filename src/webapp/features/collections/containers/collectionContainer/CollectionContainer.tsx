@@ -116,6 +116,7 @@ export default function CollectionContainer(props: Props) {
                     url={card.url}
                     cardContent={card.cardContent}
                     authorHandle={firstPage.author.handle}
+                    cardAuthor={firstPage.author}
                     note={card.note}
                     urlLibraryCount={card.urlLibraryCount}
                     urlIsInLibrary={card.urlInLibrary}

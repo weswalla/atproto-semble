@@ -77,6 +77,7 @@ export default function CardsContainer(props: Props) {
                 cardContent={card.cardContent}
                 note={card.note}
                 authorHandle={props.handle}
+                cardAuthor={card.author}
                 urlLibraryCount={card.urlLibraryCount}
                 urlIsInLibrary={card.urlInLibrary}
               />

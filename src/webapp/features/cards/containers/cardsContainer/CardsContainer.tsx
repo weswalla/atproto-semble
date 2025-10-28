@@ -70,8 +70,8 @@ export default function CardsContainer(props: Props) {
                 url={card.url}
                 cardContent={card.cardContent}
                 note={card.note}
-                collections={card.collections}
                 authorHandle={props.handle}
+                cardAuthor={card.author}
                 urlLibraryCount={card.urlLibraryCount}
                 urlIsInLibrary={card.urlInLibrary}
               />

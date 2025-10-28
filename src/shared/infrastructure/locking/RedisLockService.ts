@@ -27,7 +27,7 @@ export class RedisLockService implements ILockService {
       // Include Fly.io instance info in lock key
       const instanceId = process.env.FLY_ALLOC_ID || 'local';
       const lockKey = `oauth:lock:${instanceId}:${key}`;
-      
+
       // 30 seconds for Fly.io (containers restart more frequently)
       const lock = await this.redlock.acquire([lockKey], 30000);
 

@@ -69,10 +69,10 @@ describe('RedisLockService Integration', () => {
       const createTestFunction = (id: number) => async () => {
         const executionId = ++currentExecution;
         executionOrder.push(id);
-        
+
         // Simulate some work
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         return `result-${id}-${executionId}`;
       };
 
@@ -87,7 +87,7 @@ describe('RedisLockService Integration', () => {
       expect(result1).toMatch(/^result-1-\d+$/);
       expect(result2).toMatch(/^result-2-\d+$/);
       expect(executionOrder).toHaveLength(2);
-      
+
       // Verify they executed sequentially (not concurrently)
       expect(currentExecution).toBe(2);
     });
@@ -97,10 +97,10 @@ describe('RedisLockService Integration', () => {
       const lockKey1 = 'lock-key-1';
       const lockKey2 = 'lock-key-2';
       let startTimes: number[] = [];
-      
+
       const createTestFunction = (id: number) => async () => {
         startTimes.push(Date.now());
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 200));
         return `result-${id}`;
       };
 
@@ -117,10 +117,10 @@ describe('RedisLockService Integration', () => {
       expect(result1).toBe('result-1');
       expect(result2).toBe('result-2');
       expect(startTimes).toHaveLength(2);
-      
+
       // Should complete in roughly 200ms (concurrent) rather than 400ms (sequential)
       expect(totalTime).toBeLessThan(350);
-      
+
       // Start times should be close together (concurrent execution)
       const timeDiff = Math.abs(startTimes[1]! - startTimes[0]!);
       expect(timeDiff).toBeLessThan(50);
@@ -136,7 +136,9 @@ describe('RedisLockService Integration', () => {
 
       // Act & Assert
       const requestLock = lockService.createRequestLock();
-      await expect(requestLock(lockKey, errorFunction)).rejects.toThrow(errorMessage);
+      await expect(requestLock(lockKey, errorFunction)).rejects.toThrow(
+        errorMessage,
+      );
 
       // Verify lock was released even after error
       const lockPattern = `oauth:lock:*:${lockKey}`;
@@ -148,7 +150,7 @@ describe('RedisLockService Integration', () => {
       // Arrange
       const lockKey = 'async-test-lock';
       const asyncFunction = async () => {
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise((resolve) => setTimeout(resolve, 50));
         return { data: 'async-result', timestamp: Date.now() };
       };
 
@@ -168,16 +170,18 @@ describe('RedisLockService Integration', () => {
       // Arrange
       const originalAllocId = process.env.FLY_ALLOC_ID;
       process.env.FLY_ALLOC_ID = 'test-instance-123';
-      
+
       const lockKey = 'instance-test-lock';
       let lockKeyUsed = '';
-      
+
       // Mock redlock to capture the actual lock key used
       const originalAcquire = lockService['redlock'].acquire;
-      lockService['redlock'].acquire = jest.fn().mockImplementation(async (keys: string[]) => {
-        lockKeyUsed = keys[0]!;
-        return originalAcquire.call(lockService['redlock'], keys, 30000);
-      });
+      lockService['redlock'].acquire = jest
+        .fn()
+        .mockImplementation(async (keys: string[]) => {
+          lockKeyUsed = keys[0]!;
+          return originalAcquire.call(lockService['redlock'], keys, 30000);
+        });
 
       try {
         // Act
@@ -197,16 +201,18 @@ describe('RedisLockService Integration', () => {
       // Arrange
       const originalAllocId = process.env.FLY_ALLOC_ID;
       delete process.env.FLY_ALLOC_ID;
-      
+
       const lockKey = 'local-test-lock';
       let lockKeyUsed = '';
-      
+
       // Mock redlock to capture the actual lock key used
       const originalAcquire = lockService['redlock'].acquire;
-      lockService['redlock'].acquire = jest.fn().mockImplementation(async (keys: string[]) => {
-        lockKeyUsed = keys[0]!;
-        return originalAcquire.call(lockService['redlock'], keys, 30000);
-      });
+      lockService['redlock'].acquire = jest
+        .fn()
+        .mockImplementation(async (keys: string[]) => {
+          lockKeyUsed = keys[0]!;
+          return originalAcquire.call(lockService['redlock'], keys, 30000);
+        });
 
       try {
         // Act
@@ -227,20 +233,26 @@ describe('RedisLockService Integration', () => {
     it('should automatically release lock after TTL expires', async () => {
       // Arrange
       const lockKey = 'ttl-test-lock';
-      
+
       // Manually acquire a lock with short TTL to simulate timeout
       const instanceId = process.env.FLY_ALLOC_ID || 'local';
       const fullLockKey = `oauth:lock:${instanceId}:${lockKey}`;
-      
+
       // Use redlock directly to set a very short TTL (100ms)
-      const shortLock = await lockService['redlock'].acquire([fullLockKey], 100);
+      const shortLock = await lockService['redlock'].acquire(
+        [fullLockKey],
+        100,
+      );
 
       // Act - Wait for lock to expire
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       // Try to acquire the same lock - should succeed if previous lock expired
       const requestLock = lockService.createRequestLock();
-      const result = await requestLock(lockKey, async () => 'success-after-timeout');
+      const result = await requestLock(
+        lockKey,
+        async () => 'success-after-timeout',
+      );
 
       // Assert
       expect(result).toBe('success-after-timeout');
@@ -258,24 +270,24 @@ describe('RedisLockService Integration', () => {
       const lockKey = 'high-concurrency-lock';
       const concurrentOperations = 5;
       let completedOperations = 0;
-      
+
       const testFunction = async () => {
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise((resolve) => setTimeout(resolve, 50));
         return ++completedOperations;
       };
 
       // Act - Start multiple concurrent operations
       const requestLock = lockService.createRequestLock();
       const promises = Array.from({ length: concurrentOperations }, () =>
-        requestLock(lockKey, testFunction)
+        requestLock(lockKey, testFunction),
       );
-      
+
       const results = await Promise.all(promises);
 
       // Assert - All operations should complete successfully
       expect(results).toHaveLength(concurrentOperations);
       expect(completedOperations).toBe(concurrentOperations);
-      
+
       // Results should be sequential numbers (1, 2, 3, 4, 5)
       const sortedResults = results.sort((a, b) => a - b);
       expect(sortedResults).toEqual([1, 2, 3, 4, 5]);
@@ -285,18 +297,18 @@ describe('RedisLockService Integration', () => {
   describe('Error Handling', () => {
     it('should handle Redis connection issues gracefully', async () => {
       // Arrange - Create a new Redis connection that we can close
-      const testRedis = new Redis(redisContainer.getConnectionUrl(), { 
-        maxRetriesPerRequest: null 
+      const testRedis = new Redis(redisContainer.getConnectionUrl(), {
+        maxRetriesPerRequest: null,
       });
       const testLockService = new RedisLockService(testRedis);
-      
+
       // Close the connection to simulate network issues
       await testRedis.quit();
 
       // Act & Assert - Should throw an error when trying to acquire lock
       const requestLock = testLockService.createRequestLock();
       await expect(
-        requestLock('test-key', async () => 'should-not-execute')
+        requestLock('test-key', async () => 'should-not-execute'),
       ).rejects.toThrow();
     });
 
@@ -304,7 +316,7 @@ describe('RedisLockService Integration', () => {
       // Arrange
       const lockKey = 'interrupt-test-lock';
       let lockAcquired = false;
-      
+
       const interruptedFunction = async () => {
         lockAcquired = true;
         // Simulate an interruption/error after lock is acquired
@@ -313,8 +325,10 @@ describe('RedisLockService Integration', () => {
 
       // Act & Assert
       const requestLock = lockService.createRequestLock();
-      await expect(requestLock(lockKey, interruptedFunction)).rejects.toThrow('Simulated interruption');
-      
+      await expect(requestLock(lockKey, interruptedFunction)).rejects.toThrow(
+        'Simulated interruption',
+      );
+
       // Verify lock was acquired initially
       expect(lockAcquired).toBe(true);
 

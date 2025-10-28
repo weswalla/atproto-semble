@@ -22,7 +22,7 @@ export class InMemoryLockService implements ILockService {
   }
 
   createRequestLock(): RuntimeLock {
-    return async (key: string, fn: () => Promise<any>) => {
+    return async (key: string, fn: () => any) => {
       const lockKey = `oauth:lock:${key}`;
       const now = Date.now();
       const expiresAt = now + 45000; // 45 seconds
@@ -36,7 +36,7 @@ export class InMemoryLockService implements ILockService {
         } catch {
           // Ignore errors from other processes
         }
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         return this.createRequestLock()(key, fn);
       }
 

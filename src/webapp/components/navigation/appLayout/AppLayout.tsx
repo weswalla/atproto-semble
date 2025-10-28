@@ -5,6 +5,8 @@ import Navbar from '@/components/navigation/navbar/Navbar';
 import ComposerDrawer from '@/features/composer/components/composerDrawer/ComposerDrawer';
 import { useNavbarContext } from '@/providers/navbar';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import GuestNavbar from '../guestNavbar/GuestNavbar';
 
 interface Props {
   children: React.ReactNode;
@@ -12,6 +14,7 @@ interface Props {
 
 export default function AppLayout(props: Props) {
   const { mobileOpened, desktopOpened } = useNavbarContext();
+  const { isAuthenticated } = useAuth();
   const pathname = usePathname();
 
   const ROUTES_WITH_ASIDE = ['/url'];
@@ -34,11 +37,11 @@ export default function AppLayout(props: Props) {
         collapsed: { mobile: true },
       }}
     >
-      <Navbar />
+      {isAuthenticated ? <Navbar /> : <GuestNavbar />}
 
       <AppShell.Main>
         {props.children}
-        <ComposerDrawer />
+        {isAuthenticated && <ComposerDrawer />}
       </AppShell.Main>
     </AppShell>
   );

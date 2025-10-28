@@ -44,7 +44,9 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
       if (agentResult.isErr()) {
         return err(
-          new Error(`Authentication error: ${agentResult.error.message}`),
+          new Error(
+            `Authentication error for ATProtoCollectionPublisher: ${agentResult.error.message}`,
+          ),
         );
       }
 
@@ -124,7 +126,9 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
       if (agentResult.isErr()) {
         return err(
-          new Error(`Authentication error: ${agentResult.error.message}`),
+          new Error(
+            `Authenticated error for ATProtoCollectionPublisher: ${agentResult.error.message}`,
+          ),
         );
       }
 
@@ -222,7 +226,9 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
       if (agentResult.isErr()) {
         return err(
-          new Error(`Authentication error: ${agentResult.error.message}`),
+          new Error(
+            `Authenticated error for ATProtoCollectionPublisher: ${agentResult.error.message}`,
+          ),
         );
       }
 
@@ -266,7 +272,9 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
 
       if (agentResult.isErr()) {
         return err(
-          new Error(`Authentication error: ${agentResult.error.message}`),
+          new Error(
+            `Authenticated error for ATProtoCollectionPublisher: ${agentResult.error.message}`,
+          ),
         );
       }
 

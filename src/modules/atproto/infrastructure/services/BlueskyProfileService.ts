@@ -31,7 +31,7 @@ export class BlueskyProfileService implements IProfileService {
         if (agentResult.isErr()) {
           return err(
             new Error(
-              `Failed to get authenticated agent: ${agentResult.error.message}`,
+              `Failed to get authenticated agent for BlueskyProfileService: ${agentResult.error.message}`,
             ),
           );
         }

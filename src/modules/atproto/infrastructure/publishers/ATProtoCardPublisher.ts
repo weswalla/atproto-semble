@@ -46,7 +46,9 @@ export class ATProtoCardPublisher implements ICardPublisher {
 
       if (agentResult.isErr()) {
         return err(
-          new Error(`Authentication error: ${agentResult.error.message}`),
+          new Error(
+            `Authentication error for ATProtoCardPublisher: ${agentResult.error.message}`,
+          ),
         );
       }
 
@@ -130,7 +132,9 @@ export class ATProtoCardPublisher implements ICardPublisher {
 
       if (agentResult.isErr()) {
         return err(
-          new Error(`Authentication error: ${agentResult.error.message}`),
+          new Error(
+            `Authentication error for ATProtoCardPublisher: ${agentResult.error.message}`,
+          ),
         );
       }
 

@@ -22,7 +22,6 @@ interface Props {
   url: string;
   cardContent: UrlCard['cardContent'];
   note?: UrlCard['note'];
-  collections?: Collection[];
   currentCollection?: Collection;
   urlLibraryCount: number;
   urlIsInLibrary?: boolean;

@@ -129,6 +129,11 @@ export interface ICardQueryRepository {
     callingUserId?: string,
   ): Promise<UrlCardViewDTO | null>;
 
+  getUrlCardBasic(
+    cardId: string,
+    callingUserId?: string,
+  ): Promise<UrlCardView | null>;
+
   getLibrariesForCard(cardId: string): Promise<string[]>;
 
   getLibrariesForUrl(

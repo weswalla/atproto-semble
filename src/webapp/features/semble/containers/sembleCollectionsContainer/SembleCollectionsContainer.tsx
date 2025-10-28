@@ -2,7 +2,7 @@
 
 import useSembleCollections from '@/features/collections/lib/queries/useSembleCollectionts';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
-import { Center, Loader, SimpleGrid } from '@mantine/core';
+import { SimpleGrid } from '@mantine/core';
 import SembleCollectionsError from './Error.SembleCollectionsContainer';
 import CollectionCard from '@/features/collections/components/collectionCard/CollectionCard';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
@@ -40,12 +40,6 @@ export default function SembleCollectionsContainer(props: Props) {
       isInitialLoading={isPending}
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
-      manualLoadButton={false}
-      loader={
-        <Center>
-          <Loader />
-        </Center>
-      }
     >
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
         {allCollections.map((col) => (

@@ -363,6 +363,7 @@ describe('GetLibrariesForUrlUseCase', () => {
         getUrlCardsOfUser: jest.fn(),
         getCardsInCollection: jest.fn(),
         getUrlCardView: jest.fn(),
+        getUrlCardBasic: jest.fn(),
         getLibrariesForCard: jest.fn(),
         getLibrariesForUrl: jest
           .fn()

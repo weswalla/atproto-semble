@@ -46,7 +46,7 @@ export function useUrlMetadata({
         });
 
         // If there's an existing card, fetch its collections
-        if (existingCard.cardId) {
+        if (existingCard.card) {
           try {
             setExistingCardCollections(existingCard.collections);
           } catch (cardErr: any) {

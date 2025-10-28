@@ -1,24 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-
-// Helper to check if token is expired or will expire soon
-function isTokenExpiringSoon(
-  token: string | null | undefined,
-  bufferMinutes: number = 5,
-): boolean {
-  if (!token) return true;
-
-  try {
-    const payload = JSON.parse(
-      Buffer.from(token.split('.')[1], 'base64').toString(),
-    );
-    const expiry = payload.exp * 1000;
-    const bufferTime = bufferMinutes * 60 * 1000;
-    return Date.now() >= expiry - bufferTime;
-  } catch {
-    return true;
-  }
-}
+import { isTokenExpiringSoon } from '@/lib/auth/token';
 
 export async function GET(request: NextRequest) {
   try {

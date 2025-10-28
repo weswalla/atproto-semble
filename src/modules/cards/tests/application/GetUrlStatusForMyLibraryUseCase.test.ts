@@ -1,5 +1,6 @@
 import { GetUrlStatusForMyLibraryUseCase } from '../../application/useCases/queries/GetUrlStatusForMyLibraryUseCase';
 import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
+import { InMemoryCardQueryRepository } from '../utils/InMemoryCardQueryRepository';
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
 import { InMemoryCollectionQueryRepository } from '../utils/InMemoryCollectionQueryRepository';
 import { FakeCardPublisher } from '../utils/FakeCardPublisher';
@@ -18,6 +19,7 @@ import { ICardRepository } from '../../domain/ICardRepository';
 describe('GetUrlStatusForMyLibraryUseCase', () => {
   let useCase: GetUrlStatusForMyLibraryUseCase;
   let cardRepository: InMemoryCardRepository;
+  let cardQueryRepository: InMemoryCardQueryRepository;
   let collectionRepository: InMemoryCollectionRepository;
   let collectionQueryRepository: InMemoryCollectionQueryRepository;
   let cardPublisher: FakeCardPublisher;
@@ -30,6 +32,10 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
   beforeEach(() => {
     cardRepository = InMemoryCardRepository.getInstance();
     collectionRepository = InMemoryCollectionRepository.getInstance();
+    cardQueryRepository = new InMemoryCardQueryRepository(
+      cardRepository,
+      collectionRepository,
+    );
     collectionQueryRepository = new InMemoryCollectionQueryRepository(
       collectionRepository,
     );
@@ -40,6 +46,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
 
     useCase = new GetUrlStatusForMyLibraryUseCase(
       cardRepository,
+      cardQueryRepository,
       collectionQueryRepository,
       collectionRepository,
       profileService,
@@ -69,6 +76,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
 
   afterEach(() => {
     cardRepository.clear();
+    cardQueryRepository.clear();
     collectionRepository.clear();
     collectionQueryRepository.clear();
     cardPublisher.clear();
@@ -213,7 +221,8 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
 
-      expect(response.cardId).toBe(card.cardId.getStringValue());
+      expect(response.card).toBeDefined();
+      expect(response.card?.id).toBe(card.cardId.getStringValue());
       expect(response.collections).toHaveLength(2);
 
       // Verify collection details
@@ -289,7 +298,8 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
 
-      expect(response.cardId).toBe(card.cardId.getStringValue());
+      expect(response.card).toBeDefined();
+      expect(response.card?.id).toBe(card.cardId.getStringValue());
       expect(response.collections).toHaveLength(0);
     });
 
@@ -308,7 +318,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
 
-      expect(response.cardId).toBeUndefined();
+      expect(response.card).toBeUndefined();
       expect(response.collections).toBeUndefined();
     });
 
@@ -392,7 +402,8 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
 
-      expect(response.cardId).toBe(card1.cardId.getStringValue());
+      expect(response.card).toBeDefined();
+      expect(response.card?.id).toBe(card1.cardId.getStringValue());
       expect(response.collections).toHaveLength(0); // No collections for first user
     });
 
@@ -473,7 +484,8 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
 
-      expect(response.cardId).toBe(card.cardId.getStringValue());
+      expect(response.card).toBeDefined();
+      expect(response.card?.id).toBe(card.cardId.getStringValue());
       expect(response.collections).toHaveLength(1);
       expect(response.collections?.[0]?.name).toBe('My Collection');
       expect(response.collections?.[0]?.id).toBe(
@@ -527,6 +539,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
 
       const errorUseCase = new GetUrlStatusForMyLibraryUseCase(
         errorCardRepository,
+        cardQueryRepository,
         collectionQueryRepository,
         collectionRepository,
         profileService,
@@ -581,6 +594,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
 
       const errorUseCase = new GetUrlStatusForMyLibraryUseCase(
         cardRepository,
+        cardQueryRepository,
         errorCollectionQueryRepository,
         collectionRepository,
         profileService,

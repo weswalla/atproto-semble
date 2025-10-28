@@ -13,20 +13,14 @@ import {
 import { truncateText } from '@/lib/utils/text';
 import MinimalProfileHeaderContainer from '../../containers/minimalProfileHeaderContainer/MinimalProfileHeaderContainer';
 import { FaBluesky } from 'react-icons/fa6';
-import { ApiClient } from '@/api-client/ApiClient';
+import { getProfile } from '../../lib/dal';
 
 interface Props {
   handle: string;
 }
 
 export default async function ProfileHeader(props: Props) {
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-  );
-
-  const profile = await apiClient.getProfile({
-    identifier: props.handle,
-  });
+  const profile = await getProfile(props.handle);
 
   return (
     <Container bg={'white'} p={'xs'} size={'xl'}>
@@ -42,7 +36,7 @@ export default async function ProfileHeader(props: Props) {
               <Avatar
                 src={profile.avatarUrl}
                 alt={`${profile.name}'s avatar`}
-                size={'clamp(100px, 22vw, 140px)'}
+                size={'clamp(90px, 22vw, 140px)'}
                 radius={'lg'}
               />
             </GridCol>

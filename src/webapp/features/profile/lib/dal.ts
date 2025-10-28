@@ -9,3 +9,10 @@ export const getProfile = cache(async (didOrHandle: string) => {
 
   return response;
 });
+
+export const getMyProfile = cache(async () => {
+  const client = createSembleClient();
+  const response = await client.getMyProfile();
+
+  return response;
+});

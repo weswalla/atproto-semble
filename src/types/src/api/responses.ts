@@ -128,7 +128,7 @@ export interface GetLibrariesForCardResponse {
 export interface GetProfileResponse extends User {}
 
 export interface GetUrlCardsResponse {
-  cards: UrlCardWithCollections[];
+  cards: UrlCard[];
   pagination: Pagination;
   sorting: CardSorting;
 }

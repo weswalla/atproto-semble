@@ -12,6 +12,7 @@ import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { URL } from '../../../domain/value-objects/URL';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CollectionDTO, UrlCard } from '@semble/types';
+import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface GetUrlStatusForMyLibraryQuery {
   url: string;
@@ -33,7 +34,7 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
   GetUrlStatusForMyLibraryQuery,
   Result<
     GetUrlStatusForMyLibraryResult,
-    ValidationError | AppError.UnexpectedError
+    ValidationError | AuthenticationError | AppError.UnexpectedError
   >
 > {
   constructor(
@@ -52,7 +53,7 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
   ): Promise<
     Result<
       GetUrlStatusForMyLibraryResult,
-      ValidationError | AppError.UnexpectedError
+      ValidationError | AuthenticationError | AppError.UnexpectedError
     >
   > {
     try {
@@ -101,6 +102,10 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
           );
 
           if (authorProfileResult.isErr()) {
+            // Propagate authentication errors
+            if (authorProfileResult.error instanceof AuthenticationError) {
+              return err(authorProfileResult.error);
+            }
             return err(
               AppError.UnexpectedError.create(authorProfileResult.error),
             );
@@ -161,6 +166,10 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
                     fullCollection.authorId.value,
                   );
                 if (authorProfileResult.isErr()) {
+                  // Propagate authentication errors
+                  if (authorProfileResult.error instanceof AuthenticationError) {
+                    throw authorProfileResult.error;
+                  }
                   throw new Error(
                     `Failed to fetch author profile: ${authorProfileResult.error.message}`,
                   );
@@ -186,6 +195,10 @@ export class GetUrlStatusForMyLibraryUseCase extends BaseUseCase<
               }),
             );
           } catch (error) {
+            // Propagate authentication errors
+            if (error instanceof AuthenticationError) {
+              return err(error);
+            }
             return err(AppError.UnexpectedError.create(error));
           }
         }

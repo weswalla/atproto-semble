@@ -35,7 +35,7 @@
     "dev:worker:feeds:inner": "dotenv -e .env.local -- concurrently -k -n WORKER -c green \"tsup --watch --onSuccess='node dist/workers/feed-worker.js'\"",
     "dev:worker:search:inner": "dotenv -e .env.local -- concurrently -k -n WORKER -c yellow \"tsup --watch --onSuccess='node dist/workers/search-worker.js'\"",
     "dev:mock": "USE_PERSISTENCE=false USE_FAKE_PUBLISHERS=true USE_MOCK_AUTH=true npm run dev:app:inner",
-    "dev:mock:pub:auth": "USE_MOCK_AUTH=true USE_FAKE_PUBLISHERS=true npm run dev:app:inner",
+    "dev:mock:pub:auth": "USE_FAKE_PUBLISHERS=true USE_MOCK_AUTH=true npm run dev",
     "dev": "bash ./scripts/dev-combined.sh",
     "migrate": "node dist/scripts/migrate.js",
     "lexgen": "lex gen-server ./src/modules/atproto/infrastructure/lexicon ./src/modules/atproto/infrastructure/lexicons/*",

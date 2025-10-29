@@ -239,7 +239,10 @@ export class EnvironmentConfigService {
     }
 
     // Legacy support - if either old flag is false, persistence is disabled
-    if (process.env.USE_MOCK_REPOS === 'true' || process.env.USE_IN_MEMORY_EVENTS === 'true') {
+    if (
+      process.env.USE_MOCK_REPOS === 'true' ||
+      process.env.USE_IN_MEMORY_EVENTS === 'true'
+    ) {
       return false;
     }
 

@@ -77,7 +77,7 @@ export class RepositoryFactory {
       );
       const oauthStateStore = InMemoryStateStore.getInstance();
       const oauthSessionStore = InMemorySessionStore.getInstance();
-      
+
       return {
         userRepository,
         tokenRepository,

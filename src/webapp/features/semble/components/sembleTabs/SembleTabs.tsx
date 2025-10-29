@@ -23,24 +23,21 @@ interface Props {
 
 export default function SembleTabs(props: Props) {
   return (
-    <Tabs defaultValue={'similar'}>
+    <Tabs defaultValue={'notes'}>
       <ScrollAreaAutosize type="scroll">
         <TabsList>
           <Group wrap="nowrap">
-            <TabItem value="similar">Similar Cards</TabItem>
             <TabItem value="notes">Notes</TabItem>
             <TabItem value="collections">Collections</TabItem>
             <TabItem value="addedBy">Added by</TabItem>
+            {process.env.VERCEL_ENV === 'production' && (
+              <TabItem value="similar">Similar Cards</TabItem>
+            )}
           </Group>
         </TabsList>
       </ScrollAreaAutosize>
 
       <Box mt={'md'}>
-        <TabsPanel value="similar">
-          <Suspense fallback={<SembleSimilarCardsContainerSkeleton />}>
-            <SembleSimilarCardsContainer url={props.url} />
-          </Suspense>
-        </TabsPanel>
         <TabsPanel value="notes">
           <Suspense fallback={<SembleNotesContainerSkeleton />}>
             <SembleNotesContainer url={props.url} />
@@ -56,6 +53,13 @@ export default function SembleTabs(props: Props) {
             <SembleLibrariesContainer url={props.url} />
           </Suspense>
         </TabsPanel>
+        {process.env.VERCEL_ENV === 'production' && (
+          <TabsPanel value="similar">
+            <Suspense fallback={<SembleSimilarCardsContainerSkeleton />}>
+              <SembleSimilarCardsContainer url={props.url} />
+            </Suspense>
+          </TabsPanel>
+        )}
       </Box>
     </Tabs>
   );

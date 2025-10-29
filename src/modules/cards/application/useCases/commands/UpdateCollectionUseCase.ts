@@ -8,6 +8,7 @@ import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { CollectionName } from '../../../domain/value-objects/CollectionName';
 import { CollectionDescription } from '../../../domain/value-objects/CollectionDescription';
 import { ICollectionPublisher } from '../../ports/ICollectionPublisher';
+import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface UpdateCollectionDTO {
   collectionId: string;
@@ -32,7 +33,7 @@ export class UpdateCollectionUseCase
       UpdateCollectionDTO,
       Result<
         UpdateCollectionResponseDTO,
-        ValidationError | AppError.UnexpectedError
+        ValidationError | AuthenticationError | AppError.UnexpectedError
       >
     >
 {
@@ -46,7 +47,7 @@ export class UpdateCollectionUseCase
   ): Promise<
     Result<
       UpdateCollectionResponseDTO,
-      ValidationError | AppError.UnexpectedError
+      ValidationError | AuthenticationError | AppError.UnexpectedError
     >
   > {
     try {
@@ -117,6 +118,10 @@ export class UpdateCollectionUseCase
         const republishResult =
           await this.collectionPublisher.publish(collection);
         if (republishResult.isErr()) {
+          // Propagate authentication errors
+          if (republishResult.error instanceof AuthenticationError) {
+            return err(republishResult.error);
+          }
           return err(
             new ValidationError(
               `Failed to republish collection: ${republishResult.error.message}`,

@@ -6,6 +6,7 @@ import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { Collection, CollectionAccessType } from '../../../domain/Collection';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { ICollectionPublisher } from '../../ports/ICollectionPublisher';
+import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface CreateCollectionDTO {
   name: string;
@@ -29,7 +30,7 @@ export class CreateCollectionUseCase
       CreateCollectionDTO,
       Result<
         CreateCollectionResponseDTO,
-        ValidationError | AppError.UnexpectedError
+        ValidationError | AuthenticationError | AppError.UnexpectedError
       >
     >
 {
@@ -43,7 +44,7 @@ export class CreateCollectionUseCase
   ): Promise<
     Result<
       CreateCollectionResponseDTO,
-      ValidationError | AppError.UnexpectedError
+      ValidationError | AuthenticationError | AppError.UnexpectedError
     >
   > {
     try {
@@ -84,6 +85,10 @@ export class CreateCollectionUseCase
       // Publish collection
       const publishResult = await this.collectionPublisher.publish(collection);
       if (publishResult.isErr()) {
+        // Propagate authentication errors
+        if (publishResult.error instanceof AuthenticationError) {
+          return err(publishResult.error);
+        }
         return err(
           new ValidationError(
             `Failed to publish collection: ${publishResult.error.message}`,

@@ -9,6 +9,7 @@ import { UserAuthenticationService } from '../../../../modules/user/infrastructu
 import { ATProtoAgentService } from '../../../../modules/atproto/infrastructure/services/ATProtoAgentService';
 import { IFramelyMetadataService } from '../../../../modules/cards/infrastructure/IFramelyMetadataService';
 import { BlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/BlueskyProfileService';
+import { CachedBlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/CachedBlueskyProfileService';
 import { ATProtoCollectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCollectionPublisher';
 import { ATProtoCardPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCardPublisher';
 import { FakeCollectionPublisher } from '../../../../modules/cards/tests/utils/FakeCollectionPublisher';
@@ -288,8 +289,19 @@ export class ServiceFactory {
       configService.getIFramelyApiKey(),
     );
 
-    // Profile Service
-    const profileService = new BlueskyProfileService(atProtoAgentService);
+    // Profile Service with Redis caching
+    const baseProfileService = new BlueskyProfileService(atProtoAgentService);
+    
+    let profileService: IProfileService;
+    if (useMockAuth) {
+      // For testing, use the base service without caching
+      profileService = baseProfileService;
+    } else {
+      // Create Redis connection for caching
+      const redisConfig = configService.getRedisConfig();
+      const redis = RedisFactory.createConnection(redisConfig);
+      profileService = new CachedBlueskyProfileService(baseProfileService, redis);
+    }
 
     // Feed Service
     const feedService = new FeedService(repositories.feedRepository);

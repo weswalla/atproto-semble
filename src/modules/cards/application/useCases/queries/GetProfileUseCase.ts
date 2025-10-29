@@ -6,6 +6,7 @@ import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/
 
 export interface GetMyProfileQuery {
   userId: string;
+  callerDid?: string;
 }
 
 export interface GetMyProfileResult {
@@ -54,11 +55,24 @@ export class GetProfileUseCase
         ),
       );
     }
+    let callerDid = undefined;
+    if (query.callerDid) {
+      const callerDidResult = DIDOrHandle.create(query.callerDid);
+      if (callerDidResult.isErr()) {
+        return err(
+          new ValidationError(
+            `Invalid caller DID: ${callerDidResult.error.message}`,
+          ),
+        );
+      }
+      callerDid = callerDidResult.value.value;
+    }
 
     try {
       // Fetch user profile using the resolved DID
       const profileResult = await this.profileService.getProfile(
         didResult.value.value,
+        callerDid,
       );
 
       if (profileResult.isErr()) {

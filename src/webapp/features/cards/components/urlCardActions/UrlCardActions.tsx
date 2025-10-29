@@ -5,7 +5,7 @@ import EditNoteDrawer from '@/features/notes/components/editNoteDrawer/EditNoteD
 import { ActionIcon, Button, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { AiOutlineSignature } from 'react-icons/ai';
-import { BiPlus } from 'react-icons/bi';
+import { FiPlus } from 'react-icons/fi';
 import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import { LuUnplug } from 'react-icons/lu';
 import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
@@ -64,7 +64,7 @@ export default function UrlCardActions(props: Props) {
               props.urlIsInLibrary ? (
                 <IoMdCheckmark size={18} />
               ) : (
-                <BiPlus size={18} />
+                <FiPlus size={18} />
               )
             }
             onClick={() => {

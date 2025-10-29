@@ -56,7 +56,7 @@ export default async function SembleHeader(props: Props) {
             </Stack>
             {metadata.description && (
               <Spoiler showLabel={'Read more'} hideLabel={'See less'}>
-                <Text c="gray" fw={500}>
+                <Text c="gray" fw={500} maw={650}>
                   {metadata.description}
                 </Text>
               </Spoiler>
@@ -64,7 +64,7 @@ export default async function SembleHeader(props: Props) {
           </Stack>
         </GridCol>
         <GridCol span={{ base: 12, sm: 'content' }}>
-          <Stack gap={'sm'} align="start">
+          <Stack gap={'sm'} align="center">
             {metadata.imageUrl && (
               <Card p={0} radius={'lg'} withBorder>
                 <Image
@@ -77,7 +77,6 @@ export default async function SembleHeader(props: Props) {
                 />
               </Card>
             )}
-            {/*<SembleActions />*/}
           </Stack>
         </GridCol>
       </Grid>

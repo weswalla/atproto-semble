@@ -291,16 +291,21 @@ export class ServiceFactory {
 
     // Profile Service with Redis caching
     const baseProfileService = new BlueskyProfileService(atProtoAgentService);
-    
+
     let profileService: IProfileService;
-    if (useMockAuth) {
-      // For testing, use the base service without caching
+    const usePersistence = configService.shouldUsePersistence();
+
+    // caching requires persistence
+    if (!usePersistence) {
       profileService = baseProfileService;
     } else {
       // Create Redis connection for caching
       const redisConfig = configService.getRedisConfig();
       const redis = RedisFactory.createConnection(redisConfig);
-      profileService = new CachedBlueskyProfileService(baseProfileService, redis);
+      profileService = new CachedBlueskyProfileService(
+        baseProfileService,
+        redis,
+      );
     }
 
     // Feed Service

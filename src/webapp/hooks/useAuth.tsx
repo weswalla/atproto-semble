@@ -6,10 +6,8 @@ import { useRouter } from 'next/navigation';
 import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.client';
 
-type UserProfile = GetProfileResponse;
-
 interface AuthContextType {
-  user: UserProfile | null;
+  user: GetProfileResponse | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   refreshAuth: () => Promise<void>;
@@ -32,7 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     router.push('/login');
   };
 
-  const query = useQuery<UserProfile | null>({
+  const query = useQuery<GetProfileResponse | null>({
     queryKey: ['authenticated user'],
     queryFn: async () => {
       const response = await fetch('/api/auth/me', {
@@ -46,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const data = await response.json();
-      return data.user as UserProfile;
+      return data.user as GetProfileResponse;
     },
     staleTime: 5 * 60 * 1000, // cache for 5 minutes
     refetchOnWindowFocus: false,

@@ -48,7 +48,6 @@ export default async function Page(props: Props) {
   if (!url) {
     redirect('/');
   }
-  
 
   return (
     <Fragment>

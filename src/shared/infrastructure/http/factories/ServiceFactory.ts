@@ -117,7 +117,7 @@ export class ServiceFactory {
       repositories,
     );
 
-    const useMockAuth = process.env.USE_MOCK_AUTH === 'true';
+    const useMockAuth = configService.shouldUseMockAuth();
 
     // App Password Session Service
     const appPasswordSessionService = useMockAuth
@@ -136,7 +136,7 @@ export class ServiceFactory {
       ? new FakeAtProtoOAuthProcessor(sharedServices.tokenService)
       : new AtProtoOAuthProcessor(sharedServices.nodeOauthClient);
 
-    const useFakePublishers = process.env.USE_FAKE_PUBLISHERS === 'true';
+    const useFakePublishers = configService.shouldUseFakePublishers();
     const collections = configService.getAtProtoCollections();
 
     const collectionPublisher = useFakePublishers
@@ -170,7 +170,7 @@ export class ServiceFactory {
       sharedServices.cookieService,
     );
 
-    const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
+    const useInMemoryEvents = configService.shouldUseInMemoryEvents();
 
     let eventPublisher: IEventPublisher;
     if (useInMemoryEvents) {
@@ -204,7 +204,7 @@ export class ServiceFactory {
       repositories,
     );
 
-    const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
+    const useInMemoryEvents = configService.shouldUseInMemoryEvents();
 
     let eventPublisher: IEventPublisher;
     let redisConnection: Redis | null = null;
@@ -250,7 +250,7 @@ export class ServiceFactory {
     configService: EnvironmentConfigService,
     repositories: Repositories,
   ): SharedServices {
-    const useMockAuth = process.env.USE_MOCK_AUTH === 'true';
+    const useMockAuth = configService.shouldUseMockAuth();
 
     const nodeOauthClient = OAuthClientFactory.createClient(
       repositories.oauthStateStore,
@@ -315,9 +315,7 @@ export class ServiceFactory {
     const cookieService = new CookieService(configService);
 
     // Create vector database and search service (shared by both web app and workers)
-    const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
-    const useMockVectorDb =
-      process.env.USE_MOCK_VECTOR_DB === 'true' || useInMemoryEvents;
+    const useMockVectorDb = configService.shouldUseMockVectorDb();
 
     const vectorDatabase: IVectorDatabase = useMockVectorDb
       ? InMemoryVectorDatabase.getInstance()

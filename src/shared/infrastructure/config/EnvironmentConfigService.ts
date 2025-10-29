@@ -6,6 +6,12 @@ export enum Environment {
 
 export interface EnvironmentConfig {
   environment: Environment;
+  runtime: {
+    usePersistence: boolean;
+    useMockAuth: boolean;
+    useFakePublishers: boolean;
+    useMockVectorDb: boolean;
+  };
   database: {
     url: string;
   };
@@ -57,6 +63,12 @@ export class EnvironmentConfigService {
 
     this.config = {
       environment,
+      runtime: {
+        usePersistence: this.determinePersistenceFlag(),
+        useMockAuth: process.env.USE_MOCK_AUTH === 'true',
+        useFakePublishers: process.env.USE_FAKE_PUBLISHERS === 'true',
+        useMockVectorDb: process.env.USE_MOCK_VECTOR_DB === 'true',
+      },
       database: {
         url:
           process.env.DATABASE_URL ||
@@ -180,5 +192,58 @@ export class EnvironmentConfigService {
 
   public getRedisConfig() {
     return this.config.workers.redisConfig;
+  }
+
+  public getRuntimeConfig() {
+    return this.config.runtime;
+  }
+
+  public shouldUsePersistence(): boolean {
+    return this.config.runtime.usePersistence;
+  }
+
+  public shouldUseMockRepos(): boolean {
+    return !this.config.runtime.usePersistence;
+  }
+
+  public shouldUseInMemoryEvents(): boolean {
+    return !this.config.runtime.usePersistence;
+  }
+
+  public shouldUseMockAuth(): boolean {
+    return this.config.runtime.useMockAuth;
+  }
+
+  public shouldUseFakePublishers(): boolean {
+    return this.config.runtime.useFakePublishers;
+  }
+
+  public shouldUseMockVectorDb(): boolean {
+    return this.config.runtime.useMockVectorDb;
+  }
+
+  // Convenience methods for common combinations
+  public isFullyMocked(): boolean {
+    const r = this.config.runtime;
+    return !r.usePersistence && r.useMockAuth && r.useFakePublishers;
+  }
+
+  public isPersistenceEnabled(): boolean {
+    return this.config.runtime.usePersistence;
+  }
+
+  private determinePersistenceFlag(): boolean {
+    // New unified flag takes precedence
+    if (process.env.USE_PERSISTENCE !== undefined) {
+      return process.env.USE_PERSISTENCE === 'true';
+    }
+
+    // Legacy support - if either old flag is false, persistence is disabled
+    if (process.env.USE_MOCK_REPOS === 'true' || process.env.USE_IN_MEMORY_EVENTS === 'true') {
+      return false;
+    }
+
+    // Default to true (use persistence) unless explicitly disabled
+    return true;
   }
 }

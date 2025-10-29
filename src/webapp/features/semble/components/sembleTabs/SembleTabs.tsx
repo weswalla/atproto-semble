@@ -16,12 +16,15 @@ import SembleSimilarCardsContainerSkeleton from '../../containers/sembleSimilarC
 import SembleSimilarCardsContainer from '../../containers/sembleSimilarCardsContainer/SembleSimilarCardsContainer';
 import TabItem from './TabItem';
 import { Suspense } from 'react';
+import { useFeatureFlags } from '../../../../hooks/useFeatureFlags';
 
 interface Props {
   url: string;
 }
 
 export default function SembleTabs(props: Props) {
+  const featureFlags = useFeatureFlags();
+
   return (
     <Tabs defaultValue={'notes'}>
       <ScrollAreaAutosize type="scroll">
@@ -30,7 +33,7 @@ export default function SembleTabs(props: Props) {
             <TabItem value="notes">Notes</TabItem>
             <TabItem value="collections">Collections</TabItem>
             <TabItem value="addedBy">Added by</TabItem>
-            {process.env.VERCEL_ENV === 'production' && (
+            {featureFlags.similarCards && (
               <TabItem value="similar">Similar Cards</TabItem>
             )}
           </Group>
@@ -53,7 +56,7 @@ export default function SembleTabs(props: Props) {
             <SembleLibrariesContainer url={props.url} />
           </Suspense>
         </TabsPanel>
-        {process.env.VERCEL_ENV === 'production' && (
+        {featureFlags.similarCards && (
           <TabsPanel value="similar">
             <Suspense fallback={<SembleSimilarCardsContainerSkeleton />}>
               <SembleSimilarCardsContainer url={props.url} />

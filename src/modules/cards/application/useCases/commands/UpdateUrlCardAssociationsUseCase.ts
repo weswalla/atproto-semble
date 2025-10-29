@@ -14,6 +14,7 @@ import { CardCollectionService } from '../../../domain/services/CardCollectionSe
 import { CardContent } from '../../../domain/value-objects/CardContent';
 import { CardFactory } from '../../../domain/CardFactory';
 import { CardLibraryService } from '../../../domain/services/CardLibraryService';
+import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface UpdateUrlCardAssociationsDTO {
   cardId: string;
@@ -40,7 +41,7 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
   UpdateUrlCardAssociationsDTO,
   Result<
     UpdateUrlCardAssociationsResponseDTO,
-    ValidationError | AppError.UnexpectedError
+    ValidationError | AuthenticationError | AppError.UnexpectedError
   >
 > {
   constructor(
@@ -57,7 +58,7 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
   ): Promise<
     Result<
       UpdateUrlCardAssociationsResponseDTO,
-      ValidationError | AppError.UnexpectedError
+      ValidationError | AuthenticationError | AppError.UnexpectedError
     >
   > {
     try {
@@ -190,6 +191,10 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
           const addNoteCardToLibraryResult =
             await this.cardLibraryService.addCardToLibrary(noteCard, curatorId);
           if (addNoteCardToLibraryResult.isErr()) {
+            // Propagate authentication errors
+            if (addNoteCardToLibraryResult.error instanceof AuthenticationError) {
+              return err(addNoteCardToLibraryResult.error);
+            }
             if (
               addNoteCardToLibraryResult.error instanceof
               AppError.UnexpectedError
@@ -232,6 +237,10 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
             curatorId,
           );
         if (addToCollectionsResult.isErr()) {
+          // Propagate authentication errors
+          if (addToCollectionsResult.error instanceof AuthenticationError) {
+            return err(addToCollectionsResult.error);
+          }
           if (
             addToCollectionsResult.error instanceof AppError.UnexpectedError
           ) {
@@ -282,6 +291,10 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
             curatorId,
           );
         if (removeFromCollectionsResult.isErr()) {
+          // Propagate authentication errors
+          if (removeFromCollectionsResult.error instanceof AuthenticationError) {
+            return err(removeFromCollectionsResult.error);
+          }
           if (
             removeFromCollectionsResult.error instanceof
             AppError.UnexpectedError

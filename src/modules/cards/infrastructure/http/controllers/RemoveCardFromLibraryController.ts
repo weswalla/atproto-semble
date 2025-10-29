@@ -2,6 +2,7 @@ import { Controller } from '../../../../../shared/infrastructure/http/Controller
 import { Response } from 'express';
 import { RemoveCardFromLibraryUseCase } from '../../../application/useCases/commands/RemoveCardFromLibraryUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
+import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export class RemoveCardFromLibraryController extends Controller {
   constructor(
@@ -29,12 +30,16 @@ export class RemoveCardFromLibraryController extends Controller {
       });
 
       if (result.isErr()) {
+        // Check if the error is an authentication error
+        if (result.error instanceof AuthenticationError) {
+          return this.unauthorized(res, result.error.message);
+        }
         return this.fail(res, result.error);
       }
 
       return this.ok(res, result.value);
     } catch (error: any) {
-      return this.fail(res, error);
+      return this.handleError(res, error);
     }
   }
 }

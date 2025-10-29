@@ -1,5 +1,6 @@
 import { DatabaseFactory } from '../../database/DatabaseFactory';
 import { EnvironmentConfigService } from '../../config/EnvironmentConfigService';
+import { RedisFactory } from '../../redis/RedisFactory';
 import { DrizzleUserRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleUserRepository';
 import { DrizzleTokenRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleTokenRepository';
 import { DrizzleCardRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleCardRepository';
@@ -35,6 +36,9 @@ import { IFeedRepository } from '../../../../modules/feeds/domain/IFeedRepositor
 import { IAtUriResolutionService } from '../../../../modules/cards/domain/services/IAtUriResolutionService';
 import { DrizzleAtUriResolutionService } from '../../../../modules/cards/infrastructure/services/DrizzleAtUriResolutionService';
 import { InMemoryAtUriResolutionService } from '../../../../modules/cards/tests/utils/InMemoryAtUriResolutionService';
+import { IProfileService } from '../../../../modules/cards/domain/services/IProfileService';
+import { BlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/BlueskyProfileService';
+import { CachedBlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/CachedBlueskyProfileService';
 
 export interface Repositories {
   userRepository: IUserRepository;
@@ -46,6 +50,7 @@ export interface Repositories {
   appPasswordSessionRepository: IAppPasswordSessionRepository;
   feedRepository: IFeedRepository;
   atUriResolutionService: IAtUriResolutionService;
+  profileService: IProfileService;
   oauthStateStore: NodeSavedStateStore;
   oauthSessionStore: NodeSavedSessionStore;
 }
@@ -76,6 +81,20 @@ export class RepositoryFactory {
       );
       const oauthStateStore = InMemoryStateStore.getInstance();
       const oauthSessionStore = InMemorySessionStore.getInstance();
+      
+      // For testing, use a simple in-memory profile service
+      const profileService: IProfileService = {
+        async getProfile() {
+          return {
+            isOk: () => true,
+            value: {
+              id: 'test-user',
+              name: 'Test User',
+              handle: 'test.handle',
+            }
+          } as any;
+        }
+      };
 
       return {
         userRepository,
@@ -87,6 +106,7 @@ export class RepositoryFactory {
         appPasswordSessionRepository,
         feedRepository,
         atUriResolutionService,
+        profileService,
         oauthStateStore,
         oauthSessionStore,
       };
@@ -99,6 +119,15 @@ export class RepositoryFactory {
     const oauthStateStore = new DrizzleStateStore(db);
     const oauthSessionStore = new DrizzleSessionStore(db);
 
+    // Create Redis connection for caching
+    const redisConfig = configService.getRedisConfig();
+    const redis = RedisFactory.createConnection(redisConfig);
+
+    // Create profile service with Redis caching
+    // TODO: You'll need to inject IAgentService here when available
+    const baseProfileService = new BlueskyProfileService(null as any); // TODO: Inject IAgentService
+    const profileService = new CachedBlueskyProfileService(baseProfileService, redis);
+
     return {
       userRepository: new DrizzleUserRepository(db),
       tokenRepository: new DrizzleTokenRepository(db),
@@ -109,6 +138,7 @@ export class RepositoryFactory {
       appPasswordSessionRepository: new DrizzleAppPasswordSessionRepository(db),
       feedRepository: new DrizzleFeedRepository(db),
       atUriResolutionService: new DrizzleAtUriResolutionService(db),
+      profileService,
       oauthStateStore,
       oauthSessionStore,
     };

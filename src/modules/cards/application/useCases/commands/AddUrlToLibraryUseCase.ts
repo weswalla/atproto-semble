@@ -39,7 +39,10 @@ export class ValidationError extends UseCaseError {
 
 export class AddUrlToLibraryUseCase extends BaseUseCase<
   AddUrlToLibraryDTO,
-  Result<AddUrlToLibraryResponseDTO, ValidationError | AuthenticationError | AppError.UnexpectedError>
+  Result<
+    AddUrlToLibraryResponseDTO,
+    ValidationError | AuthenticationError | AppError.UnexpectedError
+  >
 > {
   constructor(
     private cardRepository: ICardRepository,
@@ -216,7 +219,9 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
             await this.cardLibraryService.addCardToLibrary(noteCard, curatorId);
           if (addNoteCardToLibraryResult.isErr()) {
             // Propagate authentication errors
-            if (addNoteCardToLibraryResult.error instanceof AuthenticationError) {
+            if (
+              addNoteCardToLibraryResult.error instanceof AuthenticationError
+            ) {
               return err(addNoteCardToLibraryResult.error);
             }
             if (

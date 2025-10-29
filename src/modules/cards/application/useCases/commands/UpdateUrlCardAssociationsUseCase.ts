@@ -192,7 +192,9 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
             await this.cardLibraryService.addCardToLibrary(noteCard, curatorId);
           if (addNoteCardToLibraryResult.isErr()) {
             // Propagate authentication errors
-            if (addNoteCardToLibraryResult.error instanceof AuthenticationError) {
+            if (
+              addNoteCardToLibraryResult.error instanceof AuthenticationError
+            ) {
               return err(addNoteCardToLibraryResult.error);
             }
             if (
@@ -292,7 +294,9 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
           );
         if (removeFromCollectionsResult.isErr()) {
           // Propagate authentication errors
-          if (removeFromCollectionsResult.error instanceof AuthenticationError) {
+          if (
+            removeFromCollectionsResult.error instanceof AuthenticationError
+          ) {
             return err(removeFromCollectionsResult.error);
           }
           if (

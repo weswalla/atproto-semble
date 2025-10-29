@@ -29,7 +29,12 @@ export class CardLibraryService implements DomainService {
     card: Card,
     curatorId: CuratorId,
   ): Promise<
-    Result<Card, CardLibraryValidationError | AuthenticationError | AppError.UnexpectedError>
+    Result<
+      Card,
+      | CardLibraryValidationError
+      | AuthenticationError
+      | AppError.UnexpectedError
+    >
   > {
     try {
       // Check if card is already in curator's library
@@ -117,7 +122,12 @@ export class CardLibraryService implements DomainService {
     card: Card,
     curatorId: CuratorId,
   ): Promise<
-    Result<Card, CardLibraryValidationError | AuthenticationError | AppError.UnexpectedError>
+    Result<
+      Card,
+      | CardLibraryValidationError
+      | AuthenticationError
+      | AppError.UnexpectedError
+    >
   > {
     try {
       // Check if card is in curator's library

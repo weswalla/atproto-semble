@@ -27,7 +27,12 @@ export class CardCollectionService implements DomainService {
     collectionId: CollectionId,
     curatorId: CuratorId,
   ): Promise<
-    Result<Collection, CardCollectionValidationError | AuthenticationError | AppError.UnexpectedError>
+    Result<
+      Collection,
+      | CardCollectionValidationError
+      | AuthenticationError
+      | AppError.UnexpectedError
+    >
   > {
     try {
       // Find the collection
@@ -98,7 +103,9 @@ export class CardCollectionService implements DomainService {
   ): Promise<
     Result<
       Collection[],
-      CardCollectionValidationError | AuthenticationError | AppError.UnexpectedError
+      | CardCollectionValidationError
+      | AuthenticationError
+      | AppError.UnexpectedError
     >
   > {
     const updatedCollections: Collection[] = [];
@@ -124,7 +131,9 @@ export class CardCollectionService implements DomainService {
   ): Promise<
     Result<
       Collection | null,
-      CardCollectionValidationError | AuthenticationError | AppError.UnexpectedError
+      | CardCollectionValidationError
+      | AuthenticationError
+      | AppError.UnexpectedError
     >
   > {
     try {
@@ -202,7 +211,9 @@ export class CardCollectionService implements DomainService {
   ): Promise<
     Result<
       Collection[],
-      CardCollectionValidationError | AuthenticationError | AppError.UnexpectedError
+      | CardCollectionValidationError
+      | AuthenticationError
+      | AppError.UnexpectedError
     >
   > {
     const updatedCollections: Collection[] = [];

@@ -17,11 +17,12 @@ trap cleanup_and_exit SIGINT SIGTERM
 
 echo "Starting development with separate processes (BullMQ + Redis)..."
 
-# Run both services with concurrently
-concurrently -k -n APP,FEED,SEARCH -c blue,green,yellow \
-  "dotenv -e .env.local -- concurrently -k -n TYPE,APP -c red,blue \"tsc --noEmit --watch\" \"tsup --watch --onSuccess='node dist/index.js'\"" \
-  "dotenv -e .env.local -- concurrently -k -n WORKER -c green \"tsup --watch --onSuccess='node dist/workers/feed-worker.js'\"" \
-  "dotenv -e .env.local -- concurrently -k -n WORKER -c yellow \"tsup --watch --onSuccess='node dist/workers/search-worker.js'\""
+# Use nodemon instead of tsup --onSuccess for better process management
+concurrently -k -n APP,FEED,SEARCH,BUILD -c blue,green,yellow,red \
+  "dotenv -e .env.local -- nodemon --exec 'node dist/index.js' --watch dist/index.js --delay 1000ms" \
+  "dotenv -e .env.local -- nodemon --exec 'node dist/workers/feed-worker.js' --watch dist/workers/feed-worker.js --delay 1000ms" \
+  "dotenv -e .env.local -- nodemon --exec 'node dist/workers/search-worker.js' --watch dist/workers/search-worker.js --delay 1000ms" \
+  "tsup --watch"
 
 # Cleanup after concurrently exits
 cleanup_postgres

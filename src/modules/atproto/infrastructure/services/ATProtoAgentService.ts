@@ -5,6 +5,7 @@ import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
 import { IAppPasswordSessionService } from '../../application/IAppPasswordSessionService';
 import { ATPROTO_SERVICE_ENDPOINTS } from './ServiceEndpoints';
+import { AuthenticationError } from 'src/shared/core/AuthenticationError';
 
 export class ATProtoAgentService implements IAgentService {
   constructor(
@@ -27,8 +28,8 @@ export class ATProtoAgentService implements IAgentService {
         await this.getAuthenticatedAgentByAppPasswordSession(did);
       if (appPasswordAgentResult.isErr()) {
         return err(
-          new Error(
-            `Failed to get authenticated agent: ${oauthAgentResult.error.message} | ${appPasswordAgentResult.error.message}`,
+          new AuthenticationError(
+            `Failed to authenticate: No valid OAuth or App Password session found`,
           ),
         );
       }
@@ -49,12 +50,12 @@ export class ATProtoAgentService implements IAgentService {
       }
 
       // No session found
-      throw new Error('No session found for the provided DID');
+      throw new AuthenticationError('No OAuth session found for the provided DID');
     } catch (error) {
       return err(
-        new Error(
-          `Failed to get authenticated agent by OAuth session: ${error instanceof Error ? error.message : String(error)}`,
-        ),
+        error instanceof AuthenticationError 
+          ? error 
+          : new AuthenticationError(`OAuth authentication failed: ${error instanceof Error ? error.message : String(error)}`)
       );
     }
   }
@@ -67,12 +68,9 @@ export class ATProtoAgentService implements IAgentService {
         await this.appPasswordSessionService.getSession(did.value);
 
       if (appPasswordSessionResult.isErr()) {
-        return err(
-          new Error(
-            `Failed to get App Password session: ${appPasswordSessionResult.error.message}`,
-          ),
-        );
+        return err(new AuthenticationError(`App Password session failed: ${appPasswordSessionResult.error.message}`));
       }
+      
       const session = appPasswordSessionResult.value;
       if (session) {
         // Create an Agent with the session
@@ -88,12 +86,12 @@ export class ATProtoAgentService implements IAgentService {
       }
 
       // No session found
-      throw new Error('No session found for the provided DID');
+      throw new AuthenticationError('No App Password session found for the provided DID');
     } catch (error) {
       return err(
-        new Error(
-          `Failed to get authenticated agent by App Password session: ${error instanceof Error ? error.message : String(error)}`,
-        ),
+        error instanceof AuthenticationError 
+          ? error 
+          : new AuthenticationError(`App Password authentication failed: ${error instanceof Error ? error.message : String(error)}`)
       );
     }
   }

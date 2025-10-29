@@ -1,4 +1,4 @@
-import { ApiClient } from '@/api-client';
+import { getCollectionPageByAtUri } from '@/features/collections/lib/dal';
 import OpenGraphCard from '@/features/openGraph/components/openGraphCard/OpenGraphCard';
 import { truncateText } from '@/lib/utils/text';
 
@@ -15,11 +15,7 @@ export const size = {
 export default async function Image(props: Props) {
   const { rkey, handle } = await props.params;
 
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-  );
-
-  const collection = await apiClient.getCollectionPageByAtUri({
+  const collection = await getCollectionPageByAtUri({
     recordKey: rkey,
     handle: handle,
   });

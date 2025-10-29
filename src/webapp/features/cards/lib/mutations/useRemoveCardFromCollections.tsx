@@ -1,11 +1,7 @@
-import { ApiClient } from '@/api-client/ApiClient';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { removeCardFromCollection } from '../dal';
 
 export default function useRemoveCardFromCollections() {
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-  );
-
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -16,7 +12,7 @@ export default function useRemoveCardFromCollections() {
       cardId: string;
       collectionIds: string[];
     }) => {
-      return apiClient.removeCardFromCollection({ cardId, collectionIds });
+      return removeCardFromCollection({ cardId, collectionIds });
     },
 
     onSuccess: (_data, variables) => {

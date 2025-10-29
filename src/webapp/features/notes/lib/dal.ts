@@ -18,3 +18,13 @@ export const getNoteCardsForUrl = cache(
     return response;
   },
 );
+
+export const updateNoteCard = cache(
+  async (note: { cardId: string; note: string }) => {
+    // await verifySession();
+    const client = createSembleClient();
+    const response = await client.updateNoteCard(note);
+
+    return response;
+  },
+);

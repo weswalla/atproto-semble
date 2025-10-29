@@ -1,6 +1,6 @@
-import { ApiClient } from '@/api-client/ApiClient';
 import BackButton from '@/components/navigation/backButton/BackButton';
 import Header from '@/components/navigation/header/Header';
+import { getCollectionPageByAtUri } from '@/features/collections/lib/dal';
 import { truncateText } from '@/lib/utils/text';
 import type { Metadata } from 'next';
 import { Fragment } from 'react';
@@ -13,11 +13,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { rkey, handle } = await params;
 
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-  );
-
-  const collection = await apiClient.getCollectionPageByAtUri({
+  const collection = await getCollectionPageByAtUri({
     recordKey: rkey,
     handle: handle,
   });

@@ -1,16 +1,15 @@
 'use client';
 
 import { AppShell } from '@mantine/core';
-import Navbar from '@/components/navigation/navbar/Navbar';
-import ComposerDrawer from '@/features/composer/components/composerDrawer/ComposerDrawer';
 import { useNavbarContext } from '@/providers/navbar';
 import { usePathname } from 'next/navigation';
+import GuestNavbar from '../guestNavbar/GuestNavbar';
 
 interface Props {
   children: React.ReactNode;
 }
 
-export default function AppLayout(props: Props) {
+export default function GuestAppLayout(props: Props) {
   const { mobileOpened, desktopOpened } = useNavbarContext();
   const pathname = usePathname();
 
@@ -34,12 +33,9 @@ export default function AppLayout(props: Props) {
         collapsed: { mobile: true },
       }}
     >
-      <Navbar />
+      <GuestNavbar />
 
-      <AppShell.Main>
-        {props.children}
-        <ComposerDrawer />
-      </AppShell.Main>
+      <AppShell.Main>{props.children}</AppShell.Main>
     </AppShell>
   );
 }

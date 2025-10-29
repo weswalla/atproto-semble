@@ -11,6 +11,7 @@ export const getProfile = cache(async (didOrHandle: string) => {
 });
 
 export const getMyProfile = cache(async () => {
+  // await verifySession();
   const client = createSembleClient();
   const response = await client.getMyProfile();
 

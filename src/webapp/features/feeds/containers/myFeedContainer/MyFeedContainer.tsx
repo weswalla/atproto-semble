@@ -1,6 +1,6 @@
 'use client';
 
-import useMyFeed from '@/features/feeds/lib/queries/useMyFeed';
+import useGlobalFeed from '@/features/feeds/lib/queries/useGlobalFeed';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
 import { Stack, Title, Text, Center, Container } from '@mantine/core';
 import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
@@ -15,7 +15,7 @@ export default function MyFeedContainer() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useMyFeed();
+  } = useGlobalFeed();
 
   const allActivities =
     data?.pages.flatMap((page) => page.activities ?? []) ?? [];

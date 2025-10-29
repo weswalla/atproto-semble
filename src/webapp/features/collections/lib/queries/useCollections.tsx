@@ -1,5 +1,5 @@
-import { ApiClient } from '@/api-client/ApiClient';
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
+import { getCollections } from '../dal';
 
 interface Props {
   didOrHandle: string;
@@ -7,20 +7,15 @@ interface Props {
 }
 
 export default function useCollections(props: Props) {
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-  );
-
   const limit = props?.limit ?? 15;
 
   return useSuspenseInfiniteQuery({
     queryKey: ['collections', props.didOrHandle, limit],
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
-      apiClient.getCollections({
+      getCollections(props.didOrHandle, {
         limit,
         page: pageParam,
-        identifier: props.didOrHandle,
       }),
     getNextPageParam: (lastPage) => {
       return lastPage.pagination.hasMore

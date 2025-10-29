@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.client';
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
+
 interface AuthContextType {
   user: GetProfileResponse | null;
   isAuthenticated: boolean;
@@ -33,17 +35,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const query = useQuery<GetProfileResponse | null>({
     queryKey: ['authenticated user'],
     queryFn: async () => {
-      const response = await fetch('/api/auth/me', {
+      const response = await fetch(`${appUrl}/api/auth/me`, {
         method: 'GET',
         credentials: 'include', // HttpOnly cookies sent automatically
       });
-
       // unauthenticated
       if (!response.ok) {
         throw new Error('Not authenticated');
       }
 
       const data = await response.json();
+
       return data.user as GetProfileResponse;
     },
     staleTime: 5 * 60 * 1000, // cache for 5 minutes
@@ -52,7 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   });
 
   useEffect(() => {
-    if (query.isError) logout();
+    if (query.isError && !query.isLoading) logout();
   }, [query.isError, logout]);
 
   const contextValue: AuthContextType = {

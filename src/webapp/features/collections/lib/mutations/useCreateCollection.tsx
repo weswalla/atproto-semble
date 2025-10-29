@@ -1,16 +1,12 @@
-import { ApiClient } from '@/api-client/ApiClient';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { createCollection } from '../dal';
 
 export default function useCreateCollection() {
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-  );
-
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: (newCollection: { name: string; description: string }) => {
-      return apiClient.createCollection(newCollection);
+      return createCollection(newCollection);
     },
 
     // Do things that are absolutely necessary and logic related (like query invalidation) in the useMutation callbacks

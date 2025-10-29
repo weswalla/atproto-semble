@@ -177,4 +177,8 @@ export class EnvironmentConfigService {
   public getWorkersConfig() {
     return this.config.workers;
   }
+
+  public getRedisConfig() {
+    return this.config.workers.redisConfig;
+  }
 }

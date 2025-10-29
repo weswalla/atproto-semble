@@ -29,7 +29,7 @@ export class ATProtoAgentService implements IAgentService {
       if (appPasswordAgentResult.isErr()) {
         return err(
           new AuthenticationError(
-            `Failed to authenticate: No valid OAuth or App Password session found`,
+            `Failed to authenticate: No valid OAuth or App Password session found. OAuth error: ${oauthAgentResult.error.message}. App Password error: ${appPasswordAgentResult.error.message}`,
           ),
         );
       }

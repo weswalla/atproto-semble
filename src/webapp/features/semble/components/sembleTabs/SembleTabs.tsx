@@ -16,7 +16,7 @@ import SembleSimilarCardsContainerSkeleton from '../../containers/sembleSimilarC
 import SembleSimilarCardsContainer from '../../containers/sembleSimilarCardsContainer/SembleSimilarCardsContainer';
 import TabItem from './TabItem';
 import { Suspense } from 'react';
-import { featureFlags } from '../../../../config/featureFlags';
+import { featureFlags } from '@/config/featureFlags';
 
 interface Props {
   url: string;

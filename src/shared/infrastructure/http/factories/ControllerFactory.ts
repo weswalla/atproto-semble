@@ -94,10 +94,10 @@ export class ControllerFactory {
         cookieService,
       ),
       getMyProfileController: new GetMyProfileController(
-        useCases.getMyProfileUseCase,
+        useCases.getProfileUseCase,
       ),
       getUserProfileController: new GetUserProfileController(
-        useCases.getMyProfileUseCase,
+        useCases.getProfileUseCase,
       ),
       refreshAccessTokenController: new RefreshAccessTokenController(
         useCases.refreshAccessTokenUseCase,

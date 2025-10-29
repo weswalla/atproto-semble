@@ -41,6 +41,9 @@ export class FakeAgentService implements IAgentService {
   async getAuthenticatedAgent(did: DID): Promise<Result<Agent, Error>> {
     try {
       // Return the same mock agent for authenticated requests
+
+      // uncomment the line below to test error handling
+      // throw new Error('Not implemented in FakeAgentService');
       return this.getUnauthenticatedAgent();
     } catch (error: any) {
       return err(error);

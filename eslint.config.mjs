@@ -76,6 +76,7 @@ export default [
         NodeJS: 'readonly',
         clearTimeout: 'readonly',
         setImmediate: 'readonly',
+        setInterval: 'readonly',
       },
     },
     rules: {

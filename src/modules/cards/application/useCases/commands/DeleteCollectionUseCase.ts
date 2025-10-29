@@ -6,6 +6,7 @@ import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { ICollectionPublisher } from '../../ports/ICollectionPublisher';
+import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface DeleteCollectionDTO {
   collectionId: string;
@@ -28,7 +29,7 @@ export class DeleteCollectionUseCase
       DeleteCollectionDTO,
       Result<
         DeleteCollectionResponseDTO,
-        ValidationError | AppError.UnexpectedError
+        ValidationError | AuthenticationError | AppError.UnexpectedError
       >
     >
 {
@@ -42,7 +43,7 @@ export class DeleteCollectionUseCase
   ): Promise<
     Result<
       DeleteCollectionResponseDTO,
-      ValidationError | AppError.UnexpectedError
+      ValidationError | AuthenticationError | AppError.UnexpectedError
     >
   > {
     try {
@@ -99,6 +100,10 @@ export class DeleteCollectionUseCase
           collection.publishedRecordId,
         );
         if (unpublishResult.isErr()) {
+          // Propagate authentication errors
+          if (unpublishResult.error instanceof AuthenticationError) {
+            return err(unpublishResult.error);
+          }
           return err(
             new ValidationError(
               `Failed to unpublish collection: ${unpublishResult.error.message}`,

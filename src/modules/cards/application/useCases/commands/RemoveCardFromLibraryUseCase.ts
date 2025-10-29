@@ -6,6 +6,7 @@ import { ICardRepository } from '../../../domain/ICardRepository';
 import { CardId } from '../../../domain/value-objects/CardId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { CardLibraryService } from '../../../domain/services/CardLibraryService';
+import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface RemoveCardFromLibraryDTO {
   cardId: string;
@@ -28,7 +29,7 @@ export class RemoveCardFromLibraryUseCase
       RemoveCardFromLibraryDTO,
       Result<
         RemoveCardFromLibraryResponseDTO,
-        ValidationError | AppError.UnexpectedError
+        ValidationError | AuthenticationError | AppError.UnexpectedError
       >
     >
 {
@@ -42,7 +43,7 @@ export class RemoveCardFromLibraryUseCase
   ): Promise<
     Result<
       RemoveCardFromLibraryResponseDTO,
-      ValidationError | AppError.UnexpectedError
+      ValidationError | AuthenticationError | AppError.UnexpectedError
     >
   > {
     try {
@@ -81,6 +82,10 @@ export class RemoveCardFromLibraryUseCase
       const removeFromLibraryResult =
         await this.cardLibraryService.removeCardFromLibrary(card, curatorId);
       if (removeFromLibraryResult.isErr()) {
+        // Propagate authentication errors
+        if (removeFromLibraryResult.error instanceof AuthenticationError) {
+          return err(removeFromLibraryResult.error);
+        }
         if (removeFromLibraryResult.error instanceof AppError.UnexpectedError) {
           return err(removeFromLibraryResult.error);
         }

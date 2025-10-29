@@ -2,6 +2,7 @@ import { Controller } from '../../../../../shared/infrastructure/http/Controller
 import { Response } from 'express';
 import { GetUrlStatusForMyLibraryUseCase } from '../../../application/useCases/queries/GetUrlStatusForMyLibraryUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
+import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export class GetUrlStatusForMyLibraryController extends Controller {
   constructor(
@@ -29,12 +30,16 @@ export class GetUrlStatusForMyLibraryController extends Controller {
       });
 
       if (result.isErr()) {
+        // Check if the error is an authentication error
+        if (result.error instanceof AuthenticationError) {
+          return this.unauthorized(res, result.error.message);
+        }
         return this.fail(res, result.error);
       }
 
       return this.ok(res, result.value);
     } catch (error: any) {
-      return this.fail(res, error);
+      return this.handleError(res, error);
     }
   }
 }

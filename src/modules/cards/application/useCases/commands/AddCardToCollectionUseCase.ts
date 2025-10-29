@@ -9,6 +9,7 @@ import { CardId } from '../../../domain/value-objects/CardId';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { CardCollectionService } from '../../../domain/services/CardCollectionService';
+import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface AddCardToCollectionDTO {
   cardId: string;
@@ -30,7 +31,7 @@ export class AddCardToCollectionUseCase extends BaseUseCase<
   AddCardToCollectionDTO,
   Result<
     AddCardToCollectionResponseDTO,
-    ValidationError | AppError.UnexpectedError
+    ValidationError | AuthenticationError | AppError.UnexpectedError
   >
 > {
   constructor(
@@ -46,7 +47,7 @@ export class AddCardToCollectionUseCase extends BaseUseCase<
   ): Promise<
     Result<
       AddCardToCollectionResponseDTO,
-      ValidationError | AppError.UnexpectedError
+      ValidationError | AuthenticationError | AppError.UnexpectedError
     >
   > {
     try {
@@ -104,6 +105,10 @@ export class AddCardToCollectionUseCase extends BaseUseCase<
           curatorId,
         );
       if (addToCollectionsResult.isErr()) {
+        // Propagate authentication errors
+        if (addToCollectionsResult.error instanceof AuthenticationError) {
+          return err(addToCollectionsResult.error);
+        }
         if (addToCollectionsResult.error instanceof AppError.UnexpectedError) {
           return err(addToCollectionsResult.error);
         }

@@ -5,6 +5,7 @@ import {
 import { Result, ok, err } from 'src/shared/core/Result';
 import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
+import { AuthenticationError } from 'src/shared/core/AuthenticationError';
 
 export class BlueskyProfileService implements IProfileService {
   constructor(private readonly agentService: IAgentService) {}
@@ -30,7 +31,7 @@ export class BlueskyProfileService implements IProfileService {
         );
         if (agentResult.isErr()) {
           return err(
-            new Error(
+            new AuthenticationError(
               `Failed to get authenticated agent for BlueskyProfileService: ${agentResult.error.message}`,
             ),
           );

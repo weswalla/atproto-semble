@@ -12,8 +12,13 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: theme.colors?.orange?.[6],
     icons: [
       {
-        src: '/favicon.ico',
-        sizes: 'any',
+        src: '/assets/semble-icon-192x192.png',
+        sizes: '192x192',
+        type: 'image/x-icon',
+      },
+      {
+        src: '/assets/semble-icon-512x512.png',
+        sizes: '512x512',
         type: 'image/x-icon',
       },
     ],

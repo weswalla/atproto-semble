@@ -3,10 +3,10 @@ import {
   IProfileService,
   UserProfile,
 } from 'src/modules/cards/domain/services/IProfileService';
-import { Result, ok, err } from 'src/shared/core/Result';
+import { Result, ok } from 'src/shared/core/Result';
 
 export class CachedBlueskyProfileService implements IProfileService {
-  private readonly CACHE_TTL_SECONDS = 1800; // 30 minutes
+  private readonly CACHE_TTL_SECONDS = 3600 * 12; // 12 hours
   private readonly CACHE_KEY_PREFIX = 'profile:';
 
   constructor(
@@ -38,7 +38,7 @@ export class CachedBlueskyProfileService implements IProfileService {
 
       // Cache miss or parse error - fetch from underlying service
       const result = await this.profileService.getProfile(userId, callerId);
-      
+
       if (result.isOk()) {
         // Cache the successful result
         try {
@@ -49,10 +49,7 @@ export class CachedBlueskyProfileService implements IProfileService {
           );
         } catch (cacheError) {
           // Log cache error but don't fail the request
-          console.warn(
-            `Failed to cache profile for ${userId}:`,
-            cacheError,
-          );
+          console.warn(`Failed to cache profile for ${userId}:`, cacheError);
         }
       }
 

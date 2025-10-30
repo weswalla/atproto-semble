@@ -7,7 +7,7 @@ import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atp
 import { createCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
 import { createFeedRoutes } from '../../../modules/feeds/infrastructure/http/routes/feedRoutes';
 import { createSearchRoutes } from '../../../modules/search/infrastructure/http/routes/searchRoutes';
-import { createTestRoutes } from '../../../modules/test/infrastructure/http/routes/testRoutes';
+import { createTestRoutes } from './routes/testRoutes';
 import {
   EnvironmentConfigService,
   Environment,

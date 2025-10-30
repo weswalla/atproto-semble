@@ -1,6 +1,6 @@
 export const isTokenExpiringSoon = (
   token: string | null | undefined,
-  bufferMinutes: number = 5,
+  bufferMinutes: number = 5, // 5 minutes
 ): boolean => {
   if (!token) return true;
 

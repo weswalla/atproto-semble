@@ -14,7 +14,7 @@ import {
   Loader,
   Badge,
 } from '@mantine/core';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect } from 'react';
 import { IoMdHelpCircleOutline } from 'react-icons/io';
 import SembleLogo from '@/assets/semble-logo.svg';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,46 +22,21 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 function InnerPage() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const { isAuthenticated, isLoading, refreshAuth } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isExtensionLogin = searchParams.get('extension-login') === 'true';
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-
     if (isAuthenticated && !isExtensionLogin) {
-      setIsRedirecting(true);
-
-      // redirect after 1 second
-      timeoutId = setTimeout(() => {
-        router.push('/home');
-      }, 1000);
+      refreshAuth();
+      router.push('/home');
     }
-
-    // clean up
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
   }, [isAuthenticated, router, isExtensionLogin]);
 
-  if (isLoading) {
+  if (isAuthenticated) {
     return (
       <Stack align="center">
-        <Loader type="dots" />
-      </Stack>
-    );
-  }
-
-  if (isRedirecting) {
-    return (
-      <Stack align="center">
-        <Text fw={500} fz={'xl'}>
-          Already logged in, redirecting you to library
-        </Text>
         <Loader type="dots" />
       </Stack>
     );

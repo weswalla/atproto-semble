@@ -5,8 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.client';
-
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
+import { verifySessionOnClient } from '@/lib/auth/dal';
 
 interface AuthContextType {
   user: GetProfileResponse | null;
@@ -28,25 +27,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     await ClientCookieAuthService.clearTokens();
-    queryClient.removeQueries({ queryKey: ['authenticated user'] });
+    queryClient.clear();
     router.push('/login');
   };
 
   const query = useQuery<GetProfileResponse | null>({
     queryKey: ['authenticated user'],
     queryFn: async () => {
-      const response = await fetch(`${appUrl}/api/auth/me`, {
-        method: 'GET',
-        credentials: 'include', // HttpOnly cookies sent automatically
-      });
-      // unauthenticated
-      if (!response.ok) {
-        throw new Error('Not authenticated');
-      }
-
-      const data = await response.json();
-
-      return data.user as GetProfileResponse;
+      const session = await verifySessionOnClient();
+      return session;
     },
     staleTime: 5 * 60 * 1000, // cache for 5 minutes
     refetchOnWindowFocus: false,

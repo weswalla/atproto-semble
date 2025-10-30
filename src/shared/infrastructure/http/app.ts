@@ -7,6 +7,7 @@ import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atp
 import { createCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
 import { createFeedRoutes } from '../../../modules/feeds/infrastructure/http/routes/feedRoutes';
 import { createSearchRoutes } from '../../../modules/search/infrastructure/http/routes/searchRoutes';
+import { createTestRoutes } from '../../../modules/test/infrastructure/http/routes/testRoutes';
 import {
   EnvironmentConfigService,
   Environment,
@@ -124,12 +125,16 @@ export const createExpressApp = (
     controllers.getSimilarUrlsForUrlController,
   );
 
+  const testRouter = Router();
+  createTestRoutes(testRouter);
+
   // Register routes
   app.use('/api/users', userRouter);
   app.use('/atproto', atprotoRouter);
   app.use('/api', cardsRouter);
   app.use('/api/feeds', feedRouter);
   app.use('/api/search', searchRouter);
+  app.use('/api/test', testRouter);
 
   return app;
 };

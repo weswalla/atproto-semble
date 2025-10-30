@@ -10,7 +10,7 @@ async function main() {
   await appProcess.start();
 
   // Only start event worker in same process when using in-memory events
-  const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
+  const useInMemoryEvents = configService.shouldUseInMemoryEvents();
   if (useInMemoryEvents) {
     console.log('Starting in-memory event worker in the same process...');
     const inMemoryWorkerProcess = new InMemoryEventWorkerProcess(configService);

@@ -9,6 +9,7 @@ import { UserAuthenticationService } from '../../../../modules/user/infrastructu
 import { ATProtoAgentService } from '../../../../modules/atproto/infrastructure/services/ATProtoAgentService';
 import { IFramelyMetadataService } from '../../../../modules/cards/infrastructure/IFramelyMetadataService';
 import { BlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/BlueskyProfileService';
+import { CachedBlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/CachedBlueskyProfileService';
 import { ATProtoCollectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCollectionPublisher';
 import { ATProtoCardPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCardPublisher';
 import { FakeCollectionPublisher } from '../../../../modules/cards/tests/utils/FakeCollectionPublisher';
@@ -116,7 +117,7 @@ export class ServiceFactory {
       repositories,
     );
 
-    const useMockAuth = process.env.USE_MOCK_AUTH === 'true';
+    const useMockAuth = configService.shouldUseMockAuth();
 
     // App Password Session Service
     const appPasswordSessionService = useMockAuth
@@ -135,7 +136,7 @@ export class ServiceFactory {
       ? new FakeAtProtoOAuthProcessor(sharedServices.tokenService)
       : new AtProtoOAuthProcessor(sharedServices.nodeOauthClient);
 
-    const useFakePublishers = process.env.USE_FAKE_PUBLISHERS === 'true';
+    const useFakePublishers = configService.shouldUseFakePublishers();
     const collections = configService.getAtProtoCollections();
 
     const collectionPublisher = useFakePublishers
@@ -169,7 +170,7 @@ export class ServiceFactory {
       sharedServices.cookieService,
     );
 
-    const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
+    const useInMemoryEvents = configService.shouldUseInMemoryEvents();
 
     let eventPublisher: IEventPublisher;
     if (useInMemoryEvents) {
@@ -203,7 +204,7 @@ export class ServiceFactory {
       repositories,
     );
 
-    const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
+    const useInMemoryEvents = configService.shouldUseInMemoryEvents();
 
     let eventPublisher: IEventPublisher;
     let redisConnection: Redis | null = null;
@@ -249,7 +250,7 @@ export class ServiceFactory {
     configService: EnvironmentConfigService,
     repositories: Repositories,
   ): SharedServices {
-    const useMockAuth = process.env.USE_MOCK_AUTH === 'true';
+    const useMockAuth = configService.shouldUseMockAuth();
 
     const nodeOauthClient = OAuthClientFactory.createClient(
       repositories.oauthStateStore,
@@ -288,8 +289,24 @@ export class ServiceFactory {
       configService.getIFramelyApiKey(),
     );
 
-    // Profile Service
-    const profileService = new BlueskyProfileService(atProtoAgentService);
+    // Profile Service with Redis caching
+    const baseProfileService = new BlueskyProfileService(atProtoAgentService);
+
+    let profileService: IProfileService;
+    const usePersistence = configService.shouldUsePersistence();
+
+    // caching requires persistence
+    if (!usePersistence) {
+      profileService = baseProfileService;
+    } else {
+      // Create Redis connection for caching
+      const redisConfig = configService.getRedisConfig();
+      const redis = RedisFactory.createConnection(redisConfig);
+      profileService = new CachedBlueskyProfileService(
+        baseProfileService,
+        redis,
+      );
+    }
 
     // Feed Service
     const feedService = new FeedService(repositories.feedRepository);
@@ -303,9 +320,7 @@ export class ServiceFactory {
     const cookieService = new CookieService(configService);
 
     // Create vector database and search service (shared by both web app and workers)
-    const useInMemoryEvents = process.env.USE_IN_MEMORY_EVENTS === 'true';
-    const useMockVectorDb =
-      process.env.USE_MOCK_VECTOR_DB === 'true' || useInMemoryEvents;
+    const useMockVectorDb = configService.shouldUseMockVectorDb();
 
     const vectorDatabase: IVectorDatabase = useMockVectorDb
       ? InMemoryVectorDatabase.getInstance()

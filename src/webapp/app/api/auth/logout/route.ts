@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     // Proxy to backend to handle token revocation and cookie deletion
-    const backendUrl = process.env.API_BASE_URL || 'http://127.0.0.1:3000';
+    const backendUrl =
+      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
     const backendResponse = await fetch(`${backendUrl}/api/users/logout`, {
       method: 'POST',
       headers: {

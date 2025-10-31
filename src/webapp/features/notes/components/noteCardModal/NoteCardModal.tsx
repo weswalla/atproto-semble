@@ -30,7 +30,7 @@ export default function NoteCardModal(props: Props) {
     <Modal
       opened={props.isOpen}
       onClose={props.onClose}
-      title="Note"
+      title={<Text fw={600}>Note</Text>}
       overlayProps={UPDATE_OVERLAY_PROPS}
       centered
       onClick={(e) => e.stopPropagation()}

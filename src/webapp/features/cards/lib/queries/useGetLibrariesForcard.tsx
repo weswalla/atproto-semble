@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { getLibrariesForCard } from '../dal';
+import { cardKeys } from '../cardKeys';
 
 interface Props {
   id: string;
@@ -7,7 +8,7 @@ interface Props {
 
 export default function useGetLibrariesForCard(props: Props) {
   const libraries = useSuspenseQuery({
-    queryKey: ['libraries for card', props.id],
+    queryKey: cardKeys.libraries(props.id),
     queryFn: () => getLibrariesForCard(props.id),
   });
 

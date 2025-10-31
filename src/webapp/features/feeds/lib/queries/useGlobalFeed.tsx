@@ -10,7 +10,7 @@ export default function useGlobalFeed(props?: Props) {
   const limit = props?.limit ?? 15;
 
   const query = useSuspenseInfiniteQuery({
-    queryKey: [feedKeys.infinite()],
+    queryKey: feedKeys.infinite(),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
       return getGlobalFeed({ limit, page: pageParam });

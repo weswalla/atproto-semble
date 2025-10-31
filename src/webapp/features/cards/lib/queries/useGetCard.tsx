@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { getUrlCardView } from '../dal';
+import { cardKeys } from '../cardKeys';
 
 interface Props {
   id: string;
@@ -7,7 +8,7 @@ interface Props {
 
 export default function useGetCard(props: Props) {
   const card = useSuspenseQuery({
-    queryKey: ['card', props.id],
+    queryKey: cardKeys.card(props.id),
     queryFn: () => getUrlCardView(props.id),
   });
 

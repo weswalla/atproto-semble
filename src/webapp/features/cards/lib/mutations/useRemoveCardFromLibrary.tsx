@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { removeCardFromLibrary } from '../dal';
+import { cardKeys } from '../cardKeys';
+import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 
 export default function useRemoveCardFromLibrary() {
   const queryClient = useQueryClient();
@@ -10,9 +12,8 @@ export default function useRemoveCardFromLibrary() {
     },
 
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my cards'] });
-      queryClient.invalidateQueries({ queryKey: ['collections'] });
-      queryClient.invalidateQueries({ queryKey: ['collection'] });
+      queryClient.invalidateQueries({ queryKey: cardKeys.all() });
+      queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
     },
   });
 

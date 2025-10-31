@@ -1,5 +1,6 @@
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { getUrlCards } from '../dal';
+import { cardKeys } from '../cardKeys';
 
 interface Props {
   didOrHandle: string;
@@ -10,7 +11,7 @@ export default function useCards(props: Props) {
   const limit = props?.limit ?? 16;
 
   const cards = useSuspenseInfiniteQuery({
-    queryKey: ['cards', props.didOrHandle, limit],
+    queryKey: cardKeys.infinite(),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
       return getUrlCards(props.didOrHandle, {

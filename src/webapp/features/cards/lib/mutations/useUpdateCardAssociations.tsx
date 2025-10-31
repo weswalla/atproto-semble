@@ -1,5 +1,7 @@
 import { createSembleClient } from '@/services/apiClient';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { cardKeys } from '../cardKeys';
+import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 
 export default function useUpdateCardAssociations() {
   const client = createSembleClient();
@@ -22,20 +24,20 @@ export default function useUpdateCardAssociations() {
     },
 
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['my cards'] });
-      queryClient.invalidateQueries({ queryKey: ['home'] });
-      queryClient.invalidateQueries({ queryKey: ['collections'] });
-      queryClient.invalidateQueries({
-        queryKey: ['card from my library'],
-      });
+      queryClient.invalidateQueries({ queryKey: cardKeys.all() });
+      queryClient.invalidateQueries({ queryKey: collectionKeys.mine() });
 
       // invalidate each collection query individually
       variables.addToCollectionIds?.forEach((id) => {
-        queryClient.invalidateQueries({ queryKey: ['collection', id] });
+        queryClient.invalidateQueries({
+          queryKey: collectionKeys.collection(id),
+        });
       });
 
       variables.removeFromCollectionIds?.forEach((id) => {
-        queryClient.invalidateQueries({ queryKey: ['collection', id] });
+        queryClient.invalidateQueries({
+          queryKey: collectionKeys.collection(id),
+        });
       });
     },
   });

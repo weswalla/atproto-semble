@@ -1,5 +1,6 @@
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { getSimilarUrlsForUrl } from '../dal';
+import { sembleKeys } from '../sembleKeys';
 
 interface Props {
   url: string;
@@ -11,7 +12,7 @@ export default function useSembleSimilarCards(props: Props) {
   const limit = props?.limit ?? 16;
 
   const similarCards = useSuspenseInfiniteQuery({
-    queryKey: ['semble similar cards', props.url, limit, props.threshold],
+    queryKey: sembleKeys.similarCardsInfinite(props.url),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
       return getSimilarUrlsForUrl(props.url, {

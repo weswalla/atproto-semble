@@ -205,7 +205,6 @@ export default function CollectionSelector(props: Props) {
             size="md"
             onClick={(e) => {
               props.onSave(e);
-              props.onClose();
             }}
           >
             Save

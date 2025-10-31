@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteCollection } from '../dal';
+import { collectionKeys } from '../collectionKeys';
 
 export default function useDeleteCollection() {
   const queryClient = useQueryClient();
@@ -9,11 +10,8 @@ export default function useDeleteCollection() {
       return deleteCollection(collectionId);
     },
 
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['collections'] });
-      queryClient.invalidateQueries({
-        queryKey: ['collection', data.collectionId],
-      });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
     },
   });
 

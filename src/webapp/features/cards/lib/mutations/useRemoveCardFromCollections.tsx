@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { removeCardFromCollection } from '../dal';
+import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 
 export default function useRemoveCardFromCollections() {
   const queryClient = useQueryClient();
@@ -16,13 +17,13 @@ export default function useRemoveCardFromCollections() {
     },
 
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['card', variables.cardId] });
-      queryClient.invalidateQueries({ queryKey: ['my cards'] });
-      queryClient.invalidateQueries({ queryKey: ['home'] });
-      queryClient.invalidateQueries({ queryKey: ['collections'] });
+      queryClient.invalidateQueries({ queryKey: collectionKeys.infinite() });
+      queryClient.invalidateQueries({ queryKey: collectionKeys.mine() });
 
       variables.collectionIds.forEach((id) => {
-        queryClient.invalidateQueries({ queryKey: ['collection', id] });
+        queryClient.invalidateQueries({
+          queryKey: collectionKeys.collection(id),
+        });
       });
     },
   });

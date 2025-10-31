@@ -1,5 +1,6 @@
+import { getNoteCardsForUrl } from '@/features/notes/lib/dal';
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
-import { getNoteCardsForUrl } from '../dal';
+import { sembleKeys } from '../sembleKeys';
 
 interface Props {
   url: string;
@@ -10,7 +11,7 @@ export default function useSembleNotes(props: Props) {
   const limit = props?.limit ?? 16;
 
   const notes = useSuspenseInfiniteQuery({
-    queryKey: ['semble notes', props.url, limit],
+    queryKey: sembleKeys.notesInfinite(props.url),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
       return getNoteCardsForUrl(props.url, { page: pageParam, limit });

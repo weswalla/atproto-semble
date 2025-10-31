@@ -1,5 +1,6 @@
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { getLibrariesForUrl } from '../dal';
+import { sembleKeys } from '../sembleKeys';
 
 interface Props {
   url: string;
@@ -10,7 +11,7 @@ export default function useSembleLibraries(props: Props) {
   const limit = props?.limit ?? 16;
 
   const libraries = useSuspenseInfiniteQuery({
-    queryKey: ['semble libraries', props.url, limit],
+    queryKey: sembleKeys.librariesInfinite(props.url),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
       return getLibrariesForUrl(props.url, { page: pageParam, limit });

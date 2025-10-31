@@ -14,6 +14,10 @@ export default function SembleActions(props: Props) {
   const cardStatus = useGetCardFromMyLibrary({ url: props.url });
   const isInYourLibrary = cardStatus.data.card?.urlInLibrary;
 
+  if (cardStatus.error) {
+    return null;
+  }
+
   return (
     <Fragment>
       <Group>

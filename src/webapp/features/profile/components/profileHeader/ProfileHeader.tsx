@@ -44,19 +44,10 @@ export default async function ProfileHeader(props: Props) {
             <GridCol span={{ base: 12, xs: 9 }}>
               <Stack gap={'sm'}>
                 <Stack gap={0}>
-                  <Title
-                    order={1}
-                    fz={{ base: 'h2', md: 'h1' }}
-                    style={{ wordBreak: 'break-all' }}
-                  >
+                  <Title order={1} fz={{ base: 'h2', md: 'h1' }}>
                     {profile.name}
                   </Title>
-                  <Text
-                    c="blue"
-                    fw={600}
-                    fz={{ base: 'lg', md: 'xl' }}
-                    style={{ wordBreak: 'break-all' }}
-                  >
+                  <Text c="blue" fw={600} fz={{ base: 'lg', md: 'xl' }}>
                     @{profile.handle}
                   </Text>
                 </Stack>

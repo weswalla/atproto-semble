@@ -66,13 +66,7 @@ export default function UrlCard(props: Props) {
               </Anchor>
             </Tooltip>
             {props.cardContent.title && (
-              <Text
-                fw={500}
-                lineClamp={2}
-                style={{
-                  wordBreak: 'break-word',
-                }}
-              >
+              <Text fw={500} lineClamp={2}>
                 {props.cardContent.title}
               </Text>
             )}

@@ -48,11 +48,7 @@ export default async function SembleHeader(props: Props) {
                 </Tooltip>
               </Text>
 
-              {metadata.title && (
-                <Title order={1} style={{ wordBreak: 'break-all' }}>
-                  {metadata.title}
-                </Title>
-              )}
+              {metadata.title && <Title order={1}>{metadata.title}</Title>}
             </Stack>
             {metadata.description && (
               <Spoiler showLabel={'Read more'} hideLabel={'See less'}>

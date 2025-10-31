@@ -59,9 +59,7 @@ export default function CollectionContainer(props: Props) {
             <Text fw={700} c="grape">
               Collection
             </Text>
-            <Title order={1} style={{ wordBreak: 'break-all' }}>
-              {firstPage.name}
-            </Title>
+            <Title order={1}>{firstPage.name}</Title>
             {firstPage.description && (
               <Text c="gray" mt="lg">
                 {firstPage.description}

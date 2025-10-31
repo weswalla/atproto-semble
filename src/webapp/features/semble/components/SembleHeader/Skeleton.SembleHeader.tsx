@@ -26,7 +26,7 @@ export default function SembleHeaderSkeleton() {
         </GridCol>
         <GridCol span={{ base: 12, sm: 'content' }}>
           <Stack gap={'sm'} align="start" flex={1}>
-            <Skeleton radius={'lg'} h={150} w={300} maw={'100%'} />
+            <Skeleton h={150} w={300} maw={'100%'} />
 
             {/*<SembleActions />*/}
           </Stack>

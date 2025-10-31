@@ -1,10 +1,8 @@
 'use client';
 
 import type { UrlCard, Collection, User } from '@/api-client';
-import EditNoteDrawer from '@/features/notes/components/editNoteDrawer/EditNoteDrawer';
 import { ActionIcon, Button, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
-import { AiOutlineSignature } from 'react-icons/ai';
 import { FiPlus } from 'react-icons/fi';
 import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import { LuUnplug } from 'react-icons/lu';
@@ -94,16 +92,6 @@ export default function UrlCardActions(props: Props) {
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
-              {props.note && (
-                <Menu.Item
-                  leftSection={<AiOutlineSignature />}
-                  onClick={() => {
-                    setShowEditNoteModal(true);
-                  }}
-                >
-                  Edit note
-                </Menu.Item>
-              )}
               {props.currentCollection && (
                 <Menu.Item
                   leftSection={<LuUnplug />}
@@ -146,14 +134,6 @@ export default function UrlCardActions(props: Props) {
         cardAuthor={props.cardAuthor}
       />
 
-      {props.note && (
-        <EditNoteDrawer
-          isOpen={showEditNoteModal}
-          onClose={() => setShowEditNoteModal(false)}
-          noteCardId={props.note.id}
-          note={props.note.text}
-        />
-      )}
       {props.currentCollection && (
         <RemoveCardFromCollectionModal
           isOpen={showRemoveFromCollectionModal}

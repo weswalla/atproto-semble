@@ -33,7 +33,7 @@ export default function Home() {
       <script async src="https://tally.so/widgets/embed.js" />
       <Container size={'xl'} p={'md'} my={'auto'}>
         <Group justify="space-between">
-          <Stack gap={'xs'} align="center">
+          <Stack gap={6} align="center">
             <Image src={SembleLogo.src} alt="Semble logo" w={30} h={'auto'} />
             <Badge size="sm">Alpha</Badge>
           </Stack>

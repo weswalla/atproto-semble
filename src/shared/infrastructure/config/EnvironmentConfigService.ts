@@ -7,7 +7,7 @@ export enum Environment {
 export interface EnvironmentConfig {
   environment: Environment;
   runtime: {
-    usePersistence: boolean;
+    useMockPersistence: boolean;
     useMockAuth: boolean;
     useFakePublishers: boolean;
     useMockVectorDb: boolean;
@@ -64,7 +64,7 @@ export class EnvironmentConfigService {
     this.config = {
       environment,
       runtime: {
-        usePersistence: this.determinePersistenceFlag(),
+        useMockPersistence: this.determineMockPersistenceFlag(),
         useMockAuth: process.env.USE_MOCK_AUTH === 'true',
         useFakePublishers: process.env.USE_FAKE_PUBLISHERS === 'true',
         useMockVectorDb: process.env.USE_MOCK_VECTOR_DB === 'true',
@@ -198,16 +198,16 @@ export class EnvironmentConfigService {
     return this.config.runtime;
   }
 
-  public shouldUsePersistence(): boolean {
-    return this.config.runtime.usePersistence;
+  public shouldUseMockPersistence(): boolean {
+    return this.config.runtime.useMockPersistence;
   }
 
   public shouldUseMockRepos(): boolean {
-    return !this.config.runtime.usePersistence;
+    return this.config.runtime.useMockPersistence;
   }
 
   public shouldUseInMemoryEvents(): boolean {
-    return !this.config.runtime.usePersistence;
+    return this.config.runtime.useMockPersistence;
   }
 
   public shouldUseMockAuth(): boolean {
@@ -225,17 +225,17 @@ export class EnvironmentConfigService {
   // Convenience methods for common combinations
   public isFullyMocked(): boolean {
     const r = this.config.runtime;
-    return !r.usePersistence && r.useMockAuth && r.useFakePublishers;
+    return r.useMockPersistence && r.useMockAuth && r.useFakePublishers;
   }
 
-  public isPersistenceEnabled(): boolean {
-    return this.config.runtime.usePersistence;
+  public isMockPersistenceEnabled(): boolean {
+    return this.config.runtime.useMockPersistence;
   }
 
-  private determinePersistenceFlag(): boolean {
+  private determineMockPersistenceFlag(): boolean {
     // New unified flag takes precedence
-    if (process.env.USE_PERSISTENCE !== undefined) {
-      return process.env.USE_PERSISTENCE === 'true';
+    if (process.env.USE_MOCK_PERSISTENCE !== undefined) {
+      return process.env.USE_MOCK_PERSISTENCE === 'true';
     }
 
     // Legacy support - if either old flag is false, persistence is disabled
@@ -243,10 +243,10 @@ export class EnvironmentConfigService {
       process.env.USE_MOCK_REPOS === 'true' ||
       process.env.USE_IN_MEMORY_EVENTS === 'true'
     ) {
-      return false;
+      return true;
     }
 
-    // Default to true (use persistence) unless explicitly disabled
-    return true;
+    // Default to false (use mock persistence) unless explicitly enabled
+    return false;
   }
 }

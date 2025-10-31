@@ -10,8 +10,8 @@ export class AppProcess implements IProcess {
     // Get configuration
     const config = this.configService.get();
 
-    const useMockRepos = process.env.USE_MOCK_REPOS === 'true';
-    if (!useMockRepos) {
+    const useMockPersistence = this.configService.shouldUseMockPersistence();
+    if (!useMockPersistence) {
       // Create database connection with config
       const db = DatabaseFactory.createConnection(
         this.configService.getDatabaseConfig(),

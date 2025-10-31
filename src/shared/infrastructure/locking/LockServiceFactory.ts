@@ -2,11 +2,12 @@ import { ILockService } from './ILockService';
 import { RedisLockService } from './RedisLockService';
 import { InMemoryLockService } from './InMemoryLockService';
 import { RedisFactory } from '../redis/RedisFactory';
+import { configService } from '../config';
 
 export class LockServiceFactory {
   static create(): ILockService {
-    const useMockRepos = process.env.USE_MOCK_REPOS === 'true';
-    if (!useMockRepos) {
+    const useMockPersistence = configService.shouldUseMockPersistence();
+    if (!useMockPersistence) {
       try {
         const redis = RedisFactory.createConnection({
           host: process.env.REDIS_HOST || 'localhost',

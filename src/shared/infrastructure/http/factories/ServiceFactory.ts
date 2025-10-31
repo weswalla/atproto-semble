@@ -48,7 +48,6 @@ import { QueueName } from '../../events/QueueConfig';
 import { RedisFactory } from '../../redis/RedisFactory';
 import { IEventSubscriber } from 'src/shared/application/events/IEventSubscriber';
 import { FeedService } from '../../../../modules/feeds/domain/services/FeedService';
-import { CardCollectionSaga } from '../../../../modules/feeds/application/sagas/CardCollectionSaga';
 import { ATProtoIdentityResolutionService } from '../../../../modules/atproto/infrastructure/services/ATProtoIdentityResolutionService';
 import { IIdentityResolutionService } from '../../../../modules/atproto/domain/services/IIdentityResolutionService';
 import { CookieService } from '../services/CookieService';
@@ -293,10 +292,10 @@ export class ServiceFactory {
     const baseProfileService = new BlueskyProfileService(atProtoAgentService);
 
     let profileService: IProfileService;
-    const usePersistence = configService.shouldUsePersistence();
+    const useMockPersistence = configService.shouldUseMockPersistence();
 
     // caching requires persistence
-    if (!usePersistence) {
+    if (useMockPersistence) {
       profileService = baseProfileService;
     } else {
       // Create Redis connection for caching

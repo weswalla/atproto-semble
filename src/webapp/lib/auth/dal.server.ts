@@ -2,7 +2,7 @@ import { GetProfileResponse } from '@/api-client/ApiClient';
 import { cookies } from 'next/headers';
 import { cache } from 'react';
 
-const appUrl = process.env.APP_URL || 'http://127.0.0.1:4000';
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
 
 export const verifySessionOnServer = cache(async () => {
   const cookieStore = await cookies();

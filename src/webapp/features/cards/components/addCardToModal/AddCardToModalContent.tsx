@@ -125,7 +125,7 @@ export default function AddCardToModalContent(props: Props) {
     <Stack justify="space-between">
       <CardToBeAddedPreview
         cardContent={props.cardContent}
-        note={isMyCard ? note : undefined}
+        note={isMyCard ? note : cardStatus.data.card?.note?.text}
         onUpdateNote={setNote}
       />
 

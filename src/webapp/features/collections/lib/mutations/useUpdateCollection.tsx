@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateCollection } from '../dal';
+import { collectionKeys } from '../collectionKeys';
 
 export default function useUpdateCollection() {
   const queryClient = useQueryClient();
@@ -14,13 +15,12 @@ export default function useUpdateCollection() {
       return updateCollection(collection);
     },
 
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['collections'] });
+    onSuccess: (variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['collection', data.collectionId],
+        queryKey: collectionKeys.collection(variables.rkey),
       });
       queryClient.invalidateQueries({
-        queryKey: ['collection', variables.rkey],
+        queryKey: collectionKeys.all(),
       });
     },
   });

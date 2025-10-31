@@ -1,5 +1,6 @@
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { getCollections } from '../dal';
+import { collectionKeys } from '../collectionKeys';
 
 interface Props {
   didOrHandle: string;
@@ -10,7 +11,7 @@ export default function useCollections(props: Props) {
   const limit = props?.limit ?? 15;
 
   return useSuspenseInfiniteQuery({
-    queryKey: ['collections', props.didOrHandle, limit],
+    queryKey: collectionKeys.infinite(),
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
       getCollections(props.didOrHandle, {

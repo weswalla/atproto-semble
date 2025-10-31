@@ -1,9 +1,10 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { getMyProfile } from '../dal';
+import { profileKeys } from '../profileKeys';
 
 export default function useMyProfile() {
   return useSuspenseQuery({
-    queryKey: ['my profile'],
+    queryKey: profileKeys.mine(),
     queryFn: () => getMyProfile(),
   });
 }

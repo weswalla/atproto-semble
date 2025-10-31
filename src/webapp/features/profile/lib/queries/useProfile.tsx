@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { getProfile } from '../dal';
+import { profileKeys } from '../profileKeys';
 
 interface Props {
   didOrHandle: string;
@@ -7,7 +8,7 @@ interface Props {
 
 export default function useProfile(props: Props) {
   const profile = useSuspenseQuery({
-    queryKey: ['profile', props.didOrHandle],
+    queryKey: profileKeys.profile(props.didOrHandle),
     queryFn: () => getProfile(props.didOrHandle),
   });
 

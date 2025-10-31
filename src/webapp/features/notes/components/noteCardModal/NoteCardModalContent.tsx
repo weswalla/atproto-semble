@@ -150,16 +150,18 @@ export default function NoteCardModalContent(props: Props) {
                 </Text>
               )}
             </Stack>
-            <Button
-              variant="light"
-              color="gray"
-              onClick={(e) => {
-                e.stopPropagation();
-                setEditMode(true);
-              }}
-            >
-              {note ? 'Edit note' : 'Add note'}
-            </Button>
+            {isMyCard && (
+              <Button
+                variant="light"
+                color="gray"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditMode(true);
+                }}
+              >
+                Edit note
+              </Button>
+            )}
           </Group>
         </Stack>
       </Card>

@@ -130,7 +130,7 @@ export default function UrlCardActions(props: Props) {
         isOpen={showNoteModal}
         onClose={() => setShowNoteModal(false)}
         note={props.note}
-        urlCardContent={props.cardContent}
+        cardContent={props.cardContent}
         cardAuthor={props.cardAuthor}
       />
 

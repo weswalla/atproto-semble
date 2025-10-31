@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateNoteCard } from '../dal';
 import { cardKeys } from '@/features/cards/lib/cardKeys';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
+import { feedKeys } from '@/features/feeds/lib/feedKeys';
 
 export default function useUpdateNote() {
   const queryClient = useQueryClient();
@@ -14,6 +15,8 @@ export default function useUpdateNote() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: cardKeys.card(data.cardId) });
       queryClient.invalidateQueries({ queryKey: cardKeys.infinite() });
+      queryClient.invalidateQueries({ queryKey: cardKeys.infinite() });
+      queryClient.invalidateQueries({ queryKey: feedKeys.all() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
     },
   });

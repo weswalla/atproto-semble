@@ -27,6 +27,7 @@ interface Props {
   onClose: () => void;
   onCancel: () => void;
   onSave: (e: React.FormEvent) => void;
+  isSaving?: boolean;
   selectedCollections: SelectableCollectionItem[];
   onSelectedCollectionsChange: (
     collectionIds: SelectableCollectionItem[],
@@ -203,6 +204,7 @@ export default function CollectionSelector(props: Props) {
 
           <Button
             size="md"
+            loading={props.isSaving}
             onClick={(e) => {
               props.onSave(e);
             }}

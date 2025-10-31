@@ -12,7 +12,7 @@ export default function useCollection(props: Props) {
   const limit = props.limit ?? 20;
 
   return useSuspenseInfiniteQuery({
-    queryKey: collectionKeys.collection(props.rkey),
+    queryKey: collectionKeys.infinite(),
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
       getCollectionPageByAtUri({

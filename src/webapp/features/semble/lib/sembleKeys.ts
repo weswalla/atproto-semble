@@ -1,6 +1,9 @@
 export const sembleKeys = {
   all: () => ['semble'] as const,
   byUrl: (url: string) => [...sembleKeys.all(), url] as const,
+  notes: (url: string) => [...sembleKeys.byUrl(url), 'notes'] as const,
+  notesInfinite: (url: string) =>
+    [...sembleKeys.notes(url), 'infinite'] as const,
   similarCards: (url: string) =>
     [...sembleKeys.byUrl(url), 'similar cards'] as const,
   similarCardsInfinite: (url: string) =>

@@ -1,6 +1,6 @@
 'use client';
 
-import useSembleNotes from '@/features/notes/lib/queries/useSembleNotes';
+import useSembleNotes from '@/features/semble/lib/queries/useSembleNotes';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { Grid } from '@mantine/core';
 import SembleNotesContainerError from './Error.SembleNotesContainer';

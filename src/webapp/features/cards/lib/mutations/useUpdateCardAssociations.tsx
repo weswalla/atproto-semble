@@ -26,6 +26,7 @@ export default function useUpdateCardAssociations() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: cardKeys.all() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.mine() });
+      queryClient.invalidateQueries({ queryKey: collectionKeys.infinite() });
 
       // invalidate each collection query individually
       variables.addToCollectionIds?.forEach((id) => {

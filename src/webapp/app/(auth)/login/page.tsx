@@ -32,7 +32,7 @@ function InnerPage() {
       refreshAuth();
       router.push('/home');
     }
-  }, [isAuthenticated, router, isExtensionLogin]);
+  }, [isAuthenticated, router, isExtensionLogin, refreshAuth]);
 
   if (isAuthenticated) {
     return (

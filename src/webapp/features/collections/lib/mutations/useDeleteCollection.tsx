@@ -10,7 +10,7 @@ export default function useDeleteCollection() {
       return deleteCollection(collectionId);
     },
 
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
     },
   });

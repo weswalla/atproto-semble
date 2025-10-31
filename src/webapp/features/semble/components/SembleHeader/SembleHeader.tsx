@@ -62,7 +62,7 @@ export default async function SembleHeader(props: Props) {
         <GridCol span={{ base: 12, sm: 'content' }}>
           <Stack gap={'sm'} align="center">
             {metadata.imageUrl && (
-              <Card p={0} radius={'lg'} withBorder>
+              <Card p={0} radius={'md'} withBorder>
                 <Image
                   src={metadata.imageUrl}
                   alt={`${props.url} social preview image`}

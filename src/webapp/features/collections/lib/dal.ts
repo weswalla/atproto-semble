@@ -1,3 +1,4 @@
+import { verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/apiClient';
 import { cache } from 'react';
 
@@ -40,8 +41,8 @@ export const getCollections = cache(
 
 export const getMyCollections = cache(
   async (params?: PageParams & SearchParams) => {
-    // await verifySession();
-
+    const session = await verifySessionOnClient();
+    if (!session) throw new Error('No session found');
     const client = createSembleClient();
     const response = await client.getMyCollections({
       page: params?.page,
@@ -57,7 +58,8 @@ export const getMyCollections = cache(
 
 export const createCollection = cache(
   async (newCollection: { name: string; description: string }) => {
-    // await verifySession();
+    const session = await verifySessionOnClient();
+    if (!session) throw new Error('No session found');
     const client = createSembleClient();
     const response = await client.createCollection(newCollection);
 
@@ -66,7 +68,8 @@ export const createCollection = cache(
 );
 
 export const deleteCollection = cache(async (id: string) => {
-  // await verifySession();
+  const session = await verifySessionOnClient();
+  if (!session) throw new Error('No session found');
   const client = createSembleClient();
   const response = await client.deleteCollection({ collectionId: id });
 
@@ -80,7 +83,8 @@ export const updateCollection = cache(
     name: string;
     description?: string;
   }) => {
-    // await verifySession();
+    const session = await verifySessionOnClient();
+    if (!session) throw new Error('No session found');
     const client = createSembleClient();
     const response = await client.updateCollection(collection);
 

@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { cookies } from 'next/headers';
 import { isTokenExpiringSoon } from '@/lib/auth/token';
+
+const backendUrl = process.env.API_BASE_URL || 'http://127.0.0.1:3000';
+
+type AuthResult = {
+  isAuth: boolean;
+  user?: GetProfileResponse;
+};
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,15 +18,13 @@ export async function GET(request: NextRequest) {
 
     // No tokens at all - not authenticated
     if (!accessToken && !refreshToken) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json<AuthResult>({ isAuth: false }, { status: 401 });
     }
 
     // Check if accessToken is expired/missing or expiring soon (< 5 min)
     if ((!accessToken || isTokenExpiringSoon(accessToken, 5)) && refreshToken) {
       try {
         // Proxy the refresh request completely to backend
-        const backendUrl =
-          process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
         const refreshResponse = await fetch(
           `${backendUrl}/api/users/oauth/refresh`,
           {
@@ -32,13 +38,14 @@ export async function GET(request: NextRequest) {
         );
 
         if (!refreshResponse.ok) {
-          // Refresh failed - clear invalid tokens
-          const response = new NextResponse(
-            JSON.stringify({ error: 'Authentication failed' }),
+          // Refresh failed — clear tokens and mark as unauthenticated
+          const response = NextResponse.json<AuthResult>(
+            { isAuth: false },
             { status: 401 },
           );
           response.cookies.delete('accessToken');
           response.cookies.delete('refreshToken');
+
           return response;
         }
 
@@ -56,26 +63,27 @@ export async function GET(request: NextRequest) {
         });
 
         if (!profileResponse.ok) {
-          return NextResponse.json(
-            { error: 'Failed to fetch profile' },
-            { status: profileResponse.status },
+          return NextResponse.json<AuthResult>(
+            { isAuth: false },
+            { status: 401 },
           );
         }
 
         const user = await profileResponse.json();
 
         // Return user profile with backend's Set-Cookie headers
-        return new Response(JSON.stringify({ user }), {
+        const response = new Response(JSON.stringify({ isAuth: true, user }), {
           status: 200,
           headers: {
             'Content-Type': 'application/json',
             'Set-Cookie': refreshResponse.headers.get('set-cookie') || '',
           },
         });
+        return response;
       } catch (error) {
         console.error('Token refresh error:', error);
-        return NextResponse.json(
-          { error: 'Authentication failed' },
+        return NextResponse.json<AuthResult>(
+          { isAuth: false },
           { status: 500 },
         );
       }
@@ -94,26 +102,20 @@ export async function GET(request: NextRequest) {
       });
 
       if (!profileResponse.ok) {
-        return NextResponse.json(
-          { error: 'Failed to fetch profile' },
+        return NextResponse.json<AuthResult>(
+          { isAuth: false },
           { status: profileResponse.status },
         );
       }
 
       const user = await profileResponse.json();
-      return NextResponse.json({ user });
+      return NextResponse.json<AuthResult>({ isAuth: true, user });
     } catch (error) {
       console.error('Profile fetch error:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch profile' },
-        { status: 500 },
-      );
+      return NextResponse.json<AuthResult>({ isAuth: false }, { status: 500 });
     }
   } catch (error) {
     console.error('Auth me error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
-    );
+    return NextResponse.json<AuthResult>({ isAuth: false }, { status: 500 });
   }
 }

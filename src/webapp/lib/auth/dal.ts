@@ -1,11 +1,9 @@
 import type { GetProfileResponse } from '@/api-client/ApiClient';
-import { ClientCookieAuthService } from '@/services/auth';
-import { redirect } from 'next/navigation';
 import { cache } from 'react';
 
-const appUrl = process.env.APP_URL || 'http://127.0.0.1:4000';
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
 
-export const verifySession = cache(
+export const verifySessionOnClient = cache(
   async (): Promise<GetProfileResponse | null> => {
     const response = await fetch(`${appUrl}/api/auth/me`, {
       method: 'GET',
@@ -13,12 +11,11 @@ export const verifySession = cache(
     });
 
     if (!response.ok) {
-      await ClientCookieAuthService.clearTokens();
-      redirect('/login');
+      return null;
     }
 
-    const data = await response.json();
+    const { user }: { user: GetProfileResponse } = await response.json();
 
-    return data.user as GetProfileResponse;
+    return user;
   },
 );

@@ -1,3 +1,4 @@
+import { verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/apiClient';
 import { cache } from 'react';
 
@@ -14,7 +15,8 @@ export const getUrlMetadata = cache(async (url: string) => {
 });
 
 export const getCardFromMyLibrary = cache(async (url: string) => {
-  // await verifySession();
+  const session = await verifySessionOnClient();
+  if (!session) throw new Error('No session found');
   const client = createSembleClient();
   const response = await client.getUrlStatusForMyLibrary({ url: url });
 
@@ -22,7 +24,8 @@ export const getCardFromMyLibrary = cache(async (url: string) => {
 });
 
 export const getMyUrlCards = cache(async (params?: PageParams) => {
-  // await verifySession();
+  const session = await verifySessionOnClient();
+  if (!session) throw new Error('No session found');
   const client = createSembleClient();
   const response = await client.getMyUrlCards({
     page: params?.page,
@@ -37,7 +40,8 @@ export const addUrlToLibrary = cache(
     url: string,
     { note, collectionIds }: { note?: string; collectionIds?: string[] },
   ) => {
-    // await verifySession();
+    const session = await verifySessionOnClient();
+    if (!session) throw new Error('No session found');
     const client = createSembleClient();
     const response = await client.addUrlToLibrary({
       url: url,
@@ -77,7 +81,8 @@ export const removeCardFromCollection = cache(
     cardId: string;
     collectionIds: string[];
   }) => {
-    // await verifySession();
+    const session = await verifySessionOnClient();
+    if (!session) throw new Error('No session found');
     const client = createSembleClient();
     const response = await client.removeCardFromCollection({
       cardId,
@@ -89,7 +94,8 @@ export const removeCardFromCollection = cache(
 );
 
 export const removeCardFromLibrary = cache(async (cardId: string) => {
-  // await verifySession();
+  const session = await verifySessionOnClient();
+  if (!session) throw new Error('No session found');
   const client = createSembleClient();
   const response = await client.removeCardFromLibrary({ cardId });
 
@@ -97,7 +103,8 @@ export const removeCardFromLibrary = cache(async (cardId: string) => {
 });
 
 export const getLibrariesForCard = cache(async (cardId: string) => {
-  // await verifySession();
+  const session = await verifySessionOnClient();
+  if (!session) throw new Error('No session found');
   const client = createSembleClient();
   const response = await client.getLibrariesForCard(cardId);
 

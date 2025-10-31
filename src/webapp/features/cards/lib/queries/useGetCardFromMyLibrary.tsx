@@ -8,7 +8,7 @@ interface Props {
 
 export default function useGetCardFromMyLibrary(props: Props) {
   const cardStatus = useSuspenseQuery({
-    queryKey: cardKeys.all(),
+    queryKey: cardKeys.byUrl(props.url),
     queryFn: () => getCardFromMyLibrary(props.url),
   });
 

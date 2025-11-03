@@ -5,6 +5,7 @@ import Navbar from '@/components/navigation/navbar/Navbar';
 import ComposerDrawer from '@/features/composer/components/composerDrawer/ComposerDrawer';
 import { useNavbarContext } from '@/providers/navbar';
 import { usePathname } from 'next/navigation';
+import BottomBar from '../bottomBar/BottomBar';
 
 interface Props {
   children: React.ReactNode;
@@ -33,6 +34,9 @@ export default function AppLayout(props: Props) {
         breakpoint: 'xl',
         collapsed: { mobile: true },
       }}
+      footer={{
+        height: 60,
+      }}
     >
       <Navbar />
 
@@ -40,6 +44,7 @@ export default function AppLayout(props: Props) {
         {props.children}
         <ComposerDrawer />
       </AppShell.Main>
+      <BottomBar />
     </AppShell>
   );
 }

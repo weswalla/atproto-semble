@@ -17,8 +17,8 @@ export default function ComposerDrawer() {
       {shouldShowFab && (
         <Affix
           mt={'md'}
-          mx={'xs'}
-          mb={{ base: 80, sm: 'md' }}
+          mx={{ base: 20, sm: 'xs' }}
+          mb={{ base: 100, sm: 'md' }}
           style={{ zIndex: 102 }}
         >
           <ActionIcon

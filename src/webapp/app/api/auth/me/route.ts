@@ -3,7 +3,8 @@ import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { cookies } from 'next/headers';
 import { isTokenExpiringSoon } from '@/lib/auth/token';
 
-const backendUrl = process.env.API_BASE_URL || 'http://127.0.0.1:3000';
+const backendUrl =
+  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
 
 type AuthResult = {
   isAuth: boolean;
@@ -21,8 +22,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json<AuthResult>({ isAuth: false }, { status: 401 });
     }
 
-    // Check if accessToken is expired/missing or expiring soon (< 5 min)
-    if ((!accessToken || isTokenExpiringSoon(accessToken, 5)) && refreshToken) {
+    // Check if accessToken is expired/missing or expiring soon
+    if ((!accessToken || isTokenExpiringSoon(accessToken)) && refreshToken) {
       try {
         // Proxy the refresh request completely to backend
         const refreshResponse = await fetch(
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Cookie: request.headers.get('cookie') || '', // Forward all cookies
+              Cookie: request.headers.get('cookie') || '',
             },
             body: JSON.stringify({ refreshToken }),
           },
@@ -70,7 +71,6 @@ export async function GET(request: NextRequest) {
         }
 
         const user = await profileResponse.json();
-
         // Return user profile with backend's Set-Cookie headers
         const response = new Response(JSON.stringify({ isAuth: true, user }), {
           status: 200,

@@ -65,6 +65,7 @@ export default function NoteCardModalContent(props: Props) {
           variant="filled"
           size="md"
           autosize
+          minRows={3}
           maxRows={8}
           maxLength={500}
           value={note}

@@ -55,7 +55,7 @@ export default async function ProfileHeader(props: Props) {
                   <Spoiler
                     showLabel={'Read more'}
                     hideLabel={'See less'}
-                    maxHeight={45}
+                    maxHeight={30}
                   >
                     <Text>{profile.description}</Text>
                   </Spoiler>

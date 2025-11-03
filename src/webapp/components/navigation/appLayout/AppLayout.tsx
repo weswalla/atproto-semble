@@ -6,6 +6,7 @@ import ComposerDrawer from '@/features/composer/components/composerDrawer/Compos
 import { useNavbarContext } from '@/providers/navbar';
 import { usePathname } from 'next/navigation';
 import BottomBar from '../bottomBar/BottomBar';
+import { useMediaQuery } from '@mantine/hooks';
 
 interface Props {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ interface Props {
 
 export default function AppLayout(props: Props) {
   const { mobileOpened, desktopOpened } = useNavbarContext();
+  const isMobile = useMediaQuery('(max-width: 48em)'); // "sm" breakpoint
   const pathname = usePathname();
 
   const ROUTES_WITH_ASIDE = ['/url'];
@@ -35,7 +37,7 @@ export default function AppLayout(props: Props) {
         collapsed: { mobile: true },
       }}
       footer={{
-        height: 80,
+        height: isMobile ? 80 : 0,
       }}
     >
       <Navbar />

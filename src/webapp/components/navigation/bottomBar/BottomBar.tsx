@@ -10,7 +10,7 @@ export default function BottomBar() {
   const { data: profile } = useMyProfile();
 
   return (
-    <AppShellFooter p={'sm'} hiddenFrom="sm">
+    <AppShellFooter px={'sm'} pb={'lg'} hiddenFrom="sm">
       <Group align="center" justify="space-around" gap={'lg'} h={'100%'}>
         <BottomBarItem href="/home" icon={LuLibrary} />
         <BottomBarItem href="/explore" icon={MdOutlineEmojiNature} />

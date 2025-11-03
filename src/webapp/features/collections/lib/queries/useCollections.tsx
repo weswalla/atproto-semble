@@ -11,7 +11,7 @@ export default function useCollections(props: Props) {
   const limit = props?.limit ?? 15;
 
   return useSuspenseInfiniteQuery({
-    queryKey: collectionKeys.infinite(),
+    queryKey: collectionKeys.infinite(props.didOrHandle),
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
       getCollections(props.didOrHandle, {

@@ -61,6 +61,7 @@ export default function UrlCard(props: Props) {
                 target="_blank"
                 c={'gray'}
                 lineClamp={1}
+                w={'fit-content'}
               >
                 {domain}
               </Anchor>

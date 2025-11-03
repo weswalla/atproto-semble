@@ -1,6 +1,7 @@
 import { User } from '@/api-client/ApiClient';
 import { Avatar, Card, Group, Spoiler, Stack, Text } from '@mantine/core';
 import { getRelativeTime } from '@/lib/utils/time';
+import Link from 'next/link';
 
 interface Props {
   id: string;
@@ -22,13 +23,21 @@ export default function NoteCard(props: Props) {
 
         <Group gap={'xs'}>
           <Avatar
+            component={Link}
+            href={`/profile/${props.author.handle}`}
             src={props.author.avatarUrl}
             alt={`${props.author.handle}'s avatar`}
             size={'sm'}
           />
 
           <Text c={'gray'}>
-            <Text c={'dark'} fw={500} span>
+            <Text
+              component={Link}
+              href={`/profile/${props.author.handle}`}
+              c={'dark'}
+              fw={500}
+              span
+            >
               {props.author.name}
             </Text>
             <Text span>{' · '}</Text>

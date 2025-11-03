@@ -23,7 +23,7 @@ export default function useAddCard() {
     // https://tkdodo.eu/blog/mastering-mutations-in-react-query#some-callbacks-might-not-fire
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: cardKeys.mine() });
-      queryClient.invalidateQueries({ queryKey: cardKeys.infinite() });
+      queryClient.invalidateQueries({ queryKey: cardKeys.all() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.mine() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.infinite() });
       queryClient.invalidateQueries({

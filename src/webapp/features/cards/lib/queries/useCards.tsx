@@ -11,7 +11,7 @@ export default function useCards(props: Props) {
   const limit = props?.limit ?? 16;
 
   const cards = useSuspenseInfiniteQuery({
-    queryKey: cardKeys.infinite(),
+    queryKey: cardKeys.infinite(props.didOrHandle),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
       return getUrlCards(props.didOrHandle, {

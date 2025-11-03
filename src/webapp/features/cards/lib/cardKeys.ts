@@ -6,5 +6,9 @@ export const cardKeys = {
   search: (query: string) => [...cardKeys.all(), 'search', query],
   bySembleUrl: (url: string) => [...cardKeys.all(), url],
   libraries: (id: string) => [...cardKeys.all(), 'libraries', id],
-  infinite: () => [...cardKeys.all(), 'infinite'],
+  infinite: (didOrHandle?: string) => [
+    ...cardKeys.all(),
+    'infinite',
+    didOrHandle,
+  ],
 };

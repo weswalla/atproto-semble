@@ -2,7 +2,7 @@ import { Avatar, Group, Skeleton, Stack } from '@mantine/core';
 
 export default function NoteCardModalContentSkeleton() {
   return (
-    <Stack gap={5}>
+    <Stack gap={'xs'}>
       <Group gap={5}>
         <Avatar size={'md'} />
         <Skeleton w={100} h={14} />

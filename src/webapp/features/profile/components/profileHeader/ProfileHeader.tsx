@@ -23,13 +23,13 @@ export default async function ProfileHeader(props: Props) {
   const profile = await getProfile(props.handle);
 
   return (
-    <Container bg={'white'} p={'xs'} size={'xl'}>
+    <Container bg={'white'} p={0} size={'xl'}>
       <MinimalProfileHeaderContainer
         avatarUrl={profile.avatarUrl}
         name={profile.name}
         handle={profile.handle}
       />
-      <Stack gap={'sm'}>
+      <Stack gap={'sm'} p={'xs'}>
         <Stack gap={'xl'}>
           <Grid gutter={'md'} align={'center'} grow>
             <GridCol span={'auto'}>

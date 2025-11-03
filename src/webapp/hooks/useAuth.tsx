@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.client';
 import { verifySessionOnClient } from '@/lib/auth/dal';
+import { usePathname } from 'next/navigation';
 
 interface AuthContextType {
   user: GetProfileResponse | null;
@@ -20,6 +21,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const pathname = usePathname(); // to prevent redirecting to login on landing page
 
   const refreshAuth = async () => {
     await query.refetch();
@@ -43,7 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   });
 
   useEffect(() => {
-    if (query.isError && !query.isLoading) logout();
+    if (query.isError && !query.isLoading && pathname !== '/') logout();
   }, [query.isError, logout]);
 
   const contextValue: AuthContextType = {

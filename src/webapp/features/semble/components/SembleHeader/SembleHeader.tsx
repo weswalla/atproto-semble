@@ -9,6 +9,7 @@ import {
   Tooltip,
   Spoiler,
   Card,
+  Button,
 } from '@mantine/core';
 import Link from 'next/link';
 import { getUrlMetadata } from '@/features/cards/lib/dal';
@@ -76,7 +77,13 @@ export default async function SembleHeader(props: Props) {
                 />
               </Card>
             )}
-            {session && <SembleActions url={props.url} />}
+            {session ? (
+              <SembleActions url={props.url} />
+            ) : (
+              <Button size="md" component={Link} href={'/login'}>
+                Log in to add
+              </Button>
+            )}
           </Stack>
         </GridCol>
       </Grid>

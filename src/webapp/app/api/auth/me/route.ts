@@ -47,12 +47,30 @@ export async function GET(request: NextRequest) {
           console.log(`[auth/me] Token refresh completed successfully`);
         }
         return result;
-      } catch (error) {
+      } catch (error: any) {
         if (ENABLE_REFRESH_LOGGING) {
           console.log(`[auth/me] Token refresh error: ${error}`);
         }
         console.error('Token refresh error:', error);
-        // Clear cookies on refresh failure
+
+        // If this is a refresh failure with backend response, forward the cookie-clearing headers
+        if (error.backendResponse) {
+          const response = NextResponse.json<AuthResult>(
+            { isAuth: false },
+            { status: 500 },
+          );
+
+          // Forward the Set-Cookie headers from backend to clear cookies
+          const setCookieHeader =
+            error.backendResponse.headers.get('set-cookie');
+          if (setCookieHeader) {
+            response.headers.set('Set-Cookie', setCookieHeader);
+          }
+
+          return response;
+        }
+
+        // For other errors, clear cookies manually
         const response = NextResponse.json<AuthResult>(
           { isAuth: false },
           { status: 500 },
@@ -132,8 +150,10 @@ async function performTokenRefresh(
         `[auth/me] Backend refresh failed with status: ${refreshResponse.status}. Message: ${await refreshResponse.text()}`,
       );
     }
-    // Throw error instead of returning response
-    throw new Error(`Refresh failed: ${refreshResponse.status}`);
+    // Create error with backend response to preserve cookie-clearing headers
+    const error = new Error(`Refresh failed: ${refreshResponse.status}`) as any;
+    error.backendResponse = refreshResponse;
+    throw error;
   }
 
   // Get new tokens from response

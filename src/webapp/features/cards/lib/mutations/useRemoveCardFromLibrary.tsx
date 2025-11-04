@@ -3,6 +3,7 @@ import { removeCardFromLibrary } from '../dal';
 import { cardKeys } from '../cardKeys';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 import { noteKeys } from '@/features/notes/lib/noteKeys';
+import { feedKeys } from '@/features/feeds/lib/feedKeys';
 
 export default function useRemoveCardFromLibrary() {
   const queryClient = useQueryClient();
@@ -15,6 +16,7 @@ export default function useRemoveCardFromLibrary() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cardKeys.all() });
       queryClient.invalidateQueries({ queryKey: noteKeys.all() });
+      queryClient.invalidateQueries({ queryKey: feedKeys.all() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
     },
   });

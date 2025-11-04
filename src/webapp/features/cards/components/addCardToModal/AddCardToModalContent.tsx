@@ -130,7 +130,9 @@ export default function AddCardToModalContent(props: Props) {
         thumbnailUrl={metadata.imageUrl}
         title={metadata.title}
         note={isMyCard ? note : cardStatus.data.card?.note?.text}
+        noteId={cardStatus.data.card?.note?.id}
         onUpdateNote={setNote}
+        onClose={props.onClose}
       />
 
       <CollectionSelector

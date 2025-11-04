@@ -139,7 +139,11 @@ export default function CardToBeAddedPreview(props: Props) {
         <Group justify="space-between" gap={'xs'}>
           <Text>Delete note?</Text>
           <Group gap={'xs'}>
-            <Button color="red" onClick={handleDeleteNote}>
+            <Button
+              color="red"
+              onClick={handleDeleteNote}
+              loading={removeNote.isPending}
+            >
               Delete
             </Button>
             <Button

@@ -7,7 +7,7 @@ import { useNavbarContext } from '@/providers/navbar';
 
 export default function ComposerDrawer() {
   const { mobileOpened, desktopOpened } = useNavbarContext();
-  const isDesktop = useMediaQuery('(min-width: 36em)'); // "sm" breakpoint
+  const isDesktop = useMediaQuery('(min-width: 36em)', false); // "sm" breakpoint
   const isNavOpen = isDesktop ? desktopOpened : mobileOpened;
   const shouldShowFab = !isNavOpen;
   const [opened, setOpened] = useState(false);

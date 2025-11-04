@@ -9,9 +9,17 @@ export const isTokenExpiringSoon = (
   );
 
   try {
+    // Validate JWT structure first
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+
     const payload = JSON.parse(
-      Buffer.from(token.split('.')[1], 'base64').toString(),
+      Buffer.from(parts[1], 'base64').toString(),
     );
+    
+    // Ensure exp claim exists and is a number
+    if (!payload.exp || typeof payload.exp !== 'number') return true;
+    
     const expiry = payload.exp * 1000;
     const bufferTime = bufferSeconds * 1000;
     return Date.now() >= expiry - bufferTime;

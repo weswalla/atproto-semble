@@ -74,17 +74,28 @@ export async function GET(request: NextRequest) {
       });
 
       if (!profileResponse.ok) {
-        return NextResponse.json<AuthResult>(
+        // Clear cookies on auth failure
+        const response = NextResponse.json<AuthResult>(
           { isAuth: false },
           { status: profileResponse.status },
         );
+        response.cookies.delete('accessToken');
+        response.cookies.delete('refreshToken');
+        return response;
       }
 
       const user = await profileResponse.json();
       return NextResponse.json<AuthResult>({ isAuth: true, user });
     } catch (error) {
       console.error('Profile fetch error:', error);
-      return NextResponse.json<AuthResult>({ isAuth: false }, { status: 500 });
+      // Clear cookies on fetch error too
+      const response = NextResponse.json<AuthResult>(
+        { isAuth: false },
+        { status: 500 },
+      );
+      response.cookies.delete('accessToken');
+      response.cookies.delete('refreshToken');
+      return response;
     }
   } catch (error) {
     console.error('Auth me error:', error);

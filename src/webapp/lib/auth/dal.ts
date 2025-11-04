@@ -1,6 +1,5 @@
 import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { cache } from 'react';
-import { isPWA } from './pwa-cookie-handler';
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
 
@@ -21,9 +20,6 @@ export const verifySessionOnClient = cache(
         const response = await fetch(`${appUrl}/api/auth/me`, {
           method: 'GET',
           credentials: 'include', // HttpOnly cookies sent automatically
-          headers: {
-            'X-PWA-Context': isPWA() ? 'true' : 'false',
-          },
         });
 
         if (!response.ok) {

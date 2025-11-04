@@ -26,7 +26,7 @@ export class RefreshAccessTokenUseCase
   ): Promise<RefreshAccessTokenResponse> {
     try {
       if (ENABLE_REFRESH_LOGGING) {
-        const tokenPreview = request.refreshToken.substring(0, 8) + '...';
+        const tokenPreview = '...' + request.refreshToken.slice(-8);
         console.log(
           `[RefreshAccessTokenUseCase] Attempting token refresh with token: ${tokenPreview}`,
         );

@@ -45,28 +45,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   });
 
   useEffect(() => {
-    // Don't auto-logout on Safari iOS immediately after auth success
-    // Give it time for cookies to be properly set
-    if (query.isError && !query.isLoading && pathname !== '/') {
-      // Add a small delay for Safari iOS cookie handling
-      const isSafariIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && 
-                          /Safari/.test(navigator.userAgent) && 
-                          !/Chrome/.test(navigator.userAgent);
-      
-      if (isSafariIOS) {
-        setTimeout(() => {
-          // Re-check auth status before logging out
-          query.refetch().then((result) => {
-            if (!result.data) {
-              logout();
-            }
-          });
-        }, 1000);
-      } else {
-        logout();
-      }
-    }
-  }, [query.isError, logout, query]);
+    if (query.isError && !query.isLoading && pathname !== '/') logout();
+  }, [query.isError, logout]);
 
   const contextValue: AuthContextType = {
     user: query.data ?? null,

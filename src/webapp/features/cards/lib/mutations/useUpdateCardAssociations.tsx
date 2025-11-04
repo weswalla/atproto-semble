@@ -4,6 +4,7 @@ import { cardKeys } from '../cardKeys';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 import { noteKeys } from '@/features/notes/lib/noteKeys';
 import { sembleKeys } from '@/features/semble/lib/sembleKeys';
+import { feedKeys } from '@/features/feeds/lib/feedKeys';
 
 export default function useUpdateCardAssociations() {
   const client = createSembleClient();
@@ -28,6 +29,7 @@ export default function useUpdateCardAssociations() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: cardKeys.all() });
       queryClient.invalidateQueries({ queryKey: noteKeys.all() });
+      queryClient.invalidateQueries({ queryKey: feedKeys.all() });
       queryClient.invalidateQueries({ queryKey: sembleKeys.all() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.mine() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.infinite() });

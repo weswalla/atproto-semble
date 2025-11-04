@@ -1,5 +1,7 @@
 import { ApiError, ApiErrorResponse } from '../errors';
 
+const ENABLE_REFRESH_LOGGING = true;
+
 export abstract class BaseClient {
   private static refreshPromise: Promise<void> | null = null;
 
@@ -45,6 +47,10 @@ export abstract class BaseClient {
   }
 
   private async handleAuthError(): Promise<void> {
+    if (ENABLE_REFRESH_LOGGING) {
+      console.log(`[BaseClient] 401 error detected, attempting token refresh`);
+    }
+
     // Prevent concurrent refresh attempts
     if (!BaseClient.refreshPromise) {
       BaseClient.refreshPromise = this.performTokenRefresh();
@@ -52,6 +58,14 @@ export abstract class BaseClient {
 
     try {
       await BaseClient.refreshPromise;
+      if (ENABLE_REFRESH_LOGGING) {
+        console.log(`[BaseClient] Token refresh completed successfully`);
+      }
+    } catch (error) {
+      if (ENABLE_REFRESH_LOGGING) {
+        console.log(`[BaseClient] Token refresh failed: ${error}`);
+      }
+      throw error;
     } finally {
       BaseClient.refreshPromise = null;
     }
@@ -59,16 +73,28 @@ export abstract class BaseClient {
 
   private async performTokenRefresh(): Promise<void> {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
+    
+    if (ENABLE_REFRESH_LOGGING) {
+      console.log(`[BaseClient] Sending refresh request to ${appUrl}/api/auth/me`);
+    }
+
     const response = await fetch(`${appUrl}/api/auth/me`, {
       credentials: 'include',
     });
 
     if (!response.ok) {
+      if (ENABLE_REFRESH_LOGGING) {
+        console.log(`[BaseClient] Refresh request failed with status: ${response.status}`);
+      }
       // Refresh failed, redirect to login if on client
       if (typeof window !== 'undefined') {
         window.location.href = '/login';
       }
       throw new Error('Token refresh failed');
+    }
+
+    if (ENABLE_REFRESH_LOGGING) {
+      console.log(`[BaseClient] Refresh request successful`);
     }
   }
 

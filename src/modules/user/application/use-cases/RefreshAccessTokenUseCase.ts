@@ -5,6 +5,8 @@ import { ITokenService } from '../services/ITokenService';
 import { TokenPair } from '@semble/types';
 import { RefreshAccessTokenErrors } from './errors/RefreshAccessTokenErrors';
 
+const ENABLE_REFRESH_LOGGING = true;
+
 export interface RefreshAccessTokenDTO {
   refreshToken: string;
 }
@@ -23,20 +25,46 @@ export class RefreshAccessTokenUseCase
     request: RefreshAccessTokenDTO,
   ): Promise<RefreshAccessTokenResponse> {
     try {
+      if (ENABLE_REFRESH_LOGGING) {
+        const tokenPreview = '...' + request.refreshToken.slice(-8);
+        console.log(
+          `[RefreshAccessTokenUseCase] Attempting token refresh with token: ${tokenPreview}`,
+        );
+      }
+
       const tokenResult = await this.tokenService.refreshToken(
         request.refreshToken,
       );
 
       if (tokenResult.isErr()) {
+        if (ENABLE_REFRESH_LOGGING) {
+          console.log(
+            `[RefreshAccessTokenUseCase] Token refresh failed: ${tokenResult.error.message}`,
+          );
+        }
         return err(new AppError.UnexpectedError(tokenResult.error));
       }
 
       if (!tokenResult.value) {
+        if (ENABLE_REFRESH_LOGGING) {
+          console.log(
+            `[RefreshAccessTokenUseCase] Token refresh returned null - invalid refresh token`,
+          );
+        }
         return err(new RefreshAccessTokenErrors.InvalidRefreshTokenError());
+      }
+
+      if (ENABLE_REFRESH_LOGGING) {
+        console.log(`[RefreshAccessTokenUseCase] Token refresh successful`);
       }
 
       return ok(tokenResult.value);
     } catch (error: any) {
+      if (ENABLE_REFRESH_LOGGING) {
+        console.log(
+          `[RefreshAccessTokenUseCase] Token refresh error: ${error.message}`,
+        );
+      }
       return err(new AppError.UnexpectedError(error));
     }
   }

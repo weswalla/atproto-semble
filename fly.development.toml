@@ -38,4 +38,5 @@ NODE_ENV="dev"
 BASE_URL="https://api.dev.semble.so"
 HOST="0.0.0.0"
 APP_URL="https://dev.semble.so"
-USE_IN_MEMORY_EVENTS="false"
+ACCESS_TOKEN_EXPIRES_IN=300
+REFRESH_TOKEN_EXPIRES_IN=2592000

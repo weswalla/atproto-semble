@@ -52,10 +52,14 @@ export async function GET(request: NextRequest) {
           console.log(`[auth/me] Token refresh error: ${error}`);
         }
         console.error('Token refresh error:', error);
-        return NextResponse.json<AuthResult>(
+        // Clear cookies on refresh failure
+        const response = NextResponse.json<AuthResult>(
           { isAuth: false },
           { status: 500 },
         );
+        response.cookies.delete('accessToken');
+        response.cookies.delete('refreshToken');
+        return response;
       } finally {
         refreshPromise = null;
       }
@@ -128,14 +132,8 @@ async function performTokenRefresh(
         `[auth/me] Backend refresh failed with status: ${refreshResponse.status}. Message: ${await refreshResponse.text()}`,
       );
     }
-    // Refresh failed — clear tokens and mark as unauthenticated
-    const response = NextResponse.json<AuthResult>(
-      { isAuth: false },
-      { status: 401 },
-    );
-    response.cookies.delete('accessToken');
-    response.cookies.delete('refreshToken');
-    return response;
+    // Throw error instead of returning response
+    throw new Error(`Refresh failed: ${refreshResponse.status}`);
   }
 
   // Get new tokens from response

@@ -114,7 +114,7 @@ async function performTokenRefresh(
   if (!refreshResponse.ok) {
     if (ENABLE_REFRESH_LOGGING) {
       console.log(
-        `[auth/me] Backend refresh failed with status: ${refreshResponse.status}`,
+        `[auth/me] Backend refresh failed with status: ${refreshResponse.status}. Message: ${await refreshResponse.text()}`,
       );
     }
     // Refresh failed — clear tokens and mark as unauthenticated

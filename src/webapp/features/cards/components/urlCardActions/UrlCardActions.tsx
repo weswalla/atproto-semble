@@ -32,7 +32,6 @@ export default function UrlCardActions(props: Props) {
   const isAuthor = props.authorHandle
     ? user?.handle === props.authorHandle
     : true;
-  const [showEditNoteModal, setShowEditNoteModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [showRemoveFromCollectionModal, setShowRemoveFromCollectionModal] =
     useState(false);

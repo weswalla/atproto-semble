@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { getUrlMetadata } from '@/features/cards/lib/dal';
 import { getDomain } from '@/lib/utils/link';
 import UrlAddedBySummary from '../urlAddedBySummary/UrlAddedBySummary';
-// import SembleActions from '../sembleActions/SembleActions';
+import SembleActions from '../sembleActions/SembleActions';
 
 interface Props {
   url: string;
@@ -74,7 +74,7 @@ export default async function SembleHeader(props: Props) {
                 />
               </Card>
             )}
-            {/*<SembleActions url={props.url} />*/}
+            <SembleActions url={props.url} />
           </Stack>
         </GridCol>
       </Grid>

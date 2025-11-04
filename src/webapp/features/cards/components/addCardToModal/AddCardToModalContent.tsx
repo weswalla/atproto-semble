@@ -21,10 +21,8 @@ interface SelectableCollectionItem {
 interface Props {
   onClose: () => void;
   cardContent: UrlCard['cardContent'];
-  urlLibraryCount: number;
   cardId: string;
   note?: string;
-  isInYourLibrary: boolean;
 }
 
 export default function AddCardToModalContent(props: Props) {

@@ -13,7 +13,7 @@ export const verifySessionOnClient = cache(
       console.log('Auth refresh already in progress, waiting...');
       return refreshPromise;
     }
-    
+
     isRefreshing = true;
     refreshPromise = (async () => {
       try {
@@ -34,7 +34,7 @@ export const verifySessionOnClient = cache(
         refreshPromise = null;
       }
     })();
-    
+
     return refreshPromise;
   },
 );

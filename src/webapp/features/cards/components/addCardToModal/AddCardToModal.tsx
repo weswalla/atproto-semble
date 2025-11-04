@@ -45,7 +45,7 @@ export default function AddCardToModal(props: Props) {
       onClose={onClose}
       title={
         <Stack gap={0}>
-          <Text fw={600}>Add or update card</Text>
+          <Text fw={600}>Add or update {props.cardId ? 'card' : 'link'}</Text>
           <Text c="gray" fw={500}>
             {subtitle}
           </Text>

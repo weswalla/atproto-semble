@@ -39,16 +39,17 @@ export abstract class BaseClient {
         retryCount === 0
       ) {
         // Try to refresh token and retry once
-        await this.handleAuthError();
+        await this.handleAuthError(url);
         return this.request(method, endpoint, data, 1);
       }
       throw error;
     }
   }
 
-  private async handleAuthError(): Promise<void> {
+  private async handleAuthError(originalUrl?: string): Promise<void> {
     if (ENABLE_REFRESH_LOGGING) {
-      console.log(`[BaseClient] 401 error detected, attempting token refresh`);
+      const urlInfo = originalUrl ? ` for request to ${originalUrl}` : '';
+      console.log(`[BaseClient] 401 error detected${urlInfo}, attempting token refresh`);
     }
 
     // Prevent concurrent refresh attempts

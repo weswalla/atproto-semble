@@ -54,7 +54,15 @@ export default function NoteCardModalContent(props: Props) {
   };
 
   const handleUpdateNote = () => {
-    if (!props.note || !note) return;
+    if (!props.note || !note) {
+      props.onClose();
+      return;
+    }
+
+    if (props.note.text === note) {
+      props.onClose();
+      return;
+    }
 
     updateNote.mutate(
       {

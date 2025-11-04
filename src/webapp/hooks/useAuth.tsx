@@ -49,10 +49,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Give it time for cookies to be properly set
     if (query.isError && !query.isLoading && pathname !== '/') {
       // Add a small delay for Safari iOS cookie handling
-      const isSafariIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && 
-                          /Safari/.test(navigator.userAgent) && 
-                          !/Chrome/.test(navigator.userAgent);
-      
+      const isSafariIOS =
+        /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+        /Safari/.test(navigator.userAgent) &&
+        !/Chrome/.test(navigator.userAgent);
+
       if (isSafariIOS) {
         setTimeout(() => {
           // Re-check auth status before logging out
@@ -61,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               logout();
             }
           });
-        }, 1000);
+        }, 2000); // Increase to 2 seconds for PWA context
       } else {
         logout();
       }

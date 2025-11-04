@@ -25,23 +25,34 @@ import DBIcon from '@/assets/icons/db-icon.svg';
 import BigPictureIcon from '@/assets/icons/big-picture-icon.svg';
 import TangledIcon from '@/assets/icons/tangled-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
+import Link from 'next/link';
 
 export default function Home() {
   return (
     <BackgroundImage src={BG.src} h={'100svh'}>
+      <script async src="https://tally.so/widgets/embed.js" />
+      <Container size={'xl'} p={'md'} my={'auto'}>
+        <Group justify="space-between">
+          <Stack gap={6} align="center">
+            <Image src={SembleLogo.src} alt="Semble logo" w={30} h={'auto'} />
+            <Badge size="sm">Alpha</Badge>
+          </Stack>
+          <Button
+            data-tally-open="31a9Ng"
+            data-tally-hide-title="1"
+            data-tally-layout="modal"
+            data-tally-emoji-animation="none"
+            variant="default"
+            size="sm"
+          >
+            Stay in the loop
+          </Button>
+        </Group>
+      </Container>
       <Center h={'100svh'} py={{ base: '2rem', xs: '5rem' }}>
         <Container size={'xl'} p={'md'} my={'auto'}>
           <Stack align="center" gap={'5rem'}>
             <Stack gap={'xs'} align="center" maw={550} mx={'auto'}>
-              <Stack gap={'xs'}>
-                <Image
-                  src={SembleLogo.src}
-                  alt="Semble logo"
-                  w={'auto'}
-                  h={60}
-                />
-              </Stack>
-              <Badge size="sm">Alpha</Badge>
               <Title order={1} fw={600} fz={'3rem'} ta={'center'}>
                 A social knowledge network for researchers
               </Title>
@@ -49,25 +60,15 @@ export default function Home() {
                 Follow your peers’ research trails. Surface and discover new
                 connections. Built on ATProto so you own your data.
               </Title>
-              {process.env.VERCEL_ENV === 'production' ? (
-                <Button
-                  component="a"
-                  href="https://forms.cosmik.network/waitlist"
-                  target="_blank"
-                  size="lg"
-                  color="dark"
-                  mt={'lg'}
-                >
-                  Join waitlist
-                </Button>
-              ) : (
+
+              {process.env.VERCEL_ENV !== 'production' && (
                 <Group gap="md" mt={'lg'}>
-                  <Button component="a" href="/signup" size="lg">
+                  <Button component={Link} href="/signup" size="lg">
                     Sign up
                   </Button>
 
                   <Button
-                    component="a"
+                    component={Link}
                     href="/login"
                     size="lg"
                     color="dark"

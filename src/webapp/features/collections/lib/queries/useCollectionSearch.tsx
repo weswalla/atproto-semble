@@ -1,5 +1,6 @@
-import { ApiClient } from '@/api-client/ApiClient';
 import { useQuery } from '@tanstack/react-query';
+import { getMyCollections } from '../dal';
+import { collectionKeys } from '../collectionKeys';
 
 interface Props {
   query: string;
@@ -9,15 +10,11 @@ interface Props {
 }
 
 export default function useCollectionSearch(props: Props) {
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-  );
-
   // TODO: replace with infinite suspense query
   const collections = useQuery({
-    queryKey: ['collection search', props.query, props.params?.limit],
+    queryKey: collectionKeys.search(props.query),
     queryFn: () =>
-      apiClient.getMyCollections({
+      getMyCollections({
         limit: props.params?.limit ?? 10,
         sortBy: 'updatedAt',
         sortOrder: 'desc',

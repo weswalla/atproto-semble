@@ -5,11 +5,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.client';
-
-type UserProfile = GetProfileResponse;
+import { verifySessionOnClient } from '@/lib/auth/dal';
+import { usePathname } from 'next/navigation';
 
 interface AuthContextType {
-  user: UserProfile | null;
+  user: GetProfileResponse | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   refreshAuth: () => Promise<void>;
@@ -21,6 +21,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const pathname = usePathname(); // to prevent redirecting to login on landing page
 
   const refreshAuth = async () => {
     await query.refetch();
@@ -28,25 +29,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     await ClientCookieAuthService.clearTokens();
-    queryClient.removeQueries({ queryKey: ['authenticated user'] });
+    queryClient.clear();
     router.push('/login');
   };
 
-  const query = useQuery<UserProfile | null>({
+  const query = useQuery<GetProfileResponse | null>({
     queryKey: ['authenticated user'],
     queryFn: async () => {
-      const response = await fetch('/api/auth/me', {
-        method: 'GET',
-        credentials: 'include', // HttpOnly cookies sent automatically
-      });
-
-      // unauthenticated
-      if (!response.ok) {
-        throw new Error('Not authenticated');
-      }
-
-      const data = await response.json();
-      return data.user as UserProfile;
+      const session = await verifySessionOnClient();
+      return session;
     },
     staleTime: 5 * 60 * 1000, // cache for 5 minutes
     refetchOnWindowFocus: false,
@@ -54,7 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   });
 
   useEffect(() => {
-    if (query.isError) logout();
+    if (query.isError && !query.isLoading && pathname !== '/') logout();
   }, [query.isError, logout]);
 
   const contextValue: AuthContextType = {

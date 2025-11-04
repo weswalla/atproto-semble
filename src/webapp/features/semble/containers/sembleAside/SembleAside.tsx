@@ -66,7 +66,11 @@ export default async function SembleAside(props: Props) {
           ) : (
             <Stack gap={'xs'}>
               {collectionsData.collections.slice(0, 3).map((col) => (
-                <CollectionCard key={col.uri} collection={col} />
+                <CollectionCard
+                  key={col.uri}
+                  collection={col}
+                  showAuthor={true}
+                />
               ))}
             </Stack>
           )}

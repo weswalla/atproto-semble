@@ -8,6 +8,7 @@ import { AppError } from '../../../../shared/core/AppError';
 import { DomainService } from '../../../../shared/domain/DomainService';
 import { CardCollectionService } from './CardCollectionService';
 import { PublishedRecordId } from '../value-objects/PublishedRecordId';
+import { AuthenticationError } from '../../../../shared/core/AuthenticationError';
 
 export class CardLibraryValidationError extends Error {
   constructor(message: string) {
@@ -28,7 +29,12 @@ export class CardLibraryService implements DomainService {
     card: Card,
     curatorId: CuratorId,
   ): Promise<
-    Result<Card, CardLibraryValidationError | AppError.UnexpectedError>
+    Result<
+      Card,
+      | CardLibraryValidationError
+      | AuthenticationError
+      | AppError.UnexpectedError
+    >
   > {
     try {
       // Check if card is already in curator's library
@@ -76,6 +82,10 @@ export class CardLibraryService implements DomainService {
         parentCardPublishedRecordId,
       );
       if (publishResult.isErr()) {
+        // Propagate authentication errors
+        if (publishResult.error instanceof AuthenticationError) {
+          return err(publishResult.error);
+        }
         return err(
           new CardLibraryValidationError(
             `Failed to publish card to library: ${publishResult.error.message}`,
@@ -112,7 +122,12 @@ export class CardLibraryService implements DomainService {
     card: Card,
     curatorId: CuratorId,
   ): Promise<
-    Result<Card, CardLibraryValidationError | AppError.UnexpectedError>
+    Result<
+      Card,
+      | CardLibraryValidationError
+      | AuthenticationError
+      | AppError.UnexpectedError
+    >
   > {
     try {
       // Check if card is in curator's library
@@ -190,6 +205,10 @@ export class CardLibraryService implements DomainService {
             libraryInfo.curatorId,
           );
         if (unpublishResult.isErr()) {
+          // Propagate authentication errors
+          if (unpublishResult.error instanceof AuthenticationError) {
+            return err(unpublishResult.error);
+          }
           return err(
             new CardLibraryValidationError(
               `Failed to unpublish card from library: ${unpublishResult.error.message}`,

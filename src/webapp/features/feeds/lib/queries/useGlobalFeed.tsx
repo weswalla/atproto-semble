@@ -1,22 +1,19 @@
-import { ApiClient } from '@/api-client/ApiClient';
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
+import { getGlobalFeed } from '../dal';
+import { feedKeys } from '../feedKeys';
 
 interface Props {
   limit?: number;
 }
 
-export default function useMyFeed(props?: Props) {
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-  );
-
+export default function useGlobalFeed(props?: Props) {
   const limit = props?.limit ?? 15;
 
   const query = useSuspenseInfiniteQuery({
-    queryKey: ['my feed', limit],
+    queryKey: feedKeys.infinite(),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
-      return apiClient.getGlobalFeed({ limit, page: pageParam });
+      return getGlobalFeed({ limit, page: pageParam });
     },
     getNextPageParam: (lastPage) => {
       if (lastPage.pagination.hasMore) {

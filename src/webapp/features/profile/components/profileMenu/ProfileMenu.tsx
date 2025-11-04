@@ -4,9 +4,7 @@ import {
   Group,
   Alert,
   Menu,
-  Stack,
   Image,
-  Text,
   Button,
 } from '@mantine/core';
 import useMyProfile from '../../lib/queries/useMyProfile';

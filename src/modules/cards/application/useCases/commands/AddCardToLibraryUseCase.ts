@@ -8,6 +8,7 @@ import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { CardLibraryService } from '../../../domain/services/CardLibraryService';
 import { CardCollectionService } from '../../../domain/services/CardCollectionService';
+import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface AddCardToLibraryDTO {
   cardId: string;
@@ -31,7 +32,7 @@ export class AddCardToLibraryUseCase
       AddCardToLibraryDTO,
       Result<
         AddCardToLibraryResponseDTO,
-        ValidationError | AppError.UnexpectedError
+        ValidationError | AuthenticationError | AppError.UnexpectedError
       >
     >
 {
@@ -46,7 +47,7 @@ export class AddCardToLibraryUseCase
   ): Promise<
     Result<
       AddCardToLibraryResponseDTO,
-      ValidationError | AppError.UnexpectedError
+      ValidationError | AuthenticationError | AppError.UnexpectedError
     >
   > {
     try {
@@ -87,6 +88,10 @@ export class AddCardToLibraryUseCase
         curatorId,
       );
       if (addToLibraryResult.isErr()) {
+        // Propagate authentication errors
+        if (addToLibraryResult.error instanceof AuthenticationError) {
+          return err(addToLibraryResult.error);
+        }
         if (addToLibraryResult.error instanceof AppError.UnexpectedError) {
           return err(addToLibraryResult.error);
         }
@@ -118,6 +123,10 @@ export class AddCardToLibraryUseCase
             curatorId,
           );
         if (addToCollectionsResult.isErr()) {
+          // Propagate authentication errors
+          if (addToCollectionsResult.error instanceof AuthenticationError) {
+            return err(addToCollectionsResult.error);
+          }
           if (
             addToCollectionsResult.error instanceof AppError.UnexpectedError
           ) {

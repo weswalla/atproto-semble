@@ -2,6 +2,7 @@ import { Controller } from '../../../../../shared/infrastructure/http/Controller
 import { Response } from 'express';
 import { AddCardToLibraryUseCase } from '../../../application/useCases/commands/AddCardToLibraryUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
+import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export class AddCardToLibraryController extends Controller {
   constructor(private addCardToLibraryUseCase: AddCardToLibraryUseCase) {
@@ -33,12 +34,16 @@ export class AddCardToLibraryController extends Controller {
       });
 
       if (result.isErr()) {
+        // Check if the error is an authentication error
+        if (result.error instanceof AuthenticationError) {
+          return this.unauthorized(res, result.error.message);
+        }
         return this.fail(res, result.error);
       }
 
       return this.ok(res, result.value);
     } catch (error: any) {
-      return this.fail(res, error);
+      return this.handleError(res, error);
     }
   }
 }

@@ -1,5 +1,6 @@
 import { DatabaseFactory } from '../../database/DatabaseFactory';
 import { EnvironmentConfigService } from '../../config/EnvironmentConfigService';
+import { RedisFactory } from '../../redis/RedisFactory';
 import { DrizzleUserRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleUserRepository';
 import { DrizzleTokenRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleTokenRepository';
 import { DrizzleCardRepository } from '../../../../modules/cards/infrastructure/repositories/DrizzleCardRepository';
@@ -52,7 +53,7 @@ export interface Repositories {
 
 export class RepositoryFactory {
   static create(configService: EnvironmentConfigService): Repositories {
-    const useMockRepos = process.env.USE_MOCK_REPOS === 'true';
+    const useMockRepos = configService.shouldUseMockRepos();
 
     if (useMockRepos) {
       // Use singleton instances to ensure same data across processes

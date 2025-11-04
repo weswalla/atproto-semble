@@ -38,11 +38,9 @@ export default function AddCardToModal(props: Props) {
       centered
       onClick={(e) => e.stopPropagation()}
     >
-      {props.isOpen && (
-        <Suspense fallback={<CollectionSelectorSkeleton />}>
-          <AddCardToModalContent {...props} />
-        </Suspense>
-      )}
+      <Suspense fallback={<CollectionSelectorSkeleton />}>
+        <AddCardToModalContent {...props} />
+      </Suspense>
     </Modal>
   );
 }

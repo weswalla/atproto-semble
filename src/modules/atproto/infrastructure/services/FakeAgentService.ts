@@ -17,7 +17,8 @@ export class FakeAgentService implements IAgentService {
               handle: mockHandle,
               displayName: `Mock User`,
               description: 'This is a mock profile for testing purposes',
-              avatar: 'https://via.placeholder.com/150',
+              avatar:
+                'https://cdn.bsky.app/img/avatar/plain/did:plc:rlknsba2qldjkicxsmni3vyn/bafkreid4nmxspygkftep5b3m2wlcm3xvnwefkswzej7dhipojjxylkzfby@jpeg',
             },
           };
         },
@@ -41,6 +42,9 @@ export class FakeAgentService implements IAgentService {
   async getAuthenticatedAgent(did: DID): Promise<Result<Agent, Error>> {
     try {
       // Return the same mock agent for authenticated requests
+
+      // uncomment the line below to test error handling
+      // throw new Error('Not implemented in FakeAgentService');
       return this.getUnauthenticatedAgent();
     } catch (error: any) {
       return err(error);

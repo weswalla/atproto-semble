@@ -7,6 +7,7 @@ import { ICollectionRepository } from '../ICollectionRepository';
 import { ICollectionPublisher } from '../../application/ports/ICollectionPublisher';
 import { AppError } from '../../../../shared/core/AppError';
 import { DomainService } from '../../../../shared/domain/DomainService';
+import { AuthenticationError } from '../../../../shared/core/AuthenticationError';
 
 export class CardCollectionValidationError extends Error {
   constructor(message: string) {
@@ -26,7 +27,12 @@ export class CardCollectionService implements DomainService {
     collectionId: CollectionId,
     curatorId: CuratorId,
   ): Promise<
-    Result<Collection, CardCollectionValidationError | AppError.UnexpectedError>
+    Result<
+      Collection,
+      | CardCollectionValidationError
+      | AuthenticationError
+      | AppError.UnexpectedError
+    >
   > {
     try {
       // Find the collection
@@ -63,6 +69,10 @@ export class CardCollectionService implements DomainService {
           curatorId,
         );
       if (publishLinkResult.isErr()) {
+        // Propagate authentication errors
+        if (publishLinkResult.error instanceof AuthenticationError) {
+          return err(publishLinkResult.error);
+        }
         return err(
           new CardCollectionValidationError(
             `Failed to publish collection link: ${publishLinkResult.error.message}`,
@@ -93,7 +103,9 @@ export class CardCollectionService implements DomainService {
   ): Promise<
     Result<
       Collection[],
-      CardCollectionValidationError | AppError.UnexpectedError
+      | CardCollectionValidationError
+      | AuthenticationError
+      | AppError.UnexpectedError
     >
   > {
     const updatedCollections: Collection[] = [];
@@ -119,7 +131,9 @@ export class CardCollectionService implements DomainService {
   ): Promise<
     Result<
       Collection | null,
-      CardCollectionValidationError | AppError.UnexpectedError
+      | CardCollectionValidationError
+      | AuthenticationError
+      | AppError.UnexpectedError
     >
   > {
     try {
@@ -155,6 +169,10 @@ export class CardCollectionService implements DomainService {
             cardLink.publishedRecordId,
           );
         if (unpublishLinkResult.isErr()) {
+          // Propagate authentication errors
+          if (unpublishLinkResult.error instanceof AuthenticationError) {
+            return err(unpublishLinkResult.error);
+          }
           return err(
             new CardCollectionValidationError(
               `Failed to unpublish collection link: ${unpublishLinkResult.error.message}`,
@@ -193,7 +211,9 @@ export class CardCollectionService implements DomainService {
   ): Promise<
     Result<
       Collection[],
-      CardCollectionValidationError | AppError.UnexpectedError
+      | CardCollectionValidationError
+      | AuthenticationError
+      | AppError.UnexpectedError
     >
   > {
     const updatedCollections: Collection[] = [];

@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { AuthenticationError } from '../../core/AuthenticationError';
 
 export abstract class Controller {
   protected abstract executeImpl(req: any, res: Response): Promise<any>;
@@ -62,5 +63,12 @@ export abstract class Controller {
     return res.status(500).json({
       message: error.toString(),
     });
+  }
+
+  protected handleError(res: Response, error: Error): Response {
+    if (error instanceof AuthenticationError) {
+      return this.unauthorized(res, error.message);
+    }
+    return this.fail(res, error);
   }
 }

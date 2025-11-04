@@ -61,18 +61,13 @@ export default function UrlCard(props: Props) {
                 target="_blank"
                 c={'gray'}
                 lineClamp={1}
+                w={'fit-content'}
               >
                 {domain}
               </Anchor>
             </Tooltip>
             {props.cardContent.title && (
-              <Text
-                fw={500}
-                lineClamp={2}
-                style={{
-                  wordBreak: 'break-word',
-                }}
-              >
+              <Text fw={500} lineClamp={2}>
                 {props.cardContent.title}
               </Text>
             )}

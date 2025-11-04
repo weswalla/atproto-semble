@@ -13,6 +13,7 @@ import { CollectionLinkMapper } from '../mappers/CollectionLinkMapper';
 import { StrongRef } from '../../domain';
 import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
+import { AuthenticationError } from 'src/shared/core/AuthenticationError';
 
 export class ATProtoCollectionPublisher implements ICollectionPublisher {
   constructor(
@@ -43,8 +44,14 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         await this.agentService.getAuthenticatedAgent(curatorDid);
 
       if (agentResult.isErr()) {
+        // Propagate authentication errors as-is
+        if (agentResult.error instanceof AuthenticationError) {
+          return err(agentResult.error);
+        }
         return err(
-          new Error(`Authentication error: ${agentResult.error.message}`),
+          new Error(
+            `Authentication error for ATProtoCollectionPublisher: ${agentResult.error.message}`,
+          ),
         );
       }
 
@@ -123,8 +130,14 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         await this.agentService.getAuthenticatedAgent(curatorDid);
 
       if (agentResult.isErr()) {
+        // Propagate authentication errors as-is
+        if (agentResult.error instanceof AuthenticationError) {
+          return err(agentResult.error);
+        }
         return err(
-          new Error(`Authentication error: ${agentResult.error.message}`),
+          new Error(
+            `Authentication error for ATProtoCollectionPublisher: ${agentResult.error.message}`,
+          ),
         );
       }
 
@@ -221,8 +234,14 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         await this.agentService.getAuthenticatedAgent(curatorDid);
 
       if (agentResult.isErr()) {
+        // Propagate authentication errors as-is
+        if (agentResult.error instanceof AuthenticationError) {
+          return err(agentResult.error);
+        }
         return err(
-          new Error(`Authentication error: ${agentResult.error.message}`),
+          new Error(
+            `Authentication error for ATProtoCollectionPublisher: ${agentResult.error.message}`,
+          ),
         );
       }
 
@@ -265,8 +284,14 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         await this.agentService.getAuthenticatedAgent(curatorDid);
 
       if (agentResult.isErr()) {
+        // Propagate authentication errors as-is
+        if (agentResult.error instanceof AuthenticationError) {
+          return err(agentResult.error);
+        }
         return err(
-          new Error(`Authentication error: ${agentResult.error.message}`),
+          new Error(
+            `Authentication error for ATProtoCollectionPublisher: ${agentResult.error.message}`,
+          ),
         );
       }
 

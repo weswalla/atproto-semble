@@ -44,7 +44,7 @@ export interface UseCases {
   logoutUseCase: LogoutUseCase;
   initiateOAuthSignInUseCase: InitiateOAuthSignInUseCase;
   completeOAuthSignInUseCase: CompleteOAuthSignInUseCase;
-  getMyProfileUseCase: GetProfileUseCase;
+  getProfileUseCase: GetProfileUseCase;
   refreshAccessTokenUseCase: RefreshAccessTokenUseCase;
   generateExtensionTokensUseCase: GenerateExtensionTokensUseCase;
   // Card use cases
@@ -109,7 +109,7 @@ export class UseCaseFactory {
         repositories.userRepository,
         services.userAuthService,
       ),
-      getMyProfileUseCase: new GetProfileUseCase(
+      getProfileUseCase: new GetProfileUseCase(
         services.profileService,
         services.identityResolutionService,
       ),

@@ -8,7 +8,7 @@ interface Props {
 
 export default function MinimalProfileHeader(props: Props) {
   return (
-    <Container px={0} py={'xs'} size={'xl'} mx={0}>
+    <Container p={'xs'} size={'xl'} mx={0}>
       <Group gap={'sm'}>
         <Avatar
           src={props.avatarUrl}

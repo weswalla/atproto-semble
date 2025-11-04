@@ -23,13 +23,13 @@ export default async function ProfileHeader(props: Props) {
   const profile = await getProfile(props.handle);
 
   return (
-    <Container bg={'white'} p={'xs'} size={'xl'}>
+    <Container bg={'white'} p={0} size={'xl'}>
       <MinimalProfileHeaderContainer
         avatarUrl={profile.avatarUrl}
         name={profile.name}
         handle={profile.handle}
       />
-      <Stack gap={'sm'}>
+      <Stack gap={'sm'} p={'xs'}>
         <Stack gap={'xl'}>
           <Grid gutter={'md'} align={'center'} grow>
             <GridCol span={'auto'}>
@@ -44,19 +44,10 @@ export default async function ProfileHeader(props: Props) {
             <GridCol span={{ base: 12, xs: 9 }}>
               <Stack gap={'sm'}>
                 <Stack gap={0}>
-                  <Title
-                    order={1}
-                    fz={{ base: 'h2', md: 'h1' }}
-                    style={{ wordBreak: 'break-all' }}
-                  >
+                  <Title order={1} fz={{ base: 'h2', md: 'h1' }}>
                     {profile.name}
                   </Title>
-                  <Text
-                    c="blue"
-                    fw={600}
-                    fz={{ base: 'lg', md: 'xl' }}
-                    style={{ wordBreak: 'break-all' }}
-                  >
+                  <Text c="blue" fw={600} fz={{ base: 'lg', md: 'xl' }}>
                     @{profile.handle}
                   </Text>
                 </Stack>
@@ -64,7 +55,7 @@ export default async function ProfileHeader(props: Props) {
                   <Spoiler
                     showLabel={'Read more'}
                     hideLabel={'See less'}
-                    maxHeight={45}
+                    maxHeight={30}
                   >
                     <Text>{profile.description}</Text>
                   </Spoiler>

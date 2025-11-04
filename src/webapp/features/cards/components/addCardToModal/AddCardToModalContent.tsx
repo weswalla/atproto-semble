@@ -50,6 +50,8 @@ export default function AddCardToModalContent(props: Props) {
   const [selectedCollections, setSelectedCollections] =
     useState<SelectableCollectionItem[]>(collectionsWithCard);
 
+  const isSaving = addCard.isPending || updateCardAssociations.isPending;
+
   const handleUpdateCard = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -123,7 +125,7 @@ export default function AddCardToModalContent(props: Props) {
     <Stack justify="space-between">
       <CardToBeAddedPreview
         cardContent={props.cardContent}
-        note={isMyCard ? note : undefined}
+        note={isMyCard ? note : cardStatus.data.card?.note?.text}
         onUpdateNote={setNote}
       />
 
@@ -135,6 +137,7 @@ export default function AddCardToModalContent(props: Props) {
           setSelectedCollections(collectionsWithCard);
         }}
         onSave={handleUpdateCard}
+        isSaving={isSaving}
         selectedCollections={selectedCollections}
         onSelectedCollectionsChange={setSelectedCollections}
       />

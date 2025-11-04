@@ -1,5 +1,6 @@
-import { createSembleClient } from '@/services/apiClient';
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
+import { getCollectionPageByAtUri } from '../dal';
+import { collectionKeys } from '../collectionKeys';
 
 interface Props {
   rkey: string;
@@ -8,19 +9,16 @@ interface Props {
 }
 
 export default function useCollection(props: Props) {
-  const apiClient = createSembleClient();
-
   const limit = props.limit ?? 20;
 
   return useSuspenseInfiniteQuery({
-    queryKey: ['collection', props.rkey, props.handle, limit],
+    queryKey: collectionKeys.infinite(props.rkey),
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
-      apiClient.getCollectionPageByAtUri({
+      getCollectionPageByAtUri({
         recordKey: props.rkey,
         handle: props.handle,
-        limit,
-        page: pageParam,
+        params: { limit, page: pageParam },
       }),
     getNextPageParam: (lastPage) => {
       return lastPage.pagination.hasMore

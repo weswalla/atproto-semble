@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { cookies } from 'next/headers';
 import { isTokenExpiringSoon } from '@/lib/auth/token';
+
+const ENABLE_REFRESH_LOGGING = true;
+
+const backendUrl =
+  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
+
+type AuthResult = {
+  isAuth: boolean;
+  user?: GetProfileResponse;
+};
+
+// Prevent concurrent refresh attempts
+let refreshPromise: Promise<Response> | null = null;
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,74 +24,62 @@ export async function GET(request: NextRequest) {
 
     // No tokens at all - not authenticated
     if (!accessToken && !refreshToken) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json<AuthResult>({ isAuth: false }, { status: 401 });
     }
 
-    // Check if accessToken is expired/missing or expiring soon (< 5 min)
-    if ((!accessToken || isTokenExpiringSoon(accessToken, 5)) && refreshToken) {
-      try {
-        // Proxy the refresh request completely to backend
-        const backendUrl =
-          process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
-        const refreshResponse = await fetch(
-          `${backendUrl}/api/users/oauth/refresh`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Cookie: request.headers.get('cookie') || '', // Forward all cookies
-            },
-            body: JSON.stringify({ refreshToken }),
-          },
+    // Check if accessToken is expired/missing or expiring soon
+    if ((!accessToken || isTokenExpiringSoon(accessToken)) && refreshToken) {
+      if (ENABLE_REFRESH_LOGGING) {
+        const tokenPreview = '...' + refreshToken.slice(-8);
+        console.log(
+          `[auth/me] Access token missing/expiring, attempting refresh with token: ${tokenPreview}`,
         );
+      }
 
-        if (!refreshResponse.ok) {
-          // Refresh failed - clear invalid tokens
-          const response = new NextResponse(
-            JSON.stringify({ error: 'Authentication failed' }),
-            { status: 401 },
+      // Use mutex to prevent concurrent refresh attempts
+      if (!refreshPromise) {
+        refreshPromise = performTokenRefresh(refreshToken, request);
+      }
+
+      try {
+        const result = await refreshPromise;
+        if (ENABLE_REFRESH_LOGGING) {
+          console.log(`[auth/me] Token refresh completed successfully`);
+        }
+        return result;
+      } catch (error: any) {
+        if (ENABLE_REFRESH_LOGGING) {
+          console.log(`[auth/me] Token refresh error: ${error}`);
+        }
+        console.error('Token refresh error:', error);
+
+        // If this is a refresh failure with backend response, forward the cookie-clearing headers
+        if (error.backendResponse) {
+          const response = NextResponse.json<AuthResult>(
+            { isAuth: false },
+            { status: 500 },
           );
-          response.cookies.delete('accessToken');
-          response.cookies.delete('refreshToken');
+
+          // Forward the Set-Cookie headers from backend to clear cookies
+          const setCookieHeader =
+            error.backendResponse.headers.get('set-cookie');
+          if (setCookieHeader) {
+            response.headers.set('Set-Cookie', setCookieHeader);
+          }
+
           return response;
         }
 
-        // Get new tokens from response
-        const newTokens = await refreshResponse.json();
-        accessToken = newTokens.accessToken;
-
-        // Fetch profile with new token
-        const profileResponse = await fetch(`${backendUrl}/api/users/me`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Cookie: `accessToken=${accessToken}`,
-          },
-        });
-
-        if (!profileResponse.ok) {
-          return NextResponse.json(
-            { error: 'Failed to fetch profile' },
-            { status: profileResponse.status },
-          );
-        }
-
-        const user = await profileResponse.json();
-
-        // Return user profile with backend's Set-Cookie headers
-        return new Response(JSON.stringify({ user }), {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/json',
-            'Set-Cookie': refreshResponse.headers.get('set-cookie') || '',
-          },
-        });
-      } catch (error) {
-        console.error('Token refresh error:', error);
-        return NextResponse.json(
-          { error: 'Authentication failed' },
+        // For other errors, clear cookies manually
+        const response = NextResponse.json<AuthResult>(
+          { isAuth: false },
           { status: 500 },
         );
+        response.cookies.delete('accessToken');
+        response.cookies.delete('refreshToken');
+        return response;
+      } finally {
+        refreshPromise = null;
       }
     }
 
@@ -94,26 +96,90 @@ export async function GET(request: NextRequest) {
       });
 
       if (!profileResponse.ok) {
-        return NextResponse.json(
-          { error: 'Failed to fetch profile' },
+        // Clear cookies on auth failure
+        const response = NextResponse.json<AuthResult>(
+          { isAuth: false },
           { status: profileResponse.status },
         );
+        response.cookies.delete('accessToken');
+        response.cookies.delete('refreshToken');
+        return response;
       }
 
       const user = await profileResponse.json();
-      return NextResponse.json({ user });
+      return NextResponse.json<AuthResult>({ isAuth: true, user });
     } catch (error) {
       console.error('Profile fetch error:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch profile' },
+      // Clear cookies on fetch error too
+      const response = NextResponse.json<AuthResult>(
+        { isAuth: false },
         { status: 500 },
       );
+      response.cookies.delete('accessToken');
+      response.cookies.delete('refreshToken');
+      return response;
     }
   } catch (error) {
     console.error('Auth me error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
-    );
+    refreshPromise = null; // Reset on error
+    return NextResponse.json<AuthResult>({ isAuth: false }, { status: 500 });
   }
+}
+
+async function performTokenRefresh(
+  refreshToken: string,
+  request: NextRequest,
+): Promise<Response> {
+  if (ENABLE_REFRESH_LOGGING) {
+    console.log(`[auth/me] Sending refresh request to backend`);
+  }
+
+  // Proxy the refresh request completely to backend
+  const refreshResponse = await fetch(`${backendUrl}/api/users/oauth/refresh`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Cookie: request.headers.get('cookie') || '',
+    },
+    body: JSON.stringify({ refreshToken }),
+  });
+
+  if (!refreshResponse.ok) {
+    if (ENABLE_REFRESH_LOGGING) {
+      console.log(
+        `[auth/me] Backend refresh failed with status: ${refreshResponse.status}. Message: ${await refreshResponse.text()}`,
+      );
+    }
+    // Create error with backend response to preserve cookie-clearing headers
+    const error = new Error(`Refresh failed: ${refreshResponse.status}`) as any;
+    error.backendResponse = refreshResponse;
+    throw error;
+  }
+
+  // Get new tokens from response
+  const newTokens = await refreshResponse.json();
+  const accessToken = newTokens.accessToken;
+
+  // Fetch profile with new token
+  const profileResponse = await fetch(`${backendUrl}/api/users/me`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Cookie: `accessToken=${accessToken}`,
+    },
+  });
+
+  if (!profileResponse.ok) {
+    return NextResponse.json<AuthResult>({ isAuth: false }, { status: 401 });
+  }
+
+  const user = await profileResponse.json();
+  // Return user profile with backend's Set-Cookie headers
+  return new Response(JSON.stringify({ isAuth: true, user }), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+      'Set-Cookie': refreshResponse.headers.get('set-cookie') || '',
+    },
+  });
 }

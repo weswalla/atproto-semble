@@ -1,11 +1,8 @@
-import { ApiClient } from '@/api-client/ApiClient';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { updateCollection } from '../dal';
+import { collectionKeys } from '../collectionKeys';
 
 export default function useUpdateCollection() {
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-  );
-
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -15,16 +12,15 @@ export default function useUpdateCollection() {
       name: string;
       description?: string;
     }) => {
-      return apiClient.updateCollection(collection);
+      return updateCollection(collection);
     },
 
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['collections'] });
+    onSuccess: (variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['collection', data.collectionId],
+        queryKey: collectionKeys.collection(variables.collectionId),
       });
       queryClient.invalidateQueries({
-        queryKey: ['collection', variables.rkey],
+        queryKey: collectionKeys.all(),
       });
     },
   });

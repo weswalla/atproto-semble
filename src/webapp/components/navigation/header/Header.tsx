@@ -8,7 +8,7 @@ interface Props {
 
 export default function Header(props: Props) {
   return (
-    <Box>
+    <Box pos={'sticky'} top={0} bg={'white'} style={{ zIndex: 1 }}>
       <Group gap={'xs'} p={'xs'} justify="space-between">
         {props.children}
         <Box ml={'auto'}>

@@ -8,6 +8,7 @@ import { StrongRef } from '../../domain';
 import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
 import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
+import { AuthenticationError } from 'src/shared/core/AuthenticationError';
 export class ATProtoCardPublisher implements ICardPublisher {
   constructor(
     private readonly agentService: IAgentService,
@@ -45,8 +46,14 @@ export class ATProtoCardPublisher implements ICardPublisher {
         await this.agentService.getAuthenticatedAgent(curatorDid);
 
       if (agentResult.isErr()) {
+        // Propagate authentication errors as-is
+        if (agentResult.error instanceof AuthenticationError) {
+          return err(agentResult.error);
+        }
         return err(
-          new Error(`Authentication error: ${agentResult.error.message}`),
+          new Error(
+            `Authentication error for ATProtoCardPublisher: ${agentResult.error.message}`,
+          ),
         );
       }
 
@@ -129,8 +136,14 @@ export class ATProtoCardPublisher implements ICardPublisher {
         await this.agentService.getAuthenticatedAgent(curatorDid);
 
       if (agentResult.isErr()) {
+        // Propagate authentication errors as-is
+        if (agentResult.error instanceof AuthenticationError) {
+          return err(agentResult.error);
+        }
         return err(
-          new Error(`Authentication error: ${agentResult.error.message}`),
+          new Error(
+            `Authentication error for ATProtoCardPublisher: ${agentResult.error.message}`,
+          ),
         );
       }
 

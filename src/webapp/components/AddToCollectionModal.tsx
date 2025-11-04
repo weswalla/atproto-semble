@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { ApiClient } from '@/api-client/ApiClient';
 import { Button, Group, Modal, Stack, Text } from '@mantine/core';
 import { CollectionSelector } from './CollectionSelector';
+import { getUrlCardView } from '@/features/cards/lib/dal';
 
 interface Collection {
   id: string;
@@ -54,7 +55,7 @@ export function AddToCollectionModal({
     try {
       setLoading(true);
       setError('');
-      const response = await apiClient.getUrlCardView(cardId);
+      const response = await getUrlCardView(cardId);
       setCard(response);
     } catch (error: any) {
       console.error('Error fetching card:', error);

@@ -1,5 +1,6 @@
-import { ApiClient } from '@/api-client/ApiClient';
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
+import { getUrlCards } from '../dal';
+import { cardKeys } from '../cardKeys';
 
 interface Props {
   didOrHandle: string;
@@ -7,20 +8,15 @@ interface Props {
 }
 
 export default function useCards(props: Props) {
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-  );
-
   const limit = props?.limit ?? 16;
 
   const cards = useSuspenseInfiniteQuery({
-    queryKey: ['cards', props.didOrHandle, limit],
+    queryKey: cardKeys.infinite(props.didOrHandle),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
-      return apiClient.getUrlCards({
+      return getUrlCards(props.didOrHandle, {
         limit,
         page: pageParam,
-        identifier: props.didOrHandle,
       });
     },
     getNextPageParam: (lastPage) => {

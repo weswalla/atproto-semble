@@ -15,12 +15,19 @@ interface Props {
 }
 
 export default function CollectionActions(props: Props) {
-  const { user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [showEditDrawer, setShowEditDrawer] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const isAuthor = user?.handle === props.authorHandle;
-  const shareLink = `${window.location.origin}/profile/${props.authorHandle}/collections/${props.rkey}`;
+  const shareLink =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/profile/${props.authorHandle}/collections/${props.rkey}`
+      : '';
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <Group>

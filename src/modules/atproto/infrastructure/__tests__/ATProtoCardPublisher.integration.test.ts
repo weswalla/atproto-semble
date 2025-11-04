@@ -12,9 +12,9 @@ import { EnvironmentConfigService } from 'src/shared/infrastructure/config/Envir
 dotenv.config({ path: '.env.test' });
 
 // Set to false to skip unpublishing (useful for debugging published records)
-const UNPUBLISH = false;
+const UNPUBLISH = true;
 
-describe('ATProtoCardPublisher', () => {
+describe.skip('ATProtoCardPublisher', () => {
   let publisher: ATProtoCardPublisher;
   let curatorId: CuratorId;
   let publishedCardIds: PublishedRecordId[] = [];

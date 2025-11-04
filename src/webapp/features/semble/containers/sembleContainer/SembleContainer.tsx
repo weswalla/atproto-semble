@@ -1,5 +1,5 @@
 import SembleHeader from '../../components/SembleHeader/SembleHeader';
-import { BackgroundImage, Container, Stack } from '@mantine/core';
+import { Image, Container, Stack, Box } from '@mantine/core';
 import BG from '@/assets/semble-header-bg.webp';
 import { Suspense } from 'react';
 import SembleTabs from '../../components/sembleTabs/SembleTabs';
@@ -12,16 +12,36 @@ interface Props {
 export default async function SembleContainer(props: Props) {
   return (
     <Container p={0} fluid>
-      <BackgroundImage src={BG.src} h={240}>
-        <Container p={'xs'} size={'xl'}>
-          <Stack gap={'xl'}>
-            <Suspense fallback={<SembleHeaderSkeleton />}>
-              <SembleHeader url={props.url} />
-            </Suspense>
-            <SembleTabs url={props.url} />
-          </Stack>
-        </Container>
-      </BackgroundImage>
+      <Box style={{ position: 'relative', width: '100%' }}>
+        <Image
+          src={BG.src}
+          alt="bg"
+          fit="cover"
+          w="100%"
+          h={{ base: 100, md: 120 }}
+        />
+
+        {/* White gradient overlay */}
+        <Box
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            width: '100%',
+            height: '60%', // fade height
+            background: 'linear-gradient(to top, white, transparent)',
+            pointerEvents: 'none',
+          }}
+        />
+      </Box>
+      <Container px={'xs'} pb={'xs'} size={'xl'}>
+        <Stack gap={'xl'}>
+          <Suspense fallback={<SembleHeaderSkeleton />}>
+            <SembleHeader url={props.url} />
+          </Suspense>
+          <SembleTabs url={props.url} />
+        </Stack>
+      </Container>
     </Container>
   );
 }

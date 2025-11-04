@@ -38,7 +38,7 @@ export default function CardToBeAddedPreview(props: Props) {
         <Stack gap={'xs'}>
           <Textarea
             id="note"
-            label="Note"
+            label="Your note"
             placeholder="Add a note about this card"
             variant="filled"
             size="md"
@@ -115,7 +115,7 @@ export default function CardToBeAddedPreview(props: Props) {
               setNoteMode(true);
             }}
           >
-            {note ? 'Update note' : 'Add note'}
+            {note ? 'Edit note' : 'Add note'}
           </Button>
         </Group>
       </Stack>

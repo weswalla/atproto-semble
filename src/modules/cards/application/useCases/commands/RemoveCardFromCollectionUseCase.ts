@@ -7,6 +7,7 @@ import { CardId } from '../../../domain/value-objects/CardId';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { CardCollectionService } from '../../../domain/services/CardCollectionService';
+import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface RemoveCardFromCollectionDTO {
   cardId: string;
@@ -30,7 +31,7 @@ export class RemoveCardFromCollectionUseCase
       RemoveCardFromCollectionDTO,
       Result<
         RemoveCardFromCollectionResponseDTO,
-        ValidationError | AppError.UnexpectedError
+        ValidationError | AuthenticationError | AppError.UnexpectedError
       >
     >
 {
@@ -44,7 +45,7 @@ export class RemoveCardFromCollectionUseCase
   ): Promise<
     Result<
       RemoveCardFromCollectionResponseDTO,
-      ValidationError | AppError.UnexpectedError
+      ValidationError | AuthenticationError | AppError.UnexpectedError
     >
   > {
     try {
@@ -102,6 +103,10 @@ export class RemoveCardFromCollectionUseCase
           curatorId,
         );
       if (removeFromCollectionsResult.isErr()) {
+        // Propagate authentication errors
+        if (removeFromCollectionsResult.error instanceof AuthenticationError) {
+          return err(removeFromCollectionsResult.error);
+        }
         if (
           removeFromCollectionsResult.error instanceof AppError.UnexpectedError
         ) {

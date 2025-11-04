@@ -1,18 +1,15 @@
-import { ApiClient } from '@/api-client/ApiClient';
 import { useSuspenseQuery } from '@tanstack/react-query';
+import { getProfile } from '../dal';
+import { profileKeys } from '../profileKeys';
 
 interface Props {
   didOrHandle: string;
 }
 
 export default function useProfile(props: Props) {
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-  );
-
   const profile = useSuspenseQuery({
-    queryKey: ['profile', props.didOrHandle],
-    queryFn: () => apiClient.getProfile({ identifier: props.didOrHandle }),
+    queryKey: profileKeys.profile(props.didOrHandle),
+    queryFn: () => getProfile(props.didOrHandle),
   });
 
   return profile;

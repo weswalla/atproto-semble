@@ -26,6 +26,8 @@ export class RefreshAccessTokenController extends Controller {
       });
 
       if (result.isErr()) {
+        // Clear cookies when refresh fails
+        this.cookieService.clearTokens(res);
         return this.fail(res, result.error);
       }
 
@@ -38,6 +40,8 @@ export class RefreshAccessTokenController extends Controller {
       // Also return tokens in response body for backward compatibility
       return this.ok(res, result.value);
     } catch (error: any) {
+      // Clear cookies on unexpected errors too
+      this.cookieService.clearTokens(res);
       return this.fail(res, error);
     }
   }

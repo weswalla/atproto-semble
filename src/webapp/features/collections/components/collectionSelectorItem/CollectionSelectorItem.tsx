@@ -41,14 +41,7 @@ export default function CollectionSelectorItem(props: Props) {
       >
         <Group justify="space-between" wrap="nowrap">
           <Group gap={'xs'} wrap="nowrap">
-            <Text
-              fw={500}
-              lineClamp={1}
-              flex={1}
-              style={{
-                wordBreak: 'break-all',
-              }}
-            >
+            <Text fw={500} lineClamp={1} flex={1}>
               {props.name}
             </Text>
             <Text c={'gray'}>·</Text>

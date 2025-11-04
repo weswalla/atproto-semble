@@ -1,17 +1,16 @@
-import useProfile from '@/features/profile/lib/queries/useProfile';
-import { getRelativeTime } from '@/lib/utils/time';
+import { User } from '@/api-client/ApiClient';
 import { Avatar, Card, Group, Spoiler, Stack, Text } from '@mantine/core';
-import { Suspense } from 'react';
+import { getRelativeTime } from '@/lib/utils/time';
+import Link from 'next/link';
 
 interface Props {
   id: string;
   note: string;
   createdAt: string;
-  authorId: string;
+  author: User;
 }
 
 export default function NoteCard(props: Props) {
-  const { data: author } = useProfile({ didOrHandle: props.authorId });
   const time = getRelativeTime(props.createdAt);
   const relativeCreateDate = time === 'just now' ? `${time}` : `${time} ago`;
 
@@ -19,26 +18,32 @@ export default function NoteCard(props: Props) {
     <Card p={'sm'} radius={'lg'} withBorder>
       <Stack>
         <Spoiler showLabel={'Read more'} hideLabel={'See less'} maxHeight={200}>
-          <Text>{props.note}</Text>
+          <Text fs={'italic'}>{props.note}</Text>
         </Spoiler>
 
-        <Suspense fallback={<Text>LOADINGLOADINGLOADING</Text>}>
-          <Group gap={'xs'}>
-            <Avatar
-              src={author.avatarUrl}
-              alt={`${author.handle}'s avatar`}
-              size={'sm'}
-            />
+        <Group gap={'xs'}>
+          <Avatar
+            component={Link}
+            href={`/profile/${props.author.handle}`}
+            src={props.author.avatarUrl}
+            alt={`${props.author.handle}'s avatar`}
+            size={'sm'}
+          />
 
-            <Text c={'gray'}>
-              <Text c={'dark'} fw={500} span>
-                {author.name}
-              </Text>
-              <Text span>{' · '}</Text>
-              <Text span>{relativeCreateDate} </Text>
+          <Text c={'gray'}>
+            <Text
+              component={Link}
+              href={`/profile/${props.author.handle}`}
+              c={'dark'}
+              fw={500}
+              span
+            >
+              {props.author.name}
             </Text>
-          </Group>
-        </Suspense>
+            <Text span>{' · '}</Text>
+            <Text span>{relativeCreateDate} </Text>
+          </Text>
+        </Group>
       </Stack>
     </Card>
   );

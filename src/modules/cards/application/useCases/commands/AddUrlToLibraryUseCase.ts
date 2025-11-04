@@ -17,6 +17,7 @@ import { URL } from '../../../domain/value-objects/URL';
 import { CardLibraryService } from '../../../domain/services/CardLibraryService';
 import { CardCollectionService } from '../../../domain/services/CardCollectionService';
 import { CardContent } from '../../../domain/value-objects/CardContent';
+import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface AddUrlToLibraryDTO {
   url: string;
@@ -38,7 +39,10 @@ export class ValidationError extends UseCaseError {
 
 export class AddUrlToLibraryUseCase extends BaseUseCase<
   AddUrlToLibraryDTO,
-  Result<AddUrlToLibraryResponseDTO, ValidationError | AppError.UnexpectedError>
+  Result<
+    AddUrlToLibraryResponseDTO,
+    ValidationError | AuthenticationError | AppError.UnexpectedError
+  >
 > {
   constructor(
     private cardRepository: ICardRepository,
@@ -55,7 +59,7 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
   ): Promise<
     Result<
       AddUrlToLibraryResponseDTO,
-      ValidationError | AppError.UnexpectedError
+      ValidationError | AuthenticationError | AppError.UnexpectedError
     >
   > {
     try {
@@ -129,6 +133,10 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
       const addUrlCardToLibraryResult =
         await this.cardLibraryService.addCardToLibrary(urlCard, curatorId);
       if (addUrlCardToLibraryResult.isErr()) {
+        // Propagate authentication errors
+        if (addUrlCardToLibraryResult.error instanceof AuthenticationError) {
+          return err(addUrlCardToLibraryResult.error);
+        }
         if (
           addUrlCardToLibraryResult.error instanceof AppError.UnexpectedError
         ) {
@@ -210,6 +218,12 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
           const addNoteCardToLibraryResult =
             await this.cardLibraryService.addCardToLibrary(noteCard, curatorId);
           if (addNoteCardToLibraryResult.isErr()) {
+            // Propagate authentication errors
+            if (
+              addNoteCardToLibraryResult.error instanceof AuthenticationError
+            ) {
+              return err(addNoteCardToLibraryResult.error);
+            }
             if (
               addNoteCardToLibraryResult.error instanceof
               AppError.UnexpectedError
@@ -254,6 +268,10 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
             curatorId,
           );
         if (addToCollectionsResult.isErr()) {
+          // Propagate authentication errors
+          if (addToCollectionsResult.error instanceof AuthenticationError) {
+            return err(addToCollectionsResult.error);
+          }
           if (
             addToCollectionsResult.error instanceof AppError.UnexpectedError
           ) {

@@ -8,6 +8,7 @@ import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 import { CardContent } from '../../../domain/value-objects/CardContent';
 import { ICardPublisher } from '../../ports/ICardPublisher';
+import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface UpdateNoteCardDTO {
   cardId: string;
@@ -31,7 +32,7 @@ export class UpdateNoteCardUseCase
       UpdateNoteCardDTO,
       Result<
         UpdateNoteCardResponseDTO,
-        ValidationError | AppError.UnexpectedError
+        ValidationError | AuthenticationError | AppError.UnexpectedError
       >
     >
 {
@@ -45,7 +46,7 @@ export class UpdateNoteCardUseCase
   ): Promise<
     Result<
       UpdateNoteCardResponseDTO,
-      ValidationError | AppError.UnexpectedError
+      ValidationError | AuthenticationError | AppError.UnexpectedError
     >
   > {
     try {
@@ -128,6 +129,10 @@ export class UpdateNoteCardUseCase
         card.publishedRecordId,
       );
       if (publishResult.isErr()) {
+        // Propagate authentication errors
+        if (publishResult.error instanceof AuthenticationError) {
+          return err(publishResult.error);
+        }
         return err(AppError.UnexpectedError.create(publishResult.error));
       }
 

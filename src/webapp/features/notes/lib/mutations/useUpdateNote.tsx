@@ -1,22 +1,23 @@
-import { ApiClient } from '@/api-client/ApiClient';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { updateNoteCard } from '../dal';
+import { cardKeys } from '@/features/cards/lib/cardKeys';
+import { collectionKeys } from '@/features/collections/lib/collectionKeys';
+import { feedKeys } from '@/features/feeds/lib/feedKeys';
 
 export default function useUpdateNote() {
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-  );
-
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: (note: { cardId: string; note: string }) => {
-      return apiClient.updateNoteCard(note);
+      return updateNoteCard(note);
     },
 
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['card', data.cardId] });
-      queryClient.invalidateQueries({ queryKey: ['collection'] });
-      queryClient.invalidateQueries({ queryKey: ['collections'] });
+      queryClient.invalidateQueries({ queryKey: cardKeys.card(data.cardId) });
+      queryClient.invalidateQueries({ queryKey: cardKeys.infinite() });
+      queryClient.invalidateQueries({ queryKey: cardKeys.infinite() });
+      queryClient.invalidateQueries({ queryKey: feedKeys.all() });
+      queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
     },
   });
 

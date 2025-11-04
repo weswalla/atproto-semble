@@ -1,90 +1,40 @@
-import 'server-only';
-
+import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { cache } from 'react';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { isTokenExpiringSoon } from './token';
 
-export const verifySession = cache(async () => {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get('accessToken')?.value;
-  const refreshToken = cookieStore.get('refreshToken')?.value;
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
 
-  // no session tokens — redirect to login
-  if (!accessToken && !refreshToken) {
-    redirect('/login');
-  }
+// Flag-based approach to prevent concurrent auth requests
+let isRefreshing = false;
+let refreshPromise: Promise<GetProfileResponse | null> | null = null;
 
-  const backendUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
-
-  // token expired or about to expire
-  if ((!accessToken || isTokenExpiringSoon(accessToken)) && refreshToken) {
-    const refreshResponse = await fetch(
-      `${backendUrl}/api/users/oauth/refresh`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
-        cache: 'no-store',
-      },
-    );
-
-    if (!refreshResponse.ok) {
-      // clear invalid tokens and redirect to login
-      cookieStore.delete('accessToken');
-      cookieStore.delete('refreshToken');
-      redirect('/login');
+export const verifySessionOnClient = cache(
+  async (): Promise<GetProfileResponse | null> => {
+    if (isRefreshing && refreshPromise) {
+      console.log('Auth refresh already in progress, waiting...');
+      return refreshPromise;
     }
 
-    const newTokens = await refreshResponse.json();
-    const newAccessToken = newTokens.accessToken;
+    isRefreshing = true;
+    refreshPromise = (async () => {
+      try {
+        const response = await fetch(`${appUrl}/api/auth/me`, {
+          method: 'GET',
+          credentials: 'include', // HttpOnly cookies sent automatically
+        });
 
-    // update cookie
-    cookieStore.set('accessToken', newAccessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      path: '/',
-    });
+        if (!response.ok) {
+          return null;
+        }
 
-    return { isAuthenticated: true };
-  }
+        const { user }: { user: GetProfileResponse } = await response.json();
 
-  // if access token is valid
-  return { isAuthenticated: true };
-});
+        return user;
+      } finally {
+        isRefreshing = false;
+        refreshPromise = null;
+      }
+    })();
 
-export const getUser = cache(async () => {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get('accessToken')?.value;
-  const refreshToken = cookieStore.get('refreshToken')?.value;
-
-  if (!accessToken && !refreshToken) redirect('/login');
-
-  const backendUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
-
-  // Forward cookies manually
-  const cookieHeader = [
-    accessToken ? `accessToken=${accessToken}` : null,
-    refreshToken ? `refreshToken=${refreshToken}` : null,
-  ]
-    .filter(Boolean)
-    .join('; ');
-
-  const res = await fetch(`${backendUrl}/api/users/me`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Cookie: cookieHeader, // forward the cookies
-    },
-    cache: 'no-store',
-  });
-
-  if (!res.ok) {
-    redirect('/login');
-  }
-
-  const user = await res.json();
-  return user;
-});
+    return refreshPromise;
+  },
+);

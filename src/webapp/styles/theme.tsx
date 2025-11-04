@@ -11,6 +11,8 @@ import {
   Spoiler,
   TabsTab,
   Tooltip,
+  Title,
+  Text,
 } from '@mantine/core';
 
 export const theme = createTheme({
@@ -122,6 +124,20 @@ export const theme = createTheme({
     Tooltip: Tooltip.extend({
       defaultProps: {
         position: 'top-start',
+      },
+    }),
+    Title: Text.extend({
+      styles: {
+        root: {
+          wordBreak: 'break-word',
+        },
+      },
+    }),
+    Text: Text.extend({
+      styles: {
+        root: {
+          wordBreak: 'break-word',
+        },
       },
     }),
   },

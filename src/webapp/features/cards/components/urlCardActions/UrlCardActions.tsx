@@ -1,11 +1,9 @@
 'use client';
 
 import type { UrlCard, Collection, User } from '@/api-client';
-import EditNoteDrawer from '@/features/notes/components/editNoteDrawer/EditNoteDrawer';
 import { ActionIcon, Button, Group, Menu } from '@mantine/core';
 import { Fragment, useState } from 'react';
-import { AiOutlineSignature } from 'react-icons/ai';
-import { BiPlus } from 'react-icons/bi';
+import { FiPlus } from 'react-icons/fi';
 import { BsThreeDots, BsTrash2Fill } from 'react-icons/bs';
 import { LuUnplug } from 'react-icons/lu';
 import RemoveCardFromCollectionModal from '../removeCardFromCollectionModal/RemoveCardFromCollectionModal';
@@ -29,7 +27,7 @@ interface Props {
 }
 
 export default function UrlCardActions(props: Props) {
-  const { user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   // assume the current user is the card owner if authorHandle isn't passed
   const isAuthor = props.authorHandle
     ? user?.handle === props.authorHandle
@@ -41,6 +39,10 @@ export default function UrlCardActions(props: Props) {
   const [showRemoveFromLibaryModal, setShowRemoveFromLibraryModal] =
     useState(false);
   const [showAddToModal, setShowAddToModal] = useState(false);
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <Fragment>
@@ -60,7 +62,7 @@ export default function UrlCardActions(props: Props) {
               props.urlIsInLibrary ? (
                 <IoMdCheckmark size={18} />
               ) : (
-                <BiPlus size={18} />
+                <FiPlus size={18} />
               )
             }
             onClick={() => {
@@ -90,16 +92,6 @@ export default function UrlCardActions(props: Props) {
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
-              {props.note && (
-                <Menu.Item
-                  leftSection={<AiOutlineSignature />}
-                  onClick={() => {
-                    setShowEditNoteModal(true);
-                  }}
-                >
-                  Edit note
-                </Menu.Item>
-              )}
               {props.currentCollection && (
                 <Menu.Item
                   leftSection={<LuUnplug />}
@@ -138,18 +130,10 @@ export default function UrlCardActions(props: Props) {
         isOpen={showNoteModal}
         onClose={() => setShowNoteModal(false)}
         note={props.note}
-        urlCardContent={props.cardContent}
+        cardContent={props.cardContent}
         cardAuthor={props.cardAuthor}
       />
 
-      {props.note && (
-        <EditNoteDrawer
-          isOpen={showEditNoteModal}
-          onClose={() => setShowEditNoteModal(false)}
-          noteCardId={props.note.id}
-          note={props.note.text}
-        />
-      )}
       {props.currentCollection && (
         <RemoveCardFromCollectionModal
           isOpen={showRemoveFromCollectionModal}

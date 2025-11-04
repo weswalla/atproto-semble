@@ -16,7 +16,10 @@ export class GetMyProfileController extends Controller {
         return this.unauthorized(res);
       }
 
-      const result = await this.getProfileUseCase.execute({ userId });
+      const result = await this.getProfileUseCase.execute({
+        userId,
+        callerDid: req.did,
+      });
 
       if (result.isErr()) {
         return this.fail(res, result.error);

@@ -1,7 +1,6 @@
 'use client';
 
 import { ExtensionService } from '@/services/extensionService';
-import { ApiClient } from '@/api-client/ApiClient';
 import {
   Stack,
   Text,
@@ -17,6 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useForm } from '@mantine/form';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { createSembleClient } from '@/services/apiClient';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -28,14 +28,12 @@ export default function LoginForm() {
   const [error, setError] = useState('');
 
   const isExtensionLogin = searchParams.get('extension-login') === 'true';
-  const apiClient = new ApiClient(
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000',
-  );
+  const client = createSembleClient();
 
   const handleExtensionTokenGeneration = async () => {
     try {
       setIsLoading(true);
-      const tokens = await apiClient.generateExtensionTokens();
+      const tokens = await client.generateExtensionTokens();
 
       await ExtensionService.sendTokensToExtension(tokens);
 
@@ -82,7 +80,7 @@ export default function LoginForm() {
         ExtensionService.setExtensionTokensRequested();
       }
       console.log('HANDLE', form.values.handle.trimEnd());
-      const { authUrl } = await apiClient.initiateOAuthSignIn({
+      const { authUrl } = await client.initiateOAuthSignIn({
         handle: form.values.handle.trimEnd(),
       });
 
@@ -105,7 +103,7 @@ export default function LoginForm() {
       setIsLoading(true);
       setError('');
 
-      await apiClient.loginWithAppPassword({
+      await client.loginWithAppPassword({
         identifier: form.values.handle.trimEnd(),
         appPassword: form.values.appPassword,
       });

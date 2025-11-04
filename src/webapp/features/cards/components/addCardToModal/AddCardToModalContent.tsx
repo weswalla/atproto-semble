@@ -11,6 +11,7 @@ import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFrom
 import useMyCollections from '@/features/collections/lib/queries/useMyCollections';
 import useUpdateCardAssociations from '@/features/cards/lib/mutations/useUpdateCardAssociations';
 import useAddCard from '@/features/cards/lib/mutations/useAddCard';
+import useUrlMetadata from '../../lib/queries/useUrlMetadata';
 
 interface SelectableCollectionItem {
   id: string;
@@ -20,16 +21,17 @@ interface SelectableCollectionItem {
 
 interface Props {
   onClose: () => void;
-  cardContent: UrlCard['cardContent'];
-  urlLibraryCount: number;
-  cardId: string;
+  url: string;
+  cardId?: string;
   note?: string;
-  isInYourLibrary: boolean;
 }
 
 export default function AddCardToModalContent(props: Props) {
-  const cardStatus = useGetCardFromMyLibrary({ url: props.cardContent.url });
-  const isMyCard = props.cardId === cardStatus.data.card?.id;
+  const {
+    data: { metadata },
+  } = useUrlMetadata({ url: props.url });
+  const cardStatus = useGetCardFromMyLibrary({ url: props.url });
+  const isMyCard = props?.cardId === cardStatus.data.card?.id;
   const [note, setNote] = useState(isMyCard ? props.note : '');
   const { data, error } = useMyCollections();
 
@@ -79,7 +81,7 @@ export default function AddCardToModalContent(props: Props) {
     if (!cardStatus.data.card) {
       addCard.mutate(
         {
-          url: props.cardContent.url,
+          url: props.url,
           note: trimmedNote,
           collectionIds: selectedCollections.map((c) => c.id),
         },
@@ -124,7 +126,9 @@ export default function AddCardToModalContent(props: Props) {
   return (
     <Stack justify="space-between">
       <CardToBeAddedPreview
-        cardContent={props.cardContent}
+        url={props.url}
+        thumbnailUrl={metadata.imageUrl}
+        title={metadata.title}
         note={isMyCard ? note : cardStatus.data.card?.note?.text}
         onUpdateNote={setNote}
       />

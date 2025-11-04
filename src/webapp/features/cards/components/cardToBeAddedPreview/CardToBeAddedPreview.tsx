@@ -16,7 +16,9 @@ import { UrlCard } from '@/api-client';
 import { getDomain } from '@/lib/utils/link';
 
 interface Props {
-  cardContent: UrlCard['cardContent'];
+  url: string;
+  thumbnailUrl?: string;
+  title?: string;
   note?: string;
   onUpdateNote: Dispatch<SetStateAction<string | undefined>>;
 }
@@ -24,7 +26,7 @@ interface Props {
 export default function CardToBeAddedPreview(props: Props) {
   const [noteMode, setNoteMode] = useState(false);
   const [note, setNote] = useState(props.note);
-  const domain = getDomain(props.cardContent.url);
+  const domain = getDomain(props.url);
 
   if (noteMode) {
     return (
@@ -77,11 +79,11 @@ export default function CardToBeAddedPreview(props: Props) {
     <Card withBorder component="article" p={'xs'} radius={'lg'}>
       <Stack>
         <Group gap={'sm'} justify="space-between">
-          {props.cardContent.thumbnailUrl && (
+          {props.thumbnailUrl && (
             <AspectRatio ratio={1 / 1} flex={0.1}>
               <Image
-                src={props.cardContent.thumbnailUrl}
-                alt={`${props.cardContent.url} social preview image`}
+                src={props.thumbnailUrl}
+                alt={`${props.url} social preview image`}
                 radius={'md'}
                 w={50}
                 h={50}
@@ -89,10 +91,10 @@ export default function CardToBeAddedPreview(props: Props) {
             </AspectRatio>
           )}
           <Stack gap={0} flex={0.9}>
-            <Tooltip label={props.cardContent.url}>
+            <Tooltip label={props.url}>
               <Anchor
                 component={Link}
-                href={props.cardContent.url}
+                href={props.url}
                 target="_blank"
                 c={'gray'}
                 lineClamp={1}
@@ -101,9 +103,9 @@ export default function CardToBeAddedPreview(props: Props) {
                 {domain}
               </Anchor>
             </Tooltip>
-            {props.cardContent.title && (
+            {props.title && (
               <Text fw={500} lineClamp={1}>
-                {props.cardContent.title}
+                {props.title}
               </Text>
             )}
           </Stack>

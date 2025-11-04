@@ -9,12 +9,14 @@ import {
   Tooltip,
   Spoiler,
   Card,
+  Button,
 } from '@mantine/core';
 import Link from 'next/link';
 import { getUrlMetadata } from '@/features/cards/lib/dal';
 import { getDomain } from '@/lib/utils/link';
 import UrlAddedBySummary from '../urlAddedBySummary/UrlAddedBySummary';
-// import SembleActions from '../sembleActions/SembleActions';
+import SembleActions from '../sembleActions/SembleActions';
+import { verifySessionOnServer } from '@/lib/auth/dal.server';
 
 interface Props {
   url: string;
@@ -22,6 +24,7 @@ interface Props {
 
 export default async function SembleHeader(props: Props) {
   const { metadata } = await getUrlMetadata(props.url);
+  const session = await verifySessionOnServer();
 
   return (
     <Stack gap={'xl'}>
@@ -74,7 +77,13 @@ export default async function SembleHeader(props: Props) {
                 />
               </Card>
             )}
-            {/*<SembleActions url={props.url} />*/}
+            {session ? (
+              <SembleActions url={props.url} />
+            ) : (
+              <Button size="md" component={Link} href={'/login'}>
+                Log in to add
+              </Button>
+            )}
           </Stack>
         </GridCol>
       </Grid>

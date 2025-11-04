@@ -32,7 +32,6 @@ export default function UrlCardActions(props: Props) {
   const isAuthor = props.authorHandle
     ? user?.handle === props.authorHandle
     : true;
-  const [showEditNoteModal, setShowEditNoteModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [showRemoveFromCollectionModal, setShowRemoveFromCollectionModal] =
     useState(false);
@@ -119,7 +118,7 @@ export default function UrlCardActions(props: Props) {
       <AddCardToModal
         isOpen={showAddToModal}
         onClose={() => setShowAddToModal(false)}
-        cardContent={props.cardContent}
+        url={props.cardContent.url}
         cardId={props.id}
         note={props.note?.text}
         urlLibraryCount={props.urlLibraryCount}

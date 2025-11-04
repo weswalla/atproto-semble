@@ -14,11 +14,13 @@ import {
 } from '@mantine/core';
 import { UrlCard, User } from '@semble/types';
 import Link from 'next/link';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import useUpdateNote from '../../lib/mutations/useUpdateNote';
 import { notifications } from '@mantine/notifications';
+import useRemoveCardFromLibrary from '@/features/cards/lib/mutations/useRemoveCardFromLibrary';
 
 interface Props {
+  onClose: () => void;
   note: UrlCard['note'];
   cardContent: UrlCard['cardContent'];
   cardAuthor?: User;
@@ -30,8 +32,26 @@ export default function NoteCardModalContent(props: Props) {
   const isMyCard = props.cardAuthor?.id === cardStatus.data.card?.author.id;
   const [note, setNote] = useState(isMyCard ? props.note?.text : '');
   const [editMode, setEditMode] = useState(false);
+  const [showDeleteWarning, setShowDeleteWarning] = useState(false);
 
+  const removeNote = useRemoveCardFromLibrary();
   const updateNote = useUpdateNote();
+
+  const handleDeleteNote = () => {
+    if (!isMyCard || !props.note) return;
+
+    removeNote.mutate(props.note.id, {
+      onError: () => {
+        notifications.show({
+          message: 'Could not delete note.',
+          position: 'top-center',
+        });
+      },
+      onSettled: () => {
+        props.onClose();
+      },
+    });
+  };
 
   const handleUpdateNote = () => {
     if (!props.note || !note) return;
@@ -151,7 +171,29 @@ export default function NoteCardModalContent(props: Props) {
                 </Text>
               )}
             </Stack>
-            {isMyCard && (
+          </Group>
+        </Stack>
+      </Card>
+      {isMyCard && (
+        <Fragment>
+          {showDeleteWarning ? (
+            <Group justify="space-between" gap={'xs'}>
+              <Text>Delete note?</Text>
+              <Group gap={'xs'}>
+                <Button color="red" onClick={handleDeleteNote}>
+                  Delete
+                </Button>
+                <Button
+                  variant="light"
+                  color="gray"
+                  onClick={() => setShowDeleteWarning(false)}
+                >
+                  Cancel
+                </Button>
+              </Group>
+            </Group>
+          ) : (
+            <Group gap={'xs'} grow>
               <Button
                 variant="light"
                 color="gray"
@@ -162,10 +204,21 @@ export default function NoteCardModalContent(props: Props) {
               >
                 Edit note
               </Button>
-            )}
-          </Group>
-        </Stack>
-      </Card>
+
+              <Button
+                variant="light"
+                color="red"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDeleteWarning(true);
+                }}
+              >
+                Delete note
+              </Button>
+            </Group>
+          )}
+        </Fragment>
+      )}
     </Stack>
   );
 }

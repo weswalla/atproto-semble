@@ -3,6 +3,8 @@ import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { cookies } from 'next/headers';
 import { isTokenExpiringSoon } from '@/lib/auth/token';
 
+const ENABLE_REFRESH_LOGGING = true;
+
 const backendUrl =
   process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
 
@@ -27,6 +29,11 @@ export async function GET(request: NextRequest) {
 
     // Check if accessToken is expired/missing or expiring soon
     if ((!accessToken || isTokenExpiringSoon(accessToken)) && refreshToken) {
+      if (ENABLE_REFRESH_LOGGING) {
+        const tokenPreview = refreshToken.substring(0, 8) + '...';
+        console.log(`[auth/me] Access token missing/expiring, attempting refresh with token: ${tokenPreview}`);
+      }
+
       // Use mutex to prevent concurrent refresh attempts
       if (!refreshPromise) {
         refreshPromise = performTokenRefresh(refreshToken, request);
@@ -34,8 +41,14 @@ export async function GET(request: NextRequest) {
 
       try {
         const result = await refreshPromise;
+        if (ENABLE_REFRESH_LOGGING) {
+          console.log(`[auth/me] Token refresh completed successfully`);
+        }
         return result;
       } catch (error) {
+        if (ENABLE_REFRESH_LOGGING) {
+          console.log(`[auth/me] Token refresh error: ${error}`);
+        }
         console.error('Token refresh error:', error);
         return NextResponse.json<AuthResult>(
           { isAuth: false },
@@ -82,6 +95,10 @@ async function performTokenRefresh(
   refreshToken: string,
   request: NextRequest,
 ): Promise<Response> {
+  if (ENABLE_REFRESH_LOGGING) {
+    console.log(`[auth/me] Sending refresh request to backend`);
+  }
+
   // Proxy the refresh request completely to backend
   const refreshResponse = await fetch(`${backendUrl}/api/users/oauth/refresh`, {
     method: 'POST',
@@ -93,6 +110,9 @@ async function performTokenRefresh(
   });
 
   if (!refreshResponse.ok) {
+    if (ENABLE_REFRESH_LOGGING) {
+      console.log(`[auth/me] Backend refresh failed with status: ${refreshResponse.status}`);
+    }
     // Refresh failed — clear tokens and mark as unauthenticated
     const response = NextResponse.json<AuthResult>(
       { isAuth: false },

@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       if (!refreshPromise) {
         refreshPromise = performTokenRefresh(refreshToken, request);
       }
-      
+
       try {
         const result = await refreshPromise;
         return result;
@@ -78,19 +78,19 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function performTokenRefresh(refreshToken: string, request: NextRequest): Promise<Response> {
+async function performTokenRefresh(
+  refreshToken: string,
+  request: NextRequest,
+): Promise<Response> {
   // Proxy the refresh request completely to backend
-  const refreshResponse = await fetch(
-    `${backendUrl}/api/users/oauth/refresh`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: request.headers.get('cookie') || '',
-      },
-      body: JSON.stringify({ refreshToken }),
+  const refreshResponse = await fetch(`${backendUrl}/api/users/oauth/refresh`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Cookie: request.headers.get('cookie') || '',
     },
-  );
+    body: JSON.stringify({ refreshToken }),
+  });
 
   if (!refreshResponse.ok) {
     // Refresh failed — clear tokens and mark as unauthenticated
@@ -117,10 +117,7 @@ async function performTokenRefresh(refreshToken: string, request: NextRequest): 
   });
 
   if (!profileResponse.ok) {
-    return NextResponse.json<AuthResult>(
-      { isAuth: false },
-      { status: 401 },
-    );
+    return NextResponse.json<AuthResult>({ isAuth: false }, { status: 401 });
   }
 
   const user = await profileResponse.json();

@@ -31,7 +31,11 @@ export abstract class BaseClient {
       const response = await fetch(url, config);
       return this.handleResponse<T>(response);
     } catch (error) {
-      if (error instanceof ApiError && error.statusCode === 401 && retryCount === 0) {
+      if (
+        error instanceof ApiError &&
+        error.statusCode === 401 &&
+        retryCount === 0
+      ) {
         // Try to refresh token and retry once
         await this.handleAuthError();
         return this.request(method, endpoint, data, 1);
@@ -45,7 +49,7 @@ export abstract class BaseClient {
     if (!BaseClient.refreshPromise) {
       BaseClient.refreshPromise = this.performTokenRefresh();
     }
-    
+
     try {
       await BaseClient.refreshPromise;
     } finally {
@@ -58,7 +62,7 @@ export abstract class BaseClient {
     const response = await fetch(`${appUrl}/api/auth/me`, {
       credentials: 'include',
     });
-    
+
     if (!response.ok) {
       // Refresh failed, redirect to login if on client
       if (typeof window !== 'undefined') {

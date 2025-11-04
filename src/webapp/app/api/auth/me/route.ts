@@ -11,6 +11,9 @@ type AuthResult = {
   user?: GetProfileResponse;
 };
 
+// Prevent concurrent refresh attempts
+let refreshPromise: Promise<Response> | null = null;
+
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies();
@@ -24,68 +27,22 @@ export async function GET(request: NextRequest) {
 
     // Check if accessToken is expired/missing or expiring soon
     if ((!accessToken || isTokenExpiringSoon(accessToken)) && refreshToken) {
+      // Use mutex to prevent concurrent refresh attempts
+      if (!refreshPromise) {
+        refreshPromise = performTokenRefresh(refreshToken, request);
+      }
+      
       try {
-        // Proxy the refresh request completely to backend
-        const refreshResponse = await fetch(
-          `${backendUrl}/api/users/oauth/refresh`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Cookie: request.headers.get('cookie') || '',
-            },
-            body: JSON.stringify({ refreshToken }),
-          },
-        );
-
-        if (!refreshResponse.ok) {
-          // Refresh failed — clear tokens and mark as unauthenticated
-          const response = NextResponse.json<AuthResult>(
-            { isAuth: false },
-            { status: 401 },
-          );
-          response.cookies.delete('accessToken');
-          response.cookies.delete('refreshToken');
-
-          return response;
-        }
-
-        // Get new tokens from response
-        const newTokens = await refreshResponse.json();
-        accessToken = newTokens.accessToken;
-
-        // Fetch profile with new token
-        const profileResponse = await fetch(`${backendUrl}/api/users/me`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Cookie: `accessToken=${accessToken}`,
-          },
-        });
-
-        if (!profileResponse.ok) {
-          return NextResponse.json<AuthResult>(
-            { isAuth: false },
-            { status: 401 },
-          );
-        }
-
-        const user = await profileResponse.json();
-        // Return user profile with backend's Set-Cookie headers
-        const response = new Response(JSON.stringify({ isAuth: true, user }), {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/json',
-            'Set-Cookie': refreshResponse.headers.get('set-cookie') || '',
-          },
-        });
-        return response;
+        const result = await refreshPromise;
+        return result;
       } catch (error) {
         console.error('Token refresh error:', error);
         return NextResponse.json<AuthResult>(
           { isAuth: false },
           { status: 500 },
         );
+      } finally {
+        refreshPromise = null;
       }
     }
 
@@ -116,6 +73,63 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     console.error('Auth me error:', error);
+    refreshPromise = null; // Reset on error
     return NextResponse.json<AuthResult>({ isAuth: false }, { status: 500 });
   }
+}
+
+async function performTokenRefresh(refreshToken: string, request: NextRequest): Promise<Response> {
+  // Proxy the refresh request completely to backend
+  const refreshResponse = await fetch(
+    `${backendUrl}/api/users/oauth/refresh`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: request.headers.get('cookie') || '',
+      },
+      body: JSON.stringify({ refreshToken }),
+    },
+  );
+
+  if (!refreshResponse.ok) {
+    // Refresh failed — clear tokens and mark as unauthenticated
+    const response = NextResponse.json<AuthResult>(
+      { isAuth: false },
+      { status: 401 },
+    );
+    response.cookies.delete('accessToken');
+    response.cookies.delete('refreshToken');
+    return response;
+  }
+
+  // Get new tokens from response
+  const newTokens = await refreshResponse.json();
+  const accessToken = newTokens.accessToken;
+
+  // Fetch profile with new token
+  const profileResponse = await fetch(`${backendUrl}/api/users/me`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Cookie: `accessToken=${accessToken}`,
+    },
+  });
+
+  if (!profileResponse.ok) {
+    return NextResponse.json<AuthResult>(
+      { isAuth: false },
+      { status: 401 },
+    );
+  }
+
+  const user = await profileResponse.json();
+  // Return user profile with backend's Set-Cookie headers
+  return new Response(JSON.stringify({ isAuth: true, user }), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+      'Set-Cookie': refreshResponse.headers.get('set-cookie') || '',
+    },
+  });
 }

@@ -27,7 +27,9 @@ export class RefreshAccessTokenUseCase
     try {
       if (ENABLE_REFRESH_LOGGING) {
         const tokenPreview = request.refreshToken.substring(0, 8) + '...';
-        console.log(`[RefreshAccessTokenUseCase] Attempting token refresh with token: ${tokenPreview}`);
+        console.log(
+          `[RefreshAccessTokenUseCase] Attempting token refresh with token: ${tokenPreview}`,
+        );
       }
 
       const tokenResult = await this.tokenService.refreshToken(
@@ -36,14 +38,18 @@ export class RefreshAccessTokenUseCase
 
       if (tokenResult.isErr()) {
         if (ENABLE_REFRESH_LOGGING) {
-          console.log(`[RefreshAccessTokenUseCase] Token refresh failed: ${tokenResult.error.message}`);
+          console.log(
+            `[RefreshAccessTokenUseCase] Token refresh failed: ${tokenResult.error.message}`,
+          );
         }
         return err(new AppError.UnexpectedError(tokenResult.error));
       }
 
       if (!tokenResult.value) {
         if (ENABLE_REFRESH_LOGGING) {
-          console.log(`[RefreshAccessTokenUseCase] Token refresh returned null - invalid refresh token`);
+          console.log(
+            `[RefreshAccessTokenUseCase] Token refresh returned null - invalid refresh token`,
+          );
         }
         return err(new RefreshAccessTokenErrors.InvalidRefreshTokenError());
       }
@@ -55,7 +61,9 @@ export class RefreshAccessTokenUseCase
       return ok(tokenResult.value);
     } catch (error: any) {
       if (ENABLE_REFRESH_LOGGING) {
-        console.log(`[RefreshAccessTokenUseCase] Token refresh error: ${error.message}`);
+        console.log(
+          `[RefreshAccessTokenUseCase] Token refresh error: ${error.message}`,
+        );
       }
       return err(new AppError.UnexpectedError(error));
     }

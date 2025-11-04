@@ -31,7 +31,9 @@ export async function GET(request: NextRequest) {
     if ((!accessToken || isTokenExpiringSoon(accessToken)) && refreshToken) {
       if (ENABLE_REFRESH_LOGGING) {
         const tokenPreview = refreshToken.substring(0, 8) + '...';
-        console.log(`[auth/me] Access token missing/expiring, attempting refresh with token: ${tokenPreview}`);
+        console.log(
+          `[auth/me] Access token missing/expiring, attempting refresh with token: ${tokenPreview}`,
+        );
       }
 
       // Use mutex to prevent concurrent refresh attempts
@@ -111,7 +113,9 @@ async function performTokenRefresh(
 
   if (!refreshResponse.ok) {
     if (ENABLE_REFRESH_LOGGING) {
-      console.log(`[auth/me] Backend refresh failed with status: ${refreshResponse.status}`);
+      console.log(
+        `[auth/me] Backend refresh failed with status: ${refreshResponse.status}`,
+      );
     }
     // Refresh failed — clear tokens and mark as unauthenticated
     const response = NextResponse.json<AuthResult>(

@@ -39,7 +39,12 @@ export default function AddCardToModal(props: Props) {
       onClick={(e) => e.stopPropagation()}
     >
       <Suspense fallback={<CollectionSelectorSkeleton />}>
-        <AddCardToModalContent {...props} />
+        <AddCardToModalContent
+          onClose={props.onClose}
+          cardId={props.cardId}
+          cardContent={props.cardContent}
+          note={props.note}
+        />
       </Suspense>
     </Modal>
   );

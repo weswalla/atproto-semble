@@ -28,6 +28,7 @@ export default function useAddCard() {
       queryClient.invalidateQueries({ queryKey: feedKeys.all() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.mine() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.infinite() });
+      queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
       queryClient.invalidateQueries({
         queryKey: collectionKeys.bySembleUrl(variables.url),
       });

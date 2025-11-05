@@ -16,7 +16,7 @@ export default function NoteCard(props: Props) {
 
   return (
     <Card p={'sm'} radius={'lg'} withBorder>
-      <Stack>
+      <Stack h={'100%'}>
         <Spoiler showLabel={'Read more'} hideLabel={'See less'} maxHeight={200}>
           <Text fs={'italic'}>{props.note}</Text>
         </Spoiler>

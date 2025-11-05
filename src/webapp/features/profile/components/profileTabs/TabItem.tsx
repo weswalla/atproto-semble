@@ -1,6 +1,8 @@
-import { Anchor, Tabs } from '@mantine/core';
+'use client';
+
+import { Tabs } from '@mantine/core';
 import classes from './TabItem.module.css';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   value: string;
@@ -9,11 +11,16 @@ interface Props {
 }
 
 export default function TabItem(props: Props) {
+  const router = useRouter();
+
   return (
-    <Anchor component={Link} href={props.href} c={'dark'} underline="never">
-      <Tabs.Tab value={props.value} className={classes.tab} fw={600}>
-        {props.children}
-      </Tabs.Tab>
-    </Anchor>
+    <Tabs.Tab
+      value={props.value}
+      className={classes.tab}
+      fw={600}
+      onClick={() => router.push(props.href)}
+    >
+      {props.children}
+    </Tabs.Tab>
   );
 }

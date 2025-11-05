@@ -9,6 +9,7 @@ import {
 } from '@mantine/core';
 import useMyProfile from '../../lib/queries/useMyProfile';
 import CosmikLogo from '@/assets/cosmik-logo-full.svg';
+import CosmikLogoWhite from '@/assets/cosmik-logo-full-white.svg';
 import { MdBugReport } from 'react-icons/md';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
@@ -96,7 +97,14 @@ export default function ProfileMenu() {
             href="https://cosmik.network/"
             target="_blank"
           >
-            <Image src={CosmikLogo.src} alt="Cosmik logo" w={'auto'} h={24} />
+            <Image
+              src={
+                colorScheme === 'dark' ? CosmikLogoWhite.src : CosmikLogo.src
+              }
+              alt="Cosmik logo"
+              w={'auto'}
+              h={24}
+            />
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>

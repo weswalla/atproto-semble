@@ -1,3 +1,5 @@
+'use client';
+
 import {
   ActionIcon,
   SimpleGrid,
@@ -18,7 +20,9 @@ import { FaBluesky, FaGithub, FaDiscord } from 'react-icons/fa6';
 import { BiRightArrowAlt } from 'react-icons/bi';
 import { RiArrowRightUpLine } from 'react-icons/ri';
 import BG from '@/assets/semble-bg.webp';
+import DarkBG from '@/assets/semble-bg-dark.png';
 import CosmikLogo from '@/assets/cosmik-logo-full.svg';
+import CosmikLogoWhite from '@/assets/cosmik-logo-full-white.svg';
 import CurateIcon from '@/assets/icons/curate-icon.svg';
 import CommunityIcon from '@/assets/icons/community-icon.svg';
 import DBIcon from '@/assets/icons/db-icon.svg';
@@ -26,10 +30,16 @@ import BigPictureIcon from '@/assets/icons/big-picture-icon.svg';
 import TangledIcon from '@/assets/icons/tangled-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
+import { useColorScheme } from '@mantine/hooks';
 
 export default function Home() {
+  const colorScheme = useColorScheme();
+
   return (
-    <BackgroundImage src={BG.src} h={'100svh'}>
+    <BackgroundImage
+      src={colorScheme === 'dark' ? DarkBG.src : BG.src}
+      h={'100svh'}
+    >
       <script async src="https://tally.so/widgets/embed.js" />
       <Container size={'xl'} p={'md'} my={'auto'}>
         <Group justify="space-between">
@@ -56,7 +66,13 @@ export default function Home() {
               <Title order={1} fw={600} fz={'3rem'} ta={'center'}>
                 A social knowledge network for researchers
               </Title>
-              <Title order={2} fw={600} fz={'xl'} c={'#1F6144'} ta={'center'}>
+              <Title
+                order={2}
+                fw={600}
+                fz={'xl'}
+                c={colorScheme === 'dark' ? '#1e4dd9' : '#1F6144'}
+                ta={'center'}
+              >
                 Follow your peers’ research trails. Surface and discover new
                 connections. Built on ATProto so you own your data.
               </Title>
@@ -223,7 +239,11 @@ export default function Home() {
                         style={{ verticalAlign: 'middle' }}
                       >
                         <Image
-                          src={CosmikLogo.src}
+                          src={
+                            colorScheme === 'dark'
+                              ? CosmikLogoWhite.src
+                              : CosmikLogo.src
+                          }
                           alt="Cosmik logo"
                           w={92}
                           h={28.4}

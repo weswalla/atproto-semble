@@ -120,7 +120,6 @@ export function AddToCollectionModal({
       onClose={handleClose}
       title="Add to Collections"
       centered
-      size="md"
     >
       <Stack p="sm">
         {loading ? (

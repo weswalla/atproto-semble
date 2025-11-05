@@ -4,6 +4,7 @@ import type { Collection } from '@/api-client';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { getRelativeTime } from '@/lib/utils/time';
 import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
+import styles from './CollectionCard.module.css';
 import { useRouter } from 'next/navigation';
 
 interface Props {
@@ -29,7 +30,7 @@ export default function CollectionCard(props: Props) {
       }
       radius={'lg'}
       p={'sm'}
-      style={{ cursor: 'pointer' }}
+      className={styles.root}
     >
       <Stack justify="space-between" h={'100%'}>
         <Stack gap={0}>

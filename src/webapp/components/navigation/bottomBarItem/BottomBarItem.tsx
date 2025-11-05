@@ -30,11 +30,6 @@ export default function BottomBarItem(props: Props) {
       href={props.href}
       variant={isActive ? 'light' : 'transparent'}
       size={'lg'}
-      bg={
-        isActive
-          ? `${colorScheme === 'dark' ? 'dark.5' : 'gray.1'}`
-          : 'transparent'
-      }
       color="gray"
     >
       {renderIcon()}

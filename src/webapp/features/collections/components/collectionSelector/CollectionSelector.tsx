@@ -11,6 +11,7 @@ import {
   Button,
   Group,
   Divider,
+  FocusTrap,
 } from '@mantine/core';
 import { Fragment, useState } from 'react';
 import { useDebouncedValue } from '@mantine/hooks';
@@ -73,6 +74,7 @@ export default function CollectionSelector(props: Props) {
 
   return (
     <Fragment>
+      <FocusTrap.InitialFocus />
       <Stack gap="xl">
         <Stack>
           <TextInput

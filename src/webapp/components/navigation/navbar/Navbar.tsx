@@ -36,7 +36,9 @@ export default function Navbar() {
         <Anchor component={Link} href={'/home'}>
           <Stack align="center" gap={6}>
             <Image src={SembleLogo.src} alt="Semble logo" w={20.84} h={28} />
-            <Badge size="xs">Alpha</Badge>
+            <Badge size="xs" style={{ cursor: 'pointer' }}>
+              Alpha
+            </Badge>
           </Stack>
         </Anchor>
         <Box hiddenFrom="xs">

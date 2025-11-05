@@ -24,6 +24,9 @@ export default function useRemoveCardFromCollections() {
         queryClient.invalidateQueries({
           queryKey: collectionKeys.collection(id),
         });
+        queryClient.invalidateQueries({
+          queryKey: collectionKeys.infinite(id),
+        });
       });
     },
   });

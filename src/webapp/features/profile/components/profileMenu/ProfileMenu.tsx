@@ -16,9 +16,11 @@ import Link from 'next/link';
 import { IoMdLogOut } from 'react-icons/io';
 import { useNavbarContext } from '@/providers/navbar';
 import { BiSolidUserCircle } from 'react-icons/bi';
+import { useColorScheme } from '@mantine/hooks';
 
 export default function ProfileMenu() {
   const router = useRouter();
+  const colorScheme = useColorScheme();
   const { toggleMobile } = useNavbarContext();
   const { data, error, isPending } = useMyProfile();
   const { logout } = useAuth();
@@ -46,8 +48,7 @@ export default function ProfileMenu() {
         <Menu.Target>
           <Button
             variant="subtle"
-            color="gray"
-            c={'dark'}
+            color={colorScheme === 'dark' ? 'gray' : 'dark'}
             fz={'md'}
             radius={'md'}
             size="lg"

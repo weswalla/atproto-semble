@@ -23,7 +23,7 @@ export default async function ProfileHeader(props: Props) {
   const profile = await getProfile(props.handle);
 
   return (
-    <Container bg={'white'} p={0} size={'xl'}>
+    <Container p={0} size={'xl'}>
       <MinimalProfileHeaderContainer
         avatarUrl={profile.avatarUrl}
         name={profile.name}
@@ -69,9 +69,9 @@ export default async function ProfileHeader(props: Props) {
             component="a"
             href={`https://bsky.app/profile/${profile.handle}`}
             target="_blank"
+            variant="light"
             radius={'xl'}
-            bg="gray.2"
-            c={'gray'}
+            color={'gray'}
             leftSection={<FaBluesky />}
           >
             {truncateText(profile.handle, 14)}

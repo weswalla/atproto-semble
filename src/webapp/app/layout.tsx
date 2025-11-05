@@ -26,7 +26,7 @@ export default function RootLayout({
       {...mantineHtmlProps}
     >
       <head>
-        <ColorSchemeScript />
+        <ColorSchemeScript defaultColorScheme="light" />
       </head>
       <body className={GlobalStyles.main}>
         <Providers>{children}</Providers>

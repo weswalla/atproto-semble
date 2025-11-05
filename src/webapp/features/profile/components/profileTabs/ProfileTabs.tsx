@@ -1,6 +1,6 @@
 'use client';
 
-import { Group, ScrollAreaAutosize, Tabs } from '@mantine/core';
+import { Group, Paper, ScrollAreaAutosize, Tabs } from '@mantine/core';
 import TabItem from './TabItem';
 import { usePathname } from 'next/navigation';
 
@@ -16,21 +16,23 @@ export default function ProfileTabs({ handle }: Props) {
 
   return (
     <Tabs value={currentTab}>
-      <ScrollAreaAutosize type="scroll">
-        <Tabs.List>
-          <Group wrap="nowrap">
-            <TabItem value="profile" href={basePath}>
-              Profile
-            </TabItem>
-            <TabItem value="cards" href={`${basePath}/cards`}>
-              Cards
-            </TabItem>
-            <TabItem value="collections" href={`${basePath}/collections`}>
-              Collections
-            </TabItem>
-          </Group>
-        </Tabs.List>
-      </ScrollAreaAutosize>
+      <Paper radius={0}>
+        <ScrollAreaAutosize type="scroll">
+          <Tabs.List>
+            <Group wrap="nowrap">
+              <TabItem value="profile" href={basePath}>
+                Profile
+              </TabItem>
+              <TabItem value="cards" href={`${basePath}/cards`}>
+                Cards
+              </TabItem>
+              <TabItem value="collections" href={`${basePath}/collections`}>
+                Collections
+              </TabItem>
+            </Group>
+          </Tabs.List>
+        </ScrollAreaAutosize>
+      </Paper>
     </Tabs>
   );
 }

@@ -1,10 +1,13 @@
-import { Anchor, Avatar, Group, Paper, Stack, Text } from '@mantine/core';
+'use client';
+
+import { Anchor, Avatar, Card, Group, Paper, Stack, Text } from '@mantine/core';
 import { FeedItem, Collection } from '@/api-client';
 import { Fragment } from 'react';
 import Link from 'next/link';
 import { getRelativeTime } from '@/lib/utils/time';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { sanitizeText } from '@/lib/utils/text';
+import { useColorScheme } from '@mantine/hooks';
 
 interface Props {
   user: FeedItem['user'];
@@ -13,6 +16,7 @@ interface Props {
 }
 
 export default function FeedActivityStatus(props: Props) {
+  const colorScheme = useColorScheme();
   const MAX_DISPLAYED = 2;
   const time = getRelativeTime(props.createdAt.toString());
   const relativeCreatedDate = time === 'just now' ? `Now` : `${time} ago`;
@@ -23,7 +27,7 @@ export default function FeedActivityStatus(props: Props) {
     const remainingCount = collections.length - MAX_DISPLAYED;
 
     return (
-      <Text fw={500} c={'gray.7'}>
+      <Text fw={500} c={colorScheme === 'dark' ? 'gray' : 'gray.7'}>
         <Anchor
           component={Link}
           href={`/profile/${props.user.handle}`}
@@ -64,7 +68,7 @@ export default function FeedActivityStatus(props: Props) {
   };
 
   return (
-    <Paper bg={'gray.1'} radius={'lg'}>
+    <Card p={0} bg={colorScheme === 'dark' ? 'dark.4' : 'gray.1'} radius={'lg'}>
       <Stack gap={'xs'}>
         <Group gap={'xs'} wrap="nowrap" align="center" p={'xs'}>
           <Avatar
@@ -76,6 +80,6 @@ export default function FeedActivityStatus(props: Props) {
           {renderActivityText()}
         </Group>
       </Stack>
-    </Paper>
+    </Card>
   );
 }

@@ -1,7 +1,7 @@
 import '@mantine/core/styles.css';
 
-import React, { useEffect } from 'react';
-import { MantineProvider, useMantineColorScheme } from '@mantine/core';
+import React from 'react';
+import { MantineProvider } from '@mantine/core';
 import { theme } from '../styles/theme';
 import { Hanken_Grotesk } from 'next/font/google';
 

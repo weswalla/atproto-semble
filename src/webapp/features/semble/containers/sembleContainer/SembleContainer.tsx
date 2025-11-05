@@ -13,13 +13,7 @@ export default async function SembleContainer(props: Props) {
   return (
     <Container p={0} fluid>
       <Box style={{ position: 'relative', width: '100%' }}>
-        <Image
-          src={BG.src}
-          alt="bg"
-          fit="cover"
-          w="100%"
-          h={{ base: 100, md: 120 }}
-        />
+        <Image src={BG.src} alt="bg" fit="cover" w="100%" h={80} />
 
         {/* White gradient overlay */}
         <Box

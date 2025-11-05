@@ -4,6 +4,7 @@ import { AppShell } from '@mantine/core';
 import { useNavbarContext } from '@/providers/navbar';
 import { usePathname } from 'next/navigation';
 import GuestNavbar from '../guestNavbar/GuestNavbar';
+import GuestBottomBar from '../guestBottomBar/GuestBottomBar';
 
 interface Props {
   children: React.ReactNode;
@@ -36,6 +37,8 @@ export default function GuestAppLayout(props: Props) {
       <GuestNavbar />
 
       <AppShell.Main>{props.children}</AppShell.Main>
+
+      <GuestBottomBar />
     </AppShell>
   );
 }

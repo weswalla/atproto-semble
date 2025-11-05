@@ -15,8 +15,8 @@ export default function NoteCard(props: Props) {
   const relativeCreateDate = time === 'just now' ? `${time}` : `${time} ago`;
 
   return (
-    <Card p={'sm'} radius={'lg'} withBorder>
-      <Stack h={'100%'}>
+    <Card p={'sm'} radius={'lg'} h={'100%'} withBorder>
+      <Stack justify="space-between" h={'100%'}>
         <Spoiler showLabel={'Read more'} hideLabel={'See less'} maxHeight={200}>
           <Text fs={'italic'}>{props.note}</Text>
         </Spoiler>

@@ -1,6 +1,6 @@
 import { Avatar, Group, Skeleton } from '@mantine/core';
 
-export default async function UrlAddedBySummarySkeleton() {
+export default function UrlAddedBySummarySkeleton() {
   return (
     <Group gap={'xs'}>
       <Avatar src={null} />

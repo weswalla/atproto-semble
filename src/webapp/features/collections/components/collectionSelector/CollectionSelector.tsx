@@ -92,7 +92,7 @@ export default function CollectionSelector(props: Props) {
             }
           />
 
-          <ScrollArea.Autosize mah={220} type="auto">
+          <ScrollArea.Autosize mah={215} type="auto">
             <Stack gap="xs">
               {search ? (
                 <>

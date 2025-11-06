@@ -89,7 +89,7 @@ export default function AddCardDrawer(props: Props) {
           New Card
         </Drawer.Title>
       </Drawer.Header>
-      <Container size={'sm'}>
+      <Container size={'sm'} p={0}>
         <form onSubmit={handleAddCard}>
           <Stack gap={'xl'}>
             <Stack>
@@ -152,7 +152,7 @@ export default function AddCardDrawer(props: Props) {
                     Add to collections
                   </Drawer.Title>
                 </Drawer.Header>
-                <Container size={'xs'}>
+                <Container size={'xs'} p={0}>
                   <Suspense fallback={<CollectionSelectorSkeleton />}>
                     <CollectionSelector
                       isOpen={collectionSelectorOpened}

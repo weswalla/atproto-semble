@@ -11,7 +11,6 @@ import {
   Spoiler,
   TabsTab,
   Tooltip,
-  Title,
   Text,
 } from '@mantine/core';
 

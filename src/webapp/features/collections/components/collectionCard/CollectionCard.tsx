@@ -58,7 +58,7 @@ export default function CollectionCard(props: Props) {
               size={'sm'}
             />
 
-            <Text fw={500} span>
+            <Text fw={500} c={'var(--mantine-color-bright)'} span>
               {collection.author.name}
             </Text>
           </Group>

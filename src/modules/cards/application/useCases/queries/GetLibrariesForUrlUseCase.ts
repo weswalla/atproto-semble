@@ -68,12 +68,15 @@ export class GetLibrariesForUrlUseCase
 
     try {
       // Execute query to get libraries with full card data
-      const result = await this.cardQueryRepo.getLibrariesForUrl(query.url, {
-        page,
-        limit,
-        sortBy,
-        sortOrder,
-      });
+      const result = await this.cardQueryRepo.getLibrariesForUrl(
+        urlResult.value.value,
+        {
+          page,
+          limit,
+          sortBy,
+          sortOrder,
+        },
+      );
 
       // Enrich with user profiles
       const uniqueUserIds = Array.from(

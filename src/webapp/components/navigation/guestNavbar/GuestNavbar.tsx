@@ -46,7 +46,7 @@ export default function GuestNavbar() {
               <Button
                 component={Link}
                 href="/login"
-                color="dark"
+                color="var(--mantine-color-dark-filled)"
                 rightSection={<BiRightArrowAlt size={22} />}
               >
                 Log in

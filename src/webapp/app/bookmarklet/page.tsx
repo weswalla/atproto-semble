@@ -53,7 +53,7 @@ export default function BookmarkletPage() {
           </Text>
         </Stack>
 
-        <Alert icon={<BiInfoCircle />} title="How to install" color="blue">
+        <Alert icon={<BiInfoCircle />} title="How to install" color="orange">
           <Stack gap="sm">
             <Text>
               1. Copy the bookmarklet code below or drag the button to your bookmarks bar

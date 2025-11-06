@@ -38,7 +38,7 @@ export default function BookmarkletPage() {
   // Create the bookmarklet link using dangerouslySetInnerHTML to bypass React's security check
   const createBookmarkletLink = () => {
     return {
-      __html: `<a href="${bookmarkletCode}" style="text-decoration: none; padding: 8px 16px; background-color: var(--mantine-color-blue-6); color: white; border-radius: 4px; display: inline-flex; align-items: center; gap: 8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v10z"/></svg>Open in Semble</a>`
+      __html: `<a href="${bookmarkletCode}" style="text-decoration: none; padding: 8px 16px; background-color: var(--mantine-color-blue-6); color: white; border-radius: 4px; display: inline-flex; align-items: center; gap: 8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z"/></svg>Open in Semble</a>`
     };
   };
 

@@ -2,7 +2,7 @@
 
 ![semble banner image](src/webapp/app/opengraph-image.jpg)
 
-[Semble](https://semble.so/) is a social knowledge network for online research built on the [AT Protocol](https://atproto.com/).
+[Semble](https://semble.so/) is a social knowledge network for research built on the [AT Protocol](https://atproto.com/).
 
 In Semble, you can save links as _Cards_ to _Collections_ and discover what other users are doing in the _Explore_ tab.
 

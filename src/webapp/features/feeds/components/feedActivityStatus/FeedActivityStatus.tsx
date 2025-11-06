@@ -1,11 +1,12 @@
-'use client';
-
 import {
   Anchor,
   Avatar,
   Card,
   Group,
   Menu,
+  MenuDropdown,
+  MenuItem,
+  MenuTarget,
   ScrollArea,
   Stack,
   Text,
@@ -13,11 +14,10 @@ import {
 import { FeedItem, Collection } from '@/api-client';
 import { Fragment } from 'react';
 import Link from 'next/link';
+import styles from './FeedActivityStatus.module.css';
 import { getRelativeTime } from '@/lib/utils/time';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { sanitizeText } from '@/lib/utils/text';
-import { useColorScheme } from '@mantine/hooks';
-import { BiCollection } from 'react-icons/bi';
 
 interface Props {
   user: FeedItem['user'];
@@ -26,7 +26,6 @@ interface Props {
 }
 
 export default function FeedActivityStatus(props: Props) {
-  const colorScheme = useColorScheme();
   const MAX_DISPLAYED = 2;
   const time = getRelativeTime(props.createdAt.toString());
   const relativeCreatedDate = time === 'just now' ? `Now` : `${time} ago`;
@@ -41,20 +40,15 @@ export default function FeedActivityStatus(props: Props) {
     const remainingCount = collections.length - MAX_DISPLAYED;
 
     return (
-      <Text fw={500} c={'gray'}>
-        <Anchor
-          component={Link}
-          href={`/profile/${props.user.handle}`}
-          c="dark"
-          fw={600}
-        >
+      <Text fw={500}>
+        <Text component={Link} href={`/profile/${props.user.handle}`} fw={600}>
           {sanitizeText(props.user.name)}
-        </Anchor>{' '}
+        </Text>{' '}
         {collections.length === 0 ? (
-          'added to library'
+          <Text span>added to library</Text>
         ) : (
           <Fragment>
-            added to{' '}
+            <Text span>added to </Text>
             {displayedCollections.map(
               (collection: Collection, index: number) => (
                 <span key={collection.id}>
@@ -70,10 +64,10 @@ export default function FeedActivityStatus(props: Props) {
                 </span>
               ),
             )}
-            {remainingCount > 0 && ' and '}
+            {remainingCount > 0 && <Text span>{' and '}</Text>}
             {remainingCount > 0 && (
               <Menu shadow="sm">
-                <Menu.Target>
+                <MenuTarget>
                   <Text
                     fw={600}
                     c={'blue'}
@@ -83,11 +77,11 @@ export default function FeedActivityStatus(props: Props) {
                     {remainingCount} other collection
                     {remainingCount > 1 ? 's' : ''}
                   </Text>
-                </Menu.Target>
-                <Menu.Dropdown maw={380}>
+                </MenuTarget>
+                <MenuDropdown maw={380}>
                   <ScrollArea.Autosize mah={150} type="auto">
                     {remainingCollections.map((c) => (
-                      <Menu.Item
+                      <MenuItem
                         key={c.id}
                         component={Link}
                         href={`/profile/${c.author.handle}/collections/${getRecordKey(c.uri!)}`}
@@ -96,10 +90,10 @@ export default function FeedActivityStatus(props: Props) {
                         fw={600}
                       >
                         {c.name}
-                      </Menu.Item>
+                      </MenuItem>
                     ))}
                   </ScrollArea.Autosize>
-                </Menu.Dropdown>
+                </MenuDropdown>
               </Menu>
             )}
           </Fragment>
@@ -112,7 +106,7 @@ export default function FeedActivityStatus(props: Props) {
   };
 
   return (
-    <Card p={0} bg={colorScheme === 'dark' ? 'dark.4' : 'gray.1'} radius={'lg'}>
+    <Card p={0} className={styles.root} radius={'lg'}>
       <Stack gap={'xs'}>
         <Group gap={'xs'} wrap="nowrap" align="center" p={'xs'}>
           <Avatar

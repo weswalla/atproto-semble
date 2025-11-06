@@ -9,7 +9,7 @@ export default function SignUpForm() {
         href="https://bsky.app/"
         target="_blank"
         size="lg"
-        color="dark"
+        color="var(--mantine-color-dark-filled)"
         leftSection={<FaBluesky size={22} />}
       >
         Sign up on Bluesky

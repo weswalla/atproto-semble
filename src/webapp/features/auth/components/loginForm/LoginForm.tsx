@@ -177,7 +177,7 @@ export default function LoginForm() {
             <Button
               type="submit"
               size="lg"
-              color="dark"
+              color="var(--mantine-color-dark-filled)"
               fullWidth
               rightSection={<BiRightArrowAlt size={22} />}
               loading={isLoading}
@@ -226,7 +226,7 @@ export default function LoginForm() {
           <Button
             type="submit"
             size="lg"
-            color="dark"
+            color="var(--mantine-color-dark-filled)"
             fullWidth
             rightSection={<BiRightArrowAlt size={22} />}
             loading={isLoading}

@@ -30,18 +30,21 @@ export default function NoteCard(props: Props) {
             size={'sm'}
           />
 
-          <Text c={'gray'}>
+          <Text>
             <Text
               component={Link}
               href={`/profile/${props.author.handle}`}
-              c={'dark'}
               fw={500}
               span
             >
               {props.author.name}
             </Text>
-            <Text span>{' · '}</Text>
-            <Text span>{relativeCreateDate} </Text>
+            <Text c={'gray'} span>
+              {' · '}
+            </Text>
+            <Text c={'gray'} span>
+              {relativeCreateDate}{' '}
+            </Text>
           </Text>
         </Group>
       </Stack>

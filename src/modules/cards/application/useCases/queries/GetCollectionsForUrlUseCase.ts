@@ -60,7 +60,7 @@ export class GetCollectionsForUrlUseCase
     try {
       // Execute query to get collections containing cards with this URL (raw data with authorId)
       const result = await this.collectionQueryRepo.getCollectionsWithUrl(
-        query.url,
+        urlResult.value.value,
         {
           page,
           limit,

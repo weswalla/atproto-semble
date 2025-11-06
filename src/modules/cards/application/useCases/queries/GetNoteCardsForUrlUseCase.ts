@@ -58,12 +58,15 @@ export class GetNoteCardsForUrlUseCase
 
     try {
       // Execute query to get note cards for the URL (raw data with authorId)
-      const result = await this.cardQueryRepo.getNoteCardsForUrl(query.url, {
-        page,
-        limit,
-        sortBy,
-        sortOrder,
-      });
+      const result = await this.cardQueryRepo.getNoteCardsForUrl(
+        urlResult.value.value,
+        {
+          page,
+          limit,
+          sortBy,
+          sortOrder,
+        },
+      );
 
       // Enrich with author profiles
       const uniqueAuthorIds = Array.from(

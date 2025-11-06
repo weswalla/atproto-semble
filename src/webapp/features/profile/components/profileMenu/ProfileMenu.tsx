@@ -106,30 +106,30 @@ export default function ProfileMenu() {
 
           <Menu.Item
             color="gray"
-            leftSection={<IoMdLogOut size={22} />}
-            onClick={handleLogout}
-          >
-            Log out
-          </Menu.Item>
-
-          <Menu.Divider />
-
-          {/*<Menu.Item
-            color="gray"
             leftSection={
               colorScheme === 'auto' ? (
-                <MdAutoAwesome />
+                <MdAutoAwesome size={22} />
               ) : computedColorScheme === 'dark' ? (
-                <MdDarkMode />
+                <MdDarkMode size={22} />
               ) : (
-                <MdLightMode />
+                <MdLightMode size={22} />
               )
             }
             closeMenuOnClick={false}
             onClick={handleThemeToggle}
           >
             Theme: {colorScheme}
-          </Menu.Item>*/}
+          </Menu.Item>
+
+          <Menu.Divider />
+
+          <Menu.Item
+            color="gray"
+            leftSection={<IoMdLogOut size={22} />}
+            onClick={handleLogout}
+          >
+            Log out
+          </Menu.Item>
 
           <Menu.Item
             component="a"

@@ -34,6 +34,7 @@ export default function NoteCard(props: Props) {
             <Text
               component={Link}
               href={`/profile/${props.author.handle}`}
+              c={'var(--mantine-color-bright)'}
               fw={500}
               span
             >

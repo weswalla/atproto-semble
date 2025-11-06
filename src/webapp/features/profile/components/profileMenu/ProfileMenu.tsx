@@ -114,7 +114,7 @@ export default function ProfileMenu() {
 
           <Menu.Divider />
 
-          {/*<Menu.Item
+          <Menu.Item
             color="gray"
             leftSection={
               colorScheme === 'auto' ? (
@@ -129,7 +129,7 @@ export default function ProfileMenu() {
             onClick={handleThemeToggle}
           >
             Theme: {colorScheme}
-          </Menu.Item>*/}
+          </Menu.Item>
 
           <Menu.Item
             component="a"

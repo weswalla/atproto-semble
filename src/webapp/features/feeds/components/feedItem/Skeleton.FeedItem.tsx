@@ -1,20 +1,12 @@
-'use client';
-
 import UrlCardSkeleton from '@/features/cards/components/urlCard/Skeleton.UrlCard';
-import { Avatar, Card, Group, Paper, Skeleton, Stack } from '@mantine/core';
-import { useColorScheme } from '@mantine/hooks';
+import { Avatar, Card, Group, Skeleton, Stack } from '@mantine/core';
+import styles from '../feedActivityStatus/FeedActivityStatus.module.css';
 
 export default function FeedItemSkeleton() {
-  const colorScheme = useColorScheme();
-
   return (
     <Stack gap={'xs'} align="stretch">
       {/* Feed activity status*/}
-      <Card
-        p={0}
-        bg={colorScheme === 'dark' ? 'dark.4' : 'gray.1'}
-        radius={'lg'}
-      >
+      <Card p={0} className={styles.root} radius={'lg'}>
         <Stack gap={'xs'} align="stretch" w={'100%'}>
           <Group gap={'xs'} wrap="nowrap" align="center" p={'xs'}>
             <Avatar />

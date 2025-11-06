@@ -26,7 +26,7 @@ import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { useNavbarContext } from '@/providers/navbar';
 
 export default function HomeContainer() {
-  const { data: collectionsData } = useMyCollections({ limit: 8 });
+  const { data: collectionsData } = useMyCollections({ limit: 4 });
   const { data: myCardsData } = useMyCards({ limit: 8 });
   const { data: profile } = useMyProfile();
 

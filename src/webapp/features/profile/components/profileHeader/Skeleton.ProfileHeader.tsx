@@ -10,7 +10,7 @@ import {
 
 export default function ProfileHeaderSkeleton() {
   return (
-    <Container bg={'white'} p={'xs'} size={'xl'}>
+    <Container p={'xs'} size={'xl'}>
       <Stack gap={'sm'}>
         <Stack gap={'xl'}>
           <Grid gutter={'md'} align={'center'} grow>

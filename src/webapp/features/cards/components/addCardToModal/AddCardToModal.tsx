@@ -1,36 +1,53 @@
-import type { UrlCard } from '@/api-client';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import { Modal, Stack, Text } from '@mantine/core';
 import { Suspense } from 'react';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
-import AddCardToModalContent from './AddCardToModalContent'; // new file or inline
+import AddCardToModalContent from './AddCardToModalContent';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  cardContent: UrlCard['cardContent'];
-  urlLibraryCount: number;
-  cardId: string;
+  url: string;
+  cardId?: string;
   note?: string;
-  isInYourLibrary: boolean;
+  urlLibraryCount?: number;
+  isInYourLibrary?: boolean;
 }
 
 export default function AddCardToModal(props: Props) {
+  const {
+    isOpen,
+    onClose,
+    url,
+    cardId,
+    note,
+    urlLibraryCount,
+    isInYourLibrary,
+  } = props;
+
+  const count = urlLibraryCount ?? 0;
+
+  const subtitle = (() => {
+    if (count === 0) return 'Not saved by anyone yet';
+
+    if (isInYourLibrary) {
+      if (count === 1) return 'Saved by you';
+      return `Saved by you and ${count - 1} other${count - 1 > 1 ? 's' : ''}`;
+    } else {
+      if (count === 1) return 'Saved by 1 person';
+      return `Saved by ${count} people`;
+    }
+  })();
+
   return (
     <Modal
-      opened={props.isOpen}
-      onClose={props.onClose}
+      opened={isOpen}
+      onClose={onClose}
       title={
         <Stack gap={0}>
-          <Text fw={600}>Add or update card</Text>
+          <Text fw={600}>Add or update {props.cardId ? 'card' : 'link'}</Text>
           <Text c="gray" fw={500}>
-            {props.isInYourLibrary
-              ? props.urlLibraryCount === 1
-                ? 'Saved by you'
-                : `Saved by you and ${props.urlLibraryCount - 1} other${props.urlLibraryCount - 1 > 1 ? 's' : ''}`
-              : props.urlLibraryCount === 1
-                ? 'Saved by 1 person'
-                : `Saved by ${props.urlLibraryCount} people`}
+            {subtitle}
           </Text>
         </Stack>
       }
@@ -39,7 +56,12 @@ export default function AddCardToModal(props: Props) {
       onClick={(e) => e.stopPropagation()}
     >
       <Suspense fallback={<CollectionSelectorSkeleton />}>
-        <AddCardToModalContent {...props} />
+        <AddCardToModalContent
+          onClose={onClose}
+          url={url}
+          cardId={cardId}
+          note={note}
+        />
       </Suspense>
     </Modal>
   );

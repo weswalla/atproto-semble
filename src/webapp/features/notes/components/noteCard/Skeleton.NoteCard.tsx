@@ -2,7 +2,7 @@ import { Card, Skeleton, Stack } from '@mantine/core';
 
 export default function NoteCardSkeleton() {
   return (
-    <Card p={'sm'} withBorder>
+    <Card p={'sm'} radius={'lg'} withBorder>
       <Stack gap={'xs'}>
         {/* Note */}
         <Stack gap={5}>

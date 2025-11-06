@@ -13,13 +13,17 @@ import {
 } from '@mantine/core';
 import SembleLogo from '@/assets/semble-logo.svg';
 import BG from '@/assets/semble-bg.webp';
+import DarkBG from '@/assets/semble-bg-dark.png';
 import Link from 'next/link';
 import { BiRightArrowAlt } from 'react-icons/bi';
+import { useColorScheme } from '@mantine/hooks';
 
 export default function Error() {
+  const colorScheme = useColorScheme();
+
   return (
     <BackgroundImage
-      src={BG.src}
+      src={colorScheme === 'dark' ? DarkBG.src : BG.src}
       h={'100svh'}
       pos={'fixed'}
       top={0}
@@ -44,7 +48,12 @@ export default function Error() {
               <Text fz={'h1'} fw={600} ta={'center'}>
                 A social knowledge network for researchers
               </Text>
-              <Text fz={'h3'} fw={600} c={'#1F6144'} ta={'center'}>
+              <Text
+                fz={'h3'}
+                fw={600}
+                c={colorScheme === 'dark' ? '#1e4dd9' : '#1F6144'}
+                ta={'center'}
+              >
                 Follow your peers’ research trails. Surface and discover new
                 connections. Built on ATProto so you own your data.
               </Text>

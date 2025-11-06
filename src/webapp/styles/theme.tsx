@@ -11,11 +11,14 @@ import {
   Spoiler,
   TabsTab,
   Tooltip,
-  Title,
   Text,
 } from '@mantine/core';
 
 export const theme = createTheme({
+  primaryShade: {
+    light: 6,
+    dark: 6,
+  },
   primaryColor: 'tangerine',
   colors: {
     tangerine: [

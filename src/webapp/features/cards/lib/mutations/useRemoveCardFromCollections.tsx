@@ -19,10 +19,14 @@ export default function useRemoveCardFromCollections() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: collectionKeys.infinite() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.mine() });
+      queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
 
       variables.collectionIds.forEach((id) => {
         queryClient.invalidateQueries({
           queryKey: collectionKeys.collection(id),
+        });
+        queryClient.invalidateQueries({
+          queryKey: collectionKeys.infinite(id),
         });
       });
     },

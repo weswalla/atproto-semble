@@ -68,7 +68,7 @@ export default function EditNoteDrawer(props: Props) {
         </Drawer.Title>
       </Drawer.Header>
 
-      <Container size="sm">
+      <Container size="sm" p={0}>
         <form onSubmit={handleUpdateNote}>
           <Stack>
             <Textarea

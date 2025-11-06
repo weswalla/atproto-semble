@@ -72,7 +72,7 @@ export default function EditCollectionDrawer(props: Props) {
         </Drawer.Title>
       </Drawer.Header>
 
-      <Container size="sm">
+      <Container size="sm" p={0}>
         <form onSubmit={handleUpdateCollection}>
           <Stack>
             <TextInput

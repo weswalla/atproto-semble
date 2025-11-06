@@ -71,11 +71,11 @@ function InnerPage() {
           <Popover withArrow shadow="sm">
             <PopoverTarget>
               <Button
-                variant="white"
+                variant="transparent"
                 size="md"
                 fw={500}
                 fs={'italic'}
-                c={'stone'}
+                c={'gray'}
                 rightSection={<IoMdHelpCircleOutline size={22} />}
               >
                 How your Cosmik Network account works

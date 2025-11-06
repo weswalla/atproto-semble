@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { addUrlToLibrary } from '../dal';
 import { cardKeys } from '../cardKeys';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
+import { feedKeys } from '@/features/feeds/lib/feedKeys';
 
 export default function useAddCard() {
   const queryClient = useQueryClient();
@@ -24,8 +25,10 @@ export default function useAddCard() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: cardKeys.mine() });
       queryClient.invalidateQueries({ queryKey: cardKeys.all() });
+      queryClient.invalidateQueries({ queryKey: feedKeys.all() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.mine() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.infinite() });
+      queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
       queryClient.invalidateQueries({
         queryKey: collectionKeys.bySembleUrl(variables.url),
       });
@@ -34,6 +37,9 @@ export default function useAddCard() {
       variables.collectionIds?.forEach((id) => {
         queryClient.invalidateQueries({
           queryKey: collectionKeys.collection(id),
+        });
+        queryClient.invalidateQueries({
+          queryKey: collectionKeys.infinite(id),
         });
       });
     },

@@ -14,7 +14,7 @@ interface Props {
 
 export default function AppLayout(props: Props) {
   const { mobileOpened, desktopOpened } = useNavbarContext();
-  const isMobile = useMediaQuery('(max-width: 48em)'); // "sm" breakpoint
+  const isMobile = useMediaQuery('(max-width: 48em)', true); // "sm" breakpoint
   const pathname = usePathname();
 
   const ROUTES_WITH_ASIDE = ['/url'];

@@ -8,7 +8,7 @@ interface Props {
 
 export default function TabItem(props: Props) {
   return (
-    <TabsTab c={'dark'} value={props.value} className={classes.tab} fw={600}>
+    <TabsTab value={props.value} className={classes.tab} fw={600}>
       {props.children}
     </TabsTab>
   );

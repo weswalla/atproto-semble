@@ -3,6 +3,7 @@ import { ActionIcon } from '@mantine/core';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ReactElement, isValidElement } from 'react';
+import { useColorScheme } from '@mantine/hooks';
 
 interface Props {
   href: string;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function BottomBarItem(props: Props) {
+  const colorScheme = useColorScheme();
   const pathname = usePathname();
   const isActive = pathname === props.href;
 
@@ -28,8 +30,7 @@ export default function BottomBarItem(props: Props) {
       href={props.href}
       variant={isActive ? 'light' : 'transparent'}
       size={'lg'}
-      bg={isActive ? 'gray.1' : 'transparent'}
-      color={isActive ? 'dark' : 'gray'}
+      color="gray"
     >
       {renderIcon()}
     </ActionIcon>

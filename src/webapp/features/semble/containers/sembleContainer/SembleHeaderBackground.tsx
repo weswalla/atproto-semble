@@ -1,22 +1,20 @@
-'use client';
-
-import { useColorScheme } from '@mantine/hooks';
 import BG from '@/assets/semble-header-bg.webp';
 import DarkBG from '@/assets/semble-header-bg-dark.webp';
 import { Box, Image } from '@mantine/core';
 
 export default function SembleHeaderBackground() {
-  const colorScheme = useColorScheme();
-
   return (
     <Box style={{ position: 'relative', width: '100%' }}>
       <Image
-        src={colorScheme === 'dark' ? DarkBG.src : BG.src}
+        src={DarkBG.src}
         alt="bg"
         fit="cover"
         w="100%"
         h={80}
+        lightHidden
       />
+
+      <Image src={BG.src} alt="bg" fit="cover" w="100%" h={80} darkHidden />
 
       {/* White gradient overlay */}
       <Box

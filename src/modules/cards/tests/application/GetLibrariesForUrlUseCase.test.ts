@@ -319,7 +319,7 @@ describe('GetLibrariesForUrlUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
 
-      expect(response.sorting.sortBy).toBe(CardSortField.UPDATED_AT);
+      expect(response.sorting.sortBy).toBe(CardSortField.CREATED_AT);
       expect(response.sorting.sortOrder).toBe(SortOrder.DESC);
     });
 

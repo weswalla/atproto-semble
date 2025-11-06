@@ -58,7 +58,7 @@ export default function CollectionCard(props: Props) {
               size={'sm'}
             />
 
-            <Text c={'dark'} fw={500} span>
+            <Text fw={500} span>
               {collection.author.name}
             </Text>
           </Group>

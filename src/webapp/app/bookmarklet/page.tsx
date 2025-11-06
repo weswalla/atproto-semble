@@ -20,7 +20,7 @@ export default function BookmarkletPage() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   
   const bookmarkletCode = `javascript:(function(){
-    const currentUrl = encodeURIComponent(window.location.href);
+    const currentUrl = window.location.href;
     const sembleUrl = '${appUrl}/url?id=' + currentUrl;
     window.open(sembleUrl, '_blank');
   })();`;

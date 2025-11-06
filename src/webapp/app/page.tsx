@@ -30,21 +30,31 @@ import BigPictureIcon from '@/assets/icons/big-picture-icon.svg';
 import TangledIcon from '@/assets/icons/tangled-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
-import { useColorScheme } from '@mantine/hooks';
 
 export default function Home() {
-  const colorScheme = useColorScheme();
-
   return (
-    <BackgroundImage
-      src={colorScheme === 'dark' ? DarkBG.src : BG.src}
-      h={'100svh'}
-    >
+    <>
+      {/* light mode background */}
+      <BackgroundImage src={BG.src} darkHidden h="100svh">
+        <Content />
+      </BackgroundImage>
+
+      {/* dark mode background */}
+      <BackgroundImage src={DarkBG.src} lightHidden h="100svh">
+        <Content />
+      </BackgroundImage>
+    </>
+  );
+}
+
+function Content() {
+  return (
+    <>
       <script async src="https://tally.so/widgets/embed.js" />
-      <Container size={'xl'} p={'md'} my={'auto'}>
+      <Container size="xl" p="md" my="auto">
         <Group justify="space-between">
           <Stack gap={6} align="center">
-            <Image src={SembleLogo.src} alt="Semble logo" w={30} h={'auto'} />
+            <Image src={SembleLogo.src} alt="Semble logo" w={30} h="auto" />
             <Badge size="sm">Alpha</Badge>
           </Stack>
           <Button
@@ -59,26 +69,43 @@ export default function Home() {
           </Button>
         </Group>
       </Container>
-      <Center h={'100svh'} py={{ base: '2rem', xs: '5rem' }}>
-        <Container size={'xl'} p={'md'} my={'auto'}>
-          <Stack align="center" gap={'5rem'}>
-            <Stack gap={'xs'} align="center" maw={550} mx={'auto'}>
-              <Title order={1} fw={600} fz={'3rem'} ta={'center'}>
+
+      <Center h="100svh" py={{ base: '2rem', xs: '5rem' }}>
+        <Container size="xl" p="md" my="auto">
+          <Stack align="center" gap="5rem">
+            <Stack gap="xs" align="center" maw={550} mx="auto">
+              <Title order={1} fw={600} fz="3rem" ta="center">
                 A social knowledge network for researchers
               </Title>
+
+              {/* light mode subtitle */}
               <Title
                 order={2}
                 fw={600}
-                fz={'xl'}
-                c={colorScheme === 'dark' ? '#1e4dd9' : '#1F6144'}
-                ta={'center'}
+                fz="xl"
+                c="#1F6144"
+                ta="center"
+                darkHidden
+              >
+                Follow your peers’ research trails. Surface and discover new
+                connections. Built on ATProto so you own your data.
+              </Title>
+
+              {/* dark mode subtitle */}
+              <Title
+                order={2}
+                fw={600}
+                fz="xl"
+                c="#1e4dd9"
+                ta="center"
+                lightHidden
               >
                 Follow your peers’ research trails. Surface and discover new
                 connections. Built on ATProto so you own your data.
               </Title>
 
               {process.env.VERCEL_ENV !== 'production' && (
-                <Group gap="md" mt={'lg'}>
+                <Group gap="md" mt="lg">
                   <Button component={Link} href="/signup" size="lg">
                     Sign up
                   </Button>
@@ -101,52 +128,52 @@ export default function Home() {
               spacing={{ base: 'xl' }}
               mt={{ base: '1rem', xs: '5rem' }}
             >
-              <Stack gap={'xs'}>
+              <Stack gap="xs">
                 <Image src={CurateIcon.src} alt="Curate icon" w={28} />
                 <Text>
-                  <Text fw={600} fz={'lg'} span>
+                  <Text fw={600} fz="lg" span>
                     Curate your research trails.
                   </Text>{' '}
-                  <Text fw={500} fz={'lg'} c={'dark.2'} span>
+                  <Text fw={500} fz="lg" c="dark.2" span>
                     Collect interesting links, add notes, and organize them into
                     shareable collections. Build trails others can explore and
                     extend.
                   </Text>
                 </Text>
               </Stack>
-              <Stack gap={'xs'}>
+              <Stack gap="xs">
                 <Image src={CommunityIcon.src} alt="Community icon" w={28} />
                 <Text>
-                  <Text fw={600} fz={'lg'} span>
+                  <Text fw={600} fz="lg" span>
                     Connect with peers.
                   </Text>{' '}
-                  <Text fw={500} fz={'lg'} c={'dark.2'} span>
+                  <Text fw={500} fz="lg" c="dark.2" span>
                     See what your peers are sharing and find new collaborators
                     with shared interests. Experience research rabbit holes,
                     together.
                   </Text>
                 </Text>
               </Stack>
-              <Stack gap={'xs'}>
+              <Stack gap="xs">
                 <Image src={DBIcon.src} alt="Database icon" w={28} />
                 <Text>
-                  <Text fw={600} fz={'lg'} span>
+                  <Text fw={600} fz="lg" span>
                     Own your data.
                   </Text>{' '}
-                  <Text fw={500} fz={'lg'} c={'dark.2'} span>
+                  <Text fw={500} fz="lg" c="dark.2" span>
                     Built on ATProto, new apps will come to you. No more
                     rebuilding your social graph and data when apps pivot and
                     shut down.
                   </Text>
                 </Text>
               </Stack>
-              <Stack gap={'xs'}>
+              <Stack gap="xs">
                 <Image src={BigPictureIcon.src} alt="Big picture icon" w={28} />
                 <Text>
-                  <Text fw={600} fz={'lg'} span>
+                  <Text fw={600} fz="lg" span>
                     See the bigger picture.
                   </Text>{' '}
-                  <Text fw={500} fz={'lg'} c={'dark.2'} span>
+                  <Text fw={500} fz="lg" c="dark.2" span>
                     Find relevant research based on your network. Get the extra
                     context that matters before you dive into a long read.
                   </Text>
@@ -154,130 +181,133 @@ export default function Home() {
               </Stack>
             </SimpleGrid>
 
-            <Box
-              component="footer"
-              px={'md'}
-              py={'xs'}
-              mt={'xl'}
-              pos={'relative'}
-            >
-              <Stack align="center" gap={'xs'}>
-                <Group gap="0">
-                  <ActionIcon
-                    component="a"
-                    href="https://bsky.app/profile/cosmik.network"
-                    target="_blank"
-                    variant="subtle"
-                    color={'dark.2'}
-                    radius={'xl'}
-                    size={'xl'}
-                    m={0}
-                  >
-                    <FaBluesky size={22} />
-                  </ActionIcon>
-                  <ActionIcon
-                    component="a"
-                    href="https://tangled.org/@cosmik.network/semble"
-                    target="_blank"
-                    variant="subtle"
-                    color={'dark.2'}
-                    radius={'xl'}
-                    size={'xl'}
-                  >
-                    <Image
-                      src={TangledIcon.src}
-                      alt="Tangled logo"
-                      w={'auto'}
-                      h={22}
-                    />
-                  </ActionIcon>
-                  <ActionIcon
-                    component="a"
-                    href="https://github.com/cosmik-network"
-                    target="_blank"
-                    variant="subtle"
-                    color={'dark.2'}
-                    radius={'xl'}
-                    size={'xl'}
-                  >
-                    <FaGithub size={22} />
-                  </ActionIcon>
-                  <ActionIcon
-                    component="a"
-                    href="https://discord.gg/SHvvysb73e"
-                    target="_blank"
-                    variant="subtle"
-                    color={'dark.2'}
-                    radius={'xl'}
-                    size={'xl'}
-                  >
-                    <FaDiscord size={22} />
-                  </ActionIcon>
-                </Group>
-                <Button
-                  component="a"
-                  href="https://blog.cosmik.network"
-                  target="_blank"
-                  variant="light"
-                  color="dark.1"
-                  fw={600}
-                  rightSection={<RiArrowRightUpLine />}
-                >
-                  Follow our blog for updates
-                </Button>
-                <Stack align="center" gap={'0'}>
-                  <Text c="dark.1" fw={600} ta="center">
-                    Made by &nbsp;
-                    <Anchor
-                      href="https://cosmik.network/"
-                      target="_blank"
-                      style={{ verticalAlign: 'middle' }}
-                    >
-                      <Box
-                        component="span"
-                        display="inline-flex"
-                        style={{ verticalAlign: 'middle' }}
-                      >
-                        <Image
-                          src={
-                            colorScheme === 'dark'
-                              ? CosmikLogoWhite.src
-                              : CosmikLogo.src
-                          }
-                          alt="Cosmik logo"
-                          w={92}
-                          h={28.4}
-                        />
-                      </Box>
-                    </Anchor>
-                    &nbsp;&nbsp;
-                    <Text c="dark.1" fw={600} span>
-                      with support from&nbsp;
-                      <Anchor
-                        href="https://www.openphilanthropy.org/"
-                        target="_blank"
-                        c="dark.2"
-                        fw={600}
-                      >
-                        Open Philanthropy
-                      </Anchor>{' '}
-                      and{' '}
-                      <Anchor
-                        href="https://astera.org/"
-                        target="_blank"
-                        c="dark.2"
-                        fw={600}
-                      >
-                        Astera
-                      </Anchor>
-                    </Text>
-                  </Text>
-                </Stack>
-              </Stack>
-            </Box>
+            <Footer />
           </Stack>
         </Container>
       </Center>
-    </BackgroundImage>
+    </>
+  );
+}
+
+function Footer() {
+  return (
+    <Box component="footer" px="md" py="xs" mt="xl" pos="relative">
+      <Stack align="center" gap="xs">
+        <Group gap="0">
+          <ActionIcon
+            component="a"
+            href="https://bsky.app/profile/cosmik.network"
+            target="_blank"
+            variant="subtle"
+            color="dark.2"
+            radius="xl"
+            size="xl"
+            m={0}
+          >
+            <FaBluesky size={22} />
+          </ActionIcon>
+          <ActionIcon
+            component="a"
+            href="https://tangled.org/@cosmik.network/semble"
+            target="_blank"
+            variant="subtle"
+            color="dark.2"
+            radius="xl"
+            size="xl"
+          >
+            <Image src={TangledIcon.src} alt="Tangled logo" w="auto" h={22} />
+          </ActionIcon>
+          <ActionIcon
+            component="a"
+            href="https://github.com/cosmik-network"
+            target="_blank"
+            variant="subtle"
+            color="dark.2"
+            radius="xl"
+            size="xl"
+          >
+            <FaGithub size={22} />
+          </ActionIcon>
+          <ActionIcon
+            component="a"
+            href="https://discord.gg/SHvvysb73e"
+            target="_blank"
+            variant="subtle"
+            color="dark.2"
+            radius="xl"
+            size="xl"
+          >
+            <FaDiscord size={22} />
+          </ActionIcon>
+        </Group>
+
+        <Button
+          component="a"
+          href="https://blog.cosmik.network"
+          target="_blank"
+          variant="light"
+          color="dark.1"
+          fw={600}
+          rightSection={<RiArrowRightUpLine />}
+        >
+          Follow our blog for updates
+        </Button>
+
+        <Stack align="center" gap="0">
+          <Text c="dark.1" fw={600} ta="center">
+            Made by &nbsp;
+            <Anchor
+              href="https://cosmik.network/"
+              target="_blank"
+              style={{ verticalAlign: 'middle' }}
+            >
+              <Box
+                component="span"
+                display="inline-flex"
+                style={{ verticalAlign: 'middle' }}
+              >
+                {/* light logo */}
+                <Image
+                  src={CosmikLogo.src}
+                  alt="Cosmik logo"
+                  w={92}
+                  h={28.4}
+                  darkHidden
+                />
+                {/* dark logo */}
+                <Image
+                  src={CosmikLogoWhite.src}
+                  alt="Cosmik logo white"
+                  w={92}
+                  h={28.4}
+                  lightHidden
+                />
+              </Box>
+            </Anchor>
+            &nbsp;&nbsp;
+            <Text c="dark.1" fw={600} span>
+              with support from&nbsp;
+              <Anchor
+                href="https://www.openphilanthropy.org/"
+                target="_blank"
+                c="dark.2"
+                fw={600}
+              >
+                Open Philanthropy
+              </Anchor>{' '}
+              and{' '}
+              <Anchor
+                href="https://astera.org/"
+                target="_blank"
+                c="dark.2"
+                fw={600}
+              >
+                Astera
+              </Anchor>
+            </Text>
+          </Text>
+        </Stack>
+      </Stack>
+    </Box>
   );
 }

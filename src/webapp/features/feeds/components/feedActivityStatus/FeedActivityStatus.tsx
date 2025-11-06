@@ -41,7 +41,12 @@ export default function FeedActivityStatus(props: Props) {
 
     return (
       <Text fw={500}>
-        <Text component={Link} href={`/profile/${props.user.handle}`} fw={600}>
+        <Text
+          component={Link}
+          href={`/profile/${props.user.handle}`}
+          fw={600}
+          c={'var(--mantine-color-bright)'}
+        >
           {sanitizeText(props.user.name)}
         </Text>{' '}
         {collections.length === 0 ? (

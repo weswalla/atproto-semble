@@ -70,7 +70,7 @@ export default function ProfileMenu() {
         <Menu.Target>
           <Button
             variant="subtle"
-            color={computedColorScheme === 'dark' ? 'gray' : 'dark'}
+            color={'var(--mantine-color-bright)'}
             fz="md"
             radius="md"
             size="lg"

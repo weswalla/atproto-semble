@@ -67,7 +67,7 @@ export default function UrlCard(props: Props) {
               </Anchor>
             </Tooltip>
             {props.cardContent.title && (
-              <Text fw={500} lineClamp={2}>
+              <Text fw={500} lineClamp={2} c={'var(--mantine-color-bright)'}>
                 {props.cardContent.title}
               </Text>
             )}

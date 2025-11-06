@@ -30,8 +30,21 @@ export class URL extends ValueObject<URLProps> {
 
     try {
       // Validate URL format using the global URL constructor
-      new globalThis.URL(trimmedUrl);
-      return ok(new URL({ value: trimmedUrl }));
+      const parsedUrl = new globalThis.URL(trimmedUrl);
+      
+      // Add trailing slash only to truly bare root URLs
+      // (no path, no query parameters, no fragments)
+      let normalizedUrl = trimmedUrl;
+      if (
+        (parsedUrl.pathname === '' || parsedUrl.pathname === '/') &&
+        parsedUrl.search === '' &&
+        parsedUrl.hash === '' &&
+        !trimmedUrl.endsWith('/')
+      ) {
+        normalizedUrl = trimmedUrl + '/';
+      }
+      
+      return ok(new URL({ value: normalizedUrl }));
     } catch (error) {
       return err(new InvalidURLError('Invalid URL format'));
     }

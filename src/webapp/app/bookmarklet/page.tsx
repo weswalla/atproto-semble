@@ -60,8 +60,9 @@ export default function BookmarkletPage() {
               bookmarks bar
             </Text>
             <Text>
-              2. When you're on any webpage, click the bookmarklet to open it in
-              Semble
+              {
+                "2. When you're on any webpage, click the bookmarklet to open it in Semble"
+              }
             </Text>
           </Stack>
         </Alert>
@@ -71,7 +72,7 @@ export default function BookmarkletPage() {
             Method 1: Drag to Bookmarks Bar
           </Title>
           <Text c="dimmed">
-            Drag this button directly to your browser's bookmarks bar:
+            {"Drag this button directly to your browser's bookmarks bar:"}
           </Text>
           <Group>
             <Box dangerouslySetInnerHTML={createBookmarkletLink()} />

@@ -63,7 +63,7 @@ export class GetLibrariesForUrlUseCase
     // Set defaults
     const page = query.page || 1;
     const limit = Math.min(query.limit || 20, 100); // Cap at 100
-    const sortBy = query.sortBy || CardSortField.UPDATED_AT;
+    const sortBy = query.sortBy || CardSortField.CREATED_AT;
     const sortOrder = query.sortOrder || SortOrder.DESC;
 
     try {

@@ -9,83 +9,109 @@ import {
   Code,
   Alert,
   Box,
+  Badge,
+  Image,
   Group,
+  Anchor,
+  CopyButton,
 } from '@mantine/core';
 import { useState } from 'react';
 import { BiInfoCircle } from 'react-icons/bi';
+import SembleLogo from '@/assets/semble-logo.svg';
+import Link from 'next/link';
 
 export default function BookmarkletPage() {
-  const [copied, setCopied] = useState(false);
-
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
 
   const bookmarkletCode = `javascript:(function(){
     const currentUrl = window.location.href;
     const sembleUrl = '${appUrl}/url?id=' + currentUrl;
     window.open(sembleUrl, '_blank');
-  })();`;
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(bookmarkletCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy bookmarklet:', err);
-    }
-  };
+})();`;
 
   // Create the bookmarklet link using dangerouslySetInnerHTML to bypass React's security check
   const createBookmarkletLink = () => {
     return {
-      __html: `<a href="${bookmarkletCode}" style="text-decoration: none; padding: 8px 16px; background-color: var(--mantine-color-orange-6); color: white; border-radius: 4px; display: inline-flex; align-items: center; gap: 8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>Open in Semble</a>`,
+      __html: `<a href="${bookmarkletCode}" style="text-decoration: none; padding: 8px 16px; background-color: var(--mantine-color-tangerine-6); color: white; border-radius: 100px; display: inline-flex; align-items: center; gap: 8px; font-weight: 600;"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>Open in Semble</a>`,
     };
   };
 
   return (
-    <Container size="md" py="xl">
+    <Container size="sm" p="md">
       <Stack gap="xl">
-        <Stack gap="md">
-          <Title order={1}>Semble Bookmarklet</Title>
-          <Text size="lg" c="dimmed">
-            Add this bookmarklet to your browser to quickly open any webpage in
-            Semble.
-          </Text>
+        <Stack gap="xs" align="center">
+          <Stack align="center" gap={'xs'}>
+            <Anchor component={Link} href={'/'}>
+              <Image
+                src={SembleLogo.src}
+                alt="Semble logo"
+                w={48}
+                h={64.5}
+                mx={'auto'}
+              />
+              <Badge size="sm">Alpha</Badge>
+            </Anchor>
+          </Stack>
+          <Stack gap={'xs'} align="center">
+            <Title order={1}>Semble Bookmarklet</Title>
+            <Title
+              order={2}
+              size="xl"
+              c="dimmed"
+              fw={600}
+              maw={500}
+              ta={'center'}
+            >
+              Add this bookmarklet to your browser to quickly open any webpage
+              in Semble.
+            </Title>
+          </Stack>
         </Stack>
 
-        <Alert icon={<BiInfoCircle />} title="How to install" color="orange">
+        <Alert title="How to install" color="grape">
           <Stack gap="sm">
-            <Text>
-              1. Copy the bookmarklet code below or drag the button to your
-              bookmarks bar
-            </Text>
-            <Text>
-              {
-                "2. When you're on any webpage, click the bookmarklet to open it in Semble"
-              }
-            </Text>
+            <Group gap={'xs'}>
+              <Badge size="md" color="grape" circle>
+                1
+              </Badge>
+              <Text fw={500} c="grape">
+                Copy the bookmarklet code below or drag the button to your
+                bookmarks bar
+              </Text>
+            </Group>
+            <Group gap={'xs'}>
+              <Badge size="md" color="grape" circle>
+                2
+              </Badge>
+
+              <Text fw={500} c={'grape'}>
+                {
+                  "When you're on any webpage, click the bookmarklet to open it in Semble"
+                }
+              </Text>
+            </Group>
           </Stack>
         </Alert>
 
         <Stack gap="md">
-          <Title order={2} size="h3">
-            Method 1: Drag to Bookmarks Bar
-          </Title>
-          <Text c="dimmed">
-            {"Drag this button directly to your browser's bookmarks bar:"}
-          </Text>
+          <Stack gap={'xs'}>
+            <Title order={3}>Method 1: Drag to Bookmarks Bar</Title>
+            <Text c="dimmed" fw={500}>
+              {"Drag this button directly to your browser's bookmarks bar:"}
+            </Text>
+          </Stack>
           <Group>
             <Box dangerouslySetInnerHTML={createBookmarkletLink()} />
           </Group>
         </Stack>
 
         <Stack gap="md">
-          <Title order={2} size="h3">
-            Method 2: Copy Code
-          </Title>
-          <Text c="dimmed">
-            Copy this code and create a new bookmark with it as the URL:
-          </Text>
+          <Stack gap={'xs'}>
+            <Title order={3}>Method 2: Copy Code</Title>
+            <Text c="dimmed" fw={500}>
+              Copy this code and create a new bookmark with it as the URL:
+            </Text>
+          </Stack>
           <Box pos="relative">
             <Code
               block
@@ -98,18 +124,19 @@ export default function BookmarkletPage() {
             >
               {bookmarkletCode}
             </Code>
-            <Button
-              size="xs"
-              variant="light"
-              onClick={handleCopy}
-              style={{
-                position: 'absolute',
-                top: '8px',
-                right: '8px',
-              }}
-            >
-              {copied ? 'Copied!' : 'Copy'}
-            </Button>
+            <CopyButton value={bookmarkletCode}>
+              {({ copied, copy }) => (
+                <Button
+                  color="dark"
+                  pos={'absolute'}
+                  top={12}
+                  right={12}
+                  onClick={copy}
+                >
+                  {copied ? 'Copied!' : 'Copy'}
+                </Button>
+              )}
+            </CopyButton>
           </Box>
         </Stack>
       </Stack>

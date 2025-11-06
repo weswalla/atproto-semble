@@ -9,7 +9,7 @@ interface Props {
   url: string;
 }
 
-export default async function SembleContainer(props: Props) {
+export default function SembleContainer(props: Props) {
   return (
     <Container p={0} fluid>
       <SembleHeaderBackground />

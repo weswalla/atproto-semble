@@ -114,7 +114,7 @@ function Content() {
                     component={Link}
                     href="/login"
                     size="lg"
-                    color="dark"
+                    color="var(--mantine-color-dark-filled)"
                     rightSection={<BiRightArrowAlt size={22} />}
                   >
                     Log in

@@ -17,6 +17,7 @@ import { getDomain } from '@/lib/utils/link';
 import UrlAddedBySummary from '../urlAddedBySummary/UrlAddedBySummary';
 import SembleActions from '../sembleActions/SembleActions';
 import { verifySessionOnServer } from '@/lib/auth/dal.server';
+import GuestSembleActions from '../sembleActions/GusetSembleActions';
 
 interface Props {
   url: string;
@@ -80,9 +81,7 @@ export default async function SembleHeader(props: Props) {
             {session ? (
               <SembleActions url={props.url} />
             ) : (
-              <Button size="md" component={Link} href={'/login'}>
-                Log in to add
-              </Button>
+              <GuestSembleActions url={props.url} />
             )}
           </Stack>
         </GridCol>

@@ -1,9 +1,8 @@
 import { IconType } from 'react-icons/lib';
 import { ActionIcon } from '@mantine/core';
-import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ReactElement, isValidElement } from 'react';
-import { useColorScheme } from '@mantine/hooks';
+import { usePathname } from 'next/navigation';
 
 interface Props {
   href: string;
@@ -11,7 +10,6 @@ interface Props {
 }
 
 export default function BottomBarItem(props: Props) {
-  const colorScheme = useColorScheme();
   const pathname = usePathname();
   const isActive = pathname === props.href;
 

@@ -6,25 +6,35 @@ import {
   Menu,
   Image,
   Button,
+  useMantineColorScheme,
+  useComputedColorScheme,
 } from '@mantine/core';
 import useMyProfile from '../../lib/queries/useMyProfile';
 import CosmikLogo from '@/assets/cosmik-logo-full.svg';
 import CosmikLogoWhite from '@/assets/cosmik-logo-full-white.svg';
-import { MdBugReport } from 'react-icons/md';
+import {
+  MdBugReport,
+  MdDarkMode,
+  MdLightMode,
+  MdAutoAwesome,
+} from 'react-icons/md';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { IoMdLogOut } from 'react-icons/io';
 import { useNavbarContext } from '@/providers/navbar';
 import { BiSolidUserCircle } from 'react-icons/bi';
-import { useColorScheme } from '@mantine/hooks';
 
 export default function ProfileMenu() {
   const router = useRouter();
-  const colorScheme = useColorScheme();
   const { toggleMobile } = useNavbarContext();
   const { data, error, isPending } = useMyProfile();
   const { logout } = useAuth();
+
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const computedColorScheme = useComputedColorScheme('light', {
+    getInitialValueInEffect: true,
+  });
 
   const handleLogout = async () => {
     try {
@@ -35,8 +45,19 @@ export default function ProfileMenu() {
     }
   };
 
+  const handleThemeToggle = () => {
+    const nextScheme =
+      colorScheme === 'light'
+        ? 'dark'
+        : colorScheme === 'dark'
+          ? 'auto'
+          : 'light';
+
+    setColorScheme(nextScheme);
+  };
+
   if (isPending || !data) {
-    return <Skeleton w={38} h={38} radius={'md'} ml={4} />;
+    return <Skeleton w={38} h={38} radius="md" ml={4} />;
   }
 
   if (error) {
@@ -49,18 +70,19 @@ export default function ProfileMenu() {
         <Menu.Target>
           <Button
             variant="subtle"
-            color={colorScheme === 'dark' ? 'gray' : 'dark'}
-            fz={'md'}
-            radius={'md'}
+            color={computedColorScheme === 'dark' ? 'gray' : 'dark'}
+            fz="md"
+            radius="md"
             size="lg"
             px={3}
-            fullWidth={true}
+            fullWidth
             justify="start"
             leftSection={<Avatar src={data.avatarUrl} />}
           >
             {data.name}
           </Button>
         </Menu.Target>
+
         <Menu.Dropdown>
           <Menu.Item
             component={Link}
@@ -92,6 +114,23 @@ export default function ProfileMenu() {
 
           <Menu.Divider />
 
+          {/*<Menu.Item
+            color="gray"
+            leftSection={
+              colorScheme === 'auto' ? (
+                <MdAutoAwesome />
+              ) : computedColorScheme === 'dark' ? (
+                <MdDarkMode />
+              ) : (
+                <MdLightMode />
+              )
+            }
+            closeMenuOnClick={false}
+            onClick={handleThemeToggle}
+          >
+            Theme: {colorScheme}
+          </Menu.Item>*/}
+
           <Menu.Item
             component="a"
             href="https://cosmik.network/"
@@ -99,10 +138,12 @@ export default function ProfileMenu() {
           >
             <Image
               src={
-                colorScheme === 'dark' ? CosmikLogoWhite.src : CosmikLogo.src
+                computedColorScheme === 'dark'
+                  ? CosmikLogoWhite.src
+                  : CosmikLogo.src
               }
               alt="Cosmik logo"
-              w={'auto'}
+              w="auto"
               h={24}
             />
           </Menu.Item>

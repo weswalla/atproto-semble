@@ -10,7 +10,7 @@ export default function useMyCollections(props?: Props) {
   const limit = props?.limit ?? 15;
 
   return useSuspenseInfiniteQuery({
-    queryKey: collectionKeys.mine(),
+    queryKey: collectionKeys.mine(props?.limit),
     initialPageParam: 1,
     queryFn: ({ pageParam }) => getMyCollections({ limit, page: pageParam }),
     getNextPageParam: (lastPage) => {

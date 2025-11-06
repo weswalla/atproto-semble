@@ -17,7 +17,7 @@ import { BiInfoCircle } from 'react-icons/bi';
 export default function BookmarkletPage() {
   const [copied, setCopied] = useState(false);
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:4000';
 
   const bookmarkletCode = `javascript:(function(){
     const currentUrl = window.location.href;

@@ -4,5 +4,10 @@ export const collectionKeys = {
   mine: () => [...collectionKeys.all(), 'mine'] as const,
   search: (query: string) => [...collectionKeys.all(), 'search', query],
   bySembleUrl: (url: string) => [...collectionKeys.all(), url],
-  infinite: (id?: string) => [...collectionKeys.all(), 'infinite', id],
+  infinite: (id?: string, limit?: number) => [
+    ...collectionKeys.all(),
+    'infinite',
+    id,
+    limit,
+  ],
 };

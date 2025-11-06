@@ -39,7 +39,7 @@ export default function ProfileHoverCard(props: Props) {
             <Button
               component={Link}
               href={`/profile/${profile.handle}/cards`}
-              color="dark"
+              color="var(--mantine-color-dark-filled)"
               leftSection={<FaRegNoteSticky />}
             >
               Cards

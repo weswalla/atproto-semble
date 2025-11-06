@@ -45,7 +45,7 @@ export default async function SembleAside(props: Props) {
                         {lib.user.name}
                       </Text>
                       <Text fw={600} c={'blue'} lineClamp={1}>
-                        {lib.user.handle}
+                        @{lib.user.handle}
                       </Text>
                     </Stack>
                   </Group>

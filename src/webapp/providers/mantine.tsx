@@ -12,7 +12,7 @@ interface Props {
 
 export default function MantineProvider(props: Props) {
   return (
-    <BaseProvider theme={theme} forceColorScheme="light">
+    <BaseProvider theme={theme} defaultColorScheme="auto">
       <Notifications position="bottom-right" />
       {props.children}
     </BaseProvider>

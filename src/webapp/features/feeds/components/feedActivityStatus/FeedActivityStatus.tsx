@@ -3,11 +3,9 @@
 import {
   Anchor,
   Avatar,
-  Button,
   Card,
   Group,
   Menu,
-  Paper,
   ScrollArea,
   Stack,
   Text,
@@ -92,7 +90,7 @@ export default function FeedActivityStatus(props: Props) {
                       <Menu.Item
                         key={c.id}
                         component={Link}
-                        href={`/profile/${c.author.handle}/collections/${c.id}`}
+                        href={`/profile/${c.author.handle}/collections/${getRecordKey(c.uri!)}`}
                         target="_blank"
                         c="blue"
                         fw={600}

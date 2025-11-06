@@ -9,4 +9,3 @@ dist/
 build
 *storybook.log
 storybook-static
-.vscode/settings.json

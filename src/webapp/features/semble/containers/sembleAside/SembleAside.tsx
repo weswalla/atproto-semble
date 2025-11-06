@@ -41,7 +41,11 @@ export default async function SembleAside(props: Props) {
                       alt={`${lib.user.name}'s avatar`}
                     />
                     <Stack gap={0}>
-                      <Text fw={600} lineClamp={1}>
+                      <Text
+                        fw={600}
+                        lineClamp={1}
+                        c={'var(--mantine-color-bright)'}
+                      >
                         {lib.user.name}
                       </Text>
                       <Text fw={600} c={'blue'} lineClamp={1}>

@@ -10,11 +10,9 @@ import {
   Alert,
   Box,
   Group,
-  Anchor,
 } from '@mantine/core';
 import { useState } from 'react';
 import { BiInfoCircle } from 'react-icons/bi';
-import { RiDragDropLine } from 'react-icons/ri';
 
 export default function BookmarkletPage() {
   const [copied, setCopied] = useState(false);
@@ -35,6 +33,13 @@ export default function BookmarkletPage() {
     } catch (err) {
       console.error('Failed to copy bookmarklet:', err);
     }
+  };
+
+  // Create the bookmarklet link using dangerouslySetInnerHTML to bypass React's security check
+  const createBookmarkletLink = () => {
+    return {
+      __html: `<a href="${bookmarkletCode}" style="text-decoration: none; padding: 8px 16px; background-color: var(--mantine-color-blue-6); color: white; border-radius: 4px; display: inline-flex; align-items: center; gap: 8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v10z"/></svg>Open in Semble</a>`
+    };
   };
 
   return (
@@ -70,22 +75,7 @@ export default function BookmarkletPage() {
             Drag this button directly to your browser's bookmarks bar:
           </Text>
           <Group>
-            <Anchor
-              href={bookmarkletCode}
-              style={{
-                textDecoration: 'none',
-                padding: '8px 16px',
-                backgroundColor: 'var(--mantine-color-blue-6)',
-                color: 'white',
-                borderRadius: '4px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
-            >
-              <RiDragDropLine size={16} />
-              Open in Semble
-            </Anchor>
+            <Box dangerouslySetInnerHTML={createBookmarkletLink()} />
           </Group>
         </Stack>
 

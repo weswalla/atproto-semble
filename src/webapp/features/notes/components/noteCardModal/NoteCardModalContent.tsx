@@ -174,7 +174,7 @@ export default function NoteCardModalContent(props: Props) {
                 </Anchor>
               </Tooltip>
               {props.cardContent.title && (
-                <Text fw={500} lineClamp={1}>
+                <Text fw={500} lineClamp={1} c="var(--mantine-color-bright)">
                   {props.cardContent.title}
                 </Text>
               )}

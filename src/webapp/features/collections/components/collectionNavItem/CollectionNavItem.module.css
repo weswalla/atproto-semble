@@ -1,0 +1,39 @@
+/* navlink inactive */
+.navLink {
+  color: var(--mantine-color-gray-6);
+
+  @mixin dark {
+    color: var(--mantine-color-gray-4);
+  }
+}
+
+/* navlink active */
+.navLinkActive {
+  color: var(--mantine-color-dark-filled);
+
+  @mixin dark {
+    color: var(--mantine-color-white);
+  }
+}
+
+/* badge inactive */
+.badge {
+  background-color: var(--mantine-color-gray-light);
+  color: var(--mantine-color-gray-light-color);
+
+  @mixin dark {
+    color: var(--mantine-color-gray-4);
+    background-color: var(--mantine-color-gray-light);
+  }
+}
+
+/* badge active */
+.badgeActive {
+  background-color: var(--mantine-color-dark-filled);
+  color: var(--mantine-color-white);
+
+  @mixin dark {
+    background-color: var(--mantine-color-gray-6);
+    color: var(--mantine-color-white);
+  }
+}

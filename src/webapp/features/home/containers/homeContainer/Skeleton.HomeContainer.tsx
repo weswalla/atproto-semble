@@ -48,7 +48,7 @@ export default function HomeContainerSkeleton() {
             </Group>
 
             <Grid gutter="md">
-              {Array.from({ length: 4 }).map((_, i) => (
+              {Array.from({ length: 6 }).map((_, i) => (
                 <GridCol key={i} span={{ base: 12, xs: 6, sm: 4, lg: 3 }}>
                   <UrlCardSkeleton />
                 </GridCol>

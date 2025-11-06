@@ -62,7 +62,7 @@ export class GetUrlMetadataUseCase
 
       return ok({
         metadata: {
-          url: metadata.url,
+          url: url.value,
           title: metadata.title,
           description: metadata.description,
           author: metadata.author,

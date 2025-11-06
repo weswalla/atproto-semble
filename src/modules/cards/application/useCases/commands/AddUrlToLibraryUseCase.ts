@@ -107,7 +107,7 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
         // Create URL card
         const urlCardInput: IUrlCardInput = {
           type: CardTypeEnum.URL,
-          url: request.url,
+          url: url.value,
           metadata: metadataResult.value,
         };
 
@@ -192,7 +192,7 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
             type: CardTypeEnum.NOTE,
             text: request.note,
             parentCardId: urlCard.cardId.getStringValue(),
-            url: request.url,
+            url: url.value,
           };
 
           const noteCardResult = CardFactory.create({

@@ -1,6 +1,17 @@
 'use client';
 
-import { Anchor, Avatar, Card, Group, Paper, Stack, Text } from '@mantine/core';
+import {
+  Anchor,
+  Avatar,
+  Button,
+  Card,
+  Group,
+  Menu,
+  Paper,
+  ScrollArea,
+  Stack,
+  Text,
+} from '@mantine/core';
 import { FeedItem, Collection } from '@/api-client';
 import { Fragment } from 'react';
 import Link from 'next/link';
@@ -8,6 +19,7 @@ import { getRelativeTime } from '@/lib/utils/time';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { sanitizeText } from '@/lib/utils/text';
 import { useColorScheme } from '@mantine/hooks';
+import { BiCollection } from 'react-icons/bi';
 
 interface Props {
   user: FeedItem['user'];
@@ -24,14 +36,18 @@ export default function FeedActivityStatus(props: Props) {
   const renderActivityText = () => {
     const collections = props.collections ?? [];
     const displayedCollections = collections.slice(0, MAX_DISPLAYED);
+    const remainingCollections = collections.slice(
+      MAX_DISPLAYED,
+      collections.length,
+    );
     const remainingCount = collections.length - MAX_DISPLAYED;
 
     return (
-      <Text fw={500} c={colorScheme === 'dark' ? 'gray' : 'gray.7'}>
+      <Text fw={500} c={'gray'}>
         <Anchor
           component={Link}
           href={`/profile/${props.user.handle}`}
-          c="blue"
+          c="dark"
           fw={600}
         >
           {sanitizeText(props.user.name)}
@@ -56,8 +72,38 @@ export default function FeedActivityStatus(props: Props) {
                 </span>
               ),
             )}
-            {remainingCount > 0 &&
-              ` and ${remainingCount} other collection${remainingCount > 1 ? 's' : ''}`}
+            {remainingCount > 0 && ' and '}
+            {remainingCount > 0 && (
+              <Menu shadow="sm">
+                <Menu.Target>
+                  <Text
+                    fw={600}
+                    c={'blue'}
+                    style={{ cursor: 'pointer', userSelect: 'none' }}
+                    span
+                  >
+                    {remainingCount} other collection
+                    {remainingCount > 1 ? 's' : ''}
+                  </Text>
+                </Menu.Target>
+                <Menu.Dropdown maw={380}>
+                  <ScrollArea.Autosize mah={150} type="auto">
+                    {remainingCollections.map((c) => (
+                      <Menu.Item
+                        key={c.id}
+                        component={Link}
+                        href={`/profile/${c.author.handle}/collections/${c.id}`}
+                        target="_blank"
+                        c="blue"
+                        fw={600}
+                      >
+                        {c.name}
+                      </Menu.Item>
+                    ))}
+                  </ScrollArea.Autosize>
+                </Menu.Dropdown>
+              </Menu>
+            )}
           </Fragment>
         )}
         <Text fz={'sm'} fw={600} c={'gray'} span display={'block'}>

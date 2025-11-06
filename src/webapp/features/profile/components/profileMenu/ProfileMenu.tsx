@@ -108,11 +108,11 @@ export default function ProfileMenu() {
             color="gray"
             leftSection={
               colorScheme === 'auto' ? (
-                <MdAutoAwesome />
+                <MdAutoAwesome size={22} />
               ) : computedColorScheme === 'dark' ? (
-                <MdDarkMode />
+                <MdDarkMode size={22} />
               ) : (
-                <MdLightMode />
+                <MdLightMode size={22} />
               )
             }
             closeMenuOnClick={false}

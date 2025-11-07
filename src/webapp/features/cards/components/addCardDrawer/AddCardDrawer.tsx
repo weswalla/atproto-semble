@@ -81,7 +81,6 @@ export default function AddCardDrawer(props: Props) {
       }}
       withCloseButton={false}
       position="bottom"
-      size={'26rem'}
       overlayProps={DEFAULT_OVERLAY_PROPS}
     >
       <Drawer.Header>
@@ -145,6 +144,7 @@ export default function AddCardDrawer(props: Props) {
                 onClose={toggleCollectionSelector}
                 withCloseButton={false}
                 position="bottom"
+                size={'29rem'}
                 overlayProps={DEFAULT_OVERLAY_PROPS}
               >
                 <Drawer.Header>

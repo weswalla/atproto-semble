@@ -69,7 +69,6 @@ export default function createCollectionDrawer(props: Props) {
       onClose={props.onClose}
       withCloseButton={false}
       position="bottom"
-      size={'30rem'}
       overlayProps={DEFAULT_OVERLAY_PROPS}
     >
       <Drawer.Header>
@@ -100,7 +99,7 @@ export default function createCollectionDrawer(props: Props) {
               placeholder="Describe what this collection is about"
               variant="filled"
               size="md"
-              rows={8}
+              rows={6}
               maxLength={500}
               key={form.key('description')}
               {...form.getInputProps('description')}

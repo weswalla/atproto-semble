@@ -23,7 +23,7 @@ export default function SembleHeaderBackground() {
           bottom: 0,
           left: 0,
           width: '100%',
-          height: '60%', // fade height
+          height: '100%', // fade height
           background:
             'linear-gradient(to top, var(--mantine-color-body), transparent)',
           pointerEvents: 'none',

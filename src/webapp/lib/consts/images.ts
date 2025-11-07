@@ -1,7 +1,6 @@
 import { AppleImage } from 'next/dist/lib/metadata/types/extra-types';
 
 export const SPLASH_IMAGES: AppleImage[] = [
-  '/splash/icon.png',
   {
     url: '/splash/iPhone_17_Pro_Max__iPhone_16_Pro_Max_landscape.png',
     media:

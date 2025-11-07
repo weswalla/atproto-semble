@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     startupImage: SPLASH_IMAGES,
   },
+  other: { 'apple-mobile-web-app-capable': 'yes' },
 };
 
 const hankenGrotesk = Hanken_Grotesk({

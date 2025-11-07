@@ -17,6 +17,7 @@ import {
   MdDarkMode,
   MdLightMode,
   MdAutoAwesome,
+  MdCollectionsBookmark,
 } from 'react-icons/md';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
@@ -125,6 +126,15 @@ export default function ProfileMenu() {
 
           <Menu.Item
             color="gray"
+            leftSection={<MdCollectionsBookmark size={22} />}
+            component={Link}
+            href={"/bookmarklet"}
+          >
+            Install Bookmarklet
+          </Menu.Item>
+
+          <Menu.Item
+            color="red"
             leftSection={<IoMdLogOut size={22} />}
             onClick={handleLogout}
           >

@@ -50,7 +50,7 @@ export default async function Page(props: Props) {
   }
 
   return (
-    <Fragment>
+    <Fragment>      
       <SembleContainer url={url} />
       <Suspense fallback={<SembleAsideSkeleton />} key={url}>
         <SembleAside url={url} />

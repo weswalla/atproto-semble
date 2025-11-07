@@ -15,6 +15,7 @@ import { URL } from '../../domain/value-objects/URL';
 import { CardSortField, SortOrder } from '../../domain/ICardQueryRepository';
 import { createTestSchema } from '../test-utils/createTestSchema';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
+import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
 
 describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
   let container: StartedPostgreSqlContainer;
@@ -296,12 +297,14 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
         .withUrl(url)
         .buildOrThrow();
 
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       const card2 = new CardBuilder()
         .withCuratorId(curator2.value)
         .withType(CardTypeEnum.URL)
         .withUrl(url)
         .buildOrThrow();
 
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       const card3 = new CardBuilder()
         .withCuratorId(curator3.value)
         .withType(CardTypeEnum.URL)
@@ -314,9 +317,9 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
 
       // Save cards with slight delays to ensure different timestamps
       await cardRepository.save(card1);
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       await cardRepository.save(card2);
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       await cardRepository.save(card3);
 
       const result = await queryRepository.getLibrariesForUrl(testUrl, {
@@ -327,9 +330,9 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
       });
 
       expect(result.items).toHaveLength(3);
-      
+
       // Should be sorted by creation time, newest first
-      const cardIds = result.items.map(lib => lib.card.id);
+      const cardIds = result.items.map((lib) => lib.card.id);
       expect(cardIds[0]).toBe(card3.cardId.getStringValue()); // Most recent
       expect(cardIds[1]).toBe(card2.cardId.getStringValue()); // Middle
       expect(cardIds[2]).toBe(card1.cardId.getStringValue()); // Oldest
@@ -357,7 +360,7 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
 
       // Save cards with slight delay to ensure different timestamps
       await cardRepository.save(card1);
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       await cardRepository.save(card2);
 
       const result = await queryRepository.getLibrariesForUrl(testUrl, {
@@ -368,9 +371,9 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
       });
 
       expect(result.items).toHaveLength(2);
-      
+
       // Should be sorted by creation time, oldest first
-      const cardIds = result.items.map(lib => lib.card.id);
+      const cardIds = result.items.map((lib) => lib.card.id);
       expect(cardIds[0]).toBe(card1.cardId.getStringValue()); // Oldest
       expect(cardIds[1]).toBe(card2.cardId.getStringValue()); // Newest
     });
@@ -400,7 +403,13 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
       await cardRepository.save(card2);
 
       // Update card1 to have a more recent updatedAt
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      card1.markAsPublished(
+        PublishedRecordId.create({
+          uri: 'at://did:plc:publishedrecord1',
+          cid: 'bafyreicpublishedrecord1',
+        }),
+      );
       await cardRepository.save(card1); // This should update the updatedAt timestamp
 
       const result = await queryRepository.getLibrariesForUrl(testUrl, {
@@ -411,9 +420,9 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
       });
 
       expect(result.items).toHaveLength(2);
-      
+
       // card1 should be first since it was updated more recently
-      const cardIds = result.items.map(lib => lib.card.id);
+      const cardIds = result.items.map((lib) => lib.card.id);
       expect(cardIds[0]).toBe(card1.cardId.getStringValue()); // Most recently updated
       expect(cardIds[1]).toBe(card2.cardId.getStringValue()); // Less recently updated
     });
@@ -443,10 +452,10 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
 
       // Add cards to libraries with different counts
       card1.addToLibrary(curator1);
-      
+
       card2.addToLibrary(curator2);
       card2.addToLibrary(curator1); // card2 has 2 library memberships
-      
+
       card3.addToLibrary(curator3);
       card3.addToLibrary(curator1); // card3 has 3 library memberships
       card3.addToLibrary(curator2);
@@ -464,10 +473,10 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
 
       // Should return all library memberships, but sorted by the card's library count
       expect(result.items.length).toBeGreaterThan(0);
-      
+
       // Group by card ID to check sorting
       const cardGroups = new Map<string, any[]>();
-      result.items.forEach(item => {
+      result.items.forEach((item) => {
         const cardId = item.card.id;
         if (!cardGroups.has(cardId)) {
           cardGroups.set(cardId, []);
@@ -476,14 +485,18 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
       });
 
       // Get the first occurrence of each card to check library count ordering
-      const uniqueCards = Array.from(cardGroups.entries()).map(([cardId, items]) => ({
-        cardId,
-        libraryCount: items[0]!.card.libraryCount
-      }));
+      const uniqueCards = Array.from(cardGroups.entries()).map(
+        ([cardId, items]) => ({
+          cardId,
+          libraryCount: items[0]!.card.libraryCount,
+        }),
+      );
 
       // Should be sorted by library count descending
       for (let i = 0; i < uniqueCards.length - 1; i++) {
-        expect(uniqueCards[i]!.libraryCount).toBeGreaterThanOrEqual(uniqueCards[i + 1]!.libraryCount);
+        expect(uniqueCards[i]!.libraryCount).toBeGreaterThanOrEqual(
+          uniqueCards[i + 1]!.libraryCount,
+        );
       }
     });
 
@@ -520,10 +533,10 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
       });
 
       expect(result.items.length).toBeGreaterThan(0);
-      
+
       // Group by card ID and check ascending order
       const cardGroups = new Map<string, any[]>();
-      result.items.forEach(item => {
+      result.items.forEach((item) => {
         const cardId = item.card.id;
         if (!cardGroups.has(cardId)) {
           cardGroups.set(cardId, []);
@@ -531,14 +544,18 @@ describe('DrizzleCardQueryRepository - getLibrariesForUrl', () => {
         cardGroups.get(cardId)!.push(item);
       });
 
-      const uniqueCards = Array.from(cardGroups.entries()).map(([cardId, items]) => ({
-        cardId,
-        libraryCount: items[0]!.card.libraryCount
-      }));
+      const uniqueCards = Array.from(cardGroups.entries()).map(
+        ([cardId, items]) => ({
+          cardId,
+          libraryCount: items[0]!.card.libraryCount,
+        }),
+      );
 
       // Should be sorted by library count ascending
       for (let i = 0; i < uniqueCards.length - 1; i++) {
-        expect(uniqueCards[i]!.libraryCount).toBeLessThanOrEqual(uniqueCards[i + 1]!.libraryCount);
+        expect(uniqueCards[i]!.libraryCount).toBeLessThanOrEqual(
+          uniqueCards[i + 1]!.libraryCount,
+        );
       }
     });
   });

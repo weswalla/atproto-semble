@@ -10,7 +10,9 @@ export const metadata: Metadata = {
   title: 'Semble | A social knowledge network for researchers',
   description: `Follow your peers' research trails. Surface and discover new connections. Built on ATProto so you own your data.`,
   appleWebApp: {
+    title: 'Semble',
     capable: true,
+    statusBarStyle: 'default',
     startupImage: SPLASH_IMAGES,
   },
 };

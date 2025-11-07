@@ -5,6 +5,7 @@ import { useNavbarContext } from '@/providers/navbar';
 import { usePathname } from 'next/navigation';
 import GuestNavbar from '../guestNavbar/GuestNavbar';
 import GuestBottomBar from '../guestBottomBar/GuestBottomBar';
+import { useMediaQuery } from '@mantine/hooks';
 
 interface Props {
   children: React.ReactNode;
@@ -12,6 +13,7 @@ interface Props {
 
 export default function GuestAppLayout(props: Props) {
   const { mobileOpened, desktopOpened } = useNavbarContext();
+  const isMobile = useMediaQuery('(max-width: 48em)', true); // "sm" breakpoint
   const pathname = usePathname();
 
   const ROUTES_WITH_ASIDE = ['/url'];
@@ -32,6 +34,9 @@ export default function GuestAppLayout(props: Props) {
         width: asideWidth,
         breakpoint: 'xl',
         collapsed: { mobile: true },
+      }}
+      footer={{
+        height: isMobile ? 80 : 0,
       }}
     >
       <GuestNavbar />

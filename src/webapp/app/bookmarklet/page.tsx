@@ -15,8 +15,6 @@ import {
   Anchor,
   CopyButton,
 } from '@mantine/core';
-import { useState } from 'react';
-import { BiInfoCircle } from 'react-icons/bi';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
 

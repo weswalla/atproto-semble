@@ -130,7 +130,7 @@ export default function ProfileMenu() {
             component={Link}
             href={"/bookmarklet"}
           >
-            Install Bookmarklet
+            Install bookmarklet
           </Menu.Item>
 
           <Menu.Item

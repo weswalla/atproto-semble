@@ -10,7 +10,6 @@ import {
   Stack,
   Text,
   Title,
-  Center,
   Avatar,
 } from '@mantine/core';
 import useCollection from '../../lib/queries/useCollection';
@@ -22,6 +21,7 @@ import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDraw
 import CollectionActions from '../../components/collectionActions/CollectionActions';
 import CollectionContainerError from './Error.CollectionContainer';
 import CollectionContainerSkeleton from './Skeleton.CollectionContainer';
+import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 
 interface Props {
   rkey: string;
@@ -29,6 +29,7 @@ interface Props {
 }
 
 export default function CollectionContainer(props: Props) {
+  const [showAddDrawer, setShowAddDrawer] = useState(false);
   const {
     data,
     isPending,
@@ -38,7 +39,8 @@ export default function CollectionContainer(props: Props) {
     isFetchingNextPage,
   } = useCollection({ rkey: props.rkey, handle: props.handle });
 
-  const [showAddDrawer, setShowAddDrawer] = useState(false);
+  const firstPage = data.pages[0];
+  const allCards = data.pages.flatMap((page) => page.urlCards ?? []);
 
   if (isPending) {
     return <CollectionContainerSkeleton />;
@@ -47,9 +49,6 @@ export default function CollectionContainer(props: Props) {
   if (error) {
     return <CollectionContainerError />;
   }
-
-  const firstPage = data.pages[0];
-  const allCards = data.pages.flatMap((page) => page.urlCards ?? []);
 
   return (
     <Container p="xs" size="xl">
@@ -102,7 +101,13 @@ export default function CollectionContainer(props: Props) {
         </Group>
 
         {allCards.length > 0 ? (
-          <>
+          <InfiniteScroll
+            dataLength={allCards.length}
+            hasMore={!!hasNextPage}
+            isInitialLoading={isPending}
+            isLoading={isFetchingNextPage}
+            loadMore={fetchNextPage}
+          >
             <Grid gutter="md">
               {allCards.map((card) => (
                 <Grid.Col
@@ -123,21 +128,7 @@ export default function CollectionContainer(props: Props) {
                 </Grid.Col>
               ))}
             </Grid>
-
-            {hasNextPage && (
-              <Center>
-                <Button
-                  mt="md"
-                  variant="light"
-                  color="gray"
-                  onClick={() => fetchNextPage()}
-                  loading={isFetchingNextPage}
-                >
-                  {isFetchingNextPage ? 'Loading more...' : 'Load More'}
-                </Button>
-              </Center>
-            )}
-          </>
+          </InfiniteScroll>
         ) : (
           <Stack align="center" gap="xs">
             <Text fz="h3" fw={600} c="gray">

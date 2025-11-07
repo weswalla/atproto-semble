@@ -359,8 +359,11 @@ export class UrlCardQueryService {
     options: CardQueryOptions,
   ): Promise<PaginatedQueryResult<LibraryForUrlDTO>> {
     try {
-      const { page, limit } = options;
+      const { page, limit, sortBy, sortOrder } = options;
       const offset = (page - 1) * limit;
+
+      // Build the sort order
+      const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
 
       // Get all URL cards with this URL and their library memberships
       const librariesQuery = this.db
@@ -376,6 +379,7 @@ export class UrlCardQueryService {
         .from(libraryMemberships)
         .innerJoin(cards, eq(libraryMemberships.cardId, cards.id))
         .where(and(eq(cards.url, url), eq(cards.type, CardTypeEnum.URL)))
+        .orderBy(orderDirection(this.getSortColumn(sortBy)))
         .limit(limit)
         .offset(offset);
 

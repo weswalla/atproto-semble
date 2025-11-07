@@ -4,18 +4,10 @@ import GlobalStyles from '@/styles/global.module.css';
 import { ColorSchemeScript, mantineHtmlProps } from '@mantine/core';
 import { Hanken_Grotesk } from 'next/font/google';
 import Providers from '@/providers';
-import { SPLASH_IMAGES } from '@/lib/consts/images';
 
 export const metadata: Metadata = {
   title: 'Semble | A social knowledge network for researchers',
   description: `Follow your peers' research trails. Surface and discover new connections. Built on ATProto so you own your data.`,
-  appleWebApp: {
-    title: 'Semble',
-    capable: true,
-    statusBarStyle: 'default',
-    startupImage: SPLASH_IMAGES,
-  },
-  other: { 'apple-mobile-web-app-capable': 'yes' },
 };
 
 const hankenGrotesk = Hanken_Grotesk({

@@ -121,8 +121,8 @@ export default function UrlCardActions(props: Props) {
         url={props.cardContent.url}
         cardId={props.id}
         note={props.note?.text}
-        urlLibraryCount={props.urlLibraryCount}
         isInYourLibrary={props.urlIsInLibrary}
+        urlLibraryCount={props.urlLibraryCount}
       />
 
       <NoteCardModal

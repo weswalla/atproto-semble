@@ -11,7 +11,7 @@ export default function useSembleLibraries(props: Props) {
   const limit = props?.limit ?? 16;
 
   const libraries = useSuspenseInfiniteQuery({
-    queryKey: sembleKeys.librariesInfinite(props.url),
+    queryKey: sembleKeys.librariesInfinite(props.url, props.limit),
     initialPageParam: 1,
     queryFn: ({ pageParam = 1 }) => {
       return getLibrariesForUrl(props.url, { page: pageParam, limit });

@@ -8,6 +8,7 @@ import { Fragment, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { IoMdCheckmark } from 'react-icons/io';
 import { MdIosShare } from 'react-icons/md';
+import useSembleLibraries from '../../lib/queries/useSembleLibraries';
 
 interface Props {
   url: string;
@@ -17,6 +18,12 @@ export default function SembleActions(props: Props) {
   const cardStatus = useGetCardFromMyLibrary({ url: props.url });
   const isInYourLibrary = cardStatus.data.card?.urlInLibrary;
   const [showAddToModal, setShowAddToModal] = useState(false);
+
+  const { data } = useSembleLibraries({ url: props.url });
+  const allLibraries =
+    data?.pages.flatMap((page) => page.libraries ?? []) ?? [];
+
+  const urlLibraryCount = allLibraries.length ?? 0;
 
   const shareLink =
     typeof window !== 'undefined'
@@ -76,8 +83,8 @@ export default function SembleActions(props: Props) {
         url={props.url}
         cardId={cardStatus.data.card?.id}
         note={cardStatus.data.card?.note?.text}
-        urlLibraryCount={cardStatus.data.card?.urlLibraryCount}
         isInYourLibrary={cardStatus.data.card?.urlInLibrary}
+        urlLibraryCount={urlLibraryCount}
       />
     </Fragment>
   );

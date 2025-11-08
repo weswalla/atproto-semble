@@ -3,7 +3,6 @@ import { Modal, Stack, Text } from '@mantine/core';
 import { Suspense } from 'react';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
 import AddCardToModalContent from './AddCardToModalContent';
-import useSembleLibraries from '@/features/semble/lib/queries/useSembleLibraries';
 
 interface Props {
   isOpen: boolean;
@@ -12,7 +11,7 @@ interface Props {
   cardId?: string;
   note?: string;
   isInYourLibrary?: boolean;
-  urlLibraryCount: number;  
+  urlLibraryCount: number;
 }
 
 export default function AddCardToModal(props: Props) {

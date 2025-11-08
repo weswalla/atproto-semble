@@ -12,14 +12,11 @@ interface Props {
   cardId?: string;
   note?: string;
   isInYourLibrary?: boolean;
+  urlLibraryCount: number;  
 }
 
 export default function AddCardToModal(props: Props) {
-  const { data } = useSembleLibraries({ url: props.url });
-  const allLibraries =
-    data?.pages.flatMap((page) => page.libraries ?? []) ?? [];
-
-  const count = allLibraries.length ?? 0;
+  const count = props.urlLibraryCount ?? 0;
 
   const subtitle = (() => {
     if (count === 0) return 'Not saved by anyone yet';

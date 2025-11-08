@@ -13,7 +13,7 @@ interface Props {
 export default function BottomBarItem(props: Props) {
   const pathname = usePathname();
   const isActive = pathname === props.href;
-  const { toggleMobile } = useNavbarContext();
+  const { toggleMobile, mobileOpened } = useNavbarContext();
 
   const renderIcon = () => {
     // If the icon is already a React element, just return it
@@ -31,7 +31,11 @@ export default function BottomBarItem(props: Props) {
       variant={isActive ? 'light' : 'transparent'}
       size={'lg'}
       color="gray"
-      onClick={toggleMobile}
+      onClick={() => {
+        if (mobileOpened) {
+          toggleMobile();
+        }
+      }}
     >
       {renderIcon()}
     </ActionIcon>

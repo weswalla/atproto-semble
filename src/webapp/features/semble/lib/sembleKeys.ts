@@ -9,6 +9,6 @@ export const sembleKeys = {
   similarCardsInfinite: (url: string) =>
     [...sembleKeys.similarCards(url), 'infinite'] as const,
   libraries: (url: string) => [...sembleKeys.byUrl(url), 'libraries'] as const,
-  librariesInfinite: (url: string) =>
-    [...sembleKeys.libraries(url), 'infinite'] as const,
+  librariesInfinite: (url: string, limit?: number) =>
+    [...sembleKeys.libraries(url), 'infinite', limit] as const,
 };

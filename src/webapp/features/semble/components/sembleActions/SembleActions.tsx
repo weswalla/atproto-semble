@@ -75,8 +75,7 @@ export default function SembleActions(props: Props) {
         onClose={() => setShowAddToModal(false)}
         url={props.url}
         cardId={cardStatus.data.card?.id}
-        note={cardStatus.data.card?.note?.text}
-        urlLibraryCount={cardStatus.data.card?.urlLibraryCount}
+        note={cardStatus.data.card?.note?.text}        
         isInYourLibrary={cardStatus.data.card?.urlInLibrary}
       />
     </Fragment>

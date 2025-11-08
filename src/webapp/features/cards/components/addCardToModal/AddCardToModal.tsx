@@ -3,6 +3,7 @@ import { Modal, Stack, Text } from '@mantine/core';
 import { Suspense } from 'react';
 import CollectionSelectorSkeleton from '@/features/collections/components/collectionSelector/Skeleton.CollectionSelector';
 import AddCardToModalContent from './AddCardToModalContent';
+import useSembleLibraries from '@/features/semble/lib/queries/useSembleLibraries';
 
 interface Props {
   isOpen: boolean;
@@ -10,27 +11,20 @@ interface Props {
   url: string;
   cardId?: string;
   note?: string;
-  urlLibraryCount?: number;
   isInYourLibrary?: boolean;
 }
 
 export default function AddCardToModal(props: Props) {
-  const {
-    isOpen,
-    onClose,
-    url,
-    cardId,
-    note,
-    urlLibraryCount,
-    isInYourLibrary,
-  } = props;
+  const { data } = useSembleLibraries({ url: props.url });
+  const allLibraries =
+    data?.pages.flatMap((page) => page.libraries ?? []) ?? [];
 
-  const count = urlLibraryCount ?? 0;
+  const count = allLibraries.length ?? 0;
 
   const subtitle = (() => {
     if (count === 0) return 'Not saved by anyone yet';
 
-    if (isInYourLibrary) {
+    if (props.isInYourLibrary) {
       if (count === 1) return 'Saved by you';
       return `Saved by you and ${count - 1} other${count - 1 > 1 ? 's' : ''}`;
     } else {
@@ -41,8 +35,8 @@ export default function AddCardToModal(props: Props) {
 
   return (
     <Modal
-      opened={isOpen}
-      onClose={onClose}
+      opened={props.isOpen}
+      onClose={props.onClose}
       title={
         <Stack gap={0}>
           <Text fw={600}>Add or update {props.cardId ? 'card' : 'link'}</Text>
@@ -57,10 +51,10 @@ export default function AddCardToModal(props: Props) {
     >
       <Suspense fallback={<CollectionSelectorSkeleton />}>
         <AddCardToModalContent
-          onClose={onClose}
-          url={url}
-          cardId={cardId}
-          note={note}
+          onClose={props.onClose}
+          url={props.url}
+          cardId={props.cardId}
+          note={props.note}
         />
       </Suspense>
     </Modal>

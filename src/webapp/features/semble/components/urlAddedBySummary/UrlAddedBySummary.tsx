@@ -32,7 +32,7 @@ export default async function UrlAddedBySummary(props: Props) {
         ))}
       </AvatarGroup>
 
-      <Text fz="sm" fw={500}>
+      <Text fz="sm" fw={500} c={'gray'}>
         {'Added by '}
         {shownUsers.map((p, i) => (
           <Anchor
@@ -41,7 +41,7 @@ export default async function UrlAddedBySummary(props: Props) {
             href={`/profile/${p.user.handle}`}
             fz={'sm'}
             fw={600}
-            c={'blue'}
+            c={'bright'}
           >
             {p.user.name}
             {i < shownUsers.length - 1 ? ', ' : ''}

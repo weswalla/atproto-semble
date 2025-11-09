@@ -1,6 +1,6 @@
 'use client';
 
-import { Box } from '@mantine/core';
+import { Box, Container } from '@mantine/core';
 import { useWindowScroll } from '@mantine/hooks';
 import MinimalProfileHeader from '../../components/profileHeader/MinimalProfileHeader';
 
@@ -26,11 +26,13 @@ export default function MinimalProfileHeaderContainer(props: Props) {
         backgroundColor: 'var(--mantine-color-body)',
       }}
     >
-      <MinimalProfileHeader
-        avatarUrl={props.avatarUrl}
-        name={props.name}
-        handle={props.handle}
-      />
+      <Container p={0} size={'xl'}>
+        <MinimalProfileHeader
+          avatarUrl={props.avatarUrl}
+          name={props.name}
+          handle={props.handle}
+        />
+      </Container>
     </Box>
   );
 }

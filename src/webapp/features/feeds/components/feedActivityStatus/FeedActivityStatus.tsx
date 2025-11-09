@@ -45,7 +45,7 @@ export default function FeedActivityStatus(props: Props) {
           component={Link}
           href={`/profile/${props.user.handle}`}
           fw={600}
-          c={'var(--mantine-color-bright)'}
+          c={'bright'}
         >
           {sanitizeText(props.user.name)}
         </Text>{' '}

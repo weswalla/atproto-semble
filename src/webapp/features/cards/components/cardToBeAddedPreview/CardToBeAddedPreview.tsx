@@ -127,7 +127,7 @@ export default function CardToBeAddedPreview(props: Props) {
                 </Anchor>
               </Tooltip>
               {props.title && (
-                <Text fw={500} lineClamp={1} c="var(--mantine-color-bright)">
+                <Text fw={500} lineClamp={1} c={'bright'}>
                   {props.title}
                 </Text>
               )}

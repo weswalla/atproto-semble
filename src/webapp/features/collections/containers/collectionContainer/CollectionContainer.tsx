@@ -81,8 +81,8 @@ export default function CollectionContainer(props: Props) {
               <Anchor
                 component={Link}
                 href={`/profile/${firstPage.author.handle}`}
-                fw={700}
-                c="blue"
+                fw={600}
+                c="bright"
               >
                 {firstPage.author.name}
               </Anchor>

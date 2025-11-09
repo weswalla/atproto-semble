@@ -34,7 +34,7 @@ export default function CollectionCard(props: Props) {
     >
       <Stack justify="space-between" h={'100%'}>
         <Stack gap={0}>
-          <Text fw={500} lineClamp={1} c={'var(--mantine-color-bright)'}>
+          <Text fw={500} lineClamp={1} c={'bright'}>
             {collection.name}
           </Text>
           {collection.description && (
@@ -58,7 +58,7 @@ export default function CollectionCard(props: Props) {
               size={'sm'}
             />
 
-            <Text fw={500} c={'var(--mantine-color-bright)'} span>
+            <Text fw={500} c={'bright'} span>
               {collection.author.name}
             </Text>
           </Group>

@@ -71,7 +71,7 @@ export default function ProfileMenu() {
         <Menu.Target>
           <Button
             variant="subtle"
-            color={'var(--mantine-color-bright)'}
+            color='bright'
             fz="md"
             radius="md"
             size="lg"

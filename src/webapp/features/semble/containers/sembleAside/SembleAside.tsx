@@ -44,7 +44,7 @@ export default async function SembleAside(props: Props) {
                       <Text
                         fw={600}
                         lineClamp={1}
-                        c={'var(--mantine-color-bright)'}
+                        c={"bright"}
                       >
                         {lib.user.name}
                       </Text>

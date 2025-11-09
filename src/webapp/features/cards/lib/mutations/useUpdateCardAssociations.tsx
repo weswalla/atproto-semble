@@ -30,7 +30,7 @@ export default function useUpdateCardAssociations() {
       queryClient.invalidateQueries({ queryKey: cardKeys.all() });
       queryClient.invalidateQueries({ queryKey: noteKeys.all() });
       queryClient.invalidateQueries({ queryKey: feedKeys.all() });
-      queryClient.invalidateQueries({ queryKey: sembleKeys.all() });      
+      queryClient.invalidateQueries({ queryKey: sembleKeys.all() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.mine() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.infinite() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.all() });

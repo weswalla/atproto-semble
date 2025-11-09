@@ -104,23 +104,21 @@ function Content() {
                 connections. Built on ATProto so you own your data.
               </Title>
 
-              {process.env.VERCEL_ENV !== 'production' && (
-                <Group gap="md" mt="lg">
-                  <Button component={Link} href="/signup" size="lg">
-                    Sign up
-                  </Button>
+              <Group gap="md" mt="lg">
+                <Button component={Link} href="/signup" size="lg">
+                  Sign up
+                </Button>
 
-                  <Button
-                    component={Link}
-                    href="/login"
-                    size="lg"
-                    color="var(--mantine-color-dark-filled)"
-                    rightSection={<BiRightArrowAlt size={22} />}
-                  >
-                    Log in
-                  </Button>
-                </Group>
-              )}
+                <Button
+                  component={Link}
+                  href="/login"
+                  size="lg"
+                  color="var(--mantine-color-dark-filled)"
+                  rightSection={<BiRightArrowAlt size={22} />}
+                >
+                  Log in
+                </Button>
+              </Group>
             </Stack>
 
             <SimpleGrid

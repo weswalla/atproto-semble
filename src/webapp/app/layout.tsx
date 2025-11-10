@@ -7,7 +7,7 @@ import Providers from '@/providers';
 import { SPLASH_IMAGES } from '@/lib/consts/images';
 
 export const metadata: Metadata = {
-  title: 'Semble | A social knowledge network for researchers',
+  title: 'Semble — A social knowledge network for researchers',
   description: `Follow your peers' research trails. Surface and discover new connections. Built on ATProto so you own your data.`,
   appleWebApp: {
     title: 'Semble',

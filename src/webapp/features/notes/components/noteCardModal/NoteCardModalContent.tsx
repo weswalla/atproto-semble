@@ -138,7 +138,7 @@ export default function NoteCardModalContent(props: Props) {
             href={`/profile/${props.cardAuthor.handle}`}
             target="_blank"
             fw={700}
-            c="blue"
+            c="bright"
             lineClamp={1}
           >
             {props.cardAuthor.name}
@@ -174,9 +174,17 @@ export default function NoteCardModalContent(props: Props) {
                 </Anchor>
               </Tooltip>
               {props.cardContent.title && (
-                <Text fw={500} lineClamp={1} c={'bright'}>
+                <Anchor
+                  component={Link}
+                  href={props.cardContent.url}
+                  target="_blank"
+                  fw={500}
+                  lineClamp={1}
+                  c={'bright'}
+                  w={'fit-content'}
+                >
                   {props.cardContent.title}
-                </Text>
+                </Anchor>
               )}
             </Stack>
           </Group>

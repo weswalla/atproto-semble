@@ -33,7 +33,7 @@ export default async function Layout(props: Props) {
     <Fragment>
       <Header>
         <BackButton
-          href={`/profile/${handle}`}
+          href={`/profile/${handle}/collections`}
         >{`@${truncateText(handle, 20)}`}</BackButton>
       </Header>
       {props.children}

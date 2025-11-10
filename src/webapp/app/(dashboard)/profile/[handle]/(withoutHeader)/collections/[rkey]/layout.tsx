@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 
   return {
-    title: collection.name,
+    title: `${collection.name} (by ${collection.author.name})`,
     description:
       collection.description ??
       `View ${collection.author.name}'s collection on Semble`,

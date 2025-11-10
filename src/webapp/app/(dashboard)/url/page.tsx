@@ -27,7 +27,7 @@ export async function generateMetadata({
   const title = metadata.title ? `${metadata.title} (${domain})` : url;
 
   return {
-    title: `Semble | ${title}`,
+    title: title,
     description: `Semble page for ${title}`,
     openGraph: {
       images: [

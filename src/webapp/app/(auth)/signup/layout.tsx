@@ -2,7 +2,7 @@ import { Center, Container } from '@mantine/core';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sign up',
+  title: 'Sign up — Semble',
   description: 'Sign up to get started',
 };
 

@@ -1,13 +1,6 @@
 import CollectionCardSkeleton from '@/features/collections/components/collectionCard/Skeleton.CollectionCard';
-import {
-  AppShellAside,
-  Stack,
-  Card,
-  Group,
-  Avatar,
-  Text,
-  Skeleton,
-} from '@mantine/core';
+import { AppShellAside, Stack, Text } from '@mantine/core';
+import AddedByCardSkeleton from '../../components/addedByCard/Skeleton.AddedByCard';
 
 export default function SembleAsideSkeleton() {
   return (
@@ -18,15 +11,8 @@ export default function SembleAsideSkeleton() {
             Added recently by
           </Text>
           <Stack gap={'xs'}>
-            <Card withBorder radius={'lg'} p={'sm'}>
-              <Group gap={'xs'}>
-                <Avatar src={null} />
-                <Stack gap={'xs'} flex={1}>
-                  <Skeleton w={'100%'} h={14} />
-                  <Skeleton w={'100%'} h={14} />
-                </Stack>
-              </Group>
-            </Card>
+            <AddedByCardSkeleton />
+            <AddedByCardSkeleton />
           </Stack>
         </Stack>
 
@@ -34,6 +20,7 @@ export default function SembleAsideSkeleton() {
           <Text fz={'xl'} fw={600}>
             Recent collections
           </Text>
+          <CollectionCardSkeleton />
           <CollectionCardSkeleton />
         </Stack>
       </Stack>

@@ -9,7 +9,6 @@ import {
   Tooltip,
   Spoiler,
   Card,
-  Button,
 } from '@mantine/core';
 import Link from 'next/link';
 import { getUrlMetadata } from '@/features/cards/lib/dal';

@@ -53,7 +53,17 @@ export default async function SembleHeader(props: Props) {
                 </Tooltip>
               </Text>
 
-              {metadata.title && <Title order={1}>{metadata.title}</Title>}
+              {metadata.title && (
+                <Anchor
+                  component={Link}
+                  href={metadata.url}
+                  target="_blank"
+                  c={'inherit'}
+                  w={'fit-content'}
+                >
+                  <Title order={1}>{metadata.title}</Title>
+                </Anchor>
+              )}
             </Stack>
             {metadata.description && (
               <Spoiler showLabel={'Read more'} hideLabel={'See less'}>

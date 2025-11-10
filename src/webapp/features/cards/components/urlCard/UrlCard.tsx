@@ -67,9 +67,18 @@ export default function UrlCard(props: Props) {
               </Anchor>
             </Tooltip>
             {props.cardContent.title && (
-              <Text fw={500} lineClamp={2} c={'bright'}>
+              <Anchor
+                onClick={(e) => e.stopPropagation()}
+                component={Link}
+                href={props.url}
+                target="_blank"
+                c={'bright'}
+                lineClamp={2}
+                fw={500}
+                w={'fit-content'}
+              >
                 {props.cardContent.title}
-              </Text>
+              </Anchor>
             )}
             {props.cardContent.description && (
               <Text c={'gray'} fz={'sm'} mt={'xs'} lineClamp={3}>

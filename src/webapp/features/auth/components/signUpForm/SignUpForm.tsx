@@ -3,7 +3,7 @@ import { FaBluesky } from 'react-icons/fa6';
 
 export default function SignUpForm() {
   return (
-    <Stack gap="xs">
+    <Stack gap="xs" align="center">
       <Button
         component="a"
         href="https://bsky.app/"
@@ -15,7 +15,7 @@ export default function SignUpForm() {
         Sign up on Bluesky
       </Button>
       <Text fw={500} c={'stone'}>
-        Already have an account?{' '}
+        Already have a Bluesky account?{' '}
         <Anchor href="/login" fw={500}>
           Log in
         </Anchor>

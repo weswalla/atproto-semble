@@ -83,8 +83,9 @@ function InnerPage() {
             </PopoverTarget>
             <PopoverDropdown>
               <Text fw={500} ta="center" maw={380}>
-                When you sign up today, you’ll create a Bluesky account. In near
-                future, your account will be seamlessly migrated to our{' '}
+                If you have a Bluesky account, you can sign in with it; no new
+                account is needed. In future, your account will be seamlessly
+                migrated to the{' '}
                 <Anchor
                   href="https://cosmik.network"
                   target="_blank"

@@ -18,7 +18,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const profile = await getProfile(handle);
 
   return {
-    title: profile.name,
+    title: {
+      template: '%s — Semble',
+      default: `${profile.name} (${handle})`,
+    },
     description:
       profile.description ?? `Explore ${profile.name}'s profile on Semble`,
   };

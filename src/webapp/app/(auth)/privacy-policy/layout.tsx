@@ -12,7 +12,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy',
+  title: 'Privacy Policy — Semble',
   description: `Follow your peers' research trails. Surface and discover new connections. Built on ATProto so you own your data.`,
 };
 

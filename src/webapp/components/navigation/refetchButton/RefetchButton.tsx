@@ -24,8 +24,8 @@ export default function RefetchButton(props: Props) {
       variant="default"
       c="gray"
       onClick={() => {
-        scrollTo({ y: 0 });
         debouncedRefetch();
+        scrollTo({ y: 0 });
       }}
     >
       <LuRefreshCcw size={22} />

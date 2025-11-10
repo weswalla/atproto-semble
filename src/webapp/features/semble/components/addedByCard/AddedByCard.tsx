@@ -30,7 +30,7 @@ export default function AddedByCard(props: Props) {
           <Stack gap={0}>
             <Text fw={600}>{props.item.card.author.name}</Text>
             <Text fw={600} c={'blue'}>
-              {props.item.card.author.handle}
+              @{props.item.card.author.handle}
             </Text>
           </Stack>
         </Group>

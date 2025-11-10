@@ -2,10 +2,11 @@
 
 import useGlobalFeed from '@/features/feeds/lib/queries/useGlobalFeed';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
-import { Stack, Title, Text, Center, Container } from '@mantine/core';
+import { Stack, Title, Text, Center, Container, Box } from '@mantine/core';
 import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
 import MyFeedContainerError from './Error.MyFeedContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
+import RefetchButton from '@/components/navigation/refetchButton/RefetchButton';
 
 export default function MyFeedContainer() {
   const {
@@ -15,6 +16,7 @@ export default function MyFeedContainer() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    refetch,
   } = useGlobalFeed();
 
   const allActivities =
@@ -57,6 +59,17 @@ export default function MyFeedContainer() {
           </InfiniteScroll>
         )}
       </Stack>
+
+      <Box
+        pos={'fixed'}
+        bottom={0}
+        mt={'md'}
+        mx={{ base: 0, sm: 'xs' }}
+        mb={{ base: 100, sm: 'md' }}
+        style={{ zIndex: 2 }}
+      >
+        <RefetchButton onRefetch={() => refetch()} />
+      </Box>
     </Container>
   );
 }

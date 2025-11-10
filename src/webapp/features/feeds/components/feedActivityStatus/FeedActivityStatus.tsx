@@ -91,7 +91,7 @@ export default function FeedActivityStatus(props: Props) {
                         component={Link}
                         href={`/profile/${c.author.handle}/collections/${getRecordKey(c.uri!)}`}
                         target="_blank"
-                        c="blue"
+                        c="grape"
                         fw={600}
                       >
                         {c.name}

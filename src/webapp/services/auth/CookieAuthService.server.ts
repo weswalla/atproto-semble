@@ -30,11 +30,13 @@ export class ServerCookieAuthService {
       const expiry = payload.exp * 1000;
       const bufferTime = bufferMinutes * 60 * 1000;
       const isExpired = Date.now() >= expiry - bufferTime;
-      
+
       if (isExpired && ENABLE_AUTH_LOGGING) {
-        console.log(`[ServerCookieAuthService] Token expired for user: ${userDid}`);
+        console.log(
+          `[ServerCookieAuthService] Token expired for user: ${userDid}`,
+        );
       }
-      
+
       return isExpired;
     } catch {
       if (ENABLE_AUTH_LOGGING) {

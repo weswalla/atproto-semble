@@ -57,11 +57,17 @@ export class RefreshAccessTokenUseCase
       if (ENABLE_AUTH_LOGGING) {
         // Extract user ID from the new access token for logging
         try {
-          const payload = JSON.parse(atob(tokenResult.value.accessToken.split('.')[1]));
+          const payload = JSON.parse(
+            atob(tokenResult.value.accessToken.split('.')[1]),
+          );
           const userId = payload.sub || payload.did || 'unknown';
-          console.log(`[RefreshAccessTokenUseCase] Token refresh successful for user: ${userId}`);
+          console.log(
+            `[RefreshAccessTokenUseCase] Token refresh successful for user: ${userId}`,
+          );
         } catch {
-          console.log(`[RefreshAccessTokenUseCase] Token refresh successful (could not extract user ID)`);
+          console.log(
+            `[RefreshAccessTokenUseCase] Token refresh successful (could not extract user ID)`,
+          );
         }
       }
 

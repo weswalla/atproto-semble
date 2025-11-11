@@ -40,7 +40,12 @@ export function useCollectionSearch({
           ...searchParams,
           searchText: search || undefined,
         });
-        setCollections(response.collections);
+        // Temp fix: filter out collections without uri
+        setCollections(
+          response.collections.filter(
+            (collection) => collection.uri !== undefined,
+          ),
+        );
       } catch (error) {
         console.error('Error loading collections:', error);
         // Don't clear collections on error, keep showing previous results

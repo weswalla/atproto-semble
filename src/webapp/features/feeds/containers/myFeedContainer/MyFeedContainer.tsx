@@ -47,7 +47,7 @@ export default function MyFeedContainer() {
           <Stack align="center" gap={'xs'}>
             <Loader color={'gray'} />
             <Text fw={600} c={'gray'}>
-              Fetching the latest activity...
+              Fetching the latest activities...
             </Text>
           </Stack>
         )}

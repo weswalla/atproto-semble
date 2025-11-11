@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
       if (!profileResponse.ok) {
         if (ENABLE_AUTH_LOGGING) {
           console.log(
-            `[auth/me] Profile fetch failed with status: ${profileResponse.status}`,
+            `[auth/me] Profile fetch failed with status: ${profileResponse.status}; and message: ${await profileResponse.text()}`,
           );
         }
         // Clear cookies on auth failure

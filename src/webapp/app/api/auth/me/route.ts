@@ -24,6 +24,9 @@ export async function GET(request: NextRequest) {
 
     // No tokens at all - not authenticated
     if (!accessToken && !refreshToken) {
+      if (ENABLE_REFRESH_LOGGING) {
+        console.log('[auth/me] No tokens found - user not authenticated');
+      }
       return NextResponse.json<AuthResult>({ isAuth: false }, { status: 401 });
     }
 
@@ -31,8 +34,9 @@ export async function GET(request: NextRequest) {
     if ((!accessToken || isTokenExpiringSoon(accessToken)) && refreshToken) {
       if (ENABLE_REFRESH_LOGGING) {
         const tokenPreview = '...' + refreshToken.slice(-8);
+        const accessTokenStatus = !accessToken ? 'missing' : 'expiring soon';
         console.log(
-          `[auth/me] Access token missing/expiring, attempting refresh with token: ${tokenPreview}`,
+          `[auth/me] Access token ${accessTokenStatus}, attempting refresh with token: ${tokenPreview}`,
         );
       }
 
@@ -96,6 +100,9 @@ export async function GET(request: NextRequest) {
       });
 
       if (!profileResponse.ok) {
+        if (ENABLE_REFRESH_LOGGING) {
+          console.log(`[auth/me] Profile fetch failed with status: ${profileResponse.status}`);
+        }
         // Clear cookies on auth failure
         const response = NextResponse.json<AuthResult>(
           { isAuth: false },
@@ -107,6 +114,9 @@ export async function GET(request: NextRequest) {
       }
 
       const user = await profileResponse.json();
+      if (ENABLE_REFRESH_LOGGING) {
+        console.log(`[auth/me] Profile fetched successfully for user: ${user.handle} (${user.id})`);
+      }
       return NextResponse.json<AuthResult>({ isAuth: true, user });
     } catch (error) {
       console.error('Profile fetch error:', error);
@@ -174,6 +184,9 @@ async function performTokenRefresh(
   }
 
   const user = await profileResponse.json();
+  if (ENABLE_REFRESH_LOGGING) {
+    console.log(`[auth/me] Token refresh and profile fetch successful for user: ${user.handle} (${user.id})`);
+  }
   // Return user profile with backend's Set-Cookie headers
   return new Response(JSON.stringify({ isAuth: true, user }), {
     status: 200,

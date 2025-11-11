@@ -12,6 +12,8 @@ export async function getServerAuthStatus(): Promise<{
     const { accessToken } = await ServerCookieAuthService.getTokens();
 
     if (!accessToken || ServerCookieAuthService.isTokenExpired(accessToken)) {
+      const reason = !accessToken ? 'No access token' : 'Access token expired';
+      console.log(`[serverAuth] Authentication failed: ${reason}`);
       return {
         isAuthenticated: false,
         user: null,
@@ -32,6 +34,7 @@ export async function getServerAuthStatus(): Promise<{
     });
 
     if (!response.ok) {
+      console.log(`[serverAuth] Profile API request failed with status: ${response.status}`);
       return {
         isAuthenticated: false,
         user: null,
@@ -40,6 +43,7 @@ export async function getServerAuthStatus(): Promise<{
     }
 
     const user: UserProfile = await response.json();
+    console.log(`[serverAuth] Server-side authentication successful for user: ${user.handle} (${user.id})`);
 
     return {
       isAuthenticated: true,
@@ -47,6 +51,7 @@ export async function getServerAuthStatus(): Promise<{
       error: null,
     };
   } catch (error: any) {
+    console.log(`[serverAuth] Authentication error: ${error.message || 'Unknown error'}`);
     return {
       isAuthenticated: false,
       user: null,

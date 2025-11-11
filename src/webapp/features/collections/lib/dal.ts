@@ -35,7 +35,13 @@ export const getCollections = cache(
       page: params?.page,
     });
 
-    return response;
+    // Temp fix: filter out collections without uri
+    return {
+      ...response,
+      collections: response.collections.filter(
+        (collection) => collection.uri !== undefined,
+      ),
+    };
   },
 );
 

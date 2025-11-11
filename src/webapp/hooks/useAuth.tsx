@@ -28,6 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
+    console.log('[useAuth] Initiating logout process');
     await ClientCookieAuthService.clearTokens();
     queryClient.clear();
     router.push('/login');

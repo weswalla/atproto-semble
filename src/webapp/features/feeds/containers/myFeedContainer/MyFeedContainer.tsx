@@ -2,7 +2,15 @@
 
 import useGlobalFeed from '@/features/feeds/lib/queries/useGlobalFeed';
 import FeedItem from '@/features/feeds/components/feedItem/FeedItem';
-import { Stack, Title, Text, Center, Container, Box } from '@mantine/core';
+import {
+  Stack,
+  Title,
+  Text,
+  Center,
+  Container,
+  Box,
+  Loader,
+} from '@mantine/core';
 import MyFeedContainerSkeleton from './Skeleton.MyFeedContainer';
 import MyFeedContainerError from './Error.MyFeedContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
@@ -16,6 +24,7 @@ export default function MyFeedContainer() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isRefetching,
     refetch,
   } = useGlobalFeed();
 
@@ -34,7 +43,14 @@ export default function MyFeedContainer() {
     <Container p="xs" size="xl">
       <Stack>
         <Title order={1}>Explore</Title>
-
+        {isRefetching && (
+          <Stack align="center" gap={'xs'}>
+            <Loader color={'gray'} />
+            <Text fw={600} c={'gray'}>
+              Fetching the latest activity...
+            </Text>
+          </Stack>
+        )}
         {allActivities.length === 0 ? (
           <Center h={200}>
             <Text fz="h3" fw={600} c="gray">

@@ -5,7 +5,7 @@ import { ITokenService } from '../services/ITokenService';
 import { TokenPair } from '@semble/types';
 import { RefreshAccessTokenErrors } from './errors/RefreshAccessTokenErrors';
 
-const ENABLE_REFRESH_LOGGING = true;
+const ENABLE_AUTH_LOGGING = true;
 
 export interface RefreshAccessTokenDTO {
   refreshToken: string;
@@ -25,7 +25,7 @@ export class RefreshAccessTokenUseCase
     request: RefreshAccessTokenDTO,
   ): Promise<RefreshAccessTokenResponse> {
     try {
-      if (ENABLE_REFRESH_LOGGING) {
+      if (ENABLE_AUTH_LOGGING) {
         const tokenPreview = '...' + request.refreshToken.slice(-8);
         console.log(
           `[RefreshAccessTokenUseCase] Attempting token refresh with token: ${tokenPreview}`,
@@ -37,7 +37,7 @@ export class RefreshAccessTokenUseCase
       );
 
       if (tokenResult.isErr()) {
-        if (ENABLE_REFRESH_LOGGING) {
+        if (ENABLE_AUTH_LOGGING) {
           console.log(
             `[RefreshAccessTokenUseCase] Token refresh failed: ${tokenResult.error.message}`,
           );
@@ -46,7 +46,7 @@ export class RefreshAccessTokenUseCase
       }
 
       if (!tokenResult.value) {
-        if (ENABLE_REFRESH_LOGGING) {
+        if (ENABLE_AUTH_LOGGING) {
           console.log(
             `[RefreshAccessTokenUseCase] Token refresh returned null - invalid refresh token`,
           );
@@ -54,7 +54,7 @@ export class RefreshAccessTokenUseCase
         return err(new RefreshAccessTokenErrors.InvalidRefreshTokenError());
       }
 
-      if (ENABLE_REFRESH_LOGGING) {
+      if (ENABLE_AUTH_LOGGING) {
         // Extract user ID from the new access token for logging
         try {
           const payload = JSON.parse(atob(tokenResult.value.accessToken.split('.')[1]));
@@ -67,7 +67,7 @@ export class RefreshAccessTokenUseCase
 
       return ok(tokenResult.value);
     } catch (error: any) {
-      if (ENABLE_REFRESH_LOGGING) {
+      if (ENABLE_AUTH_LOGGING) {
         console.log(
           `[RefreshAccessTokenUseCase] Token refresh error: ${error.message}`,
         );

@@ -3,7 +3,7 @@ import type { GetProfileResponse } from '@/api-client/ApiClient';
 import { cookies } from 'next/headers';
 import { isTokenExpiringSoon } from '@/lib/auth/token';
 
-const ENABLE_REFRESH_LOGGING = true;
+const ENABLE_AUTH_LOGGING = true;
 
 const backendUrl =
   process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     // No tokens at all - not authenticated
     if (!accessToken && !refreshToken) {
-      if (ENABLE_REFRESH_LOGGING) {
+      if (ENABLE_AUTH_LOGGING) {
         console.log('[auth/me] No tokens found - user not authenticated');
       }
       return NextResponse.json<AuthResult>({ isAuth: false }, { status: 401 });
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     // Check if accessToken is expired/missing or expiring soon
     if ((!accessToken || isTokenExpiringSoon(accessToken)) && refreshToken) {
-      if (ENABLE_REFRESH_LOGGING) {
+      if (ENABLE_AUTH_LOGGING) {
         const tokenPreview = '...' + refreshToken.slice(-8);
         const accessTokenStatus = !accessToken ? 'missing' : 'expiring soon';
         
@@ -60,12 +60,12 @@ export async function GET(request: NextRequest) {
 
       try {
         const result = await refreshPromise;
-        if (ENABLE_REFRESH_LOGGING) {
+        if (ENABLE_AUTH_LOGGING) {
           console.log(`[auth/me] Token refresh completed successfully`);
         }
         return result;
       } catch (error: any) {
-        if (ENABLE_REFRESH_LOGGING) {
+        if (ENABLE_AUTH_LOGGING) {
           console.log(`[auth/me] Token refresh error: ${error}`);
         }
         console.error('Token refresh error:', error);
@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
     // AccessToken is valid - fetch profile
     try {
       // Log user context from valid access token
-      if (ENABLE_REFRESH_LOGGING && accessToken) {
+      if (ENABLE_AUTH_LOGGING && accessToken) {
         try {
           const payload = JSON.parse(atob(accessToken.split('.')[1]));
           const userDid = payload.did || 'unknown';
@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
       });
 
       if (!profileResponse.ok) {
-        if (ENABLE_REFRESH_LOGGING) {
+        if (ENABLE_AUTH_LOGGING) {
           console.log(`[auth/me] Profile fetch failed with status: ${profileResponse.status}`);
         }
         // Clear cookies on auth failure
@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
       }
 
       const user = await profileResponse.json();
-      if (ENABLE_REFRESH_LOGGING) {
+      if (ENABLE_AUTH_LOGGING) {
         console.log(`[auth/me] Profile fetched successfully for user: ${user.handle} (${user.id})`);
       }
       return NextResponse.json<AuthResult>({ isAuth: true, user });
@@ -164,7 +164,7 @@ async function performTokenRefresh(
   refreshToken: string,
   request: NextRequest,
 ): Promise<Response> {
-  if (ENABLE_REFRESH_LOGGING) {
+  if (ENABLE_AUTH_LOGGING) {
     console.log(`[auth/me] Sending refresh request to backend`);
   }
 
@@ -179,7 +179,7 @@ async function performTokenRefresh(
   });
 
   if (!refreshResponse.ok) {
-    if (ENABLE_REFRESH_LOGGING) {
+    if (ENABLE_AUTH_LOGGING) {
       console.log(
         `[auth/me] Backend refresh failed with status: ${refreshResponse.status}. Message: ${await refreshResponse.text()}`,
       );
@@ -208,7 +208,7 @@ async function performTokenRefresh(
   }
 
   const user = await profileResponse.json();
-  if (ENABLE_REFRESH_LOGGING) {
+  if (ENABLE_AUTH_LOGGING) {
     console.log(`[auth/me] Token refresh and profile fetch successful for user: ${user.handle} (${user.id})`);
   }
   // Return user profile with backend's Set-Cookie headers

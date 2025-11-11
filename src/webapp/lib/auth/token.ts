@@ -1,3 +1,5 @@
+const ENABLE_AUTH_LOGGING = true;
+
 export const isTokenExpiringSoon = (
   token: string | null | undefined,
 ): boolean => {
@@ -23,7 +25,7 @@ export const isTokenExpiringSoon = (
     const bufferTime = bufferSeconds * 1000;
     const isExpiring = Date.now() >= expiry - bufferTime;
     
-    if (isExpiring) {
+    if (isExpiring && ENABLE_AUTH_LOGGING) {
       console.log(`[isTokenExpiringSoon] Token expiring soon for user: ${userDid}`);
     }
     

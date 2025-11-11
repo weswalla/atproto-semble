@@ -35,8 +35,21 @@ export async function GET(request: NextRequest) {
       if (ENABLE_REFRESH_LOGGING) {
         const tokenPreview = '...' + refreshToken.slice(-8);
         const accessTokenStatus = !accessToken ? 'missing' : 'expiring soon';
+        
+        // Try to extract user ID from access token if available
+        let userContext = '';
+        if (accessToken) {
+          try {
+            const payload = JSON.parse(atob(accessToken.split('.')[1]));
+            const userDid = payload.did || 'unknown';
+            userContext = ` for user: ${userDid}`;
+          } catch {
+            // Continue without user context if token parsing fails
+          }
+        }
+        
         console.log(
-          `[auth/me] Access token ${accessTokenStatus}, attempting refresh with token: ${tokenPreview}`,
+          `[auth/me] Access token ${accessTokenStatus}${userContext}, attempting refresh with token: ${tokenPreview}`,
         );
       }
 
@@ -89,6 +102,17 @@ export async function GET(request: NextRequest) {
 
     // AccessToken is valid - fetch profile
     try {
+      // Log user context from valid access token
+      if (ENABLE_REFRESH_LOGGING && accessToken) {
+        try {
+          const payload = JSON.parse(atob(accessToken.split('.')[1]));
+          const userDid = payload.did || 'unknown';
+          console.log(`[auth/me] Using valid access token for user: ${userDid}`);
+        } catch {
+          // Continue without logging user ID if token parsing fails
+        }
+      }
+
       const backendUrl =
         process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
       const profileResponse = await fetch(`${backendUrl}/api/users/me`, {

@@ -24,10 +24,18 @@ export class ServerCookieAuthService {
 
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
+      const userDid = payload.did || 'unknown';
       const expiry = payload.exp * 1000;
       const bufferTime = bufferMinutes * 60 * 1000;
-      return Date.now() >= expiry - bufferTime;
+      const isExpired = Date.now() >= expiry - bufferTime;
+      
+      if (isExpired) {
+        console.log(`[ServerCookieAuthService] Token expired for user: ${userDid}`);
+      }
+      
+      return isExpired;
     } catch {
+      console.log(`[ServerCookieAuthService] Invalid token format`);
       return true;
     }
   }

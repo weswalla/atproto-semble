@@ -57,8 +57,10 @@ export class JwtTokenService implements ITokenService {
   async validateToken(token: string): Promise<Result<string | null>> {
     try {
       const decoded = jwt.verify(token, this.jwtSecret) as { did: string };
+      console.log(`[JwtTokenService] Token validation successful for user: ${decoded.did}`);
       return ok(decoded.did);
-    } catch (error) {
+    } catch (error: any) {
+      console.log(`[JwtTokenService] Token validation failed: ${error.message}`);
       return ok(null); // Token is invalid or expired
     }
   }

@@ -14,13 +14,20 @@ export const isTokenExpiringSoon = (
     if (parts.length !== 3) return true;
 
     const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+    const userDid = payload.did || 'unknown';
 
     // Ensure exp claim exists and is a number
     if (!payload.exp || typeof payload.exp !== 'number') return true;
 
     const expiry = payload.exp * 1000;
     const bufferTime = bufferSeconds * 1000;
-    return Date.now() >= expiry - bufferTime;
+    const isExpiring = Date.now() >= expiry - bufferTime;
+    
+    if (isExpiring) {
+      console.log(`[isTokenExpiringSoon] Token expiring soon for user: ${userDid}`);
+    }
+    
+    return isExpiring;
   } catch {
     return true;
   }

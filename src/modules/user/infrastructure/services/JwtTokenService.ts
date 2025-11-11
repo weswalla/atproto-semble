@@ -60,12 +60,16 @@ export class JwtTokenService implements ITokenService {
     try {
       const decoded = jwt.verify(token, this.jwtSecret) as { did: string };
       if (ENABLE_AUTH_LOGGING) {
-        console.log(`[JwtTokenService] Token validation successful for user: ${decoded.did}`);
+        console.log(
+          `[JwtTokenService] Token validation successful for user: ${decoded.did}`,
+        );
       }
       return ok(decoded.did);
     } catch (error: any) {
       if (ENABLE_AUTH_LOGGING) {
-        console.log(`[JwtTokenService] Token validation failed: ${error.message}`);
+        console.log(
+          `[JwtTokenService] Token validation failed: ${error.message}`,
+        );
       }
       return ok(null); // Token is invalid or expired
     }

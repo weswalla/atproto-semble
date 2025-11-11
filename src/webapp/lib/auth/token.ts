@@ -24,11 +24,13 @@ export const isTokenExpiringSoon = (
     const expiry = payload.exp * 1000;
     const bufferTime = bufferSeconds * 1000;
     const isExpiring = Date.now() >= expiry - bufferTime;
-    
+
     if (isExpiring && ENABLE_AUTH_LOGGING) {
-      console.log(`[isTokenExpiringSoon] Token expiring soon for user: ${userDid}`);
+      console.log(
+        `[isTokenExpiringSoon] Token expiring soon for user: ${userDid}`,
+      );
     }
-    
+
     return isExpiring;
   } catch {
     return true;

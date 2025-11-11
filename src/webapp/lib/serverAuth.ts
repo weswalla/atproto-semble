@@ -15,7 +15,9 @@ export async function getServerAuthStatus(): Promise<{
 
     if (!accessToken || ServerCookieAuthService.isTokenExpired(accessToken)) {
       if (ENABLE_AUTH_LOGGING) {
-        const reason = !accessToken ? 'No access token' : 'Access token expired';
+        const reason = !accessToken
+          ? 'No access token'
+          : 'Access token expired';
         console.log(`[serverAuth] Authentication failed: ${reason}`);
       }
       return {
@@ -39,7 +41,9 @@ export async function getServerAuthStatus(): Promise<{
 
     if (!response.ok) {
       if (ENABLE_AUTH_LOGGING) {
-        console.log(`[serverAuth] Profile API request failed with status: ${response.status}`);
+        console.log(
+          `[serverAuth] Profile API request failed with status: ${response.status}`,
+        );
       }
       return {
         isAuthenticated: false,
@@ -50,7 +54,9 @@ export async function getServerAuthStatus(): Promise<{
 
     const user: UserProfile = await response.json();
     if (ENABLE_AUTH_LOGGING) {
-      console.log(`[serverAuth] Server-side authentication successful for user: ${user.handle} (${user.id})`);
+      console.log(
+        `[serverAuth] Server-side authentication successful for user: ${user.handle} (${user.id})`,
+      );
     }
 
     return {
@@ -60,7 +66,9 @@ export async function getServerAuthStatus(): Promise<{
     };
   } catch (error: any) {
     if (ENABLE_AUTH_LOGGING) {
-      console.log(`[serverAuth] Authentication error: ${error.message || 'Unknown error'}`);
+      console.log(
+        `[serverAuth] Authentication error: ${error.message || 'Unknown error'}`,
+      );
     }
     return {
       isAuthenticated: false,

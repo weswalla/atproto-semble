@@ -58,7 +58,10 @@ export class RefreshAccessTokenUseCase
         // Extract user ID from the new access token for logging
         try {
           const payload = JSON.parse(
-            Buffer.from(tokenResult.value.accessToken.split('.')[1], 'base64').toString(),
+            Buffer.from(
+              tokenResult.value.accessToken.split('.')[1]!,
+              'base64',
+            ).toString(),
           );
           const userId = payload.sub || payload.did || 'unknown';
           console.log(

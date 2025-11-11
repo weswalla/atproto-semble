@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       if (ENABLE_AUTH_LOGGING) {
         const tokenPreview = '...' + refreshToken.slice(-8);
         const accessTokenStatus = !accessToken ? 'missing' : 'expiring soon';
-        
+
         // Try to extract user ID from access token if available
         let userContext = '';
         if (accessToken) {
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
             // Continue without user context if token parsing fails
           }
         }
-        
+
         console.log(
           `[auth/me] Access token ${accessTokenStatus}${userContext}, attempting refresh with token: ${tokenPreview}`,
         );
@@ -107,7 +107,9 @@ export async function GET(request: NextRequest) {
         try {
           const payload = JSON.parse(atob(accessToken.split('.')[1]));
           const userDid = payload.did || 'unknown';
-          console.log(`[auth/me] Using valid access token for user: ${userDid}`);
+          console.log(
+            `[auth/me] Using valid access token for user: ${userDid}`,
+          );
         } catch {
           // Continue without logging user ID if token parsing fails
         }
@@ -125,7 +127,9 @@ export async function GET(request: NextRequest) {
 
       if (!profileResponse.ok) {
         if (ENABLE_AUTH_LOGGING) {
-          console.log(`[auth/me] Profile fetch failed with status: ${profileResponse.status}`);
+          console.log(
+            `[auth/me] Profile fetch failed with status: ${profileResponse.status}`,
+          );
         }
         // Clear cookies on auth failure
         const response = NextResponse.json<AuthResult>(
@@ -139,7 +143,9 @@ export async function GET(request: NextRequest) {
 
       const user = await profileResponse.json();
       if (ENABLE_AUTH_LOGGING) {
-        console.log(`[auth/me] Profile fetched successfully for user: ${user.handle} (${user.id})`);
+        console.log(
+          `[auth/me] Profile fetched successfully for user: ${user.handle} (${user.id})`,
+        );
       }
       return NextResponse.json<AuthResult>({ isAuth: true, user });
     } catch (error) {
@@ -209,7 +215,9 @@ async function performTokenRefresh(
 
   const user = await profileResponse.json();
   if (ENABLE_AUTH_LOGGING) {
-    console.log(`[auth/me] Token refresh and profile fetch successful for user: ${user.handle} (${user.id})`);
+    console.log(
+      `[auth/me] Token refresh and profile fetch successful for user: ${user.handle} (${user.id})`,
+    );
   }
   // Return user profile with backend's Set-Cookie headers
   return new Response(JSON.stringify({ isAuth: true, user }), {

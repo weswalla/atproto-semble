@@ -80,7 +80,7 @@ export default function MyFeedContainer() {
         pos={'fixed'}
         bottom={0}
         mt={'md'}
-        mx={{ base: 0, sm: 'xs' }}
+        mx={{ base: 10, sm: 2.5 }}
         mb={{ base: 100, sm: 'md' }}
         style={{ zIndex: 2 }}
       >

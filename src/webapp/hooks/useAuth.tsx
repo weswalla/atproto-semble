@@ -8,6 +8,8 @@ import { ClientCookieAuthService } from '@/services/auth/CookieAuthService.clien
 import { verifySessionOnClient } from '@/lib/auth/dal';
 import { usePathname } from 'next/navigation';
 
+const ENABLE_AUTH_LOGGING = true;
+
 interface AuthContextType {
   user: GetProfileResponse | null;
   isAuthenticated: boolean;
@@ -28,7 +30,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-    console.log('[useAuth] Initiating logout process');
+    if (ENABLE_AUTH_LOGGING) {
+      console.log('[useAuth] Initiating logout process');
+    }
     await ClientCookieAuthService.clearTokens();
     queryClient.clear();
     router.push('/login');

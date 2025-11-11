@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const ENABLE_AUTH_LOGGING = true;
+
 export async function POST(request: NextRequest) {
   try {
     // Proxy to backend to handle token revocation and cookie deletion
@@ -28,7 +30,9 @@ export async function POST(request: NextRequest) {
       console.warn(
         'Backend logout failed, clearing cookies in Next.js as fallback',
       );
-      console.log('[auth/logout] Clearing cookies as fallback after backend failure');
+      if (ENABLE_AUTH_LOGGING) {
+        console.log('[auth/logout] Clearing cookies as fallback after backend failure');
+      }
 
       const response = NextResponse.json({
         success: true,
@@ -45,7 +49,9 @@ export async function POST(request: NextRequest) {
     console.error('Logout error:', error);
 
     // Network error - fallback to clearing cookies in Next.js
-    console.log('[auth/logout] Clearing cookies as fallback after network error');
+    if (ENABLE_AUTH_LOGGING) {
+      console.log('[auth/logout] Clearing cookies as fallback after network error');
+    }
     const response = NextResponse.json({
       success: true,
       message: 'Logged out successfully (fallback)',

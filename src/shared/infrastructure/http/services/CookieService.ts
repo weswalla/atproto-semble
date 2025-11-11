@@ -4,6 +4,8 @@ import {
   Environment,
 } from '../../config/EnvironmentConfigService';
 
+const ENABLE_AUTH_LOGGING = true;
+
 export interface CookieOptions {
   httpOnly: boolean;
   secure: boolean;
@@ -114,7 +116,9 @@ export class CookieService {
    * Clear both access and refresh token cookies
    */
   public clearTokens(res: Response): void {
-    console.log('[CookieService] Clearing both access and refresh token cookies');
+    if (ENABLE_AUTH_LOGGING) {
+      console.log('[CookieService] Clearing both access and refresh token cookies');
+    }
     const cookieOptions = {
       ...this.getBaseCookieOptions(),
       maxAge: 0, // Expire immediately
@@ -128,7 +132,9 @@ export class CookieService {
    * Clear access token cookie only
    */
   public clearAccessToken(res: Response): void {
-    console.log('[CookieService] Clearing access token cookie');
+    if (ENABLE_AUTH_LOGGING) {
+      console.log('[CookieService] Clearing access token cookie');
+    }
     const cookieOptions = {
       ...this.getBaseCookieOptions(),
       maxAge: 0,
@@ -141,7 +147,9 @@ export class CookieService {
    * Clear refresh token cookie only
    */
   public clearRefreshToken(res: Response): void {
-    console.log('[CookieService] Clearing refresh token cookie');
+    if (ENABLE_AUTH_LOGGING) {
+      console.log('[CookieService] Clearing refresh token cookie');
+    }
     const cookieOptions = {
       ...this.getBaseCookieOptions(),
       maxAge: 0,

@@ -1,5 +1,7 @@
 import { cookies } from 'next/headers';
 
+const ENABLE_AUTH_LOGGING = true;
+
 export interface AuthTokens {
   accessToken: string | null;
   refreshToken: string | null;
@@ -23,11 +25,25 @@ export class ServerCookieAuthService {
     if (!token) return true;
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(
+        Buffer.from(token.split('.')[1], 'base64').toString(),
+      );
+      const userDid = payload.did || 'unknown';
       const expiry = payload.exp * 1000;
       const bufferTime = bufferMinutes * 60 * 1000;
-      return Date.now() >= expiry - bufferTime;
+      const isExpired = Date.now() >= expiry - bufferTime;
+
+      if (isExpired && ENABLE_AUTH_LOGGING) {
+        console.log(
+          `[ServerCookieAuthService] Token expired for user: ${userDid}`,
+        );
+      }
+
+      return isExpired;
     } catch {
+      if (ENABLE_AUTH_LOGGING) {
+        console.log(`[ServerCookieAuthService] Invalid token format`);
+      }
       return true;
     }
   }

@@ -25,7 +25,7 @@ export class ServerCookieAuthService {
     if (!token) return true;
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
       const userDid = payload.did || 'unknown';
       const expiry = payload.exp * 1000;
       const bufferTime = bufferMinutes * 60 * 1000;

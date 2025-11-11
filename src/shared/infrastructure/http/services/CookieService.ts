@@ -117,7 +117,9 @@ export class CookieService {
    */
   public clearTokens(res: Response): void {
     if (ENABLE_AUTH_LOGGING) {
-      console.log('[CookieService] Clearing both access and refresh token cookies');
+      console.log(
+        '[CookieService] Clearing both access and refresh token cookies',
+      );
     }
     const cookieOptions = {
       ...this.getBaseCookieOptions(),

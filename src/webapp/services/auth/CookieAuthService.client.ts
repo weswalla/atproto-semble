@@ -10,7 +10,9 @@ export class ClientCookieAuthService {
   // Clear cookies via API (logout)
   static async clearTokens(): Promise<void> {
     if (ENABLE_AUTH_LOGGING) {
-      console.log('[ClientCookieAuthService] Initiating token clearing via logout API');
+      console.log(
+        '[ClientCookieAuthService] Initiating token clearing via logout API',
+      );
     }
     try {
       const response = await fetch(`${appUrl}/api/auth/logout`, {
@@ -24,7 +26,9 @@ export class ClientCookieAuthService {
         );
       } else {
         if (ENABLE_AUTH_LOGGING) {
-          console.log('[ClientCookieAuthService] Tokens cleared successfully via logout API');
+          console.log(
+            '[ClientCookieAuthService] Tokens cleared successfully via logout API',
+          );
         }
       }
     } catch (error) {

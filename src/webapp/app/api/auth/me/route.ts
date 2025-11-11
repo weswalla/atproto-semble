@@ -136,7 +136,9 @@ export async function GET(request: NextRequest) {
         }
         // Clear cookies on auth failure
         if (ENABLE_AUTH_LOGGING) {
-          console.log('[auth/me] Clearing cookies due to profile fetch failure');
+          console.log(
+            '[auth/me] Clearing cookies due to profile fetch failure',
+          );
         }
         const response = NextResponse.json<AuthResult>(
           { isAuth: false },
@@ -174,7 +176,10 @@ export async function GET(request: NextRequest) {
     if (ENABLE_AUTH_LOGGING) {
       console.log('[auth/me] Clearing cookies due to unexpected auth error');
     }
-    const response = NextResponse.json<AuthResult>({ isAuth: false }, { status: 500 });
+    const response = NextResponse.json<AuthResult>(
+      { isAuth: false },
+      { status: 500 },
+    );
     response.cookies.delete('accessToken');
     response.cookies.delete('refreshToken');
     return response;

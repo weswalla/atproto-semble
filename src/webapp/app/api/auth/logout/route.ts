@@ -31,7 +31,9 @@ export async function POST(request: NextRequest) {
         'Backend logout failed, clearing cookies in Next.js as fallback',
       );
       if (ENABLE_AUTH_LOGGING) {
-        console.log('[auth/logout] Clearing cookies as fallback after backend failure');
+        console.log(
+          '[auth/logout] Clearing cookies as fallback after backend failure',
+        );
       }
 
       const response = NextResponse.json({
@@ -50,7 +52,9 @@ export async function POST(request: NextRequest) {
 
     // Network error - fallback to clearing cookies in Next.js
     if (ENABLE_AUTH_LOGGING) {
-      console.log('[auth/logout] Clearing cookies as fallback after network error');
+      console.log(
+        '[auth/logout] Clearing cookies as fallback after network error',
+      );
     }
     const response = NextResponse.json({
       success: true,

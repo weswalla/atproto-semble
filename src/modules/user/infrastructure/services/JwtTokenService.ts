@@ -59,11 +59,6 @@ export class JwtTokenService implements ITokenService {
   async validateToken(token: string): Promise<Result<string | null>> {
     try {
       const decoded = jwt.verify(token, this.jwtSecret) as { did: string };
-      if (ENABLE_AUTH_LOGGING) {
-        console.log(
-          `[JwtTokenService] Token validation successful for user: ${decoded.did}`,
-        );
-      }
       return ok(decoded.did);
     } catch (error: any) {
       if (ENABLE_AUTH_LOGGING) {

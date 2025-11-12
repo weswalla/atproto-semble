@@ -15,6 +15,7 @@ import MinimalProfileHeaderContainer from '../../containers/minimalProfileHeader
 import { FaBluesky } from 'react-icons/fa6';
 import { getProfile } from '../../lib/dal';
 import { Fragment } from 'react';
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 
 interface Props {
   handle: string;
@@ -51,7 +52,7 @@ export default async function ProfileHeader(props: Props) {
                     <Title order={1} fz={{ base: 'h2', md: 'h1' }}>
                       {profile.name}
                     </Title>
-                    <Text c="blue" fw={600} fz={{ base: 'lg', md: 'xl' }}>
+                    <Text c="gray" fw={600} fz={{ base: 'lg', md: 'xl' }}>
                       @{profile.handle}
                     </Text>
                   </Stack>
@@ -61,7 +62,7 @@ export default async function ProfileHeader(props: Props) {
                       hideLabel={'See less'}
                       maxHeight={75}
                     >
-                      <Text>{profile.description}</Text>
+                      <RichTextRenderer text={profile.description} />
                     </Spoiler>
                   )}
                 </Stack>

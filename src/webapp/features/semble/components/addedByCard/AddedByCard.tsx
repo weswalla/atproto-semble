@@ -31,7 +31,7 @@ export default function AddedByCard(props: Props) {
             <Text fw={600} c={'bright'}>
               {props.item.card.author.name}
             </Text>
-            <Text fw={600} c={'blue'}>
+            <Text fw={600} c={'gray'}>
               @{props.item.card.author.handle}
             </Text>
           </Stack>

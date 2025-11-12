@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ],
     alternates: {
       types: {
-        'atprotocol:creator': `at://${profile.id}`,
+        '': `at://${profile.id}`,
       },
     },
     other: {

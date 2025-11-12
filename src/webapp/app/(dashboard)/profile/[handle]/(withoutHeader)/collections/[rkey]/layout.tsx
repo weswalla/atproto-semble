@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ],
     alternates: {
       types: {
-        'atprotocol:collection': `at://${collection.id}`,
+        '': `${collection.uri}`,
       },
     },
     other: {

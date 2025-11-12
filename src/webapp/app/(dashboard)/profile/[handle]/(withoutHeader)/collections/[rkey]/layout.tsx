@@ -23,6 +23,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description:
       collection.description ??
       `View ${collection.author.name}'s collection on Semble`,
+    authors: [
+      {
+        name: collection.author.name,
+        url: `${process.env.APP_URL}/profile/${handle}`,
+      },
+    ],
   };
 }
 

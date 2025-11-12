@@ -18,7 +18,7 @@ export class FakeBlueskyProfileService implements IProfileService {
         handle: mockHandle,
         avatarUrl:
           'https://cdn.bsky.app/img/avatar/plain/did:plc:rlknsba2qldjkicxsmni3vyn/bafkreid4nmxspygkftep5b3m2wlcm3xvnwefkswzej7dhipojjxylkzfby@jpeg',
-        bio: 'This is a mock profile for testing purposes',
+        bio: 'This is a mock profile for testing purposes (https://semble.so/), made by https://cosmik.network/.',
       };
 
       return ok(userProfile);

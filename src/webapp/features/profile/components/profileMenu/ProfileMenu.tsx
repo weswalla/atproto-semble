@@ -155,6 +155,7 @@ export default function ProfileMenu() {
               alt="Cosmik logo"
               w="auto"
               h={24}
+              ml={2}
             />
           </Menu.Item>
         </Menu.Dropdown>

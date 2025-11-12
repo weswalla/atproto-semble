@@ -4,6 +4,7 @@ import { cardKeys } from '../cardKeys';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 import { noteKeys } from '@/features/notes/lib/noteKeys';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
+import { sembleKeys } from '@/features/semble/lib/sembleKeys';
 
 export default function useRemoveCardFromLibrary() {
   const queryClient = useQueryClient();
@@ -18,6 +19,7 @@ export default function useRemoveCardFromLibrary() {
       queryClient.invalidateQueries({ queryKey: noteKeys.all() });
       queryClient.invalidateQueries({ queryKey: feedKeys.all() });
       queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
+      queryClient.invalidateQueries({ queryKey: sembleKeys.all() });
     },
   });
 

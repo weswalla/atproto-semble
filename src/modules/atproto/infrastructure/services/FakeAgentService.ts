@@ -17,7 +17,7 @@ export class FakeAgentService implements IAgentService {
               handle: mockHandle,
               displayName: `Mock User`,
               description:
-                'This is a mock profile for testing purposes (https://semble.so/), made by https://cosmik.network/.',
+                'This is a mock profile for testing purposes (https://semble.so/), made by @cosmik.network.',
               avatar:
                 'https://cdn.bsky.app/img/avatar/plain/did:plc:rlknsba2qldjkicxsmni3vyn/bafkreid4nmxspygkftep5b3m2wlcm3xvnwefkswzej7dhipojjxylkzfby@jpeg',
             },

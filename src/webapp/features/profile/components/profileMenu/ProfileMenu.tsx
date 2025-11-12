@@ -129,6 +129,7 @@ export default function ProfileMenu() {
             leftSection={<MdCollectionsBookmark size={22} />}
             component={Link}
             href={'/bookmarklet'}
+            target="_blank"
           >
             Install bookmarklet
           </Menu.Item>

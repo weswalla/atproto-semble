@@ -13,3 +13,15 @@ export const getUrlFromSlug = (slug: string[]) => {
 
   return normalizedUrl;
 };
+
+export const isCollectionPage = (url: string = window.location.pathname) => {
+  try {
+    const { pathname } = new URL(url);
+    // expect /profile/:handle/collections/:id
+    const pattern = /^\/profile\/[^/]+\/collections\/[^/]+\/?$/;
+    return pattern.test(pathname);
+  } catch {
+    // invalid URL
+    return false;
+  }
+};

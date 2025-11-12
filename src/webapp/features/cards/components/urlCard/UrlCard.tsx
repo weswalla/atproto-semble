@@ -1,5 +1,5 @@
 import type { UrlCard, Collection, User } from '@/api-client';
-import { getDomain } from '@/lib/utils/link';
+import { getDomain, isCollectionPage } from '@/lib/utils/link';
 import {
   Card,
   Image,
@@ -35,9 +35,61 @@ export default function UrlCard(props: Props) {
 
   const handleNavigateToSemblePage = (e: MouseEvent<HTMLElement>) => {
     e.stopPropagation();
+
+    if (isCollectionPage(props.url)) {
+      router.push(props.url);
+      return;
+    }
+
     router.push(`/url?id=${props.cardContent.url}`);
   };
-  // TODO: add more sizes
+
+  if (isCollectionPage(props.url)) {
+    return (
+      <Card
+        component="article"
+        radius={'lg'}
+        p={'sm'}
+        flex={1}
+        h={'100%'}
+        withBorder
+        className={styles.root}
+        onClick={handleNavigateToSemblePage}
+      >
+        <Stack justify="space-between" gap={'sm'} flex={1}>
+          <Group justify="space-between" align="start" gap={'lg'}>
+            <Stack gap={0} flex={1}>
+              <Text c={'grape'} fw={500}>
+                Collection
+              </Text>
+              {props.cardContent.title && (
+                <Text c={'bright'} lineClamp={2} fw={500} w={'fit-content'}>
+                  {props.cardContent.title}
+                </Text>
+              )}
+              {props.cardContent.description && (
+                <Text c={'gray'} fz={'sm'} mt={'xs'} lineClamp={3}>
+                  {props.cardContent.description}
+                </Text>
+              )}
+            </Stack>
+          </Group>
+
+          <UrlCardActions
+            cardAuthor={props.cardAuthor}
+            cardContent={props.cardContent}
+            cardCount={props.urlLibraryCount}
+            id={props.id}
+            authorHandle={props.authorHandle}
+            note={props.note}
+            currentCollection={props.currentCollection}
+            urlLibraryCount={props.urlLibraryCount}
+            urlIsInLibrary={props.urlIsInLibrary!!}
+          />
+        </Stack>
+      </Card>
+    );
+  }
 
   return (
     <Card

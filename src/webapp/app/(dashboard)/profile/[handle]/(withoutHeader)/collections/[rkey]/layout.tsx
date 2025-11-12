@@ -29,6 +29,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         url: `${process.env.APP_URL}/profile/${handle}`,
       },
     ],
+    alternates: {
+      types: {
+        '': `${collection.uri}`,
+      },
+    },
     other: {
       'atprotocol:creator': `at://${collection.author.id}`,
     },

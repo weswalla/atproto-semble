@@ -17,7 +17,7 @@ export default function MinimalProfileHeader(props: Props) {
         />
 
         <Stack gap={0}>
-          <Title order={1} fz={'sm'}>
+          <Title order={1} fz={'sm'} c={'bright'}>
             {props.name}
           </Title>
           <Text c="gray" fw={600} fz={'sm'}>

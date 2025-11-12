@@ -60,7 +60,7 @@ export default function RichTextRenderer({
           <Text
             key={`text-${i}`}
             span
-            c={textProps.c || 'dark'}
+            c={textProps.c}
             fw={textProps.fw || 400}
             {...textProps}
           >

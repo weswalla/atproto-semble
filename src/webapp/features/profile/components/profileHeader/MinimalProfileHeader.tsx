@@ -20,7 +20,7 @@ export default function MinimalProfileHeader(props: Props) {
           <Title order={1} fz={'sm'}>
             {props.name}
           </Title>
-          <Text c="blue" fw={600} fz={'sm'}>
+          <Text c="gray" fw={600} fz={'sm'}>
             @{props.handle}
           </Text>
         </Stack>

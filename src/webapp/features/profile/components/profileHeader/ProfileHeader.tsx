@@ -52,7 +52,7 @@ export default async function ProfileHeader(props: Props) {
                     <Title order={1} fz={{ base: 'h2', md: 'h1' }}>
                       {profile.name}
                     </Title>
-                    <Text c="blue" fw={600} fz={{ base: 'lg', md: 'xl' }}>
+                    <Text c="gray" fw={600} fz={{ base: 'lg', md: 'xl' }}>
                       @{profile.handle}
                     </Text>
                   </Stack>

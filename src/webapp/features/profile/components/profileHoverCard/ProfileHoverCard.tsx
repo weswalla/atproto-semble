@@ -29,7 +29,7 @@ export default function ProfileHoverCard(props: Props) {
             <Avatar src={profile.avatarUrl} size={'lg'} />
             <Stack gap={0}>
               <Text fw={600}>{profile.name}</Text>
-              <Text fw={500} c={'blue'}>
+              <Text fw={500} c={'gray'}>
                 @{profile.handle}
               </Text>
             </Stack>

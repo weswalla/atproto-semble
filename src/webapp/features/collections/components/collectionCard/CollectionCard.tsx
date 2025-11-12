@@ -21,7 +21,6 @@ export default function CollectionCard(props: Props) {
   const relativeUpdateDate =
     time === 'just now' ? `Updated ${time}` : `Updated ${time} ago`;
 
-  // TODO: add more sizes
   return (
     <Card
       withBorder

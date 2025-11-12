@@ -4,7 +4,7 @@ const APPROVED_HANDLES = ['wesleyfinck.org', 'ronentk.me', 'pouriade.com'];
 
 export async function getServerFeatureFlags() {
   const { user } = await getServerAuthStatus();
-  
+
   const isApprovedUser = user?.handle && APPROVED_HANDLES.includes(user.handle);
 
   return {

@@ -96,16 +96,6 @@ export default function ProfileMenu() {
           </Menu.Item>
 
           <Menu.Item
-            component="a"
-            href="https://tangled.org/@cosmik.network/semble/issues"
-            target="_blank"
-            leftSection={<MdBugReport size={22} />}
-            color="gray"
-          >
-            Submit an issue
-          </Menu.Item>
-
-          <Menu.Item
             color="gray"
             leftSection={
               colorScheme === 'auto' ? (
@@ -125,6 +115,16 @@ export default function ProfileMenu() {
           <Menu.Divider />
 
           <Menu.Item
+            component="a"
+            href="https://tangled.org/@cosmik.network/semble/issues"
+            target="_blank"
+            leftSection={<MdBugReport size={22} />}
+            color="gray"
+          >
+            Submit an issue
+          </Menu.Item>
+
+          <Menu.Item
             color="gray"
             leftSection={<MdCollectionsBookmark size={22} />}
             component={Link}
@@ -140,6 +140,8 @@ export default function ProfileMenu() {
           >
             Log out
           </Menu.Item>
+
+          <Menu.Divider />
 
           <Menu.Item
             component="a"

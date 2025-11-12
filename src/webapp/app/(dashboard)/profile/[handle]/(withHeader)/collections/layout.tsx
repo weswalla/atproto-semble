@@ -14,6 +14,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${profile.name}'s collections`,
     description: `Explore ${profile.name}'s collections on Semble`,
+    authors: [
+      {
+        name: profile.name,
+        url: `${process.env.APP_URL}/profile/${handle}`,
+      },
+    ],
+    other: {
+      'atprotocol:creator': `at://${profile.id}`,
+    },
   };
 }
 

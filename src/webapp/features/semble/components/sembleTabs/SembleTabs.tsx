@@ -16,14 +16,13 @@ import SembleSimilarCardsContainerSkeleton from '../../containers/sembleSimilarC
 import SembleSimilarCardsContainer from '../../containers/sembleSimilarCardsContainer/SembleSimilarCardsContainer';
 import TabItem from './TabItem';
 import { Suspense } from 'react';
-import { useFeatureFlags } from '@/hooks/useFeatureFlags';
-
 interface Props {
   url: string;
+  featureFlags: { similarCards: boolean };
 }
 
 export default function SembleTabs(props: Props) {
-  const featureFlags = useFeatureFlags();
+  const { featureFlags } = props;
 
   return (
     <Tabs defaultValue={'notes'}>

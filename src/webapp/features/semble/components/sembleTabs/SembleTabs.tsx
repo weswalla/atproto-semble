@@ -16,13 +16,14 @@ import SembleSimilarCardsContainerSkeleton from '../../containers/sembleSimilarC
 import SembleSimilarCardsContainer from '../../containers/sembleSimilarCardsContainer/SembleSimilarCardsContainer';
 import TabItem from './TabItem';
 import { Suspense } from 'react';
-import { featureFlags } from '@/config/featureFlags';
-
+import { getServerFeatureFlags } from '@/lib/serverFeatureFlags';
 interface Props {
   url: string;
 }
 
-export default function SembleTabs(props: Props) {
+export default async function SembleTabs(props: Props) {
+  const featureFlags = await getServerFeatureFlags();
+
   return (
     <Tabs defaultValue={'notes'}>
       <ScrollAreaAutosize type="scroll">

@@ -30,6 +30,7 @@ interface Props {
 
 export default function CollectionContainer(props: Props) {
   const [showAddDrawer, setShowAddDrawer] = useState(false);
+  // const [sortBy, setSortBy] = useState<CardSortField>(CardSortField.CREATED_AT);
   const {
     data,
     isPending,
@@ -37,7 +38,11 @@ export default function CollectionContainer(props: Props) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useCollection({ rkey: props.rkey, handle: props.handle });
+  } = useCollection({
+    rkey: props.rkey,
+    handle: props.handle,
+    // sortBy: sortBy,
+  });
 
   const firstPage = data.pages[0];
   const allCards = data.pages.flatMap((page) => page.urlCards ?? []);
@@ -90,7 +95,19 @@ export default function CollectionContainer(props: Props) {
           </Group>
         </Group>
 
-        <Group justify="end">
+        <Group justify="space-between" align="end">
+          {/*<Select
+            mr={'auto'}
+            size="sm"
+            label="Sort by"
+            value={sortBy}
+            onChange={(value) => setSortBy(value as CardSortField)}
+            data={[
+              { value: CardSortField.CREATED_AT, label: 'Created (Newest)' },
+              { value: CardSortField.UPDATED_AT, label: 'Updated (Newest)' },
+              { value: CardSortField.LIBRARY_COUNT, label: 'Most Popular' },
+            ]}
+          />*/}
           <CollectionActions
             id={firstPage.id}
             rkey={props.rkey}

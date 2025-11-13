@@ -1,10 +1,13 @@
 import { verifySessionOnClient } from '@/lib/auth/dal';
 import { createSembleClient } from '@/services/apiClient';
+import { CardSortField, CollectionSortField } from '@semble/types';
 import { cache } from 'react';
 
 interface PageParams {
   page?: number;
   limit?: number;
+  cardSortBy?: CardSortField;
+  collectionSortBy?: CollectionSortField;
 }
 
 interface SearchParams {
@@ -20,6 +23,7 @@ export const getCollectionsForUrl = cache(
       url,
       page: params?.page,
       limit: params?.limit,
+      sortBy: params?.collectionSortBy,
     });
 
     return response;
@@ -33,6 +37,7 @@ export const getCollections = cache(
       identifier: didOrHandle,
       limit: params?.limit,
       page: params?.page,
+      sortBy: params?.collectionSortBy,
     });
 
     // Temp fix: filter out collections without uri
@@ -53,7 +58,7 @@ export const getMyCollections = cache(
     const response = await client.getMyCollections({
       page: params?.page,
       limit: params?.limit,
-      sortBy: params?.sortBy,
+      sortBy: params?.collectionSortBy,
       sortOrder: params?.sortOrder,
       searchText: params?.searchText,
     });
@@ -120,6 +125,7 @@ export const getCollectionPageByAtUri = cache(
       handle,
       page: params?.page,
       limit: params?.limit,
+      sortBy: params?.cardSortBy,
     });
 
     return response;

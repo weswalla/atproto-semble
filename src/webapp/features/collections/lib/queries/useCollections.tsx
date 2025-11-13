@@ -1,10 +1,12 @@
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { getCollections } from '../dal';
 import { collectionKeys } from '../collectionKeys';
+import { CollectionSortField } from '@semble/types';
 
 interface Props {
   didOrHandle: string;
   limit?: number;
+  sortBy?: CollectionSortField;
 }
 
 export default function useCollections(props: Props) {
@@ -17,6 +19,7 @@ export default function useCollections(props: Props) {
       getCollections(props.didOrHandle, {
         limit,
         page: pageParam,
+        collectionSortBy: props.sortBy,
       }),
     getNextPageParam: (lastPage) => {
       return lastPage.pagination.hasMore

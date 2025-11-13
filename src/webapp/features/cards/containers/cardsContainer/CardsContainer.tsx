@@ -1,17 +1,9 @@
 'use client';
 
-import {
-  Container,
-  Grid,
-  GridCol,
-  Select,
-  Skeleton,
-  Stack,
-} from '@mantine/core';
+import { Container, Select, Stack } from '@mantine/core';
 import { Suspense, useState } from 'react';
-import { CardSortField } from '@semble/types';
+import { SortOrder } from '@semble/types';
 import CardsContainerContent from '../cardsContainerContent/CardsContainerContent';
-import UrlCardSkeleton from '../../components/urlCard/Skeleton.UrlCard';
 import CardsContainerContentSkeleton from '../cardsContainerContent/Skeleton.CardsContainerContent';
 
 interface Props {
@@ -19,7 +11,7 @@ interface Props {
 }
 
 export default function CardsContainer(props: Props) {
-  const [sortBy, setSortBy] = useState<CardSortField>(CardSortField.CREATED_AT);
+  const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
 
   return (
     <Container p="xs" size="xl">
@@ -28,16 +20,15 @@ export default function CardsContainer(props: Props) {
           mr={'auto'}
           size="sm"
           label="Sort by"
-          value={sortBy}
-          onChange={(value) => setSortBy(value as CardSortField)}
+          value={sortOrder}
+          onChange={(value) => setSortOrder(value as SortOrder)}
           data={[
-            { value: CardSortField.CREATED_AT, label: 'Created (Newest)' },
-            { value: CardSortField.UPDATED_AT, label: 'Updated (Newest)' },
-            { value: CardSortField.LIBRARY_COUNT, label: 'Most Popular' },
+            { value: SortOrder.DESC, label: 'Newest' },
+            { value: SortOrder.ASC, label: 'Oldest' },
           ]}
         />
         <Suspense fallback={<CardsContainerContentSkeleton />}>
-          <CardsContainerContent handle={props.handle} sortBy={sortBy} />
+          <CardsContainerContent handle={props.handle} sortOrder={sortOrder} />
         </Suspense>
       </Stack>
     </Container>

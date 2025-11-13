@@ -1,4 +1,4 @@
-import { CardSortField } from '@semble/types';
+import { CardSortField, SortOrder } from '@semble/types';
 import CardsContainerSkeleton from '../cardsContainer/Skeleton.CardsContainer';
 import CardsContainerError from '../cardsContainer/Error.CardsContainer';
 import { Container, Grid } from '@mantine/core';
@@ -12,6 +12,7 @@ import { FaRegNoteSticky } from 'react-icons/fa6';
 interface Props {
   handle: string;
   sortBy?: CardSortField;
+  sortOrder?: SortOrder;
 }
 
 export default function CardsContainerContent(props: Props) {
@@ -23,7 +24,11 @@ export default function CardsContainerContent(props: Props) {
     hasNextPage,
     isFetchingNextPage,
     isPending,
-  } = useCards({ didOrHandle: props.handle, sortBy: props.sortBy });
+  } = useCards({
+    didOrHandle: props.handle,
+    sortBy: props.sortBy,
+    sortOrder: props.sortOrder,
+  });
 
   const allCards = data?.pages.flatMap((page) => page.cards ?? []) ?? [];
 

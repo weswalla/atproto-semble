@@ -5,6 +5,7 @@ import {
   AtUriResolutionResult,
 } from '../../domain/services/IAtUriResolutionService';
 import { CollectionId } from '../../domain/value-objects/CollectionId';
+import { CardId } from '../../domain/value-objects/CardId';
 import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
 
 export class InMemoryAtUriResolutionService implements IAtUriResolutionService {
@@ -46,5 +47,35 @@ export class InMemoryAtUriResolutionService implements IAtUriResolutionService {
     }
 
     return ok(result.value.id as CollectionId);
+  }
+
+  async resolveCardId(atUri: string): Promise<Result<CardId | null>> {
+    const result = await this.resolveAtUri(atUri);
+
+    if (result.isErr()) {
+      return err(result.error);
+    }
+
+    if (!result.value || result.value.type !== AtUriResourceType.CARD) {
+      return ok(null);
+    }
+
+    return ok(result.value.id as CardId);
+  }
+
+  async resolveCollectionLinkId(
+    atUri: string
+  ): Promise<Result<{collectionId: CollectionId, cardId: CardId} | null>> {
+    const result = await this.resolveAtUri(atUri);
+
+    if (result.isErr()) {
+      return err(result.error);
+    }
+
+    if (!result.value || result.value.type !== AtUriResourceType.COLLECTION_LINK) {
+      return ok(null);
+    }
+
+    return ok(result.value.id as {collectionId: CollectionId, cardId: CardId});
   }
 }

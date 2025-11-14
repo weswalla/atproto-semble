@@ -119,4 +119,18 @@ export class ATUri extends ValueObject<ATUriProps> {
   public equals(other: ATUri): boolean {
     return this.props.value === other.props.value;
   }
+
+  public getEntityType(configService: any): AtUriResourceType {
+    const collections = configService.getAtProtoCollections();
+    if (this.collection === collections.card) return AtUriResourceType.CARD;
+    if (this.collection === collections.collection) return AtUriResourceType.COLLECTION;
+    if (this.collection === collections.collectionLink) return AtUriResourceType.COLLECTION_LINK;
+    throw new Error(`Unknown collection type: ${this.collection}`);
+  }
+}
+
+export enum AtUriResourceType {
+  CARD = 'card',
+  COLLECTION = 'collection',
+  COLLECTION_LINK = 'collection_link',
 }

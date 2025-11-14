@@ -2,25 +2,25 @@ import { IProcess } from 'src/shared/domain/IProcess';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 import { FirehoseEventHandler } from '../../application/handlers/FirehoseEventHandler';
 import { AtProtoFirehoseService } from '../services/AtProtoFirehoseService';
-import { IdResolver } from '@atproto/sync';
+import { IdResolver } from '@atproto/identity';
 
 export class FirehoseWorkerProcess implements IProcess {
   private firehoseService?: AtProtoFirehoseService;
 
   constructor(
     private configService: EnvironmentConfigService,
-    private firehoseEventHandler: FirehoseEventHandler
+    private firehoseEventHandler: FirehoseEventHandler,
   ) {}
 
   async start(): Promise<void> {
     console.log('Starting firehose worker...');
 
     const idResolver = new IdResolver();
-    
+
     this.firehoseService = new AtProtoFirehoseService(
       this.firehoseEventHandler,
       this.configService,
-      idResolver
+      idResolver,
     );
 
     await this.firehoseService.start();

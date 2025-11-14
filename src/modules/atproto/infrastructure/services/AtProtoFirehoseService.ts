@@ -1,4 +1,4 @@
-import { Firehose, MemoryRunner, Event } from '@atproto/sync';
+import { Firehose, MemoryRunner, Event, CommitEvt } from '@atproto/sync';
 import { IFirehoseService } from '../../application/services/IFirehoseService';
 import { FirehoseEventHandler } from '../../application/handlers/FirehoseEventHandler';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
@@ -65,13 +65,20 @@ export class AtProtoFirehoseService implements IFirehoseService {
   }
 
   private async handleFirehoseEvent(evt: Event): Promise<void> {
+    // Only process commit events (create, update, delete)
+    if (evt.event !== 'create' && evt.event !== 'update' && evt.event !== 'delete') {
+      return;
+    }
+
+    const commitEvt = evt as CommitEvt;
+
     const result = await this.firehoseEventHandler.handle({
-      uri: evt.uri,
-      cid: evt.cid,
-      eventType: evt.event as 'create' | 'update' | 'delete',
-      record: evt.record,
-      did: evt.did,
-      collection: evt.collection,
+      uri: commitEvt.uri.toString(),
+      cid: commitEvt.event === 'delete' ? null : commitEvt.cid.toString(),
+      eventType: commitEvt.event,
+      record: commitEvt.event === 'delete' ? undefined : commitEvt.record,
+      did: commitEvt.did,
+      collection: commitEvt.collection,
     });
 
     if (result.isErr()) {

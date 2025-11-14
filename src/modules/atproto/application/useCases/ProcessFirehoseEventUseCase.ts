@@ -57,7 +57,7 @@ export class ProcessFirehoseEventUseCase
         return ok(undefined);
       }
 
-      // 2. Determine entity type from AT URI
+      // 2. Parse AT URI to get collection
       const atUriResult = ATUri.create(request.atUri);
       if (atUriResult.isErr()) {
         return err(
@@ -65,20 +65,21 @@ export class ProcessFirehoseEventUseCase
         );
       }
 
-      const entityType = atUriResult.value.getEntityType(this.configService);
+      const collection = atUriResult.value.collection;
+      const collections = this.configService.getAtProtoCollections();
 
       // 3. Route to appropriate handler based on collection type
-      switch (entityType) {
-        case AtUriResourceType.CARD:
+      switch (collection) {
+        case collections.card:
           return this.processCardFirehoseEventUseCase.execute(request);
-        case AtUriResourceType.COLLECTION:
+        case collections.collection:
           return this.processCollectionFirehoseEventUseCase.execute(request);
-        case AtUriResourceType.COLLECTION_LINK:
+        case collections.collectionLink:
           return this.processCollectionLinkFirehoseEventUseCase.execute(
             request,
           );
         default:
-          return err(new ValidationError(`Unknown entity type: ${entityType}`));
+          return err(new ValidationError(`Unknown collection type: ${collection}`));
       }
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));

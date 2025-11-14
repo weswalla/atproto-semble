@@ -93,10 +93,11 @@ Enhance `ATUri` or create a helper to determine entity type from collection fiel
 
 ```typescript
 // In ATUri class or as utility
-public getEntityType(): AtUriResourceType {
-  if (this.collection === 'network.cosmik.card') return AtUriResourceType.CARD;
-  if (this.collection === 'network.cosmik.collection') return AtUriResourceType.COLLECTION;
-  if (this.collection === 'network.cosmik.collection.link') return AtUriResourceType.COLLECTION_LINK;
+public getEntityType(configService: EnvironmentConfigService): AtUriResourceType {
+  const collections = configService.getAtProtoCollections();
+  if (this.collection === collections.card) return AtUriResourceType.CARD;
+  if (this.collection === collections.collection) return AtUriResourceType.COLLECTION;
+  if (this.collection === collections.collectionLink) return AtUriResourceType.COLLECTION_LINK;
   throw new Error(`Unknown collection type: ${this.collection}`);
 }
 ```
@@ -117,8 +118,8 @@ class DeleteDetectionService implements IDeleteDetectionService {
     const atUriResult = ATUri.create(atUri);
     if (atUriResult.isErr()) return err(atUriResult.error);
     
-    const entityType = atUriResult.value.getEntityType();
-    
+    const entityType = atUriResult.value.getEntityType(this.configService);
+
     // 3. Check if entity still exists
     switch (entityType) {
       case AtUriResourceType.COLLECTION:

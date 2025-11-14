@@ -1,57 +1,41 @@
 'use client';
 
-import { Container, Stack, SimpleGrid } from '@mantine/core';
-import useCollections from '../../lib/queries/useCollections';
-import CollectionCard from '../../components/collectionCard/CollectionCard';
-import CreateCollectionDrawer from '../../components/createCollectionDrawer/CreateCollectionDrawer';
-import { useState } from 'react';
-import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
-import { BiCollection } from 'react-icons/bi';
-import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
+import { Container, Stack, Select } from '@mantine/core';
+import { Suspense, useState } from 'react';
+import { CollectionSortField } from '@semble/types';
+import CollectionsContainerContent from '../collectionsContainerContent/CollectionsContainerContent';
+import CollectionsContainerContentSkeleton from '../collectionsContainerContent/Skeleton.collectionsContainerContent';
 
 interface Props {
   handle: string;
 }
 
 export default function CollectionsContainer(props: Props) {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useCollections({ didOrHandle: props.handle });
-
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-  const collections =
-    data?.pages.flatMap((page) => page.collections ?? []) ?? [];
-
-  if (collections.length === 0) {
-    return (
-      <Container px="xs" py={'xl'} size="xl">
-        <ProfileEmptyTab message="No collections" icon={BiCollection} />
-      </Container>
-    );
-  }
+  const [sortBy, setSortBy] = useState<CollectionSortField>(
+    CollectionSortField.UPDATED_AT,
+  );
 
   return (
     <Container p="xs" size="xl">
       <Stack>
-        <InfiniteScroll
-          dataLength={collections.length}
-          hasMore={!!hasNextPage}
-          isInitialLoading={false}
-          isLoading={isFetchingNextPage}
-          loadMore={fetchNextPage}
-        >
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
-            {collections.map((collection) => (
-              <CollectionCard key={collection.id} collection={collection} />
-            ))}
-          </SimpleGrid>
-        </InfiniteScroll>
+        <Select
+          mr={'auto'}
+          size="sm"
+          label="Sort by"
+          value={sortBy}
+          onChange={(value) => setSortBy(value as CollectionSortField)}
+          data={[
+            {
+              value: CollectionSortField.UPDATED_AT,
+              label: 'Last updated',
+            },
+            { value: CollectionSortField.CARD_COUNT, label: 'Card count' },
+          ]}
+        />
+        <Suspense fallback={<CollectionsContainerContentSkeleton />}>
+          <CollectionsContainerContent handle={props.handle} sortBy={sortBy} />
+        </Suspense>
       </Stack>
-
-      <CreateCollectionDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-      />
     </Container>
   );
 }

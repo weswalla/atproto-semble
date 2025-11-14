@@ -4,7 +4,7 @@ import {
   IFirehoseEventDuplicationService, 
   FirehoseEventType 
 } from '../../domain/services/IFirehoseEventDuplicationService';
-import { IAtUriResolutionService, AtUriResourceType } from '../../../cards/domain/services/IAtUriResolutionService';
+import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriResolutionService';
 import { ATUri } from '../../domain/ATUri';
 import { publishedRecords } from '../../../cards/infrastructure/repositories/schema/publishedRecord.sql';
 import { Result, ok, err } from 'src/shared/core/Result';
@@ -60,36 +60,37 @@ export class DrizzleFirehoseEventDuplicationService implements IFirehoseEventDup
         return ok(true); // No records = was deleted
       }
 
-      // 2. Determine entity type from AT URI
+      // 2. Parse AT URI to get collection
       const atUriResult = ATUri.create(atUri);
       if (atUriResult.isErr()) {
         return err(atUriResult.error);
       }
 
-      const entityType = atUriResult.value.getEntityType(this.configService);
+      const collection = atUriResult.value.collection;
+      const collections = this.configService.getAtProtoCollections();
 
-      // 3. Check if entity still exists
-      switch (entityType) {
-        case AtUriResourceType.COLLECTION:
+      // 3. Check if entity still exists based on collection type
+      switch (collection) {
+        case collections.collection:
           const collectionIdResult = await this.atUriResolver.resolveCollectionId(atUri);
           if (collectionIdResult.isErr()) {
             return err(collectionIdResult.error);
           }
           return ok(collectionIdResult.value === null);
-        case AtUriResourceType.CARD:
+        case collections.card:
           const cardIdResult = await this.atUriResolver.resolveCardId(atUri);
           if (cardIdResult.isErr()) {
             return err(cardIdResult.error);
           }
           return ok(cardIdResult.value === null);
-        case AtUriResourceType.COLLECTION_LINK:
+        case collections.collectionLink:
           const linkInfoResult = await this.atUriResolver.resolveCollectionLinkId(atUri);
           if (linkInfoResult.isErr()) {
             return err(linkInfoResult.error);
           }
           return ok(linkInfoResult.value === null);
         default:
-          return err(new Error(`Unknown entity type: ${entityType}`));
+          return err(new Error(`Unknown collection type: ${collection}`));
       }
     } catch (error) {
       return err(error as Error);

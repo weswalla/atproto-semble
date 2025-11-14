@@ -26,7 +26,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
     this.runner = runner;
 
     this.firehose = new Firehose({
-      service: 'wss://bsky.network',
+      service: this.configService.getAtProtoConfig().firehoseWebsocket,
       runner,
       idResolver: this.idResolver,
       filterCollections: this.getFilteredCollections(),
@@ -66,7 +66,11 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
   private async handleFirehoseEvent(evt: Event): Promise<void> {
     // Only process commit events (create, update, delete)
-    if (evt.event !== 'create' && evt.event !== 'update' && evt.event !== 'delete') {
+    if (
+      evt.event !== 'create' &&
+      evt.event !== 'update' &&
+      evt.event !== 'delete'
+    ) {
       return;
     }
 

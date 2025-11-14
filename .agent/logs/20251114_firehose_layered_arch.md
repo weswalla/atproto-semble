@@ -164,7 +164,8 @@ export class ProcessFirehoseEventUseCase {
     private atUriResolutionService: IAtUriResolutionService,
     private cardRepository: ICardRepository,
     private collectionRepository: ICollectionRepository,
-    private eventPublisher: IEventPublisher
+    private eventPublisher: IEventPublisher,
+    private configService: EnvironmentConfigService
   ) {}
 
   async execute(request: ProcessFirehoseEventDTO): Promise<Result<void>> {

@@ -4,12 +4,13 @@ import { UseCaseError } from 'src/shared/core/UseCaseError';
 import { AppError } from 'src/shared/core/AppError';
 import { ICollectionRepository } from '../../../cards/domain/ICollectionRepository';
 import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriResolutionService';
+import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLink';
 
 export interface ProcessCollectionLinkFirehoseEventDTO {
   atUri: string;
   cid: string | null;
   eventType: 'create' | 'update' | 'delete';
-  record?: any;
+  record?: CollectionLinkRecord;
 }
 
 export class ProcessCollectionLinkFirehoseEventUseCase implements UseCase<ProcessCollectionLinkFirehoseEventDTO, Result<void>> {

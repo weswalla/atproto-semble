@@ -3,18 +3,29 @@ import { UseCase } from 'src/shared/core/UseCase';
 import { UseCaseError } from 'src/shared/core/UseCaseError';
 import { AppError } from 'src/shared/core/AppError';
 import { IFirehoseEventDuplicationService } from '../../domain/services/IFirehoseEventDuplicationService';
-import { AtUriResourceType } from '../../../cards/domain/services/IAtUriResolutionService';
 import { ATUri } from '../../domain/ATUri';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
-import { ProcessCardFirehoseEventUseCase } from './ProcessCardFirehoseEventUseCase';
-import { ProcessCollectionFirehoseEventUseCase } from './ProcessCollectionFirehoseEventUseCase';
-import { ProcessCollectionLinkFirehoseEventUseCase } from './ProcessCollectionLinkFirehoseEventUseCase';
+import {
+  ProcessCardFirehoseEventDTO,
+  ProcessCardFirehoseEventUseCase,
+} from './ProcessCardFirehoseEventUseCase';
+import {
+  ProcessCollectionFirehoseEventDTO,
+  ProcessCollectionFirehoseEventUseCase,
+} from './ProcessCollectionFirehoseEventUseCase';
+import {
+  ProcessCollectionLinkFirehoseEventDTO,
+  ProcessCollectionLinkFirehoseEventUseCase,
+} from './ProcessCollectionLinkFirehoseEventUseCase';
+import { Record as CardRecord } from '../../infrastructure/lexicon/types/network/cosmik/card';
+import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
+import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLink';
 
 export interface ProcessFirehoseEventDTO {
   atUri: string;
   cid: string | null;
   eventType: 'create' | 'update' | 'delete';
-  record?: any; // The AT Protocol record data
+  record?: CardRecord | CollectionRecord | CollectionLinkRecord; // The AT Protocol record data
 }
 
 export class ValidationError extends UseCaseError {
@@ -71,15 +82,21 @@ export class ProcessFirehoseEventUseCase
       // 3. Route to appropriate handler based on collection type
       switch (collection) {
         case collections.card:
-          return this.processCardFirehoseEventUseCase.execute(request);
+          return this.processCardFirehoseEventUseCase.execute(
+            request as ProcessCardFirehoseEventDTO,
+          );
         case collections.collection:
-          return this.processCollectionFirehoseEventUseCase.execute(request);
+          return this.processCollectionFirehoseEventUseCase.execute(
+            request as ProcessCollectionFirehoseEventDTO,
+          );
         case collections.collectionLink:
           return this.processCollectionLinkFirehoseEventUseCase.execute(
-            request,
+            request as ProcessCollectionLinkFirehoseEventDTO,
           );
         default:
-          return err(new ValidationError(`Unknown collection type: ${collection}`));
+          return err(
+            new ValidationError(`Unknown collection type: ${collection}`),
+          );
       }
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));

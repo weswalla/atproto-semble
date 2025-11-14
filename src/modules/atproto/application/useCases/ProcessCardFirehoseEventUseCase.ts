@@ -4,12 +4,13 @@ import { UseCaseError } from 'src/shared/core/UseCaseError';
 import { AppError } from 'src/shared/core/AppError';
 import { ICardRepository } from '../../../cards/domain/ICardRepository';
 import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriResolutionService';
+import { Record as CardRecord } from '../../infrastructure/lexicon/types/network/cosmik/card';
 
 export interface ProcessCardFirehoseEventDTO {
   atUri: string;
   cid: string | null;
   eventType: 'create' | 'update' | 'delete';
-  record?: any;
+  record?: CardRecord;
 }
 
 export class ProcessCardFirehoseEventUseCase implements UseCase<ProcessCardFirehoseEventDTO, Result<void>> {

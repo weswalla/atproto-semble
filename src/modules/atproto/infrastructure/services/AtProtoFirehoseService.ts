@@ -1,16 +1,8 @@
-import { Firehose, MemoryRunner, IdResolver } from '@atproto/sync';
+import { Firehose, MemoryRunner, Event } from '@atproto/sync';
 import { IFirehoseService } from '../../application/services/IFirehoseService';
 import { FirehoseEventHandler } from '../../application/handlers/FirehoseEventHandler';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
-
-interface Event {
-  uri: string;
-  cid: string | null;
-  event: string;
-  record?: any;
-  did: string;
-  collection: string;
-}
+import { IdResolver } from '@atproto/identity';
 
 export class AtProtoFirehoseService implements IFirehoseService {
   private firehose?: Firehose;
@@ -20,7 +12,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
   constructor(
     private firehoseEventHandler: FirehoseEventHandler,
     private configService: EnvironmentConfigService,
-    private idResolver: IdResolver
+    private idResolver: IdResolver,
   ) {}
 
   async start(): Promise<void> {
@@ -32,14 +24,14 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
     const runner = new MemoryRunner({});
     this.runner = runner;
-    
+
     this.firehose = new Firehose({
       service: 'wss://bsky.network',
       runner,
       idResolver: this.idResolver,
       filterCollections: this.getFilteredCollections(),
       handleEvent: this.handleFirehoseEvent.bind(this),
-      onError: this.handleError.bind(this)
+      onError: this.handleError.bind(this),
     });
 
     await this.firehose.start();
@@ -53,12 +45,12 @@ export class AtProtoFirehoseService implements IFirehoseService {
     }
 
     console.log('Stopping AT Protocol firehose service...');
-    
+
     if (this.firehose) {
       await this.firehose.destroy();
       this.firehose = undefined;
     }
-    
+
     if (this.runner) {
       await this.runner.destroy();
       this.runner = undefined;
@@ -79,7 +71,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
       eventType: evt.event as 'create' | 'update' | 'delete',
       record: evt.record,
       did: evt.did,
-      collection: evt.collection
+      collection: evt.collection,
     });
 
     if (result.isErr()) {
@@ -96,7 +88,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
     return [
       collections.card,
       collections.collection,
-      collections.collectionLink
+      collections.collectionLink,
     ];
   }
 }

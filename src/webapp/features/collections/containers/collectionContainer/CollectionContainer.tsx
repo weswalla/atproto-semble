@@ -22,6 +22,7 @@ import CollectionActions from '../../components/collectionActions/CollectionActi
 import CollectionContainerError from './Error.CollectionContainer';
 import CollectionContainerSkeleton from './Skeleton.CollectionContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
   rkey: string;
@@ -30,6 +31,8 @@ interface Props {
 
 export default function CollectionContainer(props: Props) {
   const [showAddDrawer, setShowAddDrawer] = useState(false);
+  const { user } = useAuth();
+
   // const [sortBy, setSortBy] = useState<CardSortField>(CardSortField.CREATED_AT);
   const {
     data,
@@ -151,15 +154,17 @@ export default function CollectionContainer(props: Props) {
             <Text fz="h3" fw={600} c="gray">
               No cards
             </Text>
-            <Button
-              variant="light"
-              color="gray"
-              size="md"
-              rightSection={<FiPlus size={22} />}
-              onClick={() => setShowAddDrawer(true)}
-            >
-              Add your first card
-            </Button>
+            {firstPage.author.handle == user?.handle && (
+              <Button
+                variant="light"
+                color="gray"
+                size="md"
+                rightSection={<FiPlus size={22} />}
+                onClick={() => setShowAddDrawer(true)}
+              >
+                Add your first card
+              </Button>
+            )}
           </Stack>
         )}
       </Stack>

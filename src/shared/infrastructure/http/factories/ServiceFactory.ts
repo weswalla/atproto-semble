@@ -95,6 +95,7 @@ export interface WorkerServices extends SharedServices {
   sagaStateStore: ISagaStateStore;
   cardLibraryService: CardLibraryService;
   cardCollectionService: CardCollectionService;
+  collectionPublisher: ICollectionPublisher;
 }
 
 // Legacy interface for backward compatibility
@@ -276,6 +277,7 @@ export class ServiceFactory {
       sagaStateStore,
       cardLibraryService,
       cardCollectionService,
+      collectionPublisher,
     };
   }
 

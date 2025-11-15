@@ -25,6 +25,97 @@ export class CardLibraryService implements DomainService {
     private cardCollectionService: CardCollectionService,
   ) {}
 
+  async updateCardInLibrary(
+    card: Card,
+    curatorId: CuratorId,
+  ): Promise<
+    Result<
+      Card,
+      | CardLibraryValidationError
+      | AuthenticationError
+      | AppError.UnexpectedError
+    >
+  > {
+    try {
+      // Check if card is in curator's library
+      const isInLibrary = card.isInLibrary(curatorId);
+      const libraryInfo = card.getLibraryInfo(curatorId);
+
+      if (!isInLibrary) {
+        return err(
+          new CardLibraryValidationError(
+            'Card is not in library and cannot be updated',
+          ),
+        );
+      }
+
+      let parentCardPublishedRecordId: PublishedRecordId | undefined =
+        undefined;
+
+      if (card.parentCardId) {
+        // Ensure parent card is in the curator's library
+        const parentCardResult = await this.cardRepository.findById(
+          card.parentCardId,
+        );
+        if (parentCardResult.isErr()) {
+          return err(
+            new CardLibraryValidationError(
+              `Failed to fetch parent card: ${parentCardResult.error.message}`,
+            ),
+          );
+        }
+        const parentCardValue = parentCardResult.value;
+
+        if (!parentCardValue) {
+          return err(new CardLibraryValidationError(`Parent card not found`));
+        }
+        parentCardPublishedRecordId = parentCardValue.publishedRecordId;
+      }
+
+      if (libraryInfo?.publishedRecordId) {
+        // Card is published - republish to update it
+        const republishResult = await this.cardPublisher.publishCardToLibrary(
+          card,
+          curatorId,
+          parentCardPublishedRecordId,
+        );
+        if (republishResult.isErr()) {
+          if (republishResult.error instanceof AuthenticationError) {
+            return err(republishResult.error);
+          }
+          return err(
+            new CardLibraryValidationError(
+              `Failed to republish updated card: ${republishResult.error.message}`,
+            ),
+          );
+        }
+
+        // Update the published record ID if it changed
+        const updatePublishedResult = card.markCardInLibraryAsPublished(
+          curatorId,
+          republishResult.value,
+        );
+        if (updatePublishedResult.isErr()) {
+          return err(
+            new CardLibraryValidationError(
+              `Failed to update published record: ${updatePublishedResult.error.message}`,
+            ),
+          );
+        }
+      }
+
+      // Save updated card
+      const saveResult = await this.cardRepository.save(card);
+      if (saveResult.isErr()) {
+        return err(AppError.UnexpectedError.create(saveResult.error));
+      }
+
+      return ok(card);
+    } catch (error) {
+      return err(AppError.UnexpectedError.create(error));
+    }
+  }
+
   async addCardToLibrary(
     card: Card,
     curatorId: CuratorId,

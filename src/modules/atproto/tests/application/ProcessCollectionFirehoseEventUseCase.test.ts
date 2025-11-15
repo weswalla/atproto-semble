@@ -9,6 +9,7 @@ import { CollectionBuilder } from '../../../cards/tests/utils/builders/Collectio
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
 import { InMemoryCardRepository } from 'src/modules/cards/tests/utils/InMemoryCardRepository';
+import { EnvironmentConfigService } from '../../../../shared/infrastructure/config/EnvironmentConfigService';
 
 describe('ProcessCollectionFirehoseEventUseCase', () => {
   let useCase: ProcessCollectionFirehoseEventUseCase;
@@ -20,8 +21,10 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
   let cardRepository: InMemoryCardRepository;
   let collectionPublisher: FakeCollectionPublisher;
   let curatorId: CuratorId;
+  let configService: EnvironmentConfigService;
 
   beforeEach(() => {
+    configService = new EnvironmentConfigService();
     collectionRepository = InMemoryCollectionRepository.getInstance();
     cardRepository = InMemoryCardRepository.getInstance();
     collectionPublisher = new FakeCollectionPublisher();
@@ -63,7 +66,8 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
 
   describe('Collection Creation Events', () => {
     it('should process collection create event successfully', async () => {
-      const atUri = `at://${curatorId.value}/network.cosmik.collection/test-collection-id`;
+      const collections = configService.getAtProtoCollections();
+      const atUri = `at://${curatorId.value}/${collections.collection}/test-collection-id`;
       const cid = 'collection-cid-123';
 
       const collectionRecord: CollectionRecord = {
@@ -111,7 +115,8 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
     });
 
     it('should handle collection create with missing description', async () => {
-      const atUri = `at://${curatorId.value}/network.cosmik.collection/test-collection-id`;
+      const collections = configService.getAtProtoCollections();
+      const atUri = `at://${curatorId.value}/${collections.collection}/test-collection-id`;
       const cid = 'collection-cid-123';
 
       const collectionRecord: CollectionRecord = {
@@ -159,8 +164,9 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
     });
 
     it('should handle missing record gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.collection/test-collection-id`,
+        atUri: `at://${curatorId.value}/${collections.collection}/test-collection-id`,
         cid: 'collection-cid',
         eventType: 'create' as const,
         // record is undefined
@@ -173,8 +179,9 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
     });
 
     it('should handle missing CID gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.collection/test-collection-id`,
+        atUri: `at://${curatorId.value}/${collections.collection}/test-collection-id`,
         cid: null,
         eventType: 'create' as const,
         record: {
@@ -204,7 +211,8 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
       if (collection instanceof Error) throw collection;
       await collectionRepository.save(collection);
 
-      const atUri = `at://${curatorId.value}/network.cosmik.collection/test-collection-id`;
+      const collections = configService.getAtProtoCollections();
+      const atUri = `at://${curatorId.value}/${collections.collection}/test-collection-id`;
       const cid = 'updated-collection-cid-123';
 
       const updatedCollectionRecord: CollectionRecord = {
@@ -250,8 +258,9 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
     });
 
     it('should handle update event for non-existent collection gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.collection/nonexistent-collection`,
+        atUri: `at://${curatorId.value}/${collections.collection}/nonexistent-collection`,
         cid: 'collection-cid',
         eventType: 'update' as const,
         record: {
@@ -268,8 +277,9 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
     });
 
     it('should handle update event with missing record gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.collection/test-collection-id`,
+        atUri: `at://${curatorId.value}/${collections.collection}/test-collection-id`,
         cid: 'collection-cid',
         eventType: 'update' as const,
         // record is undefined
@@ -294,7 +304,8 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
       if (collection instanceof Error) throw collection;
       await collectionRepository.save(collection);
 
-      const atUri = `at://${curatorId.value}/network.cosmik.collection/test-collection-id`;
+      const collections = configService.getAtProtoCollections();
+      const atUri = `at://${curatorId.value}/${collections.collection}/test-collection-id`;
 
       const request = {
         atUri,
@@ -317,8 +328,9 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
     });
 
     it('should handle delete event for non-existent collection gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.collection/nonexistent-collection`,
+        atUri: `at://${curatorId.value}/${collections.collection}/nonexistent-collection`,
         cid: null,
         eventType: 'delete' as const,
       };
@@ -345,8 +357,9 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
 
   describe('Error Handling', () => {
     it('should handle AT URI resolution service errors gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.collection/unresolvable-collection`,
+        atUri: `at://${curatorId.value}/${collections.collection}/unresolvable-collection`,
         cid: 'collection-cid',
         eventType: 'update' as const,
         record: {
@@ -365,8 +378,9 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
       // Configure publisher to fail
       collectionPublisher.setShouldFail(true);
 
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.collection/test-collection-id`,
+        atUri: `at://${curatorId.value}/${collections.collection}/test-collection-id`,
         cid: 'collection-cid',
         eventType: 'create' as const,
         record: {

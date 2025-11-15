@@ -14,6 +14,7 @@ import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { CardTypeEnum } from '../../../cards/domain/value-objects/CardType';
 import { URL } from '../../../cards/domain/value-objects/URL';
 import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLink';
+import { EnvironmentConfigService } from '../../../../shared/infrastructure/config/EnvironmentConfigService';
 
 describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
   let useCase: ProcessCollectionLinkFirehoseEventUseCase;
@@ -27,8 +28,10 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
   let cardLibraryService: CardLibraryService;
   let cardCollectionService: CardCollectionService;
   let curatorId: CuratorId;
+  let configService: EnvironmentConfigService;
 
   beforeEach(() => {
+    configService = new EnvironmentConfigService();
     cardRepository = InMemoryCardRepository.getInstance();
     collectionRepository = InMemoryCollectionRepository.getInstance();
     cardPublisher = new FakeCardPublisher();
@@ -97,9 +100,10 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       if (collection instanceof Error) throw collection;
       await collectionRepository.save(collection);
 
-      const collectionAtUri = `at://${curatorId.value}/network.cosmik.collection/test-collection-id`;
-      const cardAtUri = `at://${curatorId.value}/network.cosmik.card/test-card-id`;
-      const linkAtUri = `at://${curatorId.value}/network.cosmik.collectionLink/test-link-id`;
+      const collections = configService.getAtProtoCollections();
+      const collectionAtUri = `at://${curatorId.value}/${collections.collection}/test-collection-id`;
+      const cardAtUri = `at://${curatorId.value}/${collections.card}/test-card-id`;
+      const linkAtUri = `at://${curatorId.value}/${collections.collectionLink}/test-link-id`;
       const cid = 'link-cid-123';
 
       const linkRecord: CollectionLinkRecord = {
@@ -153,14 +157,15 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       if (urlCard instanceof Error) throw urlCard;
       await cardRepository.save(urlCard);
 
+      const collections = configService.getAtProtoCollections();
       const linkRecord: CollectionLinkRecord = {
         $type: 'network.cosmik.collectionLink',
         collection: {
-          uri: `at://${curatorId.value}/network.cosmik.collection/nonexistent-collection`,
+          uri: `at://${curatorId.value}/${collections.collection}/nonexistent-collection`,
           cid: 'collection-cid',
         },
         card: {
-          uri: `at://${curatorId.value}/network.cosmik.card/test-card-id`,
+          uri: `at://${curatorId.value}/${collections.card}/test-card-id`,
           cid: 'card-cid',
         },
         addedBy: curatorId.value,
@@ -168,7 +173,7 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       };
 
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.collectionLink/test-link-id`,
+        atUri: `at://${curatorId.value}/${collections.collectionLink}/test-link-id`,
         cid: 'link-cid',
         eventType: 'create' as const,
         record: linkRecord,
@@ -190,14 +195,15 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       if (collection instanceof Error) throw collection;
       await collectionRepository.save(collection);
 
+      const collections = configService.getAtProtoCollections();
       const linkRecord: CollectionLinkRecord = {
         $type: 'network.cosmik.collectionLink',
         collection: {
-          uri: `at://${curatorId.value}/network.cosmik.collection/test-collection-id`,
+          uri: `at://${curatorId.value}/${collections.collection}/test-collection-id`,
           cid: 'collection-cid',
         },
         card: {
-          uri: `at://${curatorId.value}/network.cosmik.card/nonexistent-card`,
+          uri: `at://${curatorId.value}/${collections.card}/nonexistent-card`,
           cid: 'card-cid',
         },
         addedBy: curatorId.value,
@@ -205,7 +211,7 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       };
 
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.collectionLink/test-link-id`,
+        atUri: `at://${curatorId.value}/${collections.collectionLink}/test-link-id`,
         cid: 'link-cid',
         eventType: 'create' as const,
         record: linkRecord,
@@ -225,8 +231,9 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
     });
 
     it('should handle missing record gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.collectionLink/test-link-id`,
+        atUri: `at://${curatorId.value}/${collections.collectionLink}/test-link-id`,
         cid: 'link-cid',
         eventType: 'create' as const,
         // record is undefined
@@ -239,14 +246,15 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
     });
 
     it('should handle missing CID gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const linkRecord: CollectionLinkRecord = {
         $type: 'network.cosmik.collectionLink',
         collection: {
-          uri: `at://${curatorId.value}/network.cosmik.collection/test-collection-id`,
+          uri: `at://${curatorId.value}/${collections.collection}/test-collection-id`,
           cid: 'collection-cid',
         },
         card: {
-          uri: `at://${curatorId.value}/network.cosmik.card/test-card-id`,
+          uri: `at://${curatorId.value}/${collections.card}/test-card-id`,
           cid: 'card-cid',
         },
         addedBy: curatorId.value,
@@ -254,7 +262,7 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       };
 
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.collectionLink/test-link-id`,
+        atUri: `at://${curatorId.value}/${collections.collectionLink}/test-link-id`,
         cid: null,
         eventType: 'create' as const,
         record: linkRecord,
@@ -325,7 +333,8 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
         curatorId,
       );
 
-      const linkAtUri = `at://${curatorId.value}/network.cosmik.collectionLink/test-link-id`;
+      const collections = configService.getAtProtoCollections();
+      const linkAtUri = `at://${curatorId.value}/${collections.collectionLink}/test-link-id`;
 
       const request = {
         atUri: linkAtUri,
@@ -353,8 +362,9 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
     });
 
     it('should handle delete event for non-existent link gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.collectionLink/nonexistent-link`,
+        atUri: `at://${curatorId.value}/${collections.collectionLink}/nonexistent-link`,
         cid: null,
         eventType: 'delete' as const,
       };
@@ -381,14 +391,15 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
 
   describe('Collection Link Update Events', () => {
     it('should ignore collection link update events', async () => {
+      const collections = configService.getAtProtoCollections();
       const linkRecord: CollectionLinkRecord = {
         $type: 'network.cosmik.collectionLink',
         collection: {
-          uri: `at://${curatorId.value}/network.cosmik.collection/test-collection-id`,
+          uri: `at://${curatorId.value}/${collections.collection}/test-collection-id`,
           cid: 'collection-cid',
         },
         card: {
-          uri: `at://${curatorId.value}/network.cosmik.card/test-card-id`,
+          uri: `at://${curatorId.value}/${collections.card}/test-card-id`,
           cid: 'card-cid',
         },
         addedBy: curatorId.value,
@@ -396,7 +407,7 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       };
 
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.collectionLink/test-link-id`,
+        atUri: `at://${curatorId.value}/${collections.collectionLink}/test-link-id`,
         cid: 'link-cid',
         eventType: 'update' as const,
         record: linkRecord,
@@ -411,8 +422,9 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
 
   describe('Error Handling', () => {
     it('should handle AT URI resolution service errors gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.collectionLink/unresolvable-link`,
+        atUri: `at://${curatorId.value}/${collections.collectionLink}/unresolvable-link`,
         cid: null,
         eventType: 'delete' as const,
       };
@@ -444,14 +456,15 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       // Configure publisher to fail
       collectionPublisher.setShouldFail(true);
 
+      const collections = configService.getAtProtoCollections();
       const linkRecord: CollectionLinkRecord = {
         $type: 'network.cosmik.collectionLink',
         collection: {
-          uri: `at://${curatorId.value}/network.cosmik.collection/test-collection-id`,
+          uri: `at://${curatorId.value}/${collections.collection}/test-collection-id`,
           cid: 'collection-cid',
         },
         card: {
-          uri: `at://${curatorId.value}/network.cosmik.card/test-card-id`,
+          uri: `at://${curatorId.value}/${collections.card}/test-card-id`,
           cid: 'card-cid',
         },
         addedBy: curatorId.value,
@@ -459,7 +472,7 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       };
 
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.collectionLink/test-link-id`,
+        atUri: `at://${curatorId.value}/${collections.collectionLink}/test-link-id`,
         cid: 'link-cid',
         eventType: 'create' as const,
         record: linkRecord,

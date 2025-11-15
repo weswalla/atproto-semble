@@ -16,6 +16,7 @@ import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { CardTypeEnum } from '../../../cards/domain/value-objects/CardType';
 import { URL } from '../../../cards/domain/value-objects/URL';
 import { Record as CardRecord } from '../../infrastructure/lexicon/types/network/cosmik/card';
+import { EnvironmentConfigService } from '../../../../shared/infrastructure/config/EnvironmentConfigService';
 
 describe('ProcessCardFirehoseEventUseCase', () => {
   let useCase: ProcessCardFirehoseEventUseCase;
@@ -32,8 +33,10 @@ describe('ProcessCardFirehoseEventUseCase', () => {
   let cardLibraryService: CardLibraryService;
   let cardCollectionService: CardCollectionService;
   let curatorId: CuratorId;
+  let configService: EnvironmentConfigService;
 
   beforeEach(() => {
+    configService = new EnvironmentConfigService();
     cardRepository = InMemoryCardRepository.getInstance();
     collectionRepository = InMemoryCollectionRepository.getInstance();
     cardPublisher = new FakeCardPublisher();
@@ -98,7 +101,8 @@ describe('ProcessCardFirehoseEventUseCase', () => {
 
   describe('URL Card Creation Events', () => {
     it('should process URL card create event successfully', async () => {
-      const atUri = `at://${curatorId.value}/network.cosmik.card/test-card-id`;
+      const collections = configService.getAtProtoCollections();
+      const atUri = `at://${curatorId.value}/${collections.card}/test-card-id`;
       const cid = 'test-cid-123';
 
       const cardRecord: CardRecord = {
@@ -168,8 +172,9 @@ describe('ProcessCardFirehoseEventUseCase', () => {
     });
 
     it('should handle missing record gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.card/test-card-id`,
+        atUri: `at://${curatorId.value}/${collections.card}/test-card-id`,
         cid: 'test-cid',
         eventType: 'create' as const,
         // record is undefined
@@ -182,8 +187,9 @@ describe('ProcessCardFirehoseEventUseCase', () => {
     });
 
     it('should handle missing CID gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.card/test-card-id`,
+        atUri: `at://${curatorId.value}/${collections.card}/test-card-id`,
         cid: null,
         eventType: 'create' as const,
         record: {
@@ -203,8 +209,9 @@ describe('ProcessCardFirehoseEventUseCase', () => {
     });
 
     it('should handle URL card with missing URL gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.card/test-card-id`,
+        atUri: `at://${curatorId.value}/${collections.card}/test-card-id`,
         cid: 'test-cid',
         eventType: 'create' as const,
         record: {
@@ -239,8 +246,9 @@ describe('ProcessCardFirehoseEventUseCase', () => {
       // Add parent card to library
       await cardLibraryService.addCardToLibrary(parentCard, curatorId);
 
-      const parentAtUri = `at://${curatorId.value}/network.cosmik.card/parent-card-id`;
-      const noteAtUri = `at://${curatorId.value}/network.cosmik.card/note-card-id`;
+      const collections = configService.getAtProtoCollections();
+      const parentAtUri = `at://${curatorId.value}/${collections.card}/parent-card-id`;
+      const noteAtUri = `at://${curatorId.value}/${collections.card}/note-card-id`;
       const cid = 'note-cid-123';
 
       const noteRecord: CardRecord = {
@@ -293,8 +301,9 @@ describe('ProcessCardFirehoseEventUseCase', () => {
     });
 
     it('should handle note card with missing parent card gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.card/note-card-id`,
+        atUri: `at://${curatorId.value}/${collections.card}/note-card-id`,
         cid: 'note-cid',
         eventType: 'create' as const,
         record: {
@@ -305,7 +314,7 @@ describe('ProcessCardFirehoseEventUseCase', () => {
             text: 'This is my note',
           },
           parentCard: {
-            uri: 'at://did:plc:nonexistent/network.cosmik.card/missing',
+            uri: `at://did:plc:nonexistent/${collections.card}/missing`,
             cid: 'missing-cid',
           },
         } as CardRecord,
@@ -324,8 +333,9 @@ describe('ProcessCardFirehoseEventUseCase', () => {
     });
 
     it('should handle note card with missing text gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.card/note-card-id`,
+        atUri: `at://${curatorId.value}/${collections.card}/note-card-id`,
         cid: 'note-cid',
         eventType: 'create' as const,
         record: {
@@ -336,7 +346,7 @@ describe('ProcessCardFirehoseEventUseCase', () => {
             // text is missing
           },
           parentCard: {
-            uri: 'at://did:plc:test/network.cosmik.card/parent',
+            uri: `at://did:plc:test/${collections.card}/parent`,
             cid: 'parent-cid',
           },
         } as CardRecord,
@@ -349,8 +359,9 @@ describe('ProcessCardFirehoseEventUseCase', () => {
     });
 
     it('should handle note card without parent card reference gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.card/note-card-id`,
+        atUri: `at://${curatorId.value}/${collections.card}/note-card-id`,
         cid: 'note-cid',
         eventType: 'create' as const,
         record: {
@@ -397,8 +408,9 @@ describe('ProcessCardFirehoseEventUseCase', () => {
       await cardRepository.save(noteCard);
       await cardLibraryService.addCardToLibrary(noteCard, curatorId);
 
-      const parentAtUri = `at://${curatorId.value}/network.cosmik.card/parent-card-id`;
-      const noteAtUri = `at://${curatorId.value}/network.cosmik.card/note-card-id`;
+      const collections = configService.getAtProtoCollections();
+      const parentAtUri = `at://${curatorId.value}/${collections.card}/parent-card-id`;
+      const noteAtUri = `at://${curatorId.value}/${collections.card}/note-card-id`;
       const cid = 'updated-note-cid-123';
 
       const updatedNoteRecord: CardRecord = {
@@ -442,8 +454,9 @@ describe('ProcessCardFirehoseEventUseCase', () => {
     });
 
     it('should ignore non-NOTE card update events', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.card/url-card-id`,
+        atUri: `at://${curatorId.value}/${collections.card}/url-card-id`,
         cid: 'url-cid',
         eventType: 'update' as const,
         record: {
@@ -475,7 +488,8 @@ describe('ProcessCardFirehoseEventUseCase', () => {
       await cardRepository.save(card);
       await cardLibraryService.addCardToLibrary(card, curatorId);
 
-      const atUri = `at://${curatorId.value}/network.cosmik.card/test-card-id`;
+      const collections = configService.getAtProtoCollections();
+      const atUri = `at://${curatorId.value}/${collections.card}/test-card-id`;
 
       const request = {
         atUri,
@@ -497,8 +511,9 @@ describe('ProcessCardFirehoseEventUseCase', () => {
     });
 
     it('should handle delete event for non-existent card gracefully', async () => {
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.card/nonexistent-card`,
+        atUri: `at://${curatorId.value}/${collections.card}/nonexistent-card`,
         cid: null,
         eventType: 'delete' as const,
       };
@@ -534,8 +549,9 @@ describe('ProcessCardFirehoseEventUseCase', () => {
       if (card instanceof Error) throw card;
       await cardRepository.save(card);
 
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.card/unresolvable-card`,
+        atUri: `at://${curatorId.value}/${collections.card}/unresolvable-card`,
         cid: null,
         eventType: 'delete' as const,
       };
@@ -549,8 +565,9 @@ describe('ProcessCardFirehoseEventUseCase', () => {
       // Configure metadata service to fail
       metadataService.setShouldFail(true);
 
+      const collections = configService.getAtProtoCollections();
       const request = {
-        atUri: `at://${curatorId.value}/network.cosmik.card/test-card-id`,
+        atUri: `at://${curatorId.value}/${collections.card}/test-card-id`,
         cid: 'test-cid',
         eventType: 'create' as const,
         record: {

@@ -4,12 +4,15 @@ import { UseCaseError } from 'src/shared/core/UseCaseError';
 import { AppError } from 'src/shared/core/AppError';
 import { ICollectionRepository } from '../../../cards/domain/ICollectionRepository';
 import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriResolutionService';
-import { IEventPublisher } from '../../../shared/application/events/IEventPublisher';
-import { Collection, CollectionAccessType } from '../../../cards/domain/Collection';
+import {
+  Collection,
+  CollectionAccessType,
+} from '../../../cards/domain/Collection';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { PublishedRecordId } from '../../../cards/domain/value-objects/PublishedRecordId';
 import { ATUri } from '../../domain/ATUri';
 import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
+import { IEventPublisher } from 'src/shared/application/events/IEventPublisher';
 
 export interface ProcessCollectionFirehoseEventDTO {
   atUri: string;
@@ -18,16 +21,22 @@ export interface ProcessCollectionFirehoseEventDTO {
   record?: CollectionRecord;
 }
 
-export class ProcessCollectionFirehoseEventUseCase implements UseCase<ProcessCollectionFirehoseEventDTO, Result<void>> {
+export class ProcessCollectionFirehoseEventUseCase
+  implements UseCase<ProcessCollectionFirehoseEventDTO, Result<void>>
+{
   constructor(
     private collectionRepository: ICollectionRepository,
     private atUriResolutionService: IAtUriResolutionService,
     private eventPublisher: IEventPublisher,
   ) {}
 
-  async execute(request: ProcessCollectionFirehoseEventDTO): Promise<Result<void>> {
+  async execute(
+    request: ProcessCollectionFirehoseEventDTO,
+  ): Promise<Result<void>> {
     try {
-      console.log(`Processing collection firehose event: ${request.atUri} (${request.eventType})`);
+      console.log(
+        `Processing collection firehose event: ${request.atUri} (${request.eventType})`,
+      );
 
       switch (request.eventType) {
         case 'create':
@@ -44,7 +53,9 @@ export class ProcessCollectionFirehoseEventUseCase implements UseCase<ProcessCol
     }
   }
 
-  private async handleCollectionCreate(request: ProcessCollectionFirehoseEventDTO): Promise<Result<void>> {
+  private async handleCollectionCreate(
+    request: ProcessCollectionFirehoseEventDTO,
+  ): Promise<Result<void>> {
     if (!request.record || !request.cid) {
       console.warn('Collection create event missing record or cid, skipping');
       return ok(undefined);
@@ -54,7 +65,9 @@ export class ProcessCollectionFirehoseEventUseCase implements UseCase<ProcessCol
       // Parse AT URI to extract author DID
       const atUriResult = ATUri.create(request.atUri);
       if (atUriResult.isErr()) {
-        console.warn(`Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`);
+        console.warn(
+          `Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
+        );
         return ok(undefined);
       }
       const atUri = atUriResult.value;
@@ -85,12 +98,18 @@ export class ProcessCollectionFirehoseEventUseCase implements UseCase<ProcessCol
         description: request.record.description,
         accessType: this.mapAccessType(request.record.accessType),
         collaboratorIds: collaboratorIds,
-        createdAt: request.record.createdAt ? new Date(request.record.createdAt) : new Date(),
-        updatedAt: request.record.updatedAt ? new Date(request.record.updatedAt) : new Date(),
+        createdAt: request.record.createdAt
+          ? new Date(request.record.createdAt)
+          : new Date(),
+        updatedAt: request.record.updatedAt
+          ? new Date(request.record.updatedAt)
+          : new Date(),
       });
 
       if (collectionResult.isErr()) {
-        console.warn(`Failed to create collection from firehose event: ${collectionResult.error.message}`);
+        console.warn(
+          `Failed to create collection from firehose event: ${collectionResult.error.message}`,
+        );
         return ok(undefined);
       }
 
@@ -109,22 +128,22 @@ export class ProcessCollectionFirehoseEventUseCase implements UseCase<ProcessCol
         return err(AppError.UnexpectedError.create(saveResult.error));
       }
 
-      // Store AT URI mapping for future resolution
-      await this.atUriResolutionService.storeCollectionMapping(request.atUri, collection.collectionId);
-
       // Publish domain events
       await this.publishDomainEvents(collection);
 
-      console.log(`Successfully created collection from firehose event: ${collection.collectionId.getStringValue()}`);
+      console.log(
+        `Successfully created collection from firehose event: ${collection.collectionId.getStringValue()}`,
+      );
       return ok(undefined);
-
     } catch (error) {
       console.error(`Error processing collection create event: ${error}`);
       return ok(undefined); // Don't fail the firehose processing
     }
   }
 
-  private async handleCollectionUpdate(request: ProcessCollectionFirehoseEventDTO): Promise<Result<void>> {
+  private async handleCollectionUpdate(
+    request: ProcessCollectionFirehoseEventDTO,
+  ): Promise<Result<void>> {
     if (!request.record || !request.cid) {
       console.warn('Collection update event missing record or cid, skipping');
       return ok(undefined);
@@ -132,9 +151,12 @@ export class ProcessCollectionFirehoseEventUseCase implements UseCase<ProcessCol
 
     try {
       // Resolve existing collection
-      const collectionIdResult = await this.atUriResolutionService.resolveCollectionId(request.atUri);
+      const collectionIdResult =
+        await this.atUriResolutionService.resolveCollectionId(request.atUri);
       if (collectionIdResult.isErr()) {
-        console.warn(`Failed to resolve collection ID for ${request.atUri}: ${collectionIdResult.error.message}`);
+        console.warn(
+          `Failed to resolve collection ID for ${request.atUri}: ${collectionIdResult.error.message}`,
+        );
         return ok(undefined);
       }
 
@@ -143,14 +165,20 @@ export class ProcessCollectionFirehoseEventUseCase implements UseCase<ProcessCol
         return ok(undefined);
       }
 
-      const existingCollectionResult = await this.collectionRepository.findById(collectionIdResult.value);
+      const existingCollectionResult = await this.collectionRepository.findById(
+        collectionIdResult.value,
+      );
       if (existingCollectionResult.isErr()) {
-        return err(AppError.UnexpectedError.create(existingCollectionResult.error));
+        return err(
+          AppError.UnexpectedError.create(existingCollectionResult.error),
+        );
       }
 
       const existingCollection = existingCollectionResult.value;
       if (!existingCollection) {
-        console.log(`Collection not found: ${collectionIdResult.value.getStringValue()}`);
+        console.log(
+          `Collection not found: ${collectionIdResult.value.getStringValue()}`,
+        );
         return ok(undefined);
       }
 
@@ -160,7 +188,9 @@ export class ProcessCollectionFirehoseEventUseCase implements UseCase<ProcessCol
         request.record.description,
       );
       if (updateResult.isErr()) {
-        console.warn(`Failed to update collection details: ${updateResult.error.message}`);
+        console.warn(
+          `Failed to update collection details: ${updateResult.error.message}`,
+        );
         return ok(undefined);
       }
 
@@ -172,7 +202,9 @@ export class ProcessCollectionFirehoseEventUseCase implements UseCase<ProcessCol
           existingCollection.authorId,
         );
         if (changeAccessResult.isErr()) {
-          console.warn(`Failed to change access type: ${changeAccessResult.error.message}`);
+          console.warn(
+            `Failed to change access type: ${changeAccessResult.error.message}`,
+          );
         }
       }
 
@@ -184,7 +216,8 @@ export class ProcessCollectionFirehoseEventUseCase implements UseCase<ProcessCol
       existingCollection.markAsPublished(newPublishedRecordId);
 
       // Save updated collection
-      const saveResult = await this.collectionRepository.save(existingCollection);
+      const saveResult =
+        await this.collectionRepository.save(existingCollection);
       if (saveResult.isErr()) {
         return err(AppError.UnexpectedError.create(saveResult.error));
       }
@@ -192,24 +225,32 @@ export class ProcessCollectionFirehoseEventUseCase implements UseCase<ProcessCol
       // Publish domain events
       await this.publishDomainEvents(existingCollection);
 
-      console.log(`Successfully updated collection from firehose event: ${existingCollection.collectionId.getStringValue()}`);
+      console.log(
+        `Successfully updated collection from firehose event: ${existingCollection.collectionId.getStringValue()}`,
+      );
       return ok(undefined);
-
     } catch (error) {
       console.error(`Error processing collection update event: ${error}`);
       return ok(undefined); // Don't fail the firehose processing
     }
   }
 
-  private async handleCollectionDelete(request: ProcessCollectionFirehoseEventDTO): Promise<Result<void>> {
-    const collectionIdResult = await this.atUriResolutionService.resolveCollectionId(request.atUri);
+  private async handleCollectionDelete(
+    request: ProcessCollectionFirehoseEventDTO,
+  ): Promise<Result<void>> {
+    const collectionIdResult =
+      await this.atUriResolutionService.resolveCollectionId(request.atUri);
     if (collectionIdResult.isErr()) {
       return err(AppError.UnexpectedError.create(collectionIdResult.error));
     }
-    
+
     if (collectionIdResult.value) {
-      console.log(`Collection deleted externally: ${request.atUri}, removing from our system`);
-      const deleteResult = await this.collectionRepository.delete(collectionIdResult.value);
+      console.log(
+        `Collection deleted externally: ${request.atUri}, removing from our system`,
+      );
+      const deleteResult = await this.collectionRepository.delete(
+        collectionIdResult.value,
+      );
       if (deleteResult.isErr()) {
         return err(AppError.UnexpectedError.create(deleteResult.error));
       }
@@ -225,7 +266,7 @@ export class ProcessCollectionFirehoseEventUseCase implements UseCase<ProcessCol
       case 'CLOSED':
         return CollectionAccessType.CLOSED;
       default:
-        return CollectionAccessType.OPEN; // Default to open
+        return CollectionAccessType.CLOSED; // Default to closed
     }
   }
 
@@ -235,7 +276,10 @@ export class ProcessCollectionFirehoseEventUseCase implements UseCase<ProcessCol
       if (events.length > 0) {
         const publishResult = await this.eventPublisher.publishEvents(events);
         if (publishResult.isErr()) {
-          console.error('Failed to publish domain events:', publishResult.error);
+          console.error(
+            'Failed to publish domain events:',
+            publishResult.error,
+          );
         }
         collection.clearEvents?.(); // Clear events after publishing if method exists
       }

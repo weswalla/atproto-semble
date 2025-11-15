@@ -11,7 +11,7 @@ export enum AtUriResourceType {
 
 export interface AtUriResolutionResult {
   type: AtUriResourceType;
-  id: CollectionId | CardId | {collectionId: CollectionId, cardId: CardId};
+  id: CollectionId | CardId | { collectionId: CollectionId; cardId: CardId };
 }
 
 export interface IAtUriResolutionService {
@@ -20,10 +20,7 @@ export interface IAtUriResolutionService {
   // Convenience methods for specific types
   resolveCardId(atUri: string): Promise<Result<CardId | null>>;
   resolveCollectionId(atUri: string): Promise<Result<CollectionId | null>>;
-  resolveCollectionLinkId(atUri: string): Promise<Result<{collectionId: CollectionId, cardId: CardId} | null>>;
-
-  // Methods to store AT URI mappings for firehose events
-  storeCardMapping(atUri: string, cardId: CardId): Promise<Result<void>>;
-  storeCollectionMapping(atUri: string, collectionId: CollectionId): Promise<Result<void>>;
-  storeCollectionLinkMapping(atUri: string, collectionId: CollectionId, cardId: CardId): Promise<Result<void>>;
+  resolveCollectionLinkId(
+    atUri: string,
+  ): Promise<Result<{ collectionId: CollectionId; cardId: CardId } | null>>;
 }

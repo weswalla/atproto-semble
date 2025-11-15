@@ -13,6 +13,7 @@ import { AuthenticationError } from '../../../../shared/core/AuthenticationError
 export interface CardLibraryServiceOptions {
   skipPublishing?: boolean;
   publishedRecordId?: PublishedRecordId;
+  skipUnpublishing?: boolean;
 }
 
 export class CardLibraryValidationError extends Error {
@@ -293,6 +294,7 @@ export class CardLibraryService implements DomainService {
   async removeCardFromLibrary(
     card: Card,
     curatorId: CuratorId,
+    options?: CardLibraryServiceOptions,
   ): Promise<
     Result<
       Card,
@@ -367,9 +369,9 @@ export class CardLibraryService implements DomainService {
         }
       }
 
-      // Get library info to check if it was published
+      // Handle unpublishing based on options
       const libraryInfo = card.getLibraryInfo(curatorId);
-      if (libraryInfo?.publishedRecordId) {
+      if (libraryInfo?.publishedRecordId && !options?.skipUnpublishing) {
         // Unpublish card from library
         const unpublishResult =
           await this.cardPublisher.unpublishCardFromLibrary(

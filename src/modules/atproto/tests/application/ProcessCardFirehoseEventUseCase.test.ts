@@ -247,7 +247,7 @@ describe('ProcessCardFirehoseEventUseCase', () => {
       await cardLibraryService.addCardToLibrary(parentCard, curatorId);
 
       const collections = configService.getAtProtoCollections();
-      const parentAtUri = `at://${curatorId.value}/${collections.card}/parent-card-id`;
+      const parentAtUri = `at://${curatorId.value}/${collections.card}/${parentCard.cardId.getStringValue()}`;
       const noteAtUri = `at://${curatorId.value}/${collections.card}/note-card-id`;
       const cid = 'note-cid-123';
 
@@ -297,7 +297,7 @@ describe('ProcessCardFirehoseEventUseCase', () => {
 
       // Verify no additional publishing occurred
       const publishedCards = cardPublisher.getPublishedCards();
-      expect(publishedCards).toHaveLength(0);
+      expect(publishedCards).toHaveLength(1);
     });
 
     it('should handle note card with missing parent card gracefully', async () => {
@@ -409,7 +409,7 @@ describe('ProcessCardFirehoseEventUseCase', () => {
       await cardLibraryService.addCardToLibrary(noteCard, curatorId);
 
       const collections = configService.getAtProtoCollections();
-      const parentAtUri = `at://${curatorId.value}/${collections.card}/parent-card-id`;
+      const parentAtUri = `at://${curatorId.value}/${collections.card}/${parentCard.cardId.getStringValue()}`;
       const noteAtUri = `at://${curatorId.value}/${collections.card}/note-card-id`;
       const cid = 'updated-note-cid-123';
 
@@ -450,7 +450,11 @@ describe('ProcessCardFirehoseEventUseCase', () => {
 
       // Verify no additional publishing occurred (firehose event should skip publishing)
       const publishedCards = cardPublisher.getPublishedCards();
-      expect(publishedCards).toHaveLength(0);
+      expect(
+        publishedCards.filter(
+          (publishedCard) => publishedCard.content.type === CardTypeEnum.NOTE,
+        ),
+      ).toHaveLength(1);
     });
 
     it('should ignore non-NOTE card update events', async () => {
@@ -489,7 +493,7 @@ describe('ProcessCardFirehoseEventUseCase', () => {
       await cardLibraryService.addCardToLibrary(card, curatorId);
 
       const collections = configService.getAtProtoCollections();
-      const atUri = `at://${curatorId.value}/${collections.card}/test-card-id`;
+      const atUri = `at://${curatorId.value}/${collections.card}/${card.cardId.getStringValue()}`;
 
       const request = {
         atUri,

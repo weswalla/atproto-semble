@@ -3,6 +3,7 @@ import { IFirehoseEventDuplicationService, FirehoseEventType } from '../../domai
 
 export class InMemoryFirehoseEventDuplicationService implements IFirehoseEventDuplicationService {
   private processedEvents: Set<string> = new Set();
+  private deletedUris: Set<string> = new Set();
   private shouldFail: boolean = false;
 
   async hasEventBeenProcessed(
@@ -18,6 +19,14 @@ export class InMemoryFirehoseEventDuplicationService implements IFirehoseEventDu
     return ok(this.processedEvents.has(eventKey));
   }
 
+  async hasBeenDeleted(atUri: string): Promise<Result<boolean>> {
+    if (this.shouldFail) {
+      return err(new Error('Simulated duplication service failure'));
+    }
+
+    return ok(this.deletedUris.has(atUri));
+  }
+
   async markEventAsProcessed(
     atUri: string,
     cid: string | null,
@@ -29,7 +38,17 @@ export class InMemoryFirehoseEventDuplicationService implements IFirehoseEventDu
 
     const eventKey = this.createEventKey(atUri, cid, eventType);
     this.processedEvents.add(eventKey);
+
+    // If this is a delete event, mark the URI as deleted
+    if (eventType === 'delete') {
+      this.deletedUris.add(atUri);
+    }
+
     return ok(undefined);
+  }
+
+  markAsDeleted(atUri: string): void {
+    this.deletedUris.add(atUri);
   }
 
   setShouldFail(shouldFail: boolean): void {
@@ -38,6 +57,7 @@ export class InMemoryFirehoseEventDuplicationService implements IFirehoseEventDu
 
   clear(): void {
     this.processedEvents.clear();
+    this.deletedUris.clear();
     this.shouldFail = false;
   }
 

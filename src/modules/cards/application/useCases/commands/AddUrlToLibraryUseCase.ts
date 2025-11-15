@@ -186,6 +186,29 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
               AppError.UnexpectedError.create(saveNoteCardResult.error),
             );
           }
+
+          // Republish the updated note card
+          const republishNoteResult =
+            await this.cardLibraryService.addCardToLibrary(noteCard, curatorId);
+          if (republishNoteResult.isErr()) {
+            // Propagate authentication errors
+            if (
+              republishNoteResult.error instanceof AuthenticationError
+            ) {
+              return err(republishNoteResult.error);
+            }
+            if (
+              republishNoteResult.error instanceof AppError.UnexpectedError
+            ) {
+              return err(republishNoteResult.error);
+            }
+            return err(
+              new ValidationError(republishNoteResult.error.message),
+            );
+          }
+
+          // Update noteCard reference to the one returned by the service
+          noteCard = republishNoteResult.value;
         } else {
           // Create new note card
           const noteCardInput: INoteCardInput = {

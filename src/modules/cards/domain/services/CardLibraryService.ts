@@ -39,19 +39,8 @@ export class CardLibraryService implements DomainService {
     try {
       // Check if card is already in curator's library
       const isInLibrary = card.isInLibrary(curatorId);
+      const libraryInfo = card.getLibraryInfo(curatorId);
 
-      if (isInLibrary) {
-        // Card is already in library, nothing to do
-        return ok(card);
-      }
-      const addToLibResult = card.addToLibrary(curatorId);
-      if (addToLibResult.isErr()) {
-        return err(
-          new CardLibraryValidationError(
-            `Failed to add card to library: ${addToLibResult.error.message}`,
-          ),
-        );
-      }
       let parentCardPublishedRecordId: PublishedRecordId | undefined =
         undefined;
 
@@ -73,6 +62,59 @@ export class CardLibraryService implements DomainService {
           return err(new CardLibraryValidationError(`Parent card not found`));
         }
         parentCardPublishedRecordId = parentCardValue.publishedRecordId;
+      }
+
+      if (isInLibrary && libraryInfo?.publishedRecordId) {
+        // Card is already in library and published - republish to update it
+        const republishResult = await this.cardPublisher.publishCardToLibrary(
+          card,
+          curatorId,
+          parentCardPublishedRecordId,
+        );
+        if (republishResult.isErr()) {
+          if (republishResult.error instanceof AuthenticationError) {
+            return err(republishResult.error);
+          }
+          return err(
+            new CardLibraryValidationError(
+              `Failed to republish updated card: ${republishResult.error.message}`,
+            ),
+          );
+        }
+
+        // Update the published record ID if it changed
+        const updatePublishedResult = card.markCardInLibraryAsPublished(
+          curatorId,
+          republishResult.value,
+        );
+        if (updatePublishedResult.isErr()) {
+          return err(
+            new CardLibraryValidationError(
+              `Failed to update published record: ${updatePublishedResult.error.message}`,
+            ),
+          );
+        }
+
+        // Save updated card
+        const saveResult = await this.cardRepository.save(card);
+        if (saveResult.isErr()) {
+          return err(AppError.UnexpectedError.create(saveResult.error));
+        }
+
+        return ok(card);
+      }
+
+      if (isInLibrary) {
+        // Card is already in library but not published, nothing to do
+        return ok(card);
+      }
+      const addToLibResult = card.addToLibrary(curatorId);
+      if (addToLibResult.isErr()) {
+        return err(
+          new CardLibraryValidationError(
+            `Failed to add card to library: ${addToLibResult.error.message}`,
+          ),
+        );
       }
 
       // Publish card to library

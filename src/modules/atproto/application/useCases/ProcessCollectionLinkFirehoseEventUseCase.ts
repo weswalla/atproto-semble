@@ -2,9 +2,11 @@ import { Result, ok, err } from 'src/shared/core/Result';
 import { UseCase } from 'src/shared/core/UseCase';
 import { UseCaseError } from 'src/shared/core/UseCaseError';
 import { AppError } from 'src/shared/core/AppError';
-import { ICollectionRepository } from '../../../cards/domain/ICollectionRepository';
 import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriResolutionService';
+import { PublishedRecordId } from '../../../cards/domain/value-objects/PublishedRecordId';
+import { ATUri } from '../../domain/ATUri';
 import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLink';
+import { UpdateUrlCardAssociationsUseCase } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
 
 export interface ProcessCollectionLinkFirehoseEventDTO {
   atUri: string;
@@ -15,8 +17,8 @@ export interface ProcessCollectionLinkFirehoseEventDTO {
 
 export class ProcessCollectionLinkFirehoseEventUseCase implements UseCase<ProcessCollectionLinkFirehoseEventDTO, Result<void>> {
   constructor(
-    private collectionRepository: ICollectionRepository,
-    private atUriResolutionService: IAtUriResolutionService
+    private atUriResolutionService: IAtUriResolutionService,
+    private updateUrlCardAssociationsUseCase: UpdateUrlCardAssociationsUseCase,
   ) {}
 
   async execute(request: ProcessCollectionLinkFirehoseEventDTO): Promise<Result<void>> {
@@ -25,45 +27,9 @@ export class ProcessCollectionLinkFirehoseEventUseCase implements UseCase<Proces
 
       switch (request.eventType) {
         case 'create':
-          // For now, we'll just log these events
-          // In the future, we could sync external collection links into our system
-          console.log(`Collection link ${request.eventType} event for ${request.atUri}`);
-          break;
+          return await this.handleCollectionLinkCreate(request);
         case 'delete':
-          // Handle collection link deletion if we have it in our system
-          const linkInfoResult = await this.atUriResolutionService.resolveCollectionLinkId(request.atUri);
-          if (linkInfoResult.isErr()) {
-            return err(AppError.UnexpectedError.create(linkInfoResult.error));
-          }
-          
-          if (linkInfoResult.value) {
-            console.log(`Collection link deleted externally: ${request.atUri}, removing from our system`);
-            
-            // Find the collection and remove the card link
-            const collectionResult = await this.collectionRepository.findById(linkInfoResult.value.collectionId);
-            if (collectionResult.isErr()) {
-              return err(AppError.UnexpectedError.create(collectionResult.error));
-            }
-
-            const collection = collectionResult.value;
-            if (collection) {
-              // Remove the card from the collection
-              const removeResult = collection.removeCard(
-                linkInfoResult.value.cardId,
-                collection.authorId // Use collection author as the curator
-              );
-              if (removeResult.isErr()) {
-                console.warn(`Failed to remove card from collection: ${removeResult.error.message}`);
-              } else {
-                // Save the updated collection
-                const saveResult = await this.collectionRepository.save(collection);
-                if (saveResult.isErr()) {
-                  return err(AppError.UnexpectedError.create(saveResult.error));
-                }
-              }
-            }
-          }
-          break;
+          return await this.handleCollectionLinkDelete(request);
         case 'update':
           // Collection links don't typically have update operations
           console.log(`Collection link update event for ${request.atUri} (unusual)`);
@@ -73,6 +39,119 @@ export class ProcessCollectionLinkFirehoseEventUseCase implements UseCase<Proces
       return ok(undefined);
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
+    }
+  }
+
+  private async handleCollectionLinkCreate(
+    request: ProcessCollectionLinkFirehoseEventDTO,
+  ): Promise<Result<void>> {
+    if (!request.record || !request.cid) {
+      console.warn('Collection link create event missing record or cid, skipping');
+      return ok(undefined);
+    }
+
+    try {
+      // Parse AT URI to extract curator DID
+      const atUriResult = ATUri.create(request.atUri);
+      if (atUriResult.isErr()) {
+        console.warn(
+          `Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
+        );
+        return ok(undefined);
+      }
+      const curatorDid = atUriResult.value.did.value;
+
+      // Resolve collection and card from strong refs
+      const collectionId = await this.atUriResolutionService.resolveCollectionId(
+        request.record.collection.uri,
+      );
+      const cardId = await this.atUriResolutionService.resolveCardId(
+        request.record.card.uri,
+      );
+
+      if (collectionId.isErr() || !collectionId.value) {
+        console.warn(`Failed to resolve collection: ${request.record.collection.uri}`);
+        return ok(undefined);
+      }
+
+      if (cardId.isErr() || !cardId.value) {
+        console.warn(`Failed to resolve card: ${request.record.card.uri}`);
+        return ok(undefined);
+      }
+
+      const publishedRecordId = PublishedRecordId.create({
+        uri: request.atUri,
+        cid: request.cid,
+      });
+
+      // TODO: Need to modify UpdateUrlCardAssociationsUseCase to accept collection link published record ID
+      const result = await this.updateUrlCardAssociationsUseCase.execute({
+        cardId: cardId.value.getStringValue(),
+        curatorId: curatorDid,
+        addToCollections: [collectionId.value.getStringValue()],
+      });
+
+      if (result.isErr()) {
+        console.warn(`Failed to add card to collection: ${result.error.message}`);
+        return ok(undefined);
+      }
+
+      console.log(`Successfully added card to collection from firehose event`);
+      return ok(undefined);
+    } catch (error) {
+      console.error(`Error processing collection link create event: ${error}`);
+      return ok(undefined);
+    }
+  }
+
+  private async handleCollectionLinkDelete(
+    request: ProcessCollectionLinkFirehoseEventDTO,
+  ): Promise<Result<void>> {
+    try {
+      // Parse AT URI to extract curator DID
+      const atUriResult = ATUri.create(request.atUri);
+      if (atUriResult.isErr()) {
+        console.warn(
+          `Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
+        );
+        return ok(undefined);
+      }
+      const curatorDid = atUriResult.value.did.value;
+
+      // Handle collection link deletion if we have it in our system
+      const linkInfoResult = await this.atUriResolutionService.resolveCollectionLinkId(request.atUri);
+      if (linkInfoResult.isErr()) {
+        console.warn(`Failed to resolve collection link: ${linkInfoResult.error.message}`);
+        return ok(undefined);
+      }
+      
+      if (linkInfoResult.value) {
+        console.log(`Collection link deleted externally: ${request.atUri}, removing from our system`);
+        
+        const publishedRecordId = PublishedRecordId.create({
+          uri: request.atUri,
+          cid: request.cid || 'deleted',
+        });
+
+        // TODO: Need to modify UpdateUrlCardAssociationsUseCase to accept collection link published record ID
+        const result = await this.updateUrlCardAssociationsUseCase.execute({
+          cardId: linkInfoResult.value.cardId.getStringValue(),
+          curatorId: curatorDid,
+          removeFromCollections: [linkInfoResult.value.collectionId.getStringValue()],
+        });
+
+        if (result.isErr()) {
+          console.warn(`Failed to remove card from collection: ${result.error.message}`);
+          return ok(undefined);
+        }
+
+        console.log(`Successfully removed card from collection from firehose event`);
+      }
+
+      return ok(undefined);
+    } catch (error) {
+      console.error(`Error processing collection link delete event: ${error}`);
+      return ok(undefined);
     }
   }
 }

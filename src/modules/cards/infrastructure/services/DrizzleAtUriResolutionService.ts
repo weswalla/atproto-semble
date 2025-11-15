@@ -189,4 +189,34 @@ export class DrizzleAtUriResolutionService implements IAtUriResolutionService {
       return err(error as Error);
     }
   }
+
+  async storeCardMapping(atUri: string, cardId: CardId): Promise<Result<void>> {
+    try {
+      // This would typically be handled by the repository when saving cards
+      // For now, we'll just return success as the mapping is created when the card is saved
+      return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async storeCollectionMapping(atUri: string, collectionId: CollectionId): Promise<Result<void>> {
+    try {
+      // This would typically be handled by the repository when saving collections
+      // For now, we'll just return success as the mapping is created when the collection is saved
+      return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async storeCollectionLinkMapping(atUri: string, collectionId: CollectionId, cardId: CardId): Promise<Result<void>> {
+    try {
+      // This would typically be handled by the repository when saving collection links
+      // For now, we'll just return success as the mapping is created when the collection link is saved
+      return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
 }

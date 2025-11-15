@@ -17,6 +17,7 @@ import { URL } from '../../../domain/value-objects/URL';
 import { CardLibraryService } from '../../../domain/services/CardLibraryService';
 import { CardCollectionService } from '../../../domain/services/CardCollectionService';
 import { CardContent } from '../../../domain/value-objects/CardContent';
+import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface AddUrlToLibraryDTO {
@@ -24,6 +25,7 @@ export interface AddUrlToLibraryDTO {
   note?: string;
   collectionIds?: string[];
   curatorId: string;
+  publishedRecordId?: PublishedRecordId; // For firehose events - skip publishing if provided
 }
 
 export interface AddUrlToLibraryResponseDTO {
@@ -149,6 +151,15 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
 
       // Update urlCard reference to the one returned by the service
       urlCard = addUrlCardToLibraryResult.value;
+
+      // If publishedRecordId is provided (from firehose event), mark as published
+      if (request.publishedRecordId) {
+        urlCard.markAsPublished(request.publishedRecordId);
+        const saveResult = await this.cardRepository.save(urlCard);
+        if (saveResult.isErr()) {
+          return err(AppError.UnexpectedError.create(saveResult.error));
+        }
+      }
 
       let noteCard;
 

@@ -2,14 +2,13 @@ import { Result, ok, err } from 'src/shared/core/Result';
 import { UseCase } from 'src/shared/core/UseCase';
 import { UseCaseError } from 'src/shared/core/UseCaseError';
 import { AppError } from 'src/shared/core/AppError';
-import { ICardRepository } from '../../../cards/domain/ICardRepository';
 import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriResolutionService';
-import { CardFactory } from '../../../cards/domain/CardFactory';
 import { PublishedRecordId } from '../../../cards/domain/value-objects/PublishedRecordId';
-import { CardContent } from '../../../cards/domain/value-objects/CardContent';
 import { ATUri } from '../../domain/ATUri';
 import { Record as CardRecord } from '../../infrastructure/lexicon/types/network/cosmik/card';
-import { IEventPublisher } from 'src/shared/application/events/IEventPublisher';
+import { AddUrlToLibraryUseCase } from '../../../cards/application/useCases/commands/AddUrlToLibraryUseCase';
+import { UpdateUrlCardAssociationsUseCase } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
+import { RemoveCardFromLibraryUseCase } from '../../../cards/application/useCases/commands/RemoveCardFromLibraryUseCase';
 
 export interface ProcessCardFirehoseEventDTO {
   atUri: string;
@@ -22,9 +21,10 @@ export class ProcessCardFirehoseEventUseCase
   implements UseCase<ProcessCardFirehoseEventDTO, Result<void>>
 {
   constructor(
-    private cardRepository: ICardRepository,
     private atUriResolutionService: IAtUriResolutionService,
-    private eventPublisher: IEventPublisher,
+    private addUrlToLibraryUseCase: AddUrlToLibraryUseCase,
+    private updateUrlCardAssociationsUseCase: UpdateUrlCardAssociationsUseCase,
+    private removeCardFromLibraryUseCase: RemoveCardFromLibraryUseCase,
   ) {}
 
   async execute(request: ProcessCardFirehoseEventDTO): Promise<Result<void>> {
@@ -68,50 +68,69 @@ export class ProcessCardFirehoseEventUseCase
       const atUri = atUriResult.value;
       const curatorDid = atUri.did.value;
 
-      // Convert AT Protocol record to domain input
-      const cardInput = this.mapRecordToCardInput(
-        request.record,
-        request.atUri,
-      );
-      if (!cardInput) {
-        console.warn(`Unable to map card record for ${request.atUri}`);
-        return ok(undefined);
-      }
-
-      // Create card using existing factory
-      const cardResult = CardFactory.create({
-        curatorId: curatorDid,
-        cardInput: cardInput,
-      });
-
-      if (cardResult.isErr()) {
-        console.warn(
-          `Failed to create card from firehose event: ${cardResult.error.message}`,
-        );
-        return ok(undefined);
-      }
-
-      const card = cardResult.value;
-
-      // Mark as published with the AT Protocol record ID
       const publishedRecordId = PublishedRecordId.create({
         uri: request.atUri,
         cid: request.cid,
       });
-      card.markAsPublished(publishedRecordId);
 
-      // Save to repository
-      const saveResult = await this.cardRepository.save(card);
-      if (saveResult.isErr()) {
-        return err(AppError.UnexpectedError.create(saveResult.error));
+      if (request.record.type === 'URL') {
+        // Handle URL card creation
+        const urlContent = request.record.content as any;
+        if (!urlContent.url) {
+          console.warn(`URL card missing URL: ${request.atUri}`);
+          return ok(undefined);
+        }
+
+        const result = await this.addUrlToLibraryUseCase.execute({
+          url: urlContent.url,
+          curatorId: curatorDid,
+          publishedRecordId: publishedRecordId,
+        });
+
+        if (result.isErr()) {
+          console.warn(`Failed to add URL to library: ${result.error.message}`);
+          return ok(undefined);
+        }
+
+        console.log(`Successfully created URL card from firehose event: ${result.value.urlCardId}`);
+      } else if (request.record.type === 'NOTE') {
+        // Handle note card creation
+        const noteContent = request.record.content as any;
+        if (!noteContent.text) {
+          console.warn(`Note card missing text: ${request.atUri}`);
+          return ok(undefined);
+        }
+
+        // Get parent card from parentCard reference
+        if (!request.record.parentCard) {
+          console.warn(`Note card missing parent card reference: ${request.atUri}`);
+          return ok(undefined);
+        }
+
+        // Resolve parent card ID from AT URI
+        const parentCardId = await this.atUriResolutionService.resolveCardId(
+          request.record.parentCard.uri,
+        );
+        if (parentCardId.isErr() || !parentCardId.value) {
+          console.warn(`Failed to resolve parent card: ${request.record.parentCard.uri}`);
+          return ok(undefined);
+        }
+
+        const result = await this.updateUrlCardAssociationsUseCase.execute({
+          cardId: parentCardId.value.getStringValue(),
+          curatorId: curatorDid,
+          note: noteContent.text,
+          // TODO: Handle publishedRecordId for note cards in UpdateUrlCardAssociationsUseCase
+        });
+
+        if (result.isErr()) {
+          console.warn(`Failed to create note card: ${result.error.message}`);
+          return ok(undefined);
+        }
+
+        console.log(`Successfully created note card from firehose event: ${result.value.noteCardId}`);
       }
 
-      // Publish domain events
-      await this.publishDomainEvents(card);
-
-      console.log(
-        `Successfully created card from firehose event: ${card.cardId.getStringValue()}`,
-      );
       return ok(undefined);
     } catch (error) {
       console.error(`Error processing card create event: ${error}`);
@@ -134,76 +153,50 @@ export class ProcessCardFirehoseEventUseCase
     }
 
     try {
-      // Resolve existing card
-      const cardIdResult = await this.atUriResolutionService.resolveCardId(
-        request.atUri,
-      );
-      if (cardIdResult.isErr()) {
+      // Parse AT URI to extract curator DID
+      const atUriResult = ATUri.create(request.atUri);
+      if (atUriResult.isErr()) {
         console.warn(
-          `Failed to resolve card ID for ${request.atUri}: ${cardIdResult.error.message}`,
+          `Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
         );
         return ok(undefined);
       }
+      const curatorDid = atUriResult.value.did.value;
 
-      if (!cardIdResult.value) {
-        console.log(`Card not found in our system: ${request.atUri}`);
+      const noteContent = request.record.content as any;
+      if (!noteContent.text) {
+        console.warn(`Note card missing text: ${request.atUri}`);
         return ok(undefined);
       }
 
-      const existingCardResult = await this.cardRepository.findById(
-        cardIdResult.value,
+      // Get parent card from parentCard reference
+      if (!request.record.parentCard) {
+        console.warn(`Note card missing parent card reference: ${request.atUri}`);
+        return ok(undefined);
+      }
+
+      // Resolve parent card ID from AT URI
+      const parentCardId = await this.atUriResolutionService.resolveCardId(
+        request.record.parentCard.uri,
       );
-      if (existingCardResult.isErr()) {
-        return err(AppError.UnexpectedError.create(existingCardResult.error));
-      }
-
-      const existingCard = existingCardResult.value;
-      if (!existingCard) {
-        console.log(`Card not found: ${cardIdResult.value.getStringValue()}`);
+      if (parentCardId.isErr() || !parentCardId.value) {
+        console.warn(`Failed to resolve parent card: ${request.record.parentCard.uri}`);
         return ok(undefined);
       }
 
-      // Update card content from record (NOTE cards only)
-      if (request.record.content.$type?.includes('noteContent')) {
-        const noteContent = request.record.content as any;
-        const newContentResult = CardContent.createNoteContent(
-          noteContent.text,
-        );
-        if (newContentResult.isErr()) {
-          console.warn(
-            `Failed to create note content: ${newContentResult.error.message}`,
-          );
-          return ok(undefined);
-        }
-
-        const updateResult = existingCard.updateContent(newContentResult.value);
-        if (updateResult.isErr()) {
-          console.warn(
-            `Failed to update card content: ${updateResult.error.message}`,
-          );
-          return ok(undefined);
-        }
-      }
-
-      // Update published record ID
-      const newPublishedRecordId = PublishedRecordId.create({
-        uri: request.atUri,
-        cid: request.cid,
+      const result = await this.updateUrlCardAssociationsUseCase.execute({
+        cardId: parentCardId.value.getStringValue(),
+        curatorId: curatorDid,
+        note: noteContent.text,
+        // TODO: Handle publishedRecordId for note cards in UpdateUrlCardAssociationsUseCase
       });
-      existingCard.markAsPublished(newPublishedRecordId);
 
-      // Save updated card
-      const saveResult = await this.cardRepository.save(existingCard);
-      if (saveResult.isErr()) {
-        return err(AppError.UnexpectedError.create(saveResult.error));
+      if (result.isErr()) {
+        console.warn(`Failed to update note card: ${result.error.message}`);
+        return ok(undefined);
       }
 
-      // Publish domain events
-      await this.publishDomainEvents(existingCard);
-
-      console.log(
-        `Successfully updated card from firehose event: ${existingCard.cardId.getStringValue()}`,
-      );
+      console.log(`Successfully updated note card from firehose event: ${result.value.noteCardId}`);
       return ok(undefined);
     } catch (error) {
       console.error(`Error processing card update event: ${error}`);
@@ -214,87 +207,54 @@ export class ProcessCardFirehoseEventUseCase
   private async handleCardDelete(
     request: ProcessCardFirehoseEventDTO,
   ): Promise<Result<void>> {
-    const cardIdResult = await this.atUriResolutionService.resolveCardId(
-      request.atUri,
-    );
-    if (cardIdResult.isErr()) {
-      return err(AppError.UnexpectedError.create(cardIdResult.error));
-    }
+    try {
+      // Parse AT URI to extract curator DID
+      const atUriResult = ATUri.create(request.atUri);
+      if (atUriResult.isErr()) {
+        console.warn(
+          `Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
+        );
+        return ok(undefined);
+      }
+      const curatorDid = atUriResult.value.did.value;
 
-    if (cardIdResult.value) {
-      console.log(
-        `Card deleted externally: ${request.atUri}, removing from our system`,
+      const cardIdResult = await this.atUriResolutionService.resolveCardId(
+        request.atUri,
       );
-      const deleteResult = await this.cardRepository.delete(cardIdResult.value);
-      if (deleteResult.isErr()) {
-        return err(AppError.UnexpectedError.create(deleteResult.error));
+      if (cardIdResult.isErr()) {
+        console.warn(`Failed to resolve card ID: ${cardIdResult.error.message}`);
+        return ok(undefined);
       }
-    }
 
-    return ok(undefined);
-  }
+      if (cardIdResult.value) {
+        console.log(
+          `Card deleted externally: ${request.atUri}, removing from library`,
+        );
 
-  private mapRecordToCardInput(record: CardRecord, atUri: string): any | null {
-    try {
-      if (
-        record.type === 'URL' &&
-        record.content.$type?.includes('urlContent')
-      ) {
-        const urlContent = record.content as any;
-        return {
-          type: 'URL',
-          url: urlContent.url,
-          metadata: urlContent.metadata
-            ? {
-                title: urlContent.metadata.title,
-                description: urlContent.metadata.description,
-                author: urlContent.metadata.author,
-                publishedDate: urlContent.metadata.publishedDate
-                  ? new Date(urlContent.metadata.publishedDate)
-                  : undefined,
-                siteName: urlContent.metadata.siteName,
-                imageUrl: urlContent.metadata.imageUrl,
-                type: urlContent.metadata.type,
-                retrievedAt: urlContent.metadata.retrievedAt
-                  ? new Date(urlContent.metadata.retrievedAt)
-                  : undefined,
-              }
-            : undefined,
-        };
-      } else if (
-        record.type === 'NOTE' &&
-        record.content.$type?.includes('noteContent')
-      ) {
-        const noteContent = record.content as any;
-        return {
-          type: 'NOTE',
-          text: noteContent.text,
-          url: record.url,
-          // parentCardId would need to be resolved from parentCard reference if present
-        };
-      }
-      return null;
-    } catch (error) {
-      console.error(`Error mapping record to card input: ${error}`);
-      return null;
-    }
-  }
+        const publishedRecordId = PublishedRecordId.create({
+          uri: request.atUri,
+          cid: request.cid || 'deleted',
+        });
 
-  private async publishDomainEvents(card: any): Promise<void> {
-    try {
-      const events = card.domainEvents || [];
-      if (events.length > 0) {
-        const publishResult = await this.eventPublisher.publishEvents(events);
-        if (publishResult.isErr()) {
-          console.error(
-            'Failed to publish domain events:',
-            publishResult.error,
-          );
+        const result = await this.removeCardFromLibraryUseCase.execute({
+          cardId: cardIdResult.value.getStringValue(),
+          curatorId: curatorDid,
+          publishedRecordId: publishedRecordId,
+        });
+
+        if (result.isErr()) {
+          console.warn(`Failed to remove card from library: ${result.error.message}`);
+          return ok(undefined);
         }
-        card.clearEvents?.(); // Clear events after publishing if method exists
+
+        console.log(`Successfully removed card from library: ${result.value.cardId}`);
       }
+
+      return ok(undefined);
     } catch (error) {
-      console.error('Error publishing domain events:', error);
+      console.error(`Error processing card delete event: ${error}`);
+      return ok(undefined);
     }
   }
+
 }

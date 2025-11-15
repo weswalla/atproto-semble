@@ -2,17 +2,13 @@ import { Result, ok, err } from 'src/shared/core/Result';
 import { UseCase } from 'src/shared/core/UseCase';
 import { UseCaseError } from 'src/shared/core/UseCaseError';
 import { AppError } from 'src/shared/core/AppError';
-import { ICollectionRepository } from '../../../cards/domain/ICollectionRepository';
 import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriResolutionService';
-import {
-  Collection,
-  CollectionAccessType,
-} from '../../../cards/domain/Collection';
-import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { PublishedRecordId } from '../../../cards/domain/value-objects/PublishedRecordId';
 import { ATUri } from '../../domain/ATUri';
 import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
-import { IEventPublisher } from 'src/shared/application/events/IEventPublisher';
+import { CreateCollectionUseCase } from '../../../cards/application/useCases/commands/CreateCollectionUseCase';
+import { UpdateCollectionUseCase } from '../../../cards/application/useCases/commands/UpdateCollectionUseCase';
+import { DeleteCollectionUseCase } from '../../../cards/application/useCases/commands/DeleteCollectionUseCase';
 
 export interface ProcessCollectionFirehoseEventDTO {
   atUri: string;
@@ -25,9 +21,10 @@ export class ProcessCollectionFirehoseEventUseCase
   implements UseCase<ProcessCollectionFirehoseEventDTO, Result<void>>
 {
   constructor(
-    private collectionRepository: ICollectionRepository,
     private atUriResolutionService: IAtUriResolutionService,
-    private eventPublisher: IEventPublisher,
+    private createCollectionUseCase: CreateCollectionUseCase,
+    private updateCollectionUseCase: UpdateCollectionUseCase,
+    private deleteCollectionUseCase: DeleteCollectionUseCase,
   ) {}
 
   async execute(
@@ -70,69 +67,27 @@ export class ProcessCollectionFirehoseEventUseCase
         );
         return ok(undefined);
       }
-      const atUri = atUriResult.value;
-      const authorDid = atUri.did.value;
+      const authorDid = atUriResult.value.did.value;
 
-      // Create CuratorId
-      const authorIdResult = CuratorId.create(authorDid);
-      if (authorIdResult.isErr()) {
-        console.warn(`Invalid author DID: ${authorDid}`);
-        return ok(undefined);
-      }
-
-      // Map collaborators
-      const collaboratorIds: CuratorId[] = [];
-      if (request.record.collaborators) {
-        for (const collaboratorDid of request.record.collaborators) {
-          const collaboratorIdResult = CuratorId.create(collaboratorDid);
-          if (collaboratorIdResult.isOk()) {
-            collaboratorIds.push(collaboratorIdResult.value);
-          }
-        }
-      }
-
-      // Create collection using existing factory method
-      const collectionResult = Collection.create({
-        authorId: authorIdResult.value,
-        name: request.record.name,
-        description: request.record.description,
-        accessType: this.mapAccessType(request.record.accessType),
-        collaboratorIds: collaboratorIds,
-        createdAt: request.record.createdAt
-          ? new Date(request.record.createdAt)
-          : new Date(),
-        updatedAt: request.record.updatedAt
-          ? new Date(request.record.updatedAt)
-          : new Date(),
-      });
-
-      if (collectionResult.isErr()) {
-        console.warn(
-          `Failed to create collection from firehose event: ${collectionResult.error.message}`,
-        );
-        return ok(undefined);
-      }
-
-      const collection = collectionResult.value;
-
-      // Mark as published with the AT Protocol record ID
       const publishedRecordId = PublishedRecordId.create({
         uri: request.atUri,
         cid: request.cid,
       });
-      collection.markAsPublished(publishedRecordId);
 
-      // Save to repository
-      const saveResult = await this.collectionRepository.save(collection);
-      if (saveResult.isErr()) {
-        return err(AppError.UnexpectedError.create(saveResult.error));
+      const result = await this.createCollectionUseCase.execute({
+        name: request.record.name,
+        description: request.record.description,
+        curatorId: authorDid,
+        publishedRecordId: publishedRecordId,
+      });
+
+      if (result.isErr()) {
+        console.warn(`Failed to create collection: ${result.error.message}`);
+        return ok(undefined);
       }
 
-      // Publish domain events
-      await this.publishDomainEvents(collection);
-
       console.log(
-        `Successfully created collection from firehose event: ${collection.collectionId.getStringValue()}`,
+        `Successfully created collection from firehose event: ${result.value.collectionId}`,
       );
       return ok(undefined);
     } catch (error) {
@@ -150,6 +105,16 @@ export class ProcessCollectionFirehoseEventUseCase
     }
 
     try {
+      // Parse AT URI to extract author DID
+      const atUriResult = ATUri.create(request.atUri);
+      if (atUriResult.isErr()) {
+        console.warn(
+          `Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
+        );
+        return ok(undefined);
+      }
+      const authorDid = atUriResult.value.did.value;
+
       // Resolve existing collection
       const collectionIdResult =
         await this.atUriResolutionService.resolveCollectionId(request.atUri);
@@ -165,68 +130,26 @@ export class ProcessCollectionFirehoseEventUseCase
         return ok(undefined);
       }
 
-      const existingCollectionResult = await this.collectionRepository.findById(
-        collectionIdResult.value,
-      );
-      if (existingCollectionResult.isErr()) {
-        return err(
-          AppError.UnexpectedError.create(existingCollectionResult.error),
-        );
-      }
-
-      const existingCollection = existingCollectionResult.value;
-      if (!existingCollection) {
-        console.log(
-          `Collection not found: ${collectionIdResult.value.getStringValue()}`,
-        );
-        return ok(undefined);
-      }
-
-      // Update collection details
-      const updateResult = existingCollection.updateDetails(
-        request.record.name,
-        request.record.description,
-      );
-      if (updateResult.isErr()) {
-        console.warn(
-          `Failed to update collection details: ${updateResult.error.message}`,
-        );
-        return ok(undefined);
-      }
-
-      // Update access type if changed
-      const newAccessType = this.mapAccessType(request.record.accessType);
-      if (existingCollection.accessType !== newAccessType) {
-        const changeAccessResult = existingCollection.changeAccessType(
-          newAccessType,
-          existingCollection.authorId,
-        );
-        if (changeAccessResult.isErr()) {
-          console.warn(
-            `Failed to change access type: ${changeAccessResult.error.message}`,
-          );
-        }
-      }
-
-      // Update published record ID
-      const newPublishedRecordId = PublishedRecordId.create({
+      const publishedRecordId = PublishedRecordId.create({
         uri: request.atUri,
         cid: request.cid,
       });
-      existingCollection.markAsPublished(newPublishedRecordId);
 
-      // Save updated collection
-      const saveResult =
-        await this.collectionRepository.save(existingCollection);
-      if (saveResult.isErr()) {
-        return err(AppError.UnexpectedError.create(saveResult.error));
+      const result = await this.updateCollectionUseCase.execute({
+        collectionId: collectionIdResult.value.getStringValue(),
+        name: request.record.name,
+        description: request.record.description,
+        curatorId: authorDid,
+        publishedRecordId: publishedRecordId,
+      });
+
+      if (result.isErr()) {
+        console.warn(`Failed to update collection: ${result.error.message}`);
+        return ok(undefined);
       }
 
-      // Publish domain events
-      await this.publishDomainEvents(existingCollection);
-
       console.log(
-        `Successfully updated collection from firehose event: ${existingCollection.collectionId.getStringValue()}`,
+        `Successfully updated collection from firehose event: ${result.value.collectionId}`,
       );
       return ok(undefined);
     } catch (error) {
@@ -238,53 +161,53 @@ export class ProcessCollectionFirehoseEventUseCase
   private async handleCollectionDelete(
     request: ProcessCollectionFirehoseEventDTO,
   ): Promise<Result<void>> {
-    const collectionIdResult =
-      await this.atUriResolutionService.resolveCollectionId(request.atUri);
-    if (collectionIdResult.isErr()) {
-      return err(AppError.UnexpectedError.create(collectionIdResult.error));
-    }
-
-    if (collectionIdResult.value) {
-      console.log(
-        `Collection deleted externally: ${request.atUri}, removing from our system`,
-      );
-      const deleteResult = await this.collectionRepository.delete(
-        collectionIdResult.value,
-      );
-      if (deleteResult.isErr()) {
-        return err(AppError.UnexpectedError.create(deleteResult.error));
-      }
-    }
-
-    return ok(undefined);
-  }
-
-  private mapAccessType(accessType: string): CollectionAccessType {
-    switch (accessType) {
-      case 'OPEN':
-        return CollectionAccessType.OPEN;
-      case 'CLOSED':
-        return CollectionAccessType.CLOSED;
-      default:
-        return CollectionAccessType.CLOSED; // Default to closed
-    }
-  }
-
-  private async publishDomainEvents(collection: any): Promise<void> {
     try {
-      const events = collection.domainEvents || [];
-      if (events.length > 0) {
-        const publishResult = await this.eventPublisher.publishEvents(events);
-        if (publishResult.isErr()) {
-          console.error(
-            'Failed to publish domain events:',
-            publishResult.error,
-          );
-        }
-        collection.clearEvents?.(); // Clear events after publishing if method exists
+      // Parse AT URI to extract author DID
+      const atUriResult = ATUri.create(request.atUri);
+      if (atUriResult.isErr()) {
+        console.warn(
+          `Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
+        );
+        return ok(undefined);
       }
+      const authorDid = atUriResult.value.did.value;
+
+      const collectionIdResult =
+        await this.atUriResolutionService.resolveCollectionId(request.atUri);
+      if (collectionIdResult.isErr()) {
+        console.warn(`Failed to resolve collection ID: ${collectionIdResult.error.message}`);
+        return ok(undefined);
+      }
+
+      if (collectionIdResult.value) {
+        console.log(
+          `Collection deleted externally: ${request.atUri}, removing from our system`,
+        );
+
+        const publishedRecordId = PublishedRecordId.create({
+          uri: request.atUri,
+          cid: request.cid || 'deleted',
+        });
+
+        const result = await this.deleteCollectionUseCase.execute({
+          collectionId: collectionIdResult.value.getStringValue(),
+          curatorId: authorDid,
+          publishedRecordId: publishedRecordId,
+        });
+
+        if (result.isErr()) {
+          console.warn(`Failed to delete collection: ${result.error.message}`);
+          return ok(undefined);
+        }
+
+        console.log(`Successfully deleted collection: ${result.value.collectionId}`);
+      }
+
+      return ok(undefined);
     } catch (error) {
-      console.error('Error publishing domain events:', error);
+      console.error(`Error processing collection delete event: ${error}`);
+      return ok(undefined);
     }
   }
+
 }

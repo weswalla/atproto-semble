@@ -34,13 +34,8 @@ import { FakeJwtTokenService } from '../../../../modules/user/infrastructure/ser
 import { FakeAtProtoOAuthProcessor } from '../../../../modules/atproto/infrastructure/services/FakeAtProtoOAuthProcessor';
 import { FakeUserAuthenticationService } from '../../../../modules/user/infrastructure/services/FakeUserAuthenticationService';
 import { FakeAgentService } from '../../../../modules/atproto/infrastructure/services/FakeAgentService';
-import { FakeBlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/FakeBlueskyProfileService';
 import { FakeAppPasswordSessionService } from '../../../../modules/atproto/infrastructure/services/FakeAppPasswordSessionService';
 import { FakeAtpAppPasswordProcessor } from '../../../../modules/atproto/infrastructure/services/FakeAtpAppPasswordProcessor';
-import { ATProtoCollectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCollectionPublisher';
-import { ATProtoCardPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCardPublisher';
-import { FakeCollectionPublisher } from '../../../../modules/cards/tests/utils/FakeCollectionPublisher';
-import { FakeCardPublisher } from '../../../../modules/cards/tests/utils/FakeCardPublisher';
 import { ITokenService } from 'src/modules/user/application/services/ITokenService';
 import { IOAuthProcessor } from 'src/modules/user/application/services/IOAuthProcessor';
 import { IAppPasswordProcessor } from 'src/modules/atproto/application/IAppPasswordProcessor';

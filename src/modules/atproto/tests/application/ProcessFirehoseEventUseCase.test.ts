@@ -30,7 +30,7 @@ describe('ProcessFirehoseEventUseCase', () => {
   let processCardFirehoseEventUseCase: ProcessCardFirehoseEventUseCase;
   let processCollectionFirehoseEventUseCase: ProcessCollectionFirehoseEventUseCase;
   let processCollectionLinkFirehoseEventUseCase: ProcessCollectionLinkFirehoseEventUseCase;
-  
+
   // Dependencies for real use cases
   let atUriResolutionService: InMemoryAtUriResolutionService;
   let cardRepository: InMemoryCardRepository;
@@ -51,7 +51,7 @@ describe('ProcessFirehoseEventUseCase', () => {
   beforeEach(() => {
     duplicationService = new InMemoryFirehoseEventDuplicationService();
     configService = new EnvironmentConfigService();
-    
+
     // Set up all the real dependencies
     cardRepository = InMemoryCardRepository.getInstance();
     collectionRepository = InMemoryCollectionRepository.getInstance();
@@ -73,6 +73,7 @@ describe('ProcessFirehoseEventUseCase', () => {
 
     atUriResolutionService = new InMemoryAtUriResolutionService(
       collectionRepository,
+      cardRepository,
     );
 
     // Create use cases for card processing
@@ -120,17 +121,19 @@ describe('ProcessFirehoseEventUseCase', () => {
       removeCardFromLibraryUseCase,
     );
 
-    processCollectionFirehoseEventUseCase = new ProcessCollectionFirehoseEventUseCase(
-      atUriResolutionService,
-      createCollectionUseCase,
-      updateCollectionUseCase,
-      deleteCollectionUseCase,
-    );
+    processCollectionFirehoseEventUseCase =
+      new ProcessCollectionFirehoseEventUseCase(
+        atUriResolutionService,
+        createCollectionUseCase,
+        updateCollectionUseCase,
+        deleteCollectionUseCase,
+      );
 
-    processCollectionLinkFirehoseEventUseCase = new ProcessCollectionLinkFirehoseEventUseCase(
-      atUriResolutionService,
-      updateUrlCardAssociationsUseCase,
-    );
+    processCollectionLinkFirehoseEventUseCase =
+      new ProcessCollectionLinkFirehoseEventUseCase(
+        atUriResolutionService,
+        updateUrlCardAssociationsUseCase,
+      );
 
     useCase = new ProcessFirehoseEventUseCase(
       duplicationService,
@@ -173,7 +176,7 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      
+
       // Verify the card was actually created in the repository
       const savedCards = cardRepository.getAllCards();
       expect(savedCards).toHaveLength(1);
@@ -198,7 +201,7 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      
+
       // Verify the collection was actually created in the repository
       const savedCollections = collectionRepository.getAllCollections();
       expect(savedCollections).toHaveLength(1);
@@ -303,7 +306,7 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      
+
       // Verify the card was actually created
       const savedCards = cardRepository.getAllCards();
       expect(savedCards).toHaveLength(1);
@@ -331,7 +334,7 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      
+
       // No processing should have occurred
       expect(cardRepository.getAllCards()).toHaveLength(0);
     });
@@ -352,7 +355,7 @@ describe('ProcessFirehoseEventUseCase', () => {
       if (result.isErr()) {
         expect(result.error.message).toContain('Invalid AT URI');
       }
-      
+
       // No processing should have occurred
       expect(cardRepository.getAllCards()).toHaveLength(0);
       expect(collectionRepository.getAllCollections()).toHaveLength(0);
@@ -395,7 +398,7 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      
+
       // Verify the card was created
       const savedCards = cardRepository.getAllCards();
       expect(savedCards).toHaveLength(1);
@@ -417,10 +420,10 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      
-      // Verify the collection was created
+
+      // Verify the collection wasnt updated since it didn't exist before
       const savedCollections = collectionRepository.getAllCollections();
-      expect(savedCollections).toHaveLength(1);
+      expect(savedCollections).toHaveLength(0);
     });
 
     it('should handle delete events', async () => {
@@ -463,7 +466,7 @@ describe('ProcessFirehoseEventUseCase', () => {
 
       // The card processor handles metadata failures gracefully
       expect(result.isOk()).toBe(true);
-      
+
       // No card should be created due to metadata failure
       expect(cardRepository.getAllCards()).toHaveLength(0);
     });
@@ -489,7 +492,7 @@ describe('ProcessFirehoseEventUseCase', () => {
 
       // The collection processor handles publisher failures gracefully
       expect(result.isOk()).toBe(true);
-      
+
       // Collection should still be saved even if publishing fails
       expect(collectionRepository.getAllCollections()).toHaveLength(1);
     });

@@ -107,7 +107,7 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       const cid = 'link-cid-123';
 
       const linkRecord: CollectionLinkRecord = {
-        $type: 'network.cosmik.collectionLink',
+        $type: collections.collectionLink as any,
         collection: {
           uri: collectionAtUri,
           cid: 'collection-cid',

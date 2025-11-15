@@ -15,6 +15,7 @@ import { CardTypeEnum } from '../../../cards/domain/value-objects/CardType';
 import { URL } from '../../../cards/domain/value-objects/URL';
 import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLink';
 import { EnvironmentConfigService } from '../../../../shared/infrastructure/config/EnvironmentConfigService';
+import { PublishedRecordId } from '../../../cards/domain/value-objects/PublishedRecordId';
 
 describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
   let useCase: ProcessCollectionLinkFirehoseEventUseCase;
@@ -101,10 +102,27 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       await collectionRepository.save(collection);
 
       const collections = configService.getAtProtoCollections();
-      const collectionAtUri = `at://${curatorId.value}/${collections.collection}/test-collection-id`;
-      const cardAtUri = `at://${curatorId.value}/${collections.card}/test-card-id`;
+      
+      // Create AT URIs that match the pattern used by FakeCollectionPublisher
+      const collectionAtUri = `at://${curatorId.value}/${collections.collection}/${collection.collectionId.getStringValue()}`;
+      const cardAtUri = `at://${curatorId.value}/${collections.card}/${urlCard.cardId.getStringValue()}`;
       const linkAtUri = `at://${curatorId.value}/${collections.collectionLink}/test-link-id`;
       const cid = 'link-cid-123';
+
+      // Set up published record IDs so the resolution service can find them
+      const collectionPublishedRecordId = PublishedRecordId.create({
+        uri: collectionAtUri,
+        cid: 'collection-cid',
+      });
+      collection.markAsPublished(collectionPublishedRecordId);
+      await collectionRepository.save(collection);
+
+      const cardPublishedRecordId = PublishedRecordId.create({
+        uri: cardAtUri,
+        cid: 'card-cid',
+      });
+      urlCard.markAsPublished(cardPublishedRecordId);
+      await cardRepository.save(urlCard);
 
       const linkRecord: CollectionLinkRecord = {
         $type: collections.collectionLink as any,
@@ -326,15 +344,48 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       if (collection instanceof Error) throw collection;
       await collectionRepository.save(collection);
 
+      const collections = configService.getAtProtoCollections();
+      
+      // Set up published record IDs so the resolution service can find them
+      const collectionAtUri = `at://${curatorId.value}/${collections.collection}/${collection.collectionId.getStringValue()}`;
+      const cardAtUri = `at://${curatorId.value}/${collections.card}/${urlCard.cardId.getStringValue()}`;
+      
+      const collectionPublishedRecordId = PublishedRecordId.create({
+        uri: collectionAtUri,
+        cid: 'collection-cid',
+      });
+      collection.markAsPublished(collectionPublishedRecordId);
+      await collectionRepository.save(collection);
+
+      const cardPublishedRecordId = PublishedRecordId.create({
+        uri: cardAtUri,
+        cid: 'card-cid',
+      });
+      urlCard.markAsPublished(cardPublishedRecordId);
+      await cardRepository.save(urlCard);
+
       // Add card to collection first
-      await cardCollectionService.addCardToCollection(
+      const addResult = await cardCollectionService.addCardToCollection(
         urlCard,
         collection.collectionId,
         curatorId,
       );
+      if (addResult.isErr()) throw addResult.error;
 
-      const collections = configService.getAtProtoCollections();
-      const linkAtUri = `at://${curatorId.value}/${collections.collectionLink}/test-link-id`;
+      // Create a collection link with published record ID that can be resolved
+      const linkAtUri = `at://${curatorId.value}/${collections.collectionLink}/${collection.collectionId.getStringValue()}-${urlCard.cardId.getStringValue()}`;
+      const linkPublishedRecordId = PublishedRecordId.create({
+        uri: linkAtUri,
+        cid: 'link-cid',
+      });
+      
+      // Add the link to the collection so it can be found by the resolution service
+      const updatedCollection = addResult.value;
+      const cardLink = updatedCollection.cardLinks.find(link => link.cardId.equals(urlCard.cardId));
+      if (cardLink) {
+        cardLink.publishedRecordId = linkPublishedRecordId;
+        await collectionRepository.save(updatedCollection);
+      }
 
       const request = {
         atUri: linkAtUri,
@@ -347,11 +398,11 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       expect(result.isOk()).toBe(true);
 
       // Verify card was removed from collection
-      const updatedCollection = await collectionRepository.findById(
+      const finalCollection = await collectionRepository.findById(
         collection.collectionId,
       );
-      expect(updatedCollection.isOk()).toBe(true);
-      const collectionFromRepo = updatedCollection.unwrap()!;
+      expect(finalCollection.isOk()).toBe(true);
+      const collectionFromRepo = finalCollection.unwrap()!;
       expect(
         collectionFromRepo.cardIds.some((id) => id.equals(urlCard.cardId)),
       ).toBe(false);

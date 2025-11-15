@@ -10,6 +10,11 @@ import { CardCollectionService } from './CardCollectionService';
 import { PublishedRecordId } from '../value-objects/PublishedRecordId';
 import { AuthenticationError } from '../../../../shared/core/AuthenticationError';
 
+export interface CardLibraryServiceOptions {
+  skipPublishing?: boolean;
+  publishedRecordId?: PublishedRecordId;
+}
+
 export class CardLibraryValidationError extends Error {
   constructor(message: string) {
     super(message);
@@ -28,6 +33,7 @@ export class CardLibraryService implements DomainService {
   async updateCardInLibrary(
     card: Card,
     curatorId: CuratorId,
+    options?: CardLibraryServiceOptions,
   ): Promise<
     Result<
       Card,
@@ -73,34 +79,50 @@ export class CardLibraryService implements DomainService {
       }
 
       if (libraryInfo?.publishedRecordId) {
-        // Card is published - republish to update it
-        const republishResult = await this.cardPublisher.publishCardToLibrary(
-          card,
-          curatorId,
-          parentCardPublishedRecordId,
-        );
-        if (republishResult.isErr()) {
-          if (republishResult.error instanceof AuthenticationError) {
-            return err(republishResult.error);
+        // Handle republishing based on options
+        if (options?.skipPublishing && options?.publishedRecordId) {
+          // Skip republishing and use provided record ID
+          const updatePublishedResult = card.markCardInLibraryAsPublished(
+            curatorId,
+            options.publishedRecordId,
+          );
+          if (updatePublishedResult.isErr()) {
+            return err(
+              new CardLibraryValidationError(
+                `Failed to update published record: ${updatePublishedResult.error.message}`,
+              ),
+            );
           }
-          return err(
-            new CardLibraryValidationError(
-              `Failed to republish updated card: ${republishResult.error.message}`,
-            ),
+        } else {
+          // Card is published - republish to update it
+          const republishResult = await this.cardPublisher.publishCardToLibrary(
+            card,
+            curatorId,
+            parentCardPublishedRecordId,
           );
-        }
+          if (republishResult.isErr()) {
+            if (republishResult.error instanceof AuthenticationError) {
+              return err(republishResult.error);
+            }
+            return err(
+              new CardLibraryValidationError(
+                `Failed to republish updated card: ${republishResult.error.message}`,
+              ),
+            );
+          }
 
-        // Update the published record ID if it changed
-        const updatePublishedResult = card.markCardInLibraryAsPublished(
-          curatorId,
-          republishResult.value,
-        );
-        if (updatePublishedResult.isErr()) {
-          return err(
-            new CardLibraryValidationError(
-              `Failed to update published record: ${updatePublishedResult.error.message}`,
-            ),
+          // Update the published record ID if it changed
+          const updatePublishedResult = card.markCardInLibraryAsPublished(
+            curatorId,
+            republishResult.value,
           );
+          if (updatePublishedResult.isErr()) {
+            return err(
+              new CardLibraryValidationError(
+                `Failed to update published record: ${updatePublishedResult.error.message}`,
+              ),
+            );
+          }
         }
       }
 
@@ -119,6 +141,7 @@ export class CardLibraryService implements DomainService {
   async addCardToLibrary(
     card: Card,
     curatorId: CuratorId,
+    options?: CardLibraryServiceOptions,
   ): Promise<
     Result<
       Card,
@@ -208,35 +231,51 @@ export class CardLibraryService implements DomainService {
         );
       }
 
-      // Publish card to library
-      const publishResult = await this.cardPublisher.publishCardToLibrary(
-        card,
-        curatorId,
-        parentCardPublishedRecordId,
-      );
-      if (publishResult.isErr()) {
-        // Propagate authentication errors
-        if (publishResult.error instanceof AuthenticationError) {
-          return err(publishResult.error);
+      // Handle publishing based on options
+      if (options?.skipPublishing && options?.publishedRecordId) {
+        // Skip publishing and use provided record ID
+        const markCardAsPublishedResult = card.markCardInLibraryAsPublished(
+          curatorId,
+          options.publishedRecordId,
+        );
+        if (markCardAsPublishedResult.isErr()) {
+          return err(
+            new CardLibraryValidationError(
+              `Failed to mark card as published in library: ${markCardAsPublishedResult.error.message}`,
+            ),
+          );
         }
-        return err(
-          new CardLibraryValidationError(
-            `Failed to publish card to library: ${publishResult.error.message}`,
-          ),
+      } else {
+        // Publish card to library normally
+        const publishResult = await this.cardPublisher.publishCardToLibrary(
+          card,
+          curatorId,
+          parentCardPublishedRecordId,
         );
-      }
+        if (publishResult.isErr()) {
+          // Propagate authentication errors
+          if (publishResult.error instanceof AuthenticationError) {
+            return err(publishResult.error);
+          }
+          return err(
+            new CardLibraryValidationError(
+              `Failed to publish card to library: ${publishResult.error.message}`,
+            ),
+          );
+        }
 
-      // Mark card as published in library
-      const markCardAsPublishedResult = card.markCardInLibraryAsPublished(
-        curatorId,
-        publishResult.value,
-      );
-      if (markCardAsPublishedResult.isErr()) {
-        return err(
-          new CardLibraryValidationError(
-            `Failed to mark card as published in library: ${markCardAsPublishedResult.error.message}`,
-          ),
+        // Mark card as published in library
+        const markCardAsPublishedResult = card.markCardInLibraryAsPublished(
+          curatorId,
+          publishResult.value,
         );
+        if (markCardAsPublishedResult.isErr()) {
+          return err(
+            new CardLibraryValidationError(
+              `Failed to mark card as published in library: ${markCardAsPublishedResult.error.message}`,
+            ),
+          );
+        }
       }
 
       // Save updated card

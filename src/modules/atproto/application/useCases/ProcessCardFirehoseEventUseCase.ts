@@ -11,7 +11,7 @@ import {
   UrlContent,
 } from '../../infrastructure/lexicon/types/network/cosmik/card';
 import { AddUrlToLibraryUseCase } from '../../../cards/application/useCases/commands/AddUrlToLibraryUseCase';
-import { UpdateUrlCardAssociationsUseCase } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
+import { UpdateUrlCardAssociationsUseCase, OperationContext } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
 import { RemoveCardFromLibraryUseCase } from '../../../cards/application/useCases/commands/RemoveCardFromLibraryUseCase';
 
 export interface ProcessCardFirehoseEventDTO {
@@ -130,7 +130,10 @@ export class ProcessCardFirehoseEventUseCase
           cardId: parentCardId.value.getStringValue(),
           curatorId: curatorDid,
           note: noteContent.text,
-          // TODO: Handle publishedRecordId for note cards in UpdateUrlCardAssociationsUseCase
+          context: OperationContext.FIREHOSE_EVENT,
+          publishedRecordIds: {
+            noteCard: publishedRecordId,
+          },
         });
 
         if (result.isErr()) {
@@ -200,11 +203,19 @@ export class ProcessCardFirehoseEventUseCase
         return ok(undefined);
       }
 
+      const publishedRecordId = PublishedRecordId.create({
+        uri: request.atUri,
+        cid: request.cid,
+      });
+
       const result = await this.updateUrlCardAssociationsUseCase.execute({
         cardId: parentCardId.value.getStringValue(),
         curatorId: curatorDid,
         note: noteContent.text,
-        // TODO: Handle publishedRecordId for note cards in UpdateUrlCardAssociationsUseCase
+        context: OperationContext.FIREHOSE_EVENT,
+        publishedRecordIds: {
+          noteCard: publishedRecordId,
+        },
       });
 
       if (result.isErr()) {

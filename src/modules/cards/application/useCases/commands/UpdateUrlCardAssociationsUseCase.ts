@@ -13,7 +13,14 @@ import { CardCollectionService } from '../../../domain/services/CardCollectionSe
 import { CardContent } from '../../../domain/value-objects/CardContent';
 import { CardFactory } from '../../../domain/CardFactory';
 import { CardLibraryService } from '../../../domain/services/CardLibraryService';
+import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
+
+export enum OperationContext {
+  USER_INITIATED = 'user_initiated',
+  FIREHOSE_EVENT = 'firehose_event',
+  SYSTEM_MIGRATION = 'system_migration'
+}
 
 export interface UpdateUrlCardAssociationsDTO {
   cardId: string;
@@ -21,6 +28,11 @@ export interface UpdateUrlCardAssociationsDTO {
   note?: string;
   addToCollections?: string[];
   removeFromCollections?: string[];
+  context?: OperationContext;
+  publishedRecordIds?: {
+    noteCard?: PublishedRecordId;
+    collectionLinks?: Map<string, PublishedRecordId>;
+  };
 }
 
 export interface UpdateUrlCardAssociationsResponseDTO {
@@ -151,9 +163,16 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
             return err(new ValidationError(updateContentResult.error.message));
           }
 
+          // Determine service options based on context
+          const isFirehoseEvent = request.context === OperationContext.FIREHOSE_EVENT;
+          const noteCardOptions = isFirehoseEvent && request.publishedRecordIds?.noteCard ? {
+            skipPublishing: true,
+            publishedRecordId: request.publishedRecordIds.noteCard,
+          } : undefined;
+
           // Update note card in library (handles save and republish)
           const updateNoteResult =
-            await this.cardLibraryService.updateCardInLibrary(noteCard, curatorId);
+            await this.cardLibraryService.updateCardInLibrary(noteCard, curatorId, noteCardOptions);
           if (updateNoteResult.isErr()) {
             // Propagate authentication errors
             if (
@@ -201,9 +220,16 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
             );
           }
 
+          // Determine service options based on context
+          const isFirehoseEvent = request.context === OperationContext.FIREHOSE_EVENT;
+          const noteCardOptions = isFirehoseEvent && request.publishedRecordIds?.noteCard ? {
+            skipPublishing: true,
+            publishedRecordId: request.publishedRecordIds.noteCard,
+          } : undefined;
+
           // Add note card to library using domain service
           const addNoteCardToLibraryResult =
-            await this.cardLibraryService.addCardToLibrary(noteCard, curatorId);
+            await this.cardLibraryService.addCardToLibrary(noteCard, curatorId, noteCardOptions);
           if (addNoteCardToLibraryResult.isErr()) {
             // Propagate authentication errors
             if (
@@ -246,11 +272,19 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
           collectionIds.push(collectionIdResult.value);
         }
 
+        // Determine service options based on context
+        const isFirehoseEvent = request.context === OperationContext.FIREHOSE_EVENT;
+        const collectionOptions = isFirehoseEvent && request.publishedRecordIds?.collectionLinks ? {
+          skipPublishing: true,
+          publishedRecordIds: request.publishedRecordIds.collectionLinks,
+        } : undefined;
+
         const addToCollectionsResult =
           await this.cardCollectionService.addCardToCollections(
             urlCard,
             collectionIds,
             curatorId,
+            collectionOptions,
           );
         if (addToCollectionsResult.isErr()) {
           // Propagate authentication errors
@@ -300,11 +334,18 @@ export class UpdateUrlCardAssociationsUseCase extends BaseUseCase<
           collectionIds.push(collectionIdResult.value);
         }
 
+        // Determine service options based on context
+        const isFirehoseEvent = request.context === OperationContext.FIREHOSE_EVENT;
+        const collectionOptions = isFirehoseEvent ? {
+          skipPublishing: true,
+        } : undefined;
+
         const removeFromCollectionsResult =
           await this.cardCollectionService.removeCardFromCollections(
             urlCard,
             collectionIds,
             curatorId,
+            collectionOptions,
           );
         if (removeFromCollectionsResult.isErr()) {
           // Propagate authentication errors

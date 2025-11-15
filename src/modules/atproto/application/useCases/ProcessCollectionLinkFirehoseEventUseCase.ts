@@ -6,7 +6,7 @@ import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriRe
 import { PublishedRecordId } from '../../../cards/domain/value-objects/PublishedRecordId';
 import { ATUri } from '../../domain/ATUri';
 import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLink';
-import { UpdateUrlCardAssociationsUseCase } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
+import { UpdateUrlCardAssociationsUseCase, OperationContext } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
 
 export interface ProcessCollectionLinkFirehoseEventDTO {
   atUri: string;
@@ -84,11 +84,17 @@ export class ProcessCollectionLinkFirehoseEventUseCase implements UseCase<Proces
         cid: request.cid,
       });
 
-      // TODO: Need to modify UpdateUrlCardAssociationsUseCase to accept collection link published record ID
+      const collectionLinkMap = new Map<string, PublishedRecordId>();
+      collectionLinkMap.set(collectionId.value.getStringValue(), publishedRecordId);
+
       const result = await this.updateUrlCardAssociationsUseCase.execute({
         cardId: cardId.value.getStringValue(),
         curatorId: curatorDid,
         addToCollections: [collectionId.value.getStringValue()],
+        context: OperationContext.FIREHOSE_EVENT,
+        publishedRecordIds: {
+          collectionLinks: collectionLinkMap,
+        },
       });
 
       if (result.isErr()) {
@@ -133,11 +139,11 @@ export class ProcessCollectionLinkFirehoseEventUseCase implements UseCase<Proces
           cid: request.cid || 'deleted',
         });
 
-        // TODO: Need to modify UpdateUrlCardAssociationsUseCase to accept collection link published record ID
         const result = await this.updateUrlCardAssociationsUseCase.execute({
           cardId: linkInfoResult.value.cardId.getStringValue(),
           curatorId: curatorDid,
           removeFromCollections: [linkInfoResult.value.collectionId.getStringValue()],
+          context: OperationContext.FIREHOSE_EVENT,
         });
 
         if (result.isErr()) {

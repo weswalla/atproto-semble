@@ -8,6 +8,7 @@ import { FakeCollectionPublisher } from '../../../cards/tests/utils/FakeCollecti
 import { CollectionBuilder } from '../../../cards/tests/utils/builders/CollectionBuilder';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
+import { InMemoryCardRepository } from 'src/modules/cards/tests/utils/InMemoryCardRepository';
 
 describe('ProcessCollectionFirehoseEventUseCase', () => {
   let useCase: ProcessCollectionFirehoseEventUseCase;
@@ -16,15 +17,18 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
   let updateCollectionUseCase: UpdateCollectionUseCase;
   let deleteCollectionUseCase: DeleteCollectionUseCase;
   let collectionRepository: InMemoryCollectionRepository;
+  let cardRepository: InMemoryCardRepository;
   let collectionPublisher: FakeCollectionPublisher;
   let curatorId: CuratorId;
 
   beforeEach(() => {
     collectionRepository = InMemoryCollectionRepository.getInstance();
+    cardRepository = InMemoryCardRepository.getInstance();
     collectionPublisher = new FakeCollectionPublisher();
 
     atUriResolutionService = new InMemoryAtUriResolutionService(
       collectionRepository,
+      cardRepository,
     );
 
     createCollectionUseCase = new CreateCollectionUseCase(
@@ -89,7 +93,9 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
 
       const collection = savedCollections[0]!;
       expect(collection.name.value).toBe('Test Collection');
-      expect(collection.description?.value).toBe('A test collection from firehose');
+      expect(collection.description?.value).toBe(
+        'A test collection from firehose',
+      );
       expect(collection.authorId.equals(curatorId)).toBe(true);
 
       // Verify published record ID was set (from firehose event)
@@ -99,7 +105,8 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
       expect(collection.isPublished).toBe(true);
 
       // Verify no additional publishing occurred (should skip since publishedRecordId provided)
-      const publishedCollections = collectionPublisher.getPublishedCollections();
+      const publishedCollections =
+        collectionPublisher.getPublishedCollections();
       expect(publishedCollections).toHaveLength(0);
     });
 
@@ -227,7 +234,9 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
 
       const updatedCollection = savedCollections[0]!;
       expect(updatedCollection.name.value).toBe('Updated Collection Name');
-      expect(updatedCollection.description?.value).toBe('Updated collection description');
+      expect(updatedCollection.description?.value).toBe(
+        'Updated collection description',
+      );
 
       // Verify published record ID was updated (from firehose event)
       expect(updatedCollection.publishedRecordId).toBeDefined();
@@ -235,7 +244,8 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
       expect(updatedCollection.publishedRecordId?.cid).toBe(cid);
 
       // Verify no additional publishing occurred (should skip since publishedRecordId provided)
-      const publishedCollections = collectionPublisher.getPublishedCollections();
+      const publishedCollections =
+        collectionPublisher.getPublishedCollections();
       expect(publishedCollections).toHaveLength(0);
     });
 
@@ -301,7 +311,8 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
       expect(savedCollections).toHaveLength(0);
 
       // Verify no unpublishing occurred (firehose event should skip unpublishing)
-      const unpublishedCollections = collectionPublisher.getUnpublishedCollections();
+      const unpublishedCollections =
+        collectionPublisher.getUnpublishedCollections();
       expect(unpublishedCollections).toHaveLength(0);
     });
 

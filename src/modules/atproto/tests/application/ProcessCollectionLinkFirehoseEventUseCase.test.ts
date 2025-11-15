@@ -48,6 +48,7 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
 
     atUriResolutionService = new InMemoryAtUriResolutionService(
       collectionRepository,
+      cardRepository,
     );
 
     updateUrlCardAssociationsUseCase = new UpdateUrlCardAssociationsUseCase(
@@ -128,10 +129,14 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       expect(result.isOk()).toBe(true);
 
       // Verify card was added to collection
-      const updatedCollection = await collectionRepository.findById(collection.collectionId);
+      const updatedCollection = await collectionRepository.findById(
+        collection.collectionId,
+      );
       expect(updatedCollection.isOk()).toBe(true);
       const collectionFromRepo = updatedCollection.unwrap()!;
-      expect(collectionFromRepo.cardIds.some(id => id.equals(urlCard.cardId))).toBe(true);
+      expect(
+        collectionFromRepo.cardIds.some((id) => id.equals(urlCard.cardId)),
+      ).toBe(true);
 
       // Verify no additional publishing occurred (firehose event should skip publishing)
       const publishedLinks = collectionPublisher.getAllPublishedLinks();
@@ -209,9 +214,11 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true); // Should not fail firehose processing
-      
+
       // Verify collection was not modified
-      const savedCollection = await collectionRepository.findById(collection.collectionId);
+      const savedCollection = await collectionRepository.findById(
+        collection.collectionId,
+      );
       expect(savedCollection.isOk()).toBe(true);
       const collectionFromRepo = savedCollection.unwrap()!;
       expect(collectionFromRepo.cardIds).toHaveLength(0);
@@ -312,7 +319,11 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       await collectionRepository.save(collection);
 
       // Add card to collection first
-      await cardCollectionService.addCardToCollection(urlCard, collection.collectionId, curatorId);
+      await cardCollectionService.addCardToCollection(
+        urlCard,
+        collection.collectionId,
+        curatorId,
+      );
 
       const linkAtUri = `at://${curatorId.value}/network.cosmik.collectionLink/test-link-id`;
 
@@ -327,10 +338,14 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       expect(result.isOk()).toBe(true);
 
       // Verify card was removed from collection
-      const updatedCollection = await collectionRepository.findById(collection.collectionId);
+      const updatedCollection = await collectionRepository.findById(
+        collection.collectionId,
+      );
       expect(updatedCollection.isOk()).toBe(true);
       const collectionFromRepo = updatedCollection.unwrap()!;
-      expect(collectionFromRepo.cardIds.some(id => id.equals(urlCard.cardId))).toBe(false);
+      expect(
+        collectionFromRepo.cardIds.some((id) => id.equals(urlCard.cardId)),
+      ).toBe(false);
 
       // Verify no unpublishing occurred (firehose event should skip unpublishing)
       const removedLinks = collectionPublisher.getAllRemovedLinks();

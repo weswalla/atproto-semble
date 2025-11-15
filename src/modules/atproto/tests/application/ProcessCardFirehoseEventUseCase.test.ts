@@ -100,7 +100,7 @@ describe('ProcessCardFirehoseEventUseCase', () => {
     it('should process URL card create event successfully', async () => {
       const atUri = `at://${curatorId.value}/network.cosmik.card/test-card-id`;
       const cid = 'test-cid-123';
-      
+
       const cardRecord: CardRecord = {
         $type: 'network.cosmik.card',
         type: 'URL',
@@ -130,7 +130,7 @@ describe('ProcessCardFirehoseEventUseCase', () => {
       // Verify card was created and added to library
       const savedCards = cardRepository.getAllCards();
       expect(savedCards).toHaveLength(1);
-      
+
       const urlCard = savedCards[0]!;
       expect(urlCard.content.type).toBe(CardTypeEnum.URL);
       expect(urlCard.curatorId.equals(curatorId)).toBe(true);
@@ -270,11 +270,15 @@ describe('ProcessCardFirehoseEventUseCase', () => {
 
       // Verify note card was created
       const savedCards = cardRepository.getAllCards();
-      const noteCards = savedCards.filter(card => card.content.type === CardTypeEnum.NOTE);
+      const noteCards = savedCards.filter(
+        (card) => card.content.type === CardTypeEnum.NOTE,
+      );
       expect(noteCards).toHaveLength(1);
 
       const noteCard = noteCards[0]!;
-      expect(noteCard.content.noteContent?.text).toBe('This is my note about the article');
+      expect(noteCard.content.noteContent?.text).toBe(
+        'This is my note about the article',
+      );
       expect(noteCard.curatorId.equals(curatorId)).toBe(true);
       expect(noteCard.isInLibrary(curatorId)).toBe(true);
 
@@ -310,10 +314,12 @@ describe('ProcessCardFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true); // Should not fail firehose processing
-      
+
       // Verify no note card was created
       const savedCards = cardRepository.getAllCards();
-      const noteCards = savedCards.filter(card => card.content.type === CardTypeEnum.NOTE);
+      const noteCards = savedCards.filter(
+        (card) => card.content.type === CardTypeEnum.NOTE,
+      );
       expect(noteCards).toHaveLength(0);
     });
 
@@ -422,7 +428,9 @@ describe('ProcessCardFirehoseEventUseCase', () => {
 
       // Verify note card was updated
       const savedCards = cardRepository.getAllCards();
-      const noteCards = savedCards.filter(card => card.content.type === CardTypeEnum.NOTE);
+      const noteCards = savedCards.filter(
+        (card) => card.content.type === CardTypeEnum.NOTE,
+      );
       expect(noteCards).toHaveLength(1);
 
       const updatedNote = noteCards[0]!;

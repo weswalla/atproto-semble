@@ -10,6 +10,7 @@ import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
 import { InMemoryCardRepository } from 'src/modules/cards/tests/utils/InMemoryCardRepository';
 import { EnvironmentConfigService } from '../../../../shared/infrastructure/config/EnvironmentConfigService';
+import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
 
 describe('ProcessCollectionFirehoseEventUseCase', () => {
   let useCase: ProcessCollectionFirehoseEventUseCase;
@@ -208,11 +209,18 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
         .build();
 
       if (collection instanceof Error) throw collection;
-      await collectionRepository.save(collection);
 
       const collections = configService.getAtProtoCollections();
       const atUri = `at://${curatorId.value}/${collections.collection}/${collection.collectionId}`;
       const cid = 'updated-collection-cid-123';
+
+      const publishedRecordId = PublishedRecordId.create({
+        uri: atUri,
+        cid: cid,
+      });
+
+      collection.markAsPublished(publishedRecordId);
+      await collectionRepository.save(collection);
 
       const updatedCollectionRecord: CollectionRecord = {
         $type: 'network.cosmik.collection',
@@ -301,10 +309,16 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
         .build();
 
       if (collection instanceof Error) throw collection;
-      await collectionRepository.save(collection);
 
       const collections = configService.getAtProtoCollections();
-      const atUri = `at://${curatorId.value}/${collections.collection}/test-collection-id`;
+      const atUri = `at://${curatorId.value}/${collections.collection}/${collection.collectionId.getStringValue()}`;
+
+      const publishedRecordId = PublishedRecordId.create({
+        uri: atUri,
+        cid: 'original-cid-123',
+      });
+      collection.markAsPublished(publishedRecordId);
+      await collectionRepository.save(collection);
 
       const request = {
         atUri,

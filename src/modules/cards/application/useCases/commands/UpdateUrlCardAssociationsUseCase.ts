@@ -9,7 +9,6 @@ import { CardId } from '../../../domain/value-objects/CardId';
 import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
-import { URL } from '../../../domain/value-objects/URL';
 import { CardCollectionService } from '../../../domain/services/CardCollectionService';
 import { CardContent } from '../../../domain/value-objects/CardContent';
 import { CardFactory } from '../../../domain/CardFactory';

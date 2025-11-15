@@ -21,4 +21,9 @@ export interface IAtUriResolutionService {
   resolveCardId(atUri: string): Promise<Result<CardId | null>>;
   resolveCollectionId(atUri: string): Promise<Result<CollectionId | null>>;
   resolveCollectionLinkId(atUri: string): Promise<Result<{collectionId: CollectionId, cardId: CardId} | null>>;
+
+  // Methods to store AT URI mappings for firehose events
+  storeCardMapping(atUri: string, cardId: CardId): Promise<Result<void>>;
+  storeCollectionMapping(atUri: string, collectionId: CollectionId): Promise<Result<void>>;
+  storeCollectionLinkMapping(atUri: string, collectionId: CollectionId, cardId: CardId): Promise<Result<void>>;
 }

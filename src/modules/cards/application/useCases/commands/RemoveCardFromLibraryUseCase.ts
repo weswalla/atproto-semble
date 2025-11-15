@@ -98,14 +98,10 @@ export class RemoveCardFromLibraryUseCase
         if (removeFromLibraryResult.error instanceof AuthenticationError) {
           return err(removeFromLibraryResult.error);
         }
-        if (
-          removeFromLibraryResult.error instanceof AppError.UnexpectedError
-        ) {
+        if (removeFromLibraryResult.error instanceof AppError.UnexpectedError) {
           return err(removeFromLibraryResult.error);
         }
-        return err(
-          new ValidationError(removeFromLibraryResult.error.message),
-        );
+        return err(new ValidationError(removeFromLibraryResult.error.message));
       }
 
       const updatedCard = removeFromLibraryResult.value;

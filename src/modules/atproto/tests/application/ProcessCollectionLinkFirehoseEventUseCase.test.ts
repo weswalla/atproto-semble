@@ -102,7 +102,7 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       await collectionRepository.save(collection);
 
       const collections = configService.getAtProtoCollections();
-      
+
       // Create AT URIs that match the pattern used by FakeCollectionPublisher
       const collectionAtUri = `at://${curatorId.value}/${collections.collection}/${collection.collectionId.getStringValue()}`;
       const cardAtUri = `at://${curatorId.value}/${collections.card}/${urlCard.cardId.getStringValue()}`;
@@ -345,11 +345,11 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
       await collectionRepository.save(collection);
 
       const collections = configService.getAtProtoCollections();
-      
+
       // Set up published record IDs so the resolution service can find them
       const collectionAtUri = `at://${curatorId.value}/${collections.collection}/${collection.collectionId.getStringValue()}`;
       const cardAtUri = `at://${curatorId.value}/${collections.card}/${urlCard.cardId.getStringValue()}`;
-      
+
       const collectionPublishedRecordId = PublishedRecordId.create({
         uri: collectionAtUri,
         cid: 'collection-cid',
@@ -378,10 +378,12 @@ describe('ProcessCollectionLinkFirehoseEventUseCase', () => {
         uri: linkAtUri,
         cid: 'link-cid',
       });
-      
+
       // Add the link to the collection so it can be found by the resolution service
       const updatedCollection = addResult.value;
-      const cardLink = updatedCollection.cardLinks.find(link => link.cardId.equals(urlCard.cardId));
+      const cardLink = updatedCollection.cardLinks.find((link) =>
+        link.cardId.equals(urlCard.cardId),
+      );
       if (cardLink) {
         cardLink.publishedRecordId = linkPublishedRecordId;
         await collectionRepository.save(updatedCollection);

@@ -1,7 +1,12 @@
 import { Result, ok, err } from '../../../../shared/core/Result';
-import { IFirehoseEventDuplicationService, FirehoseEventType } from '../../domain/services/IFirehoseEventDuplicationService';
+import {
+  IFirehoseEventDuplicationService,
+  FirehoseEventType,
+} from '../../domain/services/IFirehoseEventDuplicationService';
 
-export class InMemoryFirehoseEventDuplicationService implements IFirehoseEventDuplicationService {
+export class InMemoryFirehoseEventDuplicationService
+  implements IFirehoseEventDuplicationService
+{
   private processedEvents: Set<string> = new Set();
   private deletedUris: Set<string> = new Set();
   private shouldFail: boolean = false;
@@ -61,7 +66,11 @@ export class InMemoryFirehoseEventDuplicationService implements IFirehoseEventDu
     this.shouldFail = false;
   }
 
-  private createEventKey(atUri: string, cid: string | null, eventType: FirehoseEventType): string {
+  private createEventKey(
+    atUri: string,
+    cid: string | null,
+    eventType: FirehoseEventType,
+  ): string {
     return `${atUri}:${cid || 'null'}:${eventType}`;
   }
 }

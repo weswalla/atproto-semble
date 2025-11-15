@@ -70,7 +70,9 @@ export class CardCollectionService implements DomainService {
 
       // Handle publishing based on options
       if (options?.skipPublishing && options?.publishedRecordIds) {
-        const publishedRecordId = options.publishedRecordIds.get(collectionId.getStringValue());
+        const publishedRecordId = options.publishedRecordIds.get(
+          collectionId.getStringValue(),
+        );
         if (publishedRecordId) {
           // Skip publishing and use provided record ID
           collection.markCardLinkAsPublished(card.cardId, publishedRecordId);
@@ -96,7 +98,10 @@ export class CardCollectionService implements DomainService {
         }
 
         // Mark the card link as published in the collection
-        collection.markCardLinkAsPublished(card.cardId, publishLinkResult.value);
+        collection.markCardLinkAsPublished(
+          card.cardId,
+          publishLinkResult.value,
+        );
       }
 
       // Save the updated collection

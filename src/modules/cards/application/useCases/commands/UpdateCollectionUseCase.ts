@@ -119,7 +119,7 @@ export class UpdateCollectionUseCase
       if (request.publishedRecordId) {
         // Update published record ID with provided value
         collection.markAsPublished(request.publishedRecordId);
-        
+
         // Save collection with updated published record ID
         const saveUpdatedResult =
           await this.collectionRepository.save(collection);

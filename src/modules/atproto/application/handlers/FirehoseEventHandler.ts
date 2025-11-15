@@ -12,7 +12,7 @@ export interface AtProtoFirehoseEvent {
 
 export class FirehoseEventHandler {
   constructor(
-    private processFirehoseEventUseCase: ProcessFirehoseEventUseCase
+    private processFirehoseEventUseCase: ProcessFirehoseEventUseCase,
   ) {}
 
   async handle(event: AtProtoFirehoseEvent): Promise<Result<void>> {
@@ -20,7 +20,7 @@ export class FirehoseEventHandler {
       atUri: event.uri,
       cid: event.cid,
       eventType: event.eventType,
-      record: event.record
+      record: event.record,
     });
   }
 }

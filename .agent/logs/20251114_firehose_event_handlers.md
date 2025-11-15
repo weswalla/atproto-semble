@@ -8,7 +8,7 @@ This guide outlines how to enhance the firehose event processors to handle AT Pr
 
 Instead of adding AT Protocol dependencies to domain models, we'll:
 
-1. **Use existing factory methods** - Leverage `CardFactory` and `Collection.create()` 
+1. **Use existing factory methods** - Leverage `CardFactory` and `Collection.create()`
 2. **Create mapper services** - Convert AT Protocol records to domain input DTOs
 3. **Enhance use cases** - Handle full aggregate lifecycle in event processors
 4. **Maintain domain purity** - Keep domain models free of AT Protocol dependencies
@@ -25,8 +25,11 @@ export class ATProtoRecordToDomainMapper {
   static cardRecordToCardInput(record: CardRecord, atUri: string): ICardInput {
     // Convert AT Protocol card record to CardFactory input
   }
-  
-  static collectionRecordToCollectionProps(record: CollectionRecord, atUri: string): CollectionCreateProps {
+
+  static collectionRecordToCollectionProps(
+    record: CollectionRecord,
+    atUri: string,
+  ): CollectionCreateProps {
     // Convert AT Protocol collection record to Collection.create() input
   }
 }
@@ -37,11 +40,13 @@ export class ATProtoRecordToDomainMapper {
 Update the firehose event processors to:
 
 #### For Card Events:
+
 - **Create**: Parse record → Create via CardFactory → Mark as published → Save → Publish events
-- **Update**: Find existing → Parse record → Update content → Update published ID → Save → Publish events  
+- **Update**: Find existing → Parse record → Update content → Update published ID → Save → Publish events
 - **Delete**: Resolve ID → Delete from repo
 
 #### For Collection Events:
+
 - **Create**: Parse record → Create via Collection.create() → Mark as published → Save → Publish events
 - **Update**: Find existing → Parse record → Update details → Update published ID → Save → Publish events
 - **Delete**: Resolve ID → Delete from repo
@@ -51,6 +56,7 @@ Update the firehose event processors to:
 Add these methods to support external updates:
 
 #### Card Domain:
+
 ```typescript
 // In Card.ts
 public updateContentFromText(text: string): Result<void, CardValidationError> {
@@ -63,7 +69,8 @@ public updatePublishedRecordId(publishedRecordId: PublishedRecordId): void {
 ```
 
 #### Collection Domain:
-```typescript  
+
+```typescript
 // In Collection.ts
 public updateDetailsFromExternal(name: string, description?: string): Result<void, CollectionValidationError> {
   // Update collection details from external source
@@ -91,9 +98,8 @@ Each processor should follow this pattern:
 ```typescript
 // 1. Process the record
 const aggregate = // ... create or update aggregate
-
-// 2. Save to repository  
-await this.repository.save(aggregate);
+  // 2. Save to repository
+  await this.repository.save(aggregate);
 
 // 3. Publish domain events
 const events = aggregate.domainEvents;
@@ -111,6 +117,7 @@ aggregate.clearEvents(); // Clear after publishing
 ### Step 7: Testing Strategy
 
 Create integration tests that:
+
 - Mock firehose events with real AT Protocol record structures
 - Verify aggregates are created/updated correctly
 - Verify domain events are published
@@ -127,7 +134,7 @@ Create integration tests that:
 ## Files to Modify
 
 1. `ProcessCardFirehoseEventUseCase.ts` - Enhanced card event handling
-2. `ProcessCollectionFirehoseEventUseCase.ts` - Enhanced collection event handling  
+2. `ProcessCollectionFirehoseEventUseCase.ts` - Enhanced collection event handling
 3. `ProcessCollectionLinkFirehoseEventUseCase.ts` - Enhanced collection link handling
 4. `Card.ts` - Add update methods for external sources
 5. `Collection.ts` - Add update methods for external sources

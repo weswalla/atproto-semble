@@ -97,7 +97,11 @@ export class DeleteCollectionUseCase
       }
 
       // Handle unpublishing - skip if publishedRecordId provided (firehose event)
-      if (!request.publishedRecordId && collection.isPublished && collection.publishedRecordId) {
+      if (
+        !request.publishedRecordId &&
+        collection.isPublished &&
+        collection.publishedRecordId
+      ) {
         const unpublishResult = await this.collectionPublisher.unpublish(
           collection.publishedRecordId,
         );

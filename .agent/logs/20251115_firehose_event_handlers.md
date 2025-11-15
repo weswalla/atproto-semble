@@ -16,6 +16,7 @@ This implementation reuses existing use cases as much as possible for handling f
 ### Core Pattern
 
 Each firehose processor will:
+
 1. Parse the AT URI and extract relevant data from the record
 2. Use `IAtUriResolutionService` to resolve AT URIs to domain entities
 3. Call existing use cases with an optional `publishedRecordId` parameter
@@ -24,8 +25,9 @@ Each firehose processor will:
 ### Use Case Modifications
 
 Add optional `publishedRecordId?: PublishedRecordId` parameter to these use cases:
+
 - `AddUrlToLibraryUseCase`
-- `CreateCollectionUseCase` 
+- `CreateCollectionUseCase`
 - `UpdateCollectionUseCase`
 - `DeleteCollectionUseCase`
 - `RemoveCardFromLibraryUseCase`
@@ -37,24 +39,29 @@ For `UpdateUrlCardAssociationsUseCase`, we'll need a more complex approach since
 ### URL Card Events
 
 #### Create
+
 - Extract URL and curator DID from record
 - Call `AddUrlToLibraryUseCase` with `publishedRecordId` from event
 
-#### Update  
+#### Update
+
 - Skip for now (URL cards don't typically update)
 
 #### Delete
+
 - Resolve AT URI to card ID
 - Call `RemoveCardFromLibraryUseCase` with `publishedRecordId` to skip unpublishing
 
 ### Note Card Events
 
 #### Create/Update
+
 - Extract parent card AT URI, note text, and curator DID
 - Resolve parent card AT URI to card ID
 - Call `UpdateUrlCardAssociationsUseCase` with note and `publishedRecordId`
 
 #### Delete
+
 - Resolve AT URI to card ID
 - Verify it's a note card
 - Call `RemoveCardFromLibraryUseCase` with `publishedRecordId`
@@ -62,28 +69,33 @@ For `UpdateUrlCardAssociationsUseCase`, we'll need a more complex approach since
 ### Collection Events
 
 #### Create
+
 - Extract name, description, curator DID from record
 - Call `CreateCollectionUseCase` with `publishedRecordId` from event
 
 #### Update
+
 - Resolve AT URI to collection ID
 - Extract updated fields from record
 - Call `UpdateCollectionUseCase` with `publishedRecordId`
 
 #### Delete
+
 - Resolve AT URI to collection ID
 - Call `DeleteCollectionUseCase` with `publishedRecordId` to skip unpublishing
 
 ### Collection Link Events
 
 #### Create
+
 - Extract collection and card strong refs from record
 - Resolve AT URIs to collection ID and card ID
 - Call `UpdateUrlCardAssociationsUseCase` with `addToCollections` and link `publishedRecordId`
 
 #### Delete
+
 - Extract collection and card strong refs from record
-- Resolve AT URIs to collection ID and card ID  
+- Resolve AT URIs to collection ID and card ID
 - Call `UpdateUrlCardAssociationsUseCase` with `removeFromCollections` and link `publishedRecordId`
 
 ## Key Benefits
@@ -96,19 +108,22 @@ For `UpdateUrlCardAssociationsUseCase`, we'll need a more complex approach since
 ## Files to Modify
 
 ### Use Cases (add optional publishedRecordId parameter):
+
 - `AddUrlToLibraryUseCase.ts`
 - `CreateCollectionUseCase.ts`
-- `UpdateCollectionUseCase.ts` 
+- `UpdateCollectionUseCase.ts`
 - `DeleteCollectionUseCase.ts`
 - `RemoveCardFromLibraryUseCase.ts`
 - `UpdateUrlCardAssociationsUseCase.ts` (more complex - add collection link published record IDs)
 
 ### Firehose Processors (simplify to call existing use cases):
+
 - `ProcessCardFirehoseEventUseCase.ts`
 - `ProcessCollectionFirehoseEventUseCase.ts`
 - `ProcessCollectionLinkFirehoseEventUseCase.ts`
 
 ### Services (add mapping storage methods):
+
 - `IAtUriResolutionService.ts` (already has the methods we need)
 
 This approach maintains clean separation of concerns while maximizing code reuse and minimizing the complexity of firehose event handling.

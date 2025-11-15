@@ -6,14 +6,14 @@ import { EnvironmentConfigService } from 'src/shared/infrastructure/config/Envir
 type CollectionLinkRecordDTO = Record;
 
 export class CollectionLinkMapper {
-  static readonly collectionLinkType = new EnvironmentConfigService()
-    .getAtProtoCollections().collectionLink;
+  static readonly collectionLinkType =
+    new EnvironmentConfigService().getAtProtoCollections().collectionLink;
 
   static toCreateRecordDTO(
     cardLink: CardLink,
     collectionPublishedRecordId: PublishedRecordIdProps,
     cardPublishedRecordId: PublishedRecordIdProps,
-    originalCardPublishedRecordId?: PublishedRecordIdProps
+    originalCardPublishedRecordId?: PublishedRecordIdProps,
   ): CollectionLinkRecordDTO {
     const record: CollectionLinkRecordDTO = {
       $type: this.collectionLinkType as any,

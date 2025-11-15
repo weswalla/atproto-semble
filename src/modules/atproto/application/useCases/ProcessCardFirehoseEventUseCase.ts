@@ -11,7 +11,10 @@ import {
   UrlContent,
 } from '../../infrastructure/lexicon/types/network/cosmik/card';
 import { AddUrlToLibraryUseCase } from '../../../cards/application/useCases/commands/AddUrlToLibraryUseCase';
-import { UpdateUrlCardAssociationsUseCase, OperationContext } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
+import {
+  UpdateUrlCardAssociationsUseCase,
+  OperationContext,
+} from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
 import { RemoveCardFromLibraryUseCase } from '../../../cards/application/useCases/commands/RemoveCardFromLibraryUseCase';
 
 export interface ProcessCardFirehoseEventDTO {

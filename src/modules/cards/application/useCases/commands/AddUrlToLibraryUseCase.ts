@@ -192,22 +192,19 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
 
           // Update note card in library (handles save and republish)
           const updateNoteResult =
-            await this.cardLibraryService.updateCardInLibrary(noteCard, curatorId);
+            await this.cardLibraryService.updateCardInLibrary(
+              noteCard,
+              curatorId,
+            );
           if (updateNoteResult.isErr()) {
             // Propagate authentication errors
-            if (
-              updateNoteResult.error instanceof AuthenticationError
-            ) {
+            if (updateNoteResult.error instanceof AuthenticationError) {
               return err(updateNoteResult.error);
             }
-            if (
-              updateNoteResult.error instanceof AppError.UnexpectedError
-            ) {
+            if (updateNoteResult.error instanceof AppError.UnexpectedError) {
               return err(updateNoteResult.error);
             }
-            return err(
-              new ValidationError(updateNoteResult.error.message),
-            );
+            return err(new ValidationError(updateNoteResult.error.message));
           }
 
           // Update noteCard reference to the one returned by the service

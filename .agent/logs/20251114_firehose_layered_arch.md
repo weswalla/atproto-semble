@@ -80,6 +80,7 @@ AT Protocol Network
 #### New Domain Concepts
 
 **AtUriResourceType Enum**
+
 ```typescript
 export enum AtUriResourceType {
   CARD = 'card',
@@ -89,15 +90,20 @@ export enum AtUriResourceType {
 ```
 
 **Enhanced ATUri Domain Object**
+
 ```typescript
 export class ATUri extends ValueObject<ATUriProps> {
   // ... existing methods ...
-  
-  public getEntityType(configService: EnvironmentConfigService): AtUriResourceType {
+
+  public getEntityType(
+    configService: EnvironmentConfigService,
+  ): AtUriResourceType {
     const collections = configService.getAtProtoCollections();
     if (this.collection === collections.card) return AtUriResourceType.CARD;
-    if (this.collection === collections.collection) return AtUriResourceType.COLLECTION;
-    if (this.collection === collections.collectionLink) return AtUriResourceType.COLLECTION_LINK;
+    if (this.collection === collections.collection)
+      return AtUriResourceType.COLLECTION;
+    if (this.collection === collections.collectionLink)
+      return AtUriResourceType.COLLECTION_LINK;
     throw new Error(`Unknown collection type: ${this.collection}`);
   }
 }
@@ -106,24 +112,28 @@ export class ATUri extends ValueObject<ATUriProps> {
 #### Enhanced Domain Services
 
 **Expanded IAtUriResolutionService**
+
 ```typescript
 export interface IAtUriResolutionService {
   resolveAtUri(atUri: string): Promise<Result<AtUriResolutionResult | null>>;
   resolveCardId(atUri: string): Promise<Result<CardId | null>>;
   resolveCollectionId(atUri: string): Promise<Result<CollectionId | null>>;
-  resolveCollectionLinkId(atUri: string): Promise<Result<{collectionId: CollectionId, cardId: CardId} | null>>;
+  resolveCollectionLinkId(
+    atUri: string,
+  ): Promise<Result<{ collectionId: CollectionId; cardId: CardId } | null>>;
 }
 ```
 
 **New IFirehoseEventDuplicationService**
+
 ```typescript
 export interface IFirehoseEventDuplicationService {
   hasEventBeenProcessed(
-    atUri: string, 
-    cid: string | null, 
-    operation: FirehoseEventType
+    atUri: string,
+    cid: string | null,
+    operation: FirehoseEventType,
   ): Promise<Result<boolean>>;
-  
+
   hasBeenDeleted(atUri: string): Promise<Result<boolean>>;
 }
 ```
@@ -133,6 +143,7 @@ export interface IFirehoseEventDuplicationService {
 #### New Domain Events
 
 **FirehoseEventProcessed**
+
 ```typescript
 export class FirehoseEventProcessed extends DomainEvent {
   constructor(
@@ -140,7 +151,7 @@ export class FirehoseEventProcessed extends DomainEvent {
     public readonly cid: string | null,
     public readonly eventType: FirehoseEventType,
     public readonly entityType: AtUriResourceType,
-    public readonly entityId?: string
+    public readonly entityId?: string,
   ) {
     super();
   }
@@ -150,6 +161,7 @@ export class FirehoseEventProcessed extends DomainEvent {
 #### New Use Cases
 
 **ProcessFirehoseEventUseCase**
+
 ```typescript
 export interface ProcessFirehoseEventDTO {
   atUri: string;
@@ -165,7 +177,7 @@ export class ProcessFirehoseEventUseCase {
     private cardRepository: ICardRepository,
     private collectionRepository: ICollectionRepository,
     private eventPublisher: IEventPublisher,
-    private configService: EnvironmentConfigService
+    private configService: EnvironmentConfigService,
   ) {}
 
   async execute(request: ProcessFirehoseEventDTO): Promise<Result<void>> {
@@ -178,6 +190,7 @@ export class ProcessFirehoseEventUseCase {
 ```
 
 **ProcessCardFirehoseEventUseCase**
+
 ```typescript
 export class ProcessCardFirehoseEventUseCase {
   async execute(request: {
@@ -192,6 +205,7 @@ export class ProcessCardFirehoseEventUseCase {
 ```
 
 **ProcessCollectionFirehoseEventUseCase**
+
 ```typescript
 export class ProcessCollectionFirehoseEventUseCase {
   async execute(request: {
@@ -206,6 +220,7 @@ export class ProcessCollectionFirehoseEventUseCase {
 ```
 
 **ProcessCollectionLinkFirehoseEventUseCase**
+
 ```typescript
 export class ProcessCollectionLinkFirehoseEventUseCase {
   async execute(request: {
@@ -222,10 +237,11 @@ export class ProcessCollectionLinkFirehoseEventUseCase {
 #### Event Handlers
 
 **FirehoseEventHandler**
+
 ```typescript
 export class FirehoseEventHandler {
   constructor(
-    private processFirehoseEventUseCase: ProcessFirehoseEventUseCase
+    private processFirehoseEventUseCase: ProcessFirehoseEventUseCase,
   ) {}
 
   async handle(event: AtProtoFirehoseEvent): Promise<Result<void>> {
@@ -233,7 +249,7 @@ export class FirehoseEventHandler {
       atUri: event.uri,
       cid: event.cid,
       eventType: event.eventType,
-      record: event.record
+      record: event.record,
     });
   }
 }
@@ -242,6 +258,7 @@ export class FirehoseEventHandler {
 #### New Application Services
 
 **IFirehoseService**
+
 ```typescript
 export interface IFirehoseService {
   start(): Promise<void>;
@@ -255,24 +272,25 @@ export interface IFirehoseService {
 #### AT Protocol Firehose Integration
 
 **AtProtoFirehoseService**
+
 ```typescript
 export class AtProtoFirehoseService implements IFirehoseService {
   constructor(
     private firehoseEventHandler: FirehoseEventHandler,
     private configService: EnvironmentConfigService,
-    private idResolver: IdResolver
+    private idResolver: IdResolver,
   ) {}
 
   async start(): Promise<void> {
     const runner = new MemoryRunner({});
-    
+
     this.firehose = new Firehose({
       service: 'wss://bsky.network',
       runner,
       idResolver: this.idResolver,
       filterCollections: this.getFilteredCollections(),
       handleEvent: this.handleFirehoseEvent.bind(this),
-      onError: this.handleError.bind(this)
+      onError: this.handleError.bind(this),
     });
 
     await this.firehose.start();
@@ -285,7 +303,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
       eventType: evt.event as 'create' | 'update' | 'delete',
       record: evt.record,
       did: evt.did,
-      collection: evt.collection
+      collection: evt.collection,
     });
 
     if (result.isErr()) {
@@ -298,45 +316,45 @@ export class AtProtoFirehoseService implements IFirehoseService {
     return [
       collections.card,
       collections.collection,
-      collections.collectionLink
+      collections.collectionLink,
     ];
   }
 }
 ```
 
 **DrizzleFirehoseEventDuplicationService**
+
 ```typescript
-export class DrizzleFirehoseEventDuplicationService implements IFirehoseEventDuplicationService {
+export class DrizzleFirehoseEventDuplicationService
+  implements IFirehoseEventDuplicationService
+{
   constructor(
     private db: PostgresJsDatabase,
     private atUriResolver: IAtUriResolutionService,
-    private configService: EnvironmentConfigService
+    private configService: EnvironmentConfigService,
   ) {}
 
   async hasEventBeenProcessed(
-    atUri: string, 
-    cid: string | null, 
-    operation: FirehoseEventType
+    atUri: string,
+    cid: string | null,
+    operation: FirehoseEventType,
   ): Promise<Result<boolean>> {
     try {
       // For CREATE/UPDATE: check if (uri, cid) exists
       if (operation === 'create' || operation === 'update') {
         if (!cid) return ok(false);
-        
+
         const result = await this.db
           .select({ id: publishedRecords.id })
           .from(publishedRecords)
           .where(
-            and(
-              eq(publishedRecords.uri, atUri),
-              eq(publishedRecords.cid, cid)
-            )
+            and(eq(publishedRecords.uri, atUri), eq(publishedRecords.cid, cid)),
           )
           .limit(1);
-          
+
         return ok(result.length > 0);
       }
-      
+
       // For DELETE: use more complex logic
       return this.hasBeenDeleted(atUri);
     } catch (error) {
@@ -367,13 +385,15 @@ export class DrizzleFirehoseEventDuplicationService implements IFirehoseEventDup
       // 3. Check if entity still exists
       switch (entityType) {
         case AtUriResourceType.COLLECTION:
-          const collectionId = await this.atUriResolver.resolveCollectionId(atUri);
+          const collectionId =
+            await this.atUriResolver.resolveCollectionId(atUri);
           return ok(collectionId === null);
         case AtUriResourceType.CARD:
           const cardId = await this.atUriResolver.resolveCardId(atUri);
           return ok(cardId === null);
         case AtUriResourceType.COLLECTION_LINK:
-          const linkInfo = await this.atUriResolver.resolveCollectionLinkId(atUri);
+          const linkInfo =
+            await this.atUriResolver.resolveCollectionLinkId(atUri);
           return ok(linkInfo === null);
         default:
           return err(new Error(`Unknown entity type: ${entityType}`));
@@ -386,6 +406,7 @@ export class DrizzleFirehoseEventDuplicationService implements IFirehoseEventDup
 ```
 
 **Enhanced DrizzleAtUriResolutionService**
+
 ```typescript
 export class DrizzleAtUriResolutionService implements IAtUriResolutionService {
   // ... existing methods ...
@@ -395,7 +416,10 @@ export class DrizzleAtUriResolutionService implements IAtUriResolutionService {
       const cardResult = await this.db
         .select({ id: cards.id })
         .from(cards)
-        .innerJoin(publishedRecords, eq(cards.publishedRecordId, publishedRecords.id))
+        .innerJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
         .where(eq(publishedRecords.uri, atUri))
         .limit(1);
 
@@ -415,16 +439,19 @@ export class DrizzleAtUriResolutionService implements IAtUriResolutionService {
   }
 
   async resolveCollectionLinkId(
-    atUri: string
-  ): Promise<Result<{collectionId: CollectionId, cardId: CardId} | null>> {
+    atUri: string,
+  ): Promise<Result<{ collectionId: CollectionId; cardId: CardId } | null>> {
     try {
       const linkResult = await this.db
         .select({
           collectionId: collectionCards.collectionId,
-          cardId: collectionCards.cardId
+          cardId: collectionCards.cardId,
         })
         .from(collectionCards)
-        .innerJoin(publishedRecords, eq(collectionCards.publishedRecordId, publishedRecords.id))
+        .innerJoin(
+          publishedRecords,
+          eq(collectionCards.publishedRecordId, publishedRecords.id),
+        )
         .where(eq(publishedRecords.uri, atUri))
         .limit(1);
 
@@ -432,7 +459,9 @@ export class DrizzleAtUriResolutionService implements IAtUriResolutionService {
         return ok(null);
       }
 
-      const collectionIdResult = CollectionId.createFromString(linkResult[0]!.collectionId);
+      const collectionIdResult = CollectionId.createFromString(
+        linkResult[0]!.collectionId,
+      );
       const cardIdResult = CardId.createFromString(linkResult[0]!.cardId);
 
       if (collectionIdResult.isErr()) {
@@ -444,7 +473,7 @@ export class DrizzleAtUriResolutionService implements IAtUriResolutionService {
 
       return ok({
         collectionId: collectionIdResult.value,
-        cardId: cardIdResult.value
+        cardId: cardIdResult.value,
       });
     } catch (error) {
       return err(error as Error);
@@ -456,6 +485,7 @@ export class DrizzleAtUriResolutionService implements IAtUriResolutionService {
 #### Standalone Worker Process
 
 **FirehoseWorkerProcess** (implements IProcess directly, not BaseWorkerProcess)
+
 ```typescript
 export class FirehoseWorkerProcess implements IProcess {
   private firehose?: Firehose;
@@ -463,7 +493,7 @@ export class FirehoseWorkerProcess implements IProcess {
 
   constructor(
     private configService: EnvironmentConfigService,
-    private firehoseEventHandler: FirehoseEventHandler
+    private firehoseEventHandler: FirehoseEventHandler,
   ) {}
 
   async start(): Promise<void> {
@@ -471,14 +501,14 @@ export class FirehoseWorkerProcess implements IProcess {
 
     const runner = new MemoryRunner({});
     this.runner = runner;
-    
+
     this.firehose = new Firehose({
       service: 'wss://bsky.network',
       runner,
       idResolver: new IdResolver(),
       filterCollections: this.getFilteredCollections(),
       handleEvent: this.handleFirehoseEvent.bind(this),
-      onError: this.handleError.bind(this)
+      onError: this.handleError.bind(this),
     });
 
     await this.firehose.start();
@@ -494,7 +524,7 @@ export class FirehoseWorkerProcess implements IProcess {
       eventType: evt.event as 'create' | 'update' | 'delete',
       record: evt.record,
       did: evt.did,
-      collection: evt.collection
+      collection: evt.collection,
     });
 
     if (result.isErr()) {
@@ -511,7 +541,7 @@ export class FirehoseWorkerProcess implements IProcess {
     return [
       collections.card,
       collections.collection,
-      collections.collectionLink
+      collections.collectionLink,
     ];
   }
 
@@ -536,6 +566,7 @@ export class FirehoseWorkerProcess implements IProcess {
 ## Detailed Event Processing Flow
 
 ### 1. Firehose Event Reception
+
 ```
 AT Protocol Network
         │ WebSocket Stream
@@ -547,6 +578,7 @@ FirehoseEventHandler.handle()
 ```
 
 ### 2. Duplicate Detection & Routing
+
 ```
 ProcessFirehoseEventUseCase.execute()
         │
@@ -560,6 +592,7 @@ ProcessFirehoseEventUseCase.execute()
 ```
 
 ### 3. Entity Processing
+
 ```
 Specific Use Cases
         │
@@ -576,6 +609,7 @@ Specific Use Cases
 ```
 
 ### 4. Internal Event Publishing
+
 ```
 Domain Events
         │
@@ -593,6 +627,7 @@ Domain Events
 ### Worker Entry Point
 
 **src/workers/firehose-worker.ts**
+
 ```typescript
 import { configService } from '../shared/infrastructure/config';
 import { RepositoryFactory } from '../shared/infrastructure/http/factories/RepositoryFactory';
@@ -612,7 +647,7 @@ async function main() {
   const duplicationService = new DrizzleFirehoseEventDuplicationService(
     repositories.database,
     repositories.atUriResolutionService,
-    configService
+    configService,
   );
 
   const processFirehoseEventUseCase = new ProcessFirehoseEventUseCase(
@@ -621,14 +656,16 @@ async function main() {
     repositories.cardRepository,
     repositories.collectionRepository,
     services.eventPublisher, // Publishes internal domain events
-    configService
+    configService,
   );
 
-  const firehoseEventHandler = new FirehoseEventHandler(processFirehoseEventUseCase);
-  
+  const firehoseEventHandler = new FirehoseEventHandler(
+    processFirehoseEventUseCase,
+  );
+
   const firehoseWorker = new FirehoseWorkerProcess(
     configService,
-    firehoseEventHandler
+    firehoseEventHandler,
   );
 
   await firehoseWorker.start();
@@ -643,6 +680,7 @@ main().catch((error) => {
 ### Build Configuration
 
 **package.json scripts**
+
 ```json
 {
   "scripts": {
@@ -652,6 +690,7 @@ main().catch((error) => {
 ```
 
 **tsup.config.ts**
+
 ```typescript
 export default defineConfig({
   entry: {
@@ -667,6 +706,7 @@ export default defineConfig({
 ### Fly.io Process Configuration
 
 **fly.development.toml**
+
 ```toml
 [processes]
   web = "npm start"
@@ -682,6 +722,7 @@ export default defineConfig({
 ```
 
 **fly.production.toml**
+
 ```toml
 [processes]
   web = "npm start"
@@ -699,6 +740,7 @@ export default defineConfig({
 ## Configuration
 
 **Environment Variables**
+
 ```bash
 # Firehose configuration
 ATPROTO_FIREHOSE_ENDPOINT=wss://bsky.network
@@ -715,21 +757,25 @@ FIREHOSE_RECONNECT_DELAY=3000
 ## Key Architectural Decisions
 
 ### 1. Direct Firehose Connection
+
 - **No BullMQ for input**: Firehose events come directly from AT Protocol WebSocket
 - **Simpler architecture**: Eliminates unnecessary serialization/deserialization
 - **Better reliability**: Direct connection with built-in reconnection logic
 
 ### 2. Always-Running Worker
+
 - **Unlike other workers**: Feed/search workers skip when using in-memory events
 - **Firehose worker always runs**: It's an external event source, not internal event consumer
 - **Environment agnostic**: Works the same in local, dev, and production
 
 ### 3. Event Publishing Strategy
+
 - **Input**: Direct AT Protocol firehose (external)
 - **Output**: Internal domain events via BullMQ or in-memory based on config
 - **Bridge pattern**: Converts external events to internal domain events
 
 ### 4. Duplicate Detection
+
 - **Leverages existing publishedRecords table**: No additional event log needed
 - **CID-based deduplication**: Uses AT Protocol's content addressing
 - **Efficient lookups**: Single table queries for CREATE/UPDATE detection
@@ -758,24 +804,28 @@ FIREHOSE_RECONNECT_DELAY=3000
 ## Deployment & Operations
 
 ### Process Management
+
 - **Dedicated Worker Process**: Runs independently of web app and other workers
 - **Always Active**: Unlike other workers, doesn't skip based on event configuration
 - **Automatic Restart**: Fly.io handles process restarts on failure
 - **Graceful Shutdown**: Handles SIGTERM/SIGINT for clean shutdowns
 
 ### Scaling Considerations
+
 - **Single Instance**: Start with one firehose worker per environment
 - **Future Scaling**: Can partition by DID ranges or collection types if needed
 - **Cursor Management**: @atproto/sync handles cursor persistence automatically
 - **Replay Capability**: Can restart from specific cursor positions
 
 ### Monitoring & Observability
+
 - **Connection Health**: Monitor WebSocket connection status
 - **Processing Metrics**: Track events processed, duplicates detected, errors
 - **Latency Monitoring**: Measure time from firehose event to domain event publication
 - **Error Tracking**: Log and alert on processing failures
 
 ### Error Handling Strategy
+
 - **Network Errors**: Automatic reconnection with exponential backoff (handled by @atproto/sync)
 - **Processing Errors**: Log and continue (don't crash worker for single event failures)
 - **Validation Errors**: Skip invalid records with detailed logging
@@ -784,21 +834,25 @@ FIREHOSE_RECONNECT_DELAY=3000
 ## Benefits of This Architecture
 
 ### 1. Separation of Concerns
+
 - **External Events**: Firehose worker handles AT Protocol events
 - **Internal Events**: Other workers handle domain events
 - **Clear Boundaries**: No mixing of external and internal event systems
 
 ### 2. Reliability
+
 - **Direct Connection**: No intermediate queues that can fail
 - **Built-in Resilience**: @atproto/sync handles reconnection and cursor management
 - **Idempotent Processing**: Duplicate detection prevents double-processing
 
 ### 3. Performance
+
 - **No Serialization Overhead**: Direct event processing
 - **Efficient Duplicate Detection**: Single table lookups
 - **Minimal Latency**: Direct path from firehose to domain updates
 
 ### 4. Maintainability
+
 - **Simple Architecture**: Easy to understand and debug
 - **Standard Patterns**: Follows existing DDD and layered architecture
 - **Testable**: Clear interfaces for mocking and testing

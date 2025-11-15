@@ -9,16 +9,19 @@ The `UpdateUrlCardAssociationsUseCase` is complex and handles multiple operation
 **Approach**: Extend the DTO with optional published record IDs for different operations.
 
 **Pros**:
+
 - Single interface, maintains existing API
 - Minimal code changes
 - Handles all scenarios in one place
 
 **Cons**:
+
 - Makes the DTO more complex
 - Mixed concerns (normal operations vs firehose events)
 - Hard to understand which parameters apply to which operations
 
 **Implementation**:
+
 ```typescript
 export interface UpdateUrlCardAssociationsDTO {
   cardId: string;
@@ -38,21 +41,26 @@ export interface UpdateUrlCardAssociationsDTO {
 **Approach**: Create dedicated use cases for firehose event processing that handle the publishing logic differently.
 
 **Pros**:
+
 - Clear separation of concerns
 - Easier to understand and maintain
 - Can optimize for firehose-specific requirements
 - No impact on existing use cases
 
 **Cons**:
+
 - Code duplication
 - More files to maintain
 - Need to keep business logic in sync
 
 **Implementation**:
+
 ```typescript
 // New use case specifically for firehose events
 export class ProcessNoteCardFirehoseEventUseCase {
-  async execute(request: ProcessNoteCardFirehoseEventDTO): Promise<Result<void>> {
+  async execute(
+    request: ProcessNoteCardFirehoseEventDTO,
+  ): Promise<Result<void>> {
     // Handle note card creation/update with pre-existing published record ID
     // Skip all publishing operations
     // Reuse domain services but with different flow
@@ -60,7 +68,9 @@ export class ProcessNoteCardFirehoseEventUseCase {
 }
 
 export class ProcessCollectionLinkFirehoseEventUseCase {
-  async execute(request: ProcessCollectionLinkFirehoseEventDTO): Promise<Result<void>> {
+  async execute(
+    request: ProcessCollectionLinkFirehoseEventDTO,
+  ): Promise<Result<void>> {
     // Handle collection link operations with pre-existing published record ID
     // Skip publishing operations
   }
@@ -72,21 +82,24 @@ export class ProcessCollectionLinkFirehoseEventUseCase {
 **Approach**: Add a context parameter that controls publishing behavior throughout the operation chain.
 
 **Pros**:
+
 - Clean separation of concerns
 - Reuses existing logic
 - Easy to extend for other contexts
 - Minimal API changes
 
 **Cons**:
+
 - Requires threading context through multiple layers
 - Could be forgotten in new code paths
 
 **Implementation**:
+
 ```typescript
 export enum OperationContext {
   USER_INITIATED = 'user_initiated',
   FIREHOSE_EVENT = 'firehose_event',
-  SYSTEM_MIGRATION = 'system_migration'
+  SYSTEM_MIGRATION = 'system_migration',
 }
 
 export interface UpdateUrlCardAssociationsDTO {
@@ -109,15 +122,18 @@ export interface UpdateUrlCardAssociationsDTO {
 **Approach**: Modify domain services to accept publishing control parameters.
 
 **Pros**:
+
 - Centralized publishing control
 - Reuses existing use case logic
 - Clean separation at service level
 
 **Cons**:
+
 - Changes to multiple service interfaces
 - Could make services more complex
 
 **Implementation**:
+
 ```typescript
 // Modify CardLibraryService
 async addCardToLibrary(
@@ -129,7 +145,7 @@ async addCardToLibrary(
   }
 ): Promise<Result<Card, ...>>
 
-// Modify CardCollectionService  
+// Modify CardCollectionService
 async addCardToCollections(
   card: Card,
   collectionIds: CollectionId[],
@@ -146,23 +162,34 @@ async addCardToCollections(
 **Approach**: Create different variants of the use case based on the execution context.
 
 **Pros**:
+
 - Clean separation without code duplication
 - Easy to test different behaviors
 - Flexible for future contexts
 
 **Cons**:
+
 - More complex setup
 - Factory pattern overhead
 
 **Implementation**:
+
 ```typescript
 export class UpdateUrlCardAssociationsUseCaseFactory {
-  static createForUserOperation(dependencies): UpdateUrlCardAssociationsUseCase {
-    return new UpdateUrlCardAssociationsUseCase(dependencies, { publishingEnabled: true });
+  static createForUserOperation(
+    dependencies,
+  ): UpdateUrlCardAssociationsUseCase {
+    return new UpdateUrlCardAssociationsUseCase(dependencies, {
+      publishingEnabled: true,
+    });
   }
-  
-  static createForFirehoseEvent(dependencies): UpdateUrlCardAssociationsUseCase {
-    return new UpdateUrlCardAssociationsUseCase(dependencies, { publishingEnabled: false });
+
+  static createForFirehoseEvent(
+    dependencies,
+  ): UpdateUrlCardAssociationsUseCase {
+    return new UpdateUrlCardAssociationsUseCase(dependencies, {
+      publishingEnabled: false,
+    });
   }
 }
 ```
@@ -170,6 +197,7 @@ export class UpdateUrlCardAssociationsUseCaseFactory {
 ## Recommended Approach: Option 3 (Context-Based Publishing Control)
 
 **Rationale**:
+
 - Provides clean separation without major architectural changes
 - Reuses existing business logic
 - Easy to understand and maintain
@@ -177,6 +205,7 @@ export class UpdateUrlCardAssociationsUseCaseFactory {
 - Minimal impact on existing code
 
 **Implementation Strategy**:
+
 1. Add `OperationContext` enum and optional context parameter to DTOs
 2. Thread context through service calls
 3. Modify services to check context before publishing

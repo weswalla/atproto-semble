@@ -119,5 +119,4 @@ export class ATUri extends ValueObject<ATUriProps> {
   public equals(other: ATUri): boolean {
     return this.props.value === other.props.value;
   }
-
 }

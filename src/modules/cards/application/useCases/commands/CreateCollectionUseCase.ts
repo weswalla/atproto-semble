@@ -90,7 +90,8 @@ export class CreateCollectionUseCase
         collection.markAsPublished(request.publishedRecordId);
       } else {
         // Publish collection normally
-        const publishResult = await this.collectionPublisher.publish(collection);
+        const publishResult =
+          await this.collectionPublisher.publish(collection);
         if (publishResult.isErr()) {
           // Propagate authentication errors
           if (publishResult.error instanceof AuthenticationError) {

@@ -6,7 +6,10 @@ import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriRe
 import { PublishedRecordId } from '../../../cards/domain/value-objects/PublishedRecordId';
 import { ATUri } from '../../domain/ATUri';
 import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLink';
-import { UpdateUrlCardAssociationsUseCase, OperationContext } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
+import {
+  UpdateUrlCardAssociationsUseCase,
+  OperationContext,
+} from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
 
 export interface ProcessCollectionLinkFirehoseEventDTO {
   atUri: string;
@@ -15,15 +18,21 @@ export interface ProcessCollectionLinkFirehoseEventDTO {
   record?: CollectionLinkRecord;
 }
 
-export class ProcessCollectionLinkFirehoseEventUseCase implements UseCase<ProcessCollectionLinkFirehoseEventDTO, Result<void>> {
+export class ProcessCollectionLinkFirehoseEventUseCase
+  implements UseCase<ProcessCollectionLinkFirehoseEventDTO, Result<void>>
+{
   constructor(
     private atUriResolutionService: IAtUriResolutionService,
     private updateUrlCardAssociationsUseCase: UpdateUrlCardAssociationsUseCase,
   ) {}
 
-  async execute(request: ProcessCollectionLinkFirehoseEventDTO): Promise<Result<void>> {
+  async execute(
+    request: ProcessCollectionLinkFirehoseEventDTO,
+  ): Promise<Result<void>> {
     try {
-      console.log(`Processing collection link firehose event: ${request.atUri} (${request.eventType})`);
+      console.log(
+        `Processing collection link firehose event: ${request.atUri} (${request.eventType})`,
+      );
 
       switch (request.eventType) {
         case 'create':
@@ -32,7 +41,9 @@ export class ProcessCollectionLinkFirehoseEventUseCase implements UseCase<Proces
           return await this.handleCollectionLinkDelete(request);
         case 'update':
           // Collection links don't typically have update operations
-          console.log(`Collection link update event for ${request.atUri} (unusual)`);
+          console.log(
+            `Collection link update event for ${request.atUri} (unusual)`,
+          );
           break;
       }
 
@@ -46,7 +57,9 @@ export class ProcessCollectionLinkFirehoseEventUseCase implements UseCase<Proces
     request: ProcessCollectionLinkFirehoseEventDTO,
   ): Promise<Result<void>> {
     if (!request.record || !request.cid) {
-      console.warn('Collection link create event missing record or cid, skipping');
+      console.warn(
+        'Collection link create event missing record or cid, skipping',
+      );
       return ok(undefined);
     }
 
@@ -62,15 +75,18 @@ export class ProcessCollectionLinkFirehoseEventUseCase implements UseCase<Proces
       const curatorDid = atUriResult.value.did.value;
 
       // Resolve collection and card from strong refs
-      const collectionId = await this.atUriResolutionService.resolveCollectionId(
-        request.record.collection.uri,
-      );
+      const collectionId =
+        await this.atUriResolutionService.resolveCollectionId(
+          request.record.collection.uri,
+        );
       const cardId = await this.atUriResolutionService.resolveCardId(
         request.record.card.uri,
       );
 
       if (collectionId.isErr() || !collectionId.value) {
-        console.warn(`Failed to resolve collection: ${request.record.collection.uri}`);
+        console.warn(
+          `Failed to resolve collection: ${request.record.collection.uri}`,
+        );
         return ok(undefined);
       }
 
@@ -85,7 +101,10 @@ export class ProcessCollectionLinkFirehoseEventUseCase implements UseCase<Proces
       });
 
       const collectionLinkMap = new Map<string, PublishedRecordId>();
-      collectionLinkMap.set(collectionId.value.getStringValue(), publishedRecordId);
+      collectionLinkMap.set(
+        collectionId.value.getStringValue(),
+        publishedRecordId,
+      );
 
       const result = await this.updateUrlCardAssociationsUseCase.execute({
         cardId: cardId.value.getStringValue(),
@@ -98,7 +117,9 @@ export class ProcessCollectionLinkFirehoseEventUseCase implements UseCase<Proces
       });
 
       if (result.isErr()) {
-        console.warn(`Failed to add card to collection: ${result.error.message}`);
+        console.warn(
+          `Failed to add card to collection: ${result.error.message}`,
+        );
         return ok(undefined);
       }
 
@@ -125,15 +146,22 @@ export class ProcessCollectionLinkFirehoseEventUseCase implements UseCase<Proces
       const curatorDid = atUriResult.value.did.value;
 
       // Handle collection link deletion if we have it in our system
-      const linkInfoResult = await this.atUriResolutionService.resolveCollectionLinkId(request.atUri);
+      const linkInfoResult =
+        await this.atUriResolutionService.resolveCollectionLinkId(
+          request.atUri,
+        );
       if (linkInfoResult.isErr()) {
-        console.warn(`Failed to resolve collection link: ${linkInfoResult.error.message}`);
+        console.warn(
+          `Failed to resolve collection link: ${linkInfoResult.error.message}`,
+        );
         return ok(undefined);
       }
-      
+
       if (linkInfoResult.value) {
-        console.log(`Collection link deleted externally: ${request.atUri}, removing from our system`);
-        
+        console.log(
+          `Collection link deleted externally: ${request.atUri}, removing from our system`,
+        );
+
         const publishedRecordId = PublishedRecordId.create({
           uri: request.atUri,
           cid: request.cid || 'deleted',
@@ -142,16 +170,22 @@ export class ProcessCollectionLinkFirehoseEventUseCase implements UseCase<Proces
         const result = await this.updateUrlCardAssociationsUseCase.execute({
           cardId: linkInfoResult.value.cardId.getStringValue(),
           curatorId: curatorDid,
-          removeFromCollections: [linkInfoResult.value.collectionId.getStringValue()],
+          removeFromCollections: [
+            linkInfoResult.value.collectionId.getStringValue(),
+          ],
           context: OperationContext.FIREHOSE_EVENT,
         });
 
         if (result.isErr()) {
-          console.warn(`Failed to remove card from collection: ${result.error.message}`);
+          console.warn(
+            `Failed to remove card from collection: ${result.error.message}`,
+          );
           return ok(undefined);
         }
 
-        console.log(`Successfully removed card from collection from firehose event`);
+        console.log(
+          `Successfully removed card from collection from firehose event`,
+        );
       }
 
       return ok(undefined);

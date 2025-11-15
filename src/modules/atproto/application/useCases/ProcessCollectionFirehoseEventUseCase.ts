@@ -175,7 +175,9 @@ export class ProcessCollectionFirehoseEventUseCase
       const collectionIdResult =
         await this.atUriResolutionService.resolveCollectionId(request.atUri);
       if (collectionIdResult.isErr()) {
-        console.warn(`Failed to resolve collection ID: ${collectionIdResult.error.message}`);
+        console.warn(
+          `Failed to resolve collection ID: ${collectionIdResult.error.message}`,
+        );
         return ok(undefined);
       }
 
@@ -200,7 +202,9 @@ export class ProcessCollectionFirehoseEventUseCase
           return ok(undefined);
         }
 
-        console.log(`Successfully deleted collection: ${result.value.collectionId}`);
+        console.log(
+          `Successfully deleted collection: ${result.value.collectionId}`,
+        );
       }
 
       return ok(undefined);
@@ -209,5 +213,4 @@ export class ProcessCollectionFirehoseEventUseCase
       return ok(undefined);
     }
   }
-
 }

@@ -64,18 +64,23 @@ export class InMemoryAtUriResolutionService implements IAtUriResolutionService {
   }
 
   async resolveCollectionLinkId(
-    atUri: string
-  ): Promise<Result<{collectionId: CollectionId, cardId: CardId} | null>> {
+    atUri: string,
+  ): Promise<Result<{ collectionId: CollectionId; cardId: CardId } | null>> {
     const result = await this.resolveAtUri(atUri);
 
     if (result.isErr()) {
       return err(result.error);
     }
 
-    if (!result.value || result.value.type !== AtUriResourceType.COLLECTION_LINK) {
+    if (
+      !result.value ||
+      result.value.type !== AtUriResourceType.COLLECTION_LINK
+    ) {
       return ok(null);
     }
 
-    return ok(result.value.id as {collectionId: CollectionId, cardId: CardId});
+    return ok(
+      result.value.id as { collectionId: CollectionId; cardId: CardId },
+    );
   }
 }

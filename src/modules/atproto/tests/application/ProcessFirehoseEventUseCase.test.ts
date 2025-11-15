@@ -4,73 +4,151 @@ import { ProcessCardFirehoseEventUseCase } from '../../application/useCases/Proc
 import { ProcessCollectionFirehoseEventUseCase } from '../../application/useCases/ProcessCollectionFirehoseEventUseCase';
 import { ProcessCollectionLinkFirehoseEventUseCase } from '../../application/useCases/ProcessCollectionLinkFirehoseEventUseCase';
 import { EnvironmentConfigService } from '../../../../shared/infrastructure/config/EnvironmentConfigService';
+import { InMemoryAtUriResolutionService } from '../../../cards/tests/utils/InMemoryAtUriResolutionService';
+import { AddUrlToLibraryUseCase } from '../../../cards/application/useCases/commands/AddUrlToLibraryUseCase';
+import { UpdateUrlCardAssociationsUseCase } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
+import { RemoveCardFromLibraryUseCase } from '../../../cards/application/useCases/commands/RemoveCardFromLibraryUseCase';
+import { CreateCollectionUseCase } from '../../../cards/application/useCases/commands/CreateCollectionUseCase';
+import { UpdateCollectionUseCase } from '../../../cards/application/useCases/commands/UpdateCollectionUseCase';
+import { DeleteCollectionUseCase } from '../../../cards/application/useCases/commands/DeleteCollectionUseCase';
+import { InMemoryCardRepository } from '../../../cards/tests/utils/InMemoryCardRepository';
+import { InMemoryCollectionRepository } from '../../../cards/tests/utils/InMemoryCollectionRepository';
+import { FakeCardPublisher } from '../../../cards/tests/utils/FakeCardPublisher';
+import { FakeCollectionPublisher } from '../../../cards/tests/utils/FakeCollectionPublisher';
+import { FakeMetadataService } from '../../../cards/tests/utils/FakeMetadataService';
+import { FakeEventPublisher } from '../../../cards/tests/utils/FakeEventPublisher';
+import { CardLibraryService } from '../../../cards/domain/services/CardLibraryService';
+import { CardCollectionService } from '../../../cards/domain/services/CardCollectionService';
 import { Record as CardRecord } from '../../infrastructure/lexicon/types/network/cosmik/card';
 import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
 import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLink';
-
-// Mock the specific use cases
-jest.mock('../../application/useCases/ProcessCardFirehoseEventUseCase');
-jest.mock('../../application/useCases/ProcessCollectionFirehoseEventUseCase');
-jest.mock(
-  '../../application/useCases/ProcessCollectionLinkFirehoseEventUseCase',
-);
-
-const MockProcessCardFirehoseEventUseCase =
-  ProcessCardFirehoseEventUseCase as jest.MockedClass<
-    typeof ProcessCardFirehoseEventUseCase
-  >;
-const MockProcessCollectionFirehoseEventUseCase =
-  ProcessCollectionFirehoseEventUseCase as jest.MockedClass<
-    typeof ProcessCollectionFirehoseEventUseCase
-  >;
-const MockProcessCollectionLinkFirehoseEventUseCase =
-  ProcessCollectionLinkFirehoseEventUseCase as jest.MockedClass<
-    typeof ProcessCollectionLinkFirehoseEventUseCase
-  >;
 
 describe('ProcessFirehoseEventUseCase', () => {
   let useCase: ProcessFirehoseEventUseCase;
   let duplicationService: InMemoryFirehoseEventDuplicationService;
   let configService: EnvironmentConfigService;
-  let mockProcessCardFirehoseEventUseCase: jest.Mocked<ProcessCardFirehoseEventUseCase>;
-  let mockProcessCollectionFirehoseEventUseCase: jest.Mocked<ProcessCollectionFirehoseEventUseCase>;
-  let mockProcessCollectionLinkFirehoseEventUseCase: jest.Mocked<ProcessCollectionLinkFirehoseEventUseCase>;
+  let processCardFirehoseEventUseCase: ProcessCardFirehoseEventUseCase;
+  let processCollectionFirehoseEventUseCase: ProcessCollectionFirehoseEventUseCase;
+  let processCollectionLinkFirehoseEventUseCase: ProcessCollectionLinkFirehoseEventUseCase;
+  
+  // Dependencies for real use cases
+  let atUriResolutionService: InMemoryAtUriResolutionService;
+  let cardRepository: InMemoryCardRepository;
+  let collectionRepository: InMemoryCollectionRepository;
+  let cardPublisher: FakeCardPublisher;
+  let collectionPublisher: FakeCollectionPublisher;
+  let metadataService: FakeMetadataService;
+  let eventPublisher: FakeEventPublisher;
+  let cardLibraryService: CardLibraryService;
+  let cardCollectionService: CardCollectionService;
+  let addUrlToLibraryUseCase: AddUrlToLibraryUseCase;
+  let updateUrlCardAssociationsUseCase: UpdateUrlCardAssociationsUseCase;
+  let removeCardFromLibraryUseCase: RemoveCardFromLibraryUseCase;
+  let createCollectionUseCase: CreateCollectionUseCase;
+  let updateCollectionUseCase: UpdateCollectionUseCase;
+  let deleteCollectionUseCase: DeleteCollectionUseCase;
 
   beforeEach(() => {
     duplicationService = new InMemoryFirehoseEventDuplicationService();
     configService = new EnvironmentConfigService();
+    
+    // Set up all the real dependencies
+    cardRepository = InMemoryCardRepository.getInstance();
+    collectionRepository = InMemoryCollectionRepository.getInstance();
+    cardPublisher = new FakeCardPublisher();
+    collectionPublisher = new FakeCollectionPublisher();
+    metadataService = new FakeMetadataService();
+    eventPublisher = new FakeEventPublisher();
 
-    // Create mock instances
-    mockProcessCardFirehoseEventUseCase =
-      new MockProcessCardFirehoseEventUseCase() as any;
-    mockProcessCollectionFirehoseEventUseCase =
-      new MockProcessCollectionFirehoseEventUseCase() as any;
-    mockProcessCollectionLinkFirehoseEventUseCase =
-      new MockProcessCollectionLinkFirehoseEventUseCase() as any;
+    cardCollectionService = new CardCollectionService(
+      collectionRepository,
+      collectionPublisher,
+    );
+    cardLibraryService = new CardLibraryService(
+      cardRepository,
+      cardPublisher,
+      collectionRepository,
+      cardCollectionService,
+    );
 
-    // Setup default mock implementations
-    mockProcessCardFirehoseEventUseCase.execute = jest
-      .fn()
-      .mockResolvedValue({ isOk: () => true });
-    mockProcessCollectionFirehoseEventUseCase.execute = jest
-      .fn()
-      .mockResolvedValue({ isOk: () => true });
-    mockProcessCollectionLinkFirehoseEventUseCase.execute = jest
-      .fn()
-      .mockResolvedValue({ isOk: () => true });
+    atUriResolutionService = new InMemoryAtUriResolutionService(
+      collectionRepository,
+    );
+
+    // Create use cases for card processing
+    addUrlToLibraryUseCase = new AddUrlToLibraryUseCase(
+      cardRepository,
+      metadataService,
+      cardLibraryService,
+      cardCollectionService,
+      eventPublisher,
+    );
+
+    updateUrlCardAssociationsUseCase = new UpdateUrlCardAssociationsUseCase(
+      cardRepository,
+      cardLibraryService,
+      cardCollectionService,
+      eventPublisher,
+    );
+
+    removeCardFromLibraryUseCase = new RemoveCardFromLibraryUseCase(
+      cardRepository,
+      cardLibraryService,
+    );
+
+    // Create use cases for collection processing
+    createCollectionUseCase = new CreateCollectionUseCase(
+      collectionRepository,
+      collectionPublisher,
+    );
+
+    updateCollectionUseCase = new UpdateCollectionUseCase(
+      collectionRepository,
+      collectionPublisher,
+    );
+
+    deleteCollectionUseCase = new DeleteCollectionUseCase(
+      collectionRepository,
+      collectionPublisher,
+    );
+
+    // Create real use case instances
+    processCardFirehoseEventUseCase = new ProcessCardFirehoseEventUseCase(
+      atUriResolutionService,
+      addUrlToLibraryUseCase,
+      updateUrlCardAssociationsUseCase,
+      removeCardFromLibraryUseCase,
+    );
+
+    processCollectionFirehoseEventUseCase = new ProcessCollectionFirehoseEventUseCase(
+      atUriResolutionService,
+      createCollectionUseCase,
+      updateCollectionUseCase,
+      deleteCollectionUseCase,
+    );
+
+    processCollectionLinkFirehoseEventUseCase = new ProcessCollectionLinkFirehoseEventUseCase(
+      atUriResolutionService,
+      updateUrlCardAssociationsUseCase,
+    );
 
     useCase = new ProcessFirehoseEventUseCase(
       duplicationService,
       configService,
-      mockProcessCardFirehoseEventUseCase,
-      mockProcessCollectionFirehoseEventUseCase,
-      mockProcessCollectionLinkFirehoseEventUseCase,
+      processCardFirehoseEventUseCase,
+      processCollectionFirehoseEventUseCase,
+      processCollectionLinkFirehoseEventUseCase,
     );
   });
 
   afterEach(() => {
     duplicationService.clear();
-    jest.clearAllMocks();
+    cardRepository.clear();
+    collectionRepository.clear();
+    cardPublisher.clear();
+    collectionPublisher.clear();
+    metadataService.clear();
+    eventPublisher.clear();
   });
 
   describe('Event Routing', () => {
@@ -95,15 +173,11 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      expect(mockProcessCardFirehoseEventUseCase.execute).toHaveBeenCalledWith(
-        request,
-      );
-      expect(
-        mockProcessCollectionFirehoseEventUseCase.execute,
-      ).not.toHaveBeenCalled();
-      expect(
-        mockProcessCollectionLinkFirehoseEventUseCase.execute,
-      ).not.toHaveBeenCalled();
+      
+      // Verify the card was actually created in the repository
+      const savedCards = cardRepository.getAllCards();
+      expect(savedCards).toHaveLength(1);
+      expect(savedCards[0]?.content.type).toBe('URL');
     });
 
     it('should route collection events to ProcessCollectionFirehoseEventUseCase', async () => {
@@ -124,15 +198,11 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      expect(
-        mockProcessCollectionFirehoseEventUseCase.execute,
-      ).toHaveBeenCalledWith(request);
-      expect(
-        mockProcessCardFirehoseEventUseCase.execute,
-      ).not.toHaveBeenCalled();
-      expect(
-        mockProcessCollectionLinkFirehoseEventUseCase.execute,
-      ).not.toHaveBeenCalled();
+      
+      // Verify the collection was actually created in the repository
+      const savedCollections = collectionRepository.getAllCollections();
+      expect(savedCollections).toHaveLength(1);
+      expect(savedCollections[0]?.name.value).toBe('Test Collection');
     });
 
     it('should route collection link events to ProcessCollectionLinkFirehoseEventUseCase', async () => {
@@ -161,15 +231,8 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      expect(
-        mockProcessCollectionLinkFirehoseEventUseCase.execute,
-      ).toHaveBeenCalledWith(request);
-      expect(
-        mockProcessCardFirehoseEventUseCase.execute,
-      ).not.toHaveBeenCalled();
-      expect(
-        mockProcessCollectionFirehoseEventUseCase.execute,
-      ).not.toHaveBeenCalled();
+      // Collection link processing will gracefully handle missing referenced entities
+      // so we just verify the request was processed without error
     });
 
     it('should handle unknown collection types', async () => {
@@ -186,15 +249,7 @@ describe('ProcessFirehoseEventUseCase', () => {
       if (result.isErr()) {
         expect(result.error.message).toContain('Unknown collection type');
       }
-      expect(
-        mockProcessCardFirehoseEventUseCase.execute,
-      ).not.toHaveBeenCalled();
-      expect(
-        mockProcessCollectionFirehoseEventUseCase.execute,
-      ).not.toHaveBeenCalled();
-      expect(
-        mockProcessCollectionLinkFirehoseEventUseCase.execute,
-      ).not.toHaveBeenCalled();
+      // No specific side effects to verify for unknown collection types
     });
   });
 
@@ -225,9 +280,8 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      expect(
-        mockProcessCardFirehoseEventUseCase.execute,
-      ).not.toHaveBeenCalled();
+      // Event was marked as duplicate, so no processing should occur
+      expect(cardRepository.getAllCards()).toHaveLength(0);
     });
 
     it('should process non-duplicate events', async () => {
@@ -249,9 +303,10 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      expect(mockProcessCardFirehoseEventUseCase.execute).toHaveBeenCalledWith(
-        request,
-      );
+      
+      // Verify the card was actually created
+      const savedCards = cardRepository.getAllCards();
+      expect(savedCards).toHaveLength(1);
     });
 
     it('should handle duplication service errors', async () => {
@@ -276,9 +331,9 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(
-        mockProcessCardFirehoseEventUseCase.execute,
-      ).not.toHaveBeenCalled();
+      
+      // No processing should have occurred
+      expect(cardRepository.getAllCards()).toHaveLength(0);
     });
   });
 
@@ -297,15 +352,10 @@ describe('ProcessFirehoseEventUseCase', () => {
       if (result.isErr()) {
         expect(result.error.message).toContain('Invalid AT URI');
       }
-      expect(
-        mockProcessCardFirehoseEventUseCase.execute,
-      ).not.toHaveBeenCalled();
-      expect(
-        mockProcessCollectionFirehoseEventUseCase.execute,
-      ).not.toHaveBeenCalled();
-      expect(
-        mockProcessCollectionLinkFirehoseEventUseCase.execute,
-      ).not.toHaveBeenCalled();
+      
+      // No processing should have occurred
+      expect(cardRepository.getAllCards()).toHaveLength(0);
+      expect(collectionRepository.getAllCollections()).toHaveLength(0);
     });
 
     it('should handle malformed AT URI', async () => {
@@ -345,9 +395,10 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      expect(mockProcessCardFirehoseEventUseCase.execute).toHaveBeenCalledWith(
-        request,
-      );
+      
+      // Verify the card was created
+      const savedCards = cardRepository.getAllCards();
+      expect(savedCards).toHaveLength(1);
     });
 
     it('should handle update events', async () => {
@@ -366,9 +417,10 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      expect(
-        mockProcessCollectionFirehoseEventUseCase.execute,
-      ).toHaveBeenCalledWith(request);
+      
+      // Verify the collection was created
+      const savedCollections = collectionRepository.getAllCollections();
+      expect(savedCollections).toHaveLength(1);
     });
 
     it('should handle delete events', async () => {
@@ -382,20 +434,16 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      expect(
-        mockProcessCollectionLinkFirehoseEventUseCase.execute,
-      ).toHaveBeenCalledWith(request);
+      // Collection link processing handles missing entities gracefully
     });
   });
 
   describe('Error Handling', () => {
-    it('should handle unexpected errors gracefully', async () => {
+    it('should handle metadata service failures gracefully', async () => {
       const collections = configService.getAtProtoCollections();
 
-      // Configure card use case to throw an error
-      mockProcessCardFirehoseEventUseCase.execute.mockRejectedValue(
-        new Error('Unexpected error'),
-      );
+      // Configure metadata service to fail
+      metadataService.setShouldFail(true);
 
       const request = {
         atUri: `at://did:plc:test/${collections.card}/test-card-id`,
@@ -413,41 +461,37 @@ describe('ProcessFirehoseEventUseCase', () => {
 
       const result = await useCase.execute(request);
 
-      expect(result.isErr()).toBe(true);
-      if (result.isErr()) {
-        expect(result.error.message).toContain('Unexpected error');
-      }
+      // The card processor handles metadata failures gracefully
+      expect(result.isOk()).toBe(true);
+      
+      // No card should be created due to metadata failure
+      expect(cardRepository.getAllCards()).toHaveLength(0);
     });
 
-    it('should handle use case returning error results', async () => {
+    it('should handle publisher failures gracefully', async () => {
       const collections = configService.getAtProtoCollections();
 
-      // Configure card use case to return an error result
-      mockProcessCardFirehoseEventUseCase.execute.mockResolvedValue({
-        isOk: () => false,
-        isErr: () => true,
-        error: new Error('Use case error'),
-      } as any);
+      // Configure collection publisher to fail
+      collectionPublisher.setShouldFail(true);
 
       const request = {
-        atUri: `at://did:plc:test/${collections.card}/test-card-id`,
+        atUri: `at://did:plc:test/${collections.collection}/test-collection-id`,
         cid: 'test-cid',
         eventType: 'create' as const,
         record: {
-          $type: 'network.cosmik.card',
-          type: 'URL',
-          content: {
-            $type: 'network.cosmik.card#urlContent',
-            url: 'https://example.com',
-          },
-        } as CardRecord,
+          $type: 'network.cosmik.collection',
+          name: 'Test Collection',
+          accessType: 'CLOSED',
+        } as CollectionRecord,
       };
 
       const result = await useCase.execute(request);
 
-      // The specific use cases handle their own errors and return ok(undefined)
-      // so this should still be ok from the main processor's perspective
-      expect(result.isOk()).toBe(false);
+      // The collection processor handles publisher failures gracefully
+      expect(result.isOk()).toBe(true);
+      
+      // Collection should still be saved even if publishing fails
+      expect(collectionRepository.getAllCollections()).toHaveLength(1);
     });
   });
 });

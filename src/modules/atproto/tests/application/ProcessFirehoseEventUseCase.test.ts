@@ -11,11 +11,22 @@ import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/typ
 // Mock the specific use cases
 jest.mock('../../application/useCases/ProcessCardFirehoseEventUseCase');
 jest.mock('../../application/useCases/ProcessCollectionFirehoseEventUseCase');
-jest.mock('../../application/useCases/ProcessCollectionLinkFirehoseEventUseCase');
+jest.mock(
+  '../../application/useCases/ProcessCollectionLinkFirehoseEventUseCase',
+);
 
-const MockProcessCardFirehoseEventUseCase = ProcessCardFirehoseEventUseCase as jest.MockedClass<typeof ProcessCardFirehoseEventUseCase>;
-const MockProcessCollectionFirehoseEventUseCase = ProcessCollectionFirehoseEventUseCase as jest.MockedClass<typeof ProcessCollectionFirehoseEventUseCase>;
-const MockProcessCollectionLinkFirehoseEventUseCase = ProcessCollectionLinkFirehoseEventUseCase as jest.MockedClass<typeof ProcessCollectionLinkFirehoseEventUseCase>;
+const MockProcessCardFirehoseEventUseCase =
+  ProcessCardFirehoseEventUseCase as jest.MockedClass<
+    typeof ProcessCardFirehoseEventUseCase
+  >;
+const MockProcessCollectionFirehoseEventUseCase =
+  ProcessCollectionFirehoseEventUseCase as jest.MockedClass<
+    typeof ProcessCollectionFirehoseEventUseCase
+  >;
+const MockProcessCollectionLinkFirehoseEventUseCase =
+  ProcessCollectionLinkFirehoseEventUseCase as jest.MockedClass<
+    typeof ProcessCollectionLinkFirehoseEventUseCase
+  >;
 
 describe('ProcessFirehoseEventUseCase', () => {
   let useCase: ProcessFirehoseEventUseCase;
@@ -30,14 +41,23 @@ describe('ProcessFirehoseEventUseCase', () => {
     configService = new EnvironmentConfigService();
 
     // Create mock instances
-    mockProcessCardFirehoseEventUseCase = new MockProcessCardFirehoseEventUseCase() as any;
-    mockProcessCollectionFirehoseEventUseCase = new MockProcessCollectionFirehoseEventUseCase() as any;
-    mockProcessCollectionLinkFirehoseEventUseCase = new MockProcessCollectionLinkFirehoseEventUseCase() as any;
+    mockProcessCardFirehoseEventUseCase =
+      new MockProcessCardFirehoseEventUseCase() as any;
+    mockProcessCollectionFirehoseEventUseCase =
+      new MockProcessCollectionFirehoseEventUseCase() as any;
+    mockProcessCollectionLinkFirehoseEventUseCase =
+      new MockProcessCollectionLinkFirehoseEventUseCase() as any;
 
     // Setup default mock implementations
-    mockProcessCardFirehoseEventUseCase.execute = jest.fn().mockResolvedValue({ isOk: () => true });
-    mockProcessCollectionFirehoseEventUseCase.execute = jest.fn().mockResolvedValue({ isOk: () => true });
-    mockProcessCollectionLinkFirehoseEventUseCase.execute = jest.fn().mockResolvedValue({ isOk: () => true });
+    mockProcessCardFirehoseEventUseCase.execute = jest
+      .fn()
+      .mockResolvedValue({ isOk: () => true });
+    mockProcessCollectionFirehoseEventUseCase.execute = jest
+      .fn()
+      .mockResolvedValue({ isOk: () => true });
+    mockProcessCollectionLinkFirehoseEventUseCase.execute = jest
+      .fn()
+      .mockResolvedValue({ isOk: () => true });
 
     useCase = new ProcessFirehoseEventUseCase(
       duplicationService,
@@ -75,9 +95,15 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      expect(mockProcessCardFirehoseEventUseCase.execute).toHaveBeenCalledWith(request);
-      expect(mockProcessCollectionFirehoseEventUseCase.execute).not.toHaveBeenCalled();
-      expect(mockProcessCollectionLinkFirehoseEventUseCase.execute).not.toHaveBeenCalled();
+      expect(mockProcessCardFirehoseEventUseCase.execute).toHaveBeenCalledWith(
+        request,
+      );
+      expect(
+        mockProcessCollectionFirehoseEventUseCase.execute,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockProcessCollectionLinkFirehoseEventUseCase.execute,
+      ).not.toHaveBeenCalled();
     });
 
     it('should route collection events to ProcessCollectionFirehoseEventUseCase', async () => {
@@ -98,9 +124,15 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      expect(mockProcessCollectionFirehoseEventUseCase.execute).toHaveBeenCalledWith(request);
-      expect(mockProcessCardFirehoseEventUseCase.execute).not.toHaveBeenCalled();
-      expect(mockProcessCollectionLinkFirehoseEventUseCase.execute).not.toHaveBeenCalled();
+      expect(
+        mockProcessCollectionFirehoseEventUseCase.execute,
+      ).toHaveBeenCalledWith(request);
+      expect(
+        mockProcessCardFirehoseEventUseCase.execute,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockProcessCollectionLinkFirehoseEventUseCase.execute,
+      ).not.toHaveBeenCalled();
     });
 
     it('should route collection link events to ProcessCollectionLinkFirehoseEventUseCase', async () => {
@@ -129,9 +161,15 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      expect(mockProcessCollectionLinkFirehoseEventUseCase.execute).toHaveBeenCalledWith(request);
-      expect(mockProcessCardFirehoseEventUseCase.execute).not.toHaveBeenCalled();
-      expect(mockProcessCollectionFirehoseEventUseCase.execute).not.toHaveBeenCalled();
+      expect(
+        mockProcessCollectionLinkFirehoseEventUseCase.execute,
+      ).toHaveBeenCalledWith(request);
+      expect(
+        mockProcessCardFirehoseEventUseCase.execute,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockProcessCollectionFirehoseEventUseCase.execute,
+      ).not.toHaveBeenCalled();
     });
 
     it('should handle unknown collection types', async () => {
@@ -148,9 +186,15 @@ describe('ProcessFirehoseEventUseCase', () => {
       if (result.isErr()) {
         expect(result.error.message).toContain('Unknown collection type');
       }
-      expect(mockProcessCardFirehoseEventUseCase.execute).not.toHaveBeenCalled();
-      expect(mockProcessCollectionFirehoseEventUseCase.execute).not.toHaveBeenCalled();
-      expect(mockProcessCollectionLinkFirehoseEventUseCase.execute).not.toHaveBeenCalled();
+      expect(
+        mockProcessCardFirehoseEventUseCase.execute,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockProcessCollectionFirehoseEventUseCase.execute,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockProcessCollectionLinkFirehoseEventUseCase.execute,
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -167,7 +211,7 @@ describe('ProcessFirehoseEventUseCase', () => {
       const request = {
         atUri,
         cid,
-        eventType: eventType as const,
+        eventType: eventType as 'create',
         record: {
           $type: 'network.cosmik.card',
           type: 'URL',
@@ -181,7 +225,9 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      expect(mockProcessCardFirehoseEventUseCase.execute).not.toHaveBeenCalled();
+      expect(
+        mockProcessCardFirehoseEventUseCase.execute,
+      ).not.toHaveBeenCalled();
     });
 
     it('should process non-duplicate events', async () => {
@@ -203,7 +249,9 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      expect(mockProcessCardFirehoseEventUseCase.execute).toHaveBeenCalledWith(request);
+      expect(mockProcessCardFirehoseEventUseCase.execute).toHaveBeenCalledWith(
+        request,
+      );
     });
 
     it('should handle duplication service errors', async () => {
@@ -228,7 +276,9 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isErr()).toBe(true);
-      expect(mockProcessCardFirehoseEventUseCase.execute).not.toHaveBeenCalled();
+      expect(
+        mockProcessCardFirehoseEventUseCase.execute,
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -247,9 +297,15 @@ describe('ProcessFirehoseEventUseCase', () => {
       if (result.isErr()) {
         expect(result.error.message).toContain('Invalid AT URI');
       }
-      expect(mockProcessCardFirehoseEventUseCase.execute).not.toHaveBeenCalled();
-      expect(mockProcessCollectionFirehoseEventUseCase.execute).not.toHaveBeenCalled();
-      expect(mockProcessCollectionLinkFirehoseEventUseCase.execute).not.toHaveBeenCalled();
+      expect(
+        mockProcessCardFirehoseEventUseCase.execute,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockProcessCollectionFirehoseEventUseCase.execute,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockProcessCollectionLinkFirehoseEventUseCase.execute,
+      ).not.toHaveBeenCalled();
     });
 
     it('should handle malformed AT URI', async () => {
@@ -289,7 +345,9 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      expect(mockProcessCardFirehoseEventUseCase.execute).toHaveBeenCalledWith(request);
+      expect(mockProcessCardFirehoseEventUseCase.execute).toHaveBeenCalledWith(
+        request,
+      );
     });
 
     it('should handle update events', async () => {
@@ -308,7 +366,9 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      expect(mockProcessCollectionFirehoseEventUseCase.execute).toHaveBeenCalledWith(request);
+      expect(
+        mockProcessCollectionFirehoseEventUseCase.execute,
+      ).toHaveBeenCalledWith(request);
     });
 
     it('should handle delete events', async () => {
@@ -322,16 +382,20 @@ describe('ProcessFirehoseEventUseCase', () => {
       const result = await useCase.execute(request);
 
       expect(result.isOk()).toBe(true);
-      expect(mockProcessCollectionLinkFirehoseEventUseCase.execute).toHaveBeenCalledWith(request);
+      expect(
+        mockProcessCollectionLinkFirehoseEventUseCase.execute,
+      ).toHaveBeenCalledWith(request);
     });
   });
 
   describe('Error Handling', () => {
     it('should handle unexpected errors gracefully', async () => {
       const collections = configService.getAtProtoCollections();
-      
+
       // Configure card use case to throw an error
-      mockProcessCardFirehoseEventUseCase.execute.mockRejectedValue(new Error('Unexpected error'));
+      mockProcessCardFirehoseEventUseCase.execute.mockRejectedValue(
+        new Error('Unexpected error'),
+      );
 
       const request = {
         atUri: `at://did:plc:test/${collections.card}/test-card-id`,
@@ -357,7 +421,7 @@ describe('ProcessFirehoseEventUseCase', () => {
 
     it('should handle use case returning error results', async () => {
       const collections = configService.getAtProtoCollections();
-      
+
       // Configure card use case to return an error result
       mockProcessCardFirehoseEventUseCase.execute.mockResolvedValue({
         isOk: () => false,

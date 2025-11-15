@@ -7,6 +7,7 @@ import { ICollectionRepository } from '../ICollectionRepository';
 import { ICollectionPublisher } from '../../application/ports/ICollectionPublisher';
 import { AppError } from '../../../../shared/core/AppError';
 import { DomainService } from '../../../../shared/domain/DomainService';
+import { PublishedRecordId } from '../value-objects/PublishedRecordId';
 import { AuthenticationError } from '../../../../shared/core/AuthenticationError';
 
 export interface CardCollectionServiceOptions {

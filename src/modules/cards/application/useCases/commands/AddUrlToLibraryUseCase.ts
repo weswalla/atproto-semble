@@ -132,8 +132,19 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
       }
 
       // Add URL card to library using domain service
+      const libraryOptions = request.publishedRecordId
+        ? {
+            skipPublishing: true,
+            publishedRecordId: request.publishedRecordId,
+          }
+        : undefined;
+
       const addUrlCardToLibraryResult =
-        await this.cardLibraryService.addCardToLibrary(urlCard, curatorId);
+        await this.cardLibraryService.addCardToLibrary(
+          urlCard,
+          curatorId,
+          libraryOptions,
+        );
       if (addUrlCardToLibraryResult.isErr()) {
         // Propagate authentication errors
         if (addUrlCardToLibraryResult.error instanceof AuthenticationError) {
@@ -151,15 +162,6 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
 
       // Update urlCard reference to the one returned by the service
       urlCard = addUrlCardToLibraryResult.value;
-
-      // If publishedRecordId is provided (from firehose event), mark as published
-      if (request.publishedRecordId) {
-        urlCard.markAsPublished(request.publishedRecordId);
-        const saveResult = await this.cardRepository.save(urlCard);
-        if (saveResult.isErr()) {
-          return err(AppError.UnexpectedError.create(saveResult.error));
-        }
-      }
 
       let noteCard;
 
@@ -238,6 +240,8 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
           }
 
           // Add note card to library using domain service
+          // Note: For note cards, we don't pass publishedRecordId here since it's handled
+          // separately in UpdateUrlCardAssociationsUseCase for firehose events
           const addNoteCardToLibraryResult =
             await this.cardLibraryService.addCardToLibrary(noteCard, curatorId);
           if (addNoteCardToLibraryResult.isErr()) {

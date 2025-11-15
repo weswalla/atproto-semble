@@ -5,12 +5,14 @@ import { AppError } from '../../../../../shared/core/AppError';
 import { ICardRepository } from '../../../domain/ICardRepository';
 import { CardId } from '../../../domain/value-objects/CardId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
+import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { CardLibraryService } from '../../../domain/services/CardLibraryService';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 
 export interface RemoveCardFromLibraryDTO {
   cardId: string;
   curatorId: string;
+  publishedRecordId?: PublishedRecordId; // For firehose events - skip unpublishing if provided
 }
 
 export interface RemoveCardFromLibraryResponseDTO {
@@ -78,66 +80,85 @@ export class RemoveCardFromLibraryUseCase
         return err(new ValidationError(`Card not found: ${request.cardId}`));
       }
 
-      // Remove card from library using domain service (this handles cascading for URL cards)
-      const removeFromLibraryResult =
-        await this.cardLibraryService.removeCardFromLibrary(card, curatorId);
-      if (removeFromLibraryResult.isErr()) {
-        // Propagate authentication errors
-        if (removeFromLibraryResult.error instanceof AuthenticationError) {
-          return err(removeFromLibraryResult.error);
+      // For firehose events, we need to handle removal differently
+      if (request.publishedRecordId) {
+        // This is a firehose event - just remove from library without unpublishing
+        const removeResult = card.removeFromLibrary(curatorId);
+        if (removeResult.isErr()) {
+          return err(new ValidationError(removeResult.error.message));
         }
-        if (removeFromLibraryResult.error instanceof AppError.UnexpectedError) {
-          return err(removeFromLibraryResult.error);
+
+        // Save updated card
+        const saveResult = await this.cardRepository.save(card);
+        if (saveResult.isErr()) {
+          return err(AppError.UnexpectedError.create(saveResult.error));
         }
-        return err(new ValidationError(removeFromLibraryResult.error.message));
-      }
 
-      const updatedCard = removeFromLibraryResult.value;
+        return ok({
+          cardId: card.cardId.getStringValue(),
+        });
+      } else {
+        // Normal operation - use library service which handles unpublishing
+        const removeFromLibraryResult =
+          await this.cardLibraryService.removeCardFromLibrary(card, curatorId);
+        if (removeFromLibraryResult.isErr()) {
+          // Propagate authentication errors
+          if (removeFromLibraryResult.error instanceof AuthenticationError) {
+            return err(removeFromLibraryResult.error);
+          }
+          if (removeFromLibraryResult.error instanceof AppError.UnexpectedError) {
+            return err(removeFromLibraryResult.error);
+          }
+          return err(new ValidationError(removeFromLibraryResult.error.message));
+        }
 
-      // Handle deletion with proper ordering for URL cards
-      if (
-        updatedCard.libraryCount === 0 &&
-        updatedCard.curatorId.equals(curatorId)
-      ) {
-        if (updatedCard.isUrlCard && updatedCard.url) {
-          // First, delete any associated note card that also has no library memberships
-          const noteCardResult =
-            await this.cardRepository.findUsersNoteCardByUrl(
-              updatedCard.url,
-              curatorId,
-            );
+        const updatedCard = removeFromLibraryResult.value;
 
-          if (noteCardResult.isOk() && noteCardResult.value) {
-            const noteCard = noteCardResult.value;
-            if (
-              noteCard.libraryCount === 0 &&
-              noteCard.curatorId.equals(curatorId)
-            ) {
-              // Delete note card first (child before parent)
-              const deleteNoteResult = await this.cardRepository.delete(
-                noteCard.cardId,
+        // Handle deletion with proper ordering for URL cards
+        if (
+          updatedCard.libraryCount === 0 &&
+          updatedCard.curatorId.equals(curatorId)
+        ) {
+          if (updatedCard.isUrlCard && updatedCard.url) {
+            // First, delete any associated note card that also has no library memberships
+            const noteCardResult =
+              await this.cardRepository.findUsersNoteCardByUrl(
+                updatedCard.url,
+                curatorId,
               );
-              if (deleteNoteResult.isErr()) {
-                return err(
-                  AppError.UnexpectedError.create(deleteNoteResult.error),
+
+            if (noteCardResult.isOk() && noteCardResult.value) {
+              const noteCard = noteCardResult.value;
+              if (
+                noteCard.libraryCount === 0 &&
+                noteCard.curatorId.equals(curatorId)
+              ) {
+                // Delete note card first (child before parent)
+                const deleteNoteResult = await this.cardRepository.delete(
+                  noteCard.cardId,
                 );
+                if (deleteNoteResult.isErr()) {
+                  return err(
+                    AppError.UnexpectedError.create(deleteNoteResult.error),
+                  );
+                }
               }
             }
           }
+
+          // Then delete the main card (URL card or any other card type)
+          const deleteResult = await this.cardRepository.delete(
+            updatedCard.cardId,
+          );
+          if (deleteResult.isErr()) {
+            return err(AppError.UnexpectedError.create(deleteResult.error));
+          }
         }
 
-        // Then delete the main card (URL card or any other card type)
-        const deleteResult = await this.cardRepository.delete(
-          updatedCard.cardId,
-        );
-        if (deleteResult.isErr()) {
-          return err(AppError.UnexpectedError.create(deleteResult.error));
-        }
+        return ok({
+          cardId: card.cardId.getStringValue(),
+        });
       }
-
-      return ok({
-        cardId: card.cardId.getStringValue(),
-      });
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
     }

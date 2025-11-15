@@ -54,6 +54,7 @@ describe('ProcessCardFirehoseEventUseCase', () => {
 
     atUriResolutionService = new InMemoryAtUriResolutionService(
       collectionRepository,
+      cardRepository,
     );
 
     addUrlToLibraryUseCase = new AddUrlToLibraryUseCase(

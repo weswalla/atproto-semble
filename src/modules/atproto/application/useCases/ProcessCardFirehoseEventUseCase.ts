@@ -5,7 +5,11 @@ import { AppError } from 'src/shared/core/AppError';
 import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriResolutionService';
 import { PublishedRecordId } from '../../../cards/domain/value-objects/PublishedRecordId';
 import { ATUri } from '../../domain/ATUri';
-import { Record as CardRecord } from '../../infrastructure/lexicon/types/network/cosmik/card';
+import {
+  Record as CardRecord,
+  NoteContent,
+  UrlContent,
+} from '../../infrastructure/lexicon/types/network/cosmik/card';
 import { AddUrlToLibraryUseCase } from '../../../cards/application/useCases/commands/AddUrlToLibraryUseCase';
 import { UpdateUrlCardAssociationsUseCase } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
 import { RemoveCardFromLibraryUseCase } from '../../../cards/application/useCases/commands/RemoveCardFromLibraryUseCase';
@@ -75,7 +79,7 @@ export class ProcessCardFirehoseEventUseCase
 
       if (request.record.type === 'URL') {
         // Handle URL card creation
-        const urlContent = request.record.content as any;
+        const urlContent = request.record.content as UrlContent;
         if (!urlContent.url) {
           console.warn(`URL card missing URL: ${request.atUri}`);
           return ok(undefined);
@@ -92,10 +96,12 @@ export class ProcessCardFirehoseEventUseCase
           return ok(undefined);
         }
 
-        console.log(`Successfully created URL card from firehose event: ${result.value.urlCardId}`);
+        console.log(
+          `Successfully created URL card from firehose event: ${result.value.urlCardId}`,
+        );
       } else if (request.record.type === 'NOTE') {
         // Handle note card creation
-        const noteContent = request.record.content as any;
+        const noteContent = request.record.content as NoteContent;
         if (!noteContent.text) {
           console.warn(`Note card missing text: ${request.atUri}`);
           return ok(undefined);
@@ -103,7 +109,9 @@ export class ProcessCardFirehoseEventUseCase
 
         // Get parent card from parentCard reference
         if (!request.record.parentCard) {
-          console.warn(`Note card missing parent card reference: ${request.atUri}`);
+          console.warn(
+            `Note card missing parent card reference: ${request.atUri}`,
+          );
           return ok(undefined);
         }
 
@@ -112,7 +120,9 @@ export class ProcessCardFirehoseEventUseCase
           request.record.parentCard.uri,
         );
         if (parentCardId.isErr() || !parentCardId.value) {
-          console.warn(`Failed to resolve parent card: ${request.record.parentCard.uri}`);
+          console.warn(
+            `Failed to resolve parent card: ${request.record.parentCard.uri}`,
+          );
           return ok(undefined);
         }
 
@@ -128,7 +138,9 @@ export class ProcessCardFirehoseEventUseCase
           return ok(undefined);
         }
 
-        console.log(`Successfully created note card from firehose event: ${result.value.noteCardId}`);
+        console.log(
+          `Successfully created note card from firehose event: ${result.value.noteCardId}`,
+        );
       }
 
       return ok(undefined);
@@ -163,7 +175,7 @@ export class ProcessCardFirehoseEventUseCase
       }
       const curatorDid = atUriResult.value.did.value;
 
-      const noteContent = request.record.content as any;
+      const noteContent = request.record.content as NoteContent;
       if (!noteContent.text) {
         console.warn(`Note card missing text: ${request.atUri}`);
         return ok(undefined);
@@ -171,7 +183,9 @@ export class ProcessCardFirehoseEventUseCase
 
       // Get parent card from parentCard reference
       if (!request.record.parentCard) {
-        console.warn(`Note card missing parent card reference: ${request.atUri}`);
+        console.warn(
+          `Note card missing parent card reference: ${request.atUri}`,
+        );
         return ok(undefined);
       }
 
@@ -180,7 +194,9 @@ export class ProcessCardFirehoseEventUseCase
         request.record.parentCard.uri,
       );
       if (parentCardId.isErr() || !parentCardId.value) {
-        console.warn(`Failed to resolve parent card: ${request.record.parentCard.uri}`);
+        console.warn(
+          `Failed to resolve parent card: ${request.record.parentCard.uri}`,
+        );
         return ok(undefined);
       }
 
@@ -196,7 +212,9 @@ export class ProcessCardFirehoseEventUseCase
         return ok(undefined);
       }
 
-      console.log(`Successfully updated note card from firehose event: ${result.value.noteCardId}`);
+      console.log(
+        `Successfully updated note card from firehose event: ${result.value.noteCardId}`,
+      );
       return ok(undefined);
     } catch (error) {
       console.error(`Error processing card update event: ${error}`);
@@ -222,7 +240,9 @@ export class ProcessCardFirehoseEventUseCase
         request.atUri,
       );
       if (cardIdResult.isErr()) {
-        console.warn(`Failed to resolve card ID: ${cardIdResult.error.message}`);
+        console.warn(
+          `Failed to resolve card ID: ${cardIdResult.error.message}`,
+        );
         return ok(undefined);
       }
 
@@ -243,11 +263,15 @@ export class ProcessCardFirehoseEventUseCase
         });
 
         if (result.isErr()) {
-          console.warn(`Failed to remove card from library: ${result.error.message}`);
+          console.warn(
+            `Failed to remove card from library: ${result.error.message}`,
+          );
           return ok(undefined);
         }
 
-        console.log(`Successfully removed card from library: ${result.value.cardId}`);
+        console.log(
+          `Successfully removed card from library: ${result.value.cardId}`,
+        );
       }
 
       return ok(undefined);
@@ -256,5 +280,4 @@ export class ProcessCardFirehoseEventUseCase
       return ok(undefined);
     }
   }
-
 }

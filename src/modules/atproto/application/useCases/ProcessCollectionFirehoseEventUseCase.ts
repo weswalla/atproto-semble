@@ -8,6 +8,7 @@ import { IEventPublisher } from '../../../shared/application/events/IEventPublis
 import { Collection, CollectionAccessType } from '../../../cards/domain/Collection';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { PublishedRecordId } from '../../../cards/domain/value-objects/PublishedRecordId';
+import { ATUri } from '../../domain/ATUri';
 import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
 
 export interface ProcessCollectionFirehoseEventDTO {
@@ -50,13 +51,14 @@ export class ProcessCollectionFirehoseEventUseCase implements UseCase<ProcessCol
     }
 
     try {
-      // Extract author DID from AT URI
-      const atUriParts = request.atUri.split('/');
-      if (atUriParts.length < 3) {
-        console.warn(`Invalid AT URI format: ${request.atUri}`);
+      // Parse AT URI to extract author DID
+      const atUriResult = ATUri.create(request.atUri);
+      if (atUriResult.isErr()) {
+        console.warn(`Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`);
         return ok(undefined);
       }
-      const authorDid = atUriParts[2]; // at://did:plc:xxx/collection/rkey
+      const atUri = atUriResult.value;
+      const authorDid = atUri.did.value;
 
       // Create CuratorId
       const authorIdResult = CuratorId.create(authorDid);

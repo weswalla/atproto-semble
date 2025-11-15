@@ -8,6 +8,7 @@ import { IEventPublisher } from '../../../shared/application/events/IEventPublis
 import { CardFactory } from '../../../cards/domain/CardFactory';
 import { PublishedRecordId } from '../../../cards/domain/value-objects/PublishedRecordId';
 import { CardContent } from '../../../cards/domain/value-objects/CardContent';
+import { ATUri } from '../../domain/ATUri';
 import { Record as CardRecord } from '../../infrastructure/lexicon/types/network/cosmik/card';
 
 export interface ProcessCardFirehoseEventDTO {
@@ -50,13 +51,14 @@ export class ProcessCardFirehoseEventUseCase implements UseCase<ProcessCardFireh
     }
 
     try {
-      // Extract curator DID from AT URI
-      const atUriParts = request.atUri.split('/');
-      if (atUriParts.length < 3) {
-        console.warn(`Invalid AT URI format: ${request.atUri}`);
+      // Parse AT URI to extract curator DID
+      const atUriResult = ATUri.create(request.atUri);
+      if (atUriResult.isErr()) {
+        console.warn(`Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`);
         return ok(undefined);
       }
-      const curatorDid = atUriParts[2]; // at://did:plc:xxx/collection/rkey
+      const atUri = atUriResult.value;
+      const curatorDid = atUri.did.value;
 
       // Convert AT Protocol record to domain input
       const cardInput = this.mapRecordToCardInput(request.record, request.atUri);

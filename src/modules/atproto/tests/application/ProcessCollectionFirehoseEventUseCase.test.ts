@@ -205,14 +205,13 @@ describe('ProcessCollectionFirehoseEventUseCase', () => {
         .withAuthorId(curatorId.value)
         .withName('Original Name')
         .withDescription('Original description')
-        .withPublished(true)
         .build();
 
       if (collection instanceof Error) throw collection;
       await collectionRepository.save(collection);
 
       const collections = configService.getAtProtoCollections();
-      const atUri = `at://${curatorId.value}/${collections.collection}/test-collection-id`;
+      const atUri = `at://${curatorId.value}/${collections.collection}/${collection.collectionId}`;
       const cid = 'updated-collection-cid-123';
 
       const updatedCollectionRecord: CollectionRecord = {

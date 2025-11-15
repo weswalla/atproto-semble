@@ -7,7 +7,10 @@ import {
 } from '../../domain/services/IAtUriResolutionService';
 import { CollectionId } from '../../domain/value-objects/CollectionId';
 import { CardId } from '../../domain/value-objects/CardId';
-import { collections, collectionCards } from '../repositories/schema/collection.sql';
+import {
+  collections,
+  collectionCards,
+} from '../repositories/schema/collection.sql';
 import { cards } from '../repositories/schema/card.sql';
 import { publishedRecords } from '../repositories/schema/publishedRecord.sql';
 import { Result, ok, err } from 'src/shared/core/Result';
@@ -118,7 +121,10 @@ export class DrizzleAtUriResolutionService implements IAtUriResolutionService {
       const cardResult = await this.db
         .select({ id: cards.id })
         .from(cards)
-        .innerJoin(publishedRecords, eq(cards.publishedRecordId, publishedRecords.id))
+        .innerJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
         .where(eq(publishedRecords.uri, atUri))
         .limit(1);
 
@@ -154,16 +160,19 @@ export class DrizzleAtUriResolutionService implements IAtUriResolutionService {
   }
 
   async resolveCollectionLinkId(
-    atUri: string
-  ): Promise<Result<{collectionId: CollectionId, cardId: CardId} | null>> {
+    atUri: string,
+  ): Promise<Result<{ collectionId: CollectionId; cardId: CardId } | null>> {
     try {
       const linkResult = await this.db
         .select({
           collectionId: collectionCards.collectionId,
-          cardId: collectionCards.cardId
+          cardId: collectionCards.cardId,
         })
         .from(collectionCards)
-        .innerJoin(publishedRecords, eq(collectionCards.publishedRecordId, publishedRecords.id))
+        .innerJoin(
+          publishedRecords,
+          eq(collectionCards.publishedRecordId, publishedRecords.id),
+        )
         .where(eq(publishedRecords.uri, atUri))
         .limit(1);
 
@@ -171,7 +180,9 @@ export class DrizzleAtUriResolutionService implements IAtUriResolutionService {
         return ok(null);
       }
 
-      const collectionIdResult = CollectionId.createFromString(linkResult[0]!.collectionId);
+      const collectionIdResult = CollectionId.createFromString(
+        linkResult[0]!.collectionId,
+      );
       const cardIdResult = CardId.createFromString(linkResult[0]!.cardId);
 
       if (collectionIdResult.isErr()) {
@@ -183,38 +194,8 @@ export class DrizzleAtUriResolutionService implements IAtUriResolutionService {
 
       return ok({
         collectionId: collectionIdResult.value,
-        cardId: cardIdResult.value
+        cardId: cardIdResult.value,
       });
-    } catch (error) {
-      return err(error as Error);
-    }
-  }
-
-  async storeCardMapping(atUri: string, cardId: CardId): Promise<Result<void>> {
-    try {
-      // This would typically be handled by the repository when saving cards
-      // For now, we'll just return success as the mapping is created when the card is saved
-      return ok(undefined);
-    } catch (error) {
-      return err(error as Error);
-    }
-  }
-
-  async storeCollectionMapping(atUri: string, collectionId: CollectionId): Promise<Result<void>> {
-    try {
-      // This would typically be handled by the repository when saving collections
-      // For now, we'll just return success as the mapping is created when the collection is saved
-      return ok(undefined);
-    } catch (error) {
-      return err(error as Error);
-    }
-  }
-
-  async storeCollectionLinkMapping(atUri: string, collectionId: CollectionId, cardId: CardId): Promise<Result<void>> {
-    try {
-      // This would typically be handled by the repository when saving collection links
-      // For now, we'll just return success as the mapping is created when the collection link is saved
-      return ok(undefined);
     } catch (error) {
       return err(error as Error);
     }

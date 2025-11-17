@@ -47,8 +47,6 @@ export class ProcessFirehoseEventUseCase
 
   async execute(request: ProcessFirehoseEventDTO): Promise<Result<void>> {
     try {
-      console.log(`Processing firehose event: ${JSON.stringify(request)}`);
-
       // 1. Check for duplicates
       const isDuplicateResult =
         await this.duplicationService.hasEventBeenProcessed(
@@ -62,9 +60,6 @@ export class ProcessFirehoseEventUseCase
       }
 
       if (isDuplicateResult.value) {
-        console.log(
-          `Skipping duplicate firehose event: ${request.atUri} (${request.eventType})`,
-        );
         return ok(undefined);
       }
 

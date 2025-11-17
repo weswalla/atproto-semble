@@ -1,9 +1,8 @@
 import { AppBskyFeedDefs, AppBskyFeedPost } from '@atproto/api';
 import { ReactElement } from 'react';
-import { Group, Stack, Text, AspectRatio, Avatar } from '@mantine/core';
-import useGetBlueskyPost from '../../lib/queries/useGetBlueskyPost';
+import { Group, Stack, Text, AspectRatio, Avatar, Box } from '@mantine/core';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
-import { isFeedViewPost } from '@atproto/api/dist/client/types/app/bsky/feed/defs';
+import useGetBlueskyPost from '../../lib/queries/useGetBlueskyPost';
 
 interface Props {
   uri: string;
@@ -24,13 +23,10 @@ export default function BlueskyPost(props: Props) {
   }
 
   const post = data.thread.post;
-  const record = post.record;
-
-  const isRecord = AppBskyFeedPost.isRecord(record) && isFeedViewPost(post);
-  const text = isRecord && record.text;
+  const record = post.record as AppBskyFeedPost.Record;
 
   return (
-    <Group justify="space-between" align="start" gap="lg">
+    <Stack justify="space-between" align="start" gap="sm">
       <Group gap="xs">
         <AspectRatio ratio={1 / 1}>
           <Avatar
@@ -47,8 +43,10 @@ export default function BlueskyPost(props: Props) {
             @{post.author.handle}
           </Text>
         </Stack>
-        {/*<RichTextRenderer text={text} />*/}
       </Group>
-    </Group>
+      <Box>
+        <RichTextRenderer text={record.text} textProps={{ lineClamp: 4 }} />
+      </Box>
+    </Stack>
   );
 }

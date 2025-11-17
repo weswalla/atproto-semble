@@ -4,6 +4,8 @@ import SembleCollectionCardContent from './SembleCollectionCardContent';
 import LinkCardContent from './LinkCardContent';
 import BlueskyPost from '@/features/platforms/bluesky/components/blueskyPost/BlueskyPost';
 import { getPostUriFromUrl } from '@/lib/utils/atproto';
+import { Suspense } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 
 interface Props {
   url: string;
@@ -19,12 +21,18 @@ export default function UrlCardContent(props: Props) {
 
   if (platform === SupportedPlatform.BLUESKY_POST) {
     return (
-      <BlueskyPost
-        uri={getPostUriFromUrl(props.url)}
-        fallbackCardContent={
-          <LinkCardContent cardContent={props.cardContent} />
-        }
-      />
+      <ErrorBoundary
+        fallback={<LinkCardContent cardContent={props.cardContent} />}
+      >
+        <Suspense fallback={<>loading</>}>
+          <BlueskyPost
+            uri={getPostUriFromUrl(props.url)}
+            fallbackCardContent={
+              <LinkCardContent cardContent={props.cardContent} />
+            }
+          />
+        </Suspense>
+      </ErrorBoundary>
     );
   }
 

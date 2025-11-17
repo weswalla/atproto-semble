@@ -1,7 +1,7 @@
 export const getRecordKey = (path: string) => path.split('/').pop() || '';
 
 export const getPostUriFromUrl = (url: string) => {
-  const match = url.match(/profile\/([\w.]+)\/post\/([\w]+)/);
+  const match = url.match(/profile\/([^/]+)\/post\/([^/]+)/);
 
   if (match) {
     const [, handle, postId] = match;

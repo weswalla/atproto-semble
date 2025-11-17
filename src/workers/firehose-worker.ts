@@ -1,18 +1,13 @@
 import { EnvironmentConfigService } from '../shared/infrastructure/config/EnvironmentConfigService';
 import { RepositoryFactory } from '../shared/infrastructure/http/factories/RepositoryFactory';
 import { ServiceFactory } from '../shared/infrastructure/http/factories/ServiceFactory';
+import { UseCaseFactory } from '../shared/infrastructure/http/factories/UseCaseFactory';
 import { FirehoseWorkerProcess } from '../modules/atproto/infrastructure/processes/FirehoseWorkerProcess';
 import { FirehoseEventHandler } from '../modules/atproto/application/handlers/FirehoseEventHandler';
 import { ProcessFirehoseEventUseCase } from '../modules/atproto/application/useCases/ProcessFirehoseEventUseCase';
 import { ProcessCardFirehoseEventUseCase } from '../modules/atproto/application/useCases/ProcessCardFirehoseEventUseCase';
 import { ProcessCollectionFirehoseEventUseCase } from '../modules/atproto/application/useCases/ProcessCollectionFirehoseEventUseCase';
 import { ProcessCollectionLinkFirehoseEventUseCase } from '../modules/atproto/application/useCases/ProcessCollectionLinkFirehoseEventUseCase';
-import { AddUrlToLibraryUseCase } from '../modules/cards/application/useCases/commands/AddUrlToLibraryUseCase';
-import { UpdateUrlCardAssociationsUseCase } from '../modules/cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
-import { RemoveCardFromLibraryUseCase } from '../modules/cards/application/useCases/commands/RemoveCardFromLibraryUseCase';
-import { CreateCollectionUseCase } from '../modules/cards/application/useCases/commands/CreateCollectionUseCase';
-import { UpdateCollectionUseCase } from '../modules/cards/application/useCases/commands/UpdateCollectionUseCase';
-import { DeleteCollectionUseCase } from '../modules/cards/application/useCases/commands/DeleteCollectionUseCase';
 import { DrizzleFirehoseEventDuplicationService } from '../modules/atproto/infrastructure/services/DrizzleFirehoseEventDuplicationService';
 import { DatabaseFactory } from '../shared/infrastructure/database/DatabaseFactory';
 
@@ -22,6 +17,7 @@ async function main() {
   const configService = new EnvironmentConfigService();
   const repositories = RepositoryFactory.create(configService);
   const services = ServiceFactory.createForWorker(configService, repositories);
+  const useCases = UseCaseFactory.createForWorker(repositories, services);
 
   // Get database connection for duplication service
   const db = DatabaseFactory.createConnection(
@@ -35,62 +31,26 @@ async function main() {
     configService,
   );
 
-  // Create use cases needed by firehose processors
-  const addUrlToLibraryUseCase = new AddUrlToLibraryUseCase(
-    repositories.cardRepository,
-    services.metadataService,
-    services.cardLibraryService,
-    services.cardCollectionService,
-    services.eventPublisher,
-  );
-
-  const updateUrlCardAssociationsUseCase = new UpdateUrlCardAssociationsUseCase(
-    repositories.cardRepository,
-    services.cardLibraryService,
-    services.cardCollectionService,
-    services.eventPublisher,
-  );
-
-  const removeCardFromLibraryUseCase = new RemoveCardFromLibraryUseCase(
-    repositories.cardRepository,
-    services.cardLibraryService,
-  );
-
-  const createCollectionUseCase = new CreateCollectionUseCase(
-    repositories.collectionRepository,
-    services.collectionPublisher,
-  );
-
-  const updateCollectionUseCase = new UpdateCollectionUseCase(
-    repositories.collectionRepository,
-    services.collectionPublisher,
-  );
-
-  const deleteCollectionUseCase = new DeleteCollectionUseCase(
-    repositories.collectionRepository,
-    services.collectionPublisher,
-  );
-
   // Create specific event processing use cases
   const processCardFirehoseEventUseCase = new ProcessCardFirehoseEventUseCase(
     repositories.atUriResolutionService,
-    addUrlToLibraryUseCase,
-    updateUrlCardAssociationsUseCase,
-    removeCardFromLibraryUseCase,
+    useCases.addUrlToLibraryUseCase,
+    useCases.updateUrlCardAssociationsUseCase,
+    useCases.removeCardFromLibraryUseCase,
   );
 
   const processCollectionFirehoseEventUseCase =
     new ProcessCollectionFirehoseEventUseCase(
       repositories.atUriResolutionService,
-      createCollectionUseCase,
-      updateCollectionUseCase,
-      deleteCollectionUseCase,
+      useCases.createCollectionUseCase,
+      useCases.updateCollectionUseCase,
+      useCases.deleteCollectionUseCase,
     );
 
   const processCollectionLinkFirehoseEventUseCase =
     new ProcessCollectionLinkFirehoseEventUseCase(
       repositories.atUriResolutionService,
-      updateUrlCardAssociationsUseCase,
+      useCases.updateUrlCardAssociationsUseCase,
     );
 
   // Create main processing use case

@@ -6,6 +6,7 @@ import BlueskyPost from '@/features/platforms/bluesky/components/blueskyPost/Blu
 import { getPostUriFromUrl } from '@/lib/utils/atproto';
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
+import BlueskyPostSkeleton from '@/features/platforms/bluesky/components/blueskyPost/Skeleton.BlueskyPost';
 
 interface Props {
   url: string;
@@ -24,7 +25,7 @@ export default function UrlCardContent(props: Props) {
       <ErrorBoundary
         fallback={<LinkCardContent cardContent={props.cardContent} />}
       >
-        <Suspense fallback={<>loading</>}>
+        <Suspense fallback={<BlueskyPostSkeleton />}>
           <BlueskyPost
             uri={getPostUriFromUrl(props.url)}
             fallbackCardContent={

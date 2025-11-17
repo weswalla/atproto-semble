@@ -74,6 +74,7 @@ export interface SharedServices {
   cardLibraryService: CardLibraryService;
   cardCollectionService: CardCollectionService;
   eventPublisher: IEventPublisher;
+  collectionPublisher: ICollectionPublisher;
 }
 
 // Web app specific services (includes publishers, auth middleware)
@@ -90,7 +91,6 @@ export interface WorkerServices extends SharedServices {
   redisConnection: Redis | null;
   createEventSubscriber: (queueName: QueueName) => IEventSubscriber;
   sagaStateStore: ISagaStateStore;
-  collectionPublisher: ICollectionPublisher;
 }
 
 // Legacy interface for backward compatibility
@@ -207,24 +207,12 @@ export class ServiceFactory {
       ? new InMemorySagaStateStore()
       : new RedisSagaStateStore(redisConnection!);
 
-    // Create worker-specific publishers
-    const useFakePublishers = configService.shouldUseFakePublishers();
-    const collections = configService.getAtProtoCollections();
-
-    const collectionPublisher = useFakePublishers
-      ? new FakeCollectionPublisher()
-      : new ATProtoCollectionPublisher(
-          sharedServices.atProtoAgentService,
-          collections.collection,
-          collections.collectionLink,
-        );
 
     return {
       ...sharedServices,
       redisConnection: redisConnection,
       createEventSubscriber,
       sagaStateStore,
-      collectionPublisher,
     };
   }
 
@@ -376,6 +364,7 @@ export class ServiceFactory {
       cardLibraryService,
       cardCollectionService,
       eventPublisher,
+      collectionPublisher,
     };
   }
 }

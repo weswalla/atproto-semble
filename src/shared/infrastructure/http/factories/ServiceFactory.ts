@@ -207,7 +207,6 @@ export class ServiceFactory {
       ? new InMemorySagaStateStore()
       : new RedisSagaStateStore(redisConnection!);
 
-
     return {
       ...sharedServices,
       redisConnection: redisConnection,
@@ -319,10 +318,7 @@ export class ServiceFactory {
 
     const cardPublisher = useFakePublishers
       ? new FakeCardPublisher()
-      : new ATProtoCardPublisher(
-          atProtoAgentService,
-          collections.card,
-        );
+      : new ATProtoCardPublisher(atProtoAgentService, collections.card);
 
     // Create domain services
     const cardCollectionService = new CardCollectionService(

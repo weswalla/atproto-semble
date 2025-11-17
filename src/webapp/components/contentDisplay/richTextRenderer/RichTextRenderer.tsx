@@ -8,7 +8,7 @@ import { Fragment } from 'react';
 
 interface Props {
   text: string;
-  linkProps?: Partial<AnchorProps>; // for mentions & links
+  linkProps?: Partial<AnchorProps>; // for mentions, links, hashtags
   textProps?: Partial<TextProps>; // for plain text
 }
 
@@ -23,6 +23,7 @@ export default function RichTextRenderer({
   return (
     <Fragment>
       {Array.from(richText.segments()).map((segment, i) => {
+        // mentions
         if (segment.isMention()) {
           return (
             <Anchor
@@ -39,6 +40,7 @@ export default function RichTextRenderer({
           );
         }
 
+        // links
         if (segment.isLink() && segment.link?.uri) {
           return (
             <Anchor
@@ -56,6 +58,26 @@ export default function RichTextRenderer({
           );
         }
 
+        // hashtags
+        if (segment.isTag()) {
+          const encodedTag = encodeURIComponent(segment.tag?.tag || '');
+          return (
+            <Anchor
+              component={Link}
+              c={linkProps.c || 'blue'}
+              fw={linkProps.fw || 500}
+              href={`https://bsky.app/hashtag/${encodedTag}`}
+              target="_blank"
+              key={`tag-${i}`}
+              onClick={(e) => e.stopPropagation()}
+              {...linkProps}
+            >
+              {segment.text}
+            </Anchor>
+          );
+        }
+
+        // plain text
         return (
           <Text
             key={`text-${i}`}

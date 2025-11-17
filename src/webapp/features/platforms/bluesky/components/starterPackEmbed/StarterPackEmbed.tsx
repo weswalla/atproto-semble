@@ -1,5 +1,5 @@
 import { AppBskyGraphDefs, AppBskyGraphStarterpack } from '@atproto/api';
-import { Card, CardSection, Image, Text } from '@mantine/core';
+import { Box, Card, CardSection, Image, Text } from '@mantine/core';
 import { getStarterPackImage } from '../../lib/utils/link';
 
 interface Props {
@@ -13,15 +13,20 @@ export default function StarterPackEmbed(props: Props) {
 
   const image = getStarterPackImage(props.embed);
   return (
-    <Card>
+    <Card withBorder p={0}>
       {image && (
         <CardSection>
           <Image src={image} />
         </CardSection>
       )}
-      <Text fz={'sm'} fw={500} c={'gray'} lineClamp={1}>
-        By {props.embed.creator.handle}
-      </Text>
+      <Box p={'xs'}>
+        <Text fz={'sm'} fw={500} c={'bright'} lineClamp={1}>
+          Starter pack
+        </Text>
+        <Text fz={'sm'} fw={500} c={'gray'} lineClamp={1} span>
+          @{props.embed.creator.handle}
+        </Text>
+      </Box>
     </Card>
   );
 }

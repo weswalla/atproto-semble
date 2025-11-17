@@ -10,6 +10,7 @@ import ImageEmbed from '../imageEmbed/ImageEmbed';
 import ExternalEmbed from '../externalEmbed/ExternalEmbed';
 import VideoEmbed from '../videoEmbed/VideoEmbed';
 import ListEmbed from '../listEmbed/ListEmbed';
+import StarterPackEmbed from '../starterPackEmbed/StarterPackEmbed';
 
 interface Props {
   embed: AppBskyFeedDefs.PostView['embed'];
@@ -28,7 +29,9 @@ export default function PostEmbed(props: Props) {
     case AppBskyEmbedRecord.isView(content) &&
       AppBskyGraphDefs.isListView(content.record):
       return <ListEmbed list={content.record} />;
-
+    case AppBskyEmbedRecord.isView(content) &&
+      AppBskyGraphDefs.isStarterPackViewBasic(content.record):
+      return <StarterPackEmbed embed={content.record} />;
     default:
       return <>default</>;
   }

@@ -7,7 +7,7 @@ interface Props {
 
 export default function ImageEmbed(props: Props) {
   return (
-    <SimpleGrid cols={props.images.length} spacing="xs">
+    <SimpleGrid cols={props.images.length > 1 ? 2 : 1} spacing="xs">
       {props.images.map((img, i) => {
         const ratio =
           props.images.length === 1
@@ -26,8 +26,7 @@ export default function ImageEmbed(props: Props) {
               radius="sm"
               h={'100%'}
               w={'100%'}
-              mah={props.images.length === 1 ? 200 : 'auto'}
-              fit={props.images.length === 1 ? 'contain' : 'cover'}
+              mah={props.images.length === 1 ? 200 : 200}
             />
           </AspectRatio>
         );

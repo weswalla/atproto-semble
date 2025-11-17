@@ -544,6 +544,57 @@ describe('ProcessCardFirehoseEventUseCase', () => {
       expect(result.isOk()).toBe(true); // Should not fail firehose processing
       expect(cardRepository.getAllCards()).toHaveLength(0);
     });
+
+    it('should process URL card delete event with note card without unpublishing either', async () => {
+      // Create URL card with note
+      const urlCard = new CardBuilder()
+        .withType(CardTypeEnum.URL)
+        .withCuratorId(curatorId.value)
+        .withUrl(URL.create('https://example.com/article').unwrap())
+        .build();
+
+      if (urlCard instanceof Error) throw urlCard;
+      await cardRepository.save(urlCard);
+      await cardLibraryService.addCardToLibrary(urlCard, curatorId);
+
+      // Create associated note card
+      const noteCard = new CardBuilder()
+        .withType(CardTypeEnum.NOTE)
+        .withCuratorId(curatorId.value)
+        .withParentCard(urlCard.cardId)
+        .withUrl(urlCard.url!)
+        .withNoteCard('My note about this article')
+        .build();
+
+      if (noteCard instanceof Error) throw noteCard;
+      await cardRepository.save(noteCard);
+      await cardLibraryService.addCardToLibrary(noteCard, curatorId);
+
+      const collections = configService.getAtProtoCollections();
+      const atUri = `at://${curatorId.value}/${collections.card}/${urlCard.cardId.getStringValue()}`;
+
+      const request = {
+        atUri,
+        cid: null,
+        eventType: 'delete' as const,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isOk()).toBe(true);
+
+      // Verify both cards were removed from library and deleted
+      const savedCards = cardRepository.getAllCards();
+      expect(savedCards).toHaveLength(0);
+
+      // Verify no unpublishing occurred for either card (firehose event should skip unpublishing)
+      const unpublishedCards = cardPublisher.getUnpublishedCards();
+      expect(unpublishedCards).toHaveLength(0);
+
+      // Verify no collection link unpublishing occurred
+      const removedLinks = collectionPublisher.getAllRemovedLinks();
+      expect(removedLinks).toHaveLength(0);
+    });
   });
 
   describe('Error Handling', () => {

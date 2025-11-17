@@ -360,6 +360,7 @@ export class CardLibraryService implements DomainService {
           const removeNoteResult = await this.removeCardFromLibrary(
             noteCard,
             curatorId,
+            options, // Pass the options down to maintain skipUnpublishing behavior
           );
           if (removeNoteResult.isErr()) {
             return err(

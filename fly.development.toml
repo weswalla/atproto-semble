@@ -47,3 +47,4 @@ HOST="0.0.0.0"
 APP_URL="https://dev.semble.so"
 ACCESS_TOKEN_EXPIRES_IN=300
 REFRESH_TOKEN_EXPIRES_IN=2592000
+ATPROTO_FIREHOSE_WEBSOCKET="wss://relay1.us-west.bsky.network"

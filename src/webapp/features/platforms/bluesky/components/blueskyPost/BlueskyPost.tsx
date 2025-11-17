@@ -3,6 +3,7 @@ import { ReactElement } from 'react';
 import { Group, Stack, Text, Avatar, Box } from '@mantine/core';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import useGetBlueskyPost from '../../lib/queries/useGetBlueskyPost';
+import PostEmbed from '../postEmbed/PostEmbed';
 
 interface Props {
   uri: string;
@@ -43,9 +44,12 @@ export default function BlueskyPost(props: Props) {
           </Text>
         </Stack>
       </Group>
-      <Box>
-        <RichTextRenderer text={record.text} textProps={{ lineClamp: 4 }} />
-      </Box>
+      <Stack gap={'xs'}>
+        <Box>
+          <RichTextRenderer text={record.text} textProps={{ lineClamp: 4 }} />
+        </Box>
+        {post.embed && <PostEmbed embed={post.embed} />}
+      </Stack>
     </Stack>
   );
 }

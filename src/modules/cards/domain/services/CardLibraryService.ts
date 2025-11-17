@@ -14,6 +14,7 @@ export interface CardLibraryServiceOptions {
   skipPublishing?: boolean;
   publishedRecordId?: PublishedRecordId;
   skipUnpublishing?: boolean;
+  skipCollectionUnpublishing?: boolean;
 }
 
 export class CardLibraryValidationError extends Error {
@@ -334,6 +335,7 @@ export class CardLibraryService implements DomainService {
             card,
             collectionIds,
             curatorId,
+            { skipPublishing: options?.skipCollectionUnpublishing },
           );
         if (removeFromCollectionsResult.isErr()) {
           return err(

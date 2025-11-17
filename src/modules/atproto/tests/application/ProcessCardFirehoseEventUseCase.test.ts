@@ -512,6 +512,10 @@ describe('ProcessCardFirehoseEventUseCase', () => {
       // Verify no unpublishing occurred (firehose event should skip unpublishing)
       const unpublishedCards = cardPublisher.getUnpublishedCards();
       expect(unpublishedCards).toHaveLength(0);
+
+      // Verify no collection link unpublishing occurred
+      const removedLinks = collectionPublisher.getAllRemovedLinks();
+      expect(removedLinks).toHaveLength(0);
     });
 
     it('should handle delete event for non-existent card gracefully', async () => {

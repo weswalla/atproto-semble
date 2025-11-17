@@ -84,6 +84,7 @@ export class RemoveCardFromLibraryUseCase
       const libraryOptions = request.publishedRecordId
         ? {
             skipUnpublishing: true,
+            skipCollectionUnpublishing: true,
           }
         : undefined;
 

@@ -1,6 +1,6 @@
 import { AppBskyFeedDefs, AppBskyFeedPost } from '@atproto/api';
 import { ReactElement } from 'react';
-import { Group, Stack, Text, AspectRatio, Avatar, Box } from '@mantine/core';
+import { Group, Stack, Text, Avatar, Box } from '@mantine/core';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import useGetBlueskyPost from '../../lib/queries/useGetBlueskyPost';
 
@@ -28,13 +28,12 @@ export default function BlueskyPost(props: Props) {
   return (
     <Stack justify="space-between" align="start" gap="sm">
       <Group gap="xs">
-        <AspectRatio ratio={1 / 1}>
-          <Avatar
-            src={post.author.avatar}
-            alt={`${post.author.handle} social preview image`}
-            radius="xl"
-          />
-        </AspectRatio>
+        <Avatar
+          src={post.author.avatar}
+          alt={`${post.author.handle} social preview image`}
+          radius="xl"
+        />
+
         <Stack gap={0} flex={1}>
           <Text c="bright" lineClamp={1} fw={500} w="fit-content">
             {post.author.displayName || post.author.handle}

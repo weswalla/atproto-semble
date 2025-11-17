@@ -46,7 +46,7 @@ export default function BlueskyPost(props: Props) {
       </Group>
       <Stack gap={'xs'}>
         <Box>
-          <RichTextRenderer text={record.text} textProps={{ lineClamp: 4 }} />
+          <RichTextRenderer text={record.text} textProps={{ lineClamp: 3 }} />
         </Box>
         {post.embed && <PostEmbed embed={post.embed} />}
       </Stack>

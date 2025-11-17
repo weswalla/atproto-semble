@@ -19,12 +19,15 @@ export default function ExternalEmbed(props: Props) {
       <CardSection>
         {props.embed.external.thumb && (
           <AspectRatio ratio={16 / 9}>
-            <Image src={props.embed.external.thumb} />
+            <Image
+              src={props.embed.external.thumb}
+              alt={props.embed.external.description}
+            />
           </AspectRatio>
         )}
       </CardSection>
 
-      <Stack gap={0} p={"xs"}>
+      <Stack gap={0} p={'xs'}>
         <Text fz={'sm'} fw={500} c={'bright'} lineClamp={1}>
           {props.embed.external.title}
         </Text>

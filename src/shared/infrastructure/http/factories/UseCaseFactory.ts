@@ -36,6 +36,13 @@ import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/applicat
 export interface WorkerUseCases {
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
   indexUrlForSearchUseCase: IndexUrlForSearchUseCase;
+  // Firehose-specific use cases
+  addUrlToLibraryUseCase: AddUrlToLibraryUseCase;
+  updateUrlCardAssociationsUseCase: UpdateUrlCardAssociationsUseCase;
+  removeCardFromLibraryUseCase: RemoveCardFromLibraryUseCase;
+  createCollectionUseCase: CreateCollectionUseCase;
+  updateCollectionUseCase: UpdateCollectionUseCase;
+  deleteCollectionUseCase: DeleteCollectionUseCase;
 }
 
 export interface UseCases {
@@ -249,6 +256,36 @@ export class UseCaseFactory {
       // Search use cases (only ones needed by workers)
       indexUrlForSearchUseCase: new IndexUrlForSearchUseCase(
         services.searchService,
+      ),
+      // Firehose-specific use cases
+      addUrlToLibraryUseCase: new AddUrlToLibraryUseCase(
+        repositories.cardRepository,
+        services.metadataService,
+        services.cardLibraryService,
+        services.cardCollectionService,
+        services.eventPublisher,
+      ),
+      updateUrlCardAssociationsUseCase: new UpdateUrlCardAssociationsUseCase(
+        repositories.cardRepository,
+        services.cardLibraryService,
+        services.cardCollectionService,
+        services.eventPublisher,
+      ),
+      removeCardFromLibraryUseCase: new RemoveCardFromLibraryUseCase(
+        repositories.cardRepository,
+        services.cardLibraryService,
+      ),
+      createCollectionUseCase: new CreateCollectionUseCase(
+        repositories.collectionRepository,
+        services.collectionPublisher,
+      ),
+      updateCollectionUseCase: new UpdateCollectionUseCase(
+        repositories.collectionRepository,
+        services.collectionPublisher,
+      ),
+      deleteCollectionUseCase: new DeleteCollectionUseCase(
+        repositories.collectionRepository,
+        services.collectionPublisher,
       ),
     };
   }

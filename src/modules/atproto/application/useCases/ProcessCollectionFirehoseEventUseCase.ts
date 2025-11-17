@@ -1,6 +1,5 @@
 import { Result, ok, err } from 'src/shared/core/Result';
 import { UseCase } from 'src/shared/core/UseCase';
-import { UseCaseError } from 'src/shared/core/UseCaseError';
 import { AppError } from 'src/shared/core/AppError';
 import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriResolutionService';
 import { PublishedRecordId } from '../../../cards/domain/value-objects/PublishedRecordId';
@@ -16,6 +15,7 @@ export interface ProcessCollectionFirehoseEventDTO {
   eventType: 'create' | 'update' | 'delete';
   record?: CollectionRecord;
 }
+const ENABLE_FIREHOSE_LOGGING = true;
 
 export class ProcessCollectionFirehoseEventUseCase
   implements UseCase<ProcessCollectionFirehoseEventDTO, Result<void>>
@@ -31,9 +31,11 @@ export class ProcessCollectionFirehoseEventUseCase
     request: ProcessCollectionFirehoseEventDTO,
   ): Promise<Result<void>> {
     try {
-      console.log(
-        `Processing collection firehose event: ${request.atUri} (${request.eventType})`,
-      );
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.log(
+          `[FirehoseWorker] Processing collection event: ${request.atUri} (${request.eventType})`,
+        );
+      }
 
       switch (request.eventType) {
         case 'create':
@@ -54,7 +56,11 @@ export class ProcessCollectionFirehoseEventUseCase
     request: ProcessCollectionFirehoseEventDTO,
   ): Promise<Result<void>> {
     if (!request.record || !request.cid) {
-      console.warn('Collection create event missing record or cid, skipping');
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.warn(
+          `[FirehoseWorker] Collection create event missing record or cid, skipping: ${request.atUri}`,
+        );
+      }
       return ok(undefined);
     }
 
@@ -62,9 +68,11 @@ export class ProcessCollectionFirehoseEventUseCase
       // Parse AT URI to extract author DID
       const atUriResult = ATUri.create(request.atUri);
       if (atUriResult.isErr()) {
-        console.warn(
-          `Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
+          );
+        }
         return ok(undefined);
       }
       const authorDid = atUriResult.value.did.value;
@@ -82,16 +90,26 @@ export class ProcessCollectionFirehoseEventUseCase
       });
 
       if (result.isErr()) {
-        console.warn(`Failed to create collection: ${result.error.message}`);
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Failed to create collection - user: ${authorDid}, uri: ${request.atUri}, error: ${result.error.message}`,
+          );
+        }
         return ok(undefined);
       }
 
-      console.log(
-        `Successfully created collection from firehose event: ${result.value.collectionId}`,
-      );
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.log(
+          `[FirehoseWorker] Successfully created collection - user: ${authorDid}, collectionId: ${result.value.collectionId}, uri: ${request.atUri}`,
+        );
+      }
       return ok(undefined);
     } catch (error) {
-      console.error(`Error processing collection create event: ${error}`);
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.error(
+          `[FirehoseWorker] Error processing collection create event - uri: ${request.atUri}, error: ${error}`,
+        );
+      }
       return ok(undefined); // Don't fail the firehose processing
     }
   }
@@ -100,7 +118,11 @@ export class ProcessCollectionFirehoseEventUseCase
     request: ProcessCollectionFirehoseEventDTO,
   ): Promise<Result<void>> {
     if (!request.record || !request.cid) {
-      console.warn('Collection update event missing record or cid, skipping');
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.warn(
+          `[FirehoseWorker] Collection update event missing record or cid, skipping: ${request.atUri}`,
+        );
+      }
       return ok(undefined);
     }
 
@@ -108,9 +130,11 @@ export class ProcessCollectionFirehoseEventUseCase
       // Parse AT URI to extract author DID
       const atUriResult = ATUri.create(request.atUri);
       if (atUriResult.isErr()) {
-        console.warn(
-          `Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
+          );
+        }
         return ok(undefined);
       }
       const authorDid = atUriResult.value.did.value;
@@ -119,14 +143,20 @@ export class ProcessCollectionFirehoseEventUseCase
       const collectionIdResult =
         await this.atUriResolutionService.resolveCollectionId(request.atUri);
       if (collectionIdResult.isErr()) {
-        console.warn(
-          `Failed to resolve collection ID for ${request.atUri}: ${collectionIdResult.error.message}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Failed to resolve collection ID - user: ${authorDid}, uri: ${request.atUri}, error: ${collectionIdResult.error.message}`,
+          );
+        }
         return ok(undefined);
       }
 
       if (!collectionIdResult.value) {
-        console.log(`Collection not found in our system: ${request.atUri}`);
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.log(
+            `[FirehoseWorker] Collection not found in our system - user: ${authorDid}, uri: ${request.atUri}`,
+          );
+        }
         return ok(undefined);
       }
 
@@ -144,16 +174,26 @@ export class ProcessCollectionFirehoseEventUseCase
       });
 
       if (result.isErr()) {
-        console.warn(`Failed to update collection: ${result.error.message}`);
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Failed to update collection - user: ${authorDid}, collectionId: ${collectionIdResult.value.getStringValue()}, uri: ${request.atUri}, error: ${result.error.message}`,
+          );
+        }
         return ok(undefined);
       }
 
-      console.log(
-        `Successfully updated collection from firehose event: ${result.value.collectionId}`,
-      );
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.log(
+          `[FirehoseWorker] Successfully updated collection - user: ${authorDid}, collectionId: ${result.value.collectionId}, uri: ${request.atUri}`,
+        );
+      }
       return ok(undefined);
     } catch (error) {
-      console.error(`Error processing collection update event: ${error}`);
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.error(
+          `[FirehoseWorker] Error processing collection update event - uri: ${request.atUri}, error: ${error}`,
+        );
+      }
       return ok(undefined); // Don't fail the firehose processing
     }
   }
@@ -165,9 +205,11 @@ export class ProcessCollectionFirehoseEventUseCase
       // Parse AT URI to extract author DID
       const atUriResult = ATUri.create(request.atUri);
       if (atUriResult.isErr()) {
-        console.warn(
-          `Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
+          );
+        }
         return ok(undefined);
       }
       const authorDid = atUriResult.value.did.value;
@@ -175,16 +217,20 @@ export class ProcessCollectionFirehoseEventUseCase
       const collectionIdResult =
         await this.atUriResolutionService.resolveCollectionId(request.atUri);
       if (collectionIdResult.isErr()) {
-        console.warn(
-          `Failed to resolve collection ID: ${collectionIdResult.error.message}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Failed to resolve collection ID - user: ${authorDid}, uri: ${request.atUri}, error: ${collectionIdResult.error.message}`,
+          );
+        }
         return ok(undefined);
       }
 
       if (collectionIdResult.value) {
-        console.log(
-          `Collection deleted externally: ${request.atUri}, removing from our system`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.log(
+            `[FirehoseWorker] Collection deleted externally - user: ${authorDid}, collectionId: ${collectionIdResult.value.getStringValue()}, uri: ${request.atUri}`,
+          );
+        }
 
         const publishedRecordId = PublishedRecordId.create({
           uri: request.atUri,
@@ -198,18 +244,28 @@ export class ProcessCollectionFirehoseEventUseCase
         });
 
         if (result.isErr()) {
-          console.warn(`Failed to delete collection: ${result.error.message}`);
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.warn(
+              `[FirehoseWorker] Failed to delete collection - user: ${authorDid}, collectionId: ${collectionIdResult.value.getStringValue()}, uri: ${request.atUri}, error: ${result.error.message}`,
+            );
+          }
           return ok(undefined);
         }
 
-        console.log(
-          `Successfully deleted collection: ${result.value.collectionId}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.log(
+            `[FirehoseWorker] Successfully deleted collection - user: ${authorDid}, collectionId: ${result.value.collectionId}, uri: ${request.atUri}`,
+          );
+        }
       }
 
       return ok(undefined);
     } catch (error) {
-      console.error(`Error processing collection delete event: ${error}`);
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.error(
+          `[FirehoseWorker] Error processing collection delete event - uri: ${request.atUri}, error: ${error}`,
+        );
+      }
       return ok(undefined);
     }
   }

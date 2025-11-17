@@ -1,6 +1,5 @@
 import { Result, ok, err } from 'src/shared/core/Result';
 import { UseCase } from 'src/shared/core/UseCase';
-import { UseCaseError } from 'src/shared/core/UseCaseError';
 import { AppError } from 'src/shared/core/AppError';
 import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriResolutionService';
 import { PublishedRecordId } from '../../../cards/domain/value-objects/PublishedRecordId';
@@ -18,6 +17,7 @@ export interface ProcessCollectionLinkFirehoseEventDTO {
   record?: CollectionLinkRecord;
 }
 
+const ENABLE_FIREHOSE_LOGGING = true;
 export class ProcessCollectionLinkFirehoseEventUseCase
   implements UseCase<ProcessCollectionLinkFirehoseEventDTO, Result<void>>
 {
@@ -30,9 +30,11 @@ export class ProcessCollectionLinkFirehoseEventUseCase
     request: ProcessCollectionLinkFirehoseEventDTO,
   ): Promise<Result<void>> {
     try {
-      console.log(
-        `Processing collection link firehose event: ${request.atUri} (${request.eventType})`,
-      );
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.log(
+          `[FirehoseWorker] Processing collection link event: ${request.atUri} (${request.eventType})`,
+        );
+      }
 
       switch (request.eventType) {
         case 'create':
@@ -41,9 +43,11 @@ export class ProcessCollectionLinkFirehoseEventUseCase
           return await this.handleCollectionLinkDelete(request);
         case 'update':
           // Collection links don't typically have update operations
-          console.log(
-            `Collection link update event for ${request.atUri} (unusual)`,
-          );
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.log(
+              `[FirehoseWorker] Collection link update event (unusual): ${request.atUri}`,
+            );
+          }
           break;
       }
 
@@ -57,9 +61,11 @@ export class ProcessCollectionLinkFirehoseEventUseCase
     request: ProcessCollectionLinkFirehoseEventDTO,
   ): Promise<Result<void>> {
     if (!request.record || !request.cid) {
-      console.warn(
-        'Collection link create event missing record or cid, skipping',
-      );
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.warn(
+          `[FirehoseWorker] Collection link create event missing record or cid, skipping: ${request.atUri}`,
+        );
+      }
       return ok(undefined);
     }
 
@@ -67,9 +73,11 @@ export class ProcessCollectionLinkFirehoseEventUseCase
       // Parse AT URI to extract curator DID
       const atUriResult = ATUri.create(request.atUri);
       if (atUriResult.isErr()) {
-        console.warn(
-          `Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
+          );
+        }
         return ok(undefined);
       }
       const curatorDid = atUriResult.value.did.value;
@@ -84,14 +92,20 @@ export class ProcessCollectionLinkFirehoseEventUseCase
       );
 
       if (collectionId.isErr() || !collectionId.value) {
-        console.warn(
-          `Failed to resolve collection: ${request.record.collection.uri}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Failed to resolve collection - user: ${curatorDid}, collectionUri: ${request.record.collection.uri}, linkUri: ${request.atUri}`,
+          );
+        }
         return ok(undefined);
       }
 
       if (cardId.isErr() || !cardId.value) {
-        console.warn(`Failed to resolve card: ${request.record.card.uri}`);
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Failed to resolve card - user: ${curatorDid}, cardUri: ${request.record.card.uri}, linkUri: ${request.atUri}`,
+          );
+        }
         return ok(undefined);
       }
 
@@ -117,16 +131,26 @@ export class ProcessCollectionLinkFirehoseEventUseCase
       });
 
       if (result.isErr()) {
-        console.warn(
-          `Failed to add card to collection: ${result.error.message}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Failed to add card to collection - user: ${curatorDid}, cardId: ${cardId.value.getStringValue()}, collectionId: ${collectionId.value.getStringValue()}, linkUri: ${request.atUri}, error: ${result.error.message}`,
+          );
+        }
         return ok(undefined);
       }
 
-      console.log(`Successfully added card to collection from firehose event`);
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.log(
+          `[FirehoseWorker] Successfully added card to collection - user: ${curatorDid}, cardId: ${cardId.value.getStringValue()}, collectionId: ${collectionId.value.getStringValue()}, linkUri: ${request.atUri}`,
+        );
+      }
       return ok(undefined);
     } catch (error) {
-      console.error(`Error processing collection link create event: ${error}`);
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.error(
+          `[FirehoseWorker] Error processing collection link create event - uri: ${request.atUri}, error: ${error}`,
+        );
+      }
       return ok(undefined);
     }
   }
@@ -138,9 +162,11 @@ export class ProcessCollectionLinkFirehoseEventUseCase
       // Parse AT URI to extract curator DID
       const atUriResult = ATUri.create(request.atUri);
       if (atUriResult.isErr()) {
-        console.warn(
-          `Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
+          );
+        }
         return ok(undefined);
       }
       const curatorDid = atUriResult.value.did.value;
@@ -151,16 +177,20 @@ export class ProcessCollectionLinkFirehoseEventUseCase
           request.atUri,
         );
       if (linkInfoResult.isErr()) {
-        console.warn(
-          `Failed to resolve collection link: ${linkInfoResult.error.message}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Failed to resolve collection link - user: ${curatorDid}, uri: ${request.atUri}, error: ${linkInfoResult.error.message}`,
+          );
+        }
         return ok(undefined);
       }
 
       if (linkInfoResult.value) {
-        console.log(
-          `Collection link deleted externally: ${request.atUri}, removing from our system`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.log(
+            `[FirehoseWorker] Collection link deleted externally - user: ${curatorDid}, cardId: ${linkInfoResult.value.cardId.getStringValue()}, collectionId: ${linkInfoResult.value.collectionId.getStringValue()}, uri: ${request.atUri}`,
+          );
+        }
 
         const publishedRecordId = PublishedRecordId.create({
           uri: request.atUri,
@@ -177,20 +207,28 @@ export class ProcessCollectionLinkFirehoseEventUseCase
         });
 
         if (result.isErr()) {
-          console.warn(
-            `Failed to remove card from collection: ${result.error.message}`,
-          );
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.warn(
+              `[FirehoseWorker] Failed to remove card from collection - user: ${curatorDid}, cardId: ${linkInfoResult.value.cardId.getStringValue()}, collectionId: ${linkInfoResult.value.collectionId.getStringValue()}, uri: ${request.atUri}, error: ${result.error.message}`,
+            );
+          }
           return ok(undefined);
         }
 
-        console.log(
-          `Successfully removed card from collection from firehose event`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.log(
+            `[FirehoseWorker] Successfully removed card from collection - user: ${curatorDid}, cardId: ${linkInfoResult.value.cardId.getStringValue()}, collectionId: ${linkInfoResult.value.collectionId.getStringValue()}, uri: ${request.atUri}`,
+          );
+        }
       }
 
       return ok(undefined);
     } catch (error) {
-      console.error(`Error processing collection link delete event: ${error}`);
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.error(
+          `[FirehoseWorker] Error processing collection link delete event - uri: ${request.atUri}, error: ${error}`,
+        );
+      }
       return ok(undefined);
     }
   }

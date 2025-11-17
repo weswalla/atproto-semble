@@ -1,6 +1,5 @@
 import { Result, ok, err } from 'src/shared/core/Result';
 import { UseCase } from 'src/shared/core/UseCase';
-import { UseCaseError } from 'src/shared/core/UseCaseError';
 import { AppError } from 'src/shared/core/AppError';
 import { IAtUriResolutionService } from '../../../cards/domain/services/IAtUriResolutionService';
 import { PublishedRecordId } from '../../../cards/domain/value-objects/PublishedRecordId';
@@ -24,6 +23,7 @@ export interface ProcessCardFirehoseEventDTO {
   record?: CardRecord;
 }
 
+const ENABLE_FIREHOSE_LOGGING = true;
 export class ProcessCardFirehoseEventUseCase
   implements UseCase<ProcessCardFirehoseEventDTO, Result<void>>
 {
@@ -36,9 +36,11 @@ export class ProcessCardFirehoseEventUseCase
 
   async execute(request: ProcessCardFirehoseEventDTO): Promise<Result<void>> {
     try {
-      console.log(
-        `Processing card firehose event: ${request.atUri} (${request.eventType})`,
-      );
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.log(
+          `[FirehoseWorker] Processing card event: ${request.atUri} (${request.eventType})`,
+        );
+      }
 
       switch (request.eventType) {
         case 'create':
@@ -59,7 +61,11 @@ export class ProcessCardFirehoseEventUseCase
     request: ProcessCardFirehoseEventDTO,
   ): Promise<Result<void>> {
     if (!request.record || !request.cid) {
-      console.warn('Card create event missing record or cid, skipping');
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.warn(
+          `[FirehoseWorker] Card create event missing record or cid, skipping: ${request.atUri}`,
+        );
+      }
       return ok(undefined);
     }
 
@@ -67,9 +73,11 @@ export class ProcessCardFirehoseEventUseCase
       // Parse AT URI to extract curator DID
       const atUriResult = ATUri.create(request.atUri);
       if (atUriResult.isErr()) {
-        console.warn(
-          `Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
+          );
+        }
         return ok(undefined);
       }
       const atUri = atUriResult.value;
@@ -84,7 +92,11 @@ export class ProcessCardFirehoseEventUseCase
         // Handle URL card creation
         const urlContent = request.record.content as UrlContent;
         if (!urlContent.url) {
-          console.warn(`URL card missing URL: ${request.atUri}`);
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.warn(
+              `[FirehoseWorker] URL card missing URL - user: ${curatorDid}, uri: ${request.atUri}`,
+            );
+          }
           return ok(undefined);
         }
 
@@ -95,26 +107,38 @@ export class ProcessCardFirehoseEventUseCase
         });
 
         if (result.isErr()) {
-          console.warn(`Failed to add URL to library: ${result.error.message}`);
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.warn(
+              `[FirehoseWorker] Failed to add URL to library - user: ${curatorDid}, uri: ${request.atUri}, error: ${result.error.message}`,
+            );
+          }
           return ok(undefined);
         }
 
-        console.log(
-          `Successfully created URL card from firehose event: ${result.value.urlCardId}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.log(
+            `[FirehoseWorker] Successfully created URL card - user: ${curatorDid}, cardId: ${result.value.urlCardId}, uri: ${request.atUri}`,
+          );
+        }
       } else if (request.record.type === 'NOTE') {
         // Handle note card creation
         const noteContent = request.record.content as NoteContent;
         if (!noteContent.text) {
-          console.warn(`Note card missing text: ${request.atUri}`);
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.warn(
+              `[FirehoseWorker] Note card missing text - user: ${curatorDid}, uri: ${request.atUri}`,
+            );
+          }
           return ok(undefined);
         }
 
         // Get parent card from parentCard reference
         if (!request.record.parentCard) {
-          console.warn(
-            `Note card missing parent card reference: ${request.atUri}`,
-          );
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.warn(
+              `[FirehoseWorker] Note card missing parent card reference - user: ${curatorDid}, uri: ${request.atUri}`,
+            );
+          }
           return ok(undefined);
         }
 
@@ -123,9 +147,11 @@ export class ProcessCardFirehoseEventUseCase
           request.record.parentCard.uri,
         );
         if (parentCardId.isErr() || !parentCardId.value) {
-          console.warn(
-            `Failed to resolve parent card: ${request.record.parentCard.uri}`,
-          );
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.warn(
+              `[FirehoseWorker] Failed to resolve parent card - user: ${curatorDid}, parentUri: ${request.record.parentCard.uri}, noteUri: ${request.atUri}`,
+            );
+          }
           return ok(undefined);
         }
 
@@ -140,18 +166,28 @@ export class ProcessCardFirehoseEventUseCase
         });
 
         if (result.isErr()) {
-          console.warn(`Failed to create note card: ${result.error.message}`);
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.warn(
+              `[FirehoseWorker] Failed to create note card - user: ${curatorDid}, parentCardId: ${parentCardId.value.getStringValue()}, uri: ${request.atUri}, error: ${result.error.message}`,
+            );
+          }
           return ok(undefined);
         }
 
-        console.log(
-          `Successfully created note card from firehose event: ${result.value.noteCardId}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.log(
+            `[FirehoseWorker] Successfully created note card - user: ${curatorDid}, noteCardId: ${result.value.noteCardId}, parentCardId: ${parentCardId.value.getStringValue()}, uri: ${request.atUri}`,
+          );
+        }
       }
 
       return ok(undefined);
     } catch (error) {
-      console.error(`Error processing card create event: ${error}`);
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.error(
+          `[FirehoseWorker] Error processing card create event - uri: ${request.atUri}, error: ${error}`,
+        );
+      }
       return ok(undefined); // Don't fail the firehose processing
     }
   }
@@ -160,13 +196,21 @@ export class ProcessCardFirehoseEventUseCase
     request: ProcessCardFirehoseEventDTO,
   ): Promise<Result<void>> {
     if (!request.record || !request.cid) {
-      console.warn('Card update event missing record or cid, skipping');
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.warn(
+          `[FirehoseWorker] Card update event missing record or cid, skipping: ${request.atUri}`,
+        );
+      }
       return ok(undefined);
     }
 
     // Only handle NOTE card updates for now
     if (request.record.type !== 'NOTE') {
-      console.log(`Ignoring update for card type: ${request.record.type}`);
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.log(
+          `[FirehoseWorker] Ignoring update for card type: ${request.record.type}, uri: ${request.atUri}`,
+        );
+      }
       return ok(undefined);
     }
 
@@ -174,24 +218,32 @@ export class ProcessCardFirehoseEventUseCase
       // Parse AT URI to extract curator DID
       const atUriResult = ATUri.create(request.atUri);
       if (atUriResult.isErr()) {
-        console.warn(
-          `Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
+          );
+        }
         return ok(undefined);
       }
       const curatorDid = atUriResult.value.did.value;
 
       const noteContent = request.record.content as NoteContent;
       if (!noteContent.text) {
-        console.warn(`Note card missing text: ${request.atUri}`);
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Note card missing text - user: ${curatorDid}, uri: ${request.atUri}`,
+          );
+        }
         return ok(undefined);
       }
 
       // Get parent card from parentCard reference
       if (!request.record.parentCard) {
-        console.warn(
-          `Note card missing parent card reference: ${request.atUri}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Note card missing parent card reference - user: ${curatorDid}, uri: ${request.atUri}`,
+          );
+        }
         return ok(undefined);
       }
 
@@ -200,9 +252,11 @@ export class ProcessCardFirehoseEventUseCase
         request.record.parentCard.uri,
       );
       if (parentCardId.isErr() || !parentCardId.value) {
-        console.warn(
-          `Failed to resolve parent card: ${request.record.parentCard.uri}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Failed to resolve parent card - user: ${curatorDid}, parentUri: ${request.record.parentCard.uri}, noteUri: ${request.atUri}`,
+          );
+        }
         return ok(undefined);
       }
 
@@ -222,16 +276,26 @@ export class ProcessCardFirehoseEventUseCase
       });
 
       if (result.isErr()) {
-        console.warn(`Failed to update note card: ${result.error.message}`);
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Failed to update note card - user: ${curatorDid}, parentCardId: ${parentCardId.value.getStringValue()}, uri: ${request.atUri}, error: ${result.error.message}`,
+          );
+        }
         return ok(undefined);
       }
 
-      console.log(
-        `Successfully updated note card from firehose event: ${result.value.noteCardId}`,
-      );
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.log(
+          `[FirehoseWorker] Successfully updated note card - user: ${curatorDid}, noteCardId: ${result.value.noteCardId}, parentCardId: ${parentCardId.value.getStringValue()}, uri: ${request.atUri}`,
+        );
+      }
       return ok(undefined);
     } catch (error) {
-      console.error(`Error processing card update event: ${error}`);
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.error(
+          `[FirehoseWorker] Error processing card update event - uri: ${request.atUri}, error: ${error}`,
+        );
+      }
       return ok(undefined); // Don't fail the firehose processing
     }
   }
@@ -243,9 +307,11 @@ export class ProcessCardFirehoseEventUseCase
       // Parse AT URI to extract curator DID
       const atUriResult = ATUri.create(request.atUri);
       if (atUriResult.isErr()) {
-        console.warn(
-          `Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Invalid AT URI format: ${request.atUri} - ${atUriResult.error.message}`,
+          );
+        }
         return ok(undefined);
       }
       const curatorDid = atUriResult.value.did.value;
@@ -254,16 +320,20 @@ export class ProcessCardFirehoseEventUseCase
         request.atUri,
       );
       if (cardIdResult.isErr()) {
-        console.warn(
-          `Failed to resolve card ID: ${cardIdResult.error.message}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.warn(
+            `[FirehoseWorker] Failed to resolve card ID - user: ${curatorDid}, uri: ${request.atUri}, error: ${cardIdResult.error.message}`,
+          );
+        }
         return ok(undefined);
       }
 
       if (cardIdResult.value) {
-        console.log(
-          `Card deleted externally: ${request.atUri}, removing from library`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.log(
+            `[FirehoseWorker] Card deleted externally - user: ${curatorDid}, cardId: ${cardIdResult.value.getStringValue()}, uri: ${request.atUri}`,
+          );
+        }
 
         const publishedRecordId = PublishedRecordId.create({
           uri: request.atUri,
@@ -277,20 +347,28 @@ export class ProcessCardFirehoseEventUseCase
         });
 
         if (result.isErr()) {
-          console.warn(
-            `Failed to remove card from library: ${result.error.message}`,
-          );
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.warn(
+              `[FirehoseWorker] Failed to remove card from library - user: ${curatorDid}, cardId: ${cardIdResult.value.getStringValue()}, uri: ${request.atUri}, error: ${result.error.message}`,
+            );
+          }
           return ok(undefined);
         }
 
-        console.log(
-          `Successfully removed card from library: ${result.value.cardId}`,
-        );
+        if (ENABLE_FIREHOSE_LOGGING) {
+          console.log(
+            `[FirehoseWorker] Successfully removed card from library - user: ${curatorDid}, cardId: ${result.value.cardId}, uri: ${request.atUri}`,
+          );
+        }
       }
 
       return ok(undefined);
     } catch (error) {
-      console.error(`Error processing card delete event: ${error}`);
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.error(
+          `[FirehoseWorker] Error processing card delete event - uri: ${request.atUri}, error: ${error}`,
+        );
+      }
       return ok(undefined);
     }
   }

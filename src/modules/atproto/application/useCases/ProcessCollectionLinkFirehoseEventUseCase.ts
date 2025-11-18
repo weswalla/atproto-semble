@@ -69,6 +69,17 @@ export class ProcessCollectionLinkFirehoseEventUseCase
       return ok(undefined);
     }
 
+    // Type validation - ensure this is a CollectionLinkRecord
+    const linkRecord = request.record as CollectionLinkRecord;
+    if (!linkRecord.collection || !linkRecord.card || !linkRecord.addedBy) {
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.warn(
+          `[FirehoseWorker] Invalid collection link record structure, skipping: ${request.atUri}`,
+        );
+      }
+      return ok(undefined);
+    }
+
     try {
       // Parse AT URI to extract curator DID
       const atUriResult = ATUri.create(request.atUri);
@@ -85,16 +96,16 @@ export class ProcessCollectionLinkFirehoseEventUseCase
       // Resolve collection and card from strong refs
       const collectionId =
         await this.atUriResolutionService.resolveCollectionId(
-          request.record.collection.uri,
+          linkRecord.collection.uri,
         );
       const cardId = await this.atUriResolutionService.resolveCardId(
-        request.record.card.uri,
+        linkRecord.card.uri,
       );
 
       if (collectionId.isErr() || !collectionId.value) {
         if (ENABLE_FIREHOSE_LOGGING) {
           console.warn(
-            `[FirehoseWorker] Failed to resolve collection - user: ${curatorDid}, collectionUri: ${request.record.collection.uri}, linkUri: ${request.atUri}`,
+            `[FirehoseWorker] Failed to resolve collection - user: ${curatorDid}, collectionUri: ${linkRecord.collection.uri}, linkUri: ${request.atUri}`,
           );
         }
         return ok(undefined);
@@ -103,7 +114,7 @@ export class ProcessCollectionLinkFirehoseEventUseCase
       if (cardId.isErr() || !cardId.value) {
         if (ENABLE_FIREHOSE_LOGGING) {
           console.warn(
-            `[FirehoseWorker] Failed to resolve card - user: ${curatorDid}, cardUri: ${request.record.card.uri}, linkUri: ${request.atUri}`,
+            `[FirehoseWorker] Failed to resolve card - user: ${curatorDid}, cardUri: ${linkRecord.card.uri}, linkUri: ${request.atUri}`,
           );
         }
         return ok(undefined);

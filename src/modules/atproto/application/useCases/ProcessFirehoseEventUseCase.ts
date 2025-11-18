@@ -17,15 +17,13 @@ import {
   ProcessCollectionLinkFirehoseEventDTO,
   ProcessCollectionLinkFirehoseEventUseCase,
 } from './ProcessCollectionLinkFirehoseEventUseCase';
-import { Record as CardRecord } from '../../infrastructure/lexicon/types/network/cosmik/card';
-import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
-import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLink';
+import type { RepoRecord } from '@atproto/lexicon';
 
 export interface ProcessFirehoseEventDTO {
   atUri: string;
   cid: string | null;
   eventType: 'create' | 'update' | 'delete';
-  record?: CardRecord | CollectionRecord | CollectionLinkRecord; // The AT Protocol record data
+  record?: RepoRecord; // The AT Protocol record data
 }
 
 export class ValidationError extends UseCaseError {

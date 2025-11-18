@@ -64,6 +64,17 @@ export class ProcessCollectionFirehoseEventUseCase
       return ok(undefined);
     }
 
+    // Type validation - ensure this is a CollectionRecord
+    const collectionRecord = request.record as CollectionRecord;
+    if (!collectionRecord.name) {
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.warn(
+          `[FirehoseWorker] Invalid collection record structure, skipping: ${request.atUri}`,
+        );
+      }
+      return ok(undefined);
+    }
+
     try {
       // Parse AT URI to extract author DID
       const atUriResult = ATUri.create(request.atUri);
@@ -83,8 +94,8 @@ export class ProcessCollectionFirehoseEventUseCase
       });
 
       const result = await this.createCollectionUseCase.execute({
-        name: request.record.name,
-        description: request.record.description,
+        name: collectionRecord.name,
+        description: collectionRecord.description,
         curatorId: authorDid,
         publishedRecordId: publishedRecordId,
       });
@@ -121,6 +132,17 @@ export class ProcessCollectionFirehoseEventUseCase
       if (ENABLE_FIREHOSE_LOGGING) {
         console.warn(
           `[FirehoseWorker] Collection update event missing record or cid, skipping: ${request.atUri}`,
+        );
+      }
+      return ok(undefined);
+    }
+
+    // Type validation - ensure this is a CollectionRecord
+    const collectionRecord = request.record as CollectionRecord;
+    if (!collectionRecord.name) {
+      if (ENABLE_FIREHOSE_LOGGING) {
+        console.warn(
+          `[FirehoseWorker] Invalid collection record structure, skipping: ${request.atUri}`,
         );
       }
       return ok(undefined);
@@ -167,8 +189,8 @@ export class ProcessCollectionFirehoseEventUseCase
 
       const result = await this.updateCollectionUseCase.execute({
         collectionId: collectionIdResult.value.getStringValue(),
-        name: request.record.name,
-        description: request.record.description,
+        name: collectionRecord.name,
+        description: collectionRecord.description,
         curatorId: authorDid,
         publishedRecordId: publishedRecordId,
       });

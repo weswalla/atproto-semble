@@ -3,12 +3,9 @@ import UrlAddedBySummarySkeleton from '@/features/semble/components/urlAddedBySu
 
 export default function BlueskySembleHeaderSkeleton() {
   return (
-    <Stack gap="sm" mx="auto" w={'100%'}>
-      {/* Semble + Domain */}
-      <Stack gap="xs">
-        {/* "Semble" */}
-        <Skeleton w={80} h={16} />
-      </Stack>
+    <Stack gap="md" mx="auto" w={'100%'}>
+      {/* "Semble" */}
+      <Skeleton w={120} h={16} />
 
       {/* Post */}
       <Stack gap="xs" w={'100%'}>

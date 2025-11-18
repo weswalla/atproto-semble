@@ -46,7 +46,7 @@ export default async function BlueskySembleHeader(props: Props) {
 
   return (
     <Stack gap={'sm'} mx={'auto'} w={'100%'}>
-      <Stack>
+      <Stack gap={'xs'}>
         <Text>
           <Text fw={700} c="tangerine" span>
             Semble

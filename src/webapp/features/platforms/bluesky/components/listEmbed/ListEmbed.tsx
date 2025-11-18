@@ -7,18 +7,16 @@ interface Props {
 }
 
 export default function ListEmbed(props: Props) {
-  const { list } = props;
-
   return (
-    <Card withBorder>
+    <Card p={'sm'} withBorder>
       <Group gap={'xs'}>
         <BsFillPeopleFill />
         <Text fz={'sm'} fw={500} c={'bright'} lineClamp={1}>
-          {list.name}
+          {props.list.name}
         </Text>
       </Group>
       <Text fz={'sm'} fw={500} c={'gray'} lineClamp={1} span>
-        @{list.creator.handle}
+        @{props.list.creator.handle}
       </Text>
     </Card>
   );

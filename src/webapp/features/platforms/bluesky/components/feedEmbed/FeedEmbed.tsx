@@ -8,7 +8,7 @@ interface Props {
 export default function FeedEmbed(props: Props) {
   return (
     <Card p={'xs'} withBorder>
-      <Group gap={'xs'}>
+      <Group gap={'xs'} wrap="nowrap">
         {props.feed.avatar && (
           <Avatar src={props.feed.avatar} alt={props.feed.displayName} />
         )}

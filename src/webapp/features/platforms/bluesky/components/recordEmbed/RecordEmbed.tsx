@@ -33,7 +33,7 @@ export default function RecordEmbed(props: Props) {
               src={post.author.avatar}
               alt={`${post.author.handle} social preview image`}
               radius="xl"
-              size={'xs'}
+              size={'sm'}
             />
 
             <Text c="bright" lineClamp={1} fw={500} w="fit-content">

@@ -9,12 +9,13 @@ import {
   UpdateUrlCardAssociationsUseCase,
   OperationContext,
 } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
+import type { RepoRecord } from '@atproto/lexicon';
 
 export interface ProcessCollectionLinkFirehoseEventDTO {
   atUri: string;
   cid: string | null;
   eventType: 'create' | 'update' | 'delete';
-  record?: CollectionLinkRecord;
+  record?: RepoRecord;
 }
 
 const ENABLE_FIREHOSE_LOGGING = true;

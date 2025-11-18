@@ -15,12 +15,13 @@ import {
   OperationContext,
 } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
 import { RemoveCardFromLibraryUseCase } from '../../../cards/application/useCases/commands/RemoveCardFromLibraryUseCase';
+import type { RepoRecord } from '@atproto/lexicon';
 
 export interface ProcessCardFirehoseEventDTO {
   atUri: string;
   cid: string | null;
   eventType: 'create' | 'update' | 'delete';
-  record?: CardRecord;
+  record?: RepoRecord;
 }
 
 const ENABLE_FIREHOSE_LOGGING = true;

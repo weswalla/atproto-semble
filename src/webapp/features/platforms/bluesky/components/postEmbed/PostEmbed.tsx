@@ -42,11 +42,11 @@ export default function PostEmbed(props: Props) {
       }
 
       if (AppBskyFeedDefs.isGeneratorView(record)) {
-        return <FeedEmbed feed={record} />;
+        return <FeedEmbed feed={record} mode={props.mode} />;
       }
 
       if (AppBskyGraphDefs.isListView(record)) {
-        return <ListEmbed list={record} />;
+        return <ListEmbed list={record} mode={props.mode} />;
       }
 
       return <RecordEmbed embed={record} mode={props.mode} />;

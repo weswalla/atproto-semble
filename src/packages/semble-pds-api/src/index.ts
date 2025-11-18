@@ -1,6 +1,12 @@
 import { AtpAgent } from '@atproto/api';
 import urlMetadata from 'url-metadata';
-import { StrongRef, UrlMetadata, CreateCardOptions, CreateCollectionOptions, SemblePDSClientOptions } from './types';
+import {
+  StrongRef,
+  UrlMetadata,
+  CreateCardOptions,
+  CreateCollectionOptions,
+  SemblePDSClientOptions,
+} from './types';
 
 export class SemblePDSClient {
   private agent: AtpAgent;
@@ -21,7 +27,9 @@ export class SemblePDSClient {
     });
   }
 
-  private async fetchUrlMetadata(url: string): Promise<UrlMetadata | undefined> {
+  private async fetchUrlMetadata(
+    url: string,
+  ): Promise<UrlMetadata | undefined> {
     try {
       const metadata = await urlMetadata(url);
       return {
@@ -53,7 +61,9 @@ export class SemblePDSClient {
       content: {
         $type: 'network.cosmik.card#urlContent',
         url: options.url,
-        ...(metadata && { metadata: { $type: 'network.cosmik.card#urlMetadata', ...metadata } }),
+        ...(metadata && {
+          metadata: { $type: 'network.cosmik.card#urlMetadata', ...metadata },
+        }),
       },
       createdAt: new Date().toISOString(),
     };
@@ -70,7 +80,10 @@ export class SemblePDSClient {
     };
   }
 
-  async addNoteToCard(parentCard: StrongRef, noteText: string): Promise<StrongRef> {
+  async addNoteToCard(
+    parentCard: StrongRef,
+    noteText: string,
+  ): Promise<StrongRef> {
     if (!this.agent.session) {
       throw new Error('Not authenticated. Call login() first.');
     }
@@ -128,7 +141,10 @@ export class SemblePDSClient {
     };
   }
 
-  async addCardToCollection(card: StrongRef, collection: StrongRef): Promise<StrongRef> {
+  async addCardToCollection(
+    card: StrongRef,
+    collection: StrongRef,
+  ): Promise<StrongRef> {
     if (!this.agent.session) {
       throw new Error('Not authenticated. Call login() first.');
     }
@@ -199,7 +215,11 @@ export class SemblePDSClient {
     });
   }
 
-  async updateCollection(collectionRef: StrongRef, name: string, description?: string): Promise<void> {
+  async updateCollection(
+    collectionRef: StrongRef,
+    name: string,
+    description?: string,
+  ): Promise<void> {
     if (!this.agent.session) {
       throw new Error('Not authenticated. Call login() first.');
     }

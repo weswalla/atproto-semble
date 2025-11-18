@@ -23,7 +23,7 @@ await client.login('your-handle.bsky.social', 'your-app-password');
 // Create a URL card
 const card = await client.createCard({
   url: 'https://example.com',
-  note: 'Optional note about this URL'
+  note: 'Optional note about this URL',
 });
 
 // Add a note to an existing card
@@ -32,7 +32,7 @@ const noteCard = await client.addNoteToCard(card, 'This is my note');
 // Create a collection
 const collection = await client.createCollection({
   name: 'My Collection',
-  description: 'Optional description'
+  description: 'Optional description',
 });
 
 // Add card to collection
@@ -59,10 +59,12 @@ await client.removeCardFromCollection(collectionLink);
 ### `SemblePDSClient`
 
 #### Constructor
+
 - `new SemblePDSClient(options)` - Create a new client instance
   - `options.service` - PDS service URL
 
 #### Methods
+
 - `login(identifier, password)` - Authenticate with app password
 - `createCard(options)` - Create a URL card with automatic metadata fetching
 - `addNoteToCard(parentCard, noteText)` - Add a note card to an existing card
@@ -77,6 +79,7 @@ await client.removeCardFromCollection(collectionLink);
 ## Types
 
 ### `StrongRef`
+
 ```typescript
 interface StrongRef {
   uri: string;
@@ -85,6 +88,7 @@ interface StrongRef {
 ```
 
 ### `CreateCardOptions`
+
 ```typescript
 interface CreateCardOptions {
   url: string;
@@ -93,6 +97,7 @@ interface CreateCardOptions {
 ```
 
 ### `CreateCollectionOptions`
+
 ```typescript
 interface CreateCollectionOptions {
   name: string;

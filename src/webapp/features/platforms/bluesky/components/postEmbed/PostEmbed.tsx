@@ -54,6 +54,6 @@ export default function PostEmbed({ embed }: Props) {
       return <RecordEmbed embed={embed.record.record} media={embed.media} />;
 
     default:
-      return <>default</>;
+      return null;
   }
 }

@@ -85,6 +85,7 @@ describe('ProcessCardFirehoseEventUseCase', () => {
       addUrlToLibraryUseCase,
       updateUrlCardAssociationsUseCase,
       removeCardFromLibraryUseCase,
+      cardRepository,
     );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
@@ -438,23 +439,23 @@ describe('ProcessCardFirehoseEventUseCase', () => {
 
       expect(result.isOk()).toBe(true);
 
-      // Verify that only one note card exists (the original one should be updated, not a new one created)
+      // Verify that only one note card exists (the original one should remain unchanged)
       const savedCards = cardRepository.getAllCards();
       const noteCards = savedCards.filter(
         (card) => card.content.type === CardTypeEnum.NOTE,
       );
       expect(noteCards).toHaveLength(1);
 
-      // Verify the existing note card was updated with the new text
+      // Verify the existing note card was NOT updated (should still have original text)
       const noteCard = noteCards[0]!;
-      expect(noteCard.content.noteContent?.text).toBe('Second note about the same article');
+      expect(noteCard.content.noteContent?.text).toBe('First note about this article');
       expect(noteCard.curatorId.equals(curatorId)).toBe(true);
       expect(noteCard.isInLibrary(curatorId)).toBe(true);
 
-      // Verify the published record ID was updated to the new one from the firehose event
+      // Verify the published record ID was NOT updated (should still be the original)
       expect(noteCard.publishedRecordId).toBeDefined();
-      expect(noteCard.publishedRecordId?.uri).toBe(secondNoteAtUri);
-      expect(noteCard.publishedRecordId?.cid).toBe(cid);
+      expect(noteCard.publishedRecordId?.uri).not.toBe(secondNoteAtUri);
+      expect(noteCard.publishedRecordId?.cid).not.toBe(cid);
     });
   });
 

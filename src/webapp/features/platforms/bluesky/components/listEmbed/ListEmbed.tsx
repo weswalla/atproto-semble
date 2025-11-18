@@ -8,7 +8,7 @@ interface Props {
 
 export default function ListEmbed(props: Props) {
   return (
-    <Card p={'sm'} withBorder>
+    <Card p={'xs'} withBorder>
       <Group gap={'xs'}>
         <BsFillPeopleFill />
         <Text fz={'sm'} fw={500} c={'bright'} lineClamp={1}>

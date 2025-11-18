@@ -10,7 +10,7 @@ import PostEmbed from '../postEmbed/PostEmbed';
 interface Props {
   embed: AppBskyEmbedRecord.View['record'];
   media?: AppBskyEmbedRecordWithMedia.View['media'];
-  mode?: 'large' | 'compact';
+  mode?: 'card' | 'thread';
 }
 
 export default function RecordEmbed(props: Props) {

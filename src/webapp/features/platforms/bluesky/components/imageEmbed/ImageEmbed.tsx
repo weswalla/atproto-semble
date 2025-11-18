@@ -3,6 +3,7 @@ import { AspectRatio, SimpleGrid, Image } from '@mantine/core';
 
 interface Props {
   images: AppBskyEmbedImages.ViewImage[];
+  mode?: 'card' | 'thread';
 }
 
 export default function ImageEmbed(props: Props) {

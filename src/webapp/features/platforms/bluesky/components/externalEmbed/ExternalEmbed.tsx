@@ -12,11 +12,11 @@ import {
 
 interface Props {
   embed: AppBskyEmbedExternal.View;
-  mode?: 'compact' | 'large';
+  mode?: 'card' | 'thread';
 }
 
 export default function ExternalEmbed(props: Props) {
-  if (props.mode === 'compact') {
+  if (props.mode === 'card') {
     return (
       <Card p={'xs'} withBorder>
         <Group gap={'xs'} wrap="nowrap">

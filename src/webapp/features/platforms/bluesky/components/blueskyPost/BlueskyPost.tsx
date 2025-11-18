@@ -49,7 +49,7 @@ export default function BlueskyPost(props: Props) {
         <Box>
           <RichTextRenderer text={record.text} textProps={{ lineClamp: 3 }} />
         </Box>
-        {post.embed && <PostEmbed embed={post.embed} mode="compact" />}
+        {post.embed && <PostEmbed embed={post.embed} mode="card" />}
       </Stack>
     </Stack>
   );

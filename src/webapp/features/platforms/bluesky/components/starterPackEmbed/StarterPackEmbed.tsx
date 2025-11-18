@@ -13,7 +13,7 @@ import { getStarterPackImage, getStarterPackLink } from '../../lib/utils/link';
 
 interface Props {
   embed: AppBskyGraphDefs.StarterPackViewBasic;
-  mode?: 'compact' | 'large';
+  mode?: 'card' | 'thread';
 }
 
 export default function StarterPackEmbed(props: Props) {

@@ -18,7 +18,7 @@ import RecordEmbed from '../recordEmbed/RecordEmbed';
 
 interface Props {
   embed: AppBskyFeedDefs.PostView['embed'];
-  mode?: 'compact' | 'large';
+  mode?: 'card' | 'thread';
 }
 
 export default function PostEmbed(props: Props) {

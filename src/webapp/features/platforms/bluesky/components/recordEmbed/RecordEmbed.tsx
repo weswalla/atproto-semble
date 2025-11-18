@@ -27,7 +27,7 @@ export default function RecordEmbed(props: Props) {
 
   return (
     <Stack gap={'xs'}>
-      {props.media && <PostEmbed embed={props.media} />}
+      {props.media && <PostEmbed embed={props.media} mode={props.mode} />}
       <Card p={'sm'} flex={1} h={'100%'} withBorder>
         <Stack justify="space-between" align="start" gap="xs">
           <Group gap="xs" wrap="nowrap">
@@ -49,7 +49,8 @@ export default function RecordEmbed(props: Props) {
                 textProps={{ lineClamp: 1 }}
               />
             </Box>
-            {post.embeds && (
+            {/* don't show quoted post's embed on card */}
+            {post.embeds && props.mode !== 'card' && (
               <PostEmbed embed={post.embeds[0]} mode={props.mode} />
             )}
           </Stack>

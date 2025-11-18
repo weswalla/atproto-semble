@@ -69,7 +69,7 @@ export default async function BlueskySembleHeader(props: Props) {
         </Text>
 
         {/* Post */}
-        <Card withBorder>
+        <Card radius={'lg'} withBorder>
           <Stack gap={'xs'}>
             <Group gap="xs" justify="space-between" wrap="nowrap">
               <Group gap={'xs'} wrap="nowrap">

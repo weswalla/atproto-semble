@@ -5,6 +5,27 @@ import { EnvironmentConfigService } from 'src/shared/infrastructure/config/Envir
 import { IdResolver } from '@atproto/identity';
 import { FirehoseEvent } from '../../domain/FirehoseEvent';
 
+// Event type constants from @atproto/sync
+const COMMIT_EVENTS = ['create', 'update', 'delete'] as const;
+const IGNORED_EVENTS = ['identity', 'sync', 'account'] as const;
+
+type CommitEventType = typeof COMMIT_EVENTS[number];
+type IgnoredEventType = typeof IGNORED_EVENTS[number];
+
+class FirehoseEventFilter {
+  static isCommitEvent(event: Event): event is CommitEvt {
+    return COMMIT_EVENTS.includes(event.event as CommitEventType);
+  }
+
+  static shouldIgnoreEvent(event: Event): boolean {
+    return IGNORED_EVENTS.includes(event.event as IgnoredEventType);
+  }
+
+  static isProcessableEvent(event: Event): event is CommitEvt {
+    return this.isCommitEvent(event) && !this.shouldIgnoreEvent(event);
+  }
+}
+
 export class AtProtoFirehoseService implements IFirehoseService {
   private firehose?: Firehose;
   private runner?: MemoryRunner;
@@ -71,24 +92,13 @@ export class AtProtoFirehoseService implements IFirehoseService {
   }
 
   private async handleFirehoseEvent(evt: Event): Promise<void> {
-    // Skip identity events - we only care about repo commits
-    if (evt.event === 'identity') {
+    // Use the filter to check if we should process this event
+    if (!FirehoseEventFilter.isProcessableEvent(evt)) {
       return;
     }
-
-    // Only process commit events (create, update, delete)
-    if (
-      evt.event !== 'create' &&
-      evt.event !== 'update' &&
-      evt.event !== 'delete'
-    ) {
-      return;
-    }
-
-    const commitEvt = evt as CommitEvt;
 
     // Create FirehoseEvent value object
-    const firehoseEventResult = FirehoseEvent.fromCommitEvent(commitEvt);
+    const firehoseEventResult = FirehoseEvent.fromCommitEvent(evt);
     if (firehoseEventResult.isErr()) {
       console.error('Failed to create FirehoseEvent:', firehoseEventResult.error);
       return;

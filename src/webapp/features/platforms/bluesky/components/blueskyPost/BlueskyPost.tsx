@@ -32,17 +32,13 @@ export default function BlueskyPost(props: Props) {
         <Avatar
           src={post.author.avatar}
           alt={`${post.author.handle} social preview image`}
+          size={'sm'}
           radius="xl"
         />
 
-        <Stack gap={0} flex={1}>
-          <Text c="bright" lineClamp={1} fw={500} w="fit-content">
-            {post.author.displayName || post.author.handle}
-          </Text>
-          <Text c="gray" lineClamp={1} w="fit-content">
-            @{post.author.handle}
-          </Text>
-        </Stack>
+        <Text c="bright" lineClamp={1} fw={500} w="fit-content">
+          {post.author.displayName || post.author.handle}
+        </Text>
       </Group>
       <Stack gap={'xs'} w={'100%'}>
         <Box>

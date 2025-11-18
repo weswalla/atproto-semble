@@ -4,12 +4,11 @@ import { RichText } from '@atproto/api';
 import Link from 'next/link';
 import { Anchor, AnchorProps, Text, TextProps } from '@mantine/core';
 import { getDomain } from '@/lib/utils/link';
-import { Fragment } from 'react';
 
 interface Props {
   text: string;
-  linkProps?: Partial<AnchorProps>; // for mentions, links, hashtags
-  textProps?: Partial<TextProps>; // for plain text
+  linkProps?: Partial<AnchorProps>;
+  textProps?: Partial<TextProps>;
 }
 
 export default function RichTextRenderer({
@@ -21,17 +20,17 @@ export default function RichTextRenderer({
   richText.detectFacetsWithoutResolution();
 
   return (
-    <Fragment>
+    <Text span {...textProps}>
       {Array.from(richText.segments()).map((segment, i) => {
-        // mentions
+        // Mentions
         if (segment.isMention()) {
           return (
             <Anchor
-              component={Link}
+              key={`mention-${i}`}
+              href={`/profile/${segment.text.slice(1)}`}
               c={linkProps.c || 'blue'}
               fw={linkProps.fw || 500}
-              href={`/profile/${segment.text.slice(1)}`}
-              key={segment.mention?.did || `mention-${i}`}
+              target="_blank"
               onClick={(e) => e.stopPropagation()}
               {...linkProps}
             >
@@ -40,16 +39,15 @@ export default function RichTextRenderer({
           );
         }
 
-        // links
+        // Links
         if (segment.isLink() && segment.link?.uri) {
           return (
             <Anchor
-              component={Link}
+              key={`link-${i}`}
+              href={segment.link.uri}
               c={linkProps.c || 'blue'}
               fw={linkProps.fw || 500}
-              href={segment.link.uri}
               target="_blank"
-              key={segment.link.uri || `link-${i}`}
               onClick={(e) => e.stopPropagation()}
               {...linkProps}
             >
@@ -58,17 +56,17 @@ export default function RichTextRenderer({
           );
         }
 
-        // hashtags
+        // Hashtags
         if (segment.isTag()) {
           const encodedTag = encodeURIComponent(segment.tag?.tag || '');
           return (
             <Anchor
+              key={`tag-${i}`}
               component={Link}
               c={linkProps.c || 'blue'}
               fw={linkProps.fw || 500}
               href={`https://bsky.app/hashtag/${encodedTag}`}
               target="_blank"
-              key={`tag-${i}`}
               onClick={(e) => e.stopPropagation()}
               {...linkProps}
             >
@@ -77,19 +75,9 @@ export default function RichTextRenderer({
           );
         }
 
-        // plain text
-        return (
-          <Text
-            key={`text-${i}`}
-            span
-            c={textProps.c}
-            fw={textProps.fw || 400}
-            {...textProps}
-          >
-            {segment.text}
-          </Text>
-        );
+        // Plain text
+        return <span key={`text-${i}`}>{segment.text}</span>;
       })}
-    </Fragment>
+    </Text>
   );
 }

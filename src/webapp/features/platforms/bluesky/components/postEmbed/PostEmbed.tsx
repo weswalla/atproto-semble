@@ -2,6 +2,7 @@ import {
   AppBskyEmbedExternal,
   AppBskyEmbedImages,
   AppBskyEmbedRecord,
+  AppBskyEmbedRecordWithMedia,
   AppBskyEmbedVideo,
   AppBskyFeedDefs,
   AppBskyGraphDefs,
@@ -12,6 +13,7 @@ import VideoEmbed from '../videoEmbed/VideoEmbed';
 import ListEmbed from '../listEmbed/ListEmbed';
 import StarterPackEmbed from '../starterPackEmbed/StarterPackEmbed';
 import FeedEmbed from '../feedEmbed/FeedEmbed';
+import RecordEmbed from '../recordEmbed/RecordEmbed';
 
 interface Props {
   embed: AppBskyFeedDefs.PostView['embed'];
@@ -36,6 +38,14 @@ export default function PostEmbed(props: Props) {
       }
       if (AppBskyFeedDefs.isGeneratorView(record)) {
         return <FeedEmbed feed={record} />;
+      }
+
+      if (AppBskyEmbedRecord.isView(props.embed)) {
+        return <RecordEmbed embed={props.embed.record} />;
+      }
+
+      if (AppBskyEmbedRecordWithMedia.isView(props.embed)) {
+        return <>record with media</>;
       }
 
       break; // fallthrough to default

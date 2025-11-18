@@ -18,25 +18,26 @@ import RecordEmbed from '../recordEmbed/RecordEmbed';
 
 interface Props {
   embed: AppBskyFeedDefs.PostView['embed'];
+  mode?: 'compact' | 'large';
 }
 
-export default function PostEmbed({ embed }: Props) {
+export default function PostEmbed(props: Props) {
   switch (true) {
-    case AppBskyEmbedImages.isView(embed):
-      return <ImageEmbed images={embed.images} />;
+    case AppBskyEmbedImages.isView(props.embed):
+      return <ImageEmbed images={props.embed.images} />;
 
-    case AppBskyEmbedExternal.isView(embed):
-      return <ExternalEmbed embed={embed} />;
+    case AppBskyEmbedExternal.isView(props.embed):
+      return <ExternalEmbed embed={props.embed} mode={props.mode} />;
 
-    case AppBskyEmbedVideo.isView(embed):
-      return <VideoEmbed embed={embed} />;
+    case AppBskyEmbedVideo.isView(props.embed):
+      return <VideoEmbed embed={props.embed} />;
 
     // Check for Record first before accessing embed.record
-    case AppBskyEmbedRecord.isView(embed): {
-      const record = embed.record;
+    case AppBskyEmbedRecord.isView(props.embed): {
+      const record = props.embed.record;
 
       if (AppBskyGraphDefs.isStarterPackViewBasic(record)) {
-        return <StarterPackEmbed embed={record} />;
+        return <StarterPackEmbed embed={record} mode={props.mode} />;
       }
 
       if (AppBskyFeedDefs.isGeneratorView(record)) {
@@ -47,11 +48,17 @@ export default function PostEmbed({ embed }: Props) {
         return <ListEmbed list={record} />;
       }
 
-      return <RecordEmbed embed={record} />;
+      return <RecordEmbed embed={record} mode={props.mode} />;
     }
 
-    case AppBskyEmbedRecordWithMedia.isView(embed):
-      return <RecordEmbed embed={embed.record.record} media={embed.media} />;
+    case AppBskyEmbedRecordWithMedia.isView(props.embed):
+      return (
+        <RecordEmbed
+          embed={props.embed.record.record}
+          media={props.embed.media}
+          mode={props.mode}
+        />
+      );
 
     default:
       return null;

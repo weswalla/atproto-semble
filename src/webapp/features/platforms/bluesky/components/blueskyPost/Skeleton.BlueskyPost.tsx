@@ -2,7 +2,7 @@ import { Stack, Group, Avatar, Skeleton } from '@mantine/core';
 
 export default function BlueskyPostSkeleton() {
   return (
-    <Stack justify="space-between" align="start" gap="sm">
+    <Stack justify="space-between" align="start" gap="xs">
       <Group gap="xs" w={'100%'}>
         <Avatar radius="xl" />
         <Stack gap={5} flex={1}>

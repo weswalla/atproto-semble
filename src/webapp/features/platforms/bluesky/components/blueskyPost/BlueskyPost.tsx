@@ -27,7 +27,7 @@ export default function BlueskyPost(props: Props) {
   const record = post.record as AppBskyFeedPost.Record;
 
   return (
-    <Stack justify="space-between" align="start" gap="sm">
+    <Stack justify="space-between" align="start" gap="xs">
       <Group gap="xs">
         <Avatar
           src={post.author.avatar}
@@ -44,7 +44,7 @@ export default function BlueskyPost(props: Props) {
           </Text>
         </Stack>
       </Group>
-      <Stack gap={'xs'}>
+      <Stack gap={'xs'} w={'100%'}>
         <Box>
           <RichTextRenderer text={record.text} textProps={{ lineClamp: 3 }} />
         </Box>

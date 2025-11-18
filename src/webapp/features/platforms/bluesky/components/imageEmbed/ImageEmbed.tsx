@@ -26,7 +26,7 @@ export default function ImageEmbed(props: Props) {
               radius="sm"
               h={'100%'}
               w={'100%'}
-              mah={props.images.length === 1 ? 200 : 200}
+              mah={props.images.length === 1 ? 120 : 150}
             />
           </AspectRatio>
         );

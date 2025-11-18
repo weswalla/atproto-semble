@@ -70,6 +70,11 @@ export class AtProtoFirehoseService implements IFirehoseService {
   }
 
   private async handleFirehoseEvent(evt: Event): Promise<void> {
+    // Skip identity events - we only care about repo commits
+    if (evt.event === 'identity') {
+      return;
+    }
+
     // Only process commit events (create, update, delete)
     if (
       evt.event !== 'create' &&
@@ -97,6 +102,13 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
   private handleError(err: Error): void {
     console.error('Firehose error:', err);
+    
+    // Only reconnect on connection errors, not parsing errors
+    if (err.name === 'FirehoseParseError') {
+      console.warn('Skipping reconnection for parse error');
+      return;
+    }
+    
     if (this.isRunningFlag) {
       this.reconnect();
     }

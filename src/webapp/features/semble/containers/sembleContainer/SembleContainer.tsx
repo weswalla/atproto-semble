@@ -1,5 +1,5 @@
 import SembleHeader from '../../components/SembleHeader/SembleHeader';
-import { Container, Stack } from '@mantine/core';
+import { Box, Container, Stack } from '@mantine/core';
 import { Suspense } from 'react';
 import SembleTabs from '../../components/sembleTabs/SembleTabs';
 import SembleHeaderSkeleton from '../../components/SembleHeader/Skeleton.SembleHeader';
@@ -21,9 +21,11 @@ export default function SembleContainer(props: Props) {
       <Container px={'xs'} pb={'xs'} size={'xl'}>
         <Stack gap={'xl'}>
           {platform === SupportedPlatform.BLUESKY_POST ? (
-            <Suspense fallback={<BlueskySembleHeaderSkeleton />}>
-              <BlueskySembleHeader url={props.url} />
-            </Suspense>
+            <Box maw={600} w={'100%'} mx={'auto'}>
+              <Suspense fallback={<BlueskySembleHeaderSkeleton />}>
+                <BlueskySembleHeader url={props.url} />
+              </Suspense>
+            </Box>
           ) : (
             <Suspense fallback={<SembleHeaderSkeleton />}>
               <SembleHeader url={props.url} />

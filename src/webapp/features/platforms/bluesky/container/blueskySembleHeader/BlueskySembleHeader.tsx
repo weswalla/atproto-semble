@@ -44,7 +44,7 @@ export default async function BlueskySembleHeader(props: Props) {
   const record = post.record as AppBskyFeedPost.Record;
 
   return (
-    <Stack gap={'sm'} mx={'auto'}>
+    <Stack gap={'sm'} mx={'auto'} w={'100%'}>
       <Stack>
         <Text>
           <Text fw={700} c="tangerine" span>
@@ -67,7 +67,7 @@ export default async function BlueskySembleHeader(props: Props) {
         </Text>
 
         {/* Post */}
-        <Stack gap={'xs'} maw={600}>
+        <Stack gap={'xs'}>
           <Group gap="xs" justify="space-between" wrap="nowrap">
             <Group gap={'xs'} wrap="nowrap">
               <Avatar

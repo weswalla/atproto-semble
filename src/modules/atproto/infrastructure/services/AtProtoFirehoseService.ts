@@ -22,7 +22,9 @@ export class AtProtoFirehoseService implements IFirehoseService {
     }
 
     try {
-      console.log('Starting AT Protocol firehose service...');
+      console.log(
+        `Starting AT Protocol firehose service for collections: ${this.getFilteredCollections().join(', ')}`,
+      );
 
       const runner = new MemoryRunner({});
       this.runner = runner;
@@ -76,12 +78,17 @@ export class AtProtoFirehoseService implements IFirehoseService {
     if (firehoseEventResult.isErr()) {
       // Only log actual errors, not filtered events
       if (!firehoseEventResult.error.message.includes('is not processable')) {
-        console.error('Failed to create FirehoseEvent:', firehoseEventResult.error);
+        console.error(
+          'Failed to create FirehoseEvent:',
+          firehoseEventResult.error,
+        );
       }
       return;
     }
 
-    const result = await this.firehoseEventHandler.handle(firehoseEventResult.value);
+    const result = await this.firehoseEventHandler.handle(
+      firehoseEventResult.value,
+    );
 
     if (result.isErr()) {
       console.error('Failed to process firehose event:', result.error);
@@ -90,13 +97,13 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
   private handleError(err: Error): void {
     console.error('Firehose error:', err);
-    
+
     // Only reconnect on connection errors, not parsing errors
     if (err.name === 'FirehoseParseError') {
       console.warn('Skipping reconnection for parse error');
       return;
     }
-    
+
     if (this.isRunningFlag) {
       this.reconnect();
     }
@@ -104,9 +111,9 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
   private async reconnect(): Promise<void> {
     console.log('Attempting to reconnect firehose...');
-    
-    await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds
+
     try {
       await this.stop();
       await this.start();

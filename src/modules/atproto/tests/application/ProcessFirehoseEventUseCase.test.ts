@@ -119,6 +119,7 @@ describe('ProcessFirehoseEventUseCase', () => {
       addUrlToLibraryUseCase,
       updateUrlCardAssociationsUseCase,
       removeCardFromLibraryUseCase,
+      cardRepository,
     );
 
     processCollectionFirehoseEventUseCase =

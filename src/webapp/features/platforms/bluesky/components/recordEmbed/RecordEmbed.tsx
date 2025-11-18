@@ -6,11 +6,12 @@ import {
 } from '@atproto/api';
 import { Stack, Group, Avatar, Box, Text, Card } from '@mantine/core';
 import PostEmbed from '../postEmbed/PostEmbed';
+import type { EmbedMode } from '../../types';
 
 interface Props {
   embed: AppBskyEmbedRecord.View['record'];
   media?: AppBskyEmbedRecordWithMedia.View['media'];
-  mode?: 'card' | 'thread';
+  mode?: EmbedMode;
 }
 
 export default function RecordEmbed(props: Props) {

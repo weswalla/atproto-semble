@@ -15,10 +15,11 @@ import ListEmbed from '../listEmbed/ListEmbed';
 import StarterPackEmbed from '../starterPackEmbed/StarterPackEmbed';
 import FeedEmbed from '../feedEmbed/FeedEmbed';
 import RecordEmbed from '../recordEmbed/RecordEmbed';
+import type { EmbedMode } from '../../types';
 
 interface Props {
   embed: AppBskyFeedDefs.PostView['embed'];
-  mode?: 'card' | 'thread';
+  mode?: EmbedMode;
 }
 
 export default function PostEmbed(props: Props) {

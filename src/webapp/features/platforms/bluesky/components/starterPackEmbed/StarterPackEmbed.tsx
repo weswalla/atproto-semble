@@ -10,10 +10,11 @@ import {
   Text,
 } from '@mantine/core';
 import { getStarterPackImage, getStarterPackLink } from '../../lib/utils/link';
+import type { EmbedMode } from '../../types';
 
 interface Props {
   embed: AppBskyGraphDefs.StarterPackViewBasic;
-  mode?: 'card' | 'thread';
+  mode?: EmbedMode;
 }
 
 export default function StarterPackEmbed(props: Props) {
@@ -23,7 +24,7 @@ export default function StarterPackEmbed(props: Props) {
 
   const image = getStarterPackImage(props.embed);
 
-  if (props.mode === 'compact') {
+  if (props.mode === 'card') {
     return (
       <Card p={'xs'} withBorder>
         <Group gap={'xs'} wrap="nowrap">

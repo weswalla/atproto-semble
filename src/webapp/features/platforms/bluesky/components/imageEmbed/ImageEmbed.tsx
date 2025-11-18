@@ -1,9 +1,10 @@
 import { AppBskyEmbedImages } from '@atproto/api';
 import { AspectRatio, SimpleGrid, Image } from '@mantine/core';
+import type { EmbedMode } from '../../types';
 
 interface Props {
   images: AppBskyEmbedImages.ViewImage[];
-  mode?: 'card' | 'thread';
+  mode?: EmbedMode;
 }
 
 export default function ImageEmbed(props: Props) {

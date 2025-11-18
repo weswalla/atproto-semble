@@ -9,10 +9,11 @@ import {
   Stack,
   Text,
 } from '@mantine/core';
+import type { EmbedMode } from '../../types';
 
 interface Props {
   embed: AppBskyEmbedExternal.View;
-  mode?: 'card' | 'thread';
+  mode?: EmbedMode;
 }
 
 export default function ExternalEmbed(props: Props) {

@@ -32,7 +32,7 @@ export default function RecordEmbed(props: Props) {
           <Group gap="xs" wrap="nowrap">
             <Avatar
               src={post.author.avatar}
-              alt={`${post.author.handle} social preview image`}
+              alt={`${post.author.handle} avatar`}
               radius="xl"
               size={'sm'}
             />

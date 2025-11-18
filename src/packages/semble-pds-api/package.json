@@ -1,6 +1,6 @@
 {
   "name": "@cosmik.network/semble-pds-api",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "A lightweight wrapper around AtpAgent for creating Semble records (Cards, Collections, CollectionLinks) directly to your PDS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

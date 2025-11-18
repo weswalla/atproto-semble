@@ -24,6 +24,7 @@ import { FaRegNoteSticky } from 'react-icons/fa6';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { useNavbarContext } from '@/providers/navbar';
+import { MdOutlineEmojiNature } from 'react-icons/md';
 
 export default function HomeContainer() {
   const { data: collectionsData } = useMyCollections({ limit: 4 });
@@ -141,6 +142,18 @@ export default function HomeContainer() {
                 >
                   Add your first card
                 </Button>
+
+                <Text ta={'center'} fw={500} c={'gray'}>
+                  Need inspiration?{' '}
+                  <Anchor
+                    component={Link}
+                    href={'/explore'}
+                    fw={500}
+                    c={'grape'}
+                  >
+                    Explore cards from the community
+                  </Anchor>
+                </Text>
               </Stack>
             )}
           </Stack>

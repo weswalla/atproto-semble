@@ -161,7 +161,7 @@ export class ProcessCardFirehoseEventUseCase
         if (parentCardId.isErr() || !parentCardId.value) {
           if (ENABLE_FIREHOSE_LOGGING) {
             console.warn(
-              `[FirehoseWorker] Failed to resolve parent card - user: ${curatorDid}, parentUri: ${request.record.parentCard.uri}, noteUri: ${request.atUri}`,
+              `[FirehoseWorker] Failed to resolve parent card - user: ${curatorDid}, parentUri: ${cardRecord.parentCard.uri}, noteUri: ${request.atUri}`,
             );
           }
           return ok(undefined);
@@ -277,7 +277,7 @@ export class ProcessCardFirehoseEventUseCase
       if (parentCardId.isErr() || !parentCardId.value) {
         if (ENABLE_FIREHOSE_LOGGING) {
           console.warn(
-            `[FirehoseWorker] Failed to resolve parent card - user: ${curatorDid}, parentUri: ${request.record.parentCard.uri}, noteUri: ${request.atUri}`,
+            `[FirehoseWorker] Failed to resolve parent card - user: ${curatorDid}, parentUri: ${cardRecord.parentCard.uri}, noteUri: ${request.atUri}`,
           );
         }
         return ok(undefined);

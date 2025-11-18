@@ -4,20 +4,31 @@ import { Suspense } from 'react';
 import SembleTabs from '../../components/sembleTabs/SembleTabs';
 import SembleHeaderSkeleton from '../../components/SembleHeader/Skeleton.SembleHeader';
 import SembleHeaderBackground from './SembleHeaderBackground';
+import BlueskySembleHeader from '@/features/platforms/bluesky/container/blueskySembleHeader/BlueskySembleHeader';
+import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
+import BlueskySembleHeaderSkeleton from '@/features/platforms/bluesky/container/blueskySembleHeader/Skeleton.BlueskySembleHeader';
 
 interface Props {
   url: string;
 }
 
 export default function SembleContainer(props: Props) {
+  const platform = detectUrlPlatform(props.url);
+
   return (
     <Container p={0} fluid>
       <SembleHeaderBackground />
       <Container px={'xs'} pb={'xs'} size={'xl'}>
         <Stack gap={'xl'}>
-          <Suspense fallback={<SembleHeaderSkeleton />}>
-            <SembleHeader url={props.url} />
-          </Suspense>
+          {platform === SupportedPlatform.BLUESKY_POST ? (
+            <Suspense fallback={<BlueskySembleHeaderSkeleton />}>
+              <BlueskySembleHeader url={props.url} />
+            </Suspense>
+          ) : (
+            <Suspense fallback={<SembleHeaderSkeleton />}>
+              <SembleHeader url={props.url} />
+            </Suspense>
+          )}
           <SembleTabs url={props.url} />
         </Stack>
       </Container>

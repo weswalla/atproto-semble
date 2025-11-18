@@ -1,14 +1,6 @@
 import { AppBskyFeedDefs, AppBskyFeedPost } from '@atproto/api';
 import { ReactElement } from 'react';
-import {
-  Group,
-  Stack,
-  Text,
-  Avatar,
-  Box,
-  ActionIcon,
-  Anchor,
-} from '@mantine/core';
+import { Group, Stack, Text, Avatar, Box } from '@mantine/core';
 import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
 import useGetBlueskyPost from '../../lib/queries/useGetBlueskyPost';
 import PostEmbed from '../postEmbed/PostEmbed';

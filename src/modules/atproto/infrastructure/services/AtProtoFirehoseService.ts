@@ -8,11 +8,6 @@ export class AtProtoFirehoseService implements IFirehoseService {
   private firehose?: Firehose;
   private runner?: MemoryRunner;
   private isRunningFlag = false;
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 10;
-  private reconnectDelay = 5000; // Start with 5 seconds
-  private maxReconnectDelay = 300000; // Max 5 minutes
-  private lastEventTime = Date.now();
 
   constructor(
     private firehoseEventHandler: FirehoseEventHandler,
@@ -42,11 +37,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
       await this.firehose.start();
       this.isRunningFlag = true;
-      this.reconnectAttempts = 0; // Reset on successful start
-      this.lastEventTime = Date.now();
       console.log('AT Protocol firehose service started');
-      
-      this.startHealthMonitoring();
     } catch (error) {
       console.error('Failed to start firehose:', error);
       await this.reconnect();
@@ -79,9 +70,6 @@ export class AtProtoFirehoseService implements IFirehoseService {
   }
 
   private async handleFirehoseEvent(evt: Event): Promise<void> {
-    // Update last event time for health monitoring
-    this.lastEventTime = Date.now();
-
     // Only process commit events (create, update, delete)
     if (
       evt.event !== 'create' &&
@@ -115,40 +103,18 @@ export class AtProtoFirehoseService implements IFirehoseService {
   }
 
   private async reconnect(): Promise<void> {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max reconnection attempts reached. Stopping.');
-      return;
-    }
-
-    this.reconnectAttempts++;
-    const delay = Math.min(
-      this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
-      this.maxReconnectDelay
-    );
-
-    console.log(`Reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`);
+    console.log('Attempting to reconnect firehose...');
     
-    await new Promise(resolve => setTimeout(resolve, delay));
+    await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
     
     try {
       await this.stop();
       await this.start();
     } catch (error) {
       console.error('Reconnection failed:', error);
-      await this.reconnect(); // Try again
+      // Try again after another delay
+      setTimeout(() => this.reconnect(), 10000);
     }
-  }
-
-  private startHealthMonitoring(): void {
-    setInterval(() => {
-      const timeSinceLastEvent = Date.now() - this.lastEventTime;
-      const healthThreshold = 60000; // 1 minute without events is concerning
-      
-      if (timeSinceLastEvent > healthThreshold && this.isRunningFlag) {
-        console.warn(`No events received for ${timeSinceLastEvent}ms. Connection may be stale.`);
-        this.reconnect();
-      }
-    }, 30000); // Check every 30 seconds
   }
 
   private getFilteredCollections(): string[] {

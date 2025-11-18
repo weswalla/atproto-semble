@@ -448,7 +448,9 @@ describe('ProcessCardFirehoseEventUseCase', () => {
 
       // Verify the existing note card was NOT updated (should still have original text)
       const noteCard = noteCards[0]!;
-      expect(noteCard.content.noteContent?.text).toBe('First note about this article');
+      expect(noteCard.content.noteContent?.text).toBe(
+        'First note about this article',
+      );
       expect(noteCard.curatorId.equals(curatorId)).toBe(true);
       expect(noteCard.isInLibrary(curatorId)).toBe(true);
 

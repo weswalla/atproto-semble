@@ -314,30 +314,32 @@ export class UseCaseFactory {
         ),
         repositories.cardRepository,
       ),
-      processCollectionFirehoseEventUseCase: new ProcessCollectionFirehoseEventUseCase(
-        repositories.atUriResolutionService,
-        new CreateCollectionUseCase(
-          repositories.collectionRepository,
-          services.collectionPublisher,
+      processCollectionFirehoseEventUseCase:
+        new ProcessCollectionFirehoseEventUseCase(
+          repositories.atUriResolutionService,
+          new CreateCollectionUseCase(
+            repositories.collectionRepository,
+            services.collectionPublisher,
+          ),
+          new UpdateCollectionUseCase(
+            repositories.collectionRepository,
+            services.collectionPublisher,
+          ),
+          new DeleteCollectionUseCase(
+            repositories.collectionRepository,
+            services.collectionPublisher,
+          ),
         ),
-        new UpdateCollectionUseCase(
-          repositories.collectionRepository,
-          services.collectionPublisher,
+      processCollectionLinkFirehoseEventUseCase:
+        new ProcessCollectionLinkFirehoseEventUseCase(
+          repositories.atUriResolutionService,
+          new UpdateUrlCardAssociationsUseCase(
+            repositories.cardRepository,
+            services.cardLibraryService,
+            services.cardCollectionService,
+            services.eventPublisher,
+          ),
         ),
-        new DeleteCollectionUseCase(
-          repositories.collectionRepository,
-          services.collectionPublisher,
-        ),
-      ),
-      processCollectionLinkFirehoseEventUseCase: new ProcessCollectionLinkFirehoseEventUseCase(
-        repositories.atUriResolutionService,
-        new UpdateUrlCardAssociationsUseCase(
-          repositories.cardRepository,
-          services.cardLibraryService,
-          services.cardCollectionService,
-          services.eventPublisher,
-        ),
-      ),
     };
   }
 }

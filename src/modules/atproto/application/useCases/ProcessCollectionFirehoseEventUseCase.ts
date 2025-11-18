@@ -63,7 +63,6 @@ export class ProcessCollectionFirehoseEventUseCase
       return ok(undefined);
     }
 
-
     try {
       // Parse AT URI to extract author DID
       const atUriResult = ATUri.create(request.atUri);
@@ -125,7 +124,6 @@ export class ProcessCollectionFirehoseEventUseCase
       }
       return ok(undefined);
     }
-
 
     try {
       // Parse AT URI to extract author DID

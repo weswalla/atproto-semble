@@ -163,8 +163,16 @@ export class FirehoseEvent extends ValueObject<FirehoseEventProps> {
   }
 
   // Static methods for event filtering
-  private static readonly COMMIT_EVENTS = ['create', 'update', 'delete'] as const;
-  private static readonly IGNORED_EVENTS = ['identity', 'sync', 'account'] as const;
+  private static readonly COMMIT_EVENTS = [
+    'create',
+    'update',
+    'delete',
+  ] as const;
+  private static readonly IGNORED_EVENTS = [
+    'identity',
+    'sync',
+    'account',
+  ] as const;
 
   public static isCommitEvent(event: Event): event is CommitEvt {
     return FirehoseEvent.COMMIT_EVENTS.includes(event.event as any);
@@ -175,6 +183,9 @@ export class FirehoseEvent extends ValueObject<FirehoseEventProps> {
   }
 
   public static isProcessableEvent(event: Event): event is CommitEvt {
-    return FirehoseEvent.isCommitEvent(event) && !FirehoseEvent.shouldIgnoreEvent(event);
+    return (
+      FirehoseEvent.isCommitEvent(event) &&
+      !FirehoseEvent.shouldIgnoreEvent(event)
+    );
   }
 }

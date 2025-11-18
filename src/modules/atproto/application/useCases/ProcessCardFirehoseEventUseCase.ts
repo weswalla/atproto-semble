@@ -71,7 +71,6 @@ export class ProcessCardFirehoseEventUseCase
       return ok(undefined);
     }
 
-
     try {
       // Parse AT URI to extract curator DID
       const atUriResult = ATUri.create(request.atUri);
@@ -159,7 +158,9 @@ export class ProcessCardFirehoseEventUseCase
         }
 
         // Get the parent card to check if a note already exists
-        const parentCardResult = await this.cardRepository.findById(parentCardId.value);
+        const parentCardResult = await this.cardRepository.findById(
+          parentCardId.value,
+        );
         if (parentCardResult.isErr() || !parentCardResult.value) {
           if (ENABLE_FIREHOSE_LOGGING) {
             console.warn(
@@ -190,10 +191,11 @@ export class ProcessCardFirehoseEventUseCase
           return ok(undefined);
         }
 
-        const existingNoteResult = await this.cardRepository.findUsersNoteCardByUrl(
-          parentCard.url,
-          curatorIdResult.value,
-        );
+        const existingNoteResult =
+          await this.cardRepository.findUsersNoteCardByUrl(
+            parentCard.url,
+            curatorIdResult.value,
+          );
         if (existingNoteResult.isErr()) {
           if (ENABLE_FIREHOSE_LOGGING) {
             console.warn(

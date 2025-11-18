@@ -68,7 +68,6 @@ export class ProcessCollectionLinkFirehoseEventUseCase
       return ok(undefined);
     }
 
-
     try {
       // Parse AT URI to extract curator DID
       const atUriResult = ATUri.create(request.atUri);

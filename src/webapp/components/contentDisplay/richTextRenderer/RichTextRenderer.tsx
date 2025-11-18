@@ -30,7 +30,6 @@ export default function RichTextRenderer({
               href={`/profile/${segment.text.slice(1)}`}
               c={linkProps.c || 'blue'}
               fw={linkProps.fw || 500}
-              target="_blank"
               onClick={(e) => e.stopPropagation()}
               {...linkProps}
             >

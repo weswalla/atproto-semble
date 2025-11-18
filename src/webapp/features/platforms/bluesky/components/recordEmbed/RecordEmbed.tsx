@@ -10,6 +10,7 @@ import PostEmbed from '../postEmbed/PostEmbed';
 interface Props {
   embed: AppBskyEmbedRecord.View['record'];
   media?: AppBskyEmbedRecordWithMedia.View['media'];
+  mode?: 'large' | 'compact';
 }
 
 export default function RecordEmbed(props: Props) {
@@ -47,7 +48,9 @@ export default function RecordEmbed(props: Props) {
                 textProps={{ lineClamp: 1 }}
               />
             </Box>
-            {post.embeds && <PostEmbed embed={post.embeds[0]} />}
+            {post.embeds && (
+              <PostEmbed embed={post.embeds[0]} mode={props.mode} />
+            )}
           </Stack>
         </Stack>
       </Card>

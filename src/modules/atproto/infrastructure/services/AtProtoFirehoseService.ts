@@ -34,6 +34,9 @@ export class AtProtoFirehoseService implements IFirehoseService {
         runner,
         idResolver: this.idResolver,
         filterCollections: this.getFilteredCollections(),
+        excludeIdentity: true,
+        excludeAccount: true,
+        excludeSync: true,
         handleEvent: this.handleFirehoseEvent.bind(this),
         onError: this.handleError.bind(this),
       });

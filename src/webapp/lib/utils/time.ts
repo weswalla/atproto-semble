@@ -18,3 +18,22 @@ export const getRelativeTime = (dateString: string) => {
 
   return `${count}${interval.label}`;
 };
+
+export const getFormattedDate = (date: string) => {
+  const options: Intl.DateTimeFormatOptions = {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true,
+  };
+
+  const formattedDate: string = new Date(date).toLocaleString('en-US', options);
+
+  // replace second comma with "at"
+  // e.g. Sep 20, 2025, 7:50 PM  -> Sep 20, 2025 at 7:50 PM
+  const formattedWithAt: string = formattedDate.replace(/, (.*),/, ', $1 at ');
+
+  return formattedWithAt;
+};

@@ -20,6 +20,7 @@ import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichT
 import PostEmbed from '../../components/postEmbed/PostEmbed';
 import { FaBluesky } from 'react-icons/fa6';
 import SembleHeader from '@/features/semble/components/SembleHeader/SembleHeader';
+import { getFormattedDate } from '@/lib/utils/time';
 
 interface Props {
   url: string;
@@ -90,11 +91,14 @@ export default async function BlueskySembleHeader(props: Props) {
             <Box>
               <RichTextRenderer
                 text={record.text}
-                textProps={{ lineClamp: 3 }}
+                textProps={{ lineClamp: 3, c: 'bright' }}
               />
             </Box>
             {post.embed && <PostEmbed embed={post.embed} />}
           </Stack>
+          <Text c={'gray'} fz={'sm'} fw={500}>
+            {getFormattedDate(post.indexedAt)}
+          </Text>
         </Stack>
       </Stack>
 

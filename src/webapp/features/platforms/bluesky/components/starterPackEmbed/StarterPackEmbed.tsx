@@ -1,9 +1,19 @@
 import { AppBskyGraphDefs, AppBskyGraphStarterpack } from '@atproto/api';
-import { Box, Card, CardSection, Image, Text } from '@mantine/core';
-import { getStarterPackImage } from '../../lib/utils/link';
+import {
+  AspectRatio,
+  Box,
+  Card,
+  CardSection,
+  Group,
+  Image,
+  Stack,
+  Text,
+} from '@mantine/core';
+import { getStarterPackImage, getStarterPackLink } from '../../lib/utils/link';
 
 interface Props {
   embed: AppBskyGraphDefs.StarterPackViewBasic;
+  mode?: 'compact' | 'large';
 }
 
 export default function StarterPackEmbed(props: Props) {
@@ -12,8 +22,37 @@ export default function StarterPackEmbed(props: Props) {
   }
 
   const image = getStarterPackImage(props.embed);
+
+  if (props.mode === 'compact') {
+    return (
+      <Card p={'xs'} withBorder>
+        <Group gap={'xs'} wrap="nowrap">
+          {image && (
+            <AspectRatio ratio={1 / 1}>
+              <Image src={image} radius={'sm'} w={50} h={50} />
+            </AspectRatio>
+          )}
+          <Stack gap={0}>
+            <Text fz={'sm'} fw={500} c={'bright'} lineClamp={1}>
+              Starter pack
+            </Text>
+            <Text fz={'sm'} fw={500} c={'gray'} lineClamp={1} span>
+              By @{props.embed.creator.handle}
+            </Text>
+          </Stack>
+        </Group>
+      </Card>
+    );
+  }
+
   return (
-    <Card withBorder p={0}>
+    <Card
+      p={0}
+      component="a"
+      href={getStarterPackLink(props.embed)}
+      target="_blank"
+      withBorder
+    >
       {image && (
         <CardSection>
           <Image src={image} />
@@ -24,7 +63,7 @@ export default function StarterPackEmbed(props: Props) {
           Starter pack
         </Text>
         <Text fz={'sm'} fw={500} c={'gray'} lineClamp={1} span>
-          @{props.embed.creator.handle}
+          By @{props.embed.creator.handle}
         </Text>
       </Box>
     </Card>

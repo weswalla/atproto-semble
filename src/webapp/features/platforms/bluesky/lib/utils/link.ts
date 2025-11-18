@@ -6,3 +6,12 @@ export const getStarterPackImage = (
   const rkey = new AtUri(starterPack.uri).rkey;
   return `https://ogcard.cdn.bsky.app/start/${starterPack.creator.did}/${rkey}`;
 };
+
+export const getStarterPackLink = (
+  starterPack: AppBskyGraphDefs.StarterPackViewBasic,
+) => {
+  const rkey = new AtUri(starterPack.uri).rkey;
+  const handleOrDid = starterPack.creator.handle || starterPack.creator.did;
+
+  return `https://bsky.app/starter-pack/${handleOrDid}/${rkey}`;
+};

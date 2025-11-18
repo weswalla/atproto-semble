@@ -15,13 +15,11 @@ import {
   OperationContext,
 } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
 import { RemoveCardFromLibraryUseCase } from '../../../cards/application/useCases/commands/RemoveCardFromLibraryUseCase';
-import type { RepoRecord } from '@atproto/lexicon';
-
 export interface ProcessCardFirehoseEventDTO {
   atUri: string;
   cid: string | null;
   eventType: 'create' | 'update' | 'delete';
-  record?: RepoRecord;
+  record?: CardRecord;
 }
 
 const ENABLE_FIREHOSE_LOGGING = true;
@@ -70,16 +68,6 @@ export class ProcessCardFirehoseEventUseCase
       return ok(undefined);
     }
 
-    // Type validation - ensure this is a CardRecord
-    const cardRecord = request.record as CardRecord;
-    if (!cardRecord.type || !cardRecord.content) {
-      if (ENABLE_FIREHOSE_LOGGING) {
-        console.warn(
-          `[FirehoseWorker] Invalid card record structure, skipping: ${request.atUri}`,
-        );
-      }
-      return ok(undefined);
-    }
 
     try {
       // Parse AT URI to extract curator DID
@@ -100,9 +88,9 @@ export class ProcessCardFirehoseEventUseCase
         cid: request.cid,
       });
 
-      if (cardRecord.type === 'URL') {
+      if (request.record.type === 'URL') {
         // Handle URL card creation
-        const urlContent = cardRecord.content as UrlContent;
+        const urlContent = request.record.content as UrlContent;
         if (!urlContent.url) {
           if (ENABLE_FIREHOSE_LOGGING) {
             console.warn(
@@ -132,9 +120,9 @@ export class ProcessCardFirehoseEventUseCase
             `[FirehoseWorker] Successfully created URL card - user: ${curatorDid}, cardId: ${result.value.urlCardId}, uri: ${request.atUri}`,
           );
         }
-      } else if (cardRecord.type === 'NOTE') {
+      } else if (request.record.type === 'NOTE') {
         // Handle note card creation
-        const noteContent = cardRecord.content as NoteContent;
+        const noteContent = request.record.content as NoteContent;
         if (!noteContent.text) {
           if (ENABLE_FIREHOSE_LOGGING) {
             console.warn(
@@ -145,7 +133,7 @@ export class ProcessCardFirehoseEventUseCase
         }
 
         // Get parent card from parentCard reference
-        if (!cardRecord.parentCard) {
+        if (!request.record.parentCard) {
           if (ENABLE_FIREHOSE_LOGGING) {
             console.warn(
               `[FirehoseWorker] Note card missing parent card reference - user: ${curatorDid}, uri: ${request.atUri}`,
@@ -156,12 +144,12 @@ export class ProcessCardFirehoseEventUseCase
 
         // Resolve parent card ID from AT URI
         const parentCardId = await this.atUriResolutionService.resolveCardId(
-          cardRecord.parentCard.uri,
+          request.record.parentCard.uri,
         );
         if (parentCardId.isErr() || !parentCardId.value) {
           if (ENABLE_FIREHOSE_LOGGING) {
             console.warn(
-              `[FirehoseWorker] Failed to resolve parent card - user: ${curatorDid}, parentUri: ${cardRecord.parentCard.uri}, noteUri: ${request.atUri}`,
+              `[FirehoseWorker] Failed to resolve parent card - user: ${curatorDid}, parentUri: ${request.record.parentCard.uri}, noteUri: ${request.atUri}`,
             );
           }
           return ok(undefined);
@@ -216,22 +204,11 @@ export class ProcessCardFirehoseEventUseCase
       return ok(undefined);
     }
 
-    // Type validation - ensure this is a CardRecord
-    const cardRecord = request.record as CardRecord;
-    if (!cardRecord.type || !cardRecord.content) {
-      if (ENABLE_FIREHOSE_LOGGING) {
-        console.warn(
-          `[FirehoseWorker] Invalid card record structure, skipping: ${request.atUri}`,
-        );
-      }
-      return ok(undefined);
-    }
-
     // Only handle NOTE card updates for now
-    if (cardRecord.type !== 'NOTE') {
+    if (request.record.type !== 'NOTE') {
       if (ENABLE_FIREHOSE_LOGGING) {
         console.log(
-          `[FirehoseWorker] Ignoring update for card type: ${cardRecord.type}, uri: ${request.atUri}`,
+          `[FirehoseWorker] Ignoring update for card type: ${request.record.type}, uri: ${request.atUri}`,
         );
       }
       return ok(undefined);
@@ -250,7 +227,7 @@ export class ProcessCardFirehoseEventUseCase
       }
       const curatorDid = atUriResult.value.did.value;
 
-      const noteContent = cardRecord.content as NoteContent;
+      const noteContent = request.record.content as NoteContent;
       if (!noteContent.text) {
         if (ENABLE_FIREHOSE_LOGGING) {
           console.warn(
@@ -261,7 +238,7 @@ export class ProcessCardFirehoseEventUseCase
       }
 
       // Get parent card from parentCard reference
-      if (!cardRecord.parentCard) {
+      if (!request.record.parentCard) {
         if (ENABLE_FIREHOSE_LOGGING) {
           console.warn(
             `[FirehoseWorker] Note card missing parent card reference - user: ${curatorDid}, uri: ${request.atUri}`,
@@ -272,12 +249,12 @@ export class ProcessCardFirehoseEventUseCase
 
       // Resolve parent card ID from AT URI
       const parentCardId = await this.atUriResolutionService.resolveCardId(
-        cardRecord.parentCard.uri,
+        request.record.parentCard.uri,
       );
       if (parentCardId.isErr() || !parentCardId.value) {
         if (ENABLE_FIREHOSE_LOGGING) {
           console.warn(
-            `[FirehoseWorker] Failed to resolve parent card - user: ${curatorDid}, parentUri: ${cardRecord.parentCard.uri}, noteUri: ${request.atUri}`,
+            `[FirehoseWorker] Failed to resolve parent card - user: ${curatorDid}, parentUri: ${request.record.parentCard.uri}, noteUri: ${request.atUri}`,
           );
         }
         return ok(undefined);

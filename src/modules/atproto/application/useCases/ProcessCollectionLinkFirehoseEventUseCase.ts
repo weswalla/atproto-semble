@@ -9,13 +9,11 @@ import {
   UpdateUrlCardAssociationsUseCase,
   OperationContext,
 } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
-import type { RepoRecord } from '@atproto/lexicon';
-
 export interface ProcessCollectionLinkFirehoseEventDTO {
   atUri: string;
   cid: string | null;
   eventType: 'create' | 'update' | 'delete';
-  record?: RepoRecord;
+  record?: CollectionLinkRecord;
 }
 
 const ENABLE_FIREHOSE_LOGGING = true;
@@ -70,16 +68,6 @@ export class ProcessCollectionLinkFirehoseEventUseCase
       return ok(undefined);
     }
 
-    // Type validation - ensure this is a CollectionLinkRecord
-    const linkRecord = request.record as CollectionLinkRecord;
-    if (!linkRecord.collection || !linkRecord.card || !linkRecord.addedBy) {
-      if (ENABLE_FIREHOSE_LOGGING) {
-        console.warn(
-          `[FirehoseWorker] Invalid collection link record structure, skipping: ${request.atUri}`,
-        );
-      }
-      return ok(undefined);
-    }
 
     try {
       // Parse AT URI to extract curator DID
@@ -97,16 +85,16 @@ export class ProcessCollectionLinkFirehoseEventUseCase
       // Resolve collection and card from strong refs
       const collectionId =
         await this.atUriResolutionService.resolveCollectionId(
-          linkRecord.collection.uri,
+          request.record.collection.uri,
         );
       const cardId = await this.atUriResolutionService.resolveCardId(
-        linkRecord.card.uri,
+        request.record.card.uri,
       );
 
       if (collectionId.isErr() || !collectionId.value) {
         if (ENABLE_FIREHOSE_LOGGING) {
           console.warn(
-            `[FirehoseWorker] Failed to resolve collection - user: ${curatorDid}, collectionUri: ${linkRecord.collection.uri}, linkUri: ${request.atUri}`,
+            `[FirehoseWorker] Failed to resolve collection - user: ${curatorDid}, collectionUri: ${request.record.collection.uri}, linkUri: ${request.atUri}`,
           );
         }
         return ok(undefined);
@@ -115,7 +103,7 @@ export class ProcessCollectionLinkFirehoseEventUseCase
       if (cardId.isErr() || !cardId.value) {
         if (ENABLE_FIREHOSE_LOGGING) {
           console.warn(
-            `[FirehoseWorker] Failed to resolve card - user: ${curatorDid}, cardUri: ${linkRecord.card.uri}, linkUri: ${request.atUri}`,
+            `[FirehoseWorker] Failed to resolve card - user: ${curatorDid}, cardUri: ${request.record.card.uri}, linkUri: ${request.atUri}`,
           );
         }
         return ok(undefined);

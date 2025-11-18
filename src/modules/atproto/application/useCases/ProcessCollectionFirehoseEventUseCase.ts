@@ -8,13 +8,11 @@ import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/n
 import { CreateCollectionUseCase } from '../../../cards/application/useCases/commands/CreateCollectionUseCase';
 import { UpdateCollectionUseCase } from '../../../cards/application/useCases/commands/UpdateCollectionUseCase';
 import { DeleteCollectionUseCase } from '../../../cards/application/useCases/commands/DeleteCollectionUseCase';
-import type { RepoRecord } from '@atproto/lexicon';
-
 export interface ProcessCollectionFirehoseEventDTO {
   atUri: string;
   cid: string | null;
   eventType: 'create' | 'update' | 'delete';
-  record?: RepoRecord;
+  record?: CollectionRecord;
 }
 const ENABLE_FIREHOSE_LOGGING = true;
 
@@ -65,16 +63,6 @@ export class ProcessCollectionFirehoseEventUseCase
       return ok(undefined);
     }
 
-    // Type validation - ensure this is a CollectionRecord
-    const collectionRecord = request.record as CollectionRecord;
-    if (!collectionRecord.name) {
-      if (ENABLE_FIREHOSE_LOGGING) {
-        console.warn(
-          `[FirehoseWorker] Invalid collection record structure, skipping: ${request.atUri}`,
-        );
-      }
-      return ok(undefined);
-    }
 
     try {
       // Parse AT URI to extract author DID
@@ -95,8 +83,8 @@ export class ProcessCollectionFirehoseEventUseCase
       });
 
       const result = await this.createCollectionUseCase.execute({
-        name: collectionRecord.name,
-        description: collectionRecord.description,
+        name: request.record.name,
+        description: request.record.description,
         curatorId: authorDid,
         publishedRecordId: publishedRecordId,
       });
@@ -138,16 +126,6 @@ export class ProcessCollectionFirehoseEventUseCase
       return ok(undefined);
     }
 
-    // Type validation - ensure this is a CollectionRecord
-    const collectionRecord = request.record as CollectionRecord;
-    if (!collectionRecord.name) {
-      if (ENABLE_FIREHOSE_LOGGING) {
-        console.warn(
-          `[FirehoseWorker] Invalid collection record structure, skipping: ${request.atUri}`,
-        );
-      }
-      return ok(undefined);
-    }
 
     try {
       // Parse AT URI to extract author DID
@@ -190,8 +168,8 @@ export class ProcessCollectionFirehoseEventUseCase
 
       const result = await this.updateCollectionUseCase.execute({
         collectionId: collectionIdResult.value.getStringValue(),
-        name: collectionRecord.name,
-        description: collectionRecord.description,
+        name: request.record.name,
+        description: request.record.description,
         curatorId: authorDid,
         publishedRecordId: publishedRecordId,
       });

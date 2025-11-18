@@ -85,6 +85,7 @@ describe('ProcessCardFirehoseEventUseCase', () => {
       addUrlToLibraryUseCase,
       updateUrlCardAssociationsUseCase,
       removeCardFromLibraryUseCase,
+      cardRepository,
     );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
@@ -379,6 +380,84 @@ describe('ProcessCardFirehoseEventUseCase', () => {
 
       expect(result.isOk()).toBe(true); // Should not fail firehose processing
       expect(cardRepository.getAllCards()).toHaveLength(0);
+    });
+
+    it('should not create a second note card when one already exists for the URL', async () => {
+      // First create a parent URL card
+      const parentCard = new CardBuilder()
+        .withType(CardTypeEnum.URL)
+        .withCuratorId(curatorId.value)
+        .withUrl(URL.create('https://example.com/parent').unwrap())
+        .build();
+
+      if (parentCard instanceof Error) throw parentCard;
+      await cardRepository.save(parentCard);
+
+      // Add parent card to library
+      await cardLibraryService.addCardToLibrary(parentCard, curatorId);
+
+      // Create first note card
+      const firstNoteCard = new CardBuilder()
+        .withType(CardTypeEnum.NOTE)
+        .withCuratorId(curatorId.value)
+        .withParentCard(parentCard.cardId)
+        .withUrl(parentCard.url!)
+        .withNoteCard('First note about this article')
+        .build();
+
+      if (firstNoteCard instanceof Error) throw firstNoteCard;
+      await cardRepository.save(firstNoteCard);
+      await cardLibraryService.addCardToLibrary(firstNoteCard, curatorId);
+
+      const collections = configService.getAtProtoCollections();
+      const parentAtUri = `at://${curatorId.value}/${collections.card}/${parentCard.cardId.getStringValue()}`;
+      const secondNoteAtUri = `at://${curatorId.value}/${collections.card}/second-note-card-id`;
+      const cid = 'second-note-cid-123';
+
+      const secondNoteRecord: CardRecord = {
+        $type: 'network.cosmik.card',
+        type: 'NOTE',
+        content: {
+          $type: 'network.cosmik.card#noteContent',
+          text: 'Second note about the same article',
+        },
+        parentCard: {
+          uri: parentAtUri,
+          cid: 'parent-cid',
+        },
+        createdAt: new Date().toISOString(),
+      };
+
+      const request = {
+        atUri: secondNoteAtUri,
+        cid,
+        eventType: 'create' as const,
+        record: secondNoteRecord,
+      };
+
+      const result = await useCase.execute(request);
+
+      expect(result.isOk()).toBe(true);
+
+      // Verify that only one note card exists (the original one should remain unchanged)
+      const savedCards = cardRepository.getAllCards();
+      const noteCards = savedCards.filter(
+        (card) => card.content.type === CardTypeEnum.NOTE,
+      );
+      expect(noteCards).toHaveLength(1);
+
+      // Verify the existing note card was NOT updated (should still have original text)
+      const noteCard = noteCards[0]!;
+      expect(noteCard.content.noteContent?.text).toBe(
+        'First note about this article',
+      );
+      expect(noteCard.curatorId.equals(curatorId)).toBe(true);
+      expect(noteCard.isInLibrary(curatorId)).toBe(true);
+
+      // Verify the published record ID was NOT updated (should still be the original)
+      expect(noteCard.publishedRecordId).toBeDefined();
+      expect(noteCard.publishedRecordId?.uri).not.toBe(secondNoteAtUri);
+      expect(noteCard.publishedRecordId?.cid).not.toBe(cid);
     });
   });
 

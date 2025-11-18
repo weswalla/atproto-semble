@@ -15,7 +15,8 @@ import {
   OperationContext,
 } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
 import { RemoveCardFromLibraryUseCase } from '../../../cards/application/useCases/commands/RemoveCardFromLibraryUseCase';
-
+import { ICardRepository } from '../../../cards/domain/ICardRepository';
+import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 export interface ProcessCardFirehoseEventDTO {
   atUri: string;
   cid: string | null;
@@ -32,6 +33,7 @@ export class ProcessCardFirehoseEventUseCase
     private addUrlToLibraryUseCase: AddUrlToLibraryUseCase,
     private updateUrlCardAssociationsUseCase: UpdateUrlCardAssociationsUseCase,
     private removeCardFromLibraryUseCase: RemoveCardFromLibraryUseCase,
+    private cardRepository: ICardRepository,
   ) {}
 
   async execute(request: ProcessCardFirehoseEventDTO): Promise<Result<void>> {
@@ -150,6 +152,64 @@ export class ProcessCardFirehoseEventUseCase
           if (ENABLE_FIREHOSE_LOGGING) {
             console.warn(
               `[FirehoseWorker] Failed to resolve parent card - user: ${curatorDid}, parentUri: ${request.record.parentCard.uri}, noteUri: ${request.atUri}`,
+            );
+          }
+          return ok(undefined);
+        }
+
+        // Get the parent card to check if a note already exists
+        const parentCardResult = await this.cardRepository.findById(
+          parentCardId.value,
+        );
+        if (parentCardResult.isErr() || !parentCardResult.value) {
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.warn(
+              `[FirehoseWorker] Failed to find parent card - user: ${curatorDid}, parentCardId: ${parentCardId.value.getStringValue()}, noteUri: ${request.atUri}`,
+            );
+          }
+          return ok(undefined);
+        }
+
+        const parentCard = parentCardResult.value;
+        if (!parentCard.url) {
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.warn(
+              `[FirehoseWorker] Parent card has no URL - user: ${curatorDid}, parentCardId: ${parentCardId.value.getStringValue()}, noteUri: ${request.atUri}`,
+            );
+          }
+          return ok(undefined);
+        }
+
+        // Check if a note card already exists for this URL and curator
+        const curatorIdResult = CuratorId.create(curatorDid);
+        if (curatorIdResult.isErr()) {
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.warn(
+              `[FirehoseWorker] Invalid curator ID - user: ${curatorDid}, noteUri: ${request.atUri}`,
+            );
+          }
+          return ok(undefined);
+        }
+
+        const existingNoteResult =
+          await this.cardRepository.findUsersNoteCardByUrl(
+            parentCard.url,
+            curatorIdResult.value,
+          );
+        if (existingNoteResult.isErr()) {
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.warn(
+              `[FirehoseWorker] Failed to check for existing note card - user: ${curatorDid}, url: ${parentCard.url.value}, noteUri: ${request.atUri}`,
+            );
+          }
+          return ok(undefined);
+        }
+
+        if (existingNoteResult.value) {
+          // A note card already exists for this URL, skip creating a new one
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.log(
+              `[FirehoseWorker] Note card already exists for URL, skipping creation - user: ${curatorDid}, url: ${parentCard.url.value}, existingNoteId: ${existingNoteResult.value.cardId.getStringValue()}, skippedNoteUri: ${request.atUri}`,
             );
           }
           return ok(undefined);

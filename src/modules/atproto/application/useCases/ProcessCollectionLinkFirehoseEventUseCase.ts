@@ -9,7 +9,6 @@ import {
   UpdateUrlCardAssociationsUseCase,
   OperationContext,
 } from '../../../cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
-
 export interface ProcessCollectionLinkFirehoseEventDTO {
   atUri: string;
   cid: string | null;

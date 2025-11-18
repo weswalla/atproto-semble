@@ -5,18 +5,10 @@ import { AppError } from 'src/shared/core/AppError';
 import { IFirehoseEventDuplicationService } from '../../domain/services/IFirehoseEventDuplicationService';
 import { ATUri } from '../../domain/ATUri';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
-import {
-  ProcessCardFirehoseEventDTO,
-  ProcessCardFirehoseEventUseCase,
-} from './ProcessCardFirehoseEventUseCase';
-import {
-  ProcessCollectionFirehoseEventDTO,
-  ProcessCollectionFirehoseEventUseCase,
-} from './ProcessCollectionFirehoseEventUseCase';
-import {
-  ProcessCollectionLinkFirehoseEventDTO,
-  ProcessCollectionLinkFirehoseEventUseCase,
-} from './ProcessCollectionLinkFirehoseEventUseCase';
+import { ProcessCardFirehoseEventUseCase } from './ProcessCardFirehoseEventUseCase';
+import { ProcessCollectionFirehoseEventUseCase } from './ProcessCollectionFirehoseEventUseCase';
+import { ProcessCollectionLinkFirehoseEventUseCase } from './ProcessCollectionLinkFirehoseEventUseCase';
+import type { RepoRecord } from '@atproto/lexicon';
 import { Record as CardRecord } from '../../infrastructure/lexicon/types/network/cosmik/card';
 import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
 import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLink';
@@ -25,7 +17,7 @@ export interface ProcessFirehoseEventDTO {
   atUri: string;
   cid: string | null;
   eventType: 'create' | 'update' | 'delete';
-  record?: CardRecord | CollectionRecord | CollectionLinkRecord; // The AT Protocol record data
+  record?: RepoRecord; // The AT Protocol record data
 }
 
 export class ValidationError extends UseCaseError {
@@ -77,17 +69,58 @@ export class ProcessFirehoseEventUseCase
       // 3. Route to appropriate handler based on collection type
       switch (collection) {
         case collections.card:
-          return this.processCardFirehoseEventUseCase.execute(
-            request as ProcessCardFirehoseEventDTO,
-          );
+          // Validate CardRecord structure
+          if (
+            request.record &&
+            (request.eventType === 'create' || request.eventType === 'update')
+          ) {
+            const cardRecord = request.record as CardRecord;
+            if (!cardRecord.type || !cardRecord.content) {
+              return err(new ValidationError('Invalid card record structure'));
+            }
+          }
+          return this.processCardFirehoseEventUseCase.execute({
+            ...request,
+            record: request.record as CardRecord | undefined,
+          });
         case collections.collection:
-          return this.processCollectionFirehoseEventUseCase.execute(
-            request as ProcessCollectionFirehoseEventDTO,
-          );
+          // Validate CollectionRecord structure
+          if (
+            request.record &&
+            (request.eventType === 'create' || request.eventType === 'update')
+          ) {
+            const collectionRecord = request.record as CollectionRecord;
+            if (!collectionRecord.name) {
+              return err(
+                new ValidationError('Invalid collection record structure'),
+              );
+            }
+          }
+          return this.processCollectionFirehoseEventUseCase.execute({
+            ...request,
+            record: request.record as CollectionRecord | undefined,
+          });
         case collections.collectionLink:
-          return this.processCollectionLinkFirehoseEventUseCase.execute(
-            request as ProcessCollectionLinkFirehoseEventDTO,
-          );
+          // Validate CollectionLinkRecord structure
+          if (
+            request.record &&
+            (request.eventType === 'create' || request.eventType === 'update')
+          ) {
+            const linkRecord = request.record as CollectionLinkRecord;
+            if (
+              !linkRecord.collection ||
+              !linkRecord.card ||
+              !linkRecord.addedBy
+            ) {
+              return err(
+                new ValidationError('Invalid collection link record structure'),
+              );
+            }
+          }
+          return this.processCollectionLinkFirehoseEventUseCase.execute({
+            ...request,
+            record: request.record as CollectionLinkRecord | undefined,
+          });
         default:
           return err(
             new ValidationError(`Unknown collection type: ${collection}`),

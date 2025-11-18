@@ -32,6 +32,9 @@ import { GetCollectionsForUrlUseCase } from '../../../../modules/cards/applicati
 import { GetNoteCardsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetNoteCardsForUrlUseCase';
 import { IndexUrlForSearchUseCase } from '../../../../modules/search/application/useCases/commands/IndexUrlForSearchUseCase';
 import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/application/useCases/queries/GetSimilarUrlsForUrlUseCase';
+import { ProcessCardFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCardFirehoseEventUseCase';
+import { ProcessCollectionFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionFirehoseEventUseCase';
+import { ProcessCollectionLinkFirehoseEventUseCase } from '../../../../modules/atproto/application/useCases/ProcessCollectionLinkFirehoseEventUseCase';
 
 export interface WorkerUseCases {
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
@@ -43,6 +46,9 @@ export interface WorkerUseCases {
   createCollectionUseCase: CreateCollectionUseCase;
   updateCollectionUseCase: UpdateCollectionUseCase;
   deleteCollectionUseCase: DeleteCollectionUseCase;
+  processCardFirehoseEventUseCase: ProcessCardFirehoseEventUseCase;
+  processCollectionFirehoseEventUseCase: ProcessCollectionFirehoseEventUseCase;
+  processCollectionLinkFirehoseEventUseCase: ProcessCollectionLinkFirehoseEventUseCase;
 }
 
 export interface UseCases {
@@ -287,6 +293,53 @@ export class UseCaseFactory {
         repositories.collectionRepository,
         services.collectionPublisher,
       ),
+      processCardFirehoseEventUseCase: new ProcessCardFirehoseEventUseCase(
+        repositories.atUriResolutionService,
+        new AddUrlToLibraryUseCase(
+          repositories.cardRepository,
+          services.metadataService,
+          services.cardLibraryService,
+          services.cardCollectionService,
+          services.eventPublisher,
+        ),
+        new UpdateUrlCardAssociationsUseCase(
+          repositories.cardRepository,
+          services.cardLibraryService,
+          services.cardCollectionService,
+          services.eventPublisher,
+        ),
+        new RemoveCardFromLibraryUseCase(
+          repositories.cardRepository,
+          services.cardLibraryService,
+        ),
+        repositories.cardRepository,
+      ),
+      processCollectionFirehoseEventUseCase:
+        new ProcessCollectionFirehoseEventUseCase(
+          repositories.atUriResolutionService,
+          new CreateCollectionUseCase(
+            repositories.collectionRepository,
+            services.collectionPublisher,
+          ),
+          new UpdateCollectionUseCase(
+            repositories.collectionRepository,
+            services.collectionPublisher,
+          ),
+          new DeleteCollectionUseCase(
+            repositories.collectionRepository,
+            services.collectionPublisher,
+          ),
+        ),
+      processCollectionLinkFirehoseEventUseCase:
+        new ProcessCollectionLinkFirehoseEventUseCase(
+          repositories.atUriResolutionService,
+          new UpdateUrlCardAssociationsUseCase(
+            repositories.cardRepository,
+            services.cardLibraryService,
+            services.cardCollectionService,
+            services.eventPublisher,
+          ),
+        ),
     };
   }
 }

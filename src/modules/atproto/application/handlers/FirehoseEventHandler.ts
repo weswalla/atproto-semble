@@ -1,23 +1,15 @@
 import { Result } from 'src/shared/core/Result';
 import { ProcessFirehoseEventUseCase } from '../useCases/ProcessFirehoseEventUseCase';
-
-export interface AtProtoFirehoseEvent {
-  uri: string;
-  cid: string | null;
-  eventType: 'create' | 'update' | 'delete';
-  record?: any;
-  did?: string;
-  collection?: string;
-}
+import { FirehoseEvent } from '../../domain/FirehoseEvent';
 
 export class FirehoseEventHandler {
   constructor(
     private processFirehoseEventUseCase: ProcessFirehoseEventUseCase,
   ) {}
 
-  async handle(event: AtProtoFirehoseEvent): Promise<Result<void>> {
+  async handle(event: FirehoseEvent): Promise<Result<void>> {
     return this.processFirehoseEventUseCase.execute({
-      atUri: event.uri,
+      atUri: event.atUri.value,
       cid: event.cid,
       eventType: event.eventType,
       record: event.record,

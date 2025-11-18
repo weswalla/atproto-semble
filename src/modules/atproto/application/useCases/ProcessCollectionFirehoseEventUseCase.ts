@@ -8,7 +8,6 @@ import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/n
 import { CreateCollectionUseCase } from '../../../cards/application/useCases/commands/CreateCollectionUseCase';
 import { UpdateCollectionUseCase } from '../../../cards/application/useCases/commands/UpdateCollectionUseCase';
 import { DeleteCollectionUseCase } from '../../../cards/application/useCases/commands/DeleteCollectionUseCase';
-
 export interface ProcessCollectionFirehoseEventDTO {
   atUri: string;
   cid: string | null;

@@ -5,9 +5,6 @@ import { UseCaseFactory } from '../shared/infrastructure/http/factories/UseCaseF
 import { FirehoseWorkerProcess } from '../modules/atproto/infrastructure/processes/FirehoseWorkerProcess';
 import { FirehoseEventHandler } from '../modules/atproto/application/handlers/FirehoseEventHandler';
 import { ProcessFirehoseEventUseCase } from '../modules/atproto/application/useCases/ProcessFirehoseEventUseCase';
-import { ProcessCardFirehoseEventUseCase } from '../modules/atproto/application/useCases/ProcessCardFirehoseEventUseCase';
-import { ProcessCollectionFirehoseEventUseCase } from '../modules/atproto/application/useCases/ProcessCollectionFirehoseEventUseCase';
-import { ProcessCollectionLinkFirehoseEventUseCase } from '../modules/atproto/application/useCases/ProcessCollectionLinkFirehoseEventUseCase';
 import { DrizzleFirehoseEventDuplicationService } from '../modules/atproto/infrastructure/services/DrizzleFirehoseEventDuplicationService';
 import { DatabaseFactory } from '../shared/infrastructure/database/DatabaseFactory';
 
@@ -31,35 +28,13 @@ async function main() {
     configService,
   );
 
-  // Create specific event processing use cases
-  const processCardFirehoseEventUseCase = new ProcessCardFirehoseEventUseCase(
-    repositories.atUriResolutionService,
-    useCases.addUrlToLibraryUseCase,
-    useCases.updateUrlCardAssociationsUseCase,
-    useCases.removeCardFromLibraryUseCase,
-  );
-
-  const processCollectionFirehoseEventUseCase =
-    new ProcessCollectionFirehoseEventUseCase(
-      repositories.atUriResolutionService,
-      useCases.createCollectionUseCase,
-      useCases.updateCollectionUseCase,
-      useCases.deleteCollectionUseCase,
-    );
-
-  const processCollectionLinkFirehoseEventUseCase =
-    new ProcessCollectionLinkFirehoseEventUseCase(
-      repositories.atUriResolutionService,
-      useCases.updateUrlCardAssociationsUseCase,
-    );
-
-  // Create main processing use case
+  // Create main processing use case using the factory-created use cases
   const processFirehoseEventUseCase = new ProcessFirehoseEventUseCase(
     duplicationService,
     configService,
-    processCardFirehoseEventUseCase,
-    processCollectionFirehoseEventUseCase,
-    processCollectionLinkFirehoseEventUseCase,
+    useCases.processCardFirehoseEventUseCase,
+    useCases.processCollectionFirehoseEventUseCase,
+    useCases.processCollectionLinkFirehoseEventUseCase,
   );
 
   const firehoseEventHandler = new FirehoseEventHandler(

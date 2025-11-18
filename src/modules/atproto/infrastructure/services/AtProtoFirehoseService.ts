@@ -1,30 +1,9 @@
-import { Firehose, MemoryRunner, Event, CommitEvt } from '@atproto/sync';
+import { Firehose, MemoryRunner, Event } from '@atproto/sync';
 import { IFirehoseService } from '../../application/services/IFirehoseService';
 import { FirehoseEventHandler } from '../../application/handlers/FirehoseEventHandler';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 import { IdResolver } from '@atproto/identity';
 import { FirehoseEvent } from '../../domain/FirehoseEvent';
-
-// Event type constants from @atproto/sync
-const COMMIT_EVENTS = ['create', 'update', 'delete'] as const;
-const IGNORED_EVENTS = ['identity', 'sync', 'account'] as const;
-
-type CommitEventType = typeof COMMIT_EVENTS[number];
-type IgnoredEventType = typeof IGNORED_EVENTS[number];
-
-class FirehoseEventFilter {
-  static isCommitEvent(event: Event): event is CommitEvt {
-    return COMMIT_EVENTS.includes(event.event as CommitEventType);
-  }
-
-  static shouldIgnoreEvent(event: Event): boolean {
-    return IGNORED_EVENTS.includes(event.event as IgnoredEventType);
-  }
-
-  static isProcessableEvent(event: Event): event is CommitEvt {
-    return this.isCommitEvent(event) && !this.shouldIgnoreEvent(event);
-  }
-}
 
 export class AtProtoFirehoseService implements IFirehoseService {
   private firehose?: Firehose;
@@ -92,15 +71,13 @@ export class AtProtoFirehoseService implements IFirehoseService {
   }
 
   private async handleFirehoseEvent(evt: Event): Promise<void> {
-    // Use the filter to check if we should process this event
-    if (!FirehoseEventFilter.isProcessableEvent(evt)) {
-      return;
-    }
-
-    // Create FirehoseEvent value object
-    const firehoseEventResult = FirehoseEvent.fromCommitEvent(evt);
+    // Create FirehoseEvent value object (includes filtering logic)
+    const firehoseEventResult = FirehoseEvent.fromEvent(evt);
     if (firehoseEventResult.isErr()) {
-      console.error('Failed to create FirehoseEvent:', firehoseEventResult.error);
+      // Only log actual errors, not filtered events
+      if (!firehoseEventResult.error.message.includes('is not processable')) {
+        console.error('Failed to create FirehoseEvent:', firehoseEventResult.error);
+      }
       return;
     }
 

@@ -2,7 +2,7 @@ import { ValueObject } from '../../../shared/domain/ValueObject';
 import { Result, ok, err } from '../../../shared/core/Result';
 import { ATUri } from './ATUri';
 import { DID } from './DID';
-import type { CommitEvt, Create, Update, Delete } from '@atproto/sync';
+import type { Event, CommitEvt, Create, Update, Delete } from '@atproto/sync';
 import type { RepoRecord } from '@atproto/lexicon';
 import type { CID } from 'multiformats/cid';
 
@@ -69,6 +69,22 @@ export class FirehoseEvent extends ValueObject<FirehoseEventProps> {
 
   private constructor(props: FirehoseEventProps) {
     super(props);
+  }
+
+  public static fromEvent(
+    evt: Event,
+  ): Result<FirehoseEvent, InvalidFirehoseEventError> {
+    // Check if this is a processable commit event
+    if (!FirehoseEvent.isProcessableEvent(evt)) {
+      return err(
+        new InvalidFirehoseEventError(
+          `Event type '${evt.event}' is not processable`,
+        ),
+      );
+    }
+
+    const commitEvt = evt as CommitEvt;
+    return FirehoseEvent.fromCommitEvent(commitEvt);
   }
 
   public static fromCommitEvent(
@@ -144,5 +160,21 @@ export class FirehoseEvent extends ValueObject<FirehoseEventProps> {
 
   public toString(): string {
     return `FirehoseEvent(${this.props.eventType}, ${this.props.atUri.value})`;
+  }
+
+  // Static methods for event filtering
+  private static readonly COMMIT_EVENTS = ['create', 'update', 'delete'] as const;
+  private static readonly IGNORED_EVENTS = ['identity', 'sync', 'account'] as const;
+
+  public static isCommitEvent(event: Event): event is CommitEvt {
+    return FirehoseEvent.COMMIT_EVENTS.includes(event.event as any);
+  }
+
+  public static shouldIgnoreEvent(event: Event): boolean {
+    return FirehoseEvent.IGNORED_EVENTS.includes(event.event as any);
+  }
+
+  public static isProcessableEvent(event: Event): event is CommitEvt {
+    return FirehoseEvent.isCommitEvent(event) && !FirehoseEvent.shouldIgnoreEvent(event);
   }
 }

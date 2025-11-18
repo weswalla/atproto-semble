@@ -26,11 +26,16 @@ export const isCollectionPage = (url: string = window.location.pathname) => {
   }
 };
 
-export enum SupportedService {
-  BLUESKY = 'bluesky',
+export enum SupportedPlatform {
+  BLUESKY_POST = 'bluesky post',
+  SEMBLE_COLLECTION = 'semble collection',
 }
 
-export const detectUrlService = (url: string): SupportedService | null => {
+export const detectUrlPlatform = (url: string): SupportedPlatform | null => {
+  if (isCollectionPage(url)) {
+    return SupportedPlatform.SEMBLE_COLLECTION;
+  }
+
   try {
     const parsedUrl = new URL(url);
 
@@ -40,7 +45,7 @@ export const detectUrlService = (url: string): SupportedService | null => {
       parsedUrl.hostname === 'bsky.app' &&
       parsedUrl.pathname.includes('/post/')
     ) {
-      return SupportedService.BLUESKY;
+      return SupportedPlatform.BLUESKY_POST;
     }
 
     return null; // no supported service detected

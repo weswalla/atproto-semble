@@ -1,0 +1,61 @@
+import RichTextRenderer from '@/components/contentDisplay/richTextRenderer/RichTextRenderer';
+import {
+  AppBskyEmbedRecord,
+  AppBskyEmbedRecordWithMedia,
+  AppBskyFeedPost,
+} from '@atproto/api';
+import { Stack, Group, Avatar, Box, Text, Card } from '@mantine/core';
+import PostEmbed from '../postEmbed/PostEmbed';
+import type { EmbedMode } from '../../types';
+
+interface Props {
+  embed: AppBskyEmbedRecord.View['record'];
+  media?: AppBskyEmbedRecordWithMedia.View['media'];
+  mode?: EmbedMode;
+}
+
+export default function RecordEmbed(props: Props) {
+  if (
+    AppBskyEmbedRecord.isViewBlocked(props.embed) ||
+    AppBskyEmbedRecord.isViewNotFound(props.embed) ||
+    !AppBskyEmbedRecord.isViewRecord(props.embed)
+  ) {
+    return null;
+  }
+
+  const post = props.embed;
+
+  return (
+    <Stack gap={'xs'}>
+      {props.media && <PostEmbed embed={props.media} mode={props.mode} />}
+      <Card p={'sm'} flex={1} h={'100%'} withBorder>
+        <Stack justify="space-between" align="start" gap="xs">
+          <Group gap="xs" wrap="nowrap">
+            <Avatar
+              src={post.author.avatar}
+              alt={`${post.author.handle} avatar`}
+              radius="xl"
+              size={'sm'}
+            />
+
+            <Text c="bright" lineClamp={1} fw={500} w="fit-content">
+              {post.author.displayName || post.author.handle}
+            </Text>
+          </Group>
+          <Stack gap={'xs'}>
+            <Box>
+              <RichTextRenderer
+                text={(post.value as AppBskyFeedPost.Record).text}
+                textProps={{ lineClamp: 1 }}
+              />
+            </Box>
+            {/* don't show quoted post's embed on card */}
+            {post.embeds && props.mode !== 'card' && (
+              <PostEmbed embed={post.embeds[0]} mode={props.mode} />
+            )}
+          </Stack>
+        </Stack>
+      </Card>
+    </Stack>
+  );
+}

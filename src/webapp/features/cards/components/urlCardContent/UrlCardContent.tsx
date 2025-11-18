@@ -1,15 +1,12 @@
-import { getDomain, isCollectionPage } from '@/lib/utils/link';
-import {
-  Anchor,
-  AspectRatio,
-  Group,
-  Stack,
-  Text,
-  Image,
-  Tooltip,
-} from '@mantine/core';
+import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
 import { UrlCard } from '@semble/types';
-import Link from 'next/link';
+import SembleCollectionCardContent from './SembleCollectionCardContent';
+import LinkCardContent from './LinkCardContent';
+import BlueskyPost from '@/features/platforms/bluesky/components/blueskyPost/BlueskyPost';
+import { getPostUriFromUrl } from '@/lib/utils/atproto';
+import { Suspense } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
+import BlueskyPostSkeleton from '@/features/platforms/bluesky/components/blueskyPost/Skeleton.BlueskyPost';
 
 interface Props {
   url: string;
@@ -17,78 +14,28 @@ interface Props {
 }
 
 export default function UrlCardContent(props: Props) {
-  const domain = getDomain(props.url);
+  const platform = detectUrlPlatform(props.url);
 
-  // semble collection
-  if (isCollectionPage(props.url)) {
+  if (platform === SupportedPlatform.SEMBLE_COLLECTION) {
+    return <SembleCollectionCardContent cardContent={props.cardContent} />;
+  }
+
+  if (platform === SupportedPlatform.BLUESKY_POST) {
     return (
-      <Group justify="space-between" align="start" gap={'lg'}>
-        <Stack gap={0} flex={1}>
-          <Text c={'grape'} fw={500}>
-            Collection
-          </Text>
-          {props.cardContent.title && (
-            <Text c={'bright'} lineClamp={2} fw={500} w={'fit-content'}>
-              {props.cardContent.title}
-            </Text>
-          )}
-          {props.cardContent.description && (
-            <Text c={'gray'} fz={'sm'} mt={'xs'} lineClamp={3}>
-              {props.cardContent.description}
-            </Text>
-          )}
-        </Stack>
-      </Group>
+      <ErrorBoundary
+        fallback={<LinkCardContent cardContent={props.cardContent} />}
+      >
+        <Suspense fallback={<BlueskyPostSkeleton />}>
+          <BlueskyPost
+            uri={getPostUriFromUrl(props.url)}
+            fallbackCardContent={
+              <LinkCardContent cardContent={props.cardContent} />
+            }
+          />
+        </Suspense>
+      </ErrorBoundary>
     );
   }
 
-  return (
-    <Group justify="space-between" align="start" gap={'lg'}>
-      <Stack gap={0} flex={1}>
-        <Tooltip label={props.url}>
-          <Anchor
-            onClick={(e) => e.stopPropagation()}
-            component={Link}
-            href={props.url}
-            target="_blank"
-            c={'gray'}
-            lineClamp={1}
-            w={'fit-content'}
-          >
-            {domain}
-          </Anchor>
-        </Tooltip>
-        {props.cardContent.title && (
-          <Anchor
-            onClick={(e) => e.stopPropagation()}
-            component={Link}
-            href={props.url}
-            target="_blank"
-            c={'bright'}
-            lineClamp={2}
-            fw={500}
-            w={'fit-content'}
-          >
-            {props.cardContent.title}
-          </Anchor>
-        )}
-        {props.cardContent.description && (
-          <Text c={'gray'} fz={'sm'} mt={'xs'} lineClamp={3}>
-            {props.cardContent.description}
-          </Text>
-        )}
-      </Stack>
-      {props.cardContent.thumbnailUrl && (
-        <AspectRatio ratio={1 / 1}>
-          <Image
-            src={props.cardContent.thumbnailUrl}
-            alt={`${props.url} social preview image`}
-            radius={'md'}
-            w={75}
-            h={75}
-          />
-        </AspectRatio>
-      )}
-    </Group>
-  );
+  return <LinkCardContent cardContent={props.cardContent} />;
 }

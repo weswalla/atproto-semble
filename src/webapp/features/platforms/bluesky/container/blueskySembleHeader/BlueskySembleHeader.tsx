@@ -10,6 +10,7 @@ import {
   Avatar,
   Group,
   Box,
+  Card,
 } from '@mantine/core';
 import Link from 'next/link';
 import { getBlueskyPost } from '../../lib/dal';
@@ -68,38 +69,40 @@ export default async function BlueskySembleHeader(props: Props) {
         </Text>
 
         {/* Post */}
-        <Stack gap={'xs'}>
-          <Group gap="xs" justify="space-between" wrap="nowrap">
-            <Group gap={'xs'} wrap="nowrap">
-              <Avatar
-                src={post.author.avatar}
-                alt={`${post.author.handle} social preview image`}
-                radius="xl"
-              />
-              <Stack gap={0} flex={1}>
-                <Text c="bright" lineClamp={1} fw={500} w="fit-content">
-                  {post.author.displayName || post.author.handle}
-                </Text>
-                <Text c="gray" lineClamp={1} w="fit-content">
-                  @{post.author.handle}
-                </Text>
-              </Stack>
+        <Card withBorder>
+          <Stack gap={'xs'}>
+            <Group gap="xs" justify="space-between" wrap="nowrap">
+              <Group gap={'xs'} wrap="nowrap">
+                <Avatar
+                  src={post.author.avatar}
+                  alt={`${post.author.handle} social preview image`}
+                  radius="xl"
+                />
+                <Stack gap={0} flex={1}>
+                  <Text c="bright" lineClamp={1} fw={500} w="fit-content">
+                    {post.author.displayName || post.author.handle}
+                  </Text>
+                  <Text c="gray" lineClamp={1} w="fit-content">
+                    @{post.author.handle}
+                  </Text>
+                </Stack>
+              </Group>
+              <FaBluesky fill="#0085ff" size={18} />
             </Group>
-            <FaBluesky fill="#0085ff" size={18} />
-          </Group>
-          <Stack gap={'xs'} w={'100%'}>
-            <Box>
-              <RichTextRenderer
-                text={record.text}
-                textProps={{ lineClamp: 3, c: 'bright' }}
-              />
-            </Box>
-            {post.embed && <PostEmbed embed={post.embed} />}
+            <Stack gap={'xs'} w={'100%'}>
+              <Box>
+                <RichTextRenderer
+                  text={record.text}
+                  textProps={{ lineClamp: 3, c: 'bright' }}
+                />
+              </Box>
+              {post.embed && <PostEmbed embed={post.embed} />}
+            </Stack>
+            <Text c={'gray'} fz={'sm'} fw={500}>
+              {getFormattedDate(post.indexedAt)}
+            </Text>
           </Stack>
-          <Text c={'gray'} fz={'sm'} fw={500}>
-            {getFormattedDate(post.indexedAt)}
-          </Text>
-        </Stack>
+        </Card>
       </Stack>
 
       <Stack gap={'sm'} align="center">

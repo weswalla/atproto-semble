@@ -3,6 +3,7 @@ import { IFirehoseService } from '../../application/services/IFirehoseService';
 import { FirehoseEventHandler } from '../../application/handlers/FirehoseEventHandler';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 import { IdResolver } from '@atproto/identity';
+import { FirehoseEvent } from '../../domain/FirehoseEvent';
 
 export class AtProtoFirehoseService implements IFirehoseService {
   private firehose?: Firehose;
@@ -86,14 +87,14 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
     const commitEvt = evt as CommitEvt;
 
-    const result = await this.firehoseEventHandler.handle({
-      uri: commitEvt.uri.toString(),
-      cid: commitEvt.event === 'delete' ? null : commitEvt.cid.toString(),
-      eventType: commitEvt.event,
-      record: commitEvt.event === 'delete' ? undefined : commitEvt.record,
-      did: commitEvt.did,
-      collection: commitEvt.collection,
-    });
+    // Create FirehoseEvent value object
+    const firehoseEventResult = FirehoseEvent.fromCommitEvent(commitEvt);
+    if (firehoseEventResult.isErr()) {
+      console.error('Failed to create FirehoseEvent:', firehoseEventResult.error);
+      return;
+    }
+
+    const result = await this.firehoseEventHandler.handle(firehoseEventResult.value);
 
     if (result.isErr()) {
       console.error('Failed to process firehose event:', result.error);

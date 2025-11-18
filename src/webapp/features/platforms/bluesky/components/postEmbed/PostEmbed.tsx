@@ -25,7 +25,7 @@ interface Props {
 export default function PostEmbed(props: Props) {
   switch (true) {
     case AppBskyEmbedImages.isView(props.embed):
-      return <ImageEmbed images={props.embed.images} />;
+      return <ImageEmbed images={props.embed.images} mode={props.mode} />;
 
     case AppBskyEmbedExternal.isView(props.embed):
       return <ExternalEmbed embed={props.embed} mode={props.mode} />;
@@ -33,7 +33,7 @@ export default function PostEmbed(props: Props) {
     case AppBskyEmbedVideo.isView(props.embed):
       return <VideoEmbed embed={props.embed} />;
 
-    // Check for Record first before accessing embed.record
+    // check for Record first before accessing embed.record
     case AppBskyEmbedRecord.isView(props.embed): {
       const record = props.embed.record;
 

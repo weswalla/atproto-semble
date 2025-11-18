@@ -28,7 +28,13 @@ export default function ImageEmbed(props: Props) {
               radius="sm"
               h={'100%'}
               w={'100%'}
-              mah={props.images.length === 1 ? 120 : 150}
+              mah={
+                props.mode === 'card'
+                  ? props.images.length === 1
+                    ? 120
+                    : 150
+                  : '100%'
+              }
             />
           </AspectRatio>
         );

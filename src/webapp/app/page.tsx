@@ -286,12 +286,12 @@ function Footer() {
             <Text c="dark.1" fw={600} span>
               with support from&nbsp;
               <Anchor
-                href="https://www.openphilanthropy.org/"
+                href="https://coefficientgiving.org/"
                 target="_blank"
                 c="dark.2"
                 fw={600}
               >
-                Open Philanthropy
+                Coefficient Giving
               </Anchor>{' '}
               and{' '}
               <Anchor

@@ -29,16 +29,10 @@ export class SearchService {
 
       const metadata = metadataResult.value;
 
-      // 2. Validate chunk length
-      const chunkResult = Chunk.create(metadata.title, metadata.description);
-      
-      if (chunkResult.isErr()) {
-        // Don't index if content is too short
-        return err(
-          new Error(
-            `Content too short to index: ${chunkResult.error.message}`,
-          ),
-        );
+      // 2. Check if content meets minimum length for indexing
+      if (!Chunk.meetsMinLength(metadata.title, metadata.description)) {
+        // Skip indexing silently - content too short
+        return ok(undefined);
       }
 
       // 3. Index in vector database
@@ -91,11 +85,10 @@ export class SearchService {
 
       // 2. Filter out results with insufficient content
       const filteredResults = similarResult.value.filter(result => {
-        const chunkResult = Chunk.create(
+        return Chunk.meetsMinLength(
           result.metadata.title,
           result.metadata.description,
         );
-        return chunkResult.isOk();
       });
 
       // 3. Limit to requested amount after filtering

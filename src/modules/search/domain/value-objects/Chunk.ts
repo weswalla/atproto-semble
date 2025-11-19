@@ -52,4 +52,9 @@ export class Chunk extends ValueObject<ChunkProps> {
   public static getMinLength(): number {
     return Chunk.MIN_LENGTH;
   }
+
+  public static meetsMinLength(title?: string, description?: string): boolean {
+    const content = [title, description].filter(Boolean).join(' ').trim();
+    return content.length >= Chunk.MIN_LENGTH;
+  }
 }

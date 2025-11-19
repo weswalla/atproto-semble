@@ -24,4 +24,4 @@ Reach out at [hello@cosmik.network](mailto:hello@cosmik.network) or find us on [
 
 ---
 
-*Semble is built by [Cosmik Network](https://cosmik.network/) with generous support from [Open Philanthropy](https://www.openphilanthropy.org/) and the [Astera Institute](http://astera.org/), and is fiscally sponsored by [Homeworld Collective](https://www.homeworld.bio/).*
+_Semble is built by [Cosmik Network](https://cosmik.network/) with generous support from [Open Philanthropy](https://www.openphilanthropy.org/) and the [Astera Institute](http://astera.org/), and is fiscally sponsored by [Homeworld Collective](https://www.homeworld.bio/)._

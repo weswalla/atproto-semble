@@ -26,7 +26,7 @@ export class UpstashVectorDatabase implements IVectorDatabase {
   async indexUrl(params: IndexUrlParams): Promise<Result<void>> {
     try {
       // Use Chunk to create the data content
-      const chunk = Chunk.createUnsafe(params.title, params.description);
+      const chunk = Chunk.create(params.title, params.description);
       
       await this.index.upsert({
         id: params.url,

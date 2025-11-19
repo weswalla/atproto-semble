@@ -30,7 +30,8 @@ export class SearchService {
       const metadata = metadataResult.value;
 
       // 2. Check if content meets minimum length for indexing
-      if (!Chunk.meetsMinLength(metadata.title, metadata.description)) {
+      const chunk = Chunk.create(metadata.title, metadata.description);
+      if (!chunk.meetsMinLength()) {
         // Skip indexing silently - content too short
         return ok(undefined);
       }
@@ -85,10 +86,11 @@ export class SearchService {
 
       // 2. Filter out results with insufficient content
       const filteredResults = similarResult.value.filter(result => {
-        return Chunk.meetsMinLength(
+        const chunk = Chunk.create(
           result.metadata.title,
           result.metadata.description,
         );
+        return chunk.meetsMinLength();
       });
 
       // 3. Limit to requested amount after filtering

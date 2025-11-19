@@ -1,8 +1,6 @@
-import { Stack, Skeleton, Group, Box, Card } from '@mantine/core';
-import UrlAddedBySummarySkeleton from '@/features/semble/components/urlAddedBySummary/Skeleton.UrlAddedBySummary';
-import SembleActionsContainerSkeleton from '@/features/semble/containers/sembleActionsContainer/Skeleton.SembleActionsContainer';
+import { Stack, Skeleton, Card, Group, Box } from '@mantine/core';
 
-export default function BlueskySembleHeaderSkeleton() {
+export default function BlueskySemblePostSkeleton() {
   return (
     <Stack gap="md" mx="auto" w={'100%'}>
       {/* "Semble" */}
@@ -41,10 +39,6 @@ export default function BlueskySembleHeaderSkeleton() {
           </Stack>
         </Stack>
       </Card>
-
-      <SembleActionsContainerSkeleton />
-
-      <UrlAddedBySummarySkeleton />
     </Stack>
   );
 }

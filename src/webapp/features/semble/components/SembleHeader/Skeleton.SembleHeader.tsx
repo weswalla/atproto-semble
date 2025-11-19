@@ -19,7 +19,6 @@ export default function SembleHeaderSkeleton() {
         </GridCol>
       </Grid>
 
-      {/* URL added by summay */}
       <UrlAddedBySummarySkeleton />
     </Stack>
   );

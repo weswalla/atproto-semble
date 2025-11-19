@@ -4,17 +4,10 @@ import { Grid, GridCol, Stack } from '@mantine/core';
 export default function SembleSimilarCardsContainerSkeleton() {
   return (
     <Stack>
-      <Grid gutter="md">
+      <Grid gutter="xl" mx={'auto'} maw={600}>
         {/* not necessary to check if navbar is open */}
         {Array.from({ length: 8 }).map((_, i) => (
-          <GridCol
-            key={i}
-            span={{
-              base: 12,
-              xs: 6,
-              md: 4,
-            }}
-          >
+          <GridCol key={i} span={12}>
             <UrlCardSkeleton />
           </GridCol>
         ))}

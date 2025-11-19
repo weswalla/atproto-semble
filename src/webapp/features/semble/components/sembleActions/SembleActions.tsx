@@ -73,7 +73,7 @@ export default function SembleActions(props: Props) {
           }
           onClick={() => setShowAddToModal(true)}
         >
-          {isInYourLibrary ? 'In library' : 'Add to library'}
+          {isInYourLibrary ? 'Update card' : 'Add to library'}
         </Button>
       </Group>
 

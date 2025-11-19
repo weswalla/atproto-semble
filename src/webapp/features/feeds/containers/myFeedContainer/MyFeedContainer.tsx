@@ -65,7 +65,7 @@ export default function MyFeedContainer() {
             isLoading={isFetchingNextPage}
             loadMore={fetchNextPage}
           >
-            <Stack gap={'xl'} mx={'auto'} maw={600}>
+            <Stack gap={'xl'} mx={'auto'} maw={600} w={'100%'}>
               <Stack gap={60}>
                 {allActivities.map((item) => (
                   <FeedItem key={item.id} item={item} />

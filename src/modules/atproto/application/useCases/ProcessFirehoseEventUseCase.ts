@@ -1,0 +1,133 @@
+import { Result, ok, err } from 'src/shared/core/Result';
+import { UseCase } from 'src/shared/core/UseCase';
+import { UseCaseError } from 'src/shared/core/UseCaseError';
+import { AppError } from 'src/shared/core/AppError';
+import { IFirehoseEventDuplicationService } from '../../domain/services/IFirehoseEventDuplicationService';
+import { ATUri } from '../../domain/ATUri';
+import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
+import { ProcessCardFirehoseEventUseCase } from './ProcessCardFirehoseEventUseCase';
+import { ProcessCollectionFirehoseEventUseCase } from './ProcessCollectionFirehoseEventUseCase';
+import { ProcessCollectionLinkFirehoseEventUseCase } from './ProcessCollectionLinkFirehoseEventUseCase';
+import type { RepoRecord } from '@atproto/lexicon';
+import { Record as CardRecord } from '../../infrastructure/lexicon/types/network/cosmik/card';
+import { Record as CollectionRecord } from '../../infrastructure/lexicon/types/network/cosmik/collection';
+import { Record as CollectionLinkRecord } from '../../infrastructure/lexicon/types/network/cosmik/collectionLink';
+
+export interface ProcessFirehoseEventDTO {
+  atUri: string;
+  cid: string | null;
+  eventType: 'create' | 'update' | 'delete';
+  record?: RepoRecord; // The AT Protocol record data
+}
+
+export class ValidationError extends UseCaseError {
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+export class ProcessFirehoseEventUseCase
+  implements UseCase<ProcessFirehoseEventDTO, Result<void>>
+{
+  constructor(
+    private duplicationService: IFirehoseEventDuplicationService,
+    private configService: EnvironmentConfigService,
+    private processCardFirehoseEventUseCase: ProcessCardFirehoseEventUseCase,
+    private processCollectionFirehoseEventUseCase: ProcessCollectionFirehoseEventUseCase,
+    private processCollectionLinkFirehoseEventUseCase: ProcessCollectionLinkFirehoseEventUseCase,
+  ) {}
+
+  async execute(request: ProcessFirehoseEventDTO): Promise<Result<void>> {
+    try {
+      // 1. Check for duplicates
+      const isDuplicateResult =
+        await this.duplicationService.hasEventBeenProcessed(
+          request.atUri,
+          request.cid,
+          request.eventType,
+        );
+
+      if (isDuplicateResult.isErr()) {
+        return err(AppError.UnexpectedError.create(isDuplicateResult.error));
+      }
+
+      if (isDuplicateResult.value) {
+        return ok(undefined);
+      }
+
+      // 2. Parse AT URI to get collection
+      const atUriResult = ATUri.create(request.atUri);
+      if (atUriResult.isErr()) {
+        return err(
+          new ValidationError(`Invalid AT URI: ${atUriResult.error.message}`),
+        );
+      }
+
+      const collection = atUriResult.value.collection;
+      const collections = this.configService.getAtProtoCollections();
+
+      // 3. Route to appropriate handler based on collection type
+      switch (collection) {
+        case collections.card:
+          // Validate CardRecord structure
+          if (
+            request.record &&
+            (request.eventType === 'create' || request.eventType === 'update')
+          ) {
+            const cardRecord = request.record as CardRecord;
+            if (!cardRecord.type || !cardRecord.content) {
+              return err(new ValidationError('Invalid card record structure'));
+            }
+          }
+          return this.processCardFirehoseEventUseCase.execute({
+            ...request,
+            record: request.record as CardRecord | undefined,
+          });
+        case collections.collection:
+          // Validate CollectionRecord structure
+          if (
+            request.record &&
+            (request.eventType === 'create' || request.eventType === 'update')
+          ) {
+            const collectionRecord = request.record as CollectionRecord;
+            if (!collectionRecord.name) {
+              return err(
+                new ValidationError('Invalid collection record structure'),
+              );
+            }
+          }
+          return this.processCollectionFirehoseEventUseCase.execute({
+            ...request,
+            record: request.record as CollectionRecord | undefined,
+          });
+        case collections.collectionLink:
+          // Validate CollectionLinkRecord structure
+          if (
+            request.record &&
+            (request.eventType === 'create' || request.eventType === 'update')
+          ) {
+            const linkRecord = request.record as CollectionLinkRecord;
+            if (
+              !linkRecord.collection ||
+              !linkRecord.card ||
+              !linkRecord.addedBy
+            ) {
+              return err(
+                new ValidationError('Invalid collection link record structure'),
+              );
+            }
+          }
+          return this.processCollectionLinkFirehoseEventUseCase.execute({
+            ...request,
+            record: request.record as CollectionLinkRecord | undefined,
+          });
+        default:
+          return err(
+            new ValidationError(`Unknown collection type: ${collection}`),
+          );
+      }
+    } catch (error) {
+      return err(AppError.UnexpectedError.create(error));
+    }
+  }
+}

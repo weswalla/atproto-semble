@@ -7,6 +7,7 @@ primary_region = 'yyz'
   web = "npm start"
   feed-worker = "npm run worker:feeds"
   search-worker = "npm run worker:search"
+  firehose-worker = "npm run worker:firehose"
 
 [http_service]
   internal_port = 3000
@@ -33,6 +34,14 @@ primary_region = 'yyz'
   cpu_kind = 'shared'
   cpus = 1
 
+[[vm]]
+  processes = ['firehose-worker']
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
+  auto_stop_machines = false
+  min_machines_running = 1
+
 [env]
 NODE_ENV="dev"
 BASE_URL="https://api.dev.semble.so"
@@ -40,3 +49,4 @@ HOST="0.0.0.0"
 APP_URL="https://dev.semble.so"
 ACCESS_TOKEN_EXPIRES_IN=300
 REFRESH_TOKEN_EXPIRES_IN=2592000
+ATPROTO_FIREHOSE_WEBSOCKET="wss://relay1.us-west.bsky.network"

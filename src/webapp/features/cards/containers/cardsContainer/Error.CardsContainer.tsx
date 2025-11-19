@@ -1,5 +1,9 @@
-import { Alert } from '@mantine/core';
+import { Alert, Container } from '@mantine/core';
 
 export default function CardsContainerError() {
-  return <Alert color="red" title="Could not load cards" />;
+  return (
+    <Container p="xs" size="xl">
+      <Alert color="red" title="Could not load cards" />
+    </Container>
+  );
 }

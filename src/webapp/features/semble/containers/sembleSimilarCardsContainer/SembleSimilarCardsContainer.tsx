@@ -50,9 +50,7 @@ export default function SembleSimilarCardsContainer(props: Props) {
             span={{
               base: 12,
               xs: desktopOpened ? 12 : 6,
-              sm: desktopOpened ? 6 : 4,
-              md: 4,
-              lg: 3,
+              md: desktopOpened ? 6 : 4,
             }}
           >
             <SimilarUrlCard urlView={urlView} />

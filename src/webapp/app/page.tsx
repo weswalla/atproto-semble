@@ -30,6 +30,7 @@ import BigPictureIcon from '@/assets/icons/big-picture-icon.svg';
 import TangledIcon from '@/assets/icons/tangled-icon.svg';
 import SembleLogo from '@/assets/semble-logo.svg';
 import Link from 'next/link';
+import { useOs } from '@mantine/hooks';
 
 export default function Home() {
   return (
@@ -48,6 +49,8 @@ export default function Home() {
 }
 
 function Content() {
+  const os = useOs();
+
   return (
     <>
       <script async src="https://tally.so/widgets/embed.js" />
@@ -57,16 +60,31 @@ function Content() {
             <Image src={SembleLogo.src} alt="Semble logo" w={30} h="auto" />
             <Badge size="sm">Alpha</Badge>
           </Stack>
-          <Button
-            data-tally-open="31a9Ng"
-            data-tally-hide-title="1"
-            data-tally-layout="modal"
-            data-tally-emoji-animation="none"
-            variant="default"
-            size="sm"
-          >
-            Stay in the loop
-          </Button>
+          <Group gap={'sm'}>
+            {os === 'ios' && (
+              <Button
+                component={Link}
+                href={
+                  'https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6'
+                }
+                target="_blank"
+                variant="light"
+                color="grape"
+              >
+                iOS shortcut
+              </Button>
+            )}
+            <Button
+              data-tally-open="31a9Ng"
+              data-tally-hide-title="1"
+              data-tally-layout="modal"
+              data-tally-emoji-animation="none"
+              variant="default"
+              size="sm"
+            >
+              Stay in the loop
+            </Button>
+          </Group>
         </Group>
       </Container>
 
@@ -286,12 +304,12 @@ function Footer() {
             <Text c="dark.1" fw={600} span>
               with support from&nbsp;
               <Anchor
-                href="https://www.openphilanthropy.org/"
+                href="https://coefficientgiving.org/"
                 target="_blank"
                 c="dark.2"
                 fw={600}
               >
-                Open Philanthropy
+                Coefficient Giving
               </Anchor>{' '}
               and{' '}
               <Anchor

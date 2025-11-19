@@ -25,3 +25,32 @@ export const isCollectionPage = (url: string = window.location.pathname) => {
     return false;
   }
 };
+
+export enum SupportedPlatform {
+  BLUESKY_POST = 'bluesky post',
+  SEMBLE_COLLECTION = 'semble collection',
+}
+
+export const detectUrlPlatform = (url: string): SupportedPlatform | null => {
+  if (isCollectionPage(url)) {
+    return SupportedPlatform.SEMBLE_COLLECTION;
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+
+    // bluesky posts
+    // https://bsky.app/profile/handle/post/id
+    if (
+      parsedUrl.hostname === 'bsky.app' &&
+      parsedUrl.pathname.includes('/post/')
+    ) {
+      return SupportedPlatform.BLUESKY_POST;
+    }
+
+    return null; // no supported service detected
+  } catch (e) {
+    // invalid url
+    return null;
+  }
+};

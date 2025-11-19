@@ -34,7 +34,6 @@ import { FakeJwtTokenService } from '../../../../modules/user/infrastructure/ser
 import { FakeAtProtoOAuthProcessor } from '../../../../modules/atproto/infrastructure/services/FakeAtProtoOAuthProcessor';
 import { FakeUserAuthenticationService } from '../../../../modules/user/infrastructure/services/FakeUserAuthenticationService';
 import { FakeAgentService } from '../../../../modules/atproto/infrastructure/services/FakeAgentService';
-import { FakeBlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/FakeBlueskyProfileService';
 import { FakeAppPasswordSessionService } from '../../../../modules/atproto/infrastructure/services/FakeAppPasswordSessionService';
 import { FakeAtpAppPasswordProcessor } from '../../../../modules/atproto/infrastructure/services/FakeAtpAppPasswordProcessor';
 import { ITokenService } from 'src/modules/user/application/services/ITokenService';
@@ -72,6 +71,10 @@ export interface SharedServices {
   configService: EnvironmentConfigService;
   cookieService: CookieService;
   searchService: SearchService;
+  cardLibraryService: CardLibraryService;
+  cardCollectionService: CardCollectionService;
+  eventPublisher: IEventPublisher;
+  collectionPublisher: ICollectionPublisher;
 }
 
 // Web app specific services (includes publishers, auth middleware)
@@ -80,18 +83,12 @@ export interface WebAppServices extends SharedServices {
   appPasswordProcessor: IAppPasswordProcessor;
   collectionPublisher: ICollectionPublisher;
   cardPublisher: ICardPublisher;
-  cardLibraryService: CardLibraryService;
-  cardCollectionService: CardCollectionService;
   authMiddleware: AuthMiddleware;
-  eventPublisher: IEventPublisher;
-  cookieService: CookieService;
-  searchService: SearchService;
 }
 
 // Worker specific services (includes subscribers)
 export interface WorkerServices extends SharedServices {
   redisConnection: Redis | null;
-  eventPublisher: IEventPublisher;
   createEventSubscriber: (queueName: QueueName) => IEventSubscriber;
   sagaStateStore: ISagaStateStore;
 }
@@ -153,33 +150,10 @@ export class ServiceFactory {
           collections.card,
         );
 
-    const cardCollectionService = new CardCollectionService(
-      repositories.collectionRepository,
-      collectionPublisher,
-    );
-    const cardLibraryService = new CardLibraryService(
-      repositories.cardRepository,
-      cardPublisher,
-      repositories.collectionRepository,
-      cardCollectionService,
-    );
-
     const authMiddleware = new AuthMiddleware(
       sharedServices.tokenService,
       sharedServices.cookieService,
     );
-
-    const useInMemoryEvents = configService.shouldUseInMemoryEvents();
-
-    let eventPublisher: IEventPublisher;
-    if (useInMemoryEvents) {
-      eventPublisher = new InMemoryEventPublisher();
-    } else {
-      const redisConnection = RedisFactory.createConnection(
-        configService.getWorkersConfig().redisConfig,
-      );
-      eventPublisher = new BullMQEventPublisher(redisConnection);
-    }
 
     return {
       ...sharedServices,
@@ -187,10 +161,7 @@ export class ServiceFactory {
       appPasswordProcessor,
       collectionPublisher,
       cardPublisher,
-      cardLibraryService,
-      cardCollectionService,
       authMiddleware,
-      eventPublisher,
     };
   }
 
@@ -239,7 +210,6 @@ export class ServiceFactory {
     return {
       ...sharedServices,
       redisConnection: redisConnection,
-      eventPublisher,
       createEventSubscriber,
       sagaStateStore,
     };
@@ -334,6 +304,47 @@ export class ServiceFactory {
       repositories.cardQueryRepository,
     );
 
+    // Create publishers needed for shared services
+    const useFakePublishers = configService.shouldUseFakePublishers();
+    const collections = configService.getAtProtoCollections();
+
+    const collectionPublisher = useFakePublishers
+      ? new FakeCollectionPublisher()
+      : new ATProtoCollectionPublisher(
+          atProtoAgentService,
+          collections.collection,
+          collections.collectionLink,
+        );
+
+    const cardPublisher = useFakePublishers
+      ? new FakeCardPublisher()
+      : new ATProtoCardPublisher(atProtoAgentService, collections.card);
+
+    // Create domain services
+    const cardCollectionService = new CardCollectionService(
+      repositories.collectionRepository,
+      collectionPublisher,
+    );
+    const cardLibraryService = new CardLibraryService(
+      repositories.cardRepository,
+      cardPublisher,
+      repositories.collectionRepository,
+      cardCollectionService,
+    );
+
+    // Create event publisher
+    const useInMemoryEvents = configService.shouldUseInMemoryEvents();
+
+    let eventPublisher: IEventPublisher;
+    if (useInMemoryEvents) {
+      eventPublisher = new InMemoryEventPublisher();
+    } else {
+      const redisConnection = RedisFactory.createConnection(
+        configService.getWorkersConfig().redisConfig,
+      );
+      eventPublisher = new BullMQEventPublisher(redisConnection);
+    }
+
     return {
       tokenService,
       userAuthService,
@@ -346,6 +357,10 @@ export class ServiceFactory {
       configService,
       cookieService,
       searchService,
+      cardLibraryService,
+      cardCollectionService,
+      eventPublisher,
+      collectionPublisher,
     };
   }
 }

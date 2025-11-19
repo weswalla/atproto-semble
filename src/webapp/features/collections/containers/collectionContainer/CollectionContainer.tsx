@@ -165,6 +165,12 @@ export default function CollectionContainer(props: Props) {
                 Add your first card
               </Button>
             )}
+            <Text ta={'center'} fw={500} c={'gray'}>
+              Need inspiration?{' '}
+              <Anchor component={Link} href={'/explore'} fw={500} c={'grape'}>
+                Explore cards from the community
+              </Anchor>
+            </Text>
           </Stack>
         )}
       </Stack>

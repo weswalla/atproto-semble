@@ -19,15 +19,18 @@ import {
   MdAutoAwesome,
   MdCollectionsBookmark,
 } from 'react-icons/md';
+import { TbStackForward } from 'react-icons/tb';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { IoMdLogOut } from 'react-icons/io';
 import { useNavbarContext } from '@/providers/navbar';
 import { BiSolidUserCircle } from 'react-icons/bi';
+import { useOs } from '@mantine/hooks';
 
 export default function ProfileMenu() {
   const router = useRouter();
+  const os = useOs();
   const { toggleMobile } = useNavbarContext();
   const { data, error, isPending } = useMyProfile();
   const { logout } = useAuth();
@@ -133,6 +136,20 @@ export default function ProfileMenu() {
           >
             Install bookmarklet
           </Menu.Item>
+
+          {os === 'ios' && (
+            <Menu.Item
+              color="gray"
+              leftSection={<TbStackForward size={22} />}
+              component={Link}
+              href={
+                'https://www.icloud.com/shortcuts/9c4b4b4bc4ef4d6d93513c59373b0af6'
+              }
+              target="_blank"
+            >
+              Install iOS shortcut
+            </Menu.Item>
+          )}
 
           <Menu.Item
             color="red"

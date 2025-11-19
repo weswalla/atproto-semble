@@ -6,7 +6,10 @@ import {
   FindSimilarUrlsParams,
   UrlSearchResult,
 } from '../domain/IVectorDatabase';
-import { UrlMetadata, UrlMetadataProps } from '../../cards/domain/value-objects/UrlMetadata';
+import {
+  UrlMetadata,
+  UrlMetadataProps,
+} from '../../cards/domain/value-objects/UrlMetadata';
 import { Chunk } from '../domain/value-objects/Chunk';
 
 interface UpstashMetadata extends UrlMetadataProps {
@@ -28,10 +31,12 @@ export class UpstashVectorDatabase implements IVectorDatabase {
       // Use Chunk to create the data content
       const metadataResult = UrlMetadata.create(params);
       if (metadataResult.isErr()) {
-        return err(new Error(`Invalid metadata: ${metadataResult.error.message}`));
+        return err(
+          new Error(`Invalid metadata: ${metadataResult.error.message}`),
+        );
       }
       const chunk = Chunk.create(metadataResult.value);
-      
+
       await this.index.upsert({
         id: params.url,
         data: chunk.value || params.url, // Fallback to URL if no content

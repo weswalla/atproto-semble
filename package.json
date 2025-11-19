@@ -6,7 +6,7 @@
   "workspaces": [
     "src/types",
     "src/webapp",
-    "src/packages/semble-pds-api"
+    "src/packages/semble-pds-client"
   ],
   "directories": {
     "doc": "docs"

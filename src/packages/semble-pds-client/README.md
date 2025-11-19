@@ -1,17 +1,17 @@
-# @cosmik.network/semble-pds-api
+# @cosmik.network/semble-pds-client
 
-A lightweight wrapper around AtpAgent for creating Semble records (Cards, Collections, CollectionLinks) directly to your PDS.
+A lightweight PDS client and AtpAgent wrapper for creating Semble records (Cards, Collections, CollectionLinks) directly to your PDS.
 
 ## Installation
 
 ```bash
-npm install @cosmik.network/semble-pds-api
+npm install @cosmik.network/semble-pds-client
 ```
 
 ## Usage
 
 ```typescript
-import { SemblePDSClient } from '@cosmik.network/semble-pds-api';
+import { SemblePDSClient } from '@cosmik.network/semble-pds-client';
 
 const client = new SemblePDSClient({
   service: 'https://bsky.social', // or your PDS URL

@@ -7,7 +7,7 @@ import {
   Image,
   Title,
   Text,
-  Spoiler,  
+  Spoiler,
   Card,
   Grid,
   GridCol,

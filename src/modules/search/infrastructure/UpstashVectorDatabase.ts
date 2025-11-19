@@ -7,6 +7,7 @@ import {
   UrlSearchResult,
 } from '../domain/IVectorDatabase';
 import { UrlMetadataProps } from '../../cards/domain/value-objects/UrlMetadata';
+import { Chunk } from '../domain/value-objects/Chunk';
 
 interface UpstashMetadata extends UrlMetadataProps {
   [key: string]: any; // Add this index signature for additional flexibility
@@ -24,14 +25,12 @@ export class UpstashVectorDatabase implements IVectorDatabase {
 
   async indexUrl(params: IndexUrlParams): Promise<Result<void>> {
     try {
-      // Combine title and description for the data field
-      const dataContent = [params.title, params.description]
-        .filter(Boolean)
-        .join(' ');
-
+      // Use Chunk to create the data content
+      const chunk = Chunk.createUnsafe(params.title, params.description);
+      
       await this.index.upsert({
         id: params.url,
-        data: dataContent || params.url, // Fallback to URL if no content
+        data: chunk.value || params.url, // Fallback to URL if no content
         metadata: {
           url: params.url,
           title: params.title,

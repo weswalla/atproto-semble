@@ -6,6 +6,7 @@ import { IVectorDatabase, FindSimilarUrlsParams } from '../IVectorDatabase';
 import { UrlView } from '@semble/types/api/responses';
 import { CardSortField, SortOrder } from '@semble/types/api/common';
 import { UrlMetadataProps } from 'src/modules/cards/domain/value-objects/UrlMetadata';
+import { Chunk } from '../value-objects/Chunk';
 
 export class SearchService {
   constructor(
@@ -28,7 +29,19 @@ export class SearchService {
 
       const metadata = metadataResult.value;
 
-      // 2. Index in vector database
+      // 2. Validate chunk length
+      const chunkResult = Chunk.create(metadata.title, metadata.description);
+      
+      if (chunkResult.isErr()) {
+        // Don't index if content is too short
+        return err(
+          new Error(
+            `Content too short to index: ${chunkResult.error.message}`,
+          ),
+        );
+      }
+
+      // 3. Index in vector database
       const indexResult = await this.vectorDatabase.indexUrl({
         url: url.value,
         title: metadata.title,
@@ -64,7 +77,7 @@ export class SearchService {
       // 1. Find similar URLs from vector database
       const findParams: FindSimilarUrlsParams = {
         url: url.value,
-        limit: options.limit,
+        limit: options.limit * 2, // Get more results to account for filtering
         threshold: options.threshold,
       };
 
@@ -76,9 +89,21 @@ export class SearchService {
         );
       }
 
-      // 2. Enrich results with library counts and context
+      // 2. Filter out results with insufficient content
+      const filteredResults = similarResult.value.filter(result => {
+        const chunkResult = Chunk.create(
+          result.metadata.title,
+          result.metadata.description,
+        );
+        return chunkResult.isOk();
+      });
+
+      // 3. Limit to requested amount after filtering
+      const limitedResults = filteredResults.slice(0, options.limit);
+
+      // 4. Enrich results with library counts and context
       const enrichedUrls = await this.enrichUrlsWithContext(
-        similarResult.value,
+        limitedResults,
         options.callingUserId,
       );
 

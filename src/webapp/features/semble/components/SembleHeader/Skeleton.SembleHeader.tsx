@@ -1,5 +1,6 @@
-import { Stack, Grid, GridCol, Text, Skeleton, Group } from '@mantine/core';
+import { Stack, Grid, GridCol, Text, Skeleton } from '@mantine/core';
 import UrlAddedBySummarySkeleton from '../urlAddedBySummary/Skeleton.UrlAddedBySummary';
+import SembleActionsContainerSkeleton from '../../containers/sembleActionsContainer/Skeleton.SembleActionsContainer';
 
 export default function SembleHeaderSkeleton() {
   return (
@@ -28,11 +29,7 @@ export default function SembleHeaderSkeleton() {
           <Stack gap={'sm'} align="center" flex={1}>
             <Skeleton h={150} w={300} maw={'100%'} />
 
-            {/*<SembleActions />*/}
-            <Group gap={'xs'}>
-              <Skeleton w={44} h={44} circle />
-              <Skeleton w={131} h={44} radius={'xl'} />
-            </Group>
+            <SembleActionsContainerSkeleton />
           </Stack>
         </GridCol>
       </Grid>

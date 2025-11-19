@@ -14,9 +14,9 @@ import Link from 'next/link';
 import { getUrlMetadata } from '@/features/cards/lib/dal';
 import { getDomain } from '@/lib/utils/link';
 import UrlAddedBySummary from '../urlAddedBySummary/UrlAddedBySummary';
-import SembleActions from '../sembleActions/SembleActions';
-import { verifySessionOnServer } from '@/lib/auth/dal.server';
-import GuestSembleActions from '../sembleActions/GusetSembleActions';
+import { Suspense } from 'react';
+import SembleActionsContainerSkeleton from '../../containers/sembleActionsContainer/Skeleton.SembleActionsContainer';
+import SembleActionsContainer from '../../containers/sembleActionsContainer/SembleActionsContainer';
 
 interface Props {
   url: string;
@@ -24,7 +24,6 @@ interface Props {
 
 export default async function SembleHeader(props: Props) {
   const { metadata } = await getUrlMetadata(props.url);
-  const session = await verifySessionOnServer();
 
   return (
     <Stack gap={'xl'}>
@@ -87,11 +86,12 @@ export default async function SembleHeader(props: Props) {
                 />
               </Card>
             )}
-            {session ? (
-              <SembleActions url={props.url} />
-            ) : (
-              <GuestSembleActions url={props.url} />
-            )}
+
+            <Stack align="center">
+              <Suspense fallback={<SembleActionsContainerSkeleton />}>
+                <SembleActionsContainer url={props.url} />
+              </Suspense>
+            </Stack>
           </Stack>
         </GridCol>
       </Grid>

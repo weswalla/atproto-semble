@@ -81,7 +81,7 @@ export class UpstashVectorDatabase implements IVectorDatabase {
       });
 
       // Filter out the query URL itself and apply threshold
-      const threshold = params.threshold || 0;
+      const threshold = params.threshold || 0.3;
       const results: UrlSearchResult[] = [];
 
       for (const result of queryResult) {

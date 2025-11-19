@@ -47,7 +47,7 @@ export class GetSimilarUrlsForUrlUseCase
       // Set defaults
       const page = query.page || 1;
       const limit = Math.min(query.limit || 20, 100); // Cap at 100
-      const threshold = query.threshold || 0;
+      const threshold = query.threshold || 0.3;
 
       // Validate URL
       const urlResult = URL.create(query.url);

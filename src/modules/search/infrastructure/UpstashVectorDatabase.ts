@@ -6,7 +6,11 @@ import {
   FindSimilarUrlsParams,
   UrlSearchResult,
 } from '../domain/IVectorDatabase';
-import { UrlMetadataProps } from '../../cards/domain/value-objects/UrlMetadata';
+import {
+  UrlMetadata,
+  UrlMetadataProps,
+} from '../../cards/domain/value-objects/UrlMetadata';
+import { Chunk } from '../domain/value-objects/Chunk';
 
 interface UpstashMetadata extends UrlMetadataProps {
   [key: string]: any; // Add this index signature for additional flexibility
@@ -24,14 +28,18 @@ export class UpstashVectorDatabase implements IVectorDatabase {
 
   async indexUrl(params: IndexUrlParams): Promise<Result<void>> {
     try {
-      // Combine title and description for the data field
-      const dataContent = [params.title, params.description]
-        .filter(Boolean)
-        .join(' ');
+      // Use Chunk to create the data content
+      const metadataResult = UrlMetadata.create(params);
+      if (metadataResult.isErr()) {
+        return err(
+          new Error(`Invalid metadata: ${metadataResult.error.message}`),
+        );
+      }
+      const chunk = Chunk.create(metadataResult.value);
 
       await this.index.upsert({
         id: params.url,
-        data: dataContent || params.url, // Fallback to URL if no content
+        data: chunk.value || params.url, // Fallback to URL if no content
         metadata: {
           url: params.url,
           title: params.title,
@@ -73,7 +81,7 @@ export class UpstashVectorDatabase implements IVectorDatabase {
       });
 
       // Filter out the query URL itself and apply threshold
-      const threshold = params.threshold || 0;
+      const threshold = params.threshold || 0.3;
       const results: UrlSearchResult[] = [];
 
       for (const result of queryResult) {

@@ -1,22 +1,11 @@
-import {
-  Stack,
-  Title,
-  Text,
-  Anchor,
-  Image,
-  Grid,
-  GridCol,
-  Tooltip,
-  Spoiler,
-  Card,
-} from '@mantine/core';
-import Link from 'next/link';
+import { Stack, Image, Grid, GridCol, Card } from '@mantine/core';
 import { getUrlMetadata } from '@/features/cards/lib/dal';
-import { getDomain } from '@/lib/utils/link';
 import UrlAddedBySummary from '../urlAddedBySummary/UrlAddedBySummary';
 import { Suspense } from 'react';
 import SembleActionsContainerSkeleton from '../../containers/sembleActionsContainer/Skeleton.SembleActionsContainer';
 import SembleActionsContainer from '../../containers/sembleActionsContainer/SembleActionsContainer';
+import UrlMetadataHeader from '../urlMetadataHeader/UrlMetadataHeader';
+import UrlMetadataHeaderSkeleton from '../urlMetadataHeader/Skeleton.UrlMetadataHeader';
 
 interface Props {
   url: string;
@@ -29,48 +18,9 @@ export default async function SembleHeader(props: Props) {
     <Stack gap={'xl'}>
       <Grid gutter={'lg'} justify="space-between">
         <GridCol span={{ base: 'auto' }}>
-          <Stack>
-            <Stack gap={0}>
-              <Text>
-                <Text fw={700} c="tangerine" span>
-                  Semble
-                </Text>
-                <Text fw={700} c={'gray'} span>
-                  {` · `}
-                </Text>
-                <Tooltip label={metadata.url}>
-                  <Anchor
-                    component={Link}
-                    target="_blank"
-                    fw={700}
-                    c={'blue'}
-                    href={metadata.url}
-                  >
-                    {getDomain(metadata.url)}
-                  </Anchor>
-                </Tooltip>
-              </Text>
-
-              {metadata.title && (
-                <Anchor
-                  component={Link}
-                  href={metadata.url}
-                  target="_blank"
-                  c={'inherit'}
-                  w={'fit-content'}
-                >
-                  <Title order={1}>{metadata.title}</Title>
-                </Anchor>
-              )}
-            </Stack>
-            {metadata.description && (
-              <Spoiler showLabel={'Read more'} hideLabel={'See less'}>
-                <Text c="gray" fw={500} maw={650}>
-                  {metadata.description}
-                </Text>
-              </Spoiler>
-            )}
-          </Stack>
+          <Suspense fallback={<UrlMetadataHeaderSkeleton />}>
+            <UrlMetadataHeader url={props.url} />
+          </Suspense>
         </GridCol>
         <GridCol span={{ base: 12, sm: 'content' }}>
           <Stack gap={'sm'} align="center">

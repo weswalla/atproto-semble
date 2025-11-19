@@ -13,7 +13,7 @@ interface ChunkProps {
 }
 
 export class Chunk extends ValueObject<ChunkProps> {
-  private static readonly MIN_LENGTH = 50;
+  private static readonly MIN_LENGTH = 25;
 
   get value(): string {
     return this.props.value;
@@ -32,12 +32,12 @@ export class Chunk extends ValueObject<ChunkProps> {
     description?: string,
   ): Result<Chunk, InvalidChunkError> {
     const content = [title, description].filter(Boolean).join(' ').trim();
-    
+
     if (content.length < Chunk.MIN_LENGTH) {
       return err(
         new InvalidChunkError(
-          `Content too short: ${content.length} characters (minimum: ${Chunk.MIN_LENGTH})`
-        )
+          `Content too short: ${content.length} characters (minimum: ${Chunk.MIN_LENGTH})`,
+        ),
       );
     }
 

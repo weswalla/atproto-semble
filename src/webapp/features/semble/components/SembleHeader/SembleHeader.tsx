@@ -1,101 +1,29 @@
-import {
-  Stack,
-  Title,
-  Text,
-  Anchor,
-  Image,
-  Grid,
-  GridCol,
-  Tooltip,
-  Spoiler,
-  Card,
-} from '@mantine/core';
-import Link from 'next/link';
-import { getUrlMetadata } from '@/features/cards/lib/dal';
-import { getDomain } from '@/lib/utils/link';
+import { Stack, Grid } from '@mantine/core';
 import UrlAddedBySummary from '../urlAddedBySummary/UrlAddedBySummary';
-import SembleActions from '../sembleActions/SembleActions';
-import { verifySessionOnServer } from '@/lib/auth/dal.server';
-import GuestSembleActions from '../sembleActions/GusetSembleActions';
+import { Suspense } from 'react';
+import SembleActionsContainerSkeleton from '../../containers/sembleActionsContainer/Skeleton.SembleActionsContainer';
+import SembleActionsContainer from '../../containers/sembleActionsContainer/SembleActionsContainer';
+import UrlMetadataHeader from '../urlMetadataHeader/UrlMetadataHeader';
+import UrlAddedBySummarySkeleton from '../urlAddedBySummary/Skeleton.UrlAddedBySummary';
 
 interface Props {
   url: string;
 }
 
 export default async function SembleHeader(props: Props) {
-  const { metadata } = await getUrlMetadata(props.url);
-  const session = await verifySessionOnServer();
-
   return (
     <Stack gap={'xl'}>
-      <Grid gutter={'lg'} justify="space-between">
-        <GridCol span={{ base: 'auto' }}>
-          <Stack>
-            <Stack gap={0}>
-              <Text>
-                <Text fw={700} c="tangerine" span>
-                  Semble
-                </Text>
-                <Text fw={700} c={'gray'} span>
-                  {` · `}
-                </Text>
-                <Tooltip label={metadata.url}>
-                  <Anchor
-                    component={Link}
-                    target="_blank"
-                    fw={700}
-                    c={'blue'}
-                    href={metadata.url}
-                  >
-                    {getDomain(metadata.url)}
-                  </Anchor>
-                </Tooltip>
-              </Text>
+      <UrlMetadataHeader url={props.url}>
+        <Stack align="center">
+          <Suspense fallback={<SembleActionsContainerSkeleton />}>
+            <SembleActionsContainer url={props.url} />
+          </Suspense>
+        </Stack>
+      </UrlMetadataHeader>
 
-              {metadata.title && (
-                <Anchor
-                  component={Link}
-                  href={metadata.url}
-                  target="_blank"
-                  c={'inherit'}
-                  w={'fit-content'}
-                >
-                  <Title order={1}>{metadata.title}</Title>
-                </Anchor>
-              )}
-            </Stack>
-            {metadata.description && (
-              <Spoiler showLabel={'Read more'} hideLabel={'See less'}>
-                <Text c="gray" fw={500} maw={650}>
-                  {metadata.description}
-                </Text>
-              </Spoiler>
-            )}
-          </Stack>
-        </GridCol>
-        <GridCol span={{ base: 12, sm: 'content' }}>
-          <Stack gap={'sm'} align="center">
-            {metadata.imageUrl && (
-              <Card p={0} radius={'md'} withBorder>
-                <Image
-                  src={metadata.imageUrl}
-                  alt={`${props.url} social preview image`}
-                  mah={150}
-                  w={'auto'}
-                  maw={'100%'}
-                  fit="contain"
-                />
-              </Card>
-            )}
-            {session ? (
-              <SembleActions url={props.url} />
-            ) : (
-              <GuestSembleActions url={props.url} />
-            )}
-          </Stack>
-        </GridCol>
-      </Grid>
-      <UrlAddedBySummary url={props.url} />
+      <Suspense fallback={<UrlAddedBySummarySkeleton />}>
+        <UrlAddedBySummary url={props.url} />
+      </Suspense>
     </Stack>
   );
 }

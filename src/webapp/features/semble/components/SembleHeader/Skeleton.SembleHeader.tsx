@@ -1,43 +1,24 @@
-import { Stack, Grid, GridCol, Text, Skeleton, Group } from '@mantine/core';
+import { Stack, Grid, GridCol, Skeleton } from '@mantine/core';
 import UrlAddedBySummarySkeleton from '../urlAddedBySummary/Skeleton.UrlAddedBySummary';
+import SembleActionsContainerSkeleton from '../../containers/sembleActionsContainer/Skeleton.SembleActionsContainer';
+import UrlMetadataHeaderSkeleton from '../urlMetadataHeader/Skeleton.UrlMetadataHeader';
 
 export default function SembleHeaderSkeleton() {
   return (
     <Stack gap={'xl'}>
       <Grid gutter={'lg'} justify="space-between">
         <GridCol span={{ base: 'auto' }}>
-          <Stack>
-            <Stack gap={0}>
-              <Text fw={700} c="tangerine" span>
-                Semble
-              </Text>
-
-              {/* Title */}
-              <Skeleton w={'100%'} h={27} />
-            </Stack>
-
-            {/* Description */}
-            <Stack gap={5}>
-              <Skeleton w={'80%'} h={22} />
-              <Skeleton w={'80%'} h={22} />
-              <Skeleton w={'80%'} h={22} />
-            </Stack>
-          </Stack>
+          <UrlMetadataHeaderSkeleton />
         </GridCol>
         <GridCol span={{ base: 12, sm: 'content' }}>
           <Stack gap={'sm'} align="center" flex={1}>
             <Skeleton h={150} w={300} maw={'100%'} />
 
-            {/*<SembleActions />*/}
-            <Group gap={'xs'}>
-              <Skeleton w={44} h={44} circle />
-              <Skeleton w={131} h={44} radius={'xl'} />
-            </Group>
+            <SembleActionsContainerSkeleton />
           </Stack>
         </GridCol>
       </Grid>
 
-      {/* URL added by summay */}
       <UrlAddedBySummarySkeleton />
     </Stack>
   );

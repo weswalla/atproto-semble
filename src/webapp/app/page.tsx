@@ -60,7 +60,7 @@ function Content() {
             <Image src={SembleLogo.src} alt="Semble logo" w={30} h="auto" />
             <Badge size="sm">Alpha</Badge>
           </Stack>
-          <Group gap={'lg'}>
+          <Group gap={'sm'}>
             {os === 'ios' && (
               <Button
                 component={Link}

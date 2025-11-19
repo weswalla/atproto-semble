@@ -1,4 +1,5 @@
 import { ValueObject } from '../../../../shared/domain/ValueObject';
+import { UrlMetadata } from '../../../cards/domain/value-objects/UrlMetadata';
 
 interface ChunkProps {
   value: string;
@@ -19,8 +20,11 @@ export class Chunk extends ValueObject<ChunkProps> {
     super(props);
   }
 
-  public static create(title?: string, description?: string): Chunk {
-    const content = [title, description].filter(Boolean).join(' ').trim();
+  public static create(metadata: UrlMetadata): Chunk {
+    const content = [metadata.title, metadata.description]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
     return new Chunk({ value: content });
   }
 

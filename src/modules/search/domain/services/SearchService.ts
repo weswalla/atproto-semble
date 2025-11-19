@@ -5,7 +5,10 @@ import { ICardQueryRepository } from '../../../cards/domain/ICardQueryRepository
 import { IVectorDatabase, FindSimilarUrlsParams } from '../IVectorDatabase';
 import { UrlView } from '@semble/types/api/responses';
 import { CardSortField, SortOrder } from '@semble/types/api/common';
-import { UrlMetadataProps } from 'src/modules/cards/domain/value-objects/UrlMetadata';
+import {
+  UrlMetadata,
+  UrlMetadataProps,
+} from 'src/modules/cards/domain/value-objects/UrlMetadata';
 import { Chunk } from '../value-objects/Chunk';
 
 export class SearchService {
@@ -85,7 +88,7 @@ export class SearchService {
       }
 
       // 2. Filter out results with insufficient content
-      const filteredResults = similarResult.value.filter(result => {
+      const filteredResults = similarResult.value.filter((result) => {
         // Create UrlMetadata from the search result metadata
         const metadataResult = UrlMetadata.create(result.metadata);
         if (metadataResult.isErr()) {

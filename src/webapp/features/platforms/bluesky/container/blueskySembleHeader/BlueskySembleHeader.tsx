@@ -93,7 +93,7 @@ export default async function BlueskySembleHeader(props: Props) {
               <Box>
                 <RichTextRenderer
                   text={record.text}
-                  textProps={{ lineClamp: 3, c: 'bright' }}
+                  textProps={{ c: 'bright' }}
                 />
               </Box>
               {post.embed && <PostEmbed embed={post.embed} />}

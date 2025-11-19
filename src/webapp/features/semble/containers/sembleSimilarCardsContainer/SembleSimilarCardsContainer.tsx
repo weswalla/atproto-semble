@@ -7,15 +7,12 @@ import SembleSimilarCardsContainerError from './Error.SembleSimilarCardsContaine
 import SimilarUrlCard from '../../components/similarUrlCard/SimilarUrlCard';
 import SembleEmptyTab from '../../components/sembleEmptyTab/SembleEmptyTab';
 import { BiLink } from 'react-icons/bi';
-import { useNavbarContext } from '@/providers/navbar';
 
 interface Props {
   url: string;
 }
 
 export default function SembleSimilarCardsContainer(props: Props) {
-  const { desktopOpened } = useNavbarContext();
-
   const {
     data,
     error,
@@ -43,16 +40,9 @@ export default function SembleSimilarCardsContainer(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <Grid gutter="md">
+      <Grid gutter="xl" mx={'auto'} maw={600}>
         {allSimilarUrls.map((urlView) => (
-          <Grid.Col
-            key={urlView.url}
-            span={{
-              base: 12,
-              xs: desktopOpened ? 12 : 6,
-              md: desktopOpened ? 6 : 4,
-            }}
-          >
+          <Grid.Col key={urlView.url} span={12}>
             <SimilarUrlCard urlView={urlView} />
           </Grid.Col>
         ))}

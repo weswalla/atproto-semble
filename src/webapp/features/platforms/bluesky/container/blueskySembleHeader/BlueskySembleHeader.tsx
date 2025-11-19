@@ -1,5 +1,3 @@
-import GuestSembleActions from '@/features/semble/components/sembleActions/GusetSembleActions';
-import SembleActions from '@/features/semble/components/sembleActions/SembleActions';
 import UrlAddedBySummary from '@/features/semble/components/urlAddedBySummary/UrlAddedBySummary';
 import { getDomain } from '@/lib/utils/link';
 import {
@@ -22,6 +20,9 @@ import PostEmbed from '../../components/postEmbed/PostEmbed';
 import { FaBluesky } from 'react-icons/fa6';
 import SembleHeader from '@/features/semble/components/SembleHeader/SembleHeader';
 import { getFormattedDate } from '@/lib/utils/time';
+import SembleActionsContainer from '@/features/semble/containers/sembleActionsContainer/SembleActionsContainer';
+import { Suspense } from 'react';
+import SembleActionsContainerSkeleton from '@/features/semble/containers/sembleActionsContainer/Skeleton.SembleActionsContainer';
 
 interface Props {
   url: string;
@@ -30,7 +31,6 @@ interface Props {
 export default async function BlueskySembleHeader(props: Props) {
   const postUri = getPostUriFromUrl(props.url);
   const data = await getBlueskyPost(postUri);
-  const session = await verifySessionOnServer();
 
   if (
     !data.thread ||
@@ -93,7 +93,7 @@ export default async function BlueskySembleHeader(props: Props) {
               <Box>
                 <RichTextRenderer
                   text={record.text}
-                  textProps={{ lineClamp: 3, c: 'bright' }}
+                  textProps={{ c: 'bright' }}
                 />
               </Box>
               {post.embed && <PostEmbed embed={post.embed} />}
@@ -105,12 +105,10 @@ export default async function BlueskySembleHeader(props: Props) {
         </Card>
       </Stack>
 
-      <Stack gap={'sm'} align="center">
-        {session ? (
-          <SembleActions url={props.url} />
-        ) : (
-          <GuestSembleActions url={props.url} />
-        )}
+      <Stack align="center">
+        <Suspense fallback={<SembleActionsContainerSkeleton />}>
+          <SembleActionsContainer url={props.url} />
+        </Suspense>
       </Stack>
 
       <UrlAddedBySummary url={props.url} />

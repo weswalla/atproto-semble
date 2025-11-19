@@ -5,7 +5,8 @@
   "main": "index.js",
   "workspaces": [
     "src/types",
-    "src/webapp"
+    "src/webapp",
+    "src/packages/semble-pds-client"
   ],
   "directories": {
     "doc": "docs"

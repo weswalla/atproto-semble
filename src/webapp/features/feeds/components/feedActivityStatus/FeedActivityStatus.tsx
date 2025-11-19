@@ -8,6 +8,7 @@ import {
   MenuItem,
   MenuTarget,
   ScrollArea,
+  Spoiler,
   Stack,
   Text,
 } from '@mantine/core';
@@ -23,6 +24,7 @@ interface Props {
   user: FeedItem['user'];
   collections?: FeedItem['collections'];
   createdAt: Date;
+  note?: string;
 }
 
 export default function FeedActivityStatus(props: Props) {
@@ -112,8 +114,8 @@ export default function FeedActivityStatus(props: Props) {
 
   return (
     <Card p={0} className={styles.root} radius={'lg'}>
-      <Stack gap={'xs'}>
-        <Group gap={'xs'} wrap="nowrap" align="center" p={'xs'}>
+      <Stack gap={'xs'} p={'xs'}>
+        <Group gap={'xs'} wrap="nowrap" align="center">
           <Avatar
             component={Link}
             href={`/profile/${props.user.handle}`}
@@ -122,6 +124,17 @@ export default function FeedActivityStatus(props: Props) {
           />
           {renderActivityText()}
         </Group>
+        {props.note && (
+          <Spoiler
+            showLabel={'Read more'}
+            hideLabel={'See less'}
+            maxHeight={100}
+          >
+            <Text fw={500} fs={'italic'} c={'gray'}>
+              {props.note}
+            </Text>
+          </Spoiler>
+        )}
       </Stack>
     </Card>
   );

@@ -1,7 +1,7 @@
+import type { FeedItem as FeedItemType } from '@/api-client';
 import { Stack } from '@mantine/core';
 import UrlCard from '@/features/cards/components/urlCard/UrlCard';
 import FeedActivityStatus from '../feedActivityStatus/FeedActivityStatus';
-import type { FeedItem as FeedItemType } from '@/api-client';
 
 interface Props {
   item: FeedItemType;
@@ -14,6 +14,7 @@ export default function FeedItem(props: Props) {
         user={props.item.user}
         collections={props.item.collections}
         createdAt={props.item.createdAt}
+        note={props.item.card.note?.text}
       />
       <UrlCard
         id={props.item.card.id}

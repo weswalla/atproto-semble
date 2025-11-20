@@ -24,6 +24,7 @@ export default function SettingItem(props: Props) {
       size="md"
       justify="start"
       radius={'lg'}
+      c="gray"
       leftSection={renderIcon()}
     >
       {props.children}

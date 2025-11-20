@@ -77,6 +77,7 @@ export default [
         clearTimeout: 'readonly',
         setImmediate: 'readonly',
         setInterval: 'readonly',
+        clearInterval: 'readonly',
       },
     },
     rules: {

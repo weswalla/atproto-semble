@@ -7,8 +7,8 @@ import { getDomain } from '@/lib/utils/link';
 
 interface Props {
   text: string;
-  linkProps?: Partial<AnchorProps>;
-  textProps?: Partial<TextProps>;
+  linkProps?: Partial<AnchorProps>; // for mentions, links, hashtags
+  textProps?: Partial<TextProps>; // for plain text
 }
 
 export default function RichTextRenderer({
@@ -20,9 +20,16 @@ export default function RichTextRenderer({
   richText.detectFacetsWithoutResolution();
 
   return (
-    <Text span {...textProps}>
+    <Text
+      {...textProps}
+      style={{
+        whiteSpace: 'pre-wrap',
+        overflowWrap: 'anywhere',
+        ...(textProps?.style || {}),
+      }}
+    >
       {Array.from(richText.segments()).map((segment, i) => {
-        // Mentions
+        // mention
         if (segment.isMention()) {
           return (
             <Anchor
@@ -38,7 +45,7 @@ export default function RichTextRenderer({
           );
         }
 
-        // Links
+        // link
         if (segment.isLink() && segment.link?.uri) {
           return (
             <Anchor
@@ -55,7 +62,7 @@ export default function RichTextRenderer({
           );
         }
 
-        // Hashtags
+        // hashtag
         if (segment.isTag()) {
           const encodedTag = encodeURIComponent(segment.tag?.tag || '');
           return (
@@ -74,8 +81,12 @@ export default function RichTextRenderer({
           );
         }
 
-        // Plain text
-        return <span key={`text-${i}`}>{segment.text}</span>;
+        // plain text
+        return (
+          <span key={`text-${i}`} className={textProps?.className}>
+            {segment.text}
+          </span>
+        );
       })}
     </Text>
   );

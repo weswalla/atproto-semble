@@ -51,8 +51,7 @@ export default function SembleNotesContainer(props: Props) {
               base: 12,
               xs: desktopOpened ? 12 : 6,
               sm: desktopOpened ? 6 : 4,
-              md: 4,
-              lg: 3,
+              lg: 4,
             }}
           >
             <NoteCard

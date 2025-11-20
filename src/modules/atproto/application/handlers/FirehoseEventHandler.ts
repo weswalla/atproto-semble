@@ -14,7 +14,7 @@ export class FirehoseEventHandler {
 
   constructor(
     private processFirehoseEventUseCase: ProcessFirehoseEventUseCase,
-    private delayMs: number = 30000, // 30 seconds default
+    private delayMs: number = 3000, // 3 seconds default
   ) {
     // Start processing queue
     this.startQueueProcessor();

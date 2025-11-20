@@ -40,7 +40,7 @@ export default function SembleSimilarCardsContainer(props: Props) {
       isLoading={isFetchingNextPage}
       loadMore={fetchNextPage}
     >
-      <Grid gutter="xl" mx={'auto'} maw={600}>
+      <Grid gutter="md" mx={'auto'} maw={600}>
         {allSimilarUrls.map((urlView) => (
           <Grid.Col key={urlView.url} span={12}>
             <SimilarUrlCard urlView={urlView} />

@@ -16,14 +16,11 @@ import SembleSimilarCardsContainerSkeleton from '../../containers/sembleSimilarC
 import SembleSimilarCardsContainer from '../../containers/sembleSimilarCardsContainer/SembleSimilarCardsContainer';
 import TabItem from './TabItem';
 import { Suspense } from 'react';
-import { getServerFeatureFlags } from '@/lib/serverFeatureFlags';
 interface Props {
   url: string;
 }
 
 export default async function SembleTabs(props: Props) {
-  const featureFlags = await getServerFeatureFlags();
-
   return (
     <Tabs defaultValue={'notes'}>
       <ScrollAreaAutosize type="scroll">
@@ -32,9 +29,7 @@ export default async function SembleTabs(props: Props) {
             <TabItem value="notes">Notes</TabItem>
             <TabItem value="collections">Collections</TabItem>
             <TabItem value="addedBy">Added by</TabItem>
-            {featureFlags.similarCards && (
-              <TabItem value="similar">Similar Cards</TabItem>
-            )}
+            <TabItem value="similar">Similar Cards</TabItem>
           </Group>
         </TabsList>
       </ScrollAreaAutosize>
@@ -55,13 +50,11 @@ export default async function SembleTabs(props: Props) {
             <SembleLibrariesContainer url={props.url} />
           </Suspense>
         </TabsPanel>
-        {featureFlags.similarCards && (
-          <TabsPanel value="similar">
-            <Suspense fallback={<SembleSimilarCardsContainerSkeleton />}>
-              <SembleSimilarCardsContainer url={props.url} />
-            </Suspense>
-          </TabsPanel>
-        )}
+        <TabsPanel value="similar">
+          <Suspense fallback={<SembleSimilarCardsContainerSkeleton />}>
+            <SembleSimilarCardsContainer url={props.url} />
+          </Suspense>
+        </TabsPanel>
       </Box>
     </Tabs>
   );

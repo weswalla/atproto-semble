@@ -23,6 +23,7 @@ import CollectionContainerError from './Error.CollectionContainer';
 import CollectionContainerSkeleton from './Skeleton.CollectionContainer';
 import InfiniteScroll from '@/components/contentDisplay/infiniteScroll/InfiniteScroll';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavbarContext } from '@/providers/navbar';
 
 interface Props {
   rkey: string;
@@ -30,6 +31,7 @@ interface Props {
 }
 
 export default function CollectionContainer(props: Props) {
+  const { desktopOpened } = useNavbarContext();
   const [showAddDrawer, setShowAddDrawer] = useState(false);
   const { user } = useAuth();
 
@@ -132,7 +134,13 @@ export default function CollectionContainer(props: Props) {
               {allCards.map((card) => (
                 <Grid.Col
                   key={card.id}
-                  span={{ base: 12, xs: 6, sm: 4, lg: 3 }}
+                  span={{
+                    base: 12,
+                    xs: desktopOpened ? 12 : 6,
+                    sm: desktopOpened ? 6 : 4,
+                    md: 4,
+                    lg: 3,
+                  }}
                 >
                   <UrlCard
                     id={card.id}

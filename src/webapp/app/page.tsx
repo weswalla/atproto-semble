@@ -256,19 +256,30 @@ function Footer() {
             <FaDiscord size={22} />
           </ActionIcon>
         </Group>
-
-        <Button
-          component="a"
-          href="https://blog.cosmik.network"
-          target="_blank"
-          variant="light"
-          color="dark.1"
-          fw={600}
-          rightSection={<RiArrowRightUpLine />}
-        >
-          Follow our blog for updates
-        </Button>
-
+        <Group gap={'xs'} justify="center">
+          <Button
+            component="a"
+            href="https://blog.cosmik.network"
+            target="_blank"
+            variant="light"
+            color="dark.1"
+            fw={600}
+            rightSection={<RiArrowRightUpLine />}
+          >
+            Follow our blog for updates
+          </Button>
+          <Button
+            component="a"
+            href="https://docs.cosmik.network/semble"
+            target="_blank"
+            variant="light"
+            color="dark.1"
+            fw={600}
+            rightSection={<RiArrowRightUpLine />}
+          >
+            Semble Docs
+          </Button>
+        </Group>
         <Stack align="center" gap="0">
           <Text c="dark.1" fw={600} ta="center">
             Made by &nbsp;

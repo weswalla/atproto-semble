@@ -36,7 +36,7 @@ export default async function ProfileHeader(props: Props) {
       <Container p={0} size={'xl'}>
         <Stack gap={'sm'} p={'xs'}>
           <Stack gap={'xl'}>
-            <Grid gutter={'md'} grow>
+            <Grid gutter={'md'} align="start" grow>
               <GridCol span={'auto'}>
                 <Avatar
                   src={profile.avatarUrl}

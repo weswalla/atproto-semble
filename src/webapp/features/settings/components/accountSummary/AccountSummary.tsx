@@ -1,24 +1,10 @@
 'use client';
 
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
-import { useAuth } from '@/hooks/useAuth';
-import { Avatar, Button, Card, Group, Stack, Text } from '@mantine/core';
-import { useRouter } from 'next/navigation';
-import { IoMdLogOut } from 'react-icons/io';
+import { Avatar, Card, Group, Stack, Text } from '@mantine/core';
 
 export default function AccountSummary() {
   const { data: profile } = useMyProfile();
-  const { logout } = useAuth();
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      router.push('/');
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
-  };
 
   return (
     <Card p={'xs'} radius={'lg'} withBorder>
@@ -38,15 +24,6 @@ export default function AccountSummary() {
             </Text>
           </Stack>
         </Group>
-
-        <Button
-          leftSection={<IoMdLogOut size={22} />}
-          variant="light"
-          color="red"
-          onClick={handleLogout}
-        >
-          Log out
-        </Button>
       </Group>
     </Card>
   );

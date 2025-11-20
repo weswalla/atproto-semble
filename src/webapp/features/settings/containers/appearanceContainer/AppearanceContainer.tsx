@@ -1,7 +1,14 @@
 'use client';
 
-import { Container, Stack, Title, SegmentedControl } from '@mantine/core';
+import {
+  Container,
+  Stack,
+  Title,
+  SegmentedControl,
+  Center,
+} from '@mantine/core';
 import { useMantineColorScheme } from '@mantine/core';
+import { MdDarkMode, MdLightMode, MdOutlineSmartphone } from 'react-icons/md';
 
 export default function AppearanceContainer() {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
@@ -18,9 +25,33 @@ export default function AppearanceContainer() {
             setColorScheme(value as 'light' | 'dark' | 'auto')
           }
           data={[
-            { label: 'Light', value: 'light' },
-            { label: 'Dark', value: 'dark' },
-            { label: 'Auto', value: 'auto' },
+            {
+              label: (
+                <Center style={{ gap: 10 }}>
+                  <MdLightMode />
+                  <span>Light</span>
+                </Center>
+              ),
+              value: 'light',
+            },
+            {
+              label: (
+                <Center style={{ gap: 10 }}>
+                  <MdDarkMode />
+                  <span>Dark</span>
+                </Center>
+              ),
+              value: 'dark',
+            },
+            {
+              label: (
+                <Center style={{ gap: 10 }}>
+                  <MdOutlineSmartphone />
+                  <span>System</span>
+                </Center>
+              ),
+              value: 'auto',
+            },
           ]}
         />
       </Stack>

@@ -13,6 +13,7 @@ export default function useGlobalFeed(props?: Props) {
     queryKey: feedKeys.infinite(),
     staleTime: 10000,
     initialPageParam: 1,
+    refetchOnWindowFocus: false,
     queryFn: ({ pageParam = 1 }) => {
       return getGlobalFeed({ limit, page: pageParam });
     },

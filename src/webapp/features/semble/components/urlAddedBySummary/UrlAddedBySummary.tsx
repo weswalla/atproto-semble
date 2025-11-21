@@ -1,6 +1,7 @@
 import { Avatar, AvatarGroup, Group, Text, Anchor } from '@mantine/core';
 import Link from 'next/link';
 import { getLibrariesForUrl } from '../../lib/dal';
+import { sanitizeText } from '@/lib/utils/text';
 
 interface Props {
   url: string;
@@ -43,7 +44,7 @@ export default async function UrlAddedBySummary(props: Props) {
             fw={600}
             c={'bright'}
           >
-            {p.user.name}
+            {sanitizeText(p.user.name)}
             {i < shownUsers.length - 1 ? ', ' : ''}
           </Anchor>
         ))}

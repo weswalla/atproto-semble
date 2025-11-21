@@ -107,8 +107,6 @@ export default function ProfileMenu() {
           >
             Log out
           </Menu.Item>
-
-          <Menu.Divider />
         </Menu.Dropdown>
       </Menu>
     </Group>

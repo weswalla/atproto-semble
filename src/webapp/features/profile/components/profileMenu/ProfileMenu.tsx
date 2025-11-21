@@ -16,8 +16,8 @@ import {
   MdBugReport,
   MdDarkMode,
   MdLightMode,
-  MdAutoAwesome,
   MdCollectionsBookmark,
+  MdOutlineSmartphone,
 } from 'react-icons/md';
 import { TbStackForward } from 'react-icons/tb';
 import { useAuth } from '@/hooks/useAuth';
@@ -102,7 +102,7 @@ export default function ProfileMenu() {
             color="gray"
             leftSection={
               colorScheme === 'auto' ? (
-                <MdAutoAwesome size={22} />
+                <MdOutlineSmartphone size={22} />
               ) : computedColorScheme === 'dark' ? (
                 <MdDarkMode size={22} />
               ) : (
@@ -112,7 +112,7 @@ export default function ProfileMenu() {
             closeMenuOnClick={false}
             onClick={handleThemeToggle}
           >
-            Theme: {colorScheme}
+            Theme: {colorScheme === 'auto' ? 'system' : colorScheme}
           </Menu.Item>
 
           <Menu.Divider />

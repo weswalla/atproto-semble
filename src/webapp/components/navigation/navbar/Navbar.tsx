@@ -16,6 +16,7 @@ import {
 import { LuLibrary } from 'react-icons/lu';
 import { MdOutlineEmojiNature } from 'react-icons/md';
 import { FaRegNoteSticky } from 'react-icons/fa6';
+import { TbSettings } from 'react-icons/tb';
 import Link from 'next/link';
 import SembleLogo from '@/assets/semble-logo.svg';
 import ProfileMenu from '@/features/profile/components/profileMenu/ProfileMenu';
@@ -61,6 +62,11 @@ export default function Navbar() {
               href={`/profile/${profile.handle}/cards`}
               label="Cards"
               icon={<FaRegNoteSticky size={25} />}
+            />
+            <NavItem
+              href={`/settings`}
+              label="Settings"
+              icon={<TbSettings size={25} />}
             />
           </Stack>
         </Stack>

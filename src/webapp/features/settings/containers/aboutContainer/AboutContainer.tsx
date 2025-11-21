@@ -12,7 +12,6 @@ import SettingItem from '../../components/settingItem/SettingItem';
 import { MdSpeakerNotes } from 'react-icons/md';
 import { FaGithub } from 'react-icons/fa6';
 import CosmikLogo from '@/assets/cosmik-logo-full.svg';
-import CosmikLogoWhite from '@/assets/cosmik-logo-full-white.svg';
 import CosmikBanner from '@/assets/cosmik-bg-banner-small.webp';
 
 export default function AboutContainer() {
@@ -59,22 +58,8 @@ export default function AboutContainer() {
             style={{ position: 'relative', zIndex: 1 }}
           >
             <Stack gap="xs">
-              <Image
-                src={CosmikLogo.src}
-                alt="Cosmik logo"
-                w={92}
-                h={28.4}
-                darkHidden
-              />
-              {/* dark logo */}
-              <Image
-                src={CosmikLogoWhite.src}
-                alt="Cosmik logo white"
-                w={92}
-                h={28.4}
-                lightHidden
-              />
-              <Text fw={500}>
+              <Image src={CosmikLogo.src} alt="Cosmik logo" w={92} h={28.4} />
+              <Text fw={500} c={'dark'}>
                 Semble is lovingly built by the team at Cosmik Network
               </Text>
             </Stack>

@@ -89,7 +89,7 @@ export default function CardToBeAddedPreview(props: Props) {
               }}
               disabled={note?.trimEnd() === ''}
             >
-              Save
+              Ok
             </Button>
           </Group>
         </Stack>

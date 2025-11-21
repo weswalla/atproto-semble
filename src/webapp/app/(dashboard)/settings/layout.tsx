@@ -13,12 +13,5 @@ interface Props {
 }
 
 export default function Layout(props: Props) {
-  return (
-    <Fragment>
-      <Header>
-        <BackButton href="/home">Home</BackButton>
-      </Header>
-      {props.children}
-    </Fragment>
-  );
+  return <Fragment>{props.children}</Fragment>;
 }

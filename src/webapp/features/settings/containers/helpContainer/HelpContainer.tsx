@@ -1,0 +1,31 @@
+import { Container, Stack, Title, ButtonGroup } from '@mantine/core';
+import { FaDiscord } from 'react-icons/fa6';
+import SettingItem from '../../components/settingItem/SettingItem';
+import { MdBugReport, MdMenuBook } from 'react-icons/md';
+
+export default function HelpContainer() {
+  return (
+    <Container p="xs" size="xs">
+      <Stack gap="xl">
+        <Title order={1}>Help</Title>
+        <ButtonGroup orientation="vertical">
+          <SettingItem
+            href="https://docs.cosmik.network/semble"
+            icon={MdMenuBook}
+          >
+            Semble Docs
+          </SettingItem>
+          <SettingItem
+            href="https://tangled.org/@cosmik.network/semble/issues"
+            icon={MdBugReport}
+          >
+            Submit an issue
+          </SettingItem>
+          <SettingItem href="https://discord.gg/SHvvysb73e" icon={FaDiscord}>
+            Join our discord community
+          </SettingItem>
+        </ButtonGroup>
+      </Stack>
+    </Container>
+  );
+}

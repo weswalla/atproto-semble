@@ -30,8 +30,8 @@ export class CardMapper {
       createdAt: card.createdAt.toISOString(),
     };
 
-    // Add optional URL property
-    if (card.url) {
+    // Only add top-level URL for non-URL cards (like NOTE cards that reference a URL)
+    if (card.url && card.type.value !== CardTypeEnum.URL) {
       record.url = card.url.value;
     }
 

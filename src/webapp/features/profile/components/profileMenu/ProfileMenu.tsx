@@ -1,24 +1,6 @@
-import {
-  Skeleton,
-  Avatar,
-  Group,
-  Alert,
-  Menu,
-  Image,
-  Button,
-  useMantineColorScheme,
-  useComputedColorScheme,
-} from '@mantine/core';
+import { Skeleton, Avatar, Group, Alert, Menu, Button } from '@mantine/core';
 import useMyProfile from '../../lib/queries/useMyProfile';
-import CosmikLogo from '@/assets/cosmik-logo-full.svg';
-import CosmikLogoWhite from '@/assets/cosmik-logo-full-white.svg';
-import {
-  MdBugReport,
-  MdDarkMode,
-  MdLightMode,
-  MdCollectionsBookmark,
-  MdOutlineSmartphone,
-} from 'react-icons/md';
+import { MdBugReport, MdCollectionsBookmark } from 'react-icons/md';
 import { TbStackForward } from 'react-icons/tb';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
@@ -35,11 +17,6 @@ export default function ProfileMenu() {
   const { data, error, isPending } = useMyProfile();
   const { logout } = useAuth();
 
-  const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const computedColorScheme = useComputedColorScheme('light', {
-    getInitialValueInEffect: true,
-  });
-
   const handleLogout = async () => {
     try {
       await logout();
@@ -47,17 +24,6 @@ export default function ProfileMenu() {
     } catch (error) {
       console.error('Error logging out:', error);
     }
-  };
-
-  const handleThemeToggle = () => {
-    const nextScheme =
-      colorScheme === 'light'
-        ? 'dark'
-        : colorScheme === 'dark'
-          ? 'auto'
-          : 'light';
-
-    setColorScheme(nextScheme);
   };
 
   if (isPending || !data) {
@@ -96,23 +62,6 @@ export default function ProfileMenu() {
             color="gray"
           >
             View profile
-          </Menu.Item>
-
-          <Menu.Item
-            color="gray"
-            leftSection={
-              colorScheme === 'auto' ? (
-                <MdOutlineSmartphone size={22} />
-              ) : computedColorScheme === 'dark' ? (
-                <MdDarkMode size={22} />
-              ) : (
-                <MdLightMode size={22} />
-              )
-            }
-            closeMenuOnClick={false}
-            onClick={handleThemeToggle}
-          >
-            Theme: {colorScheme === 'auto' ? 'system' : colorScheme}
           </Menu.Item>
 
           <Menu.Divider />
@@ -160,24 +109,6 @@ export default function ProfileMenu() {
           </Menu.Item>
 
           <Menu.Divider />
-
-          <Menu.Item
-            component="a"
-            href="https://cosmik.network/"
-            target="_blank"
-          >
-            <Image
-              src={
-                computedColorScheme === 'dark'
-                  ? CosmikLogoWhite.src
-                  : CosmikLogo.src
-              }
-              alt="Cosmik logo"
-              w="auto"
-              h={24}
-              ml={2}
-            />
-          </Menu.Item>
         </Menu.Dropdown>
       </Menu>
     </Group>

@@ -5,6 +5,7 @@ import { isValidElement } from 'react';
 
 interface Props {
   href: string;
+  openInNewTab?: boolean;
   icon: IconType | React.ReactElement;
   children: React.ReactNode;
 }
@@ -20,12 +21,14 @@ export default function SettingItem(props: Props) {
     <Button
       component={Link}
       href={props.href}
-      variant="default"
+      target={props.openInNewTab ? '_blank' : '_self'}
+      variant="light"
       size="md"
       justify="start"
       radius={'lg'}
-      c="gray"
+      color="gray"
       leftSection={renderIcon()}
+      my={1}
     >
       {props.children}
     </Button>

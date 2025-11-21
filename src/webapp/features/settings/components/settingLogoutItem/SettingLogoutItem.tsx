@@ -1,0 +1,35 @@
+'use client';
+
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@mantine/core';
+import { useRouter } from 'next/navigation';
+import { IoMdLogOut } from 'react-icons/io';
+
+export default function SettingLogoutItem() {
+  const { logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
+  return (
+    <Button
+      variant="light"
+      size="md"
+      justify="start"
+      radius={'lg'}
+      color="red"
+      leftSection={<IoMdLogOut size={22} />}
+      onClick={handleLogout}
+      my={1}
+    >
+      Log out
+    </Button>
+  );
+}

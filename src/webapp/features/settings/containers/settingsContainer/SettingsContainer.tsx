@@ -6,6 +6,7 @@ import {
   IoMdHelpCircle,
   IoMdInformationCircle,
 } from 'react-icons/io';
+import SettingLogoutItem from '../../components/settingLogoutItem/SettingLogoutItem';
 
 export default function SettingsContainer() {
   return (
@@ -14,17 +15,20 @@ export default function SettingsContainer() {
         <Title order={1}>Settings</Title>
 
         <AccountSummary />
-        <ButtonGroup orientation="vertical">
-          <SettingItem href="/settings/appearance" icon={IoMdColorPalette}>
-            Appearance
-          </SettingItem>
-          <SettingItem href="/settings/help" icon={IoMdHelpCircle}>
-            Help
-          </SettingItem>
-          <SettingItem href="/settings/about" icon={IoMdInformationCircle}>
-            About
-          </SettingItem>
-        </ButtonGroup>
+        <Stack>
+          <ButtonGroup orientation="vertical">
+            <SettingItem href="/settings/appearance" icon={IoMdColorPalette}>
+              Appearance
+            </SettingItem>
+            <SettingItem href="/settings/help" icon={IoMdHelpCircle}>
+              Help
+            </SettingItem>
+            <SettingItem href="/settings/about" icon={IoMdInformationCircle}>
+              About
+            </SettingItem>
+          </ButtonGroup>
+          <SettingLogoutItem />
+        </Stack>
       </Stack>
     </Container>
   );

@@ -11,17 +11,23 @@ export default function HelpContainer() {
         <ButtonGroup orientation="vertical">
           <SettingItem
             href="https://docs.cosmik.network/semble"
+            openInNewTab
             icon={MdMenuBook}
           >
             Semble Docs
           </SettingItem>
           <SettingItem
             href="https://tangled.org/@cosmik.network/semble/issues"
+            openInNewTab
             icon={MdBugReport}
           >
             Submit an issue
           </SettingItem>
-          <SettingItem href="https://discord.gg/SHvvysb73e" icon={FaDiscord}>
+          <SettingItem
+            href="https://discord.gg/SHvvysb73e"
+            openInNewTab
+            icon={FaDiscord}
+          >
             Join our discord community
           </SettingItem>
         </ButtonGroup>

@@ -14,28 +14,16 @@ import { FaGithub } from 'react-icons/fa6';
 import CosmikLogo from '@/assets/cosmik-logo-full.svg';
 import CosmikLogoWhite from '@/assets/cosmik-logo-full-white.svg';
 import CosmikBanner from '@/assets/cosmik-bg-banner-small.webp';
+import SettingItemSkeleton from '../../components/settingItem/Skeleton.SettingItem';
 
-export default function AboutContainer() {
+export default function AboutContainerSkeleton() {
   return (
     <Container p="xs" size="xs">
       <Stack gap="xl">
-        <Title order={1}>About</Title>
+        <Title order={1}>Loading</Title>
         <ButtonGroup orientation="vertical">
-          <SettingItem
-            href="https://blog.cosmik.network/"
-            openInNewTab
-            icon={MdSpeakerNotes}
-          >
-            Follow our blog for updates
-          </SettingItem>
-
-          <SettingItem
-            href="https://github.com/cosmik-network/semble"
-            openInNewTab
-            icon={FaGithub}
-          >
-            View source code
-          </SettingItem>
+          <SettingItemSkeleton />
+          <SettingItemSkeleton />
         </ButtonGroup>
         <Card
           component="a"

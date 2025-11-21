@@ -21,11 +21,11 @@ export default function SettingLogoutItem() {
   return (
     <Button
       variant="light"
-      size="md"
+      size="lg"
       justify="start"
       radius={'lg'}
       color="red"
-      leftSection={<IoMdLogOut size={22} />}
+      leftSection={<IoMdLogOut size={26} />}
       onClick={handleLogout}
       my={1}
     >

@@ -6,7 +6,7 @@ export default function SettingItemSkeleton() {
       variant="light"
       c={'gra'}
       w={'100%'}
-      h={42}
+      h={48.5}
       radius={'lg'}
       color="gray"
       my={1}

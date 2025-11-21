@@ -14,7 +14,7 @@ export default function SettingItem(props: Props) {
     if (isValidElement(props.icon)) return props.icon;
 
     const IconComponent = props.icon as IconType;
-    return <IconComponent size={22} />;
+    return <IconComponent size={26} />;
   };
 
   return (
@@ -23,7 +23,7 @@ export default function SettingItem(props: Props) {
       href={props.href}
       target={props.openInNewTab ? '_blank' : '_self'}
       variant="light"
-      size="md"
+      size="lg"
       justify="start"
       radius={'lg'}
       color="gray"

@@ -9,7 +9,6 @@ import {
   Stack,
   Title,
 } from '@mantine/core';
-import Link from 'next/link';
 import useSembleNotes from '../../lib/queries/useSembleNotes';
 import ProfileEmptyTab from '@/features/profile/components/profileEmptyTab/ProfileEmptyTab';
 import { FaRegNoteSticky } from 'react-icons/fa6';
@@ -24,6 +23,10 @@ import AddedByCard from '../../components/addedByCard/AddedByCard';
 import { LuLibrary } from 'react-icons/lu';
 import useSembleSimilarCards from '../../lib/queries/useSembleSimilarCards';
 import SimilarUrlCard from '../../components/similarUrlCard/SimilarUrlCard';
+import SembleNotesContainerError from '../sembleNotesContainer/Error.SembleNotesContainer';
+import SembleCollectionsError from '../sembleCollectionsContainer/Error.SembleCollectionsContainer';
+import SembleLibrariesContainerError from '../sembleLibrariesContainer/Error.SembleLibrariesContainer';
+import SembleSimilarCardsContainerError from '../sembleSimilarCardsContainer/Error.SembleSimilarCardsContainer';
 
 type TabValue = 'overview' | 'notes' | 'collections' | 'addedBy' | 'similar';
 
@@ -35,16 +38,23 @@ interface Props {
 export default function SembleOverviewContainer(props: Props) {
   const { desktopOpened } = useNavbarContext();
 
-  const { data: notes } = useSembleNotes({ url: props.url, limit: 4 });
-  const { data: collections } = useSembleCollections({
+  const { data: notes, error: errorNotes } = useSembleNotes({
     url: props.url,
     limit: 4,
   });
-  const { data: libraries } = useSembleLibraries({ url: props.url, limit: 3 });
-  const { data: similarCards } = useSembleSimilarCards({
+  const { data: collections, error: errorCollections } = useSembleCollections({
+    url: props.url,
+    limit: 4,
+  });
+  const { data: libraries, error: errorLibraries } = useSembleLibraries({
     url: props.url,
     limit: 3,
   });
+  const { data: similarCards, error: errorSimilarCards } =
+    useSembleSimilarCards({
+      url: props.url,
+      limit: 3,
+    });
 
   const allNotes = notes?.pages.flatMap((page) => page.notes ?? []) ?? [];
   const allCollections =
@@ -73,7 +83,9 @@ export default function SembleOverviewContainer(props: Props) {
               </Anchor>
             </Group>
 
-            {allNotes.length > 0 ? (
+            {errorNotes ? (
+              <SembleNotesContainerError />
+            ) : allNotes.length > 0 ? (
               <Grid gutter="md">
                 {allNotes.map((note) => (
                   <Grid.Col
@@ -114,7 +126,9 @@ export default function SembleOverviewContainer(props: Props) {
               </Anchor>
             </Group>
 
-            {allCollections.length > 0 ? (
+            {errorCollections ? (
+              <SembleCollectionsError />
+            ) : allCollections.length > 0 ? (
               <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
                 {allCollections.map((collection) => (
                   <CollectionCard key={collection.id} collection={collection} />
@@ -140,9 +154,11 @@ export default function SembleOverviewContainer(props: Props) {
               </Anchor>
             </Group>
 
-            {allLibraries.length > 0 ? (
+            {errorLibraries ? (
+              <SembleLibrariesContainerError />
+            ) : allLibraries.length > 0 ? (
               <Grid gutter="md">
-                {allLibraries.map((item, i) => (
+                {allLibraries.map((item) => (
                   <Grid.Col
                     key={item.user.name}
                     span={{
@@ -179,7 +195,9 @@ export default function SembleOverviewContainer(props: Props) {
               </Anchor>
             </Group>
 
-            {allSimilarCards.length > 0 ? (
+            {errorSimilarCards ? (
+              <SembleSimilarCardsContainerError />
+            ) : allSimilarCards.length > 0 ? (
               <Grid gutter="md">
                 {allSimilarCards.map((urlView) => (
                   <Grid.Col

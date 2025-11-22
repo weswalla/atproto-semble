@@ -24,7 +24,6 @@ import { FaRegNoteSticky } from 'react-icons/fa6';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import useMyProfile from '@/features/profile/lib/queries/useMyProfile';
 import { useNavbarContext } from '@/providers/navbar';
-import { MdOutlineEmojiNature } from 'react-icons/md';
 
 export default function HomeContainer() {
   const { data: collectionsData } = useMyCollections({ limit: 4 });

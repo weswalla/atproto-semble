@@ -6,7 +6,7 @@ export const sembleKeys = {
     [...sembleKeys.notes(url), 'infinite'] as const,
   similarCards: (url: string) =>
     [...sembleKeys.byUrl(url), 'similar cards'] as const,
-  similarCardsInfinite: (url: string) =>
+  similarCardsInfinite: (url: string, limit?: number) =>
     [...sembleKeys.similarCards(url), 'infinite'] as const,
   libraries: (url: string) => [...sembleKeys.byUrl(url), 'libraries'] as const,
   librariesInfinite: (url: string, limit?: number) =>

@@ -180,7 +180,7 @@ export default function SembleOverviewContainer(props: Props) {
             </Group>
 
             {allSimilarCards.length > 0 ? (
-              <Grid gutter="md" mx={'auto'} maw={600}>
+              <Grid gutter="md">
                 {allSimilarCards.map((urlView) => (
                   <Grid.Col
                     key={urlView.url}

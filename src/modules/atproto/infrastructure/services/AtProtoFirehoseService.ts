@@ -49,7 +49,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
       await this.firehose.start();
       this.isRunningFlag = true;
       console.log('AT Protocol firehose service started');
-      
+
       // Start heartbeat logging
       this.startHeartbeat();
     } catch (error) {
@@ -83,15 +83,18 @@ export class AtProtoFirehoseService implements IFirehoseService {
   }
 
   isRunning(): boolean {
-    return this.isRunningFlag && 
-           this.firehose && 
-           !((this.firehose as any).abortController?.signal?.aborted ?? false);
+    return (
+      (this.isRunningFlag &&
+        this.firehose &&
+        !((this.firehose as any).abortController?.signal?.aborted ?? false)) ||
+      false
+    );
   }
 
   private async handleFirehoseEvent(evt: Event): Promise<void> {
     try {
       this.eventCount++;
-      
+
       if (DEBUG_LOGGING) {
         console.log(`Processing firehose event: ${evt.event} for ${evt.did}`);
       }
@@ -135,7 +138,9 @@ export class AtProtoFirehoseService implements IFirehoseService {
     if (err.name === 'FirehoseParseError') {
       // Check if it's a DID resolution timeout
       if (err.cause && (err.cause as any).name === 'AbortError') {
-        console.warn('DID resolution timeout - continuing without reconnection');
+        console.warn(
+          'DID resolution timeout - continuing without reconnection',
+        );
       } else {
         console.warn('Skipping reconnection for parse error');
       }
@@ -165,7 +170,9 @@ export class AtProtoFirehoseService implements IFirehoseService {
   private startHeartbeat(): void {
     this.heartbeatInterval = setInterval(() => {
       if (DEBUG_LOGGING) {
-        console.log(`Firehose status: running=${this.isRunningFlag}, events processed in last minute: ${this.eventCount}`);
+        console.log(
+          `Firehose status: running=${this.isRunningFlag}, events processed in last minute: ${this.eventCount}`,
+        );
       }
       this.eventCount = 0; // Reset counter
     }, 60000);

@@ -95,15 +95,17 @@ export class AtProtoFirehoseService implements IFirehoseService {
     this.connectionMonitor = setInterval(() => {
       const now = Date.now();
       const isConnected = this.isRunning();
-      const timeSinceLastEvent = this.lastEventTime 
-        ? now - this.lastEventTime 
+      const timeSinceLastEvent = this.lastEventTime
+        ? now - this.lastEventTime
         : null;
 
-      console.log(`[HEALTH] Connected: ${isConnected}, Last event: ${
-        this.lastEventTime 
-          ? `${Math.round(timeSinceLastEvent! / 1000)}s ago` 
-          : 'never'
-      }, Reconnect attempts: ${this.reconnectAttempts}`);
+      console.log(
+        `[HEALTH] Connected: ${isConnected}, Last event: ${
+          this.lastEventTime
+            ? `${Math.round(timeSinceLastEvent! / 1000)}s ago`
+            : 'never'
+        }, Reconnect attempts: ${this.reconnectAttempts}`,
+      );
 
       // Check if connection appears dead
       if (!isConnected) {
@@ -122,11 +124,12 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
       // Check if aborted but still marked as running
       if ((this.firehose as any)?.abortController?.signal?.aborted) {
-        console.warn('[HEALTH] Connection aborted but still marked running, reconnecting');
+        console.warn(
+          '[HEALTH] Connection aborted but still marked running, reconnecting',
+        );
         this.reconnect();
         return;
       }
-
     }, 60000); // Check every minute
   }
 
@@ -200,15 +203,19 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
   private async reconnect(): Promise<void> {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error(`Max reconnect attempts (${this.maxReconnectAttempts}) reached. Stopping service.`);
+      console.error(
+        `Max reconnect attempts (${this.maxReconnectAttempts}) reached. Stopping service.`,
+      );
       await this.stop();
       return;
     }
 
     this.reconnectAttempts++;
     const delay = Math.min(5000 * this.reconnectAttempts, 30000); // Exponential backoff, max 30s
-    
-    console.log(`Attempting reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms...`);
+
+    console.log(
+      `Attempting reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms...`,
+    );
 
     await new Promise((resolve) => setTimeout(resolve, delay));
 

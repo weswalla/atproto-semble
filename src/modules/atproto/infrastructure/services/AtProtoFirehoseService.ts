@@ -83,7 +83,9 @@ export class AtProtoFirehoseService implements IFirehoseService {
   }
 
   isRunning(): boolean {
-    return this.isRunningFlag && this.firehose && !(this.firehose as any).abortController?.signal.aborted;
+    return this.isRunningFlag && 
+           this.firehose && 
+           !((this.firehose as any).abortController?.signal?.aborted ?? false);
   }
 
   private async handleFirehoseEvent(evt: Event): Promise<void> {

@@ -18,6 +18,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { BiCollection } from 'react-icons/bi';
 import { IoMdLink } from 'react-icons/io';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
+import { track } from '@vercel/analytics';
 
 interface Props {
   isOpen: boolean;
@@ -71,6 +72,8 @@ export default function AddCardDrawer(props: Props) {
         },
       },
     );
+
+    track('create new card');
   };
 
   return (

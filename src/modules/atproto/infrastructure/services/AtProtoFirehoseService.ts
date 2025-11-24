@@ -37,8 +37,6 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
       this.firehose = new Firehose({
         service: this.configService.getAtProtoConfig().firehoseWebsocket,
-        runner,
-        idResolver: this.idResolver,
         filterCollections: this.getFilteredCollections(),
         excludeIdentity: true,
         excludeAccount: true,

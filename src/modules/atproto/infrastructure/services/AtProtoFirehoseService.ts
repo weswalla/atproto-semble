@@ -46,7 +46,12 @@ export class AtProtoFirehoseService implements IFirehoseService {
         onError: this.handleError.bind(this),
       });
 
-      await this.firehose.start();
+      // Don't await - this is a long-running operation
+      this.firehose.start().catch((error) => {
+        console.error('Firehose start failed:', error);
+        this.reconnect();
+      });
+
       this.isRunningFlag = true;
       this.reconnectAttempts = 0; // Reset on successful start
       this.startConnectionMonitoring();

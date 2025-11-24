@@ -23,9 +23,12 @@ export class FirehoseWorkerProcess implements IProcess {
       idResolver,
     );
 
-    await this.firehoseService.start();
-    console.log('Firehose worker started');
+    // Don't await - let it run in background
+    this.firehoseService.start().catch((error) => {
+      console.error('Firehose service failed:', error);
+    });
 
+    console.log('Firehose worker started');
     this.setupShutdownHandlers();
   }
 

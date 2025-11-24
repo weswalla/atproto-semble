@@ -112,7 +112,9 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
       // Check if connection appears dead
       if (!isConnected) {
-        console.warn('[FIREHOSE] [HEALTH] Connection appears dead, attempting reconnect');
+        console.warn(
+          '[FIREHOSE] [HEALTH] Connection appears dead, attempting reconnect',
+        );
         this.reconnect();
         return;
       }
@@ -120,7 +122,9 @@ export class AtProtoFirehoseService implements IFirehoseService {
       // Check if we haven't received events for too long (10 minutes)
       // Note: AT Protocol firehose should have regular activity
       if (this.lastEventTime && timeSinceLastEvent! > 60000 * 60 * 2) {
-        console.warn('[FIREHOSE] [HEALTH] No events for 2 hours, forcing reconnect');
+        console.warn(
+          '[FIREHOSE] [HEALTH] No events for 2 hours, forcing reconnect',
+        );
         this.reconnect();
         return;
       }
@@ -148,7 +152,9 @@ export class AtProtoFirehoseService implements IFirehoseService {
       this.lastEventTime = Date.now(); // Track when we last received an event
 
       if (DEBUG_LOGGING) {
-        console.log(`[FIREHOSE] Processing firehose event: ${evt.event} for ${evt.did}`);
+        console.log(
+          `[FIREHOSE] Processing firehose event: ${evt.event} for ${evt.did}`,
+        );
       }
 
       // Create FirehoseEvent value object (includes filtering logic)
@@ -165,7 +171,9 @@ export class AtProtoFirehoseService implements IFirehoseService {
       }
 
       if (DEBUG_LOGGING) {
-        console.log(`[FIREHOSE] Successfully created FirehoseEvent, passing to handler`);
+        console.log(
+          `[FIREHOSE] Successfully created FirehoseEvent, passing to handler`,
+        );
       }
 
       const result = await this.firehoseEventHandler.handle(
@@ -173,12 +181,18 @@ export class AtProtoFirehoseService implements IFirehoseService {
       );
 
       if (result.isErr()) {
-        console.error('[FIREHOSE] Failed to process firehose event:', result.error);
+        console.error(
+          '[FIREHOSE] Failed to process firehose event:',
+          result.error,
+        );
       } else if (DEBUG_LOGGING) {
         console.log(`[FIREHOSE] Successfully processed event`);
       }
     } catch (error) {
-      console.error('[FIREHOSE] Unhandled error in handleFirehoseEvent:', error);
+      console.error(
+        '[FIREHOSE] Unhandled error in handleFirehoseEvent:',
+        error,
+      );
       // Don't re-throw - let processing continue
     }
   }
@@ -193,7 +207,9 @@ export class AtProtoFirehoseService implements IFirehoseService {
     }
 
     if (err.name === 'FirehoseValidationError') {
-      console.warn('[FIREHOSE] Validation error - continuing without reconnect');
+      console.warn(
+        '[FIREHOSE] Validation error - continuing without reconnect',
+      );
       return;
     }
 

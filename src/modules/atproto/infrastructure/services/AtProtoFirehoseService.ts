@@ -47,7 +47,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
       });
 
       // Don't await - this is a long-running operation
-      this.firehose.start().catch((error) => {
+      this.firehose.start().catch((error: any) => {
         console.error('Firehose start failed:', error);
         this.reconnect();
       });
@@ -119,8 +119,8 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
       // Check if we haven't received events for too long (10 minutes)
       // Note: AT Protocol firehose should have regular activity
-      if (this.lastEventTime && timeSinceLastEvent! > 600000) {
-        console.warn('[HEALTH] No events for 10 minutes, forcing reconnect');
+      if (this.lastEventTime && timeSinceLastEvent! > 60000 * 60 * 2) {
+        console.warn('[HEALTH] No events for 2 hours, forcing reconnect');
         this.reconnect();
         return;
       }

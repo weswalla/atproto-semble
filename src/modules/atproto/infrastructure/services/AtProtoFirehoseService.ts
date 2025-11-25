@@ -15,6 +15,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
   private connectionMonitor?: NodeJS.Timeout;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
+  private isReconnecting = false;
 
   constructor(
     private firehoseEventHandler: FirehoseEventHandler,
@@ -221,6 +222,11 @@ export class AtProtoFirehoseService implements IFirehoseService {
   }
 
   private async reconnect(): Promise<void> {
+    if (this.isReconnecting) {
+      console.log('[FIREHOSE] Reconnect already in progress, skipping');
+      return;
+    }
+
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.error(
         `[FIREHOSE] Max reconnect attempts (${this.maxReconnectAttempts}) reached. Stopping service.`,
@@ -229,22 +235,26 @@ export class AtProtoFirehoseService implements IFirehoseService {
       return;
     }
 
-    this.reconnectAttempts++;
-    const delay = Math.min(5000 * this.reconnectAttempts, 30000); // Exponential backoff, max 30s
-
-    console.log(
-      `[FIREHOSE] Attempting reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms...`,
-    );
-
-    await new Promise((resolve) => setTimeout(resolve, delay));
+    this.isReconnecting = true;
 
     try {
+      this.reconnectAttempts++;
+      const delay = Math.min(5000 * this.reconnectAttempts, 30000); // Exponential backoff, max 30s
+
+      console.log(
+        `[FIREHOSE] Attempting reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms...`,
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
       await this.stop();
       await this.start();
       console.log('[FIREHOSE] Reconnection successful');
     } catch (error) {
       console.error('[FIREHOSE] Reconnection failed:', error);
       // The next health check will trigger another reconnect attempt
+    } finally {
+      this.isReconnecting = false;
     }
   }
 

@@ -3,7 +3,10 @@ import { IFirehoseService } from '../../application/services/IFirehoseService';
 import { FirehoseEventHandler } from '../../application/handlers/FirehoseEventHandler';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 import { IdResolver } from '@atproto/identity';
-import { FirehoseEvent } from '../../domain/FirehoseEvent';
+import {
+  FIREHOSE_COLLECTIONS,
+  FirehoseEvent,
+} from '../../domain/FirehoseEvent';
 
 const DEBUG_LOGGING = true; // Set to false to disable debug logs
 
@@ -84,15 +87,8 @@ export class AtProtoFirehoseService implements IFirehoseService {
     return this.isRunningFlag && !!this.firehose;
   }
 
-
   private async handleFirehoseEvent(evt: Event): Promise<void> {
     try {
-      if (DEBUG_LOGGING) {
-        console.log(
-          `[FIREHOSE] Processing firehose event: ${evt.event} for ${evt.did}`,
-        );
-      }
-
       // Create FirehoseEvent value object (includes filtering logic)
       const firehoseEventResult = FirehoseEvent.fromEvent(evt);
       if (firehoseEventResult.isErr()) {
@@ -105,10 +101,15 @@ export class AtProtoFirehoseService implements IFirehoseService {
         }
         return;
       }
-
+      if (
+        firehoseEventResult.value.collection ===
+        FIREHOSE_COLLECTIONS.APP_BSKY_POST
+      ) {
+        return;
+      }
       if (DEBUG_LOGGING) {
         console.log(
-          `[FIREHOSE] Successfully created FirehoseEvent, passing to handler`,
+          `[FIREHOSE] Processing firehose event: ${evt.event} for ${evt.did}`,
         );
       }
 
@@ -143,7 +144,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
       collections.card,
       collections.collection,
       collections.collectionLink,
-      'app.bsky.feed.post',
+      FIREHOSE_COLLECTIONS.APP_BSKY_POST,
     ];
   }
 
@@ -152,15 +153,15 @@ export class AtProtoFirehoseService implements IFirehoseService {
       if (this.cleaningUp) return;
       this.cleaningUp = true;
       console.log('[FIREHOSE] Shutting down firehose...');
-      
+
       if (this.firehose) {
         await this.firehose.destroy();
       }
-      
+
       if (this.runner) {
         await this.runner.destroy();
       }
-      
+
       process.exit();
     };
 

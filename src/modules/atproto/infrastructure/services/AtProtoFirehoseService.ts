@@ -44,6 +44,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
         idResolver: this.idResolver,
         excludeIdentity: true,
         excludeAccount: true,
+        excludeSync: true,
         subscriptionReconnectDelay: 5000, // 5 second delay between reconnects
         handleEvent: this.handleFirehoseEvent.bind(this),
         onError: this.handleError.bind(this),
@@ -134,9 +135,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
     }
   }
 
-  private handleError(err: Error): void {
-    console.error('[FIREHOSE] Firehose error:', err.name, err.message);
-  }
+  private handleError(err: Error): void {}
 
   private getFilteredCollections(): string[] {
     const collections = this.configService.getAtProtoCollections();

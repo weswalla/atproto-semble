@@ -94,7 +94,7 @@ export class AtProtoFirehoseService implements IFirehoseService {
 
   private async handleFirehoseEvent(evt: Event): Promise<void> {
     this.eventCount++;
-    
+
     try {
       // Create FirehoseEvent value object (includes filtering logic)
       const firehoseEventResult = FirehoseEvent.fromEvent(evt);
@@ -176,10 +176,15 @@ export class AtProtoFirehoseService implements IFirehoseService {
   }
 
   private startEventCountLogging(): void {
-    this.logInterval = setInterval(() => {
-      console.log(`[FIREHOSE] Events processed in last 5 minutes: ${this.eventCount}`);
-      this.eventCount = 0; // Reset counter
-    }, 5 * 60 * 1000); // 5 minutes
+    this.logInterval = setInterval(
+      () => {
+        console.log(
+          `[FIREHOSE] Events processed in last 5 minutes: ${this.eventCount}`,
+        );
+        this.eventCount = 0; // Reset counter
+      },
+      5 * 60 * 1000,
+    ); // 5 minutes
   }
 
   private stopEventCountLogging(): void {

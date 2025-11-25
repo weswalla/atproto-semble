@@ -11,12 +11,15 @@ export class AtProtoFirehoseService implements IFirehoseService {
   private firehose?: Firehose;
   private runner?: MemoryRunner;
   private isRunningFlag = false;
+  private cleaningUp = false;
 
   constructor(
     private firehoseEventHandler: FirehoseEventHandler,
     private configService: EnvironmentConfigService,
     private idResolver: IdResolver,
-  ) {}
+  ) {
+    this.setupCleanupHandlers();
+  }
 
   async start(): Promise<void> {
     if (this.isRunningFlag) {
@@ -142,5 +145,27 @@ export class AtProtoFirehoseService implements IFirehoseService {
       collections.collectionLink,
       'app.bsky.feed.post',
     ];
+  }
+
+  private setupCleanupHandlers(): void {
+    const cleanup = async () => {
+      if (this.cleaningUp) return;
+      this.cleaningUp = true;
+      console.log('[FIREHOSE] Shutting down firehose...');
+      
+      if (this.firehose) {
+        await this.firehose.destroy();
+      }
+      
+      if (this.runner) {
+        await this.runner.destroy();
+      }
+      
+      process.exit();
+    };
+
+    process.on('SIGTERM', cleanup);
+    process.on('SIGINT', cleanup);
+    process.on('SIGUSR2', cleanup); // For nodemon
   }
 }

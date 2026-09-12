@@ -154,7 +154,7 @@ describe('UpdateCollectionVisibilityUseCase', () => {
       await collectionRepository.findById(collection.collectionId)
     ).unwrap()!;
     expect(updated.isPrivateCollection).toBe(true);
-    expect(updated.spaceUri).toBeDefined();
+    // The space-scoped published record's at-uri carries all space info
     expect(updated.publishedRecordId!.uri).toContain('/space/');
 
     // old public collection record unpublished
@@ -232,7 +232,11 @@ describe('UpdateCollectionVisibilityUseCase', () => {
         'https://example.com/b',
       ]),
     );
-    const spaceUri = collection.spaceUri!;
+    // at://{did}/space/{type}/{skey}/{nsid}/self -> space uri prefix
+    const spaceUri = collection
+      .publishedRecordId!.uri.split('/')
+      .slice(0, 6)
+      .join('/');
 
     const result = await useCase.execute({
       collectionId: collection.collectionId.getStringValue(),
@@ -245,7 +249,6 @@ describe('UpdateCollectionVisibilityUseCase', () => {
       await collectionRepository.findById(collection.collectionId)
     ).unwrap()!;
     expect(updated.isPublicCollection).toBe(true);
-    expect(updated.spaceUri).toBeUndefined();
     expect(updated.publishedRecordId!.uri).not.toContain('/space/');
     expect(collectionPublisher.getDeletedSpaces()).toContain(spaceUri);
 

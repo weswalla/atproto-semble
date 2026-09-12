@@ -1,5 +1,5 @@
 {
-  "id": "1091d0f3-4c75-4802-8ebe-860b2021dbe4",
+  "id": "b37d25d6-9c92-4dd8-8bec-899d00180f9a",
   "prevId": "004d4627-81b5-4db6-8588-042bf0e5fd9c",
   "version": "7",
   "dialect": "postgresql",
@@ -831,12 +831,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'PUBLIC'"
-        },
-        "space_uri": {
-          "name": "space_uri",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "created_at": {
           "name": "created_at",

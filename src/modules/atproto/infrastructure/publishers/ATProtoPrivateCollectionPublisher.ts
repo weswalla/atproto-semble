@@ -14,6 +14,7 @@ import { DID } from '../../domain/DID';
 import {
   ISpacesClient,
   generateSpaceKey,
+  extractSpaceUriFromRecordUri,
 } from '../../application/ISpacesClient';
 
 export interface PrivateCollectionNsids {
@@ -48,9 +49,10 @@ export class ATProtoPrivateCollectionPublisher implements ICollectionPublisher {
   }
 
   /**
-   * Publishes the collection record into its space, creating the space (and
-   * assigning it on the aggregate — callers must persist the collection) when
-   * none exists yet.
+   * Publishes the collection record into its space. The space is derived from
+   * the collection's existing space-scoped published record; when there is
+   * none yet, a new space is created. The returned record id's at-uri carries
+   * the space information.
    */
   async publish(
     collection: Collection,
@@ -60,7 +62,9 @@ export class ATProtoPrivateCollectionPublisher implements ICollectionPublisher {
       if (didResult.isErr()) return err(didResult.error);
       const authorDid = didResult.value;
 
-      let space = collection.spaceUri;
+      let space = collection.publishedRecordId
+        ? extractSpaceUriFromRecordUri(collection.publishedRecordId.uri)
+        : null;
       if (!space) {
         const created = await this.spacesClient.createSpace(
           authorDid,
@@ -69,7 +73,6 @@ export class ATProtoPrivateCollectionPublisher implements ICollectionPublisher {
         );
         if (created.isErr()) return err(created.error);
         space = created.value.uri;
-        collection.assignSpace(space);
       }
 
       const recordDTO = CollectionMapper.toCreateRecordDTO(collection);
@@ -123,16 +126,16 @@ export class ATProtoPrivateCollectionPublisher implements ICollectionPublisher {
   }
 
   async deleteCollectionSpace(
-    collection: Collection,
+    spaceRecordId: PublishedRecordId,
   ): Promise<Result<void, UseCaseError>> {
     try {
-      if (!collection.spaceUri) return ok(undefined);
-      const didResult = this.did(collection.authorId.value);
+      const space = extractSpaceUriFromRecordUri(spaceRecordId.uri);
+      if (!space) return ok(undefined);
+      // The space uri's authority segment is the owner's DID.
+      const ownerDidValue = space.replace('at://', '').split('/')[0]!;
+      const didResult = this.did(ownerDidValue);
       if (didResult.isErr()) return err(didResult.error);
-      const del = await this.spacesClient.deleteSpace(
-        didResult.value,
-        collection.spaceUri,
-      );
+      const del = await this.spacesClient.deleteSpace(didResult.value, space);
       if (del.isErr()) return err(del.error);
       return ok(undefined);
     } catch (error) {
@@ -151,9 +154,14 @@ export class ATProtoPrivateCollectionPublisher implements ICollectionPublisher {
     viaCardPublishedRecordId?: PublishedRecordIdProps,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
-      if (!collection.spaceUri) {
+      const space = collection.publishedRecordId
+        ? extractSpaceUriFromRecordUri(collection.publishedRecordId.uri)
+        : null;
+      if (!space) {
         return err(
-          new Error('Collection space must exist before adding cards'),
+          new Error(
+            'Collection must be published into its space before adding cards',
+          ),
         );
       }
       const didResult = this.did(curatorId.value);
@@ -170,7 +178,7 @@ export class ATProtoPrivateCollectionPublisher implements ICollectionPublisher {
       record.$type = this.nsids.card as any;
 
       const createResult = await this.spacesClient.createRecord({
-        space: collection.spaceUri,
+        space,
         repo: didResult.value,
         collection: this.nsids.card,
         record: record as unknown as Record<string, unknown>,
@@ -194,7 +202,8 @@ export class ATProtoPrivateCollectionPublisher implements ICollectionPublisher {
     collection: Collection,
   ): Promise<Result<void, UseCaseError>> {
     try {
-      if (!collection.spaceUri) return ok(undefined);
+      const space = extractSpaceUriFromRecordUri(recordId.uri);
+      if (!space) return ok(undefined);
       const link = collection.cardLinks.find(
         (l) => l.publishedRecordId?.uri === recordId.uri,
       );
@@ -203,7 +212,7 @@ export class ATProtoPrivateCollectionPublisher implements ICollectionPublisher {
       if (didResult.isErr()) return err(didResult.error);
       const rkey = recordId.uri.split('/').pop()!;
       const del = await this.spacesClient.deleteRecord({
-        space: collection.spaceUri,
+        space,
         repo: didResult.value,
         collection: this.nsids.card,
         rkey,
@@ -226,7 +235,11 @@ export class ATProtoPrivateCollectionPublisher implements ICollectionPublisher {
     removedRecordRef: PublishedRecordId,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
-      if (!collection.spaceUri || !collection.publishedRecordId) {
+      const collectionRecordId = collection.publishedRecordId;
+      const space = collectionRecordId
+        ? extractSpaceUriFromRecordUri(collectionRecordId.uri)
+        : null;
+      if (!collectionRecordId || !space) {
         return err(
           new Error(
             'Collection must be published in its space before removals',
@@ -238,13 +251,13 @@ export class ATProtoPrivateCollectionPublisher implements ICollectionPublisher {
 
       const record = {
         $type: this.nsids.cardRemoval,
-        collection: collection.publishedRecordId.getValue(),
+        collection: collectionRecordId.getValue(),
         removedCard: removedRecordRef.getValue(),
         removedAt: new Date().toISOString(),
       };
 
       const createResult = await this.spacesClient.createRecord({
-        space: collection.spaceUri,
+        space,
         repo: didResult.value,
         collection: this.nsids.cardRemoval,
         record,

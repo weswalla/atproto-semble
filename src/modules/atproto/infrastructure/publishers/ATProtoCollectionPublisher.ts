@@ -41,9 +41,9 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
   }
 
   deleteCollectionSpace(
-    collection: Collection,
+    spaceRecordId: PublishedRecordId,
   ): Promise<Result<void, UseCaseError>> {
-    return this.privatePublisher.deleteCollectionSpace(collection);
+    return this.privatePublisher.deleteCollectionSpace(spaceRecordId);
   }
 
   publishCardAddedToCollection(

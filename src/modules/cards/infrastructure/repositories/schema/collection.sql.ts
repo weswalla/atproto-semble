@@ -21,7 +21,6 @@ export const collections = pgTable(
     accessType: text('access_type').notNull(), // OPEN, CLOSED
     cardCount: integer('card_count').notNull().default(0),
     visibility: text('visibility').notNull().default('PUBLIC'),
-    spaceUri: text('space_uri'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
     publishedRecordId: uuid('published_record_id').references(

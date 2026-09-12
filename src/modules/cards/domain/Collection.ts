@@ -62,8 +62,7 @@ interface CollectionProps {
   cardLinks: CardLink[]; // Instead of cardIds: CardId[]
   cardCount: number;
   visibility: Visibility; // PUBLIC (repo record) or PRIVATE (collection space)
-  spaceUri?: string; // at-uri of the collection's permissioned space, when private
-  publishedRecordId?: PublishedRecordId; // Collection's own published record
+  publishedRecordId?: PublishedRecordId; // Collection's own published record; for private collections its at-uri is space-scoped and carries all space info
   createdAt: Date;
   updatedAt: Date;
 }
@@ -133,10 +132,6 @@ export class Collection extends AggregateRoot<CollectionProps> {
 
   get isPublicCollection(): boolean {
     return this.props.visibility === Visibility.PUBLIC;
-  }
-
-  get spaceUri(): string | undefined {
-    return this.props.spaceUri;
   }
 
   get isOpen(): boolean {
@@ -522,16 +517,6 @@ export class Collection extends AggregateRoot<CollectionProps> {
     this.props.visibility = visibility;
     this.props.updatedAt = new Date();
     return ok(undefined);
-  }
-
-  public assignSpace(spaceUri: string): void {
-    this.props.spaceUri = spaceUri;
-    this.props.updatedAt = new Date();
-  }
-
-  public clearSpace(): void {
-    this.props.spaceUri = undefined;
-    this.props.updatedAt = new Date();
   }
 
   public markAsPublished(publishedRecordId: PublishedRecordId): void {

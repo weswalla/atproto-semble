@@ -12,8 +12,9 @@ export interface ICollectionPublisher {
   /**
    * Publishes the collection record. For PUBLIC collections this writes to the
    * author's repo; for PRIVATE collections it writes into the collection's
-   * permissioned space (creating the space and calling collection.assignSpace()
-   * when none exists yet — callers must persist the collection afterward).
+   * permissioned space, creating the space when the collection has no
+   * space-scoped published record yet. The returned record id's at-uri carries
+   * all space information.
    */
   publish(
     collection: Collection,
@@ -22,11 +23,11 @@ export interface ICollectionPublisher {
   unpublish(recordId: PublishedRecordId): Promise<Result<void, UseCaseError>>;
 
   /**
-   * Deletes the collection's permissioned space (private collections only).
-   * No-op when the collection has no space.
+   * Deletes the permissioned space that the given space-scoped record lives
+   * in (private collections only). No-op for plain repo records.
    */
   deleteCollectionSpace(
-    collection: Collection,
+    spaceRecordId: PublishedRecordId,
   ): Promise<Result<void, UseCaseError>>;
 
   publishCardAddedToCollection(

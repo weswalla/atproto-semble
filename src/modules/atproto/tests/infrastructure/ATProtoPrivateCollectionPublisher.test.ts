@@ -9,6 +9,7 @@ import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 import { CardFactory } from 'src/modules/cards/domain/CardFactory';
 import { CardTypeEnum } from 'src/modules/cards/domain/value-objects/CardType';
 import { UrlMetadata } from 'src/modules/cards/domain/value-objects/UrlMetadata';
+import { extractSpaceUriFromRecordUri } from '../../application/ISpacesClient';
 
 const NSIDS = {
   collection: 'network.cosmik.collection',
@@ -53,12 +54,14 @@ describe('ATProtoPrivateCollectionPublisher', () => {
     return card;
   }
 
-  it('publish creates a space, assigns it, and writes the collection record at rkey=self', async () => {
+  it('publish creates a space and writes the collection record at rkey=self', async () => {
     const collection = makePrivateCollection();
     const result = await publisher.publish(collection);
     expect(result.isOk()).toBe(true);
-    expect(collection.spaceUri).toBeDefined();
-    const records = spaces.getRecords(collection.spaceUri!);
+    // The record uri carries the space info; the aggregate stays space-free.
+    const spaceUri = extractSpaceUriFromRecordUri(result.unwrap().uri)!;
+    expect(spaceUri).toBeDefined();
+    const records = spaces.getRecords(spaceUri);
     expect(records).toHaveLength(1);
     expect(records[0]!.collection).toBe(NSIDS.collection);
     expect(records[0]!.rkey).toBe('self');
@@ -66,16 +69,19 @@ describe('ATProtoPrivateCollectionPublisher', () => {
 
   it('republish reuses the existing space and updates rkey=self in place', async () => {
     const collection = makePrivateCollection();
-    (await publisher.publish(collection)).unwrap();
-    const spaceUri = collection.spaceUri!;
-    (await publisher.publish(collection)).unwrap();
-    expect(collection.spaceUri).toBe(spaceUri);
+    const first = (await publisher.publish(collection)).unwrap();
+    collection.markAsPublished(first);
+    const spaceUri = extractSpaceUriFromRecordUri(first.uri)!;
+    const second = (await publisher.publish(collection)).unwrap();
+    expect(extractSpaceUriFromRecordUri(second.uri)).toBe(spaceUri);
     expect(spaces.getRecords(spaceUri)).toHaveLength(1);
   });
 
   it('publishCardAddedToCollection writes a card record into the space', async () => {
     const collection = makePrivateCollection();
-    (await publisher.publish(collection)).unwrap();
+    const collectionRecord = (await publisher.publish(collection)).unwrap();
+    collection.markAsPublished(collectionRecord);
+    const spaceUri = extractSpaceUriFromRecordUri(collectionRecord.uri)!;
     const card = makePrivateCard();
     collection.addCard(card.cardId, author).unwrap();
 
@@ -86,14 +92,16 @@ describe('ATProtoPrivateCollectionPublisher', () => {
     );
     expect(linkResult.isOk()).toBe(true);
     const cardRecords = spaces
-      .getRecords(collection.spaceUri!)
+      .getRecords(spaceUri)
       .filter((r) => r.collection === NSIDS.card);
     expect(cardRecords).toHaveLength(1);
   });
 
   it('unpublishCardAddedToCollection deletes the card record from the space', async () => {
     const collection = makePrivateCollection();
-    (await publisher.publish(collection)).unwrap();
+    const collectionRecord = (await publisher.publish(collection)).unwrap();
+    collection.markAsPublished(collectionRecord);
+    const spaceUri = extractSpaceUriFromRecordUri(collectionRecord.uri)!;
     const card = makePrivateCard();
     collection.addCard(card.cardId, author).unwrap();
     const linkRecord = (
@@ -105,7 +113,7 @@ describe('ATProtoPrivateCollectionPublisher', () => {
       await publisher.unpublishCardAddedToCollection(linkRecord, collection)
     ).unwrap();
     const cardRecords = spaces
-      .getRecords(collection.spaceUri!)
+      .getRecords(spaceUri)
       .filter((r) => r.collection === NSIDS.card);
     expect(cardRecords).toHaveLength(0);
   });
@@ -114,6 +122,7 @@ describe('ATProtoPrivateCollectionPublisher', () => {
     const collection = makePrivateCollection();
     const collectionRecord = (await publisher.publish(collection)).unwrap();
     collection.markAsPublished(collectionRecord);
+    const spaceUri = extractSpaceUriFromRecordUri(collectionRecord.uri)!;
     const card = makePrivateCard();
     collection.addCard(card.cardId, author).unwrap();
     const linkRecord = (
@@ -128,7 +137,7 @@ describe('ATProtoPrivateCollectionPublisher', () => {
     );
     expect(removal.isOk()).toBe(true);
     const removalRecords = spaces
-      .getRecords(collection.spaceUri!)
+      .getRecords(spaceUri)
       .filter((r) => r.collection === NSIDS.cardRemoval);
     expect(removalRecords).toHaveLength(1);
     expect(removalRecords[0]!.record.removedCard).toEqual(
@@ -136,11 +145,11 @@ describe('ATProtoPrivateCollectionPublisher', () => {
     );
   });
 
-  it('deleteCollectionSpace deletes the space', async () => {
+  it('deleteCollectionSpace deletes the space named by the record uri', async () => {
     const collection = makePrivateCollection();
-    (await publisher.publish(collection)).unwrap();
-    const spaceUri = collection.spaceUri!;
-    (await publisher.deleteCollectionSpace(collection)).unwrap();
+    const collectionRecord = (await publisher.publish(collection)).unwrap();
+    const spaceUri = extractSpaceUriFromRecordUri(collectionRecord.uri)!;
+    (await publisher.deleteCollectionSpace(collectionRecord)).unwrap();
     expect(spaces.getDeletedSpaces()).toContain(spaceUri);
   });
 });

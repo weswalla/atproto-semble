@@ -18,7 +18,6 @@ export interface CollectionDTO extends PublishedRecordRefDTO {
   accessType: string;
   cardCount: number;
   visibility?: string;
-  spaceUri?: string | null;
   createdAt: Date;
   updatedAt: Date;
   collaborators?: string[];
@@ -121,7 +120,6 @@ export class CollectionMapper {
           visibility: dto.visibility
             ? (dto.visibility as Visibility)
             : Visibility.PUBLIC,
-          spaceUri: dto.spaceUri ?? undefined,
           publishedRecordId,
           createdAt: dto.createdAt,
           updatedAt: dto.updatedAt,
@@ -150,7 +148,6 @@ export class CollectionMapper {
       updatedAt: Date;
       cardCount: number;
       visibility: string;
-      spaceUri?: string;
       publishedRecordId?: string;
     };
     collaborators: {
@@ -226,7 +223,6 @@ export class CollectionMapper {
         accessType: collection.accessType,
         cardCount: collection.cardCount,
         visibility: collection.visibility,
-        spaceUri: collection.spaceUri,
         createdAt: collection.createdAt,
         updatedAt: collection.updatedAt,
         publishedRecordId,

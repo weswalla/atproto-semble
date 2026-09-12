@@ -380,7 +380,7 @@ export class ATProtoPublicCollectionPublisher implements ICollectionPublisher {
    * Public collections have no permissioned space; nothing to delete.
    */
   async deleteCollectionSpace(
-    _collection: Collection,
+    _spaceRecordId: PublishedRecordId,
   ): Promise<Result<void, UseCaseError>> {
     return ok(undefined);
   }

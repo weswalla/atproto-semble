@@ -26,12 +26,11 @@ function makeCollection(
 }
 
 describe('Collection visibility', () => {
-  it('defaults to PUBLIC with no spaceUri', () => {
+  it('defaults to PUBLIC', () => {
     const c = makeCollection().unwrap();
     expect(c.visibility).toBe(Visibility.PUBLIC);
     expect(c.isPublicCollection).toBe(true);
     expect(c.isPrivateCollection).toBe(false);
-    expect(c.spaceUri).toBeUndefined();
   });
 
   it('rejects PRIVATE + OPEN at creation', () => {
@@ -64,17 +63,5 @@ describe('Collection visibility', () => {
     expect(c.changeVisibility(Visibility.PRIVATE, other).isErr()).toBe(true);
     expect(c.changeVisibility(Visibility.PRIVATE, author).isOk()).toBe(true);
     expect(c.isPrivateCollection).toBe(true);
-  });
-
-  it('assignSpace / clearSpace manage spaceUri', () => {
-    const c = makeCollection({ visibility: Visibility.PRIVATE }).unwrap();
-    c.assignSpace(
-      'at://did:plc:author/space/network.cosmik.collectionSpace/3abc',
-    );
-    expect(c.spaceUri).toBe(
-      'at://did:plc:author/space/network.cosmik.collectionSpace/3abc',
-    );
-    c.clearSpace();
-    expect(c.spaceUri).toBeUndefined();
   });
 });

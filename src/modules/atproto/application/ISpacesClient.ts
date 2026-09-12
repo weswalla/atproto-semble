@@ -56,6 +56,20 @@ export function buildSpaceUri(
   return `at://${ownerDid}/space/${type}/${skey}`;
 }
 
+/**
+ * Extracts the space at-uri from a space-scoped record at-uri.
+ * Record uris inside a space are shaped
+ * at://{did}/space/{type}/{skey}/{collectionNsid}/{rkey}; the space uri is the
+ * at://{did}/space/{type}/{skey} prefix. Returns null for plain repo uris.
+ */
+export function extractSpaceUriFromRecordUri(uri: string): string | null {
+  if (!uri.startsWith('at://')) return null;
+  const segments = uri.slice('at://'.length).split('/');
+  // [did, 'space', type, skey, ...record path]
+  if (segments.length < 4 || segments[1] !== 'space') return null;
+  return `at://${segments.slice(0, 4).join('/')}`;
+}
+
 /** 13-char sortable key for collection space skeys (TID-shaped). */
 export function generateSpaceKey(): string {
   const chars = '234567abcdefghijklmnopqrstuvwxyz';

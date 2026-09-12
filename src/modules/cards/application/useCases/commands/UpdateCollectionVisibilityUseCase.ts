@@ -180,7 +180,8 @@ export class UpdateCollectionVisibilityUseCase extends BaseUseCase<
     }
     collection.markAsUnpublished();
 
-    // Publish into a new space (assigns spaceUri on the aggregate).
+    // Publish into a new space; the returned record id's at-uri carries the
+    // space information.
     const publishResult = await this.collectionPublisher.publish(collection);
     if (publishResult.isErr()) {
       if (publishResult.error instanceof AuthenticationError) {
@@ -270,7 +271,9 @@ export class UpdateCollectionVisibilityUseCase extends BaseUseCase<
       );
     }
 
-    const spaceUriBefore = collection.spaceUri;
+    // The space-scoped record id is the only handle on the space; capture it
+    // before the public republish replaces it.
+    const spaceRecordIdBefore = collection.publishedRecordId;
 
     const changeResult = collection.changeVisibility(
       Visibility.PUBLIC,
@@ -318,10 +321,13 @@ export class UpdateCollectionVisibilityUseCase extends BaseUseCase<
       collection.markCardLinkAsPublished(link.cardId, linkResult.value);
     }
 
-    // Tear down the space last (needs collection.spaceUri, so before clearSpace).
-    if (spaceUriBefore) {
+    // Tear down the space last (publish-before-delete). The old space-scoped
+    // record id carries the space uri.
+    if (spaceRecordIdBefore) {
       const deleteResult =
-        await this.collectionPublisher.deleteCollectionSpace(collection);
+        await this.collectionPublisher.deleteCollectionSpace(
+          spaceRecordIdBefore,
+        );
       if (deleteResult.isErr()) {
         if (deleteResult.error instanceof AuthenticationError) {
           return err(deleteResult.error);
@@ -333,7 +339,6 @@ export class UpdateCollectionVisibilityUseCase extends BaseUseCase<
         );
       }
     }
-    collection.clearSpace();
 
     return this.persist(collection, request);
   }
@@ -342,13 +347,12 @@ export class UpdateCollectionVisibilityUseCase extends BaseUseCase<
     collection: Collection,
     request: UpdateCollectionVisibilityDTO,
   ): Promise<UseCaseResult> {
-    // Metadata (visibility, spaceUri, publishedRecordId) via updateMetadata;
-    // link publishedRecordId changes ride the aggregate's pending commands.
+    // Metadata (visibility, publishedRecordId) via updateMetadata; link
+    // publishedRecordId changes ride the aggregate's pending commands.
     const metadataResult = await this.collectionRepository.updateMetadata(
       collection.collectionId,
       {
         visibility: collection.visibility,
-        spaceUri: collection.spaceUri ?? null,
         publishedRecordId: collection.publishedRecordId,
       },
     );

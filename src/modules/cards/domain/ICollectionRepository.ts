@@ -37,7 +37,6 @@ export interface ICollectionRepository {
       accessType?: CollectionAccessType;
       publishedRecordId?: PublishedRecordId;
       visibility?: Visibility;
-      spaceUri?: string | null; // null clears the stored space uri
     },
   ): Promise<Result<void>>;
 

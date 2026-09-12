@@ -33,7 +33,6 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
         cardLinks: collection.cardLinks,
         cardCount: collection.cardCount,
         visibility: collection.visibility,
-        spaceUri: collection.spaceUri,
         publishedRecordId: collection.publishedRecordId,
         createdAt: collection.createdAt,
         updatedAt: collection.updatedAt,
@@ -180,7 +179,6 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
       accessType?: string;
       publishedRecordId?: PublishedRecordId;
       visibility?: Visibility;
-      spaceUri?: string | null;
     },
   ): Promise<Result<void>> {
     try {
@@ -220,14 +218,6 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
         }
       }
 
-      // Handle spaceUri update if provided (null clears it)
-      if ('spaceUri' in updates) {
-        if (updates.spaceUri) {
-          collection.assignSpace(updates.spaceUri);
-        } else {
-          collection.clearSpace();
-        }
-      }
 
       // Note: accessType updates would require domain methods
       // For testing purposes, this simplified implementation is sufficient

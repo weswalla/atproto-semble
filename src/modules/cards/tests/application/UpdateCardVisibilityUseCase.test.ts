@@ -213,9 +213,10 @@ describe('UpdateCardVisibilityUseCase', () => {
       .withName('Private Collection')
       .withAccessType('CLOSED')
       .withVisibility(Visibility.PRIVATE)
-      .withSpaceUri(
-        'at://did:plc:testcurator/space/network.cosmik.collectionSpace/3abc',
-      )
+      .withPublishedRecordId({
+        uri: 'at://did:plc:testcurator/space/network.cosmik.collectionSpace/3abc/network.cosmik.collection/self',
+        cid: 'fake-space-collection-cid',
+      })
       .build();
     if (privateCollection instanceof Error) throw privateCollection;
     await collectionRepository.save(privateCollection);

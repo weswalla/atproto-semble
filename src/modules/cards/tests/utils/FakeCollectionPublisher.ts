@@ -59,18 +59,23 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     // Use the collection's author DID directly
     const fakeDid = collection.authorId.value;
 
-    // Private collections live in a permissioned space: ensure a space is
-    // assigned and publish the collection record at rkey=self inside it.
+    // Private collections live in a permissioned space: publish the
+    // collection record at rkey=self inside it. The space is derived from the
+    // existing space-scoped published record, or minted deterministically for
+    // a first publish; the returned record uri carries the space info.
     let fakeCollectionUri: string;
     let fakeCollectionCid: string;
     if (collection.isPrivateCollection) {
-      if (!collection.spaceUri) {
-        collection.assignSpace(
-          `at://${fakeDid}/space/network.cosmik.collectionSpace/fake-skey-${collectionId}`,
-        );
-        this.createdSpaces.push(collection.spaceUri!);
+      const existingSpace = collection.publishedRecordId
+        ? this.extractSpaceUri(collection.publishedRecordId.uri)
+        : null;
+      const space =
+        existingSpace ??
+        `at://${fakeDid}/space/network.cosmik.collectionSpace/fake-skey-${collectionId}`;
+      if (!existingSpace) {
+        this.createdSpaces.push(space);
       }
-      fakeCollectionUri = `${collection.spaceUri}/${this.collectionType}/self`;
+      fakeCollectionUri = `${space}/${this.collectionType}/self`;
       fakeCollectionCid = `fake-space-collection-cid-${collectionId}-${++this.cidCounter}`;
     } else {
       fakeCollectionUri = `at://${fakeDid}/${this.collectionType}/${collectionId}`;
@@ -109,9 +114,14 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     const cardId = card.cardId.getStringValue();
 
     // Public collections get a collectionLink record in the curator's repo;
-    // private collections get a card record inside the collection space.
-    const fakeLinkUri = collection.isPrivateCollection
-      ? `${collection.spaceUri}/${this.cardType}/${collectionId}-${cardId}`
+    // private collections get a card record inside the collection space
+    // (derived from the collection's space-scoped published record).
+    const spaceUri =
+      collection.isPrivateCollection && collection.publishedRecordId
+        ? this.extractSpaceUri(collection.publishedRecordId.uri)
+        : null;
+    const fakeLinkUri = spaceUri
+      ? `${spaceUri}/${this.cardType}/${collectionId}-${cardId}`
       : `at://${curatorId.value}/${this.cardCollectionLinkType}/${collectionId}-${cardId}`;
     const fakeLinkCid = `fake-link-cid-${collectionId}-${cardId}-${++this.cidCounter}`;
 
@@ -265,7 +275,7 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
   }
 
   async deleteCollectionSpace(
-    collection: Collection,
+    spaceRecordId: PublishedRecordId,
   ): Promise<Result<void, UseCaseError>> {
     if (this.shouldFailUnpublish) {
       return err(
@@ -274,10 +284,19 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
         ),
       );
     }
-    if (collection.spaceUri) {
-      this.deletedSpaces.push(collection.spaceUri);
+    const space = this.extractSpaceUri(spaceRecordId.uri);
+    if (space) {
+      this.deletedSpaces.push(space);
     }
     return ok(undefined);
+  }
+
+  /** at://{did}/space/{type}/{skey}/... -> at://{did}/space/{type}/{skey} */
+  private extractSpaceUri(uri: string): string | null {
+    if (!uri.startsWith('at://')) return null;
+    const segments = uri.slice('at://'.length).split('/');
+    if (segments.length < 4 || segments[1] !== 'space') return null;
+    return `at://${segments.slice(0, 4).join('/')}`;
   }
 
   setShouldFail(shouldFail: boolean): void {

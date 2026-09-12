@@ -74,6 +74,7 @@ export class DrizzleCardRepository implements ICardRepository {
             }
           : undefined,
         libraryCount: result.libraryCount ?? 0,
+        visibility: result.visibility ?? undefined,
         libraryMemberships: membershipResults.map((membership) => ({
           userId: membership.userId,
           addedAt: membership.addedAt,
@@ -211,6 +212,7 @@ export class DrizzleCardRepository implements ICardRepository {
               viaCardId: cardData.viaCardId,
               publishedRecordId: publishedRecordId,
               libraryCount: cardData.libraryCount,
+              visibility: cardData.visibility,
               updatedAt: cardData.updatedAt,
             },
           });
@@ -381,6 +383,7 @@ export class DrizzleCardRepository implements ICardRepository {
             }
           : undefined,
         libraryCount: result.libraryCount ?? 0,
+        visibility: result.visibility ?? undefined,
         libraryMemberships: membershipResults.map((membership) => ({
           userId: membership.userId,
           addedAt: membership.addedAt,
@@ -475,6 +478,7 @@ export class DrizzleCardRepository implements ICardRepository {
             }
           : undefined,
         libraryCount: result.libraryCount ?? 0,
+        visibility: result.visibility ?? undefined,
         libraryMemberships: membershipResults.map((membership) => ({
           userId: membership.userId,
           addedAt: membership.addedAt,

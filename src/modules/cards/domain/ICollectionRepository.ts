@@ -4,6 +4,7 @@ import { CollectionId } from './value-objects/CollectionId';
 import { CardId } from './value-objects/CardId';
 import { CuratorId } from './value-objects/CuratorId';
 import { PublishedRecordId } from './value-objects/PublishedRecordId';
+import { Visibility } from './value-objects/Visibility';
 
 export interface ICollectionRepository {
   findById(id: CollectionId): Promise<Result<Collection | null>>;
@@ -35,6 +36,8 @@ export interface ICollectionRepository {
       description?: string;
       accessType?: CollectionAccessType;
       publishedRecordId?: PublishedRecordId;
+      visibility?: Visibility;
+      spaceUri?: string | null; // null clears the stored space uri
     },
   ): Promise<Result<void>>;
 

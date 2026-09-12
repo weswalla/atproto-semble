@@ -5,6 +5,7 @@ import { CollectionId } from '../../domain/value-objects/CollectionId';
 import { CardId } from '../../domain/value-objects/CardId';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
+import { Visibility } from '../../domain/value-objects/Visibility';
 
 export class InMemoryCollectionRepository implements ICollectionRepository {
   private static instance: InMemoryCollectionRepository;
@@ -31,6 +32,8 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
         collaboratorIds: collection.collaboratorIds,
         cardLinks: collection.cardLinks,
         cardCount: collection.cardCount,
+        visibility: collection.visibility,
+        spaceUri: collection.spaceUri,
         publishedRecordId: collection.publishedRecordId,
         createdAt: collection.createdAt,
         updatedAt: collection.updatedAt,
@@ -176,6 +179,8 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
       description?: string;
       accessType?: string;
       publishedRecordId?: PublishedRecordId;
+      visibility?: Visibility;
+      spaceUri?: string | null;
     },
   ): Promise<Result<void>> {
     try {
@@ -201,6 +206,27 @@ export class InMemoryCollectionRepository implements ICollectionRepository {
       // Handle publishedRecordId update if provided
       if (updates.publishedRecordId !== undefined) {
         collection.markAsPublished(updates.publishedRecordId);
+      }
+
+      // Handle visibility update if provided (bypass author check: this is
+      // persistence of already-validated state, mirroring the SQL repo)
+      if (updates.visibility !== undefined) {
+        const visibilityResult = collection.changeVisibility(
+          updates.visibility,
+          collection.authorId,
+        );
+        if (visibilityResult.isErr()) {
+          return err(visibilityResult.error);
+        }
+      }
+
+      // Handle spaceUri update if provided (null clears it)
+      if ('spaceUri' in updates) {
+        if (updates.spaceUri) {
+          collection.assignSpace(updates.spaceUri);
+        } else {
+          collection.clearSpace();
+        }
       }
 
       // Note: accessType updates would require domain methods

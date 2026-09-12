@@ -33,6 +33,7 @@ export class InMemoryCardRepository implements ICardRepository {
         publishedRecordId: card.publishedRecordId,
         libraryMemberships: card.libraryMemberships,
         libraryCount: card.libraryCount,
+        visibility: card.visibility,
         createdAt: card.createdAt,
         updatedAt: card.updatedAt,
       },

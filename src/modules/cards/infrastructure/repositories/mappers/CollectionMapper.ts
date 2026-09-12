@@ -4,6 +4,7 @@ import { CollectionId } from '../../../domain/value-objects/CollectionId';
 import { CardId } from '../../../domain/value-objects/CardId';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
+import { Visibility } from '../../../domain/value-objects/Visibility';
 import { PublishedRecordDTO, PublishedRecordRefDTO } from './DTOTypes';
 import { CollectionQueryResultDTO } from '../../../domain/ICollectionQueryRepository';
 import { err, ok, Result } from '../../../../../shared/core/Result';
@@ -16,6 +17,8 @@ export interface CollectionDTO extends PublishedRecordRefDTO {
   description?: string;
   accessType: string;
   cardCount: number;
+  visibility?: string;
+  spaceUri?: string | null;
   createdAt: Date;
   updatedAt: Date;
   collaborators?: string[];
@@ -115,6 +118,10 @@ export class CollectionMapper {
           collaboratorIds,
           cardLinks,
           cardCount: dto.cardCount,
+          visibility: dto.visibility
+            ? (dto.visibility as Visibility)
+            : Visibility.PUBLIC,
+          spaceUri: dto.spaceUri ?? undefined,
           publishedRecordId,
           createdAt: dto.createdAt,
           updatedAt: dto.updatedAt,
@@ -142,6 +149,8 @@ export class CollectionMapper {
       createdAt: Date;
       updatedAt: Date;
       cardCount: number;
+      visibility: string;
+      spaceUri?: string;
       publishedRecordId?: string;
     };
     collaborators: {
@@ -216,6 +225,8 @@ export class CollectionMapper {
         description: collection.description?.value,
         accessType: collection.accessType,
         cardCount: collection.cardCount,
+        visibility: collection.visibility,
+        spaceUri: collection.spaceUri,
         createdAt: collection.createdAt,
         updatedAt: collection.updatedAt,
         publishedRecordId,

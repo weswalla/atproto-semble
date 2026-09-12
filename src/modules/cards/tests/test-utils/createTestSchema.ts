@@ -36,6 +36,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       via_card_id UUID REFERENCES cards(id),
       published_record_id UUID REFERENCES published_records(id),
       library_count INTEGER NOT NULL DEFAULT 0,
+      visibility TEXT NOT NULL DEFAULT 'PUBLIC',
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
     )`,
@@ -57,6 +58,8 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       description TEXT,
       access_type TEXT NOT NULL,
       card_count INTEGER NOT NULL DEFAULT 0,
+      visibility TEXT NOT NULL DEFAULT 'PUBLIC',
+      space_uri TEXT,
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       published_record_id UUID REFERENCES published_records(id)

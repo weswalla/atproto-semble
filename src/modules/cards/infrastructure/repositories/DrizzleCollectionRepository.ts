@@ -86,6 +86,8 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
         description: result.collection.description || undefined,
         accessType: result.collection.accessType,
         cardCount: result.collection.cardCount,
+        visibility: result.collection.visibility ?? undefined,
+        spaceUri: result.collection.spaceUri ?? undefined,
         createdAt: result.collection.createdAt,
         updatedAt: result.collection.updatedAt,
         publishedRecordId: result.publishedRecord?.id || null,
@@ -200,6 +202,8 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
           description: result.collection.description || undefined,
           accessType: result.collection.accessType,
           cardCount: result.collection.cardCount,
+          visibility: result.collection.visibility ?? undefined,
+          spaceUri: result.collection.spaceUri ?? undefined,
           createdAt: result.collection.createdAt,
           updatedAt: result.collection.updatedAt,
           publishedRecordId: result.publishedRecord?.id || null,
@@ -401,6 +405,8 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
               description: collectionData.description,
               accessType: collectionData.accessType,
               cardCount: collectionData.cardCount,
+              visibility: collectionData.visibility,
+              spaceUri: collectionData.spaceUri ?? null,
               updatedAt: collectionData.updatedAt,
               publishedRecordId: publishedRecordId,
             },
@@ -644,6 +650,8 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
       description?: string;
       accessType?: string;
       publishedRecordId?: PublishedRecordId;
+      visibility?: string;
+      spaceUri?: string | null;
     },
   ): Promise<Result<void>> {
     try {
@@ -663,6 +671,12 @@ export class DrizzleCollectionRepository implements ICollectionRepository {
         }
         if ('accessType' in updates) {
           updateData.accessType = updates.accessType;
+        }
+        if ('visibility' in updates && updates.visibility !== undefined) {
+          updateData.visibility = updates.visibility;
+        }
+        if ('spaceUri' in updates) {
+          updateData.spaceUri = updates.spaceUri; // null clears the column
         }
 
         // Handle published record if provided

@@ -7,6 +7,7 @@ import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { URL } from '../../../domain/value-objects/URL';
 import { UrlMetadata } from '../../../domain/value-objects/UrlMetadata';
+import { Visibility } from '../../../domain/value-objects/Visibility';
 import {
   toUrlMetadataJSON,
   toUrlMetadataProps,
@@ -56,6 +57,7 @@ export interface CardPersistenceData {
     parentCardId?: string;
     viaCardId?: string;
     libraryCount: number;
+    visibility: string;
     createdAt: Date;
     updatedAt: Date;
   };
@@ -120,6 +122,7 @@ export interface CardDTO {
     cid: string;
   };
   libraryCount: number;
+  visibility?: string;
   libraryMemberships: Array<{
     userId: string;
     addedAt: Date;
@@ -216,6 +219,9 @@ export class CardMapper {
           publishedRecordId,
           libraryMemberships,
           libraryCount: dto.libraryCount,
+          visibility: dto.visibility
+            ? (dto.visibility as Visibility)
+            : Visibility.PUBLIC,
           createdAt: dto.createdAt,
           updatedAt: dto.updatedAt,
         },
@@ -343,6 +349,7 @@ export class CardMapper {
         parentCardId: card.parentCardId?.getStringValue(),
         viaCardId: card.viaCardId?.getStringValue(),
         libraryCount: card.libraryCount,
+        visibility: card.visibility,
         createdAt: card.createdAt,
         updatedAt: card.updatedAt,
       },

@@ -26,6 +26,7 @@ export const cards: PgTableWithColumns<any> = pgTable(
       () => publishedRecords.id,
     ),
     libraryCount: integer('library_count').notNull().default(0),
+    visibility: text('visibility').notNull().default('PUBLIC'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },

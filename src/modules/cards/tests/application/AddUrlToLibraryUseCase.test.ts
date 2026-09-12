@@ -9,6 +9,7 @@ import { CardCollectionService } from '../../domain/services/CardCollectionServi
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
+import { CardId } from '../../domain/value-objects/CardId';
 import { FakeEventPublisher } from '../utils/FakeEventPublisher';
 import { CardAddedToLibraryEvent } from '../../domain/events/CardAddedToLibraryEvent';
 import { CardAddedToCollectionEvent } from '../../domain/events/CardAddedToCollectionEvent';
@@ -864,6 +865,110 @@ describe('AddUrlToLibraryUseCase', () => {
         EventNames.CARD_ADDED_TO_COLLECTION,
       );
       expect(collectionEvents).toHaveLength(0);
+    });
+  });
+
+  describe('Private cards', () => {
+    it('creates a PRIVATE url card and note card when isPrivate is true', async () => {
+      const result = await useCase.execute({
+        url: 'https://private.example.com/article',
+        note: 'secret note',
+        curatorId: curatorId.value,
+        isPrivate: true,
+      });
+
+      expect(result.isOk()).toBe(true);
+      const { urlCardId, noteCardId } = result.unwrap();
+
+      const urlCard = (
+        await cardRepository.findById(
+          CardId.createFromString(urlCardId).unwrap(),
+        )
+      ).unwrap()!;
+      expect(urlCard.isPrivate).toBe(true);
+
+      const noteCard = (
+        await cardRepository.findById(
+          CardId.createFromString(noteCardId!).unwrap(),
+        )
+      ).unwrap()!;
+      expect(noteCard.isPrivate).toBe(true);
+
+      // Published to the library space, not the public repo
+      const membership = urlCard.getLibraryInfo(curatorId)!;
+      expect(membership.publishedRecordId).toBeDefined();
+      expect(
+        cardPublisher.getPublishTarget(
+          membership.publishedRecordId!.uri,
+          membership.publishedRecordId!.cid,
+        ),
+      ).toBe('librarySpace');
+    });
+
+    it('publishes public saves to the repo, not the library space', async () => {
+      const result = await useCase.execute({
+        url: 'https://public.example.com/article',
+        curatorId: curatorId.value,
+      });
+      expect(result.isOk()).toBe(true);
+      const urlCard = (
+        await cardRepository.findById(
+          CardId.createFromString(result.unwrap().urlCardId).unwrap(),
+        )
+      ).unwrap()!;
+      const membership = urlCard.getLibraryInfo(curatorId)!;
+      expect(
+        cardPublisher.getPublishTarget(
+          membership.publishedRecordId!.uri,
+          membership.publishedRecordId!.cid,
+        ),
+      ).toBe('repo');
+    });
+
+    it('rejects saving a private card into a public collection', async () => {
+      const publicCollection = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Public Collection')
+        .withAccessType('CLOSED')
+        .build();
+      if (publicCollection instanceof Error) {
+        throw publicCollection;
+      }
+      await collectionRepository.save(publicCollection);
+
+      const result = await useCase.execute({
+        url: 'https://private2.example.com/article',
+        curatorId: curatorId.value,
+        isPrivate: true,
+        collectionIds: [publicCollection.collectionId.getStringValue()],
+      });
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain(
+          'Cannot add a private card to a public collection',
+        );
+      }
+    });
+
+    it('does not change visibility of an existing card when re-saving with isPrivate', async () => {
+      const url = 'https://exists.example.com/article';
+      await useCase.execute({ url, curatorId: curatorId.value });
+
+      const result = await useCase.execute({
+        url,
+        curatorId: curatorId.value,
+        isPrivate: true,
+      });
+      expect(result.isOk()).toBe(true);
+
+      const card = (
+        await cardRepository.findById(
+          CardId.createFromString(result.unwrap().urlCardId).unwrap(),
+        )
+      ).unwrap()!;
+      // Existing card keeps its visibility; use UpdateCardVisibility to change it.
+      expect(card.isPublic).toBe(true);
     });
   });
 });

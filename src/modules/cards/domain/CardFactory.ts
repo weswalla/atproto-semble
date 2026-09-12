@@ -6,6 +6,7 @@ import { CardId } from './value-objects/CardId';
 import { CuratorId } from './value-objects/CuratorId';
 import { URL } from './value-objects/URL';
 import { UrlMetadata } from './value-objects/UrlMetadata';
+import { Visibility } from './value-objects/Visibility';
 
 // Define interfaces for the different card creation inputs
 export interface IUrlCardInput {
@@ -29,6 +30,7 @@ interface CreateCardProps {
   curatorId: string;
   cardInput: CardCreationInput;
   createdAt?: Date;
+  visibility?: Visibility;
 }
 
 export class CardFactory {
@@ -124,6 +126,7 @@ export class CardFactory {
         url,
         parentCardId,
         viaCardId,
+        visibility: props.visibility,
         createdAt: props.createdAt,
         updatedAt: props.createdAt,
       });

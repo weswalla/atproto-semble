@@ -11,6 +11,7 @@ import { CardAddedToLibraryEvent } from './events/CardAddedToLibraryEvent';
 import { CardRemovedFromLibraryEvent } from './events/CardRemovedFromLibraryEvent';
 import { UrlCardMetadataUpdatedEvent } from './events/UrlCardMetadataUpdatedEvent';
 import { UrlMetadata } from './value-objects/UrlMetadata';
+import { Visibility } from './value-objects/Visibility';
 
 export const CARD_ERROR_MESSAGES = {
   CARD_TYPE_CONTENT_MISMATCH: 'Card type must match content type',
@@ -49,6 +50,7 @@ interface CardProps {
   viaCardId?: CardId; // For cards that were discovered via another card
   libraryMemberships: CardInLibraryLink[]; // Set of users who have this card in their library
   libraryCount: number; // Cached count of library memberships
+  visibility: Visibility; // PUBLIC (repo record) or PRIVATE (library-space record)
   publishedRecordId?: PublishedRecordId; // The first published record ID for this card
   createdAt: Date;
   updatedAt: Date;
@@ -107,6 +109,18 @@ export class Card extends AggregateRoot<CardProps> {
     return this.props.publishedRecordId;
   }
 
+  get visibility(): Visibility {
+    return this.props.visibility;
+  }
+
+  get isPrivate(): boolean {
+    return this.props.visibility === Visibility.PRIVATE;
+  }
+
+  get isPublic(): boolean {
+    return this.props.visibility === Visibility.PUBLIC;
+  }
+
   // Type-specific convenience getters
   get isUrlCard(): boolean {
     return this.props.type.value === CardTypeEnum.URL;
@@ -123,10 +137,15 @@ export class Card extends AggregateRoot<CardProps> {
   public static create(
     props: Omit<
       CardProps,
-      'createdAt' | 'updatedAt' | 'libraryMemberships' | 'libraryCount'
+      | 'createdAt'
+      | 'updatedAt'
+      | 'libraryMemberships'
+      | 'libraryCount'
+      | 'visibility'
     > & {
       libraryMemberships?: CardInLibraryLink[];
       libraryCount?: number;
+      visibility?: Visibility;
       createdAt?: Date;
       updatedAt?: Date;
     },
@@ -151,6 +170,7 @@ export class Card extends AggregateRoot<CardProps> {
       ...props,
       libraryMemberships,
       libraryCount: props.libraryCount ?? libraryMemberships.length,
+      visibility: props.visibility ?? Visibility.PUBLIC,
       createdAt: props.createdAt || now,
       updatedAt: props.updatedAt || now,
     };
@@ -162,10 +182,15 @@ export class Card extends AggregateRoot<CardProps> {
   private static validateCardRelationships(
     props: Omit<
       CardProps,
-      'createdAt' | 'updatedAt' | 'libraryMemberships' | 'libraryCount'
+      | 'createdAt'
+      | 'updatedAt'
+      | 'libraryMemberships'
+      | 'libraryCount'
+      | 'visibility'
     > & {
       libraryMemberships?: CardInLibraryLink[];
       libraryCount?: number;
+      visibility?: Visibility;
     },
   ): Result<void, CardValidationError> {
     // URL cards should not have parent cards
@@ -362,6 +387,17 @@ export class Card extends AggregateRoot<CardProps> {
         link.curatorId.equals(userId),
       ) !== undefined
     );
+  }
+
+  public changeVisibility(
+    visibility: Visibility,
+  ): Result<void, CardValidationError> {
+    if (this.props.visibility === visibility) {
+      return ok(undefined);
+    }
+    this.props.visibility = visibility;
+    this.props.updatedAt = new Date();
+    return ok(undefined);
   }
 
   public markAsPublished(publishedRecordId: PublishedRecordId): void {

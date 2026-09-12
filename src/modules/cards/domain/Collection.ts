@@ -10,6 +10,7 @@ import { PublishedRecordId } from './value-objects/PublishedRecordId';
 import { CardAddedToCollectionEvent } from './events/CardAddedToCollectionEvent';
 import { CardRemovedFromCollectionEvent } from './events/CardRemovedFromCollectionEvent';
 import { CollectionCreatedEvent } from './events/CollectionCreatedEvent';
+import { Visibility } from './value-objects/Visibility';
 
 export interface CardLink {
   cardId: CardId;
@@ -60,6 +61,8 @@ interface CollectionProps {
   collaboratorIds: CuratorId[];
   cardLinks: CardLink[]; // Instead of cardIds: CardId[]
   cardCount: number;
+  visibility: Visibility; // PUBLIC (repo record) or PRIVATE (collection space)
+  spaceUri?: string; // at-uri of the collection's permissioned space, when private
   publishedRecordId?: PublishedRecordId; // Collection's own published record
   createdAt: Date;
   updatedAt: Date;
@@ -120,6 +123,22 @@ export class Collection extends AggregateRoot<CollectionProps> {
     return this.props.updatedAt;
   }
 
+  get visibility(): Visibility {
+    return this.props.visibility;
+  }
+
+  get isPrivateCollection(): boolean {
+    return this.props.visibility === Visibility.PRIVATE;
+  }
+
+  get isPublicCollection(): boolean {
+    return this.props.visibility === Visibility.PUBLIC;
+  }
+
+  get spaceUri(): string | undefined {
+    return this.props.spaceUri;
+  }
+
   get isOpen(): boolean {
     return this.props.accessType === CollectionAccessType.OPEN;
   }
@@ -143,12 +162,13 @@ export class Collection extends AggregateRoot<CollectionProps> {
   public static create(
     props: Omit<
       CollectionProps,
-      'name' | 'description' | 'cardLinks' | 'cardCount'
+      'name' | 'description' | 'cardLinks' | 'cardCount' | 'visibility'
     > & {
       name: string;
       description?: string;
       cardLinks?: CardLink[];
       cardCount?: number;
+      visibility?: Visibility;
     },
     id?: UniqueEntityID,
   ): Result<Collection, CollectionValidationError> {
@@ -175,12 +195,23 @@ export class Collection extends AggregateRoot<CollectionProps> {
       return err(new CollectionValidationError('Invalid access type'));
     }
 
+    const visibility = props.visibility ?? Visibility.PUBLIC;
+    if (
+      visibility === Visibility.PRIVATE &&
+      props.accessType === CollectionAccessType.OPEN
+    ) {
+      return err(
+        new CollectionValidationError('Private collections cannot be open'),
+      );
+    }
+
     const collectionProps: CollectionProps = {
       ...props,
       name: nameResult.value,
       description,
       cardLinks: props.cardLinks || [],
       cardCount: props.cardCount ?? (props.cardLinks || []).length,
+      visibility,
     };
 
     const collection = new Collection(collectionProps, id);
@@ -451,10 +482,56 @@ export class Collection extends AggregateRoot<CollectionProps> {
       );
     }
 
+    if (
+      accessType === CollectionAccessType.OPEN &&
+      this.props.visibility === Visibility.PRIVATE
+    ) {
+      return err(
+        new CollectionAccessError('Private collections cannot be open'),
+      );
+    }
+
     this.props.accessType = accessType;
     this.props.updatedAt = new Date();
 
     return ok(undefined);
+  }
+
+  public changeVisibility(
+    visibility: Visibility,
+    userId: CuratorId,
+  ): Result<void, CollectionAccessError> {
+    if (!this.props.authorId.equals(userId)) {
+      return err(
+        new CollectionAccessError(
+          'Only the author can change collection visibility',
+        ),
+      );
+    }
+    if (
+      visibility === Visibility.PRIVATE &&
+      this.props.accessType === CollectionAccessType.OPEN
+    ) {
+      return err(
+        new CollectionAccessError('Private collections cannot be open'),
+      );
+    }
+    if (this.props.visibility === visibility) {
+      return ok(undefined);
+    }
+    this.props.visibility = visibility;
+    this.props.updatedAt = new Date();
+    return ok(undefined);
+  }
+
+  public assignSpace(spaceUri: string): void {
+    this.props.spaceUri = spaceUri;
+    this.props.updatedAt = new Date();
+  }
+
+  public clearSpace(): void {
+    this.props.spaceUri = undefined;
+    this.props.updatedAt = new Date();
   }
 
   public markAsPublished(publishedRecordId: PublishedRecordId): void {

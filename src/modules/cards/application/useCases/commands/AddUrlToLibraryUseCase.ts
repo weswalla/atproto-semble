@@ -21,6 +21,7 @@ import { CardContent } from '../../../domain/value-objects/CardContent';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 import { UrlMetadata } from 'src/modules/cards/domain/value-objects/UrlMetadata';
+import { Visibility } from '../../../domain/value-objects/Visibility';
 
 export interface AddUrlToLibraryDTO {
   url: string;
@@ -30,6 +31,7 @@ export interface AddUrlToLibraryDTO {
   viaCardId?: string;
   publishedRecordId?: PublishedRecordId; // For firehose events - skip publishing if provided
   timestamp?: Date; // For firehose events - use historical timestamp from AT Protocol record
+  isPrivate?: boolean; // Create the card as PRIVATE (published to the user's library space)
 }
 
 export interface AddUrlToLibraryResponseDTO {
@@ -131,6 +133,7 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
           curatorId: request.curatorId,
           cardInput: urlCardInput,
           createdAt: request.timestamp,
+          visibility: request.isPrivate ? Visibility.PRIVATE : undefined,
         });
 
         if (urlCardResult.isErr()) {
@@ -232,10 +235,12 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
             url: url.value,
           };
 
+          // New note cards inherit the privacy of the save that created them.
           const noteCardResult = CardFactory.create({
             curatorId: request.curatorId,
             cardInput: noteCardInput,
             createdAt: request.timestamp,
+            visibility: request.isPrivate ? Visibility.PRIVATE : undefined,
           });
 
           if (noteCardResult.isErr()) {

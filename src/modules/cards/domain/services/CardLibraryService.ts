@@ -449,6 +449,7 @@ export class CardLibraryService implements DomainService {
           await this.cardPublisher.unpublishCardFromLibrary(
             libraryInfo.publishedRecordId,
             libraryInfo.curatorId,
+            { isPrivate: card.isPrivate },
           );
         if (unpublishResult.isErr()) {
           // Propagate authentication errors

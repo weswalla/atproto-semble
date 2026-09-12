@@ -250,6 +250,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
    */
   async unpublishCardAddedToCollection(
     recordId: PublishedRecordId,
+    _collection: Collection,
   ): Promise<Result<void, UseCaseError>> {
     try {
       const publishedRecordId = recordId.getValue();
@@ -303,7 +304,7 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
   /**
    * Publishes a collectionLinkRemoval record when a collection owner removes a card added by someone else
    */
-  async publishCollectionLinkRemoval(
+  async publishContributorCardRemoval(
     card: Card,
     collection: Collection,
     curatorId: CuratorId,
@@ -373,6 +374,15 @@ export class ATProtoCollectionPublisher implements ICollectionPublisher {
         new Error(error instanceof Error ? error.message : String(error)),
       );
     }
+  }
+
+  /**
+   * Public collections have no permissioned space; nothing to delete.
+   */
+  async deleteCollectionSpace(
+    _collection: Collection,
+  ): Promise<Result<void, UseCaseError>> {
+    return ok(undefined);
   }
 
   /**

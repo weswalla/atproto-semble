@@ -4,6 +4,11 @@ import { UseCaseError } from '../../../../shared/core/UseCaseError';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
 
+export interface UnpublishCardOptions {
+  /** true when the record lives in the curator's private library space */
+  isPrivate?: boolean;
+}
+
 export interface ICardPublisher {
   publishCardToLibrary(
     card: Card,
@@ -15,5 +20,6 @@ export interface ICardPublisher {
   unpublishCardFromLibrary(
     recordId: PublishedRecordId,
     curatorId: CuratorId,
+    options?: UnpublishCardOptions,
   ): Promise<Result<void, UseCaseError>>;
 }

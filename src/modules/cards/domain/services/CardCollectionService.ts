@@ -21,6 +21,9 @@ export interface CardCollectionServiceOptions {
   timestamp?: Date;
 }
 
+export const PRIVATE_CARD_IN_PUBLIC_COLLECTION =
+  'Cannot add a private card to a public collection';
+
 export class CardCollectionValidationError extends Error {
   constructor(message: string) {
     super(message);
@@ -63,6 +66,12 @@ export class CardCollectionService implements DomainService {
           new CardCollectionValidationError(
             `Collection not found: ${collectionId.getStringValue()}`,
           ),
+        );
+      }
+
+      if (card.isPrivate && collection.isPublicCollection) {
+        return err(
+          new CardCollectionValidationError(PRIVATE_CARD_IN_PUBLIC_COLLECTION),
         );
       }
 
@@ -175,6 +184,13 @@ export class CardCollectionService implements DomainService {
             return err(
               new CardCollectionValidationError(
                 `User does not have permission to add cards to collection: ${collection.collectionId.getStringValue()}`,
+              ),
+            );
+          }
+          if (card.isPrivate && collection.isPublicCollection) {
+            return err(
+              new CardCollectionValidationError(
+                PRIVATE_CARD_IN_PUBLIC_COLLECTION,
               ),
             );
           }
@@ -346,6 +362,7 @@ export class CardCollectionService implements DomainService {
           const unpublishLinkResult =
             await this.collectionPublisher.unpublishCardAddedToCollection(
               cardLink.publishedRecordId,
+              collection,
             );
           if (unpublishLinkResult.isErr()) {
             // Propagate authentication errors
@@ -362,7 +379,7 @@ export class CardCollectionService implements DomainService {
           // Collection author is removing someone else's card - publish a CollectionLinkRemoval record
           // This is the ONLY case where removal records are published
           const publishRemovalResult =
-            await this.collectionPublisher.publishCollectionLinkRemoval(
+            await this.collectionPublisher.publishContributorCardRemoval(
               card,
               collection,
               curatorId,

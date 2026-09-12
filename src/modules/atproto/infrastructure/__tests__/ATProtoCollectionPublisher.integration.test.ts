@@ -3,7 +3,10 @@ import { FakeCardPublisher } from 'src/modules/cards/tests/utils/FakeCardPublish
 import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
 import { CollectionBuilder } from 'src/modules/cards/tests/utils/builders/CollectionBuilder';
 import { CardBuilder } from 'src/modules/cards/tests/utils/builders/CardBuilder';
-import { CollectionAccessType } from 'src/modules/cards/domain/Collection';
+import {
+  Collection,
+  CollectionAccessType,
+} from 'src/modules/cards/domain/Collection';
 import { URL } from 'src/modules/cards/domain/value-objects/URL';
 import { UrlMetadata } from 'src/modules/cards/domain/value-objects/UrlMetadata';
 import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
@@ -22,7 +25,10 @@ describe.skip('ATProtoCollectionPublisher', () => {
   let cardPublisher: FakeCardPublisher;
   let curatorId: CuratorId;
   let publishedCollectionIds: PublishedRecordId[] = [];
-  let publishedLinkIds: PublishedRecordId[] = [];
+  let publishedLinkIds: Array<{
+    id: PublishedRecordId;
+    collection: Collection;
+  }> = [];
   const envConfig: EnvironmentConfigService = new EnvironmentConfigService();
 
   beforeAll(async () => {
@@ -68,9 +74,12 @@ describe.skip('ATProtoCollectionPublisher', () => {
     }
 
     // Clean up all published collection links
-    for (const linkId of publishedLinkIds) {
+    for (const { id: linkId, collection: linkCollection } of publishedLinkIds) {
       try {
-        await collectionPublisher.unpublishCardAddedToCollection(linkId);
+        await collectionPublisher.unpublishCardAddedToCollection(
+          linkId,
+          linkCollection,
+        );
         console.log(`Cleaned up collection link: ${linkId.getValue().uri}`);
       } catch (error) {
         console.warn(`Failed to clean up collection link: ${error}`);
@@ -249,7 +258,7 @@ describe.skip('ATProtoCollectionPublisher', () => {
           );
         expect(link1PublishResult.isOk()).toBe(true);
         const link1RecordId = link1PublishResult.unwrap();
-        publishedLinkIds.push(link1RecordId);
+        publishedLinkIds.push({ id: link1RecordId, collection });
         collection.markCardLinkAsPublished(card1.cardId, link1RecordId);
 
         const link2PublishResult =
@@ -260,7 +269,7 @@ describe.skip('ATProtoCollectionPublisher', () => {
           );
         expect(link2PublishResult.isOk()).toBe(true);
         const link2RecordId = link2PublishResult.unwrap();
-        publishedLinkIds.push(link2RecordId);
+        publishedLinkIds.push({ id: link2RecordId, collection });
         collection.markCardLinkAsPublished(card2.cardId, link2RecordId);
 
         console.log(
@@ -308,7 +317,7 @@ describe.skip('ATProtoCollectionPublisher', () => {
           );
         expect(link3PublishResult.isOk()).toBe(true);
         const link3RecordId = link3PublishResult.unwrap();
-        publishedLinkIds.push(link3RecordId);
+        publishedLinkIds.push({ id: link3RecordId, collection });
 
         console.log(
           `Published additional card link for card 3: ${link3RecordId.getValue().uri}`,
@@ -421,7 +430,7 @@ describe.skip('ATProtoCollectionPublisher', () => {
 
         if (linkPublishResult.isOk()) {
           const linkRecordId = linkPublishResult.value;
-          publishedLinkIds.push(linkRecordId);
+          publishedLinkIds.push({ id: linkRecordId, collection: userBCollection });
           userBCollection.markCardLinkAsPublished(
             originalNote.cardId,
             linkRecordId,

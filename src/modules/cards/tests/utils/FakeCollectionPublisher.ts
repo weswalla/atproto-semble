@@ -25,6 +25,9 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
       removalRecord: PublishedRecordId;
     }[]
   > = new Map();
+  private createdSpaces: string[] = [];
+  private deletedSpaces: string[] = [];
+  private cidCounter = 0;
   private shouldFail: boolean = false;
   private shouldFailUnpublish: boolean = false;
   private collectionType =
@@ -36,6 +39,9 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
   private collectionLinkRemovalType =
     new EnvironmentConfigService().getAtProtoCollections()
       .collectionLinkRemoval;
+
+  private cardType = new EnvironmentConfigService().getAtProtoCollections()
+    .card;
 
   async publish(
     collection: Collection,
@@ -53,9 +59,23 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     // Use the collection's author DID directly
     const fakeDid = collection.authorId.value;
 
-    // Simulate publishing the collection record itself
-    const fakeCollectionUri = `at://${fakeDid}/${this.collectionType}/${collectionId}`;
-    const fakeCollectionCid = `fake-collection-cid-${collectionId}`;
+    // Private collections live in a permissioned space: ensure a space is
+    // assigned and publish the collection record at rkey=self inside it.
+    let fakeCollectionUri: string;
+    let fakeCollectionCid: string;
+    if (collection.isPrivateCollection) {
+      if (!collection.spaceUri) {
+        collection.assignSpace(
+          `at://${fakeDid}/space/network.cosmik.collectionSpace/fake-skey-${collectionId}`,
+        );
+        this.createdSpaces.push(collection.spaceUri!);
+      }
+      fakeCollectionUri = `${collection.spaceUri}/${this.collectionType}/self`;
+      fakeCollectionCid = `fake-space-collection-cid-${collectionId}-${++this.cidCounter}`;
+    } else {
+      fakeCollectionUri = `at://${fakeDid}/${this.collectionType}/${collectionId}`;
+      fakeCollectionCid = `fake-collection-cid-${collectionId}`;
+    }
 
     const collectionRecord = PublishedRecordId.create({
       uri: fakeCollectionUri,
@@ -88,9 +108,12 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     const collectionId = collection.collectionId.getStringValue();
     const cardId = card.cardId.getStringValue();
 
-    // Simulate publishing a card-collection link
-    const fakeLinkUri = `at://${curatorId.value}/${this.cardCollectionLinkType}/${collectionId}-${cardId}`;
-    const fakeLinkCid = `fake-link-cid-${collectionId}-${cardId}`;
+    // Public collections get a collectionLink record in the curator's repo;
+    // private collections get a card record inside the collection space.
+    const fakeLinkUri = collection.isPrivateCollection
+      ? `${collection.spaceUri}/${this.cardType}/${collectionId}-${cardId}`
+      : `at://${curatorId.value}/${this.cardCollectionLinkType}/${collectionId}-${cardId}`;
+    const fakeLinkCid = `fake-link-cid-${collectionId}-${cardId}-${++this.cidCounter}`;
 
     const linkRecord = PublishedRecordId.create({
       uri: fakeLinkUri,
@@ -114,6 +137,7 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
 
   async unpublishCardAddedToCollection(
     recordId: PublishedRecordId,
+    _collection: Collection,
   ): Promise<Result<void, UseCaseError>> {
     if (this.shouldFailUnpublish) {
       return err(
@@ -147,7 +171,7 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     return ok(undefined);
   }
 
-  async publishCollectionLinkRemoval(
+  async publishContributorCardRemoval(
     card: Card,
     collection: Collection,
     curatorId: CuratorId,
@@ -233,6 +257,26 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     console.warn(
       `[FakeCollectionPublisher] Collection not found for unpublishing: ${recordId.uri}`,
     );
+    this.unpublishedCollections.push({
+      uri: recordId.uri,
+      cid: recordId.cid,
+    });
+    return ok(undefined);
+  }
+
+  async deleteCollectionSpace(
+    collection: Collection,
+  ): Promise<Result<void, UseCaseError>> {
+    if (this.shouldFailUnpublish) {
+      return err(
+        AppError.UnexpectedError.create(
+          new Error('Simulated space deletion failure'),
+        ),
+      );
+    }
+    if (collection.spaceUri) {
+      this.deletedSpaces.push(collection.spaceUri);
+    }
     return ok(undefined);
   }
 
@@ -250,8 +294,27 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     this.unpublishedCollections = [];
     this.removedLinks = [];
     this.publishedRemovals.clear();
+    this.createdSpaces = [];
+    this.deletedSpaces = [];
+    this.cidCounter = 0;
     this.shouldFail = false;
     this.shouldFailUnpublish = false;
+  }
+
+  getCreatedSpaces(): string[] {
+    return this.createdSpaces;
+  }
+
+  getDeletedSpaces(): string[] {
+    return this.deletedSpaces;
+  }
+
+  getPublishedSpaceCardsForCollection(
+    collectionId: string,
+  ): Array<{ cardId: string; linkRecord: PublishedRecordId }> {
+    return (this.publishedLinks.get(collectionId) || []).filter((link) =>
+      link.linkRecord.uri.includes('/space/'),
+    );
   }
 
   getPublishedCollections(): Collection[] {

@@ -863,4 +863,43 @@ describe('UpdateUrlCardAssociationsUseCase', () => {
       }
     });
   });
+
+  describe('Private card visibility', () => {
+    it('rejects adding a private card to a public collection', async () => {
+      const url = 'https://example.com/private-article';
+
+      // Save the URL privately
+      const addResult = await addUrlToLibraryUseCase.execute({
+        url,
+        curatorId: curatorId.value,
+        isPrivate: true,
+      });
+      expect(addResult.isOk()).toBe(true);
+      const urlCardId = addResult.unwrap().urlCardId;
+
+      // Public (default visibility) collection owned by the same curator
+      const publicCollection = new CollectionBuilder()
+        .withAuthorId(curatorId.value)
+        .withName('Public Collection')
+        .withAccessType('CLOSED')
+        .build();
+      if (publicCollection instanceof Error) {
+        throw publicCollection;
+      }
+      await collectionRepository.save(publicCollection);
+
+      const result = await useCase.execute({
+        cardId: urlCardId,
+        curatorId: curatorId.value,
+        addToCollections: [publicCollection.collectionId.getStringValue()],
+      });
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain(
+          'Cannot add a private card to a public collection',
+        );
+      }
+    });
+  });
 });

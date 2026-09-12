@@ -2,6 +2,7 @@ import { Collection, CollectionAccessType } from '../../../domain/Collection';
 import { CollectionName } from '../../../domain/value-objects/CollectionName';
 import { CollectionDescription } from '../../../domain/value-objects/CollectionDescription';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
+import { Visibility } from '../../../domain/value-objects/Visibility';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { UniqueEntityID } from '../../../../../shared/domain/UniqueEntityID';
 
@@ -13,6 +14,8 @@ export class CollectionBuilder {
   private _accessType: CollectionAccessType = CollectionAccessType.OPEN;
   private _collaborators: string[] = [];
   private _publishedRecordId?: PublishedRecordId;
+  private _visibility?: Visibility;
+  private _spaceUri?: string;
   private _createdAt?: Date;
   private _updatedAt?: Date;
 
@@ -77,6 +80,16 @@ export class CollectionBuilder {
     return this;
   }
 
+  withVisibility(visibility: Visibility): CollectionBuilder {
+    this._visibility = visibility;
+    return this;
+  }
+
+  withSpaceUri(spaceUri: string): CollectionBuilder {
+    this._spaceUri = spaceUri;
+    return this;
+  }
+
   withCreatedAt(createdAt: Date): CollectionBuilder {
     this._createdAt = createdAt;
     return this;
@@ -131,6 +144,8 @@ export class CollectionBuilder {
           description: description?.toString(),
           accessType: this._accessType,
           collaboratorIds: collaboratorIds,
+          visibility: this._visibility,
+          spaceUri: this._spaceUri,
           publishedRecordId: this._publishedRecordId,
           createdAt: this._createdAt ?? new Date(),
           updatedAt: this._updatedAt ?? new Date(),

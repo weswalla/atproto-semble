@@ -1,4 +1,7 @@
-import { ICardPublisher } from 'src/modules/cards/application/ports/ICardPublisher';
+import {
+  ICardPublisher,
+  UnpublishCardOptions,
+} from 'src/modules/cards/application/ports/ICardPublisher';
 import { Card } from 'src/modules/cards/domain/Card';
 import { Result, ok, err } from 'src/shared/core/Result';
 import { UseCaseError } from 'src/shared/core/UseCaseError';
@@ -123,6 +126,7 @@ export class ATProtoCardPublisher implements ICardPublisher {
   async unpublishCardFromLibrary(
     recordId: PublishedRecordId,
     curatorId: CuratorId,
+    _options?: UnpublishCardOptions,
   ): Promise<Result<void, UseCaseError>> {
     try {
       const publishedRecordId = recordId.getValue();

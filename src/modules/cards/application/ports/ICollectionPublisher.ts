@@ -9,25 +9,48 @@ import {
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 
 export interface ICollectionPublisher {
+  /**
+   * Publishes the collection record. For PUBLIC collections this writes to the
+   * author's repo; for PRIVATE collections it writes into the collection's
+   * permissioned space (creating the space and calling collection.assignSpace()
+   * when none exists yet — callers must persist the collection afterward).
+   */
   publish(
     collection: Collection,
   ): Promise<Result<PublishedRecordId, UseCaseError>>;
 
   unpublish(recordId: PublishedRecordId): Promise<Result<void, UseCaseError>>;
+
+  /**
+   * Deletes the collection's permissioned space (private collections only).
+   * No-op when the collection has no space.
+   */
+  deleteCollectionSpace(
+    collection: Collection,
+  ): Promise<Result<void, UseCaseError>>;
+
   publishCardAddedToCollection(
     card: Card,
     collection: Collection,
     curatorId: CuratorId,
     viaCardPublishedRecordId?: PublishedRecordIdProps,
   ): Promise<Result<PublishedRecordId, UseCaseError>>;
+
   unpublishCardAddedToCollection(
     recordId: PublishedRecordId,
+    collection: Collection,
   ): Promise<Result<void, UseCaseError>>;
 
-  publishCollectionLinkRemoval(
+  /**
+   * Removal tombstone published by the collection owner when they cannot
+   * delete the member's own record: a collectionLinkRemoval record (public
+   * collections) or a cardRemoval record in the collection space (private
+   * collections). Renamed from publishCollectionLinkRemoval.
+   */
+  publishContributorCardRemoval(
     card: Card,
     collection: Collection,
     curatorId: CuratorId,
-    removedLinkRef: PublishedRecordId,
+    removedRecordRef: PublishedRecordId,
   ): Promise<Result<PublishedRecordId, UseCaseError>>;
 }

@@ -44,8 +44,11 @@ export class DisabledCollectionPublisher implements ICollectionPublisher {
   async unpublishCardAddedToCollection(): Promise<Result<never, UseCaseError>> {
     return disabled('unpublishCardAddedToCollection');
   }
-  async publishCollectionLinkRemoval(): Promise<Result<never, UseCaseError>> {
-    return disabled('publishCollectionLinkRemoval');
+  async publishContributorCardRemoval(): Promise<Result<never, UseCaseError>> {
+    return disabled('publishContributorCardRemoval');
+  }
+  async deleteCollectionSpace(): Promise<Result<never, UseCaseError>> {
+    return disabled('deleteCollectionSpace');
   }
 }
 

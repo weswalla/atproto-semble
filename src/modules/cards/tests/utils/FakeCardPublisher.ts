@@ -1,4 +1,7 @@
-import { ICardPublisher } from '../../application/ports/ICardPublisher';
+import {
+  ICardPublisher,
+  UnpublishCardOptions,
+} from '../../application/ports/ICardPublisher';
 import { Card } from '../../domain/Card';
 import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
 import { ok, err, Result } from '../../../../shared/core/Result';
@@ -15,7 +18,9 @@ export class FakeCardPublisher implements ICardPublisher {
     cardId: string;
     uri: string;
     cid: string;
+    isPrivate?: boolean;
   }> = [];
+  private publishTargets: Map<string, 'repo' | 'librarySpace'> = new Map();
   private cardType = new EnvironmentConfigService().getAtProtoCollections()
     .card;
 
@@ -31,9 +36,15 @@ export class FakeCardPublisher implements ICardPublisher {
     }
 
     const cardId = card.cardId.getStringValue();
-    // Simulate generating an AT URI based on curator DID and collection/rkey
-    const fakeUri = `at://${curatorId.value}/${this.cardType}/${cardId}`;
-    const fakeCid = `fake-cid-${cardId}`;
+    // Simulate generating an AT URI based on curator DID and collection/rkey.
+    // Private cards land in the curator's library space; the uri makes the
+    // location assertable in tests.
+    const fakeUri = card.isPrivate
+      ? `at://${curatorId.value}/space/network.cosmik.library/self/${this.cardType}/${cardId}`
+      : `at://${curatorId.value}/${this.cardType}/${cardId}`;
+    const fakeCid = card.isPrivate
+      ? `fake-space-cid-${cardId}`
+      : `fake-cid-${cardId}`;
     const publishedRecordId = PublishedRecordId.create({
       uri: fakeUri,
       cid: fakeCid,
@@ -42,6 +53,10 @@ export class FakeCardPublisher implements ICardPublisher {
     // Store the published card for inspection using composite key
     const compositeKey = fakeUri + fakeCid;
     this.publishedRecords.set(compositeKey, card);
+    this.publishTargets.set(
+      compositeKey,
+      card.isPrivate ? 'librarySpace' : 'repo',
+    );
 
     console.log(
       `[FakeCardPublisher] Published card ${cardId} to curator ${curatorId.value} library at ${fakeUri}`,
@@ -52,6 +67,7 @@ export class FakeCardPublisher implements ICardPublisher {
   async unpublishCardFromLibrary(
     recordId: PublishedRecordId,
     curatorId: CuratorId,
+    options?: UnpublishCardOptions,
   ): Promise<Result<void, UseCaseError>> {
     if (this.shouldFailUnpublish) {
       return err(
@@ -74,6 +90,7 @@ export class FakeCardPublisher implements ICardPublisher {
       cardId: card?.cardId.getStringValue() || '',
       uri: recordId.uri,
       cid: recordId.cid,
+      isPrivate: options?.isPrivate,
     });
     return ok(undefined);
   }
@@ -88,6 +105,8 @@ export class FakeCardPublisher implements ICardPublisher {
 
   clear(): void {
     this.publishedRecords.clear();
+    this.publishTargets.clear();
+    this.unpublishedRecords = [];
     this.shouldFail = false;
     this.shouldFailUnpublish = false;
   }
@@ -96,7 +115,29 @@ export class FakeCardPublisher implements ICardPublisher {
     return Array.from(this.publishedRecords.values());
   }
 
-  getUnpublishedCards(): Array<{ cardId: string; uri: string; cid: string }> {
+  getPrivatelyPublishedCards(): Card[] {
+    const result: Card[] = [];
+    for (const [key, card] of this.publishedRecords.entries()) {
+      if (this.publishTargets.get(key) === 'librarySpace') {
+        result.push(card);
+      }
+    }
+    return result;
+  }
+
+  getPublishTarget(
+    uri: string,
+    cid: string,
+  ): 'repo' | 'librarySpace' | undefined {
+    return this.publishTargets.get(uri + cid);
+  }
+
+  getUnpublishedCards(): Array<{
+    cardId: string;
+    uri: string;
+    cid: string;
+    isPrivate?: boolean;
+  }> {
     // For testing purposes, track unpublished cards
     // This is a simplified implementation for test verification
     return this.unpublishedRecords;

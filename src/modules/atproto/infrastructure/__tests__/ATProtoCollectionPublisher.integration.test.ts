@@ -1,4 +1,4 @@
-import { ATProtoCollectionPublisher } from '../publishers/ATProtoCollectionPublisher';
+import { ATProtoPublicCollectionPublisher } from '../publishers/ATProtoPublicCollectionPublisher';
 import { FakeCardPublisher } from 'src/modules/cards/tests/utils/FakeCardPublisher';
 import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
 import { CollectionBuilder } from 'src/modules/cards/tests/utils/builders/CollectionBuilder';
@@ -21,7 +21,7 @@ dotenv.config({ path: '.env.test' });
 const UNPUBLISH = true;
 
 describe.skip('ATProtoCollectionPublisher', () => {
-  let collectionPublisher: ATProtoCollectionPublisher;
+  let collectionPublisher: ATProtoPublicCollectionPublisher;
   let cardPublisher: FakeCardPublisher;
   let curatorId: CuratorId;
   let publishedCollectionIds: PublishedRecordId[] = [];
@@ -44,7 +44,7 @@ describe.skip('ATProtoCollectionPublisher', () => {
     });
 
     const collections = envConfig.getAtProtoConfig().collections;
-    collectionPublisher = new ATProtoCollectionPublisher(
+    collectionPublisher = new ATProtoPublicCollectionPublisher(
       agentService,
       collections.collection,
       collections.collectionLink,
@@ -543,7 +543,7 @@ describe.skip('ATProtoCollectionPublisher', () => {
       });
 
       const collections = envConfig.getAtProtoConfig().collections;
-      const invalidPublisher = new ATProtoCollectionPublisher(
+      const invalidPublisher = new ATProtoPublicCollectionPublisher(
         invalidAgentService,
         collections.collection,
         collections.collectionLink,

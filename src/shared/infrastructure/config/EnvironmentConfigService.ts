@@ -51,6 +51,11 @@ export interface EnvironmentConfig {
       collectionLinkRemoval: string;
       follow: string;
       connection: string;
+      cardRemoval: string;
+    };
+    spaceTypes: {
+      library: string;
+      collectionSpace: string;
     };
     serviceAccount: {
       identifier: string;
@@ -194,11 +199,25 @@ export class EnvironmentConfigService {
             environment === Environment.PROD
               ? ATPROTO_NSID.COSMIK.CONNECTION
               : `${ATPROTO_NSID.COSMIK.NAMESPACE}.${environment}.connection`,
+          cardRemoval:
+            environment === Environment.PROD
+              ? ATPROTO_NSID.COSMIK.CARD_REMOVAL
+              : `${ATPROTO_NSID.COSMIK.NAMESPACE}.${environment}.cardRemoval`,
           // Margin collections - no environment suffix
           marginBookmark: ATPROTO_NSID.MARGIN.BOOKMARK,
           marginCollection: ATPROTO_NSID.MARGIN.COLLECTION,
           marginCollectionItem: ATPROTO_NSID.MARGIN.COLLECTION_ITEM,
           marginNote: ATPROTO_NSID.MARGIN.NOTE,
+        },
+        spaceTypes: {
+          library:
+            environment === Environment.PROD
+              ? ATPROTO_NSID.COSMIK.LIBRARY_SPACE
+              : `${ATPROTO_NSID.COSMIK.NAMESPACE}.${environment}.library`,
+          collectionSpace:
+            environment === Environment.PROD
+              ? ATPROTO_NSID.COSMIK.COLLECTION_SPACE
+              : `${ATPROTO_NSID.COSMIK.NAMESPACE}.${environment}.collectionSpace`,
         },
         serviceAccount: {
           identifier: process.env.BSKY_SERVICE_ACCOUNT_IDENTIFIER || '',
@@ -314,6 +333,10 @@ export class EnvironmentConfigService {
 
   public getAtProtoCollections() {
     return this.config.atproto.collections;
+  }
+
+  public getAtProtoSpaceTypes() {
+    return this.config.atproto.spaceTypes;
   }
 
   public getAtProtoBaseCollection() {

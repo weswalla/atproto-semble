@@ -1,0 +1,18 @@
+{
+  "lexicon": 1,
+  "id": "network.cosmik.collectionSpace",
+  "description": "Space type declaration for a private, collaborative, or team Semble collection.",
+  "defs": {
+    "main": {
+      "type": "space",
+      "description": "A permissioned Semble collection and its contents. Authority is the collection owner's DID (or a team DID); presence of a card record in the space is membership in the collection.",
+      "key": "tid",
+      "name": "Semble Collection",
+      "collections": [
+        "network.cosmik.collection",
+        "network.cosmik.card",
+        "network.cosmik.cardRemoval"
+      ]
+    }
+  }
+}

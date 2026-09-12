@@ -15,6 +15,11 @@ import { BlueskyProfileService } from '../../../../modules/atproto/infrastructur
 import { CachedBlueskyProfileService } from '../../../../modules/atproto/infrastructure/services/CachedBlueskyProfileService';
 import { ATProtoCollectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCollectionPublisher';
 import { ATProtoCardPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCardPublisher';
+import { ATProtoPublicCardPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoPublicCardPublisher';
+import { ATProtoPrivateCardPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoPrivateCardPublisher';
+import { ATProtoPublicCollectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoPublicCollectionPublisher';
+import { ATProtoPrivateCollectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoPrivateCollectionPublisher';
+import { ATProtoSpacesClient } from '../../../../modules/atproto/infrastructure/services/ATProtoSpacesClient';
 import { ATProtoConnectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoConnectionPublisher';
 import { ATProtoFollowPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoFollowPublisher';
 import { FakeCollectionPublisher } from '../../../../modules/cards/tests/utils/FakeCollectionPublisher';
@@ -478,15 +483,26 @@ export class ServiceFactory {
     // them races the web tier's OAuth token refresh and destroys sessions.
     const disablePdsPublishing = options?.disablePdsPublishing === true;
 
+    const spaceTypes = configService.getAtProtoSpaceTypes();
+    const spacesClient = new ATProtoSpacesClient(atProtoAgentService);
+
     const collectionPublisher = disablePdsPublishing
       ? new DisabledCollectionPublisher()
       : useFakePublishers
         ? new FakeCollectionPublisher()
         : new ATProtoCollectionPublisher(
-            atProtoAgentService,
-            collections.collection,
-            collections.collectionLink,
-            collections.collectionLinkRemoval,
+            new ATProtoPublicCollectionPublisher(
+              atProtoAgentService,
+              collections.collection,
+              collections.collectionLink,
+              collections.collectionLinkRemoval,
+            ),
+            new ATProtoPrivateCollectionPublisher(spacesClient, {
+              collection: collections.collection,
+              card: collections.card,
+              cardRemoval: collections.cardRemoval,
+              collectionSpaceType: spaceTypes.collectionSpace,
+            }),
           );
 
     const connectionPublisher = disablePdsPublishing
@@ -512,7 +528,17 @@ export class ServiceFactory {
       ? new DisabledCardPublisher()
       : useFakePublishers
         ? new FakeCardPublisher()
-        : new ATProtoCardPublisher(atProtoAgentService, collections.card);
+        : new ATProtoCardPublisher(
+            new ATProtoPublicCardPublisher(
+              atProtoAgentService,
+              collections.card,
+            ),
+            new ATProtoPrivateCardPublisher(
+              spacesClient,
+              collections.card,
+              spaceTypes.library,
+            ),
+          );
 
     // Create domain services
     const cardCollectionService = new CardCollectionService(

@@ -1,448 +1,94 @@
 import { ICollectionPublisher } from 'src/modules/cards/application/ports/ICollectionPublisher';
 import { Collection } from 'src/modules/cards/domain/Collection';
 import { Card } from 'src/modules/cards/domain/Card';
-import { Result, ok, err } from 'src/shared/core/Result';
+import { Result } from 'src/shared/core/Result';
 import { UseCaseError } from 'src/shared/core/UseCaseError';
 import {
   PublishedRecordId,
   PublishedRecordIdProps,
 } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
 import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
-import { CollectionMapper } from '../mappers/CollectionMapper';
-import { MarginCollectionMapper } from '../mappers/MarginCollectionMapper';
-import { CollectionLinkMapper } from '../mappers/CollectionLinkMapper';
-import { CollectionLinkRemovalMapper } from '../mappers/CollectionLinkRemovalMapper';
-import { StrongRef } from '../../domain';
-import { IAgentService } from '../../application/IAgentService';
-import { DID } from '../../domain/DID';
-import { AuthenticationError } from 'src/shared/core/AuthenticationError';
-import {
-  NamespaceDetector,
-  RecordNamespace,
-} from '../../domain/NamespaceDetector';
 
+/**
+ * Routes collection publishing to the public-repo publisher or the private
+ * collection-space publisher. Publishes route on the collection's visibility;
+ * unpublishes route on the record uri (a collection may have flipped
+ * visibility since the record was written, so the uri is authoritative).
+ */
 export class ATProtoCollectionPublisher implements ICollectionPublisher {
   constructor(
-    private readonly agentService: IAgentService,
-    private readonly collectionCollection: string,
-    private readonly collectionLinkCollection: string,
-    private readonly collectionLinkRemovalCollection: string,
+    private readonly publicPublisher: ICollectionPublisher,
+    private readonly privatePublisher: ICollectionPublisher,
   ) {}
 
-  /**
-   * Publishes a Collection record only (not the card links)
-   * Supports both Cosmik and Margin namespaces by detecting the collection from the existing URI when updating
-   */
-  async publish(
-    collection: Collection,
-  ): Promise<Result<PublishedRecordId, UseCaseError>> {
-    try {
-      const curatorDidResult = DID.create(collection.authorId.value);
-
-      if (curatorDidResult.isErr()) {
-        return err(
-          new Error(`Invalid curator DID: ${curatorDidResult.error.message}`),
-        );
-      }
-
-      const curatorDid = curatorDidResult.value;
-
-      // Get an authenticated agent for this curator
-      const agentResult =
-        await this.agentService.getAuthenticatedAgent(curatorDid);
-
-      if (agentResult.isErr()) {
-        // Propagate authentication errors as-is
-        if (agentResult.error instanceof AuthenticationError) {
-          return err(agentResult.error);
-        }
-        return err(
-          new Error(
-            `Authentication error for ATProtoCollectionPublisher: ${agentResult.error.message}`,
-          ),
-        );
-      }
-
-      const agent = agentResult.value;
-
-      if (!agent) {
-        return err(new Error('No authenticated session found for curator'));
-      }
-
-      if (collection.publishedRecordId) {
-        // Update existing collection record
-        // Detect the collection namespace from the existing published record
-        const existingCollection =
-          NamespaceDetector.extractCollectionFromPublishedRecordId(
-            collection.publishedRecordId,
-          ) || this.collectionCollection;
-
-        const namespace = NamespaceDetector.detectFromPublishedRecordId(
-          collection.publishedRecordId,
-        );
-
-        // Use the appropriate mapper based on the namespace
-        const collectionRecordDTO =
-          namespace === RecordNamespace.MARGIN
-            ? MarginCollectionMapper.toCreateRecordDTO(collection)
-            : CollectionMapper.toCreateRecordDTO(collection);
-
-        collectionRecordDTO.$type = existingCollection as any;
-
-        const publishedRecordId = collection.publishedRecordId.getValue();
-        const strongRef = new StrongRef(publishedRecordId);
-        const atUri = strongRef.atUri;
-        const rkey = atUri.rkey;
-
-        const updateResult = await agent.com.atproto.repo.putRecord({
-          repo: curatorDid.value,
-          collection: existingCollection, // Use the original namespace
-          rkey: rkey,
-          record: collectionRecordDTO,
-        });
-
-        return ok(
-          PublishedRecordId.create({
-            uri: updateResult.data.uri,
-            cid: updateResult.data.cid,
-          }),
-        );
-      } else {
-        // Create new collection record (always use Cosmik for new records)
-        const collectionRecordDTO =
-          CollectionMapper.toCreateRecordDTO(collection);
-        collectionRecordDTO.$type = this.collectionCollection as any;
-
-        const createResult = await agent.com.atproto.repo.createRecord({
-          repo: curatorDid.value,
-          collection: this.collectionCollection,
-          record: collectionRecordDTO,
-        });
-
-        return ok(
-          PublishedRecordId.create({
-            uri: createResult.data.uri,
-            cid: createResult.data.cid,
-          }),
-        );
-      }
-    } catch (error) {
-      return err(
-        new Error(error instanceof Error ? error.message : String(error)),
-      );
-    }
+  private forCollection(collection: Collection): ICollectionPublisher {
+    return collection.isPrivateCollection
+      ? this.privatePublisher
+      : this.publicPublisher;
   }
 
-  /**
-   * Publishes a card-in-collection link when a card is added to a collection
-   */
-  async publishCardAddedToCollection(
+  publish(
+    collection: Collection,
+  ): Promise<Result<PublishedRecordId, UseCaseError>> {
+    return this.forCollection(collection).publish(collection);
+  }
+
+  unpublish(recordId: PublishedRecordId): Promise<Result<void, UseCaseError>> {
+    // Space record uris embed '/space/'; public repo records never do.
+    return recordId.uri.includes('/space/')
+      ? this.privatePublisher.unpublish(recordId)
+      : this.publicPublisher.unpublish(recordId);
+  }
+
+  deleteCollectionSpace(
+    collection: Collection,
+  ): Promise<Result<void, UseCaseError>> {
+    return this.privatePublisher.deleteCollectionSpace(collection);
+  }
+
+  publishCardAddedToCollection(
     card: Card,
     collection: Collection,
     curatorId: CuratorId,
     viaCardPublishedRecordId?: PublishedRecordIdProps,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
-    try {
-      const curatorDidResult = DID.create(curatorId.value);
-
-      if (curatorDidResult.isErr()) {
-        return err(
-          new Error(`Invalid curator DID: ${curatorDidResult.error.message}`),
-        );
-      }
-
-      const curatorDid = curatorDidResult.value;
-
-      // Get an authenticated agent for this curator
-      const agentResult =
-        await this.agentService.getAuthenticatedAgent(curatorDid);
-
-      if (agentResult.isErr()) {
-        // Propagate authentication errors as-is
-        if (agentResult.error instanceof AuthenticationError) {
-          return err(agentResult.error);
-        }
-        return err(
-          new Error(
-            `Authentication error for ATProtoCollectionPublisher: ${agentResult.error.message}`,
-          ),
-        );
-      }
-
-      const agent = agentResult.value;
-
-      if (!agent) {
-        return err(new Error('No authenticated session found for curator'));
-      }
-
-      // Ensure collection is published
-      if (!collection.publishedRecordId) {
-        return err(
-          new Error('Collection must be published before adding cards'),
-        );
-      }
-
-      // Get the card's library membership for this curator
-      const libraryMembership = card.libraryMemberships.find((membership) =>
-        membership.curatorId.equals(curatorId),
-      );
-
-      if (!libraryMembership?.publishedRecordId) {
-        return err(
-          new Error(
-            "Card must be published in curator's library before adding to collection",
-          ),
-        );
-      }
-
-      // Get the original published record ID
-      if (!card.publishedRecordId) {
-        return err(new Error('Card must have a published record ID'));
-      }
-
-      // Find the card link in the collection
-      const cardLink = collection.cardLinks.find((link) =>
-        link.cardId.equals(card.cardId),
-      );
-
-      if (!cardLink) {
-        return err(new Error('Card is not linked to this collection'));
-      }
-
-      let originalCardRecordId: PublishedRecordIdProps | undefined;
-      if (
-        libraryMembership.publishedRecordId.uri !== card.publishedRecordId.uri
-      ) {
-        originalCardRecordId = card.publishedRecordId.getValue();
-      }
-
-      const linkRecordDTO = CollectionLinkMapper.toCreateRecordDTO(
-        cardLink,
-        collection.publishedRecordId.getValue(),
-        libraryMembership.publishedRecordId.getValue(),
-        originalCardRecordId,
-        viaCardPublishedRecordId,
-      );
-      linkRecordDTO.$type = this.collectionLinkCollection as any;
-
-      const createResult = await agent.com.atproto.repo.createRecord({
-        repo: curatorDid.value,
-        collection: this.collectionLinkCollection,
-        record: linkRecordDTO,
-      });
-
-      return ok(
-        PublishedRecordId.create({
-          uri: createResult.data.uri,
-          cid: createResult.data.cid,
-        }),
-      );
-    } catch (error) {
-      return err(
-        new Error(error instanceof Error ? error.message : String(error)),
-      );
-    }
+    return this.forCollection(collection).publishCardAddedToCollection(
+      card,
+      collection,
+      curatorId,
+      viaCardPublishedRecordId,
+    );
   }
 
-  /**
-   * Unpublishes (deletes) a card-in-collection link
-   * Supports both Cosmik and Margin namespaces by detecting the collection from the URI
-   */
-  async unpublishCardAddedToCollection(
+  unpublishCardAddedToCollection(
     recordId: PublishedRecordId,
-    _collection: Collection,
+    collection: Collection,
   ): Promise<Result<void, UseCaseError>> {
-    try {
-      const publishedRecordId = recordId.getValue();
-      const strongRef = new StrongRef(publishedRecordId);
-      const atUri = strongRef.atUri;
-      const curatorDid = atUri.did;
-      const repo = atUri.did.toString();
-      const rkey = atUri.rkey;
-
-      // Extract the actual collection from the URI to support both Margin and Cosmik
-      const collection =
-        NamespaceDetector.extractCollectionFromPublishedRecordId(recordId) ||
-        this.collectionLinkCollection;
-
-      // Get an authenticated agent for this curator
-      const agentResult =
-        await this.agentService.getAuthenticatedAgent(curatorDid);
-
-      if (agentResult.isErr()) {
-        // Propagate authentication errors as-is
-        if (agentResult.error instanceof AuthenticationError) {
-          return err(agentResult.error);
-        }
-        return err(
-          new Error(
-            `Authentication error for ATProtoCollectionPublisher: ${agentResult.error.message}`,
-          ),
+    // Private membership records are card records inside a space (uri embeds
+    // '/space/'); anything else is a public link record (cosmik collectionLink
+    // or margin collectionItem) in a plain repo.
+    return recordId.uri.includes('/space/')
+      ? this.privatePublisher.unpublishCardAddedToCollection(
+          recordId,
+          collection,
+        )
+      : this.publicPublisher.unpublishCardAddedToCollection(
+          recordId,
+          collection,
         );
-      }
-
-      const agent = agentResult.value;
-
-      if (!agent) {
-        return err(new Error('No authenticated session found for curator'));
-      }
-
-      await agent.com.atproto.repo.deleteRecord({
-        repo,
-        collection, // Now uses the actual collection from the URI
-        rkey,
-      });
-
-      return ok(undefined);
-    } catch (error) {
-      return err(
-        new Error(error instanceof Error ? error.message : String(error)),
-      );
-    }
   }
 
-  /**
-   * Publishes a collectionLinkRemoval record when a collection owner removes a card added by someone else
-   */
-  async publishContributorCardRemoval(
+  publishContributorCardRemoval(
     card: Card,
     collection: Collection,
     curatorId: CuratorId,
-    removedLinkRef: PublishedRecordId,
+    removedRecordRef: PublishedRecordId,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
-    try {
-      const curatorDidResult = DID.create(curatorId.value);
-
-      if (curatorDidResult.isErr()) {
-        return err(
-          new Error(`Invalid curator DID: ${curatorDidResult.error.message}`),
-        );
-      }
-
-      const curatorDid = curatorDidResult.value;
-
-      // Get an authenticated agent for this curator (collection owner)
-      const agentResult =
-        await this.agentService.getAuthenticatedAgent(curatorDid);
-
-      if (agentResult.isErr()) {
-        // Propagate authentication errors as-is
-        if (agentResult.error instanceof AuthenticationError) {
-          return err(agentResult.error);
-        }
-        return err(
-          new Error(
-            `Authentication error for ATProtoCollectionPublisher: ${agentResult.error.message}`,
-          ),
-        );
-      }
-
-      const agent = agentResult.value;
-
-      if (!agent) {
-        return err(new Error('No authenticated session found for curator'));
-      }
-
-      // Ensure collection is published
-      if (!collection.publishedRecordId) {
-        return err(
-          new Error('Collection must be published before removing cards'),
-        );
-      }
-
-      // Create the collectionLinkRemoval record DTO
-      const removalRecordDTO = CollectionLinkRemovalMapper.toCreateRecordDTO(
-        collection.publishedRecordId.getValue(),
-        removedLinkRef.getValue(),
-      );
-      removalRecordDTO.$type = this.collectionLinkRemovalCollection as any;
-
-      const createResult = await agent.com.atproto.repo.createRecord({
-        repo: curatorDid.value,
-        collection: this.collectionLinkRemovalCollection,
-        record: removalRecordDTO,
-      });
-
-      return ok(
-        PublishedRecordId.create({
-          uri: createResult.data.uri,
-          cid: createResult.data.cid,
-        }),
-      );
-    } catch (error) {
-      return err(
-        new Error(error instanceof Error ? error.message : String(error)),
-      );
-    }
-  }
-
-  /**
-   * Public collections have no permissioned space; nothing to delete.
-   */
-  async deleteCollectionSpace(
-    _collection: Collection,
-  ): Promise<Result<void, UseCaseError>> {
-    return ok(undefined);
-  }
-
-  /**
-   * Unpublishes (deletes) a Collection record and all its links
-   * Supports both Cosmik and Margin namespaces by detecting the collection from the URI
-   */
-  async unpublish(
-    recordId: PublishedRecordId,
-  ): Promise<Result<void, UseCaseError>> {
-    try {
-      const publishedRecordId = recordId.getValue();
-      const strongRef = new StrongRef(publishedRecordId);
-      const atUri = strongRef.atUri;
-      const curatorDid = atUri.did;
-      const repo = atUri.did.toString();
-      const rkey = atUri.rkey;
-
-      // Extract the actual collection from the URI to support both Margin and Cosmik
-      const collection =
-        NamespaceDetector.extractCollectionFromPublishedRecordId(recordId) ||
-        this.collectionCollection;
-
-      // Get an authenticated agent for this curator
-      const agentResult =
-        await this.agentService.getAuthenticatedAgent(curatorDid);
-
-      if (agentResult.isErr()) {
-        // Propagate authentication errors as-is
-        if (agentResult.error instanceof AuthenticationError) {
-          return err(agentResult.error);
-        }
-        return err(
-          new Error(
-            `Authentication error for ATProtoCollectionPublisher: ${agentResult.error.message}`,
-          ),
-        );
-      }
-
-      const agent = agentResult.value;
-
-      if (!agent) {
-        return err(new Error('No authenticated session found for curator'));
-      }
-
-      // Delete the collection record using the detected namespace
-      await agent.com.atproto.repo.deleteRecord({
-        repo,
-        collection, // Now uses the actual collection from the URI
-        rkey,
-      });
-
-      // TODO: Also delete all collection link records that reference this collection
-      // This would require querying for all links that reference this collection
-      // and deleting them individually
-
-      return ok(undefined);
-    } catch (error) {
-      return err(
-        new Error(error instanceof Error ? error.message : String(error)),
-      );
-    }
+    return this.forCollection(collection).publishContributorCardRemoval(
+      card,
+      collection,
+      curatorId,
+      removedRecordRef,
+    );
   }
 }

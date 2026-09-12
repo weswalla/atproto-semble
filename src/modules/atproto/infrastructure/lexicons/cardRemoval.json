@@ -1,0 +1,33 @@
+{
+  "lexicon": 1,
+  "id": "network.cosmik.cardRemoval",
+  "description": "A record indicating that a card was removed from a collection space by the collection owner.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A record representing the removal of a card record from a collection space by the collection owner, when they cannot delete the original record (which exists in another member's permissioned repo within the space). The creator of this record (determined from the AT-URI) is the user who performed the removal.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["collection", "removedCard", "removedAt"],
+        "properties": {
+          "collection": {
+            "type": "ref",
+            "description": "Strong reference to the collection record (rkey=self) in this space.",
+            "ref": "com.atproto.repo.strongRef"
+          },
+          "removedCard": {
+            "type": "ref",
+            "description": "Strong reference to the card record being removed from the collection.",
+            "ref": "com.atproto.repo.strongRef"
+          },
+          "removedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when the card was removed from the collection."
+          }
+        }
+      }
+    }
+  }
+}

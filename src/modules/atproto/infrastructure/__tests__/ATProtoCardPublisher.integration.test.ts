@@ -1,4 +1,4 @@
-import { ATProtoCardPublisher } from '../publishers/ATProtoCardPublisher';
+import { ATProtoPublicCardPublisher } from '../publishers/ATProtoPublicCardPublisher';
 import { CardBuilder } from 'src/modules/cards/tests/utils/builders/CardBuilder';
 import { URL } from 'src/modules/cards/domain/value-objects/URL';
 import { UrlMetadata } from 'src/modules/cards/domain/value-objects/UrlMetadata';
@@ -16,7 +16,7 @@ dotenv.config({ path: '.env.test' });
 const UNPUBLISH = true;
 
 describe.skip('ATProtoCardPublisher', () => {
-  let publisher: ATProtoCardPublisher;
+  let publisher: ATProtoPublicCardPublisher;
   let curatorId: CuratorId;
   let publishedCardIds: PublishedRecordId[] = [];
   const envConfig: EnvironmentConfigService = new EnvironmentConfigService();
@@ -34,7 +34,7 @@ describe.skip('ATProtoCardPublisher', () => {
     });
 
     const collections = envConfig.getAtProtoConfig().collections;
-    publisher = new ATProtoCardPublisher(agentService, collections.card);
+    publisher = new ATProtoPublicCardPublisher(agentService, collections.card);
     curatorId = CuratorId.create(process.env.BSKY_DID).unwrap();
   });
 
@@ -488,7 +488,7 @@ describe.skip('ATProtoCardPublisher', () => {
       });
 
       const collections = envConfig.getAtProtoConfig().collections;
-      const invalidPublisher = new ATProtoCardPublisher(
+      const invalidPublisher = new ATProtoPublicCardPublisher(
         invalidAgentService,
         collections.card,
       );

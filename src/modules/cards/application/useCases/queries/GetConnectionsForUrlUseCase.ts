@@ -31,6 +31,7 @@ export interface ConnectionView {
     id: string;
     type?: string;
     note?: string;
+    visibility?: string;
     createdAt: string;
     updatedAt: string;
     curator: UserProfileDTO;
@@ -111,6 +112,7 @@ export class GetConnectionsForUrlUseCase implements UseCase<
           sortOrder,
           connectionTypes,
         },
+        query.callingUserId,
       );
 
       // Extract unique curator IDs and URLs from both source and target
@@ -285,6 +287,7 @@ export class GetConnectionsForUrlUseCase implements UseCase<
               id: item.connection.id,
               type: item.connection.type,
               note: item.connection.note,
+              visibility: item.connection.visibility,
               createdAt: item.connection.createdAt.toISOString(),
               updatedAt: item.connection.updatedAt.toISOString(),
               curator,

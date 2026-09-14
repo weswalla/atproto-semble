@@ -30,6 +30,7 @@ export interface ConnectionForUrlDTO {
     id: string;
     type?: ConnectionTypeEnum;
     note?: string;
+    visibility?: string; // 'PUBLIC' | 'PRIVATE'; private rows only surface to their curator
     createdAt: Date;
     updatedAt: Date;
     curatorId: string; // Will be enriched to profile in use case
@@ -43,6 +44,7 @@ export interface ConnectionForUserDTO {
     id: string;
     type?: ConnectionTypeEnum;
     note?: string;
+    visibility?: string;
     createdAt: Date;
     updatedAt: Date;
     curatorId: string;
@@ -61,6 +63,7 @@ export interface IConnectionQueryRepository {
   getForwardConnectionsForUrl(
     url: string,
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>>;
 
   /**
@@ -70,6 +73,7 @@ export interface IConnectionQueryRepository {
   getBackwardConnectionsForUrl(
     url: string,
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>>;
 
   /**
@@ -83,6 +87,7 @@ export interface IConnectionQueryRepository {
     url: string,
     direction: 'forward' | 'backward' | 'both',
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>>;
 
   /**
@@ -92,6 +97,7 @@ export interface IConnectionQueryRepository {
   getConnectionsForUser(
     curatorId: string,
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>>;
 
   /**

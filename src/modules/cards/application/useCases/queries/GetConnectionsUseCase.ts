@@ -30,6 +30,7 @@ export interface ConnectionView {
     id: string;
     type?: string;
     note?: string;
+    visibility?: string;
     createdAt: string;
     updatedAt: string;
   };
@@ -117,6 +118,7 @@ export class GetConnectionsUseCase implements UseCase<
           sortOrder,
           connectionTypes,
         },
+        query.callingUserId,
       );
 
       // Extract unique URLs from both source and target
@@ -260,6 +262,7 @@ export class GetConnectionsUseCase implements UseCase<
             id: item.connection.id,
             type: item.connection.type,
             note: item.connection.note,
+            visibility: item.connection.visibility,
             createdAt: item.connection.createdAt.toISOString(),
             updatedAt: item.connection.updatedAt.toISOString(),
           },

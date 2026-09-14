@@ -14,29 +14,44 @@ import { ConnectionTypeEnum } from '../../domain/value-objects/ConnectionType';
 export class InMemoryConnectionQueryRepository implements IConnectionQueryRepository {
   constructor(private connectionRepository: InMemoryConnectionRepository) {}
 
+  /** Mirrors the SQL visibility predicate: PUBLIC rows, plus the caller's own. */
+  private isConnectionVisibleTo(
+    connection: { isPublic: boolean; curatorId: { value: string } },
+    callingUserId?: string,
+  ): boolean {
+    return connection.isPublic || connection.curatorId.value === callingUserId;
+  }
+
   async getForwardConnectionsForUrl(
     url: string,
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>> {
-    return this.getConnectionsForUrlPrivate(url, 'source', options);
+    return this.getConnectionsForUrlPrivate(url, 'source', options, callingUserId);
   }
 
   async getBackwardConnectionsForUrl(
     url: string,
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>> {
-    return this.getConnectionsForUrlPrivate(url, 'target', options);
+    return this.getConnectionsForUrlPrivate(url, 'target', options, callingUserId);
   }
 
   async getConnectionsForUrl(
     url: string,
     direction: 'forward' | 'backward' | 'both',
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>> {
     const { page, limit, sortBy, sortOrder, connectionTypes } = options;
 
     // Get all connections from the repository
-    const allConnections = this.connectionRepository.getAllConnections();
+    const allConnections = this.connectionRepository
+      .getAllConnections()
+      .filter((connection) =>
+        this.isConnectionVisibleTo(connection, callingUserId),
+      );
 
     // Filter connections based on direction and URL type
     let filteredConnections = allConnections.filter((connection) => {
@@ -94,6 +109,7 @@ export class InMemoryConnectionQueryRepository implements IConnectionQueryReposi
           id: connection.connectionId.getStringValue(),
           type: connection.type?.value,
           note: connection.note?.value,
+          visibility: connection.visibility,
           createdAt: connection.createdAt,
           updatedAt: connection.updatedAt,
           curatorId: connection.curatorId.value,
@@ -115,11 +131,16 @@ export class InMemoryConnectionQueryRepository implements IConnectionQueryReposi
     url: string,
     direction: 'source' | 'target',
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>> {
     const { page, limit, sortBy, sortOrder, connectionTypes } = options;
 
     // Get all connections from the repository
-    const allConnections = this.connectionRepository.getAllConnections();
+    const allConnections = this.connectionRepository
+      .getAllConnections()
+      .filter((connection) =>
+        this.isConnectionVisibleTo(connection, callingUserId),
+      );
 
     // Filter connections based on direction and URL type
     let filteredConnections = allConnections.filter((connection) => {
@@ -174,6 +195,7 @@ export class InMemoryConnectionQueryRepository implements IConnectionQueryReposi
           id: connection.connectionId.getStringValue(),
           type: connection.type?.value,
           note: connection.note?.value,
+          visibility: connection.visibility,
           createdAt: connection.createdAt,
           updatedAt: connection.updatedAt,
           curatorId: connection.curatorId.value,
@@ -197,11 +219,16 @@ export class InMemoryConnectionQueryRepository implements IConnectionQueryReposi
   async getConnectionsForUser(
     curatorId: string,
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>> {
     const { page, limit, sortBy, sortOrder, connectionTypes } = options;
 
     // Get all connections from the repository
-    const allConnections = this.connectionRepository.getAllConnections();
+    const allConnections = this.connectionRepository
+      .getAllConnections()
+      .filter((connection) =>
+        this.isConnectionVisibleTo(connection, callingUserId),
+      );
 
     // Filter connections by curator and URL-to-URL type
     let filteredConnections = allConnections.filter((connection) => {
@@ -246,6 +273,7 @@ export class InMemoryConnectionQueryRepository implements IConnectionQueryReposi
           id: connection.connectionId.getStringValue(),
           type: connection.type?.value,
           note: connection.note?.value,
+          visibility: connection.visibility,
           createdAt: connection.createdAt,
           updatedAt: connection.updatedAt,
           curatorId: connection.curatorId.value,

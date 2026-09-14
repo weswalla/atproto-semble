@@ -19,20 +19,24 @@ export class DrizzleConnectionQueryRepository implements IConnectionQueryReposit
   async getForwardConnectionsForUrl(
     url: string,
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>> {
     return this.connectionQueryService.getForwardConnectionsForUrl(
       url,
       options,
+      callingUserId,
     );
   }
 
   async getBackwardConnectionsForUrl(
     url: string,
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>> {
     return this.connectionQueryService.getBackwardConnectionsForUrl(
       url,
       options,
+      callingUserId,
     );
   }
 
@@ -40,21 +44,25 @@ export class DrizzleConnectionQueryRepository implements IConnectionQueryReposit
     url: string,
     direction: 'forward' | 'backward' | 'both',
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>> {
     return this.connectionQueryService.getConnectionsForUrlWithDirection(
       url,
       direction,
       options,
+      callingUserId,
     );
   }
 
   async getConnectionsForUser(
     curatorId: string,
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>> {
     return this.connectionQueryService.getConnectionsForUser(
       curatorId,
       options,
+      callingUserId,
     );
   }
 

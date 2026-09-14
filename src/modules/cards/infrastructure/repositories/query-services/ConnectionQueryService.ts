@@ -11,6 +11,7 @@ import {
 import { ConnectionTypeEnum } from '../../../domain/value-objects/ConnectionType';
 import { connections } from '../schema/connection.sql';
 import { publishedRecords } from '../schema/publishedRecord.sql';
+import { connectionVisibleTo } from './visibilityFilter';
 
 export class ConnectionQueryService {
   constructor(private db: PostgresJsDatabase) {}
@@ -18,27 +19,31 @@ export class ConnectionQueryService {
   async getForwardConnectionsForUrl(
     url: string,
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>> {
-    return this.getConnectionsForUrl(url, 'source', options);
+    return this.getConnectionsForUrl(url, 'source', options, callingUserId);
   }
 
   async getBackwardConnectionsForUrl(
     url: string,
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>> {
-    return this.getConnectionsForUrl(url, 'target', options);
+    return this.getConnectionsForUrl(url, 'target', options, callingUserId);
   }
 
   async getConnectionsForUrlWithDirection(
     url: string,
     direction: 'forward' | 'backward' | 'both',
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>> {
     const { page, limit, sortBy, sortOrder, connectionTypes } = options;
     const offset = (page - 1) * limit;
 
-    // Build WHERE conditions based on direction
-    let whereConditions: SQL[] = [];
+    // Build WHERE conditions based on direction. The visibility predicate
+    // hides other users' private connections; list + count share the clause.
+    let whereConditions: SQL[] = [connectionVisibleTo(callingUserId)];
 
     if (direction === 'forward') {
       // URL is the source
@@ -100,6 +105,7 @@ export class ConnectionQueryService {
           targetUrlMetadata: connections.targetUrlMetadata,
           connectionType: connections.connectionType,
           note: connections.note,
+          visibility: connections.visibility,
           createdAt: connections.createdAt,
           updatedAt: connections.updatedAt,
         })
@@ -119,6 +125,7 @@ export class ConnectionQueryService {
         id: row.id,
         type: row.connectionType as ConnectionTypeEnum | undefined,
         note: row.note || undefined,
+        visibility: row.visibility,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
         curatorId: row.curatorId,
@@ -140,12 +147,14 @@ export class ConnectionQueryService {
     url: string,
     direction: 'source' | 'target',
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUrlDTO>> {
     const { page, limit, sortBy, sortOrder, connectionTypes } = options;
     const offset = (page - 1) * limit;
 
     // Build WHERE conditions
     const whereConditions: SQL[] = [
+      connectionVisibleTo(callingUserId),
       // Match the URL in the specified direction
       direction === 'source'
         ? and(
@@ -191,6 +200,7 @@ export class ConnectionQueryService {
           targetValue: connections.targetValue,
           connectionType: connections.connectionType,
           note: connections.note,
+          visibility: connections.visibility,
           createdAt: connections.createdAt,
           updatedAt: connections.updatedAt,
         })
@@ -210,6 +220,7 @@ export class ConnectionQueryService {
         id: row.id,
         type: row.connectionType as ConnectionTypeEnum | undefined,
         note: row.note || undefined,
+        visibility: row.visibility,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
         curatorId: row.curatorId,
@@ -228,14 +239,17 @@ export class ConnectionQueryService {
   async getConnectionsForUser(
     curatorId: string,
     options: ConnectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>> {
     const { page, limit, sortBy, sortOrder, connectionTypes } = options;
     const offset = (page - 1) * limit;
 
-    // Build WHERE conditions
+    // Build WHERE conditions. Owner-inclusive visibility: the curator's own
+    // listing shows their private connections; other viewers see PUBLIC only.
     const whereConditions: SQL[] = [
       // Match curator
       eq(connections.curatorId, curatorId),
+      connectionVisibleTo(callingUserId),
       // Only URL-to-URL connections for now
       eq(connections.sourceType, 'URL'),
       eq(connections.targetType, 'URL'),
@@ -272,6 +286,7 @@ export class ConnectionQueryService {
           targetUrlMetadata: connections.targetUrlMetadata,
           connectionType: connections.connectionType,
           note: connections.note,
+          visibility: connections.visibility,
           createdAt: connections.createdAt,
           updatedAt: connections.updatedAt,
         })
@@ -291,6 +306,7 @@ export class ConnectionQueryService {
         id: row.id,
         type: row.connectionType as ConnectionTypeEnum | undefined,
         note: row.note || undefined,
+        visibility: row.visibility,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
         curatorId: row.curatorId,

@@ -58,6 +58,11 @@ export class ConnectionCreatedEventHandler implements IEventHandler<ConnectionCr
         return ok(undefined);
       }
 
+      // No notifications (including mentions) for private connections
+      if (connection.isPrivate) {
+        return ok(undefined);
+      }
+
       // Mention pass runs before the URL guard: card-to-card connections can
       // still carry a mentioning note.
       const mentionedDids = new Set<string>();

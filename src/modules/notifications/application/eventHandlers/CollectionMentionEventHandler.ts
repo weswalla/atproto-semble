@@ -32,6 +32,9 @@ export class CollectionMentionEventHandler implements IEventHandler<
       }
       const collection = collectionResult.value;
 
+      // No mention notifications from private collections
+      if (collection.isPrivateCollection) return ok(undefined);
+
       const text = collection.description?.value ?? '';
       const recipients =
         await this.mentionRecipientResolver.resolveMentionedUsers(text);

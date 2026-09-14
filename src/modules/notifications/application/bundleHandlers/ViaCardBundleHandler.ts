@@ -27,6 +27,8 @@ export class ViaCardBundleHandler implements ICardActivityBundleHandler {
       if (cardResult.isErr() || !cardResult.value) return ok(undefined);
 
       const card = cardResult.value;
+      // No notifications for private cards
+      if (card.isPrivate) return ok(undefined);
       if (!card.viaCardId) return ok(undefined);
 
       const viaCardResult = await this.cardRepository.findById(card.viaCardId);

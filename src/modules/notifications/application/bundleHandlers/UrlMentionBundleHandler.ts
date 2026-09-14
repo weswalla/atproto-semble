@@ -41,6 +41,8 @@ export class UrlMentionBundleHandler implements ICardActivityBundleHandler {
       if (cardResult.isErr() || !cardResult.value) return ok(undefined);
 
       const card = cardResult.value;
+      // No notifications for private cards
+      if (card.isPrivate) return ok(undefined);
       if (card.viaCardId) return ok(undefined); // viaCard handler covers this
       if (!card.url) return ok(undefined);
 
@@ -103,6 +105,10 @@ export class UrlMentionBundleHandler implements ICardActivityBundleHandler {
           collectionIdResult.value,
         );
         if (collectionResult.isErr() || !collectionResult.value) {
+          return ok(undefined);
+        }
+        // No notifications referencing private collections
+        if (collectionResult.value.isPrivateCollection) {
           return ok(undefined);
         }
 

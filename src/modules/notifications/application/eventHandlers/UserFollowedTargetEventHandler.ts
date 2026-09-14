@@ -77,6 +77,11 @@ export class UserFollowedTargetEventHandler implements IEventHandler<UserFollowe
           return ok(undefined);
         }
 
+        // No follow notifications for private collections
+        if (collection.isPrivateCollection) {
+          return ok(undefined);
+        }
+
         const recipientId = collection.authorId;
 
         // Skip if user is following their own collection

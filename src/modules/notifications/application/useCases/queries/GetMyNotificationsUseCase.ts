@@ -234,6 +234,15 @@ export class GetMyNotificationsUseCase implements UseCase<
               continue; // Skip if connection not found
             }
 
+            // Backstop for notifications created before a connection went
+            // private (new ones are suppressed at creation time)
+            if (
+              connection.isPrivate &&
+              connection.curatorId.value !== request.userId
+            ) {
+              continue;
+            }
+
             // Only handle URL connections
             if (!connection.source.url || !connection.target.url) {
               continue; // Skip if not both URLs

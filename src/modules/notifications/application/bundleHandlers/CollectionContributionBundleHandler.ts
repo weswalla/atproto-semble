@@ -34,6 +34,8 @@ export class CollectionContributionBundleHandler implements ICardActivityBundleH
         if (collectionResult.isErr() || !collectionResult.value) continue;
 
         const collection = collectionResult.value;
+        // No notifications referencing private collections
+        if (collection.isPrivateCollection) continue;
         if (collection.accessType !== CollectionAccessType.OPEN) continue;
 
         const recipientUserId = collection.authorId.value;

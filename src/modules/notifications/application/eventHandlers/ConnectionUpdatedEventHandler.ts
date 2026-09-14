@@ -25,6 +25,8 @@ export class ConnectionUpdatedEventHandler implements IEventHandler<ConnectionUp
         return ok(undefined);
       }
       const connection = connectionResult.value;
+      // No notifications for private connections
+      if (connection.isPrivate) return ok(undefined);
 
       const text = connection.note?.value ?? '';
       const recipients =

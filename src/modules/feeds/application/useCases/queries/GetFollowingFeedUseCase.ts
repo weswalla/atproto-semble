@@ -274,7 +274,15 @@ export class GetFollowingFeedUseCase implements UseCase<
         return err(AppError.UnexpectedError.create(collectionsResult.error));
       }
 
-      const validCollections = collectionsResult.value.map((collection) => {
+      // Private collections are stripped from feed items for everyone but
+      // their author; the activity itself still renders as a plain save.
+      const visibleCollections = collectionsResult.value.filter(
+        (collection) =>
+          collection.isPublicCollection ||
+          collection.authorId.value === query.callingUserId,
+      );
+
+      const validCollections = visibleCollections.map((collection) => {
         const uri = collection.publishedRecordId?.uri;
         const cardIds = new Set(
           collection.cardIds.map((cardId) => cardId.getStringValue()),
@@ -286,6 +294,7 @@ export class GetFollowingFeedUseCase implements UseCase<
           name: collection.name.toString(),
           description: collection.description?.toString(),
           accessType: collection.accessType,
+          visibility: collection.visibility,
           authorId: collection.authorId.value,
           cardCount: collection.cardCount,
           createdAt: collection.createdAt.toISOString(),
@@ -330,6 +339,7 @@ export class GetFollowingFeedUseCase implements UseCase<
           name: string;
           description?: string;
           accessType: CollectionAccessType;
+          visibility?: string;
           author: {
             id: string;
             name: string;
@@ -357,6 +367,7 @@ export class GetFollowingFeedUseCase implements UseCase<
           name: result.name,
           description: result.description,
           accessType: result.accessType,
+          visibility: result.visibility,
           author: {
             id: author.id,
             name: author.name,
@@ -383,6 +394,7 @@ export class GetFollowingFeedUseCase implements UseCase<
           id: string;
           type?: string;
           note?: string;
+          visibility?: string;
           createdAt: string;
           updatedAt: string;
           curatorId: string;
@@ -431,7 +443,13 @@ export class GetFollowingFeedUseCase implements UseCase<
           return err(AppError.UnexpectedError.create(connectionsResult.error));
         }
 
-        const connections = connectionsResult.value;
+        // Other users' private connections drop out of the map, so their
+        // activities are skipped during assembly.
+        const connections = connectionsResult.value.filter(
+          (connection) =>
+            connection.isPublic ||
+            connection.curatorId.value === query.callingUserId,
+        );
 
         // Build connection data map
         for (const connection of connections) {
@@ -444,6 +462,7 @@ export class GetFollowingFeedUseCase implements UseCase<
               id: connection.connectionId.getStringValue(),
               type: connection.type?.value,
               note: connection.note?.value,
+              visibility: connection.visibility,
               createdAt: connection.createdAt.toISOString(),
               updatedAt: connection.updatedAt.toISOString(),
               curatorId: connection.curatorId.value,
@@ -558,6 +577,10 @@ export class GetFollowingFeedUseCase implements UseCase<
             urlInLibrary: cardView.urlInLibrary,
             urlConnectionCount: cardView.urlConnectionCount,
             urlIsConnected: cardView.urlIsConnected,
+            visibility: cardView.visibility as
+              | 'PUBLIC'
+              | 'PRIVATE'
+              | undefined,
             createdAt: cardView.createdAt.toISOString(),
             updatedAt: cardView.updatedAt.toISOString(),
             author: cardAuthor,
@@ -574,6 +597,10 @@ export class GetFollowingFeedUseCase implements UseCase<
               name: collection.name,
               description: collection.description,
               accessType: collection.accessType,
+              visibility: collection.visibility as
+                | 'PUBLIC'
+                | 'PRIVATE'
+                | undefined,
               author: collection.author,
               cardCount: collection.cardCount,
               createdAt: collection.createdAt,
@@ -666,6 +693,7 @@ export class GetFollowingFeedUseCase implements UseCase<
                 id: connectionData.id,
                 type: connectionData.type,
                 note: connectionData.note,
+                visibility: connectionData.visibility,
                 createdAt: connectionData.createdAt,
                 updatedAt: connectionData.updatedAt,
                 curator,

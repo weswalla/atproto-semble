@@ -270,6 +270,16 @@ export class GetGemActivityFeedUseCase implements UseCase<
           }
 
           const collection = collectionResult.value;
+
+          // Private collections are stripped from feed items for everyone but
+          // their author; the activity itself still renders as a plain save.
+          if (
+            collection.isPrivateCollection &&
+            collection.authorId.value !== query.callingUserId
+          ) {
+            return null;
+          }
+
           const uri = collection.publishedRecordId?.uri;
 
           // Get the card IDs in this collection

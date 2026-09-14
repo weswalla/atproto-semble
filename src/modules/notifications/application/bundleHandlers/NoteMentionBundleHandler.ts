@@ -38,6 +38,8 @@ export class NoteMentionBundleHandler implements ICardActivityBundleHandler {
       const cardResult = await this.cardRepository.findById(cardIdResult.value);
       if (cardResult.isErr() || !cardResult.value) return ok(undefined);
       const card = cardResult.value;
+      // No notifications for private cards
+      if (card.isPrivate) return ok(undefined);
       if (!card.url) return ok(undefined);
 
       const noteCardResult = await this.cardRepository.findUsersNoteCardByUrl(

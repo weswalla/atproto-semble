@@ -23,6 +23,9 @@ export class NoteCardUpdatedEventHandler implements IEventHandler<NoteCardUpdate
       if (noteCardResult.isErr() || !noteCardResult.value) return ok(undefined);
       const noteCard = noteCardResult.value;
 
+      // No mention notifications from private notes
+      if (noteCard.isPrivate) return ok(undefined);
+
       // Mention metadata is keyed on the parent URL card id
       const parentCardId = noteCard.parentCardId;
       if (!parentCardId) return ok(undefined);

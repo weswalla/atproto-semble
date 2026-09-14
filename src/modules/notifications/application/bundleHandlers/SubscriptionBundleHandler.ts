@@ -137,6 +137,8 @@ export class SubscriptionBundleHandler implements ICardActivityBundleHandler {
     if (cardIdResult.isErr()) return null;
     const cardResult = await this.cardRepository.findById(cardIdResult.value);
     if (cardResult.isErr() || !cardResult.value) return null;
+    // No notifications for private cards
+    if (cardResult.value.isPrivate) return null;
     const url = cardResult.value.url;
     if (!url) return null;
     return this.collectionUrlResolver.resolve(url.toString());

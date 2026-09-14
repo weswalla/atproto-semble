@@ -21,7 +21,11 @@ export class GetUrlGraphDataController extends Controller {
         ? Math.max(1, Math.min(5, parseInt(req.query.depth as string, 10)))
         : 1;
 
-      const result = await this.getUrlSubGraphUseCase.execute({ url, depth });
+      const result = await this.getUrlSubGraphUseCase.execute({
+        url,
+        depth,
+        callingUserId: req.did,
+      });
 
       if (result.isErr()) {
         return this.fail(res, result.error);

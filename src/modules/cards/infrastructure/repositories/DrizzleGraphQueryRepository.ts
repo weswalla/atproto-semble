@@ -19,11 +19,25 @@ export class DrizzleGraphQueryRepository implements IGraphQueryRepository {
     page?: number,
     limit?: number,
     userId?: string,
+    callingUserId?: string,
   ): Promise<GraphDataDTO> {
-    return this.graphQueryService.getGraphData(page, limit, userId);
+    return this.graphQueryService.getGraphData(
+      page,
+      limit,
+      userId,
+      callingUserId,
+    );
   }
 
-  async getUrlSubGraph(url: string, depth: number): Promise<GraphDataDTO> {
-    return this.urlGraphTraversalService.getUrlSubGraph(url, depth);
+  async getUrlSubGraph(
+    url: string,
+    depth: number,
+    callingUserId?: string,
+  ): Promise<GraphDataDTO> {
+    return this.urlGraphTraversalService.getUrlSubGraph(
+      url,
+      depth,
+      callingUserId,
+    );
   }
 }

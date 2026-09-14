@@ -16,7 +16,11 @@ export class GetGraphDataController extends Controller {
         ? parseInt(req.query.limit as string, 10)
         : 300;
 
-      const result = await this.getGraphDataUseCase.execute({ page, limit });
+      const result = await this.getGraphDataUseCase.execute({
+        page,
+        limit,
+        callingUserId: req.did,
+      });
 
       if (result.isErr()) {
         return this.fail(res, result.error);

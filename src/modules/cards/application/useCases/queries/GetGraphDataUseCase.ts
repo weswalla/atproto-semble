@@ -7,7 +7,8 @@ import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
 export interface GetGraphDataQuery {
   page?: number;
   limit?: number;
-  identifier?: string; // Can be DID or handle
+  identifier?: string; // Can be DID or handle (the graph subject)
+  callingUserId?: string; // the viewer; drives visibility filtering
 }
 
 export interface GraphNode {
@@ -70,6 +71,7 @@ export class GetGraphDataUseCase implements UseCase<
         query.page,
         query.limit,
         userId,
+        query.callingUserId,
       );
 
       return ok({

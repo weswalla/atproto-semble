@@ -25,6 +25,7 @@ export class GetUserGraphDataController extends Controller {
         page,
         limit,
         identifier,
+        callingUserId: req.did,
       });
 
       if (result.isErr()) {

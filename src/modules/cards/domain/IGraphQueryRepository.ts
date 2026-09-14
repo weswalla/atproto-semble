@@ -33,6 +33,7 @@ export interface IGraphQueryRepository {
     page?: number,
     limit?: number,
     userId?: string,
+    callingUserId?: string,
   ): Promise<GraphDataDTO>;
 
   /**
@@ -42,5 +43,9 @@ export interface IGraphQueryRepository {
    * @param url - Target URL to center the sub-graph around
    * @param depth - Number of edge hops to traverse (1-5, defaults to 1)
    */
-  getUrlSubGraph(url: string, depth: number): Promise<GraphDataDTO>;
+  getUrlSubGraph(
+    url: string,
+    depth: number,
+    callingUserId?: string,
+  ): Promise<GraphDataDTO>;
 }

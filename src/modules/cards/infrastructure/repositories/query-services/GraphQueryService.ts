@@ -8,6 +8,12 @@ import {
 import { cards } from '../schema/card.sql';
 import { collections, collectionCards } from '../schema/collection.sql';
 import { connections } from '../schema/connection.sql';
+import {
+  cardVisibleTo,
+  collectionVisibleTo,
+  connectionVisibleTo,
+  visibleToRaw,
+} from './visibilityFilter';
 
 export class GraphQueryService {
   constructor(private db: PostgresJsDatabase) {}
@@ -16,14 +22,16 @@ export class GraphQueryService {
     page: number = 1,
     limit: number = 300,
     userId?: string,
+    callingUserId?: string,
   ): Promise<GraphDataDTO> {
-    // Fetch all data in parallel
+    // userId scopes the graph to a subject user; callingUserId is the viewer
+    // and drives visibility filtering. Fetch all data in parallel.
     const [urlNodes, collectionNodes, collectionUrlEdges, urlConnectionEdges] =
       await Promise.all([
-        this.getUrlNodes(userId),
-        this.getCollectionNodes(userId),
-        this.getCollectionUrlEdges(userId),
-        this.getUrlConnectionEdges(userId),
+        this.getUrlNodes(userId, callingUserId),
+        this.getCollectionNodes(userId, callingUserId),
+        this.getCollectionUrlEdges(userId, callingUserId),
+        this.getUrlConnectionEdges(userId, callingUserId),
       ]);
 
     // Combine all nodes
@@ -52,7 +60,10 @@ export class GraphQueryService {
     };
   }
 
-  private async getUrlNodes(userId?: string): Promise<GraphNodeDTO[]> {
+  private async getUrlNodes(
+    userId?: string,
+    callingUserId?: string,
+  ): Promise<GraphNodeDTO[]> {
     if (userId) {
       // For user-scoped graph: include URLs authored by user OR in their connections
       const urlCards = await this.db.execute<{
@@ -69,14 +80,17 @@ export class GraphQueryService {
         FROM cards c
         WHERE c.type = 'URL'
           AND c.url IS NOT NULL
+          AND ${visibleToRaw('c', 'author_id', callingUserId)}
           AND (
             c.author_id = ${userId}
             OR c.url IN (
               SELECT source_value FROM connections
               WHERE curator_id = ${userId} AND source_type = 'URL'
+                AND ${visibleToRaw('connections', 'curator_id', callingUserId)}
               UNION
               SELECT target_value FROM connections
               WHERE curator_id = ${userId} AND target_type = 'URL'
+                AND ${visibleToRaw('connections', 'curator_id', callingUserId)}
             )
           )
       `);
@@ -86,10 +100,12 @@ export class GraphQueryService {
         SELECT DISTINCT source_value as url
         FROM connections
         WHERE curator_id = ${userId} AND source_type = 'URL'
+          AND ${visibleToRaw('connections', 'curator_id', callingUserId)}
         UNION
         SELECT DISTINCT target_value as url
         FROM connections
         WHERE curator_id = ${userId} AND target_type = 'URL'
+          AND ${visibleToRaw('connections', 'curator_id', callingUserId)}
       `);
 
       // Deduplicate URL cards - keep first occurrence per URL
@@ -147,7 +163,13 @@ export class GraphQueryService {
         urlType: cards.urlType,
       })
       .from(cards)
-      .where(and(eq(cards.type, 'URL'), sql`${cards.url} IS NOT NULL`));
+      .where(
+        and(
+          eq(cards.type, 'URL'),
+          sql`${cards.url} IS NOT NULL`,
+          cardVisibleTo(callingUserId),
+        ),
+      );
 
     // Deduplicate by URL - keep first occurrence
     const urlNodeMap = new Map<string, GraphNodeDTO>();
@@ -177,7 +199,10 @@ export class GraphQueryService {
     return Array.from(urlNodeMap.values());
   }
 
-  private async getCollectionNodes(userId?: string): Promise<GraphNodeDTO[]> {
+  private async getCollectionNodes(
+    userId?: string,
+    callingUserId?: string,
+  ): Promise<GraphNodeDTO[]> {
     if (userId) {
       // For user-scoped graph: collections authored by user OR followed by user
       const results = await this.db.execute<{
@@ -194,10 +219,13 @@ export class GraphQueryService {
           c.author_id,
           c.card_count
         FROM collections c
-        WHERE c.author_id = ${userId}
-          OR c.id::text IN (
-            SELECT target_id FROM follows
-            WHERE follower_id = ${userId} AND target_type = 'collection'
+        WHERE ${visibleToRaw('c', 'author_id', callingUserId)}
+          AND (
+            c.author_id = ${userId}
+            OR c.id::text IN (
+              SELECT target_id FROM follows
+              WHERE follower_id = ${userId} AND target_type = 'collection'
+            )
           )
       `);
 
@@ -215,7 +243,7 @@ export class GraphQueryService {
       }));
     }
 
-    // Global graph: all collections
+    // Global graph: all caller-visible collections
     const results = await this.db
       .select({
         id: collections.id,
@@ -224,7 +252,8 @@ export class GraphQueryService {
         authorId: collections.authorId,
         cardCount: collections.cardCount,
       })
-      .from(collections);
+      .from(collections)
+      .where(collectionVisibleTo(callingUserId));
 
     return results.map((row) => ({
       id: `collection:${row.id}`,
@@ -242,6 +271,7 @@ export class GraphQueryService {
 
   private async getCollectionUrlEdges(
     userId?: string,
+    callingUserId?: string,
   ): Promise<GraphEdgeDTO[]> {
     if (userId) {
       // For user-scoped graph: only include collections authored by or followed by the user
@@ -261,6 +291,8 @@ export class GraphQueryService {
         INNER JOIN collections col ON cc.collection_id = col.id
         WHERE c.type = 'URL'
           AND c.url IS NOT NULL
+          AND ${visibleToRaw('c', 'author_id', callingUserId)}
+          AND ${visibleToRaw('col', 'author_id', callingUserId)}
           AND (
             col.author_id = ${userId}
             OR col.id::text IN (
@@ -291,7 +323,18 @@ export class GraphQueryService {
       })
       .from(collectionCards)
       .innerJoin(cards, eq(collectionCards.cardId, cards.id))
-      .where(and(eq(cards.type, 'URL'), sql`${cards.url} IS NOT NULL`));
+      .innerJoin(
+        collections,
+        eq(collectionCards.collectionId, collections.id),
+      )
+      .where(
+        and(
+          eq(cards.type, 'URL'),
+          sql`${cards.url} IS NOT NULL`,
+          cardVisibleTo(callingUserId),
+          collectionVisibleTo(callingUserId),
+        ),
+      );
 
     return results.map((row) => ({
       id: `collection-url:${row.collectionId}:${row.url}`,
@@ -306,10 +349,12 @@ export class GraphQueryService {
 
   private async getUrlConnectionEdges(
     userId?: string,
+    callingUserId?: string,
   ): Promise<GraphEdgeDTO[]> {
     const whereConditions = [
       eq(connections.sourceType, 'URL'),
       eq(connections.targetType, 'URL'),
+      connectionVisibleTo(callingUserId),
     ];
     if (userId) {
       // Only include connections curated by the target user

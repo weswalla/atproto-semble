@@ -5,6 +5,7 @@ import { IGraphQueryRepository } from '../../../domain/IGraphQueryRepository';
 export interface GetUrlSubGraphQuery {
   url: string;
   depth?: number; // Default 1, max 5
+  callingUserId?: string; // the viewer; drives visibility filtering
 }
 
 export interface GraphNode {
@@ -50,6 +51,7 @@ export class GetUrlSubGraphUseCase implements UseCase<
       const graphData = await this.graphQueryRepo.getUrlSubGraph(
         query.url,
         depth,
+        query.callingUserId,
       );
 
       return ok({

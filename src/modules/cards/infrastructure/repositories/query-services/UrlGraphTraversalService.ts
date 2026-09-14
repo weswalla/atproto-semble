@@ -5,6 +5,7 @@ import {
   GraphEdgeDTO,
   GraphDataDTO,
 } from '../../../domain/IGraphQueryRepository';
+import { visibleToRaw } from './visibilityFilter';
 
 export class UrlGraphTraversalService {
   constructor(private db: PostgresJsDatabase) {}
@@ -12,6 +13,7 @@ export class UrlGraphTraversalService {
   async getUrlSubGraph(
     targetUrl: string,
     depth: number = 1,
+    callingUserId?: string,
   ): Promise<GraphDataDTO> {
     // Validate depth
     const validDepth = Math.max(1, Math.min(5, depth));
@@ -30,6 +32,7 @@ export class UrlGraphTraversalService {
       // Fetch edges for current level
       const currentLevelEdges = await this.getEdgesForUrls(
         Array.from(urlsToFetch),
+        callingUserId,
       );
 
       // Process edges and collect new nodes to fetch
@@ -72,7 +75,10 @@ export class UrlGraphTraversalService {
       // Get collections containing current URLs
       const urlsArray = Array.from(urlsToFetch);
       for (const url of urlsArray) {
-        const relatedData = await this.getRelatedNodesForUrl(url);
+        const relatedData = await this.getRelatedNodesForUrl(
+          url,
+          callingUserId,
+        );
         relatedData.collections.forEach((c) => {
           // Only add if not already discovered
           if (!collectionsToFetch.has(c) && !newCollectionsToFetch.has(c)) {
@@ -86,7 +92,10 @@ export class UrlGraphTraversalService {
       const newCollectionsArray = Array.from(newCollectionsToFetch);
       for (const collectionId of newCollectionsArray) {
         if (currentDepth < validDepth - 1) {
-          const urlsInCollection = await this.getUrlsInCollection(collectionId);
+          const urlsInCollection = await this.getUrlsInCollection(
+            collectionId,
+            callingUserId,
+          );
           for (const url of urlsInCollection) {
             const urlNodeId = `url:${url}`;
             if (!visitedNodeIds.has(urlNodeId)) {
@@ -113,6 +122,7 @@ export class UrlGraphTraversalService {
       targetUrl,
       Array.from(visitedNodeIds),
       Array.from(collectionsToFetch),
+      callingUserId,
     );
 
     return {
@@ -143,7 +153,10 @@ export class UrlGraphTraversalService {
     }
   }
 
-  private async getEdgesForUrls(urls: string[]): Promise<GraphEdgeDTO[]> {
+  private async getEdgesForUrls(
+    urls: string[],
+    callingUserId?: string,
+  ): Promise<GraphEdgeDTO[]> {
     if (urls.length === 0) return [];
 
     const edges: GraphEdgeDTO[] = [];
@@ -171,6 +184,7 @@ export class UrlGraphTraversalService {
         curator_id
       FROM connections
       WHERE source_type = 'URL' AND target_type = 'URL'
+        AND ${visibleToRaw('connections', 'curator_id', callingUserId)}
         AND (source_value = ANY(${urlArrayLiteral}) OR target_value = ANY(${urlArrayLiteral}))
     `);
 
@@ -200,9 +214,12 @@ export class UrlGraphTraversalService {
         cc.added_by
       FROM collection_cards cc
       INNER JOIN cards c ON cc.card_id = c.id
+      INNER JOIN collections col ON cc.collection_id = col.id
       WHERE c.type = 'URL'
         AND c.url IS NOT NULL
         AND c.url = ANY(${urlArrayLiteral})
+        AND ${visibleToRaw('c', 'author_id', callingUserId)}
+        AND ${visibleToRaw('col', 'author_id', callingUserId)}
     `);
 
     edges.push(
@@ -220,15 +237,21 @@ export class UrlGraphTraversalService {
     return edges;
   }
 
-  private async getRelatedNodesForUrl(url: string): Promise<{
+  private async getRelatedNodesForUrl(
+    url: string,
+    callingUserId?: string,
+  ): Promise<{
     collections: string[];
   }> {
-    // Get collections containing this URL
+    // Get caller-visible collections containing this URL
     const collections = await this.db.execute<{ collection_id: string }>(sql`
       SELECT DISTINCT cc.collection_id
       FROM collection_cards cc
       INNER JOIN cards c ON cc.card_id = c.id
+      INNER JOIN collections col ON cc.collection_id = col.id
       WHERE c.type = 'URL' AND c.url = ${url}
+        AND ${visibleToRaw('c', 'author_id', callingUserId)}
+        AND ${visibleToRaw('col', 'author_id', callingUserId)}
     `);
 
     return {
@@ -236,8 +259,11 @@ export class UrlGraphTraversalService {
     };
   }
 
-  private async getUrlsInCollection(collectionId: string): Promise<string[]> {
-    // Get all URLs contained in this collection
+  private async getUrlsInCollection(
+    collectionId: string,
+    callingUserId?: string,
+  ): Promise<string[]> {
+    // Get all caller-visible URLs contained in this collection
     const results = await this.db.execute<{ url: string }>(sql`
       SELECT DISTINCT c.url
       FROM collection_cards cc
@@ -245,6 +271,7 @@ export class UrlGraphTraversalService {
       WHERE cc.collection_id = ${collectionId}
         AND c.type = 'URL'
         AND c.url IS NOT NULL
+        AND ${visibleToRaw('c', 'author_id', callingUserId)}
     `);
 
     return results.map((r) => r.url);
@@ -254,6 +281,7 @@ export class UrlGraphTraversalService {
     targetUrl: string,
     visitedNodeIds: string[],
     collectionIds: string[],
+    callingUserId?: string,
   ): Promise<GraphNodeDTO[]> {
     const nodeMap = new Map<string, GraphNodeDTO>();
 
@@ -288,6 +316,7 @@ export class UrlGraphTraversalService {
         WHERE type = 'URL'
           AND url IS NOT NULL
           AND url = ANY(${urlArrayLiteral})
+          AND ${visibleToRaw('cards', 'author_id', callingUserId)}
       `);
 
       // Deduplicate URL nodes - keep first occurrence per URL
@@ -352,6 +381,7 @@ export class UrlGraphTraversalService {
           card_count
         FROM collections
         WHERE id = ANY(${collectionArrayLiteral})
+          AND ${visibleToRaw('collections', 'author_id', callingUserId)}
       `);
 
       for (const row of collectionResults) {

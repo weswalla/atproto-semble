@@ -30,8 +30,11 @@ export class FakeConnectionPublisher implements IConnectionPublisher {
     // Use the connection's curator DID directly
     const fakeDid = connection.curatorId.value;
 
-    // Simulate publishing the connection record
-    const fakeConnectionUri = `at://${fakeDid}/${this.connectionType}/${connectionId}`;
+    // Simulate publishing the connection record. Private connections live in
+    // the curator's library space alongside their private cards.
+    const fakeConnectionUri = connection.isPrivate
+      ? `at://${fakeDid}/space/network.cosmik.library/self/${this.connectionType}/${connectionId}`
+      : `at://${fakeDid}/${this.connectionType}/${connectionId}`;
     const fakeConnectionCid = `fake-connection-cid-${connectionId}`;
 
     const connectionRecord = PublishedRecordId.create({
@@ -112,6 +115,12 @@ export class FakeConnectionPublisher implements IConnectionPublisher {
 
   getPublishedConnections(): Connection[] {
     return Array.from(this.publishedConnections.values());
+  }
+
+  getPrivatelyPublishedConnections(): Connection[] {
+    return Array.from(this.publishedConnections.values()).filter(
+      (connection) => connection.isPrivate,
+    );
   }
 
   getUnpublishedConnections(): Array<{ uri: string; cid: string }> {

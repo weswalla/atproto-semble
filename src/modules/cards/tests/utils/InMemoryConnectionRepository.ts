@@ -34,6 +34,7 @@ export class InMemoryConnectionRepository implements IConnectionRepository {
         targetUrlMetadata: connection.targetUrlMetadata,
         type: connection.type,
         note: connection.note,
+        visibility: connection.visibility,
         publishedRecordId: connection.publishedRecordId,
         createdAt: connection.createdAt,
         updatedAt: connection.updatedAt,

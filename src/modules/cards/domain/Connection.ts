@@ -10,6 +10,7 @@ import { PublishedRecordId } from './value-objects/PublishedRecordId';
 import { UrlMetadata } from './value-objects/UrlMetadata';
 import { ConnectionCreatedEvent } from './events/ConnectionCreatedEvent';
 import { ConnectionRemovedEvent } from './events/ConnectionRemovedEvent';
+import { Visibility } from './value-objects/Visibility';
 
 export class ConnectionValidationError extends Error {
   constructor(message: string) {
@@ -26,6 +27,7 @@ interface ConnectionProps {
   type?: ConnectionType;
   note?: ConnectionNote;
   curatorId: CuratorId;
+  visibility: Visibility; // PUBLIC (repo record) or PRIVATE (library-space record)
   publishedRecordId?: PublishedRecordId;
   createdAt: Date;
   updatedAt: Date;
@@ -80,12 +82,25 @@ export class Connection extends AggregateRoot<ConnectionProps> {
     return this.props.publishedRecordId !== undefined;
   }
 
+  get visibility(): Visibility {
+    return this.props.visibility;
+  }
+
+  get isPrivate(): boolean {
+    return this.props.visibility === Visibility.PRIVATE;
+  }
+
+  get isPublic(): boolean {
+    return this.props.visibility === Visibility.PUBLIC;
+  }
+
   private constructor(props: ConnectionProps, id?: UniqueEntityID) {
     super(props, id);
   }
 
   public static create(
-    props: Omit<ConnectionProps, 'createdAt' | 'updatedAt'> & {
+    props: Omit<ConnectionProps, 'createdAt' | 'updatedAt' | 'visibility'> & {
+      visibility?: Visibility;
       createdAt?: Date;
       updatedAt?: Date;
     },
@@ -103,6 +118,7 @@ export class Connection extends AggregateRoot<ConnectionProps> {
     const now = new Date();
     const connectionProps: ConnectionProps = {
       ...props,
+      visibility: props.visibility ?? Visibility.PUBLIC,
       createdAt: props.createdAt || now,
       updatedAt: props.updatedAt || now,
     };
@@ -167,6 +183,17 @@ export class Connection extends AggregateRoot<ConnectionProps> {
     if (update.targetUrlMetadata) {
       this.props.targetUrlMetadata = update.targetUrlMetadata;
     }
+    this.props.updatedAt = new Date();
+    return ok(undefined);
+  }
+
+  public changeVisibility(
+    visibility: Visibility,
+  ): Result<void, ConnectionValidationError> {
+    if (this.props.visibility === visibility) {
+      return ok(undefined);
+    }
+    this.props.visibility = visibility;
     this.props.updatedAt = new Date();
     return ok(undefined);
   }

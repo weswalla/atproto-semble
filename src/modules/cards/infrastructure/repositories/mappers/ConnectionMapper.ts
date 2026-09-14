@@ -14,6 +14,7 @@ import {
   toUrlMetadataJSON,
   toUrlMetadataProps,
 } from '../../../domain/value-objects/urlMetadataMapping';
+import { Visibility } from '../../../domain/value-objects/Visibility';
 import { PublishedRecordDTO, PublishedRecordRefDTO } from './DTOTypes';
 import { err, ok, Result } from '../../../../../shared/core/Result';
 
@@ -44,6 +45,7 @@ export interface ConnectionDTO extends PublishedRecordRefDTO {
   targetUrlMetadata?: UrlMetadataJSON;
   connectionType?: string;
   note?: string;
+  visibility?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -126,6 +128,10 @@ export class ConnectionMapper {
           type,
           note,
           curatorId: curatorIdOrError.value,
+          visibility:
+            dto.visibility === Visibility.PRIVATE
+              ? Visibility.PRIVATE
+              : Visibility.PUBLIC,
           publishedRecordId,
           createdAt: dto.createdAt,
           updatedAt: dto.updatedAt,
@@ -153,6 +159,7 @@ export class ConnectionMapper {
       targetUrlMetadata?: UrlMetadataJSON | null;
       connectionType?: string | null;
       note?: string | null;
+      visibility: string;
       createdAt: Date;
       updatedAt: Date;
       publishedRecordId?: string;
@@ -200,6 +207,7 @@ export class ConnectionMapper {
         targetUrlMetadata: targetUrlMetadata ?? null,
         connectionType: connection.type?.value ?? null,
         note: connection.note?.value ?? null,
+        visibility: connection.visibility,
         createdAt: connection.createdAt,
         updatedAt: connection.updatedAt,
         publishedRecordId,

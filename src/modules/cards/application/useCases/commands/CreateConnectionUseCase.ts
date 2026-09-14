@@ -21,6 +21,7 @@ import { ConnectionNote } from '../../../domain/value-objects/ConnectionNote';
 import { IMetadataService } from '../../../domain/services/IMetadataService';
 import { URL } from '../../../domain/value-objects/URL';
 import { UrlMetadata } from '../../../domain/value-objects/UrlMetadata';
+import { Visibility } from '../../../domain/value-objects/Visibility';
 
 export interface CreateConnectionDTO {
   sourceType: UrlOrCardIdType;
@@ -32,6 +33,7 @@ export interface CreateConnectionDTO {
   curatorId: string;
   publishedRecordId?: PublishedRecordId; // For firehose events - skip publishing if provided
   createdAt?: Date; // For firehose events - use historical timestamp from AT Protocol record
+  isPrivate?: boolean; // Create the connection as PRIVATE (published to the user's library space)
 }
 
 export interface CreateConnectionResponseDTO {
@@ -230,6 +232,7 @@ export class CreateConnectionUseCase extends BaseUseCase<
         type: connectionType,
         note,
         curatorId,
+        visibility: request.isPrivate ? Visibility.PRIVATE : undefined,
         createdAt: timestamp,
         updatedAt: timestamp,
       });

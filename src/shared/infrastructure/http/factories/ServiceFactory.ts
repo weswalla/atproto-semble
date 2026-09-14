@@ -21,6 +21,8 @@ import { ATProtoPublicCollectionPublisher } from '../../../../modules/atproto/in
 import { ATProtoPrivateCollectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoPrivateCollectionPublisher';
 import { ATProtoSpacesClient } from '../../../../modules/atproto/infrastructure/services/ATProtoSpacesClient';
 import { ATProtoConnectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoConnectionPublisher';
+import { ATProtoPublicConnectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoPublicConnectionPublisher';
+import { ATProtoPrivateConnectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoPrivateConnectionPublisher';
 import { ATProtoFollowPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoFollowPublisher';
 import { FakeCollectionPublisher } from '../../../../modules/cards/tests/utils/FakeCollectionPublisher';
 import { FakeCardPublisher } from '../../../../modules/cards/tests/utils/FakeCardPublisher';
@@ -510,8 +512,15 @@ export class ServiceFactory {
       : useFakePublishers
         ? new FakeConnectionPublisher()
         : new ATProtoConnectionPublisher(
-            atProtoAgentService,
-            collections.connection,
+            new ATProtoPublicConnectionPublisher(
+              atProtoAgentService,
+              collections.connection,
+            ),
+            new ATProtoPrivateConnectionPublisher(
+              spacesClient,
+              collections.connection,
+              spaceTypes.library,
+            ),
           );
 
     const followPublisher = disablePdsPublishing

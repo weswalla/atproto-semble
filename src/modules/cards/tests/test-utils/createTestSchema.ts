@@ -153,6 +153,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       target_url_metadata JSONB,
       connection_type TEXT,
       note TEXT,
+      visibility TEXT NOT NULL DEFAULT 'PUBLIC',
       published_record_id UUID REFERENCES published_records(id),
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()

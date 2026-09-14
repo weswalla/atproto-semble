@@ -210,4 +210,30 @@ describe('CreateConnectionUseCase', () => {
       expect(connectionRepository.getAllConnections()).toHaveLength(2);
     });
   });
+
+  describe('private connections', () => {
+    it('creates a PRIVATE connection published into the library space when isPrivate is set', async () => {
+      const result = await create({ isPrivate: true });
+      expect(result.isOk()).toBe(true);
+
+      const stored = connectionRepository.getAllConnections();
+      expect(stored).toHaveLength(1);
+      expect(stored[0]!.isPrivate).toBe(true);
+      expect(stored[0]!.publishedRecordId!.uri).toContain('/space/');
+      expect(
+        connectionPublisher.getPrivatelyPublishedConnections(),
+      ).toHaveLength(1);
+    });
+
+    it('defaults to PUBLIC with a repo record when isPrivate is not set', async () => {
+      await create();
+
+      const stored = connectionRepository.getAllConnections();
+      expect(stored[0]!.isPublic).toBe(true);
+      expect(stored[0]!.publishedRecordId!.uri).not.toContain('/space/');
+      expect(
+        connectionPublisher.getPrivatelyPublishedConnections(),
+      ).toHaveLength(0);
+    });
+  });
 });

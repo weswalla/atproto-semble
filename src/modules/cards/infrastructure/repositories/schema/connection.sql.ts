@@ -23,6 +23,7 @@ export const connections = pgTable(
     targetUrlMetadata: jsonb('target_url_metadata'), // URL metadata when target is a URL
     connectionType: text('connection_type'), // SUPPORTS, OPPOSES, etc.
     note: text('note'),
+    visibility: text('visibility').notNull().default('PUBLIC'),
     publishedRecordId: uuid('published_record_id').references(
       () => publishedRecords.id,
     ),

@@ -363,8 +363,15 @@ export class SearchService {
         callingUserId,
       );
 
+    // Drop URLs with no caller-visible card: a URL that exists only through
+    // other users' private saves must not surface in search results (the
+    // vector index payload is a side channel; this filter is the guarantee).
+    const visibleResults = searchResults.filter(
+      (result) => urlLibraryInfoMap.get(result.url)?.visibleCardExists,
+    );
+
     // Enrich each URL with library context
-    const enrichedResults = searchResults.map((result) => {
+    const enrichedResults = visibleResults.map((result) => {
       const libraryInfo = urlLibraryInfoMap.get(result.url);
 
       return {

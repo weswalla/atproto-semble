@@ -156,7 +156,22 @@ export class RecommendedCardsUseCase implements UseCase<
       if (rankedResult.isErr()) {
         return err(rankedResult.error);
       }
-      const allUrls = rankedResult.value;
+      const rankedUrls = rankedResult.value;
+
+      // Post-cache visibility filter: drop URLs the caller can't see any card
+      // for (e.g. a URL whose only saves are other users' private cards, or
+      // one that went private after the ranked set was cached).
+      let allUrls = rankedUrls;
+      if (rankedUrls.length > 0) {
+        const libraryInfoMap =
+          await this.cardQueryRepository.getBatchUrlLibraryInfo(
+            rankedUrls.map((urlView) => urlView.url),
+            query.callingUserId,
+          );
+        allUrls = rankedUrls.filter(
+          (urlView) => libraryInfoMap.get(urlView.url)?.visibleCardExists,
+        );
+      }
 
       const totalCount = allUrls.length;
       const startIndex = (page - 1) * limit;

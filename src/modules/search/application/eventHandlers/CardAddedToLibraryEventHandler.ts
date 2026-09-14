@@ -35,6 +35,13 @@ export class CardAddedToLibraryEventHandler implements IEventHandler<CardAddedTo
       return ok(undefined);
     }
 
+    // Don't index URLs on behalf of private saves; if the URL is only
+    // privately saved it stays out of the vector index. (Read-time
+    // visibleCardExists filtering remains the guarantee either way.)
+    if (card.isPrivate) {
+      return ok(undefined);
+    }
+
     // Index the URL for search
     const indexResult = await this.indexUrlForSearchUseCase.execute({
       url: card.url.value,

@@ -32,6 +32,11 @@ export class ConnectionCreatedEventHandler implements IEventHandler<ConnectionCr
       return ok(undefined);
     }
 
+    // Don't index URLs on behalf of private connections
+    if (connection.isPrivate) {
+      return ok(undefined);
+    }
+
     // Index source URL if it exists
     if (connection.source.url) {
       const sourceIndexResult = await this.indexUrlForSearchUseCase.execute({

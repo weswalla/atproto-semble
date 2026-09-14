@@ -70,6 +70,7 @@ export class GetCollectionsForUrlUseCase implements UseCase<
           sortBy,
           sortOrder,
         },
+        query.callingUserId,
       );
 
       // Build profile map using ProfileEnricher utility

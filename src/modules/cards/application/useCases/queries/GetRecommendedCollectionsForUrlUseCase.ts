@@ -121,6 +121,7 @@ export class GetRecommendedCollectionsForUrlUseCase implements UseCase<
               networkUrls,
               query.callingUserId,
               targetUrl,
+              query.callingUserId,
             )
           : Promise.resolve([]),
       ]);

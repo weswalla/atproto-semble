@@ -119,7 +119,7 @@ export class RecommendedCollectionsUseCase implements UseCase<
       // 1. In parallel: collections containing the URLs + Semble users followed
       // on Bluesky (only meaningful for an authenticated caller)
       const [urlCollections, bskyFollowedResult] = await Promise.all([
-        this.collectionQueryRepo.getCollectionsForUrls(urls),
+        this.collectionQueryRepo.getCollectionsForUrls(urls, callingUserId),
         callingUserId
           ? this.bskyFollowsService.getSembleUsersFollowedOnBsky(callingUserId)
           : undefined,

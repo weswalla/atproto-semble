@@ -70,6 +70,13 @@ export class CollectionNotFoundError extends Error {
   }
 }
 
+export class NotAuthorizedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotAuthorizedError';
+  }
+}
+
 export class GetCollectionPageUseCase implements UseCase<
   GetCollectionPageQuery,
   Result<GetCollectionPageResult>
@@ -116,6 +123,14 @@ export class GetCollectionPageUseCase implements UseCase<
       const collection = collectionResult.value;
       if (!collection) {
         return err(new CollectionNotFoundError('Collection not found'));
+      }
+
+      // Private collections are only viewable by their author
+      if (
+        collection.isPrivateCollection &&
+        collection.authorId.value !== query.callingUserId
+      ) {
+        return err(new NotAuthorizedError('This collection is private'));
       }
 
       const collectionPublishedRecordId = collection.publishedRecordId;

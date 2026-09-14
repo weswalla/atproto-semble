@@ -37,6 +37,7 @@ export class CollectionMapper {
     name: string;
     description?: string | null;
     accessType: string;
+    visibility?: string;
     createdAt: Date;
     updatedAt: Date;
     authorId: string;
@@ -48,6 +49,7 @@ export class CollectionMapper {
       name: raw.name,
       description: raw.description || undefined,
       accessType: raw.accessType,
+      visibility: raw.visibility,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       authorId: raw.authorId,

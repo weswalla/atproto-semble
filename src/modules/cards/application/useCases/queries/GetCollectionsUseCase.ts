@@ -83,13 +83,17 @@ export class GetCollectionsUseCase implements UseCase<
 
     try {
       // Execute query to get raw collection data using the resolved DID
-      const result = await this.collectionQueryRepo.findByCreator(resolvedDid, {
-        page,
-        limit,
-        sortBy,
-        sortOrder,
-        searchText: query.searchText,
-      });
+      const result = await this.collectionQueryRepo.findByCreator(
+        resolvedDid,
+        {
+          page,
+          limit,
+          sortBy,
+          sortOrder,
+          searchText: query.searchText,
+        },
+        query.callingUserId,
+      );
 
       // Get user profile for the curator using the resolved DID
       const profileResult = await this.profileService.getProfile(resolvedDid);

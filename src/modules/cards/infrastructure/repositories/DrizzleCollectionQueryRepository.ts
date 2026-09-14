@@ -34,6 +34,10 @@ import { cards } from './schema/card.sql';
 import { CollectionMapper } from './mappers/CollectionMapper';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { CollectionAccessType } from '../../domain/Collection';
+import {
+  cardVisibleTo,
+  collectionVisibleTo,
+} from './query-services/visibilityFilter';
 
 export class DrizzleCollectionQueryRepository implements ICollectionQueryRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -41,6 +45,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
   async findByCreator(
     curatorId: string,
     options: CollectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>> {
     try {
       const { page, limit, sortBy, sortOrder, searchText } = options;
@@ -49,8 +54,12 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
       // Build the sort order
       const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
 
-      // Build where conditions
-      const whereConditions = [eq(collections.authorId, curatorId)];
+      // Build where conditions. Owner-inclusive visibility: on the user's own
+      // listing every row passes; other viewers see only PUBLIC collections.
+      const whereConditions: SQL[] = [
+        eq(collections.authorId, curatorId),
+        collectionVisibleTo(callingUserId),
+      ];
 
       // Add search condition if searchText is provided
       if (searchText && searchText.trim()) {
@@ -70,6 +79,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           name: collections.name,
           description: collections.description,
           accessType: collections.accessType,
+          visibility: collections.visibility,
           createdAt: collections.createdAt,
           updatedAt: collections.updatedAt,
           authorId: collections.authorId,
@@ -113,6 +123,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           name: raw.name,
           description: raw.description,
           accessType: raw.accessType,
+          visibility: raw.visibility,
           createdAt: raw.createdAt,
           updatedAt: raw.updatedAt,
           authorId: raw.authorId,
@@ -158,6 +169,9 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           and(
             eq(collectionCards.cardId, cardId),
             eq(collectionCards.addedBy, curatorId),
+            // curatorId is the caller here; hides other users' collections
+            // that have since gone private
+            collectionVisibleTo(curatorId),
           ),
         )
         .orderBy(asc(collections.name));
@@ -177,6 +191,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
   async getCollectionsWithUrl(
     url: string,
     options: CollectionForUrlQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<CollectionForUrlRawDTO>> {
     try {
       const { page, limit, sortBy, sortOrder } = options;
@@ -191,7 +206,13 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           id: cards.id,
         })
         .from(cards)
-        .where(and(eq(cards.url, url), eq(cards.type, CardTypeEnum.URL)));
+        .where(
+          and(
+            eq(cards.url, url),
+            eq(cards.type, CardTypeEnum.URL),
+            cardVisibleTo(callingUserId),
+          ),
+        );
 
       const urlCardsResult = await urlCardsQuery;
 
@@ -212,6 +233,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           name: collections.name,
           description: collections.description,
           accessType: collections.accessType,
+          visibility: collections.visibility,
           authorId: collections.authorId,
           uri: publishedRecords.uri,
           createdAt: collections.createdAt,
@@ -228,12 +250,18 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           collectionCards,
           eq(collections.id, collectionCards.collectionId),
         )
-        .where(inArray(collectionCards.cardId, cardIds))
+        .where(
+          and(
+            inArray(collectionCards.cardId, cardIds),
+            collectionVisibleTo(callingUserId),
+          ),
+        )
         .groupBy(
           collections.id,
           collections.name,
           collections.description,
           collections.accessType,
+          collections.visibility,
           collections.authorId,
           collections.createdAt,
           collections.updatedAt,
@@ -248,13 +276,23 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
         .limit(limit)
         .offset(offset);
 
-      // Get total count of distinct collections
+      // Get total count of distinct collections. Joins collections so the
+      // count carries the same visibility predicate as the list query.
       const totalCountQuery = this.db
         .select({
           count: countDistinct(collectionCards.collectionId),
         })
         .from(collectionCards)
-        .where(inArray(collectionCards.cardId, cardIds));
+        .innerJoin(
+          collections,
+          eq(collectionCards.collectionId, collections.id),
+        )
+        .where(
+          and(
+            inArray(collectionCards.cardId, cardIds),
+            collectionVisibleTo(callingUserId),
+          ),
+        );
 
       const [collectionsResult, totalCountResult] = await Promise.all([
         collectionsQuery,
@@ -270,6 +308,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
         name: result.name,
         description: result.description || undefined,
         accessType: result.accessType,
+        visibility: result.visibility,
         authorId: result.authorId,
         cardCount: result.cardCount,
         createdAt: result.createdAt,
@@ -299,6 +338,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
         searchText,
         authorId,
         accessType,
+        callingUserId,
       } = options;
       const offset = (page - 1) * limit;
 
@@ -306,7 +346,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
       const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
 
       // Build where conditions
-      const whereConditions = [];
+      const whereConditions: SQL[] = [collectionVisibleTo(callingUserId)];
 
       // Add author filter if provided
       if (authorId) {
@@ -348,6 +388,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           name: collections.name,
           description: collections.description,
           accessType: collections.accessType,
+          visibility: collections.visibility,
           createdAt: collections.createdAt,
           updatedAt: collections.updatedAt,
           authorId: collections.authorId,
@@ -383,6 +424,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           name: raw.name,
           description: raw.description,
           accessType: raw.accessType,
+          visibility: raw.visibility,
           createdAt: raw.createdAt,
           updatedAt: raw.updatedAt,
           authorId: raw.authorId,
@@ -405,7 +447,8 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
     options: GetOpenCollectionsWithContributorOptions,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>> {
     try {
-      const { contributorId, page, limit, sortBy, sortOrder } = options;
+      const { contributorId, page, limit, sortBy, sortOrder, callingUserId } =
+        options;
       const offset = (page - 1) * limit;
 
       // Build the sort order
@@ -423,6 +466,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           name: collections.name,
           description: collections.description,
           accessType: collections.accessType,
+          visibility: collections.visibility,
           createdAt: collections.createdAt,
           updatedAt: collections.updatedAt,
           authorId: collections.authorId,
@@ -447,6 +491,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
             eq(collectionCards.addedBy, contributorId),
             sql`${collections.authorId} != ${contributorId}`, // Not the author
             eq(collections.accessType, 'OPEN'),
+            collectionVisibleTo(callingUserId),
           ),
         )
         .groupBy(
@@ -454,6 +499,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           collections.name,
           collections.description,
           collections.accessType,
+          collections.visibility,
           collections.createdAt,
           collections.updatedAt,
           collections.authorId,
@@ -484,6 +530,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
             eq(collectionCards.addedBy, contributorId),
             sql`${collections.authorId} != ${contributorId}`,
             eq(collections.accessType, 'OPEN'),
+            collectionVisibleTo(callingUserId),
           ),
         );
 
@@ -503,6 +550,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           name: raw.name,
           description: raw.description,
           accessType: raw.accessType,
+          visibility: raw.visibility,
           createdAt: raw.createdAt,
           updatedAt: raw.updatedAt,
           authorId: raw.authorId,
@@ -589,9 +637,15 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
 
   async getCollectionsForUrls(
     urls: string[],
+    callingUserId?: string,
   ): Promise<CollectionWithMatchedUrlsDTO[]> {
     try {
-      return await this.queryCollectionsWithMatchedUrls(urls, []);
+      return await this.queryCollectionsWithMatchedUrls(
+        urls,
+        [],
+        undefined,
+        callingUserId,
+      );
     } catch (error) {
       console.error('Error in getCollectionsForUrls:', error);
       throw error;
@@ -604,10 +658,12 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
     excludeUrl?: string,
   ): Promise<CollectionWithMatchedUrlsDTO[]> {
     try {
+      // authorId is the caller: their own private collections stay eligible
       return await this.queryCollectionsWithMatchedUrls(
         urls,
         [eq(collections.authorId, authorId)],
         excludeUrl,
+        authorId,
       );
     } catch (error) {
       console.error('Error in getCollectionsForUrlsByAuthor:', error);
@@ -619,6 +675,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
     urls: string[],
     excludeAuthorId?: string,
     excludeUrl?: string,
+    callingUserId?: string,
   ): Promise<CollectionWithMatchedUrlsDTO[]> {
     try {
       const conditions = [
@@ -631,6 +688,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
         urls,
         conditions,
         excludeUrl,
+        callingUserId,
       );
     } catch (error) {
       console.error('Error in getOpenCollectionsForUrls:', error);
@@ -648,12 +706,15 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
     urls: string[],
     conditions: SQL[],
     excludeUrl?: string,
+    callingUserId?: string,
   ): Promise<CollectionWithMatchedUrlsDTO[]> {
     if (urls.length === 0) {
       return [];
     }
 
-    const allConditions = [...conditions];
+    // Never recommend collections the caller can't see, and never let a
+    // private card's URL seed a match.
+    const allConditions = [...conditions, collectionVisibleTo(callingUserId)];
     if (excludeUrl) {
       // Anti-join: drop collections that already contain this URL
       allConditions.push(
@@ -677,6 +738,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
         name: collections.name,
         description: collections.description,
         accessType: collections.accessType,
+        visibility: collections.visibility,
         createdAt: collections.createdAt,
         updatedAt: collections.updatedAt,
         authorId: collections.authorId,
@@ -699,6 +761,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
           ...allConditions,
           eq(cards.type, CardTypeEnum.URL),
           inArray(cards.url, urls),
+          cardVisibleTo(callingUserId),
         ),
       );
 
@@ -713,6 +776,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
             name: raw.name,
             description: raw.description,
             accessType: raw.accessType,
+            visibility: raw.visibility,
             createdAt: raw.createdAt,
             updatedAt: raw.updatedAt,
             authorId: raw.authorId,

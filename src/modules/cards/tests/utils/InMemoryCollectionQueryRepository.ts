@@ -23,14 +23,28 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
     private cardRepository?: InMemoryCardRepository,
   ) {}
 
+  /** Mirrors the SQL visibility predicate: PUBLIC rows, plus the caller's own. */
+  private isCollectionVisibleTo(
+    collection: Collection,
+    callingUserId?: string,
+  ): boolean {
+    return (
+      collection.isPublicCollection ||
+      collection.authorId.value === callingUserId
+    );
+  }
+
   async findByCreator(
     curatorId: string,
     options: CollectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>> {
     try {
       const allCollections = this.collectionRepository.getAllCollections();
       let creatorCollections = allCollections.filter(
-        (collection) => collection.authorId.value === curatorId,
+        (collection) =>
+          collection.authorId.value === curatorId &&
+          this.isCollectionVisibleTo(collection, callingUserId),
       );
 
       if (options.searchText && options.searchText.trim()) {
@@ -69,6 +83,7 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
             name: collection.name.value,
             description: collection.description?.value,
             accessType: collection.accessType,
+            visibility: collection.visibility,
             cardCount: collection.cardCount,
             createdAt: collection.createdAt,
             updatedAt: collection.updatedAt,
@@ -126,7 +141,9 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
     try {
       const allCollections = this.collectionRepository.getAllCollections();
       const creatorCollections = allCollections.filter(
-        (collection) => collection.authorId.value === curatorId,
+        (collection) =>
+          collection.authorId.value === curatorId &&
+          this.isCollectionVisibleTo(collection, curatorId),
       );
 
       const collectionsWithCard = creatorCollections.filter((collection) =>
@@ -158,6 +175,7 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
   async getCollectionsWithUrl(
     url: string,
     options: CollectionForUrlQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<CollectionForUrlRawDTO>> {
     try {
       if (!this.cardRepository) {
@@ -168,7 +186,10 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
 
       const allCards = this.cardRepository.getAllCards();
       const cardsWithUrl = allCards.filter(
-        (card) => card.isUrlCard && card.url?.value === url,
+        (card) =>
+          card.isUrlCard &&
+          card.url?.value === url &&
+          (card.isPublic || card.curatorId.value === callingUserId),
       );
 
       const cardIds = new Set(
@@ -176,10 +197,12 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
       );
 
       const allCollections = this.collectionRepository.getAllCollections();
-      const collectionsWithUrl = allCollections.filter((collection) =>
-        collection.cardLinks.some((link) =>
-          cardIds.has(link.cardId.getStringValue()),
-        ),
+      const collectionsWithUrl = allCollections.filter(
+        (collection) =>
+          this.isCollectionVisibleTo(collection, callingUserId) &&
+          collection.cardLinks.some((link) =>
+            cardIds.has(link.cardId.getStringValue()),
+          ),
       );
 
       // For ADDED_AT sorting, we need to track the max addedAt for each collection
@@ -246,6 +269,7 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
             name: collection.name.value,
             description: collection.description?.value,
             accessType: collection.accessType,
+            visibility: collection.visibility,
             authorId: collection.authorId.value,
             cardCount: collection.cardCount,
             createdAt: collection.createdAt,
@@ -270,7 +294,11 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
     options: SearchCollectionsOptions,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>> {
     try {
-      let allCollections = this.collectionRepository.getAllCollections();
+      let allCollections = this.collectionRepository
+        .getAllCollections()
+        .filter((collection) =>
+          this.isCollectionVisibleTo(collection, options.callingUserId),
+        );
 
       // Apply author filter if provided
       if (options.authorId) {
@@ -327,6 +355,7 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
             name: collection.name.value,
             description: collection.description?.value,
             accessType: collection.accessType,
+            visibility: collection.visibility,
             cardCount: collection.cardCount,
             createdAt: collection.createdAt,
             updatedAt: collection.updatedAt,
@@ -362,8 +391,12 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
         );
         const isNotAuthor = collection.authorId.value !== options.contributorId;
         const isOpen = collection.accessType === 'OPEN';
+        const isVisible = this.isCollectionVisibleTo(
+          collection,
+          options.callingUserId,
+        );
 
-        return hasContributed && isNotAuthor && isOpen;
+        return hasContributed && isNotAuthor && isOpen && isVisible;
       });
 
       // Sort by most recent contribution first, then by the specified field
@@ -420,6 +453,7 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
             name: collection.name.value,
             description: collection.description?.value,
             accessType: collection.accessType,
+            visibility: collection.visibility,
             cardCount: collection.cardCount,
             createdAt: collection.createdAt,
             updatedAt: collection.updatedAt,
@@ -514,8 +548,14 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
 
   async getCollectionsForUrls(
     urls: string[],
+    callingUserId?: string,
   ): Promise<CollectionWithMatchedUrlsDTO[]> {
-    return this.queryCollectionsWithMatchedUrls(urls, () => true);
+    return this.queryCollectionsWithMatchedUrls(
+      urls,
+      () => true,
+      undefined,
+      callingUserId,
+    );
   }
 
   async getCollectionsForUrlsByAuthor(
@@ -527,6 +567,7 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
       urls,
       (collection) => collection.authorId.value === authorId,
       excludeUrl,
+      authorId,
     );
   }
 
@@ -534,6 +575,7 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
     urls: string[],
     excludeAuthorId?: string,
     excludeUrl?: string,
+    callingUserId?: string,
   ): Promise<CollectionWithMatchedUrlsDTO[]> {
     return this.queryCollectionsWithMatchedUrls(
       urls,
@@ -541,6 +583,7 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
         collection.accessType === 'OPEN' &&
         (!excludeAuthorId || collection.authorId.value !== excludeAuthorId),
       excludeUrl,
+      callingUserId,
     );
   }
 
@@ -548,6 +591,7 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
     urls: string[],
     matchesCollection: (collection: Collection) => boolean,
     excludeUrl?: string,
+    callingUserId?: string,
   ): CollectionWithMatchedUrlsDTO[] {
     const allCards = this.cardRepository?.getAllCards() || [];
     const allCollections = this.collectionRepository?.getAllCollections() || [];
@@ -566,14 +610,23 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
         )
       : null;
 
-    // Map URL card id -> url for cards matching the queried URLs
+    // Map URL card id -> url for caller-visible cards matching the queried URLs
     const urlByCardId = new Map<string, string>();
     allCards
-      .filter((c) => c.type.value === 'URL' && c.url && urlSet.has(c.url.value))
+      .filter(
+        (c) =>
+          c.type.value === 'URL' &&
+          c.url &&
+          urlSet.has(c.url.value) &&
+          (c.isPublic || c.curatorId.value === callingUserId),
+      )
       .forEach((c) => urlByCardId.set(c.cardId.getStringValue(), c.url!.value));
 
     return allCollections
       .filter(matchesCollection)
+      .filter((collection) =>
+        this.isCollectionVisibleTo(collection, callingUserId),
+      )
       .filter(
         (collection) =>
           !excludedCardIds ||
@@ -599,6 +652,7 @@ export class InMemoryCollectionQueryRepository implements ICollectionQueryReposi
         name: collection.name.value,
         description: collection.description?.value,
         accessType: collection.accessType,
+        visibility: collection.visibility,
         cardCount: collection.cardCount,
         createdAt: collection.createdAt,
         updatedAt: collection.updatedAt,

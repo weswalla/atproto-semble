@@ -199,6 +199,16 @@ export class Collection extends AggregateRoot<CollectionProps> {
         new CollectionValidationError('Private collections cannot be open'),
       );
     }
+    if (
+      visibility === Visibility.PRIVATE &&
+      (props.collaboratorIds?.length ?? 0) > 0
+    ) {
+      return err(
+        new CollectionValidationError(
+          'Private collections cannot have collaborators',
+        ),
+      );
+    }
 
     const collectionProps: CollectionProps = {
       ...props,
@@ -425,6 +435,14 @@ export class Collection extends AggregateRoot<CollectionProps> {
       );
     }
 
+    if (this.props.visibility === Visibility.PRIVATE) {
+      return err(
+        new CollectionAccessError(
+          'Private collections cannot have collaborators',
+        ),
+      );
+    }
+
     if (this.props.collaboratorIds.some((id) => id.equals(collaboratorId))) {
       return ok(undefined); // Already a collaborator
     }
@@ -509,6 +527,16 @@ export class Collection extends AggregateRoot<CollectionProps> {
     ) {
       return err(
         new CollectionAccessError('Private collections cannot be open'),
+      );
+    }
+    if (
+      visibility === Visibility.PRIVATE &&
+      this.props.collaboratorIds.length > 0
+    ) {
+      return err(
+        new CollectionAccessError(
+          'Private collections cannot have collaborators',
+        ),
       );
     }
     if (this.props.visibility === visibility) {

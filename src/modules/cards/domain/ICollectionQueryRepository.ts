@@ -31,6 +31,7 @@ export interface CollectionQueryResultDTO {
   name: string;
   description?: string;
   accessType: string;
+  visibility?: string; // 'PUBLIC' | 'PRIVATE'; private rows only surface to their author
   updatedAt: Date;
   createdAt: Date;
   cardCount: number;
@@ -57,6 +58,7 @@ export interface CollectionForUrlRawDTO {
   name: string;
   description?: string;
   accessType: string;
+  visibility?: string;
   authorId: string;
   cardCount: number;
   createdAt: Date;
@@ -70,6 +72,7 @@ export interface CollectionForUrlDTO {
   name: string;
   description?: string;
   accessType: string;
+  visibility?: string;
   author: {
     id: string;
     name: string;
@@ -93,6 +96,7 @@ export interface SearchCollectionsOptions {
   searchText?: string;
   authorId?: string; // Filter by author DID
   accessType?: string; // Filter by access type (OPEN or CLOSED)
+  callingUserId?: string; // visibility filtering: caller sees PUBLIC + own PRIVATE
 }
 
 export interface GetOpenCollectionsWithContributorOptions {
@@ -101,6 +105,7 @@ export interface GetOpenCollectionsWithContributorOptions {
   limit: number;
   sortBy: CollectionSortField;
   sortOrder: SortOrder;
+  callingUserId?: string; // visibility filtering: caller sees PUBLIC + own PRIVATE
 }
 
 export interface CollectionContributorDTO {
@@ -113,6 +118,7 @@ export interface ICollectionQueryRepository {
   findByCreator(
     curatorId: string,
     options: CollectionQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>>;
 
   getCollectionsContainingCardForUser(
@@ -123,6 +129,7 @@ export interface ICollectionQueryRepository {
   getCollectionsWithUrl(
     url: string,
     options: CollectionForUrlQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<CollectionForUrlRawDTO>>;
 
   searchCollections(
@@ -146,6 +153,7 @@ export interface ICollectionQueryRepository {
    */
   getCollectionsForUrls(
     urls: string[],
+    callingUserId?: string,
   ): Promise<CollectionWithMatchedUrlsDTO[]>;
 
   /**
@@ -177,6 +185,7 @@ export interface ICollectionQueryRepository {
     urls: string[],
     excludeAuthorId?: string,
     excludeUrl?: string,
+    callingUserId?: string,
   ): Promise<CollectionWithMatchedUrlsDTO[]>;
 
   /**

@@ -97,6 +97,7 @@ export class SearchCollectionsUseCase implements UseCase<
         searchText: query.searchText,
         authorId,
         accessType: query.accessType,
+        callingUserId: query.callingUserId,
       });
 
       // Get unique author IDs from the results

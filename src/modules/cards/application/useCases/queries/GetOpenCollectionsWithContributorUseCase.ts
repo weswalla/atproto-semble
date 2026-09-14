@@ -89,6 +89,7 @@ export class GetOpenCollectionsWithContributorUseCase implements UseCase<
           limit,
           sortBy,
           sortOrder,
+          callingUserId: query.callingUserId,
         });
 
       // Get unique author IDs from the results

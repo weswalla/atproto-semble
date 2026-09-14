@@ -78,15 +78,27 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
   async getLibrariesForUrl(
     url: string,
     options: CardQueryOptions,
-  ): Promise<PaginatedQueryResult<LibraryForUrlDTO>> {
-    return this.urlCardQueryService.getLibrariesForUrl(url, options);
+    callingUserId?: string,
+  ): Promise<
+    PaginatedQueryResult<LibraryForUrlDTO> & { privateLibraryCount: number }
+  > {
+    return this.urlCardQueryService.getLibrariesForUrl(
+      url,
+      options,
+      callingUserId,
+    );
   }
 
   async getNoteCardsForUrl(
     url: string,
     options: CardQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<NoteCardForUrlRawDTO>> {
-    return this.noteCardQueryService.getNoteCardsForUrl(url, options);
+    return this.noteCardQueryService.getNoteCardsForUrl(
+      url,
+      options,
+      callingUserId,
+    );
   }
 
   async getBatchUrlCardViews(

@@ -22,6 +22,7 @@ export interface SearchUrlsOptions {
   urlType?: UrlType;
   authorDid?: DID;
   collectionId?: CollectionId;
+  callingUserId?: string; // visibility filtering: caller sees PUBLIC + own PRIVATE
 }
 
 // Raw result from URL search - will be enriched with library info in use case
@@ -72,6 +73,7 @@ export interface UrlCardView {
   urlInLibrary?: boolean;
   urlConnectionCount?: number;
   urlIsConnected?: boolean;
+  visibility?: string; // 'PUBLIC' | 'PRIVATE'; private rows only surface to their author
   createdAt: Date;
   updatedAt: Date;
   authorId: string; // NEW - needed to enrich with author profile
@@ -123,6 +125,7 @@ export interface LibraryForUrlDTO {
     libraryCount: number;
     urlLibraryCount: number;
     urlInLibrary?: boolean;
+    visibility?: string;
     createdAt: Date;
     updatedAt: Date;
     note?: {
@@ -162,6 +165,7 @@ export interface UrlLibraryInfo {
   urlInLibrary?: boolean; // whether calling user has it
   urlConnectionCount?: number; // total connections involving this URL
   urlIsConnected?: boolean; // whether calling user has any connection with this URL
+  visibleCardExists?: boolean; // whether the caller can see at least one card for this URL
   metadata: {
     url: string;
     title?: string;
@@ -221,11 +225,15 @@ export interface ICardQueryRepository {
   getLibrariesForUrl(
     url: string,
     options: CardQueryOptions,
-  ): Promise<PaginatedQueryResult<LibraryForUrlDTO>>;
+    callingUserId?: string,
+  ): Promise<
+    PaginatedQueryResult<LibraryForUrlDTO> & { privateLibraryCount: number }
+  >;
 
   getNoteCardsForUrl(
     url: string,
     options: CardQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<NoteCardForUrlRawDTO>>;
 
   getBatchUrlCardViews(

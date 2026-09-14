@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { UserSchema, SubscriptionScopeSchema } from './user';
-import { CollectionAccessTypeSchema } from './common';
+import { CollectionAccessTypeSchema, VisibilitySchema } from './common';
 
 export const CollectionSchema = z.object({
   id: z.string(),
@@ -9,6 +9,7 @@ export const CollectionSchema = z.object({
   author: UserSchema,
   description: z.string().optional(),
   accessType: CollectionAccessTypeSchema.optional(),
+  visibility: VisibilitySchema.optional(),
   cardCount: z.number(),
   createdAt: z.string(),
   updatedAt: z.string(),

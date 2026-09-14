@@ -33,6 +33,8 @@ export interface GetLibrariesForUrlResult {
   libraries: LibraryForUrlDTO[];
   pagination: PaginationDTO;
   sorting: CardSortingDTO;
+  // Saves hidden from the caller (other users' private libraries)
+  privateLibraryCount: number;
 }
 
 export class ValidationError extends Error {
@@ -78,6 +80,7 @@ export class GetLibrariesForUrlUseCase implements UseCase<
           sortBy,
           sortOrder,
         },
+        query.callingUserId,
       );
 
       // Enrich with user profiles using ProfileEnricher
@@ -152,6 +155,7 @@ export class GetLibrariesForUrlUseCase implements UseCase<
 
       return ok({
         libraries: enrichedLibraries,
+        privateLibraryCount: result.privateLibraryCount,
         pagination: {
           currentPage: page,
           totalPages: Math.ceil(result.totalCount / limit),

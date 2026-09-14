@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { UserSchema } from './user';
 import { UrlMetadataSchema } from './url';
+import { VisibilitySchema } from './common';
 
 export const ConnectionTypeSchema = z.enum([
   'SUPPORTS',
@@ -34,6 +35,7 @@ export const ConnectionWithSourceAndTargetSchema = z.object({
     createdAt: z.string(),
     updatedAt: z.string(),
     curator: UserSchema,
+    visibility: VisibilitySchema.optional(),
   }),
   source: UrlViewSchema,
   target: UrlViewSchema,

@@ -67,6 +67,7 @@ export class SearchUrlsUseCase implements UseCase<
         urlType: query.urlType,
         authorDid: query.authorDid,
         collectionId: query.collectionId,
+        callingUserId: query.callingUserId,
       });
 
       // Extract unique URLs from results

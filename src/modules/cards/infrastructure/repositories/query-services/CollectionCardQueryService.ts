@@ -15,6 +15,7 @@ import { publishedRecords } from '../schema/publishedRecord.sql';
 import { connections } from '../schema/connection.sql';
 import { CardMapper } from '../mappers/CardMapper';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
+import { cardVisibleTo } from './visibilityFilter';
 
 export class CollectionCardQueryService {
   constructor(private db: PostgresJsDatabase) {}
@@ -69,6 +70,7 @@ export class CollectionCardQueryService {
           url: cards.url,
           publishedRecordUri: publishedRecords.uri,
           contentData: cards.contentData,
+          visibility: cards.visibility,
           libraryCount: cards.libraryCount,
           createdAt: cards.createdAt,
           updatedAt: cards.updatedAt,
@@ -88,6 +90,7 @@ export class CollectionCardQueryService {
         url: string | null;
         publishedRecordUri: string | null;
         contentData: any;
+        visibility: string;
         libraryCount: number;
         createdAt: Date;
         updatedAt: Date;
@@ -171,6 +174,7 @@ export class CollectionCardQueryService {
         url: string | null;
         publishedRecordUri: string | null;
         contentData: any;
+        visibility: string;
         libraryCount: number;
         createdAt: Date;
         updatedAt: Date;
@@ -212,6 +216,7 @@ export class CollectionCardQueryService {
           and(
             eq(cards.type, CardTypeEnum.NOTE),
             inArray(cards.parentCardId, cardIds),
+            cardVisibleTo(callingUserId),
           ),
         );
 
@@ -422,6 +427,7 @@ export class CollectionCardQueryService {
           url: card.url || '',
           uri: card.publishedRecordUri || undefined,
           contentData: card.contentData,
+          visibility: card.visibility,
           libraryCount: card.libraryCount,
           urlLibraryCount,
           urlInLibrary,

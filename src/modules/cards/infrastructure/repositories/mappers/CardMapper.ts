@@ -88,6 +88,7 @@ export interface RawUrlCardData {
   url: string;
   uri?: string;
   contentData: any;
+  visibility?: string;
   libraryCount: number;
   urlLibraryCount: number;
   urlInLibrary?: boolean;
@@ -390,6 +391,7 @@ export class CardMapper {
       urlInLibrary: raw.urlInLibrary,
       urlConnectionCount: raw.urlConnectionCount,
       urlIsConnected: raw.urlIsConnected,
+      visibility: raw.visibility,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       authorId: raw.authorId,
@@ -409,6 +411,7 @@ export class CardMapper {
     urlInLibrary?: boolean;
     urlConnectionCount?: number;
     urlIsConnected?: boolean;
+    visibility?: string;
     createdAt: Date;
     updatedAt: Date;
     note?: {
@@ -441,6 +444,7 @@ export class CardMapper {
       urlInLibrary: raw.urlInLibrary,
       urlConnectionCount: raw.urlConnectionCount,
       urlIsConnected: raw.urlIsConnected,
+      visibility: raw.visibility,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       authorId: raw.authorId,
@@ -460,6 +464,7 @@ export class CardMapper {
     urlInLibrary?: boolean;
     urlConnectionCount?: number;
     urlIsConnected?: boolean;
+    visibility?: string;
     createdAt: Date;
     updatedAt: Date;
     inLibraries: {
@@ -501,6 +506,7 @@ export class CardMapper {
       urlInLibrary: raw.urlInLibrary,
       urlConnectionCount: raw.urlConnectionCount,
       urlIsConnected: raw.urlIsConnected,
+      visibility: raw.visibility,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       authorId: raw.authorId,

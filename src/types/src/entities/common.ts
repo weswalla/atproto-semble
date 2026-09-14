@@ -106,6 +106,13 @@ export type ActivitySource =
   (typeof ActivitySource)[keyof typeof ActivitySource];
 export const ActivitySourceSchema = z.enum(['margin', 'semble']);
 
+export const Visibility = {
+  PUBLIC: 'PUBLIC',
+  PRIVATE: 'PRIVATE',
+} as const;
+export type Visibility = (typeof Visibility)[keyof typeof Visibility];
+export const VisibilitySchema = z.enum(['PUBLIC', 'PRIVATE']);
+
 export const CollectionAccessType = {
   OPEN: 'OPEN',
   CLOSED: 'CLOSED',

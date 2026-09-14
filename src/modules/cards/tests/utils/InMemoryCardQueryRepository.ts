@@ -33,6 +33,11 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     private connectionRepository?: IConnectionRepository,
   ) {}
 
+  /** Mirrors the SQL visibility predicate: PUBLIC rows, plus the caller's own. */
+  private isCardVisibleTo(card: Card, callingUserId?: string): boolean {
+    return card.isPublic || card.curatorId.value === callingUserId;
+  }
+
   async getUrlCardsOfUser(
     userId: string,
     options: CardQueryOptions,
@@ -43,7 +48,9 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       const allCards = this.cardRepository.getAllCards();
       let userCards = allCards.filter(
         (card) =>
-          card.isUrlCard && card.isInLibrary(CuratorId.create(userId).unwrap()),
+          card.isUrlCard &&
+          card.isInLibrary(CuratorId.create(userId).unwrap()) &&
+          this.isCardVisibleTo(card, callingUserId),
       );
 
       // Filter by urlType if specified
@@ -171,6 +178,12 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
     for (const collection of allCollections) {
       if (
+        collection.isPrivateCollection &&
+        collection.authorId.value !== callingUserId
+      ) {
+        continue;
+      }
+      if (
         collection.cardIds.some(
           (cardId) => cardId.getStringValue() === card.cardId.getStringValue(),
         )
@@ -190,7 +203,8 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       (c) =>
         c.type.value === 'NOTE' &&
         c.parentCardId?.equals(card.cardId) &&
-        c.curatorId.value === card.curatorId.value, // Only notes by the same author
+        c.curatorId.value === card.curatorId.value && // Only notes by the same author
+        this.isCardVisibleTo(c, callingUserId),
     );
 
     const note = noteCard
@@ -230,6 +244,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       urlInLibrary,
       urlConnectionCount,
       urlIsConnected,
+      visibility: card.visibility,
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,
       authorId: card.curatorId.value,
@@ -477,7 +492,11 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   ): Promise<UrlCardViewDTO | null> {
     const allCards = this.cardRepository.getAllCards();
     const card = allCards.find((c) => c.cardId.getStringValue() === cardId);
-    if (!card || !card.isUrlCard) {
+    if (
+      !card ||
+      !card.isUrlCard ||
+      !this.isCardVisibleTo(card, callingUserId)
+    ) {
       return null;
     }
 
@@ -496,7 +515,8 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       (c) =>
         c.type.value === 'NOTE' &&
         c.parentCardId?.equals(card.cardId) &&
-        c.curatorId.value === card.curatorId.value, // Only notes by the same author
+        c.curatorId.value === card.curatorId.value && // Only notes by the same author
+        this.isCardVisibleTo(c, callingUserId),
     );
 
     const note = noteCard
@@ -519,7 +539,11 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   ): Promise<UrlCardView | null> {
     const allCards = this.cardRepository.getAllCards();
     const card = allCards.find((c) => c.cardId.getStringValue() === cardId);
-    if (!card || !card.isUrlCard) {
+    if (
+      !card ||
+      !card.isUrlCard ||
+      !this.isCardVisibleTo(card, callingUserId)
+    ) {
       return null;
     }
 
@@ -528,7 +552,8 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       (c) =>
         c.type.value === 'NOTE' &&
         c.parentCardId?.equals(card.cardId) &&
-        c.curatorId.value === card.curatorId.value, // Only notes by the same author
+        c.curatorId.value === card.curatorId.value && // Only notes by the same author
+        this.isCardVisibleTo(c, callingUserId),
     );
 
     const note = noteCard
@@ -567,6 +592,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       urlInLibrary,
       urlConnectionCount,
       urlIsConnected,
+      visibility: card.visibility,
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,
       authorId: card.curatorId.value,
@@ -590,13 +616,23 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   async getLibrariesForUrl(
     url: string,
     options: CardQueryOptions,
-  ): Promise<PaginatedQueryResult<LibraryForUrlDTO>> {
+    callingUserId?: string,
+  ): Promise<
+    PaginatedQueryResult<LibraryForUrlDTO> & { privateLibraryCount: number }
+  > {
     try {
       // Get all cards and filter by URL
       const allCards = this.cardRepository.getAllCards();
-      const urlCards = allCards.filter(
+      const allUrlCards = allCards.filter(
         (card) => card.isUrlCard && card.url?.value === url,
       );
+      const urlCards = allUrlCards.filter((card) =>
+        this.isCardVisibleTo(card, callingUserId),
+      );
+      // Saves hidden from the caller, surfaced only as a count
+      const privateLibraryCount = allUrlCards
+        .filter((card) => !this.isCardVisibleTo(card, callingUserId))
+        .reduce((sum, card) => sum + card.libraryMemberships.length, 0);
 
       // Create library entries for each card
       const libraries: LibraryForUrlDTO[] = [];
@@ -608,7 +644,10 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
         for (const membership of card.libraryMemberships) {
           const noteCard = allCards.find(
-            (c) => c.isNoteCard && c.parentCardId?.equals(card.cardId),
+            (c) =>
+              c.isNoteCard &&
+              c.parentCardId?.equals(card.cardId) &&
+              this.isCardVisibleTo(c, callingUserId),
           );
 
           const urlLibraryCount = this.getUrlLibraryCount(url);
@@ -630,6 +669,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
               ),
               urlLibraryCount,
               urlInLibrary: true,
+              visibility: card.visibility,
               createdAt: card.createdAt,
               updatedAt: card.updatedAt,
               note: noteCard
@@ -659,6 +699,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         items: paginatedLibraries,
         totalCount: libraries.length,
         hasMore: endIndex < libraries.length,
+        privateLibraryCount,
       };
     } catch (error) {
       throw new Error(
@@ -695,12 +736,18 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   async getNoteCardsForUrl(
     url: string,
     options: CardQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<NoteCardForUrlRawDTO>> {
     try {
       // Get all note cards with the specified URL
       const allCards = this.cardRepository.getAllCards();
       const noteCards = allCards
-        .filter((card) => card.isNoteCard && card.url?.value === url)
+        .filter(
+          (card) =>
+            card.isNoteCard &&
+            card.url?.value === url &&
+            this.isCardVisibleTo(card, callingUserId),
+        )
         .map((card) => ({
           id: card.cardId.getStringValue(),
           note: card.content.noteContent?.text || '',
@@ -799,10 +846,13 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         ? await this.isUrlConnectedByUser(url, callingUserId)
         : undefined;
 
-      // Get metadata from any card with this URL
+      // Get metadata from any caller-visible card with this URL
       const allCards = this.cardRepository.getAllCards();
       const urlCard = allCards.find(
-        (card) => card.isUrlCard && card.url?.value === url,
+        (card) =>
+          card.isUrlCard &&
+          card.url?.value === url &&
+          this.isCardVisibleTo(card, callingUserId),
       );
 
       const metadata = urlCard?.content.urlContent
@@ -828,6 +878,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         urlInLibrary,
         urlConnectionCount,
         urlIsConnected,
+        visibleCardExists: urlCard !== undefined,
         metadata,
       });
     }
@@ -1016,11 +1067,14 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     options: SearchUrlsOptions,
   ): Promise<PaginatedQueryResult<UrlSearchResultDTO>> {
     try {
-      const { searchQuery, page, limit, sortBy, sortOrder, urlType } = options;
+      const { searchQuery, page, limit, sortBy, sortOrder, urlType, callingUserId } =
+        options;
 
-      // Get all URL cards
+      // Get all URL cards visible to the caller
       const allCards = this.cardRepository.getAllCards();
-      let urlCards = allCards.filter((card) => card.isUrlCard);
+      let urlCards = allCards.filter(
+        (card) => card.isUrlCard && this.isCardVisibleTo(card, callingUserId),
+      );
 
       // Filter by urlType if specified
       if (urlType) {

@@ -10,6 +10,7 @@ import {
 import { cards } from '../schema/card.sql';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 import { NoteContentData } from '../mappers/CardMapper';
+import { cardVisibleTo } from './visibilityFilter';
 
 export class NoteCardQueryService {
   constructor(private db: PostgresJsDatabase) {}
@@ -17,6 +18,7 @@ export class NoteCardQueryService {
   async getNoteCardsForUrl(
     url: string,
     options: CardQueryOptions,
+    callingUserId?: string,
   ): Promise<PaginatedQueryResult<NoteCardForUrlRawDTO>> {
     try {
       const { page, limit, sortBy, sortOrder } = options;
@@ -35,7 +37,13 @@ export class NoteCardQueryService {
           updatedAt: cards.updatedAt,
         })
         .from(cards)
-        .where(and(eq(cards.type, CardTypeEnum.NOTE), eq(cards.url, url)))
+        .where(
+          and(
+            eq(cards.type, CardTypeEnum.NOTE),
+            eq(cards.url, url),
+            cardVisibleTo(callingUserId),
+          ),
+        )
         .orderBy(orderDirection(this.getSortColumn(sortBy)))
         .limit(limit)
         .offset(offset);
@@ -46,7 +54,13 @@ export class NoteCardQueryService {
       const totalCountResult = await this.db
         .select({ count: count() })
         .from(cards)
-        .where(and(eq(cards.type, CardTypeEnum.NOTE), eq(cards.url, url)));
+        .where(
+          and(
+            eq(cards.type, CardTypeEnum.NOTE),
+            eq(cards.url, url),
+            cardVisibleTo(callingUserId),
+          ),
+        );
 
       const totalCount = totalCountResult[0]?.count || 0;
       const hasMore = offset + noteCardsResult.length < totalCount;

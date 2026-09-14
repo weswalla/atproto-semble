@@ -24,6 +24,9 @@ export const GetLibrariesForUrlResponseSchema = z.object({
   ),
   pagination: PaginationSchema,
   sorting: CardSortingSchema,
+  // Saves the caller may not see (other users' private libraries); the UI can
+  // render these as anonymous "private library" entries.
+  privateLibraryCount: z.number().optional(),
 });
 export type GetLibrariesForUrlResponse = z.infer<
   typeof GetLibrariesForUrlResponseSchema

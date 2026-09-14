@@ -68,6 +68,7 @@ export class GetNoteCardsForUrlUseCase implements UseCase<
           sortBy,
           sortOrder,
         },
+        query.callingUserId,
       );
 
       // Enrich with author profiles using ProfileEnricher

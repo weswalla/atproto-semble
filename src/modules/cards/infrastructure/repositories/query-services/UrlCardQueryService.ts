@@ -38,6 +38,11 @@ import { connections } from '../schema/connection.sql';
 import { CardMapper, RawUrlCardData } from '../mappers/CardMapper';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 import { toUrlMetadataView } from '../../../domain/value-objects/urlMetadataMapping';
+import {
+  cardVisibleTo,
+  cardHiddenFrom,
+  collectionVisibleTo,
+} from './visibilityFilter';
 
 export class UrlCardQueryService {
   constructor(private db: PostgresJsDatabase) {}
@@ -80,10 +85,13 @@ export class UrlCardQueryService {
       // Build the sort order
       const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
 
-      // Build where conditions
+      // Build where conditions. The visibility predicate is owner-inclusive:
+      // on the user's own listing every row passes; other viewers see only
+      // PUBLIC cards.
       const whereConditions = [
         eq(cards.authorId, userId),
         eq(cards.type, CardTypeEnum.URL),
+        cardVisibleTo(callingUserId),
       ];
 
       if (options.urlType) {
@@ -114,6 +122,7 @@ export class UrlCardQueryService {
             url: cards.url,
             publishedRecordUri: publishedRecords.uri,
             contentData: cards.contentData,
+            visibility: cards.visibility,
             libraryCount: cards.libraryCount,
             createdAt: cards.createdAt,
             updatedAt: cards.updatedAt,
@@ -240,7 +249,12 @@ export class UrlCardQueryService {
             collections,
             eq(collectionCards.collectionId, collections.id),
           )
-          .where(inArray(collectionCards.cardId, cardIds));
+          .where(
+            and(
+              inArray(collectionCards.cardId, cardIds),
+              collectionVisibleTo(callingUserId),
+            ),
+          );
 
         const collectionsResult = await collectionsQuery;
 
@@ -257,6 +271,7 @@ export class UrlCardQueryService {
               eq(cards.authorId, userId),
               eq(cards.type, CardTypeEnum.NOTE),
               inArray(cards.parentCardId, cardIds),
+              cardVisibleTo(callingUserId),
             ),
           );
 
@@ -431,6 +446,7 @@ export class UrlCardQueryService {
             url: card.url || '',
             uri: card.publishedRecordUri || undefined,
             contentData: card.contentData,
+            visibility: card.visibility,
             libraryCount: card.libraryCount,
             urlLibraryCount,
             urlInLibrary,
@@ -480,6 +496,7 @@ export class UrlCardQueryService {
           url: cards.url,
           publishedRecordUri: publishedRecords.uri,
           contentData: cards.contentData,
+          visibility: cards.visibility,
           libraryCount: cards.libraryCount,
           createdAt: cards.createdAt,
           updatedAt: cards.updatedAt,
@@ -521,7 +538,12 @@ export class UrlCardQueryService {
           collections,
           eq(collectionCards.collectionId, collections.id),
         )
-        .where(inArray(collectionCards.cardId, cardIds));
+        .where(
+          and(
+            inArray(collectionCards.cardId, cardIds),
+            collectionVisibleTo(callingUserId),
+          ),
+        );
 
       const collectionsResult = await collectionsQuery;
 
@@ -538,6 +560,7 @@ export class UrlCardQueryService {
             eq(cards.authorId, userId),
             eq(cards.type, CardTypeEnum.NOTE),
             inArray(cards.parentCardId, cardIds),
+            cardVisibleTo(callingUserId),
           ),
         );
 
@@ -737,6 +760,7 @@ export class UrlCardQueryService {
           url: card.url || '',
           uri: card.publishedRecordUri || undefined,
           contentData: card.contentData,
+          visibility: card.visibility,
           libraryCount: card.libraryCount,
           urlLibraryCount,
           urlInLibrary,
@@ -784,6 +808,7 @@ export class UrlCardQueryService {
           url: cards.url,
           publishedRecordUri: publishedRecords.uri,
           contentData: cards.contentData,
+          visibility: cards.visibility,
           libraryCount: cards.libraryCount,
           createdAt: cards.createdAt,
           updatedAt: cards.updatedAt,
@@ -793,7 +818,16 @@ export class UrlCardQueryService {
           publishedRecords,
           eq(cards.publishedRecordId, publishedRecords.id),
         )
-        .where(and(eq(cards.id, cardId), eq(cards.type, CardTypeEnum.URL)));
+        .where(
+          and(
+            eq(cards.id, cardId),
+            eq(cards.type, CardTypeEnum.URL),
+            // Private cards resolve only for their author; other callers get
+            // null, which downstream consumers (feeds, card pages) treat as
+            // not-found.
+            cardVisibleTo(callingUserId),
+          ),
+        );
 
       const cardResult = await cardQuery;
 
@@ -826,7 +860,12 @@ export class UrlCardQueryService {
           collections,
           eq(collectionCards.collectionId, collections.id),
         )
-        .where(eq(collectionCards.cardId, cardId));
+        .where(
+          and(
+            eq(collectionCards.cardId, cardId),
+            collectionVisibleTo(callingUserId),
+          ),
+        );
 
       const collectionsResult = await collectionsQuery;
 
@@ -842,6 +881,7 @@ export class UrlCardQueryService {
           and(
             eq(cards.type, CardTypeEnum.NOTE),
             eq(cards.parentCardId, cardId),
+            cardVisibleTo(callingUserId),
           ),
         );
 
@@ -942,6 +982,7 @@ export class UrlCardQueryService {
         url: card.url || '',
         uri: card.publishedRecordUri || undefined,
         contentData: card.contentData,
+        visibility: card.visibility,
         libraryCount: card.libraryCount,
         urlLibraryCount,
         urlInLibrary,
@@ -974,7 +1015,10 @@ export class UrlCardQueryService {
   async getLibrariesForUrl(
     url: string,
     options: CardQueryOptions,
-  ): Promise<PaginatedQueryResult<LibraryForUrlDTO>> {
+    callingUserId?: string,
+  ): Promise<
+    PaginatedQueryResult<LibraryForUrlDTO> & { privateLibraryCount: number }
+  > {
     try {
       const { page, limit, sortBy, sortOrder } = options;
       const offset = (page - 1) * limit;
@@ -997,6 +1041,7 @@ export class UrlCardQueryService {
           url: cards.url,
           publishedRecordUri: publishedRecords.uri,
           contentData: cards.contentData,
+          visibility: cards.visibility,
           libraryCount: cards.libraryCount,
           createdAt: cards.createdAt,
           updatedAt: cards.updatedAt,
@@ -1007,27 +1052,57 @@ export class UrlCardQueryService {
           publishedRecords,
           eq(cards.publishedRecordId, publishedRecords.id),
         )
-        .where(and(eq(cards.url, url), eq(cards.type, CardTypeEnum.URL)))
+        .where(
+          and(
+            eq(cards.url, url),
+            eq(cards.type, CardTypeEnum.URL),
+            cardVisibleTo(callingUserId),
+          ),
+        )
         .orderBy(orderByClause)
         .limit(limit)
         .offset(offset);
 
       const librariesResult = await librariesQuery;
 
-      // Get total count (needed even if current page is empty)
+      // Get total count (needed even if current page is empty). Must carry
+      // the same visibility predicate as the list query or hasMore desyncs.
       const totalCountResult = await this.db
         .select({ count: count() })
         .from(libraryMemberships)
         .innerJoin(cards, eq(libraryMemberships.cardId, cards.id))
-        .where(and(eq(cards.url, url), eq(cards.type, CardTypeEnum.URL)));
+        .where(
+          and(
+            eq(cards.url, url),
+            eq(cards.type, CardTypeEnum.URL),
+            cardVisibleTo(callingUserId),
+          ),
+        );
 
       const totalCount = totalCountResult[0]?.count || 0;
+
+      // Saves hidden from the caller (other users' private libraries) —
+      // reported as a count so the UI can render anonymous entries.
+      const privateCountResult = await this.db
+        .select({ count: count() })
+        .from(libraryMemberships)
+        .innerJoin(cards, eq(libraryMemberships.cardId, cards.id))
+        .where(
+          and(
+            eq(cards.url, url),
+            eq(cards.type, CardTypeEnum.URL),
+            cardHiddenFrom(callingUserId),
+          ),
+        );
+
+      const privateLibraryCount = privateCountResult[0]?.count || 0;
 
       if (librariesResult.length === 0) {
         return {
           items: [],
           totalCount,
           hasMore: false,
+          privateLibraryCount,
         };
       }
 
@@ -1045,6 +1120,7 @@ export class UrlCardQueryService {
           and(
             eq(cards.type, CardTypeEnum.NOTE),
             inArray(cards.parentCardId, cardIds),
+            cardVisibleTo(callingUserId),
           ),
         );
 
@@ -1080,6 +1156,7 @@ export class UrlCardQueryService {
             libraryCount: lib.libraryCount,
             urlLibraryCount,
             urlInLibrary: true, // By definition, if it's in this result, it's in a library
+            visibility: lib.visibility,
             createdAt: lib.createdAt,
             updatedAt: lib.updatedAt,
             note: note
@@ -1096,6 +1173,7 @@ export class UrlCardQueryService {
         items,
         totalCount,
         hasMore,
+        privateLibraryCount,
       };
     } catch (error) {
       console.error('Error in getLibrariesForUrl:', error);
@@ -1117,6 +1195,7 @@ export class UrlCardQueryService {
           url: cards.url,
           publishedRecordUri: publishedRecords.uri,
           contentData: cards.contentData,
+          visibility: cards.visibility,
           libraryCount: cards.libraryCount,
           createdAt: cards.createdAt,
           updatedAt: cards.updatedAt,
@@ -1126,7 +1205,13 @@ export class UrlCardQueryService {
           publishedRecords,
           eq(cards.publishedRecordId, publishedRecords.id),
         )
-        .where(and(eq(cards.id, cardId), eq(cards.type, CardTypeEnum.URL)));
+        .where(
+          and(
+            eq(cards.id, cardId),
+            eq(cards.type, CardTypeEnum.URL),
+            cardVisibleTo(callingUserId),
+          ),
+        );
 
       const cardResult = await cardQuery;
 
@@ -1149,6 +1234,7 @@ export class UrlCardQueryService {
             eq(cards.type, CardTypeEnum.NOTE),
             eq(cards.parentCardId, cardId),
             eq(cards.authorId, card.authorId), // Only notes by the same author
+            cardVisibleTo(callingUserId),
           ),
         )
         .limit(1); // Only get the first note if multiple exist
@@ -1197,6 +1283,7 @@ export class UrlCardQueryService {
         url: card.url || '',
         uri: card.publishedRecordUri || undefined,
         contentData: card.contentData,
+        visibility: card.visibility,
         libraryCount: card.libraryCount,
         urlLibraryCount,
         urlInLibrary,
@@ -1235,6 +1322,7 @@ export class UrlCardQueryService {
           url: cards.url,
           publishedRecordUri: publishedRecords.uri,
           contentData: cards.contentData,
+          visibility: cards.visibility,
           libraryCount: cards.libraryCount,
           createdAt: cards.createdAt,
           updatedAt: cards.updatedAt,
@@ -1245,7 +1333,14 @@ export class UrlCardQueryService {
           eq(cards.publishedRecordId, publishedRecords.id),
         )
         .where(
-          and(inArray(cards.id, cardIds), eq(cards.type, CardTypeEnum.URL)),
+          and(
+            inArray(cards.id, cardIds),
+            eq(cards.type, CardTypeEnum.URL),
+            // Private cards silently drop from the batch map for non-authors;
+            // feed hydration treats the missing entry as unhydratable and
+            // skips the item.
+            cardVisibleTo(callingUserId),
+          ),
         );
 
       const cardsResult = await cardsQuery;
@@ -1270,6 +1365,7 @@ export class UrlCardQueryService {
           and(
             eq(cards.type, CardTypeEnum.NOTE),
             inArray(cards.parentCardId, cardIds),
+            cardVisibleTo(callingUserId),
           ),
         );
 
@@ -1457,6 +1553,7 @@ export class UrlCardQueryService {
           url: card.url || '',
           uri: card.publishedRecordUri || undefined,
           contentData: card.contentData,
+          visibility: card.visibility,
           libraryCount: card.libraryCount,
           urlLibraryCount,
           urlInLibrary,
@@ -1942,23 +2039,35 @@ export class UrlCardQueryService {
       }
 
       // 5. Get sample card metadata for each URL (one card per URL)
-      // DISTINCT ON keeps only the most recently updated card per URL
+      // DISTINCT ON keeps only the most recently updated card per URL.
+      // Restricted to caller-visible cards so a private card's metadata is
+      // never the representative sample; URLs with no visible card fall back
+      // to minimal metadata and are flagged via visibleCardExists.
       const sampleCardsQuery = this.db
         .selectDistinctOn([cards.url], {
           url: cards.url,
           contentData: cards.contentData,
         })
         .from(cards)
-        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
+        .where(
+          and(
+            eq(cards.type, CardTypeEnum.URL),
+            inArray(cards.url, urls),
+            cardVisibleTo(callingUserId),
+          ),
+        )
         .orderBy(asc(cards.url), desc(cards.updatedAt));
 
       const sampleCardsResult = await sampleCardsQuery;
 
-      // Build map of URL to sample card
+      // Build map of URL to sample card; a sample existing also means the
+      // caller can see at least one card for the URL.
       const sampleCardMap = new Map<string, any>();
+      const visibleUrlSet = new Set<string>();
       sampleCardsResult.forEach((row) => {
         if (row.url) {
           sampleCardMap.set(row.url, row.contentData);
+          visibleUrlSet.add(row.url);
         }
       });
 
@@ -1987,6 +2096,7 @@ export class UrlCardQueryService {
           urlInLibrary,
           urlConnectionCount,
           urlIsConnected,
+          visibleCardExists: visibleUrlSet.has(url),
           metadata,
         });
       });
@@ -2011,6 +2121,7 @@ export class UrlCardQueryService {
         urlType,
         authorDid,
         collectionId,
+        callingUserId,
       } = options;
       const offset = (page - 1) * limit;
 
@@ -2036,6 +2147,7 @@ export class UrlCardQueryService {
       // Base WHERE conditions
       const whereConditions = [
         eq(cards.type, CardTypeEnum.URL),
+        cardVisibleTo(callingUserId),
         ...searchConditions,
       ];
 

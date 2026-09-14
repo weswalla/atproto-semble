@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { UserSchema } from './user';
 import { UrlMetadataSchema } from './url';
 import { CollectionSchema } from './collection';
+import { VisibilitySchema } from './common';
 
 export const UrlCardSchema = z.object({
   id: z.string(),
@@ -14,6 +15,7 @@ export const UrlCardSchema = z.object({
   urlInLibrary: z.boolean().optional(),
   urlConnectionCount: z.number().optional(),
   urlIsConnected: z.boolean().optional(),
+  visibility: VisibilitySchema.optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
   author: UserSchema,

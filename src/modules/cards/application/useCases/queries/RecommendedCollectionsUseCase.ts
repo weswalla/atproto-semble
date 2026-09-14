@@ -240,6 +240,7 @@ export class RecommendedCollectionsUseCase implements UseCase<
             name: collection.name,
             description: collection.description,
             accessType: collection.accessType as CollectionAccessType,
+            visibility: collection.visibility as 'PUBLIC' | 'PRIVATE' | undefined,
             createdAt: collection.createdAt.toISOString(),
             updatedAt: collection.updatedAt.toISOString(),
             cardCount: collection.cardCount,

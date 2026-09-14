@@ -12,6 +12,7 @@ import { CardContent } from '../../domain/value-objects/CardContent';
 import { UrlMetadata } from '../../domain/value-objects/UrlMetadata';
 import { URL } from '../../domain/value-objects/URL';
 import { CardSortField, SortOrder } from '../../domain/ICardQueryRepository';
+import { Visibility } from '../../domain/value-objects/Visibility';
 import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
 import { ICollectionRepository } from '../../domain/ICollectionRepository';
 import { InMemoryFollowsRepository } from '../../../user/tests/infrastructure/InMemoryFollowsRepository';
@@ -900,6 +901,62 @@ describe('GetCollectionPageUseCase', () => {
       expect(response.author.name).toBe('Minimal Curator');
       expect(response.author.handle).toBe('minimal');
       expect(response.author.avatarUrl).toBeUndefined();
+    });
+  });
+
+  describe('Privacy', () => {
+    function makePrivateCollection() {
+      return Collection.create(
+        {
+          authorId: curatorId,
+          name: 'Secret Collection',
+          accessType: CollectionAccessType.CLOSED,
+          collaboratorIds: [],
+          visibility: Visibility.PRIVATE,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        collectionId.getValue(),
+      ).unwrap();
+    }
+
+    it('returns NotAuthorizedError for anonymous callers on a private collection', async () => {
+      await collectionRepo.save(makePrivateCollection());
+
+      const result = await useCase.execute({
+        collectionId: collectionId.getStringValue(),
+      });
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.name).toBe('NotAuthorizedError');
+      }
+    });
+
+    it('returns NotAuthorizedError for other users on a private collection', async () => {
+      await collectionRepo.save(makePrivateCollection());
+
+      const result = await useCase.execute({
+        collectionId: collectionId.getStringValue(),
+        callingUserId: 'did:plc:someoneelse',
+      });
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.name).toBe('NotAuthorizedError');
+      }
+    });
+
+    it('returns the page (with visibility) for the author of a private collection', async () => {
+      await collectionRepo.save(makePrivateCollection());
+
+      const result = await useCase.execute({
+        collectionId: collectionId.getStringValue(),
+        callingUserId: curatorId.value,
+      });
+
+      expect(result.isOk()).toBe(true);
+      expect(result.unwrap().visibility).toBe('PRIVATE');
     });
   });
 });

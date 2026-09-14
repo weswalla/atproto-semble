@@ -288,6 +288,7 @@ export class GetMyNotificationsUseCase implements UseCase<
                   id: connection.connectionId.getStringValue(),
                   type: connection.type?.value,
                   note: connection.note?.value,
+                  visibility: connection.visibility,
                   createdAt: connection.createdAt.toISOString(),
                   updatedAt: connection.updatedAt.toISOString(),
                   curator: actorProfile,

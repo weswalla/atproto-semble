@@ -118,6 +118,7 @@ export class GetCollectionsUseCase implements UseCase<
           name: item.name,
           description: item.description,
           accessType: item.accessType as CollectionAccessType,
+          visibility: item.visibility as 'PUBLIC' | 'PRIVATE' | undefined,
           updatedAt: item.updatedAt.toISOString(),
           createdAt: item.createdAt.toISOString(),
           cardCount: item.cardCount,

@@ -140,6 +140,7 @@ export class GetLibrariesForUrlUseCase implements UseCase<
             libraryCount: item.card.libraryCount,
             urlLibraryCount: item.card.urlLibraryCount,
             urlInLibrary: item.card.urlInLibrary,
+            visibility: item.card.visibility as 'PUBLIC' | 'PRIVATE' | undefined,
             createdAt: item.card.createdAt.toISOString(),
             updatedAt: item.card.updatedAt.toISOString(),
             author: user, // Card author is same as library user

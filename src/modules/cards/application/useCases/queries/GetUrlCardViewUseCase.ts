@@ -148,6 +148,7 @@ export class GetUrlCardViewUseCase implements UseCase<
             uri: fullCollection.publishedRecordId?.uri,
             description: fullCollection.description?.value,
             accessType: fullCollection.accessType,
+            visibility: fullCollection.visibility,
             authorId: fullCollection.authorId.value,
             cardCount: fullCollection.cardCount,
             createdAt: fullCollection.createdAt.toISOString(),
@@ -200,6 +201,10 @@ export class GetUrlCardViewUseCase implements UseCase<
             name: collection.name,
             description: collection.description,
             accessType: collection.accessType,
+            visibility: collection.visibility as
+              | 'PUBLIC'
+              | 'PRIVATE'
+              | undefined,
             author: {
               id: author.id,
               name: author.name,

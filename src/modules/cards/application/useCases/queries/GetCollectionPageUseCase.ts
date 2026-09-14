@@ -31,6 +31,7 @@ export interface GetCollectionPageResult {
   uri?: string;
   name: string;
   description?: string;
+  visibility?: string;
   author: {
     id: string;
     name: string;
@@ -247,6 +248,7 @@ export class GetCollectionPageUseCase implements UseCase<
         name: collection.name.value,
         description: collection.description?.value,
         accessType: collection.accessType,
+        visibility: collection.visibility,
         author: {
           id: authorProfile.id,
           name: authorProfile.name,

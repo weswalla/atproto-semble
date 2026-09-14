@@ -109,6 +109,7 @@ export class GetCollectionsForUrlUseCase implements UseCase<
             name: item.name,
             description: item.description,
             accessType: item.accessType,
+            visibility: item.visibility as 'PUBLIC' | 'PRIVATE' | undefined,
             author,
             cardCount: item.cardCount,
             createdAt: item.createdAt.toISOString(),
